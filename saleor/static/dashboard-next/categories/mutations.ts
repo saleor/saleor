@@ -32,8 +32,8 @@ export const TypedCategoryDeleteMutation = TypedMutation<
 
 export const categoryCreateMutation = gql`
   ${categoryDetailsFragment}
-  mutation CategoryCreate($input: CategoryInput!) {
-    categoryCreate(input: $input) {
+  mutation CategoryCreate($parent: ID, $input: CategoryInput!) {
+    categoryCreate(parent: $parent, input: $input) {
       errors {
         field
         message

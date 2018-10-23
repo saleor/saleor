@@ -155,7 +155,6 @@ export interface AuthorizationKeyInput {
 export interface CategoryInput {
   description?: string | null;
   name?: string | null;
-  parent?: string | null;
   slug?: string | null;
   seo?: SeoInput | null;
 }

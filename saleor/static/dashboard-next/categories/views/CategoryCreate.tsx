@@ -43,12 +43,12 @@ export const CategoryCreateView: React.StatelessComponent<
                         input: {
                           description: formData.description,
                           name: formData.name,
-                          parent: parentId,
                           seo: {
                             description: formData.seoDescription,
                             title: formData.seoTitle
                           }
-                        }
+                        },
+                        parent: parentId
                       }
                     })
                   }
