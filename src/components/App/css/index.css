@@ -249,7 +249,10 @@ ul {
     font-weight: 500;
   }
   &.btn-primary {
-    border: solid var(--border-width) var(--primaryColor);
+    border-top: solid calc(var(--border-width) * 2) var(--primaryColor);
+    border-bottom: solid calc(var(--border-width) * 2) var(--primaryColor);
+    border-left: solid calc(var(--border-width) * 3) var(--primaryColor);
+    border-right: solid calc(var(--border-width) * 3) var(--primaryColor);
     background: var(--primaryColor);
     color: var(--mobile-background);
     &:hover {
@@ -267,7 +270,6 @@ ul {
     color: var(--body-color);
     &:hover {
       text-decoration: none;
-      border-color: var(--body-color);
       background-color: var(--body-color);
       color: var(--mobile-background);
     }

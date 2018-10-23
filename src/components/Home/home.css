@@ -196,7 +196,7 @@
         }
         & .image {
           width: 60%;
-          height: 35vh;
+          height: 43vh;
           background-size: 100%;
           background-repeat: no-repeat;
           position: relative;
@@ -213,7 +213,7 @@
           }
           & h3 {
             position: absolute;
-            bottom: calc(var(--spacer) * -3);
+            bottom: calc(var(--spacer));
             left: calc(var(--spacer) * -3);
             font-size: calc(var(--font-size-base) * 2.5);
             @media (max-width: 1440px) {
