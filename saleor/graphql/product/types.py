@@ -162,7 +162,7 @@ class ProductVariant(CountableDjangoObjectType):
 
     def resolve_quantity_ordered(self, info):
         # This field is added through annotation when using the
-        # `resolve_top_products` resolver.
+        # `resolve_report_product_sales` resolver.
         return getattr(self, 'quantity_ordered', None)
 
 
