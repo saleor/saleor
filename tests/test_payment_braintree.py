@@ -184,7 +184,7 @@ def test_get_transaction_token(mock_gateway, gateway_config):
     mock_gateway.return_value = Mock(client_token=Mock(generate=mock_generate))
     result = get_transaction_token(**gateway_config)
     mock_gateway.assert_called_once_with(**gateway_config)
-    mock_generate.assert_called_once()
+    mock_generate.assert_called_once_with()
     assert result == transaction_token
 
 

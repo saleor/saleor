@@ -146,7 +146,7 @@ def test_gateway_get_transaction_token(settings):
     module = provider['module']
     with patch('%s.get_transaction_token' % module) as transaction_token_mock:
         gateway_get_transaction_token(provider_name)
-        transaction_token_mock.assert_called_once()
+        transaction_token_mock.assert_called_once_with()
 
 
 def test_gateway_get_transaction_token_not_existing_provider():
