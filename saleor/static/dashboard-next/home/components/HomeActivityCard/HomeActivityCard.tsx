@@ -26,12 +26,12 @@ interface HomeProductListCardProps {
 
 const decorate = withStyles({
   loadingProducts: {
-    paddingBottom: "8px",
-    paddingTop: "7px"
+    paddingBottom: "10px",
+    paddingTop: "10px"
   },
   noProducts: {
-    paddingBottom: "14px",
-    paddingTop: "14px"
+    paddingBottom: "16px",
+    paddingTop: "16px"
   }
 });
 
@@ -73,10 +73,10 @@ const HomeProductListCard = decorate<HomeProductListCardProps>(
               </ListItem>
             ),
             () => (
-              <ListItem dense={false} className={classes.noProducts}>
+              <ListItem className={classes.noProducts}>
                 <ListItemText
                   primary={
-                    <Typography>{i18n.t("No products found")}</Typography>
+                    <Typography>{i18n.t("No activities found")}</Typography>
                   }
                 />
               </ListItem>
