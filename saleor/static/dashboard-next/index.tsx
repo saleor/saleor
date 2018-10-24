@@ -22,6 +22,7 @@ import { DateProvider } from "./components/DateFormatter";
 import { LocaleProvider } from "./components/Locale";
 import { MessageManager } from "./components/messages";
 import ConfigurationSection, { configurationMenu } from "./configuration";
+import { CustomerSection } from "./customers";
 import HomePage from "./home";
 import "./i18n";
 import { NotFound } from "./NotFound";
@@ -114,6 +115,11 @@ render(
                         permissions={[PermissionEnum.MANAGE_PRODUCTS]}
                         path="/collections"
                         component={CollectionSection}
+                      />
+                      <SectionRoute
+                        permissions={[PermissionEnum.MANAGE_USERS]}
+                        path="/customers"
+                        component={CustomerSection}
                       />
                       <SectionRoute
                         permissions={[PermissionEnum.MANAGE_PAGES]}
