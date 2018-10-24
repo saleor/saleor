@@ -1,0 +1,96 @@
+version: '2.3'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.dev
+      args:
+        STATIC_URL: '/static/'
+        HOST_UID: 1000
+        HOST_GID: 100
+    restart: unless-stopped
+    networks:
+      - saleor-backend-tier
+    ports:
+      - 8000:8000
+    volumes:
+      # - .:/app:Z
+      - type: bind
+        source: ./saleor/static
+        target: /app/static
+      - type: bind
+        source: ./templates
+        target: /app/templates
+    env_file: common.env
+    depends_on:
+      - db
+      - redis
+      - search
+    entrypoint: docker-entrypoint.sh
+    command: python manage.py runserver 0.0.0.0:8000
+
+  db:
+    image: library/postgres:latest
+    restart: unless-stopped
+    networks:
+      - saleor-backend-tier
+    volumes:
+      - saleor-db:/var/lib/postgresql
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=saleor
+      - POSTGRES_PASSWORD=saleor
+
+  redis:
+    image: library/redis:latest
+    restart: unless-stopped
+    networks:
+      - saleor-backend-tier
+    volumes:
+      - saleor-redis:/data
+    ports:
+      - 6379:6379
+
+  celery:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args:
+        STATIC_URL: '/static/'
+    command: celery -A saleor worker --app=saleor.celeryconf:app --loglevel=info
+    restart: unless-stopped
+    networks:
+      - saleor-backend-tier
+    volumes:
+      - .:/app:Z
+    env_file: common.env
+    depends_on:
+      - redis
+
+  search:
+    image: elasticsearch:5.4.3
+    restart: unless-stopped
+    networks:
+      - saleor-backend-tier
+    volumes:
+      - saleor-search:/usr/share/elasticsearch/
+    ports:
+      - 9200:9200
+    # See https://github.com/docker/compose/issues/4513 if updating to version '3'
+    mem_limit: 512m
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+
+volumes:
+  saleor-db:
+    driver: local
+  saleor-redis:
+    driver: local
+  saleor-search:
+    driver: local
+
+networks:
+  saleor-backend-tier:
+    driver: bridge

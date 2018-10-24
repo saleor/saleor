@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "allowJs": true,
+        "jsx": "react",
+        "lib": ["es2017", "dom", "esnext"],
+        "sourceMap": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true
+    },
+    "include": ["webpack.d.ts"]
+}
