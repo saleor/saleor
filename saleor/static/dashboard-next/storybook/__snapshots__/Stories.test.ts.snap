@@ -10888,7 +10888,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Add collections
+            Add collection
             <svg
               aria-hidden="true"
               class="MuiSvgIcon-root-id"
@@ -11090,7 +11090,7 @@ exports[`Storyshots Views / Collections / Collection list loading 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Add collections
+            Add collection
             <svg
               aria-hidden="true"
               class="MuiSvgIcon-root-id"
