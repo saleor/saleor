@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 user-scalable=no">
+    <meta name="author" content="Mirumee Labs">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Privacy Policy | Saleor - A GraphQL-first Open Source eCommerce Platform" />
+    <meta name="og:description" content="We respect your privacy and we are transparent in everything we do. Learn all you need to know about the information we collect." />
+    <meta property="og:image" content="<%= htmlWebpackPlugin.options.domainURL + require('../images/og-privacy-policy.jpg') %>" />
+    <link href="//cloud.typenetwork.com/projects/2710/fontface.css/" rel="stylesheet" type="text/css">
+    <% if (htmlWebpackPlugin.options.googleTagManager) { %>
+      <!-- Google Tag Manager -->
+      <script>
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','<%= htmlWebpackPlugin.options.googleTagManager %>');
+      </script>
+      <!-- End Google Tag Manager -->
+    <% } %>
+  </head>
+  <body>
+    <% if (htmlWebpackPlugin.options.googleTagManager) { %>
+      <!-- Google Tag Manager (noscript) -->
+      <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=<%= htmlWebpackPlugin.options.googleTagManager %>"
+        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+      <!-- End Google Tag Manager (noscript) -->
+    <% } %>
+    <div id="root"></div>
+  </body>
+</html>

@@ -1,17 +1,14 @@
 import React from 'react';
-import MetaTags from 'react-meta-tags';
 import { GitHubBanner, ScrollLink } from '..';
-
+import { Helmet } from "react-helmet";
 import css from './roadmap.css';
 
 const Roadmap = (props) => (
-	<div id="roadmap" className="container">
-    <MetaTags>
-      <title>Get Saleor - Roadmap</title>
-      <meta name="description" content="A GraphQL-first eCommerce platform for perfectionists. It is open sourced, PWA ready and stunningly beautiful. Find out why developers love it" />
-      <meta property="og:title" content="Get Saleor - Roadmap" />
-      <meta property="og:image" content="" />
-    </MetaTags>
+	<div id="roadmap" className="container"> 
+    <Helmet>
+      <title>Roadmap | Saleor - A GraphQL-first Open Source eCommerce Platform</title>
+      <meta name="description" content="Read about the long-term goals for Saleor, as well as the notes from all past and upcoming releases. Find out about all the features we have implemented and how they fit the plan." />
+    </Helmet>
     <section className="hero">
       <div className="bg-container"></div>
       <div className="plane">

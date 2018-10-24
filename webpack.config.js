@@ -13,6 +13,9 @@ const AppManifestWebpackPlugin = require('app-manifest-webpack-plugin');
 const sourceDir = path.join(__dirname, './src/');
 const distDir = path.join(__dirname, './dist/');
 
+const devUrl = 'http://localhost:3000';
+const prodUrl = 'https://beta.getsaleor.com';
+
 module.exports = (env, argv) => {
 
   const devMode = argv.mode !== "production";
@@ -112,9 +115,28 @@ module.exports = (env, argv) => {
     plugins: [
       new CleanWebpackPlugin([distDir]),
       new HtmlWebpackPlugin({
-        template: `${sourceDir}index.ejs`,
+        template: `${sourceDir}pages/index.ejs`,
         filename: `${distDir}index.html`,
-        googleTagManager: 'GTM-KL4NB3Z'
+        googleTagManager: 'GTM-KL4NB3Z',
+        domainURL: devMode ? devUrl : prodUrl
+      }),
+      new HtmlWebpackPlugin({
+        template: `${sourceDir}pages/features.ejs`,
+        filename: `${distDir}features.html`,
+        googleTagManager: 'GTM-KL4NB3Z',
+        domainURL: devMode ? devUrl : prodUrl
+      }),
+      new HtmlWebpackPlugin({
+        template: `${sourceDir}pages/roadmap.ejs`,
+        filename: `${distDir}roadmap.html`,
+        googleTagManager: 'GTM-KL4NB3Z',
+        domainURL: devMode ? devUrl : prodUrl
+      }),
+      new HtmlWebpackPlugin({
+        template: `${sourceDir}pages/privacy-policy.ejs`,
+        filename: `${distDir}privacy-policy.html`,
+        googleTagManager: 'GTM-KL4NB3Z',
+        domainURL: devMode ? devUrl : prodUrl
       }),
       new MiniCssExtractPlugin({
         filename: devMode ? 'css/[name].css' : 'css/[name].[contenthash].css',

@@ -4,7 +4,7 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { Link } from 'react-router-dom';
 import { GitHubLink } from '..';
 import { isMobileOnly } from 'react-device-detect';
-import MetaTags from 'react-meta-tags';
+import { Helmet } from "react-helmet";
 
 import Fade from 'react-reveal/Fade';
 
@@ -34,6 +34,7 @@ import patchGarden from '../../images/implementation-patchGarden.jpg';
 import patchGardenX2 from '../../images/implementation-patchGarden-2x.jpg';
 import patchGardenX3 from '../../images/implementation-patchGarden-3x.jpg';
 import timKalic from '../../images/pg-quote.png';
+import ogImage from '../../images/og-homepage.jpg';
 
 class Home extends Component {
   constructor(props) {
@@ -53,12 +54,10 @@ class Home extends Component {
   render() {
     return (
         <div id="home" className="container">
-          <MetaTags>
-            <title>Get Saleor - Homepage</title>
-            <meta name="description" content="A GraphQL-first eCommerce platform for perfectionists. It is open sourced, PWA ready and stunningly beautiful. Find out why developers love it" />
-            <meta property="og:title" content="Get Saleor - Homepage" />
-            <meta property="og:image" content="" />
-          </MetaTags>
+          <Helmet>
+            <title>A GraphQL-first Open Source eCommerce Platform | Saleor</title>
+            <meta name="description" content="A GraphQL-first eCommerce platform for perfectionists. It is open sourced, PWA-ready and looks beautiful. Find out why developers love it." />
+          </Helmet>
           <section className="hero">
             <div className="bg-container"></div>
             <div className="plane">

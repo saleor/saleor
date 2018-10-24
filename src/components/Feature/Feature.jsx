@@ -1,8 +1,8 @@
 import React from 'react';
 import { ScrollLink } from '..';
 import { GitHubBanner } from '..';
+import { Helmet } from "react-helmet";
 import ReactSVG from 'react-svg';
-import MetaTags from 'react-meta-tags';
 
 import css from './feature.css';
 
@@ -32,14 +32,11 @@ import analytics from '../../images/analytics.svg';
 
 const Feature = () => (
   <div>
-    
     <div id="feature" className="container">
-      <MetaTags>
-        <title>Get Saleor - Features</title>
-        <meta name="description" content="A GraphQL-first eCommerce platform for perfectionists. It is open sourced, PWA ready and stunningly beautiful. Find out why developers love it" />
-        <meta property="og:title" content="Get Saleor - Features" />
-        <meta property="og:image" content="" />
-      </MetaTags>
+      <Helmet>
+        <title>Features | Saleor - A GraphQL-first Open Source eCommerce Platform</title>
+        <meta name="description" content="Headless commerce with GraphQL. Take advantage of the robust API, customize your storefront, easily prepare for GDPR, and enjoy a host of other features." />
+      </Helmet>
       <section className="hero">
         <div className="feature bg-container"></div>
         <div className="plane">
