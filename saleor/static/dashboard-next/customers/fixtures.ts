@@ -1,4 +1,6 @@
 import { ListCustomers_customers_edges_node } from "./types/ListCustomers";
+import { CustomerDetails_user } from "./types/CustomerDetails";
+import { PaymentStatusEnum } from "../types/globalTypes";
 
 export const customers = [
   {
@@ -674,7 +676,6 @@ export const customers = [
     note: "Dolorem vitae."
   }
 ];
-export const customer = customers[0];
 
 export const customerList: ListCustomers_customers_edges_node[] = [
   {
@@ -894,3 +895,83 @@ export const customerList: ListCustomers_customers_edges_node[] = [
     }
   }
 ];
+export const customer: CustomerDetails_user = {
+  __typename: "User",
+  defaultBillingAddress: {
+    __typename: "Address",
+    city: "Port Danielshire",
+    cityArea: "",
+    companyName: "",
+    country: {
+      __typename: "CountryDisplay",
+      code: "SE",
+      country: "Szwecja"
+    },
+    countryArea: "",
+    firstName: "Elizabeth",
+    id: "QWRkcmVzczoy",
+    lastName: "Vaughn",
+    phone: "",
+    postalCode: "52203",
+    streetAddress1: "419 Ruiz Orchard Apt. 199",
+    streetAddress2: ""
+  },
+  defaultShippingAddress: {
+    __typename: "Address",
+    city: "Port Danielshire",
+    cityArea: "",
+    companyName: "",
+    country: {
+      __typename: "CountryDisplay",
+      code: "SE",
+      country: "Szwecja"
+    },
+    countryArea: "",
+    firstName: "Elizabeth",
+    id: "QWRkcmVzczoy",
+    lastName: "Vaughn",
+    phone: "",
+    postalCode: "52203",
+    streetAddress1: "419 Ruiz Orchard Apt. 199",
+    streetAddress2: ""
+  },
+  email: "elizabeth.vaughn@example.com",
+  id: "VXNlcjoy",
+  isActive: true,
+  lastPlacedOrder: {
+    __typename: "OrderCountableConnection",
+    edges: [
+      {
+        __typename: "OrderCountableEdge",
+        node: {
+          __typename: "Order",
+          created: "2018-09-11T09:37:30.124154+00:00",
+          id: "T3JkZXI6MTk="
+        }
+      }
+    ]
+  },
+  note: null,
+  orders: {
+    __typename: "OrderCountableConnection",
+    edges: [
+      {
+        __typename: "OrderCountableEdge",
+        node: {
+          __typename: "Order",
+          created: "2018-09-11T09:37:30.124154+00:00",
+          id: "T3JkZXI6MTk=",
+          paymentStatus: PaymentStatusEnum.CONFIRMED,
+          total: {
+            __typename: "TaxedMoney",
+            gross: {
+              __typename: "Money",
+              amount: 1215.89,
+              currency: "USD"
+            }
+          }
+        }
+      }
+    ]
+  }
+};

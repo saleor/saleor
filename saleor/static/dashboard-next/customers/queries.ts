@@ -41,30 +41,38 @@ export const TypedCustomerListQuery = TypedQuery<
 
 const customerDetails = gql`
   ${fragmentAddress}
-  query CustomerDetails($id: ID!, $lastOrders: Int!) {
+  query CustomerDetails($id: ID!) {
     user(id: $id) {
-      defaultBillingAddress {
-        ...AddressFragment
-      }
+      id
+      email
       defaultShippingAddress {
         ...AddressFragment
       }
-      email
-      id
-      isActive
+      defaultBillingAddress {
+        ...AddressFragment
+      }
       note
-      orders(last: $lastOrders) {
+      isActive
+      orders(last: 5) {
         edges {
           node {
-            created
             id
-            number
+            created
+            paymentStatus
             total {
               gross {
-                amount
                 currency
+                amount
               }
             }
+          }
+        }
+      }
+      lastPlacedOrder: orders(last: 1) {
+        edges {
+          node {
+            id
+            created
           }
         }
       }
