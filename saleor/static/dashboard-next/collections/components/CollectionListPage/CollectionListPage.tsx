@@ -26,7 +26,7 @@ const CollectionListPage: React.StatelessComponent<CollectionListPageProps> = ({
         variant="contained"
         onClick={onAdd}
       >
-        {i18n.t("Add collections", { context: "button" })}
+        {i18n.t("Add collection", { context: "button" })}
         <AddIcon />
       </Button>
     </PageHeader>
