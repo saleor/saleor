@@ -302,7 +302,6 @@ def create_variant(product, **kwargs):
     defaults = {
         'product': product,
         'quantity': fake.random_int(1, 50),
-        'quantity_allocated': fake.random_int(1, 50),
         'weight': fake.weight() if random.randint(0, 1) else None}
     defaults.update(kwargs)
     variant = ProductVariant(**defaults)
