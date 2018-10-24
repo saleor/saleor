@@ -893,7 +893,7 @@ def is_fully_paid(cart: Cart):
 
 
 def ready_to_place_order(cart: Cart, taxes, discounts):
-    #FIXME test me
+    # FIXME test me
     if cart.is_shipping_required():
         if not cart.shipping_method:
             return False, pgettext_lazy(

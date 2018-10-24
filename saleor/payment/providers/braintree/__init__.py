@@ -99,8 +99,8 @@ def extract_gateway_response(braintree_result) -> Dict:
     # in the API
     gateway_response = {
         'currency_iso_code': bt_transaction.currency_iso_code,
-        'amount': bt_transaction.amount,
-        'created_at': bt_transaction.created_at,
+        'amount': str(bt_transaction.amount),  # Decimal type
+        'created_at': str(bt_transaction.created_at),  # datetime type
         'credit_card': bt_transaction.credit_card,
         'additional_processor_response': bt_transaction.additional_processor_response,  # noqa
         'gateway_rejection_reason': bt_transaction.gateway_rejection_reason,
