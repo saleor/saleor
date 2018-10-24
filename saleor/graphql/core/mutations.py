@@ -7,6 +7,7 @@ from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
 from graphql_jwt import ObtainJSONWebToken, Verify
 from graphql_jwt.exceptions import JSONWebTokenError, PermissionDenied
+from textwrap import dedent
 
 from ...account import models
 from ..account.types import User
@@ -49,6 +50,7 @@ class BaseMutation(graphene.Mutation):
     def __init_subclass_with_meta__(cls, description=None, **options):
         if not description:
             raise ImproperlyConfigured('No description provided in Meta')
+        description = dedent(description)
         super().__init_subclass_with_meta__(description=description, **options)
 
     @classmethod

@@ -1,4 +1,5 @@
 import graphene
+from textwrap import dedent
 
 from ...dashboard.shipping.forms import default_shipping_zone_exists
 from ...shipping import models
@@ -37,9 +38,9 @@ class ShippingZoneInput(graphene.InputObjectType):
         graphene.String,
         description='List of countries in this shipping zone.')
     default = graphene.Boolean(
-        description="""
+        description=dedent("""
             Is default shipping zone, that will be used
-            for countries not covered by other zones.""")
+            for countries not covered by other zones."""))
 
 
 class ShippingZoneMixin:
