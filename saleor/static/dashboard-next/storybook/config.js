@@ -39,6 +39,7 @@ function loadStories() {
   require("./stories/categories/CategoryListPage");
 
   // Collections
+  require("./stories/collections/CollectionCreatePage");
   require("./stories/collections/CollectionDetailsPage");
   require("./stories/collections/CollectionListPage");
 
