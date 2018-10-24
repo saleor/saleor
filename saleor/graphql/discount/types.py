@@ -1,6 +1,7 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from graphene import relay
+from textwrap import dedent
 
 from ..core.fields import PrefetchingConnectionField
 from ...discount import DiscountValueType, VoucherType, models
@@ -26,10 +27,10 @@ class Voucher(CountableDjangoObjectType):
         model_field='products')
 
     class Meta:
-        description = """
+        description = dedent("""
         Vouchers allow giving discounts to particular customers on categories,
         collections or specific products. They can be used during checkout by
-        providing valid voucher codes."""
+        providing valid voucher codes.""")
         interfaces = [relay.Node]
         model = models.Voucher
 
@@ -61,9 +62,9 @@ class Sale(CountableDjangoObjectType):
         model_field='products')
 
     class Meta:
-        description = """
+        description = dedent("""
         Sales allow creating discounts for categories, collections or
-        products and are visible to all the customers."""
+        products and are visible to all the customers.""")
         interfaces = [relay.Node]
         model = models.Sale
 

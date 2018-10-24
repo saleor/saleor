@@ -1,5 +1,6 @@
 import graphene
 from django.utils.text import slugify
+from textwrap import dedent
 
 from ...page import models
 from ..core.mutations import ModelDeleteMutation, ModelMutation
@@ -11,8 +12,8 @@ class PageInput(graphene.InputObjectType):
     slug = graphene.String(description='Page internal name.')
     title = graphene.String(description='Page title.')
     content = graphene.String(
-        description="""Page content.
-        May consists of ordinary text, HTML and images.""")
+        description=dedent("""Page content.
+        May consists of ordinary text, HTML and images."""))
     is_visible = graphene.Boolean(
         description='Determines if page is visible in the storefront')
     available_on = graphene.String(

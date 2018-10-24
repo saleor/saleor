@@ -4,6 +4,7 @@ import graphene
 from graphene_django import DjangoObjectType
 from saleor.core.permissions import MODELS_PERMISSIONS
 from saleor.graphql.core.utils import str_to_enum
+from textwrap import dedent
 
 from ....core import weight
 from ..connection import CountableConnection
@@ -52,9 +53,9 @@ class CountableDjangoObjectType(DjangoObjectType):
 
 class Error(graphene.ObjectType):
     field = graphene.String(
-        description="""Name of a field that caused the error. A value of
+        description=dedent("""Name of a field that caused the error. A value of
         `null` indicates that the error isn't associated with a particular
-        field.""", required=False)
+        field."""), required=False)
     message = graphene.String(description='The error message.')
 
     class Meta:
