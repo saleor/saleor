@@ -8,36 +8,25 @@ export const shop: (placeholderImage: string) => HomePageProps = (
       action: "published",
       admin: false,
       date: "2018-09-10T13:22:24.376193+00:00",
-      elementName: "Cool socks",
-      id: "1",
-      newElement: "collection",
-      user: "user1234"
+      id: "1"
     },
     {
       action: "published",
       admin: false,
       date: "2018-10-18T13:22:24.376193+00:00",
-      elementName: "books",
-      id: "2",
-      newElement: "category",
-      user: "user4321"
+      id: "2"
     },
     {
       action: "created",
       admin: false,
       date: "2018-09-19T13:22:24.376193+00:00",
-      elementName: "Smooth jazz",
-      id: "3",
-      newElement: "collection",
-      user: "user1432"
+      id: "3"
     },
     {
       action: "added",
       admin: true,
       date: "2018-09-20T13:22:24.376193+00:00",
-      id: "4",
-      newElement: "user",
-      user: "user9977"
+      id: "4"
     }
   ],
   daily: {

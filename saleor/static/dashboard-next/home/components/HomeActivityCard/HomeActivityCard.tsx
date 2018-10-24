@@ -17,10 +17,7 @@ interface HomeProductListCardProps {
     action: string;
     admin: boolean;
     date: string;
-    elementName?: string;
     id: string;
-    newElement: string;
-    user: string;
   }>;
 }
 
@@ -52,11 +49,8 @@ const HomeProductListCard = decorate<HomeProductListCardProps>(
                         dangerouslySetInnerHTML={{
                           __html: activity.admin
                             ? i18n.t(`Saleor shop admin 
-                        ${activity.action} ${activity.newElement}: 
-                        ${activity.user}`)
-                            : i18n.t(`
-                        ${activity.user} ${activity.action} a 
-                        ${activity.newElement}: ${activity.elementName}
+                        ${activity.action}`)
+                            : i18n.t(`${activity.action} a 
                         `)
                         }}
                       />
