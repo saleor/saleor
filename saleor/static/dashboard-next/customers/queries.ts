@@ -1,12 +1,12 @@
 import gql from "graphql-tag";
 
+import { fragmentAddress } from "../orders/queries";
 import { TypedQuery } from "../queries";
 import {
   CustomerDetails,
   CustomerDetailsVariables
 } from "./types/CustomerDetails";
 import { ListCustomers, ListCustomersVariables } from "./types/ListCustomers";
-import { fragmentAddress } from "../orders/queries";
 
 const customerList = gql`
   query ListCustomers(
