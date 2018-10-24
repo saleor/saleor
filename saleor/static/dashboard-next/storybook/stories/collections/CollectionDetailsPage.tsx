@@ -1,37 +1,48 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import * as placeholderImage from "../../../../placeholders/products-list/summer.jpg";
-import { storefrontUrl } from "../../../collections";
-import CollectionDetailsPage from "../../../collections/components/CollectionDetailsPage";
-import { collections as collectionsFixture } from "../../../collections/fixtures";
+import * as placeholderCollectionImage from "../../../../images/block1.jpg";
+import * as placeholderProductImage from "../../../../images/placeholder60x60.png";
+import CollectionDetailsPage, {
+  CollectionDetailsPageProps
+} from "../../../collections/components/CollectionDetailsPage";
+import { collection as collectionFixture } from "../../../collections/fixtures";
+import { pageListProps } from "../../../fixtures";
 import Decorator from "../../Decorator";
 
-const collection = collectionsFixture(placeholderImage)[0];
-const callbacks = {
-  onBack: undefined,
-  onDelete: undefined,
-  onImageRemove: undefined,
-  onNextPage: undefined,
-  onPreviousPage: undefined,
-  onProductAdd: undefined,
-  onProductClick: () => undefined,
-  onProductRemove: () => undefined,
-  onShow: undefined,
-  onSubmit: () => undefined,
-  storefrontUrl
+const collection = collectionFixture(
+  placeholderCollectionImage,
+  placeholderProductImage
+);
+
+const props: CollectionDetailsPageProps = {
+  ...pageListProps.default,
+  collection,
+  disabled: false,
+  isFeatured: true,
+  onBack: () => undefined,
+  onCollectionRemove: () => undefined,
+  onImageDelete: () => undefined,
+  onImageUpload: () => undefined,
+  onSubmit: () => undefined
 };
 
 storiesOf("Views / Collections / Collection details", module)
   .addDecorator(Decorator)
-  .add("default", () => (
-    <CollectionDetailsPage
-      disabled={false}
-      collection={collection}
-      products={collection.products.edges.map(edge => edge.node)}
-      {...callbacks}
-    />
+  .add("default", () => <CollectionDetailsPage {...props} />)
+  .add("loading", () => (
+    <CollectionDetailsPage {...props} collection={undefined} disabled={true} />
   ))
-  .add("when loading", () => (
-    <CollectionDetailsPage disabled={true} {...callbacks} />
+  .add("no products", () => (
+    <CollectionDetailsPage
+      {...props}
+      collection={{
+        ...collection,
+        products: {
+          ...collection.products,
+          edges: []
+        }
+      }}
+      disabled={true}
+    />
   ));

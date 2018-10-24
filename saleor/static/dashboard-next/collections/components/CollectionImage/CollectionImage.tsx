@@ -5,25 +5,23 @@ import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import AddPhotoIcon from "@material-ui/icons/AddAPhoto";
-
 import CardTitle from "../../../components/CardTitle";
 import ImageTile from "../../../components/ImageTile";
+import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
+import { CollectionDetails_collection_backgroundImage } from "../../types/CollectionDetails";
 
-interface CategoryBackgroundProps {
+export interface CollectionImageProps {
+  image: CollectionDetails_collection_backgroundImage;
   onImageDelete: () => void;
-  placeholderImage: string;
-  backgroundImage: {
-    url: string;
-  };
-  onImageUpload(event: React.ChangeEvent<any>);
+  onImageUpload: (event: React.ChangeEvent<any>) => void;
 }
 
 const decorate = withStyles(theme => ({
   PhotosIcon: {
-    height: 64,
+    height: "64px",
     margin: "0 auto",
-    width: 64
+    width: "64px"
   },
   PhotosIconContainer: {
     margin: `${theme.spacing.unit * 5}px 0`,
@@ -50,10 +48,9 @@ const decorate = withStyles(theme => ({
     width: 148
   }
 }));
-
-export const CategoryBackground = decorate(
-  class CategoryBackgroundComponent extends React.Component<
-    CategoryBackgroundProps &
+export const CollectionImage = decorate(
+  class CollectionImageComponent extends React.Component<
+    CollectionImageProps &
       WithStyles<
         | "PhotosIcon"
         | "PhotosIconContainer"
@@ -68,13 +65,7 @@ export const CategoryBackground = decorate(
     clickImgInput = () => this.imgInputAnchor.current.click();
 
     render() {
-      const {
-        classes,
-        onImageUpload,
-        backgroundImage,
-        placeholderImage,
-        onImageDelete
-      } = this.props;
+      const { classes, onImageUpload, image, onImageDelete } = this.props;
       return (
         <Card>
           <CardTitle
@@ -99,21 +90,18 @@ export const CategoryBackground = decorate(
             }
           />
           <CardContent>
-            {backgroundImage === undefined ? (
+            {image === undefined ? (
               <div>
                 <div className={classes.imageContainer}>
-                  <img className={classes.image} src={placeholderImage} />
+                  <Skeleton />
                 </div>
               </div>
-            ) : backgroundImage === null ? (
+            ) : image === null ? (
               <div className={classes.PhotosIconContainer}>
                 <AddPhotoIcon className={classes.PhotosIcon} />
               </div>
             ) : (
-              <ImageTile
-                image={backgroundImage}
-                onImageDelete={onImageDelete}
-              />
+              <ImageTile image={image} onImageDelete={onImageDelete} />
             )}
           </CardContent>
         </Card>
@@ -122,4 +110,4 @@ export const CategoryBackground = decorate(
   }
 );
 
-export default CategoryBackground;
+export default CollectionImage;

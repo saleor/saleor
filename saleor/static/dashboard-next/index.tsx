@@ -17,6 +17,7 @@ import LoginLoading from "./auth/components/LoginLoading/LoginLoading";
 import SectionRoute from "./auth/components/SectionRoute";
 import { hasPermission } from "./auth/misc";
 import CategorySection from "./categories";
+import CollectionSection from "./collections";
 import { DateProvider } from "./components/DateFormatter";
 import { LocaleProvider } from "./components/Locale";
 import { MessageManager } from "./components/messages";
@@ -108,6 +109,11 @@ render(
                         permissions={[PermissionEnum.MANAGE_PRODUCTS]}
                         path="/categories"
                         component={CategorySection}
+                      />
+                      <SectionRoute
+                        permissions={[PermissionEnum.MANAGE_PRODUCTS]}
+                        path="/collections"
+                        component={CollectionSection}
                       />
                       <SectionRoute
                         permissions={[PermissionEnum.MANAGE_PAGES]}
@@ -216,5 +222,5 @@ export interface MutationProviderProps {
   onError?: (error: ApolloError) => void;
 }
 export type MutationProviderRenderProps<T> = (
-  props: T & { errors: UserError[] }
+  props: T & { errors?: UserError[] }
 ) => React.ReactElement<any>;

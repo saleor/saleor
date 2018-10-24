@@ -4,7 +4,6 @@ import * as React from "react";
 import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
 import EditIcon from "@material-ui/icons/Edit";
-import { ProductDetails_product_images_edges_node } from "../../products/types/ProductDetails";
 
 const decorate = withStyles(theme => ({
   image: {
@@ -45,24 +44,25 @@ const decorate = withStyles(theme => ({
 }));
 
 interface ImageTileProps {
-  image: ProductDetails_product_images_edges_node;
-  deleteIcon: boolean;
-  editIcon: boolean;
+  image: {
+    alt?: string;
+    url: string;
+  };
   onImageDelete?: () => void;
-  onImageEdit: (event: React.ChangeEvent<any>) => void;
+  onImageEdit?: (event: React.ChangeEvent<any>) => void;
 }
 
 const ImageTile = decorate<ImageTileProps>(
-  ({ classes, onImageDelete, onImageEdit, image, editIcon, deleteIcon }) => (
+  ({ classes, onImageDelete, onImageEdit, image }) => (
     <div className={classes.imageContainer}>
       <div className={classes.imageOverlay}>
         <div className={classes.imageOverlayToolbar}>
-          {editIcon && (
+          {onImageEdit && (
             <IconButton color="secondary" onClick={onImageEdit}>
               <EditIcon />
             </IconButton>
           )}
-          {deleteIcon && (
+          {onImageDelete && (
             <IconButton color="secondary" onClick={onImageDelete}>
               <DeleteIcon />
             </IconButton>

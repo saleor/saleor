@@ -115,8 +115,6 @@ const decorate = withStyles(theme => ({
 const SortableImage = SortableElement(({ image, onImageEdit, toggle }) => (
   <ImageTile
     image={image}
-    deleteIcon={true}
-    editIcon={true}
     onImageEdit={onImageEdit ? () => onImageEdit(image.id) : undefined}
     onImageDelete={toggle}
   />
