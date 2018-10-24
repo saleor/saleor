@@ -16,14 +16,11 @@ interface MoneyType {
   currency: string;
 }
 export interface HomePageProps {
-  activities?: Array<{
+  activities: Array<{
     action: string;
     admin: boolean;
     date: string;
-    elementName?: string;
     id: string;
-    newElement: string;
-    user: string;
   }>;
   daily: {
     orders: {
@@ -69,47 +66,45 @@ const decorate = withStyles(theme => ({
   }
 }));
 const HomePage = decorate<HomePageProps>(
-  ({ userName, classes, daily, topProducts, onProductClick, activities }) => {
-    return (
-      <Container width="md">
-        <HomeHeader userName={userName} />
-        <CardSpacer />
-        <div className={classes.root}>
-          <div>
-            <div className={classes.cardContainer}>
-              <HomeAnalyticsCard
-                title={"Sales"}
-                icon={<AttachMoney fontSize={"inherit"} />}
-              >
-                {daily && daily.sales ? (
-                  <Money
-                    amount={daily.sales.amount}
-                    currency={daily.sales.currency}
-                  />
-                ) : (
-                  undefined
-                )}
-              </HomeAnalyticsCard>
-              <HomeAnalyticsCard
-                title={"Orders"}
-                icon={<LocalShipping fontSize={"inherit"} />}
-              >
-                {daily && daily.orders ? daily.orders.amount : undefined}
-              </HomeAnalyticsCard>
-            </div>
+  ({ userName, classes, daily, topProducts, onProductClick, activities }) => (
+    <Container width="md">
+      <HomeHeader userName={userName} />
+      <CardSpacer />
+      <div className={classes.root}>
+        <div>
+          <div className={classes.cardContainer}>
+            <HomeAnalyticsCard
+              title={"Sales"}
+              icon={<AttachMoney fontSize={"inherit"} />}
+            >
+              {daily && daily.sales ? (
+                <Money
+                  amount={daily.sales.amount}
+                  currency={daily.sales.currency}
+                />
+              ) : (
+                undefined
+              )}
+            </HomeAnalyticsCard>
+            <HomeAnalyticsCard
+              title={"Orders"}
+              icon={<LocalShipping fontSize={"inherit"} />}
+            >
+              {daily && daily.orders ? daily.orders.amount : undefined}
+            </HomeAnalyticsCard>
+          </div>
 
-            <HomeProductListCard
-              onRowClick={onProductClick}
-              topProducts={topProducts}
-            />
-            <CardSpacer />
-          </div>
-          <div>
-            <HomeActivityCard activities={activities} />
-          </div>
+          <HomeProductListCard
+            onRowClick={onProductClick}
+            topProducts={topProducts}
+          />
+          <CardSpacer />
         </div>
-      </Container>
-    );
-  }
+        <div>
+          <HomeActivityCard activities={activities} />
+        </div>
+      </div>
+    </Container>
+  )
 );
 export default HomePage;
