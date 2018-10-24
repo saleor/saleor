@@ -4,10 +4,13 @@ Heroku
 Configuration
 -------------
 
+Within the repo, git should already be initialized. All you have to do now is add the `heroku` remote with your `app-name`
+
 .. code-block:: console
 
- $ heroku create --buildpack https://github.com/heroku/heroku-buildpack-nodejs.git
- $ heroku buildpacks:add https://github.com/heroku/heroku-buildpack-python.git
+ $ heroku git:remote -a 'app-name'
+ $ heroku buildpacks:set heroku/nodejs
+ $ heroku buildpacks:add heroku/python
  $ heroku addons:create heroku-postgresql:hobby-dev
  $ heroku addons:create heroku-redis:hobby-dev
  $ heroku addons:create sendgrid:starter
