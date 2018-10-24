@@ -29,9 +29,9 @@ class CategoryCreate(ModelMutation):
         input = CategoryInput(
             required=True, description='Fields required to create a category.')
         parent_id = graphene.ID(
-            description='''
+            description=dedent('''
                 ID of the parent category. If empty, category will be top level
-                category.''', name='parent')
+                category.'''), name='parent')
 
     class Meta:
         description = 'Creates a new category.'
