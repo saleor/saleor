@@ -28,7 +28,7 @@ const Footer = () => (
                     <li><h4>Solution</h4></li>
                     <li><NavLink to="/features">Features</NavLink></li>
                     <li><NavLink to="/roadmap">Roadmap</NavLink></li>
-                    <li><a href="https://saleor.readthedocs.io/en/latest/">Docs</a></li>
+                    <li><a href="https://docs.getsaleor.com">Docs</a></li>
                     <li><a href="https://demo.getsaleor.com/en/">Demo</a></li>
                   </ul>
                 </div>

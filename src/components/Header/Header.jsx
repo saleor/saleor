@@ -84,7 +84,7 @@ class Header extends Component {
                 <li><span className="count">01. </span><NavLink exact to="/" onClick={this.closeMenu}>Home</NavLink></li>
                 <li className="underline"><span className="count">02. </span><NavLink to="/features" onClick={this.closeMenu}>Features</NavLink></li>
                 <li className="underline"><span className="count">03. </span><NavLink to="/roadmap" onClick={this.closeMenu}>Roadmap</NavLink></li>
-                <li className="underline"><span className="count">04. </span><a href="https://saleor.readthedocs.io/en/latest/" target="_blank" rel="noopener">Docs</a></li>
+                <li className="underline"><span className="count">04. </span><a href="https://docs.getsaleor.com" target="_blank" rel="noopener">Docs</a></li>
                 <li className="underline"><span className="count">05. </span><a href="https://medium.com/saleor" target="_blank" rel="noopener">Blog</a></li>
                 <li className="github-link"><GitHubLink owner="mirumee" name="saleor" /></li>
                 <li><span className="count">06. </span><a className={this.state.mobileMenu ? null : 'contactBtn'} href="https://mirumee.com/hire-us/">Contact Us</a></li>
