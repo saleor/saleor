@@ -50,7 +50,7 @@ const CustomerAddresses = decorate<CustomerAddressesProps>(
         <>
           <CardContent>
             <Typography className={classes.label}>
-              {i18n.t("Default shipping address")}
+              {i18n.t("Default billing address")}
             </Typography>
             <AddressFormatter
               address={maybe(() => customer.defaultBillingAddress)}

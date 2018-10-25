@@ -29,7 +29,11 @@ const CustomerStats = decorate<CustomerStatsProps>(({ classes, customer }) => (
       {maybe(
         () => (
           <Typography variant="title" className={classes.value}>
-            <DateFormatter date={customer.lastLogin} />
+            {customer.lastLogin === null ? (
+              i18n.t("Never")
+            ) : (
+              <DateFormatter date={customer.lastLogin} />
+            )}
           </Typography>
         ),
         <Skeleton />
@@ -41,9 +45,13 @@ const CustomerStats = decorate<CustomerStatsProps>(({ classes, customer }) => (
       {maybe(
         () => (
           <Typography variant="title" className={classes.value}>
-            <DateFormatter
-              date={customer.lastPlacedOrder.edges[0].node.created}
-            />
+            {customer.lastPlacedOrder.edges.length === 0 ? (
+              i18n.t("No orders yet")
+            ) : (
+              <DateFormatter
+                date={customer.lastPlacedOrder.edges[0].node.created}
+              />
+            )}
           </Typography>
         ),
         <Skeleton />
