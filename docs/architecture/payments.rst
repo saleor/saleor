@@ -10,7 +10,7 @@ It's meant to allow developers to easily simulate different payment results.
 Supported payment providers:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* Braintree
+* Braintree (supports PayPal and Credit Cards)
 
 For how-to guide on adding new payments into your Saleor project please check :ref:`adding-payments`
 

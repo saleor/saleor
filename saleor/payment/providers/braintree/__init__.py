@@ -153,7 +153,6 @@ def authorize(
     except braintree_sdk.exceptions.NotFoundError:
         return transaction_and_incorrect_token_error(
             payment, type=TransactionType.AUTH, token=transaction_token)
-
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
     txn = create_transaction(
@@ -172,10 +171,10 @@ def capture(
         **connection_params: Dict) -> Tuple[Transaction, str]:
     gateway = get_gateway(**connection_params)
     auth_transaction = payment.transactions.filter(
-        transaction_type=TransactionType.AUTH).first()
+        transaction_type=TransactionType.AUTH, is_success=True).first()
     try:
         result = gateway.transaction.submit_for_settlement(
-            transaction_token=auth_transaction.token, amount=str(amount))
+            transaction_id=auth_transaction.token, amount=str(amount))
     except braintree_sdk.exceptions.NotFoundError:
         return transaction_and_incorrect_token_error(
             payment,
@@ -201,7 +200,7 @@ def void(
         **connection_params: Dict) -> Tuple[Transaction, str]:
     gateway = get_gateway(**connection_params)
     auth_transaction = payment.transactions.filter(
-        transaction_type=TransactionType.AUTH).first()
+        transaction_type=TransactionType.AUTH, is_success=True).first()
     try:
         result = gateway.transaction.void(
             transaction_token=auth_transaction.token)
@@ -227,7 +226,7 @@ def refund(
         **connection_params: Dict) -> Tuple[Transaction, str]:
     gateway = get_gateway(**connection_params)
     capture_txn = payment.transactions.filter(
-        transaction_type=TransactionType.CAPTURE).first()
+        transaction_type=TransactionType.CAPTURE, is_success=True).first()
     try:
         result = gateway.transaction.refund(
             transaction_token=capture_txn.token,

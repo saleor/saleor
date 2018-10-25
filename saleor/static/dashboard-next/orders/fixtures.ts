@@ -2,8 +2,8 @@ import {
   FulfillmentStatus,
   OrderEvents,
   OrderStatus,
-  PaymentChargeStatusEnum,
-  OrderAction
+  OrderAction,
+  PaymentChargeStatusEnum
 } from "../types/globalTypes";
 import { transformOrderStatus, transformPaymentStatus } from "./";
 import { OrderDetails_order } from "./types/OrderDetails";

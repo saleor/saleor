@@ -2,6 +2,7 @@ from decimal import Decimal
 
 import pytest
 
+from django.conf import settings
 from django.urls import reverse
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
@@ -368,7 +369,7 @@ def test_order_queryset_to_ship():
     ]
     for order in orders_to_ship:
         order.payments.create(
-            variant='default', charge_status=ChargeStatus.CHARGED,
+            variant=settings.DUMMY, charge_status=ChargeStatus.CHARGED,
             total=order.total.gross, captured_amount=order.total_gross)
 
     orders_not_to_ship = [
@@ -446,13 +447,14 @@ def test_order_payment_flow(
 
     # Select payment
     url = reverse('order:payment', kwargs={'token': order.token})
-    data = {'method': 'default'}
+    data = {'variant': settings.DUMMY}
     response = client.post(url, data, follow=True)
 
     assert len(response.redirect_chain) == 1
     assert response.status_code == 200
     redirect_url = reverse(
-        'order:payment', kwargs={'token': order.token, 'variant': 'default'})
+        'order:payment',
+        kwargs={'token': order.token, 'variant': settings.DUMMY})
     assert response.request['PATH_INFO'] == redirect_url
 
     # Go to payment details page, enter payment data

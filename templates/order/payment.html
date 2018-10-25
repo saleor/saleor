@@ -52,7 +52,7 @@
               <p>{% trans "Current status:" context "Payment status text" %}
                 <br>
                 <span class="label label-default">
-                {{ waiting_payment.get_status_display }}
+                {{ waiting_payment.get_charge_status_display }}
                 </span>
               </p>
               <p>{%  blocktrans trimmed context "Payment pending text" %}

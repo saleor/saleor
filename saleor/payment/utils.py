@@ -77,7 +77,6 @@ def create_transaction(
         gateway_response: Optional[Dict] = None) -> Transaction:
     if not gateway_response:
         gateway_response = {}
-
     txn, _ = Transaction.objects.get_or_create(
         payment=payment,
         token=token,
