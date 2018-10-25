@@ -23,9 +23,16 @@ THREE_D_SECURE_REQUIRED = False
 # FIXME: Provide list of visible errors and messages translations
 # FIXME: We should also store universal visible errors for all payment
 # gateways, and parse gateway-specific errors to this unified version
-ERROR_CODES_WHITELIST = [
-    '91506',  # Cannot refund transaction unless it is settled.
-]
+
+# Error codes whitelist should be a dict of code: error_msg_override
+# if no error_msg_override is provided,
+# then error message returned by the gateway will be used
+ERROR_CODES_WHITELIST = {
+    '91506': """
+        Cannot refund transaction unless it is settled.
+        Please try again later. Settlement time might vary depending
+        on the issuers bank.""",
+}
 
 
 def get_customer_data(payment: Payment) -> Dict:
@@ -57,7 +64,7 @@ def get_error_for_client(errors: List) -> str:
         'Unable to process transaction. Please try again in a moment')
     for error in errors:
         if error['code'] in ERROR_CODES_WHITELIST:
-            return error['message']
+            return ERROR_CODES_WHITELIST[error['code'] or error['message']
     return default_msg
 
 
