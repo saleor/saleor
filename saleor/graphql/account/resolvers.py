@@ -16,14 +16,16 @@ def resolve_customers(info, query):
     qs = models.User.objects.filter(
         Q(is_staff=False) | (Q(is_staff=True) & Q(orders__isnull=False))
     ).prefetch_related('addresses')
-    return filter_by_query_param(
+    qs = filter_by_query_param(
         queryset=qs, query=query, search_fields=USER_SEARCH_FIELDS)
+    return qs.distinct()
 
 
 def resolve_staff_users(info, query):
     qs = models.User.objects.filter(is_staff=True)
-    return filter_by_query_param(
+    qs = filter_by_query_param(
         queryset=qs, query=query, search_fields=USER_SEARCH_FIELDS)
+    return qs.distinct()
 
 
 def resolve_address_validator(info, input):
