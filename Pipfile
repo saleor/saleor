@@ -62,6 +62,8 @@ uwsgi = {version = ">=2.0.0", platform_system = "!= 'Windows'"}
 celery = {version = "*", extras = ["redis"]}
 weasyprint = ">=0.42.2"
 graphene-django-optimizer = "*"
+google-cloud = "==0.34.* "
+google-cloud-storage = "==1.10.*"
 
 [dev-packages]
 pytest = "*"
