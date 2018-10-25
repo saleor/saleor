@@ -204,13 +204,13 @@ export interface OrderFulfillmentCancel_orderFulfillmentCancel_order_total {
   tax: OrderFulfillmentCancel_orderFulfillmentCancel_order_total_tax;
 }
 
-export interface OrderFulfillmentCancel_orderFulfillmentCancel_order_authorizedAmount {
+export interface OrderFulfillmentCancel_orderFulfillmentCancel_order_totalAuthorized {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderFulfillmentCancel_orderFulfillmentCancel_order_capturedAmount {
+export interface OrderFulfillmentCancel_orderFulfillmentCancel_order_totalCaptured {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -253,8 +253,8 @@ export interface OrderFulfillmentCancel_orderFulfillmentCancel_order {
   subtotal: OrderFulfillmentCancel_orderFulfillmentCancel_order_subtotal | null;
   total: OrderFulfillmentCancel_orderFulfillmentCancel_order_total | null;
   actions: (OrderAction | null)[];
-  authorizedAmount: OrderFulfillmentCancel_orderFulfillmentCancel_order_authorizedAmount;
-  capturedAmount: OrderFulfillmentCancel_orderFulfillmentCancel_order_capturedAmount;
+  totalAuthorized: OrderFulfillmentCancel_orderFulfillmentCancel_order_totalAuthorized;
+  totalCaptured: OrderFulfillmentCancel_orderFulfillmentCancel_order_totalCaptured;
   user: OrderFulfillmentCancel_orderFulfillmentCancel_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderFulfillmentCancel_orderFulfillmentCancel_order_availableShippingMethods | null)[] | null;

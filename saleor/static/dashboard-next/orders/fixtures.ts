@@ -744,7 +744,7 @@ export const order = (placeholder: string): OrderDetails_order => ({
     OrderAction.REFUND,
     OrderAction.VOID
   ],
-  authorizedAmount: {
+  totalAuthorized: {
     __typename: "Money",
     amount: 234.93,
     currency: "USD"
@@ -800,7 +800,7 @@ export const order = (placeholder: string): OrderDetails_order => ({
     streetAddress1: "487 Roberto Shores",
     streetAddress2: ""
   },
-  capturedAmount: {
+  totalCaptured: {
     __typename: "Money",
     amount: 0,
     currency: "USD"
@@ -1014,10 +1014,10 @@ export const order = (placeholder: string): OrderDetails_order => ({
 });
 export const draftOrder = (placeholder: string) => ({
   __typename: "Order" as "Order",
-  authorizedAmount: null,
+  totalAuthorized: null,
   availableShippingMethods: null,
   billingAddress: null,
-  capturedAmount: null,
+  totalCaptured: null,
   created: "2018-09-20T23:23:39.811428+00:00",
   events: [],
   fulfillments: [],

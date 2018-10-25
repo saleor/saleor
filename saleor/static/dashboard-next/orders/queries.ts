@@ -131,11 +131,11 @@ export const fragmentOrderDetails = gql`
       }
     }
     actions
-    authorizedAmount {
+    totalAuthorized {
       amount
       currency
     }
-    capturedAmount {
+    totalCaptured {
       amount
       currency
     }

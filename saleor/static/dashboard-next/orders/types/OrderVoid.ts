@@ -198,13 +198,13 @@ export interface OrderVoid_orderVoid_order_total {
   tax: OrderVoid_orderVoid_order_total_tax;
 }
 
-export interface OrderVoid_orderVoid_order_authorizedAmount {
+export interface OrderVoid_orderVoid_order_totalAuthorized {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderVoid_orderVoid_order_capturedAmount {
+export interface OrderVoid_orderVoid_order_totalCaptured {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -247,8 +247,8 @@ export interface OrderVoid_orderVoid_order {
   subtotal: OrderVoid_orderVoid_order_subtotal | null;
   total: OrderVoid_orderVoid_order_total | null;
   actions: (OrderAction | null)[];
-  authorizedAmount: OrderVoid_orderVoid_order_authorizedAmount;
-  capturedAmount: OrderVoid_orderVoid_order_capturedAmount;
+  totalAuthorized: OrderVoid_orderVoid_order_totalAuthorized;
+  totalCaptured: OrderVoid_orderVoid_order_totalCaptured;
   user: OrderVoid_orderVoid_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderVoid_orderVoid_order_availableShippingMethods | null)[] | null;

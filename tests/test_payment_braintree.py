@@ -106,7 +106,6 @@ def test_get_customer_data(payment_dummy):
     assert result == expected_result
 
 
-
 def test_get_error_for_client(braintree_error, monkeypatch):
     # no error
     assert get_error_for_client([]) == ''
@@ -115,13 +114,18 @@ def test_get_error_for_client(braintree_error, monkeypatch):
 
     # error not whitelisted
     monkeypatch.setattr(
-        'saleor.payment.providers.braintree.ERROR_CODES_WHITELIST', [])
+        'saleor.payment.providers.braintree.ERROR_CODES_WHITELIST', {})
     assert get_error_for_client([error]) == DEFAULT_ERROR
 
     monkeypatch.setattr(
         'saleor.payment.providers.braintree.ERROR_CODES_WHITELIST',
-        [braintree_error.code])
+        {braintree_error.code: ''})
     assert get_error_for_client([error]) == braintree_error.message
+
+    monkeypatch.setattr(
+        'saleor.payment.providers.braintree.ERROR_CODES_WHITELIST',
+        {braintree_error.code: 'Error msg override'})
+    assert get_error_for_client([error]) == 'Error msg override'
 
 
 def test_extract_gateway_response(braintree_success_response):

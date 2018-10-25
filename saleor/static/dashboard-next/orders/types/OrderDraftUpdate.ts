@@ -204,13 +204,13 @@ export interface OrderDraftUpdate_draftOrderUpdate_order_total {
   tax: OrderDraftUpdate_draftOrderUpdate_order_total_tax;
 }
 
-export interface OrderDraftUpdate_draftOrderUpdate_order_authorizedAmount {
+export interface OrderDraftUpdate_draftOrderUpdate_order_totalAuthorized {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderDraftUpdate_draftOrderUpdate_order_capturedAmount {
+export interface OrderDraftUpdate_draftOrderUpdate_order_totalCaptured {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -253,8 +253,8 @@ export interface OrderDraftUpdate_draftOrderUpdate_order {
   subtotal: OrderDraftUpdate_draftOrderUpdate_order_subtotal | null;
   total: OrderDraftUpdate_draftOrderUpdate_order_total | null;
   actions: (OrderAction | null)[];
-  authorizedAmount: OrderDraftUpdate_draftOrderUpdate_order_authorizedAmount;
-  capturedAmount: OrderDraftUpdate_draftOrderUpdate_order_capturedAmount;
+  totalAuthorized: OrderDraftUpdate_draftOrderUpdate_order_totalAuthorized;
+  totalCaptured: OrderDraftUpdate_draftOrderUpdate_order_totalCaptured;
   user: OrderDraftUpdate_draftOrderUpdate_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderDraftUpdate_draftOrderUpdate_order_availableShippingMethods | null)[] | null;

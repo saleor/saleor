@@ -64,7 +64,7 @@ def get_error_for_client(errors: List) -> str:
         'Unable to process transaction. Please try again in a moment')
     for error in errors:
         if error['code'] in ERROR_CODES_WHITELIST:
-            return ERROR_CODES_WHITELIST[error['code'] or error['message']
+            return ERROR_CODES_WHITELIST[error['code']] or error['message']
     return default_msg
 
 

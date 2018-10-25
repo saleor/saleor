@@ -204,13 +204,13 @@ export interface OrderRefund_orderRefund_order_total {
   tax: OrderRefund_orderRefund_order_total_tax;
 }
 
-export interface OrderRefund_orderRefund_order_authorizedAmount {
+export interface OrderRefund_orderRefund_order_totalAuthorized {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderRefund_orderRefund_order_capturedAmount {
+export interface OrderRefund_orderRefund_order_totalCaptured {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -253,8 +253,8 @@ export interface OrderRefund_orderRefund_order {
   subtotal: OrderRefund_orderRefund_order_subtotal | null;
   total: OrderRefund_orderRefund_order_total | null;
   actions: (OrderAction | null)[];
-  authorizedAmount: OrderRefund_orderRefund_order_authorizedAmount;
-  capturedAmount: OrderRefund_orderRefund_order_capturedAmount;
+  totalAuthorized: OrderRefund_orderRefund_order_totalAuthorized;
+  totalCaptured: OrderRefund_orderRefund_order_totalCaptured;
   user: OrderRefund_orderRefund_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderRefund_orderRefund_order_availableShippingMethods | null)[] | null;

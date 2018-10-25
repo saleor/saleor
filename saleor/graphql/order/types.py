@@ -4,7 +4,6 @@ from graphene import relay
 
 from ...order import OrderEvents, OrderEventsEmails, models
 from ...product.templatetags.product_images import get_thumbnail
-from ...shipping import models as shipping_models
 from ..account.types import User
 from ..core.fields import PrefetchingConnectionField
 from ..core.types.common import CountableDjangoObjectType
@@ -198,7 +197,7 @@ class Order(CountableDjangoObjectType):
             OrderEvent,
             description='List of events associated with the order.'),
         model_field='events')
-    balance_amount = graphene.Field(
+    total_balance = graphene.Field(
         Money,
         description='''The difference between the paid and the order total
         amount.''', required=True)
@@ -206,6 +205,9 @@ class Order(CountableDjangoObjectType):
         required=False, description='Email address of the customer.')
     is_shipping_required = graphene.Boolean(
         description='Returns True, if order requires shipping.')
+    lines = graphene.List(
+        OrderLine, required=True,
+        description='List of order lines for the order')
 
     class Meta:
         description = 'Represents an order in the shop.'
@@ -255,10 +257,10 @@ class Order(CountableDjangoObjectType):
         payment = obj.get_last_payment()
         if payment:
             return payment.captured_amount
-    @staticmethod
-    def resolve_balance_amount(obj, info):
-        return obj.balance_amount
 
+    @staticmethod
+    def resolve_total_balance(obj, info):
+        return obj.total_balance
 
     @staticmethod
     def resolve_fulfillments(obj, info):
@@ -308,10 +310,6 @@ class Order(CountableDjangoObjectType):
         from .resolvers import resolve_shipping_methods
         return resolve_shipping_methods(
             obj, info, obj.get_subtotal().gross.amount)
-
-    @staticmethod
-    def resolve_lines(obj, info):
-        return obj.lines.all()
 
     def resolve_is_shipping_required(self, info):
         return self.is_shipping_required()

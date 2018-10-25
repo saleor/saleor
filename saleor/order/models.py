@@ -256,7 +256,7 @@ class Order(models.Model):
         return zero_money()
 
     @property
-    def balance_amount(self):
+    def total_balance(self):
         return self.captured_amount - self.total.gross
 
     def get_total_weight(self):
