@@ -343,18 +343,12 @@ PAYMENT_HOST = get_host
 
 PAYMENT_MODEL = 'order.Payment'
 
-PAYMENT_VARIANTS = {
-    'default': ('payments.dummy.DummyProvider', {})}
-
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 
 # Do not use cached session if locmem cache backend is used but fallback to use
 # default django.contrib.sessions.backends.db instead
 if not CACHES['default']['BACKEND'].endswith('LocMemCache'):
     SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
-
-CHECKOUT_PAYMENT_CHOICES = [
-    ('default', 'Dummy provider')]
 
 MESSAGE_TAGS = {
     messages.ERROR: 'danger'}
@@ -549,12 +543,17 @@ SERIALIZATION_MODULES = {
     'json': 'saleor.core.utils.json_serializer'}
 
 
+DUMMY = 'dummy'
+BRAINTREE = 'braintree'
+CHECKOUT_PAYMENT_CHOICES = {
+    DUMMY: pgettext_lazy('Payment method name', 'Dummy provider')
+}
+
 PAYMENT_PROVIDERS = {
-    'dummy': {
+    DUMMY: {
         'module': 'saleor.payment.providers.dummy',
         'connection_params': {}},
-
-    'braintree': {
+    BRAINTREE: {
         'module': 'saleor.payment.providers.braintree',
         'connection_params': {
             'sandbox_mode': get_bool_from_env('BRAINTREE_SANDBOX_MODE', True),
@@ -567,9 +566,10 @@ PAYMENT_PROVIDERS = {
 if not DEBUG:
     PROVIDER_PATH = '%(module)s/__init__.py'
     for provider, data in PAYMENT_PROVIDERS.items():
+        if provider not in CHECKOUT_PAYMENT_CHOICES.keys():
+            continue
         if 'module' not in data or 'connection_params' not in data:
             raise ImproperlyConfigured('Payment provider misconfigured.')
-
         module_path = {'module': data['module'].replace('.', '/')}
         payment_provider_file_exists = os.path.isfile(
             PROVIDER_PATH % {'module': module_path})

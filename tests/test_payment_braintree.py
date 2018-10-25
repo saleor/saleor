@@ -129,8 +129,8 @@ def test_extract_gateway_response(braintree_success_response):
     t = braintree_success_response.transaction
     expected_result = {
         'currency_iso_code': t.currency_iso_code,
-        'amount': t.amount,
-        'created_at': t.created_at,
+        'amount': str(t.amount),
+        'created_at': str(t.created_at),
         'credit_card': t.credit_card,
         'additional_processor_response': t.additional_processor_response,
         'gateway_rejection_reason': t.gateway_rejection_reason,
@@ -339,7 +339,7 @@ def test_capture(
     auth_txn = payment.transactions.filter(
         transaction_type=TransactionType.AUTH).first()
     mock_response.assert_called_once_with(
-        amount=str(amount), transaction_token=auth_txn.token)
+        amount=str(amount), transaction_id=auth_txn.token)
 
 
 @pytest.mark.integration

@@ -22,7 +22,7 @@ from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.taxes import ZERO_TAXED_MONEY
 from ..core.weight import WeightUnits, zero_weight
 from ..discount.models import Voucher
-from ..payment import ChargeStatus
+from ..payment import ChargeStatus, TransactionType
 from ..shipping.models import ShippingMethod
 
 
@@ -179,10 +179,9 @@ class Order(models.Model):
         # FIXME for Braintree, payment is preauthorized if it was added
         # properly and set to active. This might need to be adjusted for other
         # payment gateways in the future.
-        for payment in self.payments.all():
-            if payment.is_active:
-                return True
-        return False
+        return self.payments.filter(
+            is_active=True,
+            transactions__transaction_type=TransactionType.AUTH).exists()
 
     @property
     def quantity_fulfilled(self):

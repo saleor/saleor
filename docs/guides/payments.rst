@@ -187,8 +187,8 @@ Returns
 | ``transaction_token`` | `str`         | Unique transaction's token that will be used on the purpose of completing the payment process.            |
 +-----------------------+---------------+-----------------------------------------------------------------------------------------------------------+
 
-Enabling new payment provider in the settings
----------------------------------------------
+Adding new payment provider in the settings
+-------------------------------------------
 
 .. code-block:: python
 
@@ -224,3 +224,9 @@ Please take a moment to consider the example settings above.
     All payment backends default to using sandbox mode.
     This is very useful for development but make sure you use
     production mode when deploying to a production server.
+
+Enabling new payment provider
+-----------------------------
+
+Last but not least, if you want to enable your payment provider in the checkout
+process, add it's name to the ``CHECKOUT_PAYMENT_CHOICES`` setting.

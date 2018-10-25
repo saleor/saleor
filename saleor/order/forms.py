@@ -7,12 +7,16 @@ from ..payment import can_be_voided
 from ..payment.models import Payment
 from .models import Order
 
+PAYMENT_CHOICES = [
+    (k, v) for k, v in settings.CHECKOUT_PAYMENT_CHOICES.items()]
+
 
 class PaymentsForm(forms.Form):
-    method = forms.ChoiceField(
-        label=pgettext_lazy('Payments form label', 'Method'),
-        choices=settings.CHECKOUT_PAYMENT_CHOICES, widget=forms.RadioSelect,
-        initial=settings.CHECKOUT_PAYMENT_CHOICES[0][0])
+    variant = forms.ChoiceField(
+        label=pgettext_lazy('Payments form label', 'Payment Method'),
+        choices=PAYMENT_CHOICES,
+        initial=PAYMENT_CHOICES[0][0],
+        widget=forms.RadioSelect)
 
 
 class PaymentDeleteForm(forms.Form):
@@ -25,8 +29,7 @@ class PaymentDeleteForm(forms.Form):
     def clean(self):
         cleaned_data = super().clean()
         payment_id = cleaned_data.get('payment_id')
-        payment = Payment.objects.filter(is_active=True).first(
-            id=payment_id)
+        payment = Payment.objects.filter(is_active=True, id=payment_id).first()
         if not payment:
             self._errors['number'] = self.error_class([
                 pgettext_lazy(

@@ -59,9 +59,18 @@ def test_get_billing_data(order):
     assert get_billing_data(order) == {}
 
 
-def test_get_provider_non_existing_name():
+def test_get_provider_not_allowed_checkout_choice(settings):
+    provider = 'example-provider'
+    settings.CHECKOUT_PAYMENT_CHOICES = {}
+    with pytest.raises(ValueError):
+        get_provider(provider)
+
+
+def test_get_provider_non_existing_name(settings):
+    provider = 'example-provider'
+    settings.CHECKOUT_PAYMENT_CHOICES = {provider: 'Example provider'}
     with pytest.raises(ImproperlyConfigured):
-        get_provider('Non existing provider')
+        get_provider(provider)
 
 
 def test_get_provider(settings):
@@ -111,10 +120,10 @@ def test_validate_payment():
         test_function(non_active_payment)
 
 
-def test_create_payment():
-    data = {'variant': 'default'}
+def test_create_payment(settings):
+    data = {'variant': settings.DUMMY}
     payment = create_payment(**data)
-    assert payment.variant == 'default'
+    assert payment.variant == settings.DUMMY
 
     same_payment = create_payment(**data)
     assert payment == same_payment
@@ -149,9 +158,18 @@ def test_gateway_get_transaction_token(settings):
         transaction_token_mock.assert_called_once_with()
 
 
-def test_gateway_get_transaction_token_not_existing_provider():
+def test_gateway_get_transaction_token_not_allowed_provider(settings):
+    provider = 'example-provider'
+    settings.CHECKOUT_PAYMENT_CHOICES = {}
+    with pytest.raises(ValueError):
+        gateway_get_transaction_token(provider)
+
+
+def test_gateway_get_transaction_token_not_existing_provider(settings):
+    provider = 'example-provider'
+    settings.CHECKOUT_PAYMENT_CHOICES = {provider: 'Example provider'}
     with pytest.raises(ImproperlyConfigured):
-        gateway_get_transaction_token('Non existent provider')
+        gateway_get_transaction_token(provider)
 
 
 @pytest.mark.parametrize(

@@ -15,8 +15,8 @@ from . import FulfillmentStatus
 from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
-from ..payment import ChargeStatus
-from ..payment.forms import PaymentForm
+from ..payment import ChargeStatus, TransactionType, get_provider, PaymentError
+from ..payment.forms import get_form_for_payment
 from ..payment.models import Payment
 from ..payment.utils import get_billing_data
 from .forms import (
@@ -57,12 +57,12 @@ def payment(request, token):
     order = get_object_or_404(orders, token=token)
     payments = order.payments.all()
     form_data = request.POST or None
-    try:
-        waiting_payment = payments.filter(
-            is_active=True,
-            charge_status=ChargeStatus.NOT_CHARGED).get()
-    except Payment.DoesNotExist:
-        waiting_payment = None
+
+    waiting_payment = payments.filter(
+        is_active=True,
+        charge_status=ChargeStatus.NOT_CHARGED,
+        transactions__transaction_type=TransactionType.AUTH).first()
+    if not waiting_payment:
         waiting_payment_form = None
     else:
         form_data = None
@@ -75,7 +75,7 @@ def payment(request, token):
         payment_form = PaymentsForm(form_data)
         # FIXME: redirect if there is only one payment
         if payment_form.is_valid():
-            payment = payment_form.cleaned_data['method']
+            payment = payment_form.cleaned_data['variant']
             return redirect(
                 'order:payment', token=order.token, variant=payment)
     ctx = {
@@ -91,22 +91,31 @@ def start_payment(request, order, variant):
         'total': order.total.gross,
         'customer_ip_address': get_client_ip(request),
         **get_billing_data(order)}
-    variant_choices = settings.CHECKOUT_PAYMENT_CHOICES
-    if variant not in [code for code, dummy_name in variant_choices]:
+    if variant not in settings.CHECKOUT_PAYMENT_CHOICES.keys():
         raise Http404('%r is not a valid payment variant' % (variant,))
     with transaction.atomic():
-        # FIXME: temporary solution, should be adapted to new API
         payment, _ = Payment.objects.get_or_create(
-            variant=variant, is_active=True, order=order, defaults=defaults)
-        form = PaymentForm(
-            data=request.POST or None, instance=payment)
-        form.method = "POST"
-        if form.is_valid():
-            form.save()
-            form.authorize_payment()
+            variant=variant, is_active=True, order=order, defaults=defaults,
+            total=order.total.gross)
+        if (
+                order.is_fully_paid()
+                or payment.charge_status == ChargeStatus.FULLY_REFUNDED):
             return redirect(order.get_absolute_url())
+        provider, provider_params = get_provider(payment.variant)
+        transaction_token = provider.get_transaction_token(**provider_params)
+        form = get_form_for_payment(payment)
+        form = form(data=request.POST or None, instance=payment)
+        if form.is_valid():
+            try:
+                form.process_payment()
+            except PaymentError as exc:
+                form.add_error(None, exc.message)
+            else:
+                return redirect(order.get_absolute_url())
     template = 'order/payment/%s.html' % variant
-    ctx = {'form': form, 'payment': payment}
+    ctx = {
+        'form': form, 'payment': payment,
+        'transaction_token': transaction_token, 'order': order}
     return TemplateResponse(
         request, [template, 'order/payment/default.html'], ctx)
 
