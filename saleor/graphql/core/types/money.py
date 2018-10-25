@@ -1,6 +1,7 @@
+from textwrap import dedent
+
 import graphene
 from django_prices.templatetags import prices_i18n
-from textwrap import dedent
 
 from ....core import TaxRateType as TaxRates
 from ..utils import str_to_enum

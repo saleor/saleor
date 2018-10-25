@@ -1,7 +1,8 @@
+from textwrap import dedent
+
 import graphene
 import graphql_jwt
 from graphql_jwt.decorators import login_required, permission_required
-from textwrap import dedent
 
 from .account.mutations import (
     CustomerCreate, CustomerDelete, CustomerUpdate, CustomerPasswordReset,

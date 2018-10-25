@@ -1,5 +1,6 @@
-import graphene
 from textwrap import dedent
+
+import graphene
 
 from ...dashboard.shipping.forms import default_shipping_zone_exists
 from ...shipping import models
