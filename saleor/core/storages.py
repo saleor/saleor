@@ -1,6 +1,6 @@
 from django.conf import settings
-from storages.backends.s3boto3 import S3Boto3Storage
 from storages.backends.gcloud import GoogleCloudStorage
+from storages.backends.s3boto3 import S3Boto3Storage
 
 
 class S3MediaStorage(S3Boto3Storage):
