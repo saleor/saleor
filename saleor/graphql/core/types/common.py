@@ -50,14 +50,6 @@ class CountableDjangoObjectType(DjangoObjectType):
         super().__init_subclass_with_meta__(
             *args, connection=countable_conn, **kwargs)
 
-    @classmethod
-    def get_node(cls, info, id):
-        # Custom `get_node` implementation to use gql_optimizer to fetch
-        # single objects.
-        qs = cls._meta.model.objects.filter(pk=id)
-        qs = gql_optimizer.query(qs, info)
-        return qs[0] if qs else None
-
 
 class Error(graphene.ObjectType):
     field = graphene.String(
