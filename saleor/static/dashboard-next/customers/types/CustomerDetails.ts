@@ -66,6 +66,7 @@ export interface CustomerDetails_user_orders_edges_node {
   __typename: "Order";
   id: string;
   created: any;
+  number: string | null;
   paymentStatus: PaymentStatusEnum | null;
   total: CustomerDetails_user_orders_edges_node_total | null;
 }
@@ -100,6 +101,8 @@ export interface CustomerDetails_user {
   __typename: "User";
   id: string;
   email: string;
+  dateJoined: any;
+  lastLogin: any | null;
   defaultShippingAddress: CustomerDetails_user_defaultShippingAddress | null;
   defaultBillingAddress: CustomerDetails_user_defaultBillingAddress | null;
   note: string | null;

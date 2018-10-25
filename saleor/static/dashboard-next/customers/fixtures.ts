@@ -897,6 +897,7 @@ export const customerList: ListCustomers_customers_edges_node[] = [
 ];
 export const customer: CustomerDetails_user = {
   __typename: "User",
+  dateJoined: "2017-05-07T09:37:30.124154+00:00",
   defaultBillingAddress: {
     __typename: "Address",
     city: "Port Danielshire",
@@ -938,6 +939,7 @@ export const customer: CustomerDetails_user = {
   email: "elizabeth.vaughn@example.com",
   id: "VXNlcjoy",
   isActive: true,
+  lastLogin: "2018-05-07T09:37:30.124154+00:00",
   lastPlacedOrder: {
     __typename: "OrderCountableConnection",
     edges: [
@@ -945,7 +947,7 @@ export const customer: CustomerDetails_user = {
         __typename: "OrderCountableEdge",
         node: {
           __typename: "Order",
-          created: "2018-09-11T09:37:30.124154+00:00",
+          created: "2018-05-07T09:37:30.124154+00:00",
           id: "T3JkZXI6MTk="
         }
       }
@@ -959,8 +961,9 @@ export const customer: CustomerDetails_user = {
         __typename: "OrderCountableEdge",
         node: {
           __typename: "Order",
-          created: "2018-09-11T09:37:30.124154+00:00",
+          created: "2018-05-07T09:37:30.124154+00:00",
           id: "T3JkZXI6MTk=",
+          number: "8234",
           paymentStatus: PaymentStatusEnum.CONFIRMED,
           total: {
             __typename: "TaxedMoney",
