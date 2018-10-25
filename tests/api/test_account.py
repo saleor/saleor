@@ -97,6 +97,8 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
             orders {
                 totalCount
             }
+            dateJoined
+            lastLogin
             defaultShippingAddress {
                 firstName
                 lastName
