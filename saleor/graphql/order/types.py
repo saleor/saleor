@@ -204,6 +204,8 @@ class Order(CountableDjangoObjectType):
         amount.''', required=True)
     user_email = graphene.String(
         required=False, description='Email address of the customer.')
+    is_shipping_required = graphene.Boolean(
+        description='Returns True, if order requires shipping.')
 
     class Meta:
         description = 'Represents an order in the shop.'
@@ -310,3 +312,6 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_lines(obj, info):
         return obj.lines.all()
+
+    def resolve_is_shipping_required(self, info):
+        return self.is_shipping_required()

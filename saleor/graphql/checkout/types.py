@@ -51,6 +51,8 @@ class Checkout(CountableDjangoObjectType):
     available_shipping_methods = graphene.List(
         ShippingMethod, required=False,
         description='Shipping methods that can be used with this order.')
+    is_shipping_required = graphene.Boolean(
+        description='Returns True, if checkout requires shipping.')
 
     class Meta:
         description = 'Checkout object'
@@ -78,3 +80,6 @@ class Checkout(CountableDjangoObjectType):
         price = self.get_subtotal(
             taxes=taxes, discounts=info.context.discounts)
         return resolve_shipping_methods(self, info, price.gross.amount)
+
+    def resolve_is_shipping_required(self, info):
+        return self.is_shipping_required()
