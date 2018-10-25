@@ -21,9 +21,10 @@ from .resolvers import (
     resolve_attributes, resolve_categories, resolve_collections,
     resolve_products, resolve_product_types, resolve_product_variants,
     resolve_report_product_sales)
+from .scalars import AttributeScalar
 from .types import (
-    Category, Collection, Product, Attribute, AttributeScalar, ProductType,
-    ProductVariant, StockAvailability)
+    Category, Collection, Product, Attribute, ProductType, ProductVariant,
+    StockAvailability)
 
 
 class ProductQueries(graphene.ObjectType):
