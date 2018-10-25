@@ -86,10 +86,9 @@ def extract_gateway_response(braintree_result) -> Dict:
     """Extract data from Braintree response that will be stored locally."""
     errors = []
     if not braintree_result.is_success:
-        errors = [{
-            'code': error.code,
-            'message': error.message}
-                  for error in braintree_result.errors.deep_errors]
+        errors = [
+            {'code': error.code, 'message': error.message}
+            for error in braintree_result.errors.deep_errors]
     bt_transaction = braintree_result.transaction
     if not bt_transaction:
         return {'errors': errors}

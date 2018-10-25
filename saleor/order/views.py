@@ -15,7 +15,7 @@ from . import FulfillmentStatus
 from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
-from ..payment import ChargeStatus, TransactionType, get_provider, PaymentError
+from ..payment import ChargeStatus, PaymentError, TransactionType, get_provider
 from ..payment.forms import get_form_for_payment
 from ..payment.models import Payment
 from ..payment.utils import get_billing_data

@@ -301,6 +301,7 @@ type Checkout implements Node {
   subtotalPrice: TaxedMoney
   shippingPrice: TaxedMoney
   availableShippingMethods: [ShippingMethod]
+  isShippingRequired: Boolean
 }
 
 type CheckoutBillingAddressUpdate {
@@ -972,6 +973,7 @@ type Order implements Node {
   authorizedAmount: Money!
   balanceAmount: Money!
   capturedAmount: Money!
+  isShippingRequired: Boolean
 }
 
 enum OrderAction {
