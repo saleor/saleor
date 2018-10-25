@@ -1339,35 +1339,35 @@ type ProductVariantUpdate {
 type Query {
   attributes(query: String, inCategory: ID, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
   categories(query: String, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
-  category(id: ID): Category
-  collection(id: ID): Collection
+  category(id: ID!): Category
+  collection(id: ID!): Collection
   collections(query: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
-  product(id: ID): Product
+  product(id: ID!): Product
   products(attributes: [AttributeScalar], category: ID, priceLte: Float, priceGte: Float, sortBy: String, query: String, stockAvailability: StockAvailability, before: String, after: String, first: Int, last: Int): ProductCountableConnection
-  productType(id: ID): ProductType
+  productType(id: ID!): ProductType
   productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
-  productVariant(id: ID): ProductVariant
+  productVariant(id: ID!): ProductVariant
   productVariants(ids: [ID], before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   reportProductSales(period: ReportingPeriod!, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   addressValidator(input: AddressValidationInput!): AddressValidationData
   menu(id: ID, name: String): Menu
   menus(query: String, before: String, after: String, first: Int, last: Int): MenuCountableConnection
-  menuItem(id: ID): MenuItem
+  menuItem(id: ID!): MenuItem
   menuItems(query: String, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
-  order(id: ID): Order
+  order(id: ID!): Order
   ordersTotal(period: ReportingPeriod): TaxedMoney
   orders(query: String, created: ReportingPeriod, status: OrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
   page(id: ID, slug: String): Page
   pages(query: String, before: String, after: String, first: Int, last: Int): PageCountableConnection
-  sale(id: ID): Sale
+  sale(id: ID!): Sale
   sales(query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
   shop: Shop
-  voucher(id: ID): Voucher
+  voucher(id: ID!): Voucher
   vouchers(query: String, before: String, after: String, first: Int, last: Int): VoucherCountableConnection
-  shippingZone(id: ID): ShippingZone
+  shippingZone(id: ID!): ShippingZone
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
-  user(id: ID): User
+  user(id: ID!): User
   customers(query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
   staffUsers(query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
   node(id: ID!): Node

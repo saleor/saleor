@@ -85,8 +85,8 @@ export interface OrderCapture_orderCapture_order_fulfillments_lines_edges_node_o
 export interface OrderCapture_orderCapture_order_fulfillments_lines_edges_node {
   __typename: "FulfillmentLine";
   id: string;
-  orderLine: OrderCapture_orderCapture_order_fulfillments_lines_edges_node_orderLine | null;
   quantity: number;
+  orderLine: OrderCapture_orderCapture_order_fulfillments_lines_edges_node_orderLine | null;
 }
 
 export interface OrderCapture_orderCapture_order_fulfillments_lines_edges {

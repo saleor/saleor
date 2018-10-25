@@ -33,7 +33,7 @@ def resolve_attributes(info, category_id, query):
         qs = qs.filter(
             Q(product_type__in=product_types)
             | Q(product_variant_type__in=product_types))
-        qs = qs.distinct()
+    qs = qs.distinct()
     return gql_optimizer.query(qs, info)
 
 

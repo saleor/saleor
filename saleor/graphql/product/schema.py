@@ -38,17 +38,17 @@ class ProductQueries(graphene.ObjectType):
         level=graphene.Argument(graphene.Int),
         description='List of the shop\'s categories.')
     category = graphene.Field(
-        Category, id=graphene.Argument(graphene.ID),
+        Category, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup a category by ID.')
     collection = graphene.Field(
-        Collection, id=graphene.Argument(graphene.ID),
+        Collection, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup a collection by ID.')
     collections = PrefetchingConnectionField(
         Collection, query=graphene.String(
             description=DESCRIPTIONS['collection']),
         description='List of the shop\'s collections.')
     product = graphene.Field(
-        Product, id=graphene.Argument(graphene.ID),
+        Product, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup a product by ID.')
     products = PrefetchingConnectionField(
         Product,
@@ -66,12 +66,12 @@ class ProductQueries(graphene.ObjectType):
             description='Filter products by the stock availability'),
         description='List of the shop\'s products.')
     product_type = graphene.Field(
-        ProductType, id=graphene.Argument(graphene.ID),
+        ProductType, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup a product type by ID.')
     product_types = PrefetchingConnectionField(
         ProductType, description='List of the shop\'s product types.')
     product_variant = graphene.Field(
-        ProductVariant, id=graphene.Argument(graphene.ID),
+        ProductVariant, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup a variant by ID.')
     product_variants = PrefetchingConnectionField(
         ProductVariant, ids=graphene.List(graphene.ID),

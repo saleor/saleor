@@ -64,14 +64,14 @@ class Query(ProductQueries):
         Menu, query=graphene.String(description=DESCRIPTIONS['menu']),
         description="List of the shop\'s menus.")
     menu_item = graphene.Field(
-        MenuItem, id=graphene.Argument(graphene.ID),
+        MenuItem, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup a menu item by ID.')
     menu_items = PrefetchingConnectionField(
         MenuItem, query=graphene.String(description=DESCRIPTIONS['menu_item']),
         description='List of the shop\'s menu items.')
     order = graphene.Field(
         Order, description='Lookup an order by ID.',
-        id=graphene.Argument(graphene.ID))
+        id=graphene.Argument(graphene.ID, required=True))
     orders_total = graphene.Field(
         TaxedMoney, description='Total sales.',
         period=graphene.Argument(
@@ -97,25 +97,25 @@ class Query(ProductQueries):
             description=DESCRIPTIONS['page']),
         description='List of the shop\'s pages.')
     sale = graphene.Field(
-        Sale, id=graphene.Argument(graphene.ID),
+        Sale, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup a sale by ID.')
     sales = PrefetchingConnectionField(
         Sale, query=graphene.String(description=DESCRIPTIONS['sale']),
         description="List of the shop\'s sales.")
     shop = graphene.Field(Shop, description='Represents a shop resources.')
     voucher = graphene.Field(
-        Voucher, id=graphene.Argument(graphene.ID),
+        Voucher, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup a voucher by ID.')
     vouchers = PrefetchingConnectionField(
         Voucher, query=graphene.String(description=DESCRIPTIONS['product']),
         description="List of the shop\'s vouchers.")
     shipping_zone = graphene.Field(
-        ShippingZone, id=graphene.Argument(graphene.ID),
+        ShippingZone, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup a shipping zone by ID.')
     shipping_zones = PrefetchingConnectionField(
         ShippingZone, description='List of the shop\'s shipping zones.')
     user = graphene.Field(
-        User, id=graphene.Argument(graphene.ID),
+        User, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup an user by ID.')
     customers = PrefetchingConnectionField(
         User, description='List of the shop\'s users.',

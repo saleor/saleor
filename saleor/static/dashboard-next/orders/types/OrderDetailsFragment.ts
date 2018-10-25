@@ -79,8 +79,8 @@ export interface OrderDetailsFragment_fulfillments_lines_edges_node_orderLine {
 export interface OrderDetailsFragment_fulfillments_lines_edges_node {
   __typename: "FulfillmentLine";
   id: string;
-  orderLine: OrderDetailsFragment_fulfillments_lines_edges_node_orderLine | null;
   quantity: number;
+  orderLine: OrderDetailsFragment_fulfillments_lines_edges_node_orderLine | null;
 }
 
 export interface OrderDetailsFragment_fulfillments_lines_edges {

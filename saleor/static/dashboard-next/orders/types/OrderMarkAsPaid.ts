@@ -86,7 +86,7 @@ export interface OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_edges_
   __typename: "FulfillmentLine";
   id: string;
   quantity: number;
-  orderLine: OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_edges_node_orderLine;
+  orderLine: OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_edges_node_orderLine | null;
 }
 
 export interface OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_edges {

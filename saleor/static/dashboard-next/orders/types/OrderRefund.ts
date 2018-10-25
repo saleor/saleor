@@ -85,8 +85,8 @@ export interface OrderRefund_orderRefund_order_fulfillments_lines_edges_node_ord
 export interface OrderRefund_orderRefund_order_fulfillments_lines_edges_node {
   __typename: "FulfillmentLine";
   id: string;
-  orderLine: OrderRefund_orderRefund_order_fulfillments_lines_edges_node_orderLine | null;
   quantity: number;
+  orderLine: OrderRefund_orderRefund_order_fulfillments_lines_edges_node_orderLine | null;
 }
 
 export interface OrderRefund_orderRefund_order_fulfillments_lines_edges {
