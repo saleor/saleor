@@ -204,13 +204,13 @@ export interface OrderLineDelete_draftOrderLineDelete_order_total {
   tax: OrderLineDelete_draftOrderLineDelete_order_total_tax;
 }
 
-export interface OrderLineDelete_draftOrderLineDelete_order_authorizedAmount {
+export interface OrderLineDelete_draftOrderLineDelete_order_totalAuthorized {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderLineDelete_draftOrderLineDelete_order_capturedAmount {
+export interface OrderLineDelete_draftOrderLineDelete_order_totalCaptured {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -253,8 +253,8 @@ export interface OrderLineDelete_draftOrderLineDelete_order {
   subtotal: OrderLineDelete_draftOrderLineDelete_order_subtotal | null;
   total: OrderLineDelete_draftOrderLineDelete_order_total | null;
   actions: (OrderAction | null)[];
-  authorizedAmount: OrderLineDelete_draftOrderLineDelete_order_authorizedAmount;
-  capturedAmount: OrderLineDelete_draftOrderLineDelete_order_capturedAmount;
+  totalAuthorized: OrderLineDelete_draftOrderLineDelete_order_totalAuthorized;
+  totalCaptured: OrderLineDelete_draftOrderLineDelete_order_totalCaptured;
   user: OrderLineDelete_draftOrderLineDelete_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderLineDelete_draftOrderLineDelete_order_availableShippingMethods | null)[] | null;

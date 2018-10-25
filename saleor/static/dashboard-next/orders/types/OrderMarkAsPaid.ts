@@ -204,13 +204,13 @@ export interface OrderMarkAsPaid_orderMarkAsPaid_order_total {
   tax: OrderMarkAsPaid_orderMarkAsPaid_order_total_tax;
 }
 
-export interface OrderMarkAsPaid_orderMarkAsPaid_order_authorizedAmount {
+export interface OrderMarkAsPaid_orderMarkAsPaid_order_totalAuthorized {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderMarkAsPaid_orderMarkAsPaid_order_capturedAmount {
+export interface OrderMarkAsPaid_orderMarkAsPaid_order_totalCaptured {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -253,8 +253,8 @@ export interface OrderMarkAsPaid_orderMarkAsPaid_order {
   subtotal: OrderMarkAsPaid_orderMarkAsPaid_order_subtotal | null;
   total: OrderMarkAsPaid_orderMarkAsPaid_order_total | null;
   actions: (OrderAction | null)[];
-  authorizedAmount: OrderMarkAsPaid_orderMarkAsPaid_order_authorizedAmount;
-  capturedAmount: OrderMarkAsPaid_orderMarkAsPaid_order_capturedAmount;
+  totalAuthorized: OrderMarkAsPaid_orderMarkAsPaid_order_totalAuthorized;
+  totalCaptured: OrderMarkAsPaid_orderMarkAsPaid_order_totalCaptured;
   user: OrderMarkAsPaid_orderMarkAsPaid_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderMarkAsPaid_orderMarkAsPaid_order_availableShippingMethods | null)[] | null;

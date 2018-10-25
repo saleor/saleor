@@ -204,13 +204,13 @@ export interface OrderCreateFulfillment_orderFulfillmentCreate_order_total {
   tax: OrderCreateFulfillment_orderFulfillmentCreate_order_total_tax;
 }
 
-export interface OrderCreateFulfillment_orderFulfillmentCreate_order_authorizedAmount {
+export interface OrderCreateFulfillment_orderFulfillmentCreate_order_totalAuthorized {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderCreateFulfillment_orderFulfillmentCreate_order_capturedAmount {
+export interface OrderCreateFulfillment_orderFulfillmentCreate_order_totalCaptured {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -253,8 +253,8 @@ export interface OrderCreateFulfillment_orderFulfillmentCreate_order {
   subtotal: OrderCreateFulfillment_orderFulfillmentCreate_order_subtotal | null;
   total: OrderCreateFulfillment_orderFulfillmentCreate_order_total | null;
   actions: (OrderAction | null)[];
-  authorizedAmount: OrderCreateFulfillment_orderFulfillmentCreate_order_authorizedAmount;
-  capturedAmount: OrderCreateFulfillment_orderFulfillmentCreate_order_capturedAmount;
+  totalAuthorized: OrderCreateFulfillment_orderFulfillmentCreate_order_totalAuthorized;
+  totalCaptured: OrderCreateFulfillment_orderFulfillmentCreate_order_totalCaptured;
   user: OrderCreateFulfillment_orderFulfillmentCreate_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderCreateFulfillment_orderFulfillmentCreate_order_availableShippingMethods | null)[] | null;

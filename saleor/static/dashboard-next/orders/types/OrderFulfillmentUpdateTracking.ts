@@ -204,13 +204,13 @@ export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_o
   tax: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_total_tax;
 }
 
-export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_authorizedAmount {
+export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_totalAuthorized {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_capturedAmount {
+export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_totalCaptured {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -253,8 +253,8 @@ export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_o
   subtotal: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_subtotal | null;
   total: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_total | null;
   actions: (OrderAction | null)[];
-  authorizedAmount: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_authorizedAmount;
-  capturedAmount: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_capturedAmount;
+  totalAuthorized: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_totalAuthorized;
+  totalCaptured: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_totalCaptured;
   user: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_availableShippingMethods | null)[] | null;

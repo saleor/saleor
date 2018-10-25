@@ -958,7 +958,7 @@ type Order implements Node {
   displayGrossPrices: Boolean!
   customerNote: String!
   weight: Weight
-  lines: [OrderLine]!
+  lines(before: String, after: String, first: Int, last: Int): OrderLineCountableConnection
   fulfillments: [Fulfillment]!
   events: [OrderEvent]
   payments(before: String, after: String, first: Int, last: Int, id: ID): PaymentCountableConnection
@@ -970,9 +970,9 @@ type Order implements Node {
   paymentStatusDisplay: String
   subtotal: TaxedMoney
   statusDisplay: String
-  authorizedAmount: Money!
-  balanceAmount: Money!
-  capturedAmount: Money!
+  totalAuthorized: Money
+  totalCaptured: Money
+  totalBalance: Money!
   isShippingRequired: Boolean
 }
 
@@ -1575,8 +1575,8 @@ type Query {
   reportProductSales(period: ReportingPeriod!, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   addressValidator(input: AddressValidationInput!): AddressValidationData
   checkout(token: UUID): Checkout
-  checkouts(before: String, after: String, first: Int, last: Int, token: UUID): CheckoutCountableConnection
-  checkoutLines(before: String, after: String, first: Int, last: Int, id: ID): CheckoutLineCountableConnection
+  checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
+  checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
   checkoutLine(id: ID): CheckoutLine
   menu(id: ID, name: String): Menu
   menus(query: String, before: String, after: String, first: Int, last: Int): MenuCountableConnection
@@ -1587,12 +1587,12 @@ type Query {
   orders(query: String, created: ReportingPeriod, status: OrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
   page(id: ID, slug: String): Page
-  pages(query: String, before: String, after: String, first: Int, last: Int, id: ID, title: String): PageCountableConnection
+  pages(query: String, before: String, after: String, first: Int, last: Int): PageCountableConnection
   payment(id: ID): Payment
   paymentTransactionToken(gateway: ProvidersEnum): String
-  payments(before: String, after: String, first: Int, last: Int, id: ID): PaymentCountableConnection
-  sale(id: ID): Sale
-  sales(query: String, before: String, after: String, first: Int, last: Int, name_Icontains: String, type_Icontains: String, value_Gte: Float, value_Lte: Float, startDate: Date, endDate: Date): SaleCountableConnection
+  payments(before: String, after: String, first: Int, last: Int): PaymentCountableConnection
+  sale(id: ID!): Sale
+  sales(query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
   shop: Shop
   voucher(id: ID!): Voucher
   vouchers(query: String, before: String, after: String, first: Int, last: Int): VoucherCountableConnection

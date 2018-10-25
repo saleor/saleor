@@ -727,14 +727,14 @@ export interface OrderCancelMutation {
         };
       } | null;
       // Amount authorized for the order.
-      authorizedAmount: {
+      totalAuthorized: {
         // Amount of money.
         amount: number;
         // Currency code.
         currency: string;
       } | null;
       // Amount captured by payment.
-      capturedAmount: {
+      totalCaptured: {
         // Amount of money.
         amount: number;
         // Currency code.
@@ -920,14 +920,14 @@ export interface OrderRefundMutation {
         };
       } | null;
       // Amount authorized for the order.
-      authorizedAmount: {
+      totalAuthorized: {
         // Amount of money.
         amount: number;
         // Currency code.
         currency: string;
       } | null;
       // Amount captured by payment.
-      capturedAmount: {
+      totalCaptured: {
         // Amount of money.
         amount: number;
         // Currency code.
@@ -1103,14 +1103,14 @@ export interface OrderVoidMutation {
         };
       } | null;
       // Amount authorized for the order.
-      authorizedAmount: {
+      totalAuthorized: {
         // Amount of money.
         amount: number;
         // Currency code.
         currency: string;
       } | null;
       // Amount captured by payment.
-      capturedAmount: {
+      totalCaptured: {
         // Amount of money.
         amount: number;
         // Currency code.
@@ -1296,14 +1296,14 @@ export interface OrderCaptureMutation {
         };
       } | null;
       // Amount authorized for the order.
-      authorizedAmount: {
+      totalAuthorized: {
         // Amount of money.
         amount: number;
         // Currency code.
         currency: string;
       } | null;
       // Amount captured by payment.
-      capturedAmount: {
+      totalCaptured: {
         // Amount of money.
         amount: number;
         // Currency code.
@@ -1544,14 +1544,14 @@ export interface OrderDetailsQuery {
       };
     } | null;
     // Amount authorized for the order.
-    authorizedAmount: {
+    totalAuthorized: {
       // Amount of money.
       amount: number;
       // Currency code.
       currency: string;
     } | null;
     // Amount captured by payment.
-    capturedAmount: {
+    totalCaptured: {
       // Amount of money.
       amount: number;
       // Currency code.
@@ -3729,14 +3729,14 @@ export interface OrderDetailsFragment {
     };
   } | null;
   // Amount authorized for the order.
-  authorizedAmount: {
+  totalAuthorized: {
     // Amount of money.
     amount: number;
     // Currency code.
     currency: string;
   } | null;
   // Amount captured by payment.
-  capturedAmount: {
+  totalCaptured: {
     // Amount of money.
     amount: number;
     // Currency code.

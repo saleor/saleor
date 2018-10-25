@@ -75,9 +75,9 @@ class Query(ProductQueries):
     checkout = graphene.Field(
         Checkout, description='Single checkout.',
         token=graphene.Argument(graphene.UUID))
-    checkouts = DjangoFilterConnectionField(
+    checkouts = PrefetchingConnectionField(
         Checkout, description='List of checkouts.')
-    checkout_lines = DjangoFilterConnectionField(
+    checkout_lines = PrefetchingConnectionField(
         CheckoutLine, description='List of checkout lines')
     checkout_line = graphene.Field(
         CheckoutLine, id=graphene.Argument(graphene.ID),
@@ -125,7 +125,7 @@ class Query(ProductQueries):
     payment = graphene.Field(Payment, id=graphene.Argument(graphene.ID))
     payment_transaction_token = graphene.Field(
         graphene.String, args={'gateway': PaymentGatewayEnum()})
-    payments = DjangoFilterConnectionField(
+    payments = PrefetchingConnectionField(
         Payment,
         description='List of payments')
     sale = graphene.Field(

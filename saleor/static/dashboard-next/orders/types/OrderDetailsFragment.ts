@@ -198,13 +198,13 @@ export interface OrderDetailsFragment_total {
   tax: OrderDetailsFragment_total_tax;
 }
 
-export interface OrderDetailsFragment_authorizedAmount {
+export interface OrderDetailsFragment_totalAuthorized {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderDetailsFragment_capturedAmount {
+export interface OrderDetailsFragment_totalCaptured {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -247,8 +247,8 @@ export interface OrderDetailsFragment {
   subtotal: OrderDetailsFragment_subtotal | null;
   total: OrderDetailsFragment_total | null;
   actions: (OrderAction | null)[];
-  authorizedAmount: OrderDetailsFragment_authorizedAmount;
-  capturedAmount: OrderDetailsFragment_capturedAmount;
+  totalAuthorized: OrderDetailsFragment_totalAuthorized;
+  totalCaptured: OrderDetailsFragment_totalCaptured;
   user: OrderDetailsFragment_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderDetailsFragment_availableShippingMethods | null)[] | null;

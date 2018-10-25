@@ -204,13 +204,13 @@ export interface OrderLineAdd_draftOrderLineCreate_order_total {
   tax: OrderLineAdd_draftOrderLineCreate_order_total_tax;
 }
 
-export interface OrderLineAdd_draftOrderLineCreate_order_authorizedAmount {
+export interface OrderLineAdd_draftOrderLineCreate_order_totalAuthorized {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderLineAdd_draftOrderLineCreate_order_capturedAmount {
+export interface OrderLineAdd_draftOrderLineCreate_order_totalCaptured {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -253,8 +253,8 @@ export interface OrderLineAdd_draftOrderLineCreate_order {
   subtotal: OrderLineAdd_draftOrderLineCreate_order_subtotal | null;
   total: OrderLineAdd_draftOrderLineCreate_order_total | null;
   actions: (OrderAction | null)[];
-  authorizedAmount: OrderLineAdd_draftOrderLineCreate_order_authorizedAmount;
-  capturedAmount: OrderLineAdd_draftOrderLineCreate_order_capturedAmount;
+  totalAuthorized: OrderLineAdd_draftOrderLineCreate_order_totalAuthorized;
+  totalCaptured: OrderLineAdd_draftOrderLineCreate_order_totalCaptured;
   user: OrderLineAdd_draftOrderLineCreate_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderLineAdd_draftOrderLineCreate_order_availableShippingMethods | null)[] | null;
