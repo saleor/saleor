@@ -45,10 +45,10 @@ class UserDocument(DocType):
         return instance.email
 
     def prepare_first_name(self, instance):
-        return get_user_first_name(self)
+        return get_user_first_name(instance)
 
     def prepare_last_name(self, instance):
-        return get_user_last_name(self)
+        return get_user_last_name(instance)
 
     class Meta:
         model = User

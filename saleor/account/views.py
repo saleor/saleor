@@ -13,8 +13,8 @@ from ..checkout.utils import find_and_assign_anonymous_cart
 from ..core.utils import get_paginator_items
 from .emails import send_account_delete_confirmation_email
 from .forms import (
-    ChangePasswordForm, LoginForm, PasswordResetForm, SignupForm,
-    get_address_form, logout_on_password_change, NameForm)
+    ChangePasswordForm, LoginForm, NameForm, PasswordResetForm, SignupForm,
+    get_address_form, logout_on_password_change)
 
 
 @find_and_assign_anonymous_cart()
