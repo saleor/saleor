@@ -3,9 +3,8 @@ import uuid
 from unittest.mock import patch
 from urllib.parse import urlencode
 
-import pytest
-
 import i18naddress
+import pytest
 from captcha import constants as recaptcha_constants
 from django.core.exceptions import ValidationError
 from django.forms import Form
@@ -17,6 +16,7 @@ from saleor.account import forms, i18n
 from saleor.account.forms import FormWithReCaptcha, NameForm
 from saleor.account.models import User
 from saleor.account.templatetags.i18n_address_tags import format_address
+from saleor.account.utils import get_user_first_name, get_user_last_name
 from saleor.account.validators import validate_possible_number
 
 
@@ -254,6 +254,34 @@ def test_get_full_name(email, first_name, last_name, full_name, address):
         email=email, first_name=first_name, last_name=last_name,
         default_billing_address=copied_address)
     assert user.get_full_name() == full_name
+
+
+@pytest.mark.parametrize(
+    "first_name, default_billing_address_first_name, result", [
+        ('John', 'Arnold', 'John'),
+        ('John', '', 'John'),
+        ('', 'Arnold', 'Arnold'),
+        ('', '', '')])
+def test_get_user_first_name(first_name, default_billing_address_first_name,
+                             result, address):
+    copied_address = address.get_copy()
+    copied_address.first_name = default_billing_address_first_name
+    user = User(first_name=first_name, default_billing_address=copied_address)
+    assert get_user_first_name(user) == result
+
+
+@pytest.mark.parametrize(
+    "last_name, default_billing_address_last_name, result", [
+        ('Doe', 'Green', 'Doe'),
+        ('Doe', '', 'Doe'),
+        ('', 'Green', 'Green'),
+        ('', '', '')])
+def test_get_user_last_name(last_name, default_billing_address_last_name,
+                            result, address):
+    copied_address = address.get_copy()
+    copied_address.last_name = default_billing_address_last_name
+    user = User(last_name=last_name, default_billing_address=copied_address)
+    assert get_user_last_name(user) == result
 
 
 def test_disabled_recaptcha():
