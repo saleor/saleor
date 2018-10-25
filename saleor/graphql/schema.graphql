@@ -240,7 +240,7 @@ type Category implements Node {
   backgroundImage: Image
   level: Int!
   children(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
-  products(attributes: [AttributeScalar], priceLte: Float, priceGte: Float, sortBy: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   url: String
   ancestors(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
 }
@@ -290,7 +290,7 @@ type Collection implements Node {
   id: ID!
   name: String!
   slug: String!
-  products(attributes: [AttributeScalar], priceLte: Float, priceGte: Float, sortBy: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   backgroundImage: Image
   isPublished: Boolean!
 }
@@ -1343,7 +1343,7 @@ type Query {
   collection(id: ID!): Collection
   collections(query: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   product(id: ID!): Product
-  products(attributes: [AttributeScalar], category: ID, priceLte: Float, priceGte: Float, sortBy: String, query: String, stockAvailability: StockAvailability, before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  products(attributes: [AttributeScalar], categories: [ID], collections: [ID], priceLte: Float, priceGte: Float, sortBy: String, stockAvailability: StockAvailability, query: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   productType(id: ID!): ProductType
   productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   productVariant(id: ID!): ProductVariant
@@ -1666,12 +1666,14 @@ scalar Upload
 
 type User implements Node {
   id: ID!
+  lastLogin: DateTime
   email: String!
   addresses(before: String, after: String, first: Int, last: Int): AddressCountableConnection
   isStaff: Boolean!
   token: UUID!
   isActive: Boolean!
   note: String
+  dateJoined: DateTime!
   defaultShippingAddress: Address
   defaultBillingAddress: Address
   orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
