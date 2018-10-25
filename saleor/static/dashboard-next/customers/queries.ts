@@ -45,6 +45,8 @@ const customerDetails = gql`
     user(id: $id) {
       id
       email
+      dateJoined
+      lastLogin
       defaultShippingAddress {
         ...AddressFragment
       }
@@ -58,6 +60,7 @@ const customerDetails = gql`
           node {
             id
             created
+            number
             paymentStatus
             total {
               gross {
