@@ -2,6 +2,7 @@ from django_elasticsearch_dsl import DocType, Index, fields
 from elasticsearch_dsl import analyzer, token_filter
 
 from ..account.models import User
+from ..account.utils import get_user_first_name, get_user_last_name
 from ..order.models import Order
 from ..product.models import Product
 
@@ -44,20 +45,10 @@ class UserDocument(DocType):
         return instance.email
 
     def prepare_first_name(self, instance):
-        if instance.first_name:
-            return instance.first_name
-        address = instance.default_billing_address
-        if address:
-            return address.first_name
-        return None
+        return get_user_first_name(self)
 
     def prepare_last_name(self, instance):
-        if instance.last_name:
-            return instance.last_name
-        address = instance.default_billing_address
-        if address:
-            return address.last_name
-        return None
+        return get_user_last_name(self)
 
     class Meta:
         model = User
@@ -80,24 +71,10 @@ class OrderDocument(DocType):
         return instance.user_email
 
     def prepare_first_name(self, instance):
-        user = instance.user
-        if user:
-            if user.first_name:
-                return user.first_name
-            address = user.default_billing_address
-            if address:
-                return address.first_name
-        return None
+        get_user_first_name(instance.user)
 
     def prepare_last_name(self, instance):
-        user = instance.user
-        if user:
-            if user.last_name:
-                return user.last_name
-            address = user.default_billing_address
-            if address:
-                return address.last_name
-        return None
+        get_user_last_name(instance.user)
 
     class Meta:
         model = Order
