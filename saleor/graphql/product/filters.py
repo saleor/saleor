@@ -43,6 +43,17 @@ def filter_products_by_price(qs, price_lte=None, price_gte=None):
     return qs
 
 
+def filter_products_by_categories(qs, categories):
+    categories = [
+        category.get_descendants(include_self=True) for category in categories]
+    ids = set([category.id for tree in categories for category in tree])
+    return qs.filter(category__in=ids)
+
+
+def filter_products_by_collections(qs, collections):
+    return qs.filter(collections__in=collections)
+
+
 def sort_qs(qs, sort_by):
     if sort_by:
         qs = qs.order_by(sort_by)

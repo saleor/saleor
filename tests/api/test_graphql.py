@@ -50,6 +50,10 @@ def test_real_query(user_api_client, product):
             ...CategoryPageFragmentQuery
             __typename
         }
+        products(first: $first, sortBy: $sortBy, categories:[$categoryId], attributes: $attributesFilter, priceGte: $minPrice, priceLte: $maxPrice) {
+            ...ProductListFragmentQuery
+            __typename
+        }
         attributes(inCategory: $categoryId) {
             edges {
                 node {
@@ -84,10 +88,6 @@ def test_real_query(user_api_client, product):
                     __typename
                 }
             }
-        }
-        products(first: $first, sortBy: $sortBy, attributes: $attributesFilter, priceGte: $minPrice, priceLte: $maxPrice) {
-            ...ProductListFragmentQuery
-            __typename
         }
         __typename
     }

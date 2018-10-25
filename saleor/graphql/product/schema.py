@@ -54,16 +54,19 @@ class ProductQueries(graphene.ObjectType):
         Product,
         attributes=graphene.List(
             AttributeScalar, description='Filter products by attributes.'),
-        category=graphene.ID(description='Filter products by category.'),
+        categories=graphene.List(
+            graphene.ID, description='Filter products by category.'),
+        collections=graphene.List(
+            graphene.ID, description='Filter products by collections.'),
         price_lte=graphene.Float(
             description='Filter by price less than or equal to the given value.'),
         price_gte=graphene.Float(
             description='Filter by price greater than or equal to the given value.'),
         sort_by=graphene.String(description='Sort products.'),
-        query=graphene.String(description=DESCRIPTIONS['product']),
         stock_availability=graphene.Argument(
             StockAvailability,
             description='Filter products by the stock availability'),
+        query=graphene.String(description=DESCRIPTIONS['product']),
         description='List of the shop\'s products.')
     product_type = graphene.Field(
         ProductType, id=graphene.Argument(graphene.ID, required=True),
@@ -100,12 +103,8 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, Product)
 
-    def resolve_products(
-            self, info, attributes=None, category=None, stock_availability=None,
-            query=None, price_lte=None, price_gte=None, sort_by=None, **kwargs):
-        return resolve_products(
-            info, attributes, category, stock_availability, query,
-            price_lte, price_gte, sort_by)
+    def resolve_products(self, info, **kwargs):
+        return resolve_products(info, **kwargs)
 
     def resolve_product_type(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ProductType)

@@ -4,10 +4,12 @@ from django.db.models import Sum, Q
 
 from ...order import OrderStatus
 from ...product import models
-from ..utils import filter_by_query_param, filter_by_period, get_database_id
+from ..utils import (
+    filter_by_query_param, filter_by_period, get_database_id, get_nodes)
 from .filters import (
-    filter_products_by_attributes, filter_products_by_price, sort_qs)
-from .types import Category, ProductVariant, StockAvailability
+    filter_products_by_attributes, filter_products_by_categories,
+    filter_products_by_collections, filter_products_by_price, sort_qs)
+from .types import Category, Collection, ProductVariant, StockAvailability
 
 PRODUCT_SEARCH_FIELDS = ('name', 'description', 'category__name')
 CATEGORY_SEARCH_FIELDS = ('name', 'slug', 'description', 'parent__name')
@@ -53,8 +55,10 @@ def resolve_collections(info, query):
 
 
 def resolve_products(
-        info, attributes=None, category=None, stock_availability=None,
-        query=None, price_lte=None, price_gte=None, sort_by=None):
+        info, attributes=None, categories=None, collections=None,
+        price_lte=None, price_gte=None, sort_by=None, stock_availability=None,
+        query=None, **kwargs):
+
     user = info.context.user
     qs = models.Product.objects.visible_to_user(user)
     qs = filter_by_query_param(qs, query, PRODUCT_SEARCH_FIELDS)
@@ -62,12 +66,13 @@ def resolve_products(
     if attributes:
         qs = filter_products_by_attributes(qs, attributes)
 
-    if category is not None:
-        category = graphene.Node.get_node_from_global_id(
-            info, category, Category)
-        if not category:
-            return qs.none()
-        qs = qs.filter(category=category)
+    if categories:
+        categories = get_nodes(categories, Category)
+        qs = filter_products_by_categories(qs, categories)
+
+    if collections:
+        collections = get_nodes(collections, Collection)
+        qs = filter_products_by_collections(qs, collections)
 
     if stock_availability:
         qs = qs.annotate(total_quantity=Sum('variants__quantity'))
@@ -78,6 +83,7 @@ def resolve_products(
 
     qs = filter_products_by_price(qs, price_lte, price_gte)
     qs = sort_qs(qs, sort_by)
+    qs = qs.distinct()
     return gql_optimizer.query(qs, info)
 
 

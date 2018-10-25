@@ -347,25 +347,11 @@ class ProductType(CountableDjangoObjectType):
         qs = self.products.visible_to_user(info.context.user)
         return gql_optimizer.query(qs, info)
 
-    def resolve_variant_attributes(self, info):
-        return self.variant_attributes.prefetch_related('values')
-
-    def resolve_product_attributes(self, info):
-        return self.product_attributes.prefetch_related('values')
-
 
 class Collection(CountableDjangoObjectType):
     products = gql_optimizer.field(
         PrefetchingConnectionField(
-            Product,
-            attributes=graphene.List(
-                AttributeScalar, description='Filter products by attributes.'),
-            price_lte=graphene.Float(
-                description='Filter by price less than or equal to the given value.'),
-            price_gte=graphene.Float(
-                description='Filter by price greater than or equal to the given value.'),
-            sort_by=graphene.String(description='Sort products.'),
-            description='List of collection products.'),
+            Product, description='List of products in this collection.'),
         prefetch_related=prefetch_products)
     background_image = graphene.Field(Image)
 
@@ -378,34 +364,17 @@ class Collection(CountableDjangoObjectType):
     def resolve_background_image(self, info, **kwargs):
         return self.background_image or None
 
-    def resolve_products(
-            self, info, attributes=None, price_lte=None, price_gte=None,
-            sort_by=None, **kwargs):
-
-        # FIXME: Fix prefetching products
-        # if hasattr(self, 'prefetched_products'):
-        #     return self.prefetched_products
-
+    def resolve_products(self, info, **kwargs):
+        if hasattr(self, 'prefetched_products'):
+            return self.prefetched_products
         qs = self.products.visible_to_user(info.context.user)
-        qs = filter_products_by_price(qs, price_lte, price_gte)
-        if attributes:
-            qs = filter_products_by_attributes(qs, attributes)
-        qs = sort_qs(qs, sort_by)
         return gql_optimizer.query(qs, info)
 
 
 class Category(CountableDjangoObjectType):
     products = gql_optimizer.field(
         PrefetchingConnectionField(
-            Product,
-            attributes=graphene.List(
-                AttributeScalar, description='Filter products by attributes.'),
-            price_lte=graphene.Float(
-                description='Filter by price less than or equal to the given value.'),
-            price_gte=graphene.Float(
-                description='Filter by price greater than or equal to the given value.'),
-            sort_by=graphene.String(description='Sort products.'),
-            description='List of products in the category.'),
+            Product, description='List of products in the category.'),
         prefetch_related=prefetch_products)
     url = graphene.String(
         description='The storefront\'s URL for the category.')
@@ -441,19 +410,10 @@ class Category(CountableDjangoObjectType):
     def resolve_url(self, info):
         return self.get_absolute_url()
 
-    def resolve_products(
-            self, info, attributes=None, price_lte=None, price_gte=None,
-            sort_by=None, **kwargs):
-
-        # FIXME: Fix prefetching products
-        # if hasattr(self, 'prefetched_products'):
-        #     return self.prefetched_products
-
+    def resolve_products(self, info, **kwargs):
+        if hasattr(self, 'prefetched_products'):
+            return self.prefetched_products
         qs = self.products.visible_to_user(info.context.user)
-        qs = filter_products_by_price(qs, price_lte, price_gte)
-        if attributes:
-            qs = filter_products_by_attributes(qs, attributes)
-        qs = sort_qs(qs, sort_by)
         return gql_optimizer.query(qs, info)
 
 
