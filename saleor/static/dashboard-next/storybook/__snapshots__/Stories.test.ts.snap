@@ -14922,6 +14922,921 @@ exports[`Storyshots Views / Customers / Edit customer with errors 1`] = `
 </div>
 `;
 
+exports[`Storyshots Views / HomePage default 1`] = `
+<div>
+  <div
+    class="Component-md-id"
+  >
+    <div>
+      <h1
+        class="MuiTypography-root-id MuiTypography-headline-id Component-pageHeader-id"
+      >
+        Hello there, John Smith
+      </h1>
+      <h3
+        class="MuiTypography-root-id MuiTypography-subheading-id"
+      >
+        Here are some information we gathered about your store
+      </h3>
+    </div>
+    <div
+      class="Component-spacer-id"
+    />
+    <div
+      class="Component-root-id"
+    >
+      <div>
+        <div
+          class="Component-cardContainer-id"
+        >
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-cardSpacing-id"
+          >
+            <div
+              class="MuiCardContent-root-id Component-cardContent-id"
+            >
+              <div>
+                <h3
+                  class="MuiTypography-root-id MuiTypography-subheading-id Component-cardTitle-id"
+                >
+                  Sales
+                </h3>
+                <span
+                  class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorTextSecondary-id Component-cardSubtitle-id"
+                >
+                  Today
+                </span>
+                <h1
+                  class="MuiTypography-root-id MuiTypography-headline-id MuiTypography-colorTextPrimary-id"
+                >
+                  PLN 12,325.00
+                </h1>
+              </div>
+              <div
+                class="Component-iconBackground-id"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeInherit-id"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <g>
+                    <path
+                      d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"
+                    />
+                  </g>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-cardSpacing-id"
+          >
+            <div
+              class="MuiCardContent-root-id Component-cardContent-id"
+            >
+              <div>
+                <h3
+                  class="MuiTypography-root-id MuiTypography-subheading-id Component-cardTitle-id"
+                >
+                  Orders
+                </h3>
+                <span
+                  class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorTextSecondary-id Component-cardSubtitle-id"
+                >
+                  Today
+                </span>
+                <h1
+                  class="MuiTypography-root-id MuiTypography-headline-id MuiTypography-colorTextPrimary-id"
+                >
+                  1223
+                </h1>
+              </div>
+              <div
+                class="Component-iconBackground-id"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeInherit-id"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <g>
+                    <path
+                      d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"
+                    />
+                  </g>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <div
+            class="Component-root-id"
+          >
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+            >
+              Top products
+            </span>
+            <div
+              class="Component-toolbar-id"
+            />
+          </div>
+          <div
+            class="Component-children-id"
+          />
+          <hr
+            class="Component-hr-id"
+          />
+          <table
+            class="MuiTable-root-id"
+            padding="default"
+          >
+            <tbody
+              class="MuiTableBody-root-id"
+            >
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id Component-avatarSpacing-id"
+                >
+                  <div
+                    class="MuiAvatar-root-id Component-avatar-id Component-avatarProps-id"
+                  >
+                    <img
+                      class="MuiAvatar-img-id"
+                      src="placeholder60x60.png"
+                    />
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorPrimary-id"
+                  >
+                    Lake Success
+                  </p>
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
+                  >
+                    Hardcover
+                  </p>
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
+                  >
+                    123 Orders
+                  </p>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-alignRight-id"
+                  >
+                    PLN 54.00
+                  </p>
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id Component-avatarSpacing-id"
+                >
+                  <div
+                    class="MuiAvatar-root-id Component-avatar-id Component-avatarProps-id"
+                  >
+                    <img
+                      class="MuiAvatar-img-id"
+                      src="placeholder60x60.png"
+                    />
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorPrimary-id"
+                  >
+                    The Sadness of Beautiful Things
+                  </p>
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
+                  >
+                    Softcover
+                  </p>
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
+                  >
+                    111 Orders
+                  </p>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-alignRight-id"
+                  >
+                    PLN 23.00
+                  </p>
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id Component-avatarSpacing-id"
+                >
+                  <div
+                    class="MuiAvatar-root-id Component-avatar-id Component-avatarProps-id"
+                  >
+                    <img
+                      class="MuiAvatar-img-id"
+                      src="placeholder60x60.png"
+                    />
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorPrimary-id"
+                  >
+                    The Messy Middle
+                  </p>
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
+                  >
+                    Softcover
+                  </p>
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
+                  >
+                    93 Orders
+                  </p>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-alignRight-id"
+                  >
+                    PLN 112.00
+                  </p>
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id Component-avatarSpacing-id"
+                >
+                  <div
+                    class="MuiAvatar-root-id Component-avatar-id Component-avatarProps-id"
+                  >
+                    <img
+                      class="MuiAvatar-img-id"
+                      src="placeholder60x60.png"
+                    />
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorPrimary-id"
+                  >
+                    Everything's Trash
+                  </p>
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
+                  >
+                    Hardcover
+                  </p>
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
+                  >
+                    32 Orders
+                  </p>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-alignRight-id"
+                  >
+                    PLN 15.00
+                  </p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div
+          class="Component-spacer-id"
+        />
+      </div>
+      <div>
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <div
+            class="Component-root-id"
+          >
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+            >
+              Activity
+            </span>
+            <div
+              class="Component-toolbar-id"
+            />
+          </div>
+          <div
+            class="Component-children-id"
+          />
+          <hr
+            class="Component-hr-id"
+          />
+          <ul
+            class="MuiList-root-id MuiList-dense-id MuiList-padding-id"
+          >
+            <li
+              class="MuiListItem-root-id MuiListItem-default-id MuiListItem-dense-id MuiListItem-gutters-id"
+            >
+              <div
+                class="MuiListItemText-root-id MuiListItemText-dense-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  published a 
+                        
+                </p>
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
+                >
+                  <time
+                    datetime="1536585744376"
+                    title="Mon Sep 10 2018 09:22:24 GMT-0400"
+                  >
+                    in a month
+                  </time>
+                </p>
+              </div>
+            </li>
+            <li
+              class="MuiListItem-root-id MuiListItem-default-id MuiListItem-dense-id MuiListItem-gutters-id"
+            >
+              <div
+                class="MuiListItemText-root-id MuiListItemText-dense-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  published a 
+                        
+                </p>
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
+                >
+                  <time
+                    datetime="1539868944376"
+                    title="Thu Oct 18 2018 09:22:24 GMT-0400"
+                  >
+                    in 2 months
+                  </time>
+                </p>
+              </div>
+            </li>
+            <li
+              class="MuiListItem-root-id MuiListItem-default-id MuiListItem-dense-id MuiListItem-gutters-id"
+            >
+              <div
+                class="MuiListItemText-root-id MuiListItemText-dense-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  created a 
+                        
+                </p>
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
+                >
+                  <time
+                    datetime="1537363344376"
+                    title="Wed Sep 19 2018 09:22:24 GMT-0400"
+                  >
+                    in a month
+                  </time>
+                </p>
+              </div>
+            </li>
+            <li
+              class="MuiListItem-root-id MuiListItem-default-id MuiListItem-dense-id MuiListItem-gutters-id"
+            >
+              <div
+                class="MuiListItemText-root-id MuiListItemText-dense-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  Saleor shop admin 
+                        added
+                </p>
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
+                >
+                  <time
+                    datetime="1537449744376"
+                    title="Thu Sep 20 2018 09:22:24 GMT-0400"
+                  >
+                    in a month
+                  </time>
+                </p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / HomePage loading 1`] = `
+<div>
+  <div
+    class="Component-md-id"
+  >
+    <div>
+      <h1
+        class="MuiTypography-root-id MuiTypography-headline-id Component-pageHeader-id"
+      >
+        <span
+          class="Skeleton-skeleton-id"
+          style="width:10em"
+        >
+          ‌
+        </span>
+      </h1>
+      <h3
+        class="MuiTypography-root-id MuiTypography-subheading-id"
+      >
+        <span
+          class="Skeleton-skeleton-id"
+          style="width:10em"
+        >
+          ‌
+        </span>
+      </h3>
+    </div>
+    <div
+      class="Component-spacer-id"
+    />
+    <div
+      class="Component-root-id"
+    >
+      <div>
+        <div
+          class="Component-cardContainer-id"
+        >
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-cardSpacing-id"
+          >
+            <div
+              class="MuiCardContent-root-id Component-cardContent-id"
+            >
+              <div>
+                <h3
+                  class="MuiTypography-root-id MuiTypography-subheading-id Component-cardTitle-id"
+                >
+                  Sales
+                </h3>
+                <span
+                  class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorTextSecondary-id Component-cardSubtitle-id"
+                >
+                  Today
+                </span>
+                <h1
+                  class="MuiTypography-root-id MuiTypography-headline-id MuiTypography-colorTextPrimary-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                    style="width:5em"
+                  >
+                    ‌
+                  </span>
+                </h1>
+              </div>
+              <div
+                class="Component-iconBackground-id"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeInherit-id"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <g>
+                    <path
+                      d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"
+                    />
+                  </g>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-cardSpacing-id"
+          >
+            <div
+              class="MuiCardContent-root-id Component-cardContent-id"
+            >
+              <div>
+                <h3
+                  class="MuiTypography-root-id MuiTypography-subheading-id Component-cardTitle-id"
+                >
+                  Orders
+                </h3>
+                <span
+                  class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorTextSecondary-id Component-cardSubtitle-id"
+                >
+                  Today
+                </span>
+                <h1
+                  class="MuiTypography-root-id MuiTypography-headline-id MuiTypography-colorTextPrimary-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                    style="width:5em"
+                  >
+                    ‌
+                  </span>
+                </h1>
+              </div>
+              <div
+                class="Component-iconBackground-id"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeInherit-id"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <g>
+                    <path
+                      d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"
+                    />
+                  </g>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <div
+            class="Component-root-id"
+          >
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+            >
+              Top products
+            </span>
+            <div
+              class="Component-toolbar-id"
+            />
+          </div>
+          <div
+            class="Component-children-id"
+          />
+          <hr
+            class="Component-hr-id"
+          />
+          <table
+            class="MuiTable-root-id"
+            padding="default"
+          >
+            <tbody
+              class="MuiTableBody-root-id"
+            >
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id Component-avatarSpacing-id"
+                >
+                  <div
+                    class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id Component-avatarProps-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <g>
+                        <path
+                          d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
+                        />
+                      </g>
+                    </svg>
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-alignRight-id"
+                  >
+                    <span
+                      class="Skeleton-skeleton-id"
+                    >
+                      ‌
+                    </span>
+                  </p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div
+          class="Component-spacer-id"
+        />
+      </div>
+      <div>
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <div
+            class="Component-root-id"
+          >
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+            >
+              Activity
+            </span>
+            <div
+              class="Component-toolbar-id"
+            />
+          </div>
+          <div
+            class="Component-children-id"
+          />
+          <hr
+            class="Component-hr-id"
+          />
+          <ul
+            class="MuiList-root-id MuiList-dense-id MuiList-padding-id"
+          >
+            <li
+              class="MuiListItem-root-id MuiListItem-default-id MuiListItem-dense-id MuiListItem-gutters-id"
+            >
+              <div
+                class="MuiListItemText-root-id MuiListItemText-dense-id Component-loadingProducts-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / HomePage no data 1`] = `
+<div>
+  <div
+    class="Component-md-id"
+  >
+    <div>
+      <h1
+        class="MuiTypography-root-id MuiTypography-headline-id Component-pageHeader-id"
+      >
+        Hello there, John Smith
+      </h1>
+      <h3
+        class="MuiTypography-root-id MuiTypography-subheading-id"
+      >
+        Here are some information we gathered about your store
+      </h3>
+    </div>
+    <div
+      class="Component-spacer-id"
+    />
+    <div
+      class="Component-root-id"
+    >
+      <div>
+        <div
+          class="Component-cardContainer-id"
+        >
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-cardSpacing-id"
+          >
+            <div
+              class="MuiCardContent-root-id Component-cardContent-id"
+            >
+              <div>
+                <h3
+                  class="MuiTypography-root-id MuiTypography-subheading-id Component-cardTitle-id"
+                >
+                  Sales
+                </h3>
+                <span
+                  class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorTextSecondary-id Component-cardSubtitle-id"
+                >
+                  Today
+                </span>
+                <h1
+                  class="MuiTypography-root-id MuiTypography-headline-id MuiTypography-colorTextPrimary-id"
+                >
+                  PLN 12,325.00
+                </h1>
+              </div>
+              <div
+                class="Component-iconBackground-id"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeInherit-id"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <g>
+                    <path
+                      d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"
+                    />
+                  </g>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-cardSpacing-id"
+          >
+            <div
+              class="MuiCardContent-root-id Component-cardContent-id"
+            >
+              <div>
+                <h3
+                  class="MuiTypography-root-id MuiTypography-subheading-id Component-cardTitle-id"
+                >
+                  Orders
+                </h3>
+                <span
+                  class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorTextSecondary-id Component-cardSubtitle-id"
+                >
+                  Today
+                </span>
+                <h1
+                  class="MuiTypography-root-id MuiTypography-headline-id MuiTypography-colorTextPrimary-id"
+                >
+                  1223
+                </h1>
+              </div>
+              <div
+                class="Component-iconBackground-id"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeInherit-id"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <g>
+                    <path
+                      d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"
+                    />
+                  </g>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <div
+            class="Component-root-id"
+          >
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+            >
+              Top products
+            </span>
+            <div
+              class="Component-toolbar-id"
+            />
+          </div>
+          <div
+            class="Component-children-id"
+          />
+          <hr
+            class="Component-hr-id"
+          />
+          <table
+            class="MuiTable-root-id"
+            padding="default"
+          >
+            <tbody
+              class="MuiTableBody-root-id"
+            >
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-noProducts-id"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id"
+                  >
+                    No products found
+                  </p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div
+          class="Component-spacer-id"
+        />
+      </div>
+      <div>
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <div
+            class="Component-root-id"
+          >
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+            >
+              Activity
+            </span>
+            <div
+              class="Component-toolbar-id"
+            />
+          </div>
+          <div
+            class="Component-children-id"
+          />
+          <hr
+            class="Component-hr-id"
+          />
+          <ul
+            class="MuiList-root-id MuiList-dense-id MuiList-padding-id"
+          >
+            <li
+              class="MuiListItem-root-id MuiListItem-default-id MuiListItem-dense-id MuiListItem-gutters-id Component-noProducts-id"
+            >
+              <div
+                class="MuiListItemText-root-id MuiListItemText-dense-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  No activities found
+                </p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Views / Not found error page default 1`] = `
 <div>
   <div
