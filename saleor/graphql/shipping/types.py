@@ -35,11 +35,12 @@ class ShippingZone(CountableDjangoObjectType):
     countries = graphene.List(
         CountryDisplay,
         description='List of countries available for the method.')
-    shipping_methods = gql_optimizer.field(graphene.List(
-        ShippingMethod,
-        description=(
-            'List of shipping methods available for orders'
-            ' shipped to countries within this shipping zone.')),
+    shipping_methods = gql_optimizer.field(
+        graphene.List(
+            ShippingMethod,
+            description=(
+                'List of shipping methods available for orders'
+                ' shipped to countries within this shipping zone.')),
         model_field='shipping_methods')
 
     class Meta:

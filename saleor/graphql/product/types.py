@@ -18,10 +18,7 @@ from ..core.types import (
     CountableDjangoObjectType, Money, MoneyRange, ReportingPeriod, TaxedMoney,
     TaxedMoneyRange, TaxRateType)
 from ..utils import get_database_id, reporting_period_to_date
-from .filters import (
-    filter_products_by_attributes, filter_products_by_price, sort_qs)
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
-from .scalars import AttributeScalar
 
 COLOR_PATTERN = r'^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$'  # noqa
 color_pattern = re.compile(COLOR_PATTERN)
@@ -259,8 +256,8 @@ class Product(CountableDjangoObjectType):
         return self.get_absolute_url()
 
     @gql_optimizer.resolver_hints(
-            prefetch_related='variants',
-            only=['available_on', 'charge_taxes', 'price', 'tax_rate'])
+        prefetch_related='variants',
+        only=['available_on', 'charge_taxes', 'price', 'tax_rate'])
     def resolve_availability(self, info):
         context = info.context
         availability = get_availability(
@@ -268,7 +265,7 @@ class Product(CountableDjangoObjectType):
         return ProductAvailability(**availability._asdict())
 
     @gql_optimizer.resolver_hints(
-            prefetch_related='product_type__product_attributes__values')
+        prefetch_related='product_type__product_attributes__values')
     def resolve_attributes(self, info):
         attributes_qs = self.product_type.product_attributes.all()
         return resolve_attribute_list(self.attributes, attributes_qs)

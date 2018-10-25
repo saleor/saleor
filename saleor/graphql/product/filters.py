@@ -46,7 +46,7 @@ def filter_products_by_price(qs, price_lte=None, price_gte=None):
 def filter_products_by_categories(qs, categories):
     categories = [
         category.get_descendants(include_self=True) for category in categories]
-    ids = set([category.id for tree in categories for category in tree])
+    ids = {category.id for tree in categories for category in tree}
     return qs.filter(category__in=ids)
 
 
