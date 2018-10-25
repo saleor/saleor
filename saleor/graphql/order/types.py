@@ -266,7 +266,3 @@ class Order(CountableDjangoObjectType):
             price=obj.get_subtotal().gross.amount, weight=obj.get_total_weight(),
             country_code=obj.shipping_address.country.code)
         return qs
-
-    @staticmethod
-    def resolve_lines(obj, info):
-        return obj.lines.all()

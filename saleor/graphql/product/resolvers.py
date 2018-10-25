@@ -93,7 +93,6 @@ def resolve_product_types(info):
 
 
 def resolve_product_variants(info, ids=None):
-    # FIXME: add visible_to_user for variants
     qs = models.ProductVariant.objects.all()
     if ids:
         db_ids = [

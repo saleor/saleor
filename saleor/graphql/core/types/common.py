@@ -1,7 +1,6 @@
 import decimal
 
 import graphene
-import graphene_django_optimizer as gql_optimizer
 from graphene_django import DjangoObjectType
 from saleor.core.permissions import MODELS_PERMISSIONS
 from saleor.graphql.core.utils import str_to_enum
