@@ -177,6 +177,13 @@ export interface CollectionInput {
   seo?: SeoInput | null;
 }
 
+export interface CustomerInput {
+  email?: string | null;
+  note?: string | null;
+  defaultBillingAddress?: AddressInput | null;
+  defaultShippingAddress?: AddressInput | null;
+}
+
 export interface DraftOrderInput {
   billingAddress?: AddressInput | null;
   user?: string | null;

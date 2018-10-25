@@ -8,7 +8,33 @@ import {
 } from "./types/CustomerDetails";
 import { ListCustomers, ListCustomersVariables } from "./types/ListCustomers";
 
+export const customerFragment = gql`
+  fragment CustomerFragment on User {
+    id
+    email
+  }
+`;
+
+export const customerDetailsFragment = gql`
+  ${customerFragment}
+  ${fragmentAddress}
+  fragment CustomerDetailsFragment on User {
+    ...CustomerFragment
+    dateJoined
+    lastLogin
+    defaultShippingAddress {
+      ...AddressFragment
+    }
+    defaultBillingAddress {
+      ...AddressFragment
+    }
+    note
+    isActive
+  }
+`;
+
 const customerList = gql`
+  ${customerFragment}
   query ListCustomers(
     $after: String
     $before: String
@@ -18,8 +44,7 @@ const customerList = gql`
     customers(after: $after, before: $before, first: $first, last: $last) {
       edges {
         node {
-          email
-          id
+          ...CustomerFragment
           orders {
             totalCount
           }
@@ -40,21 +65,10 @@ export const TypedCustomerListQuery = TypedQuery<
 >(customerList);
 
 const customerDetails = gql`
-  ${fragmentAddress}
+  ${customerDetailsFragment}
   query CustomerDetails($id: ID!) {
     user(id: $id) {
-      id
-      email
-      dateJoined
-      lastLogin
-      defaultShippingAddress {
-        ...AddressFragment
-      }
-      defaultBillingAddress {
-        ...AddressFragment
-      }
-      note
-      isActive
+      ...CustomerDetailsFragment
       orders(last: 5) {
         edges {
           node {
