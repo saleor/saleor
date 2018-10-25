@@ -25,6 +25,7 @@ export interface CategoryUpdate_categoryUpdate_category {
   description: string;
   seoDescription: string | null;
   seoTitle: string | null;
+  parent: CategoryUpdate_categoryUpdate_category_parent | null;
 }
 
 export interface CategoryUpdate_categoryUpdate {

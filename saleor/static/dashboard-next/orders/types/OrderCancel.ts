@@ -80,7 +80,7 @@ export interface OrderCancel_orderCancel_order_fulfillments_lines_edges_node {
   __typename: "FulfillmentLine";
   id: string;
   quantity: number;
-  orderLine: OrderCancel_orderCancel_order_fulfillments_lines_edges_node_orderLine;
+  orderLine: OrderCancel_orderCancel_order_fulfillments_lines_edges_node_orderLine | null;
 }
 
 export interface OrderCancel_orderCancel_order_fulfillments_lines_edges {

@@ -61,6 +61,7 @@ text-unidecode = "*"
 uwsgi = {version = ">=2.0.0", platform_system = "!= 'Windows'"}
 celery = {version = "*", extras = ["redis"]}
 weasyprint = ">=0.42.2"
+graphene-django-optimizer = "*"
 
 [dev-packages]
 pytest = "*"

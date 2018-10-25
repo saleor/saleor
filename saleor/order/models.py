@@ -129,11 +129,12 @@ class Order(models.Model):
         return super().save(*args, **kwargs)
 
     def is_fully_paid(self):
+        confirmed_payments = [
+            payment for payment in self.payments.all()
+            if payment.status == PaymentStatus.CONFIRMED]
         total_paid = sum(
-            [
-                payment.get_total() for payment in
-                self.payments.filter(status=PaymentStatus.CONFIRMED)],
-            ZERO_TAXED_MONEY)
+            [payment.get_total()
+             for payment in confirmed_payments], ZERO_TAXED_MONEY)
         return total_paid.gross >= self.total.gross
 
     def get_user_current_email(self):

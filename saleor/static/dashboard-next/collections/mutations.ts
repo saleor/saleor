@@ -110,7 +110,7 @@ export const TypedCollectionAssignProductMutation = TypedMutation<
 
 const createCollection = gql`
   ${collectionDetailsFragment}
-  mutation CreateCollection($input: CollectionInput!) {
+  mutation CreateCollection($input: CollectionCreateInput!) {
     collectionCreate(input: $input) {
       errors {
         field
