@@ -411,9 +411,16 @@ class Category(CountableDjangoObjectType):
         return self.get_absolute_url()
 
     def resolve_products(self, info, **kwargs):
-        if hasattr(self, 'prefetched_products'):
+        # If the category has no children, we use the prefetched data.
+        children = self.children.all()
+        if not children and hasattr(self, 'prefetched_products'):
             return self.prefetched_products
-        qs = self.products.visible_to_user(info.context.user)
+
+        # Otherwise we want to include products from child categories which
+        # requires performing additional logic.
+        tree = self.get_descendants(include_self=True)
+        qs = models.Product.objects.available_products()
+        qs = qs.filter(category__in=tree)
         return gql_optimizer.query(qs, info)
 
 
