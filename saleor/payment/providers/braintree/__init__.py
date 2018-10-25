@@ -23,7 +23,9 @@ THREE_D_SECURE_REQUIRED = False
 # FIXME: Provide list of visible errors and messages translations
 # FIXME: We should also store universal visible errors for all payment
 # gateways, and parse gateway-specific errors to this unified version
-ERROR_CODES_WHITELIST = []
+ERROR_CODES_WHITELIST = [
+    '91506',  # Cannot refund transaction unless it is settled.
+]
 
 
 def get_customer_data(payment: Payment) -> Dict:
@@ -50,7 +52,6 @@ def get_error_for_client(errors: List) -> str:
     """
     if not errors:
         return ''
-
     default_msg = pgettext_lazy(
         'payment error',
         'Unable to process transaction. Please try again in a moment')
@@ -203,7 +204,7 @@ def void(
         transaction_type=TransactionType.AUTH, is_success=True).first()
     try:
         result = gateway.transaction.void(
-            transaction_token=auth_transaction.token)
+            transaction_id=auth_transaction.token)
     except braintree_sdk.exceptions.NotFoundError:
         return transaction_and_incorrect_token_error(
             payment, type=TransactionType.VOID, token=auth_transaction.token)
@@ -229,7 +230,7 @@ def refund(
         transaction_type=TransactionType.CAPTURE, is_success=True).first()
     try:
         result = gateway.transaction.refund(
-            transaction_token=capture_txn.token,
+            transaction_id=capture_txn.token,
             amount_or_options=str(amount))
     except braintree_sdk.exceptions.NotFoundError:
         return transaction_and_incorrect_token_error(

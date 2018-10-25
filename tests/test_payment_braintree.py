@@ -274,7 +274,7 @@ def test_refund(
     capture_txn = payment.transactions.filter(
         transaction_type=TransactionType.CAPTURE).first()
     mock_response.assert_called_once_with(
-        amount_or_options=str(amount), transaction_token=capture_txn.token)
+        amount_or_options=str(amount), transaction_id=capture_txn.token)
 
 
 @pytest.mark.integration
@@ -403,7 +403,7 @@ def test_void(
 
     auth_txn = payment.transactions.filter(
         transaction_type=TransactionType.AUTH).first()
-    mock_response.assert_called_once_with(transaction_token=auth_txn.token)
+    mock_response.assert_called_once_with(transaction_id=auth_txn.token)
 
 
 @pytest.mark.integration
