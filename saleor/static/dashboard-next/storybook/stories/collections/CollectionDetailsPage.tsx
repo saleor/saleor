@@ -24,6 +24,7 @@ const props: CollectionDetailsPageProps = {
   onCollectionRemove: () => undefined,
   onImageDelete: () => undefined,
   onImageUpload: () => undefined,
+  onProductUnassign: () => undefined,
   onSubmit: () => undefined
 };
 
