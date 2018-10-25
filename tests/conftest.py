@@ -228,6 +228,12 @@ def category(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def categories_tree(db):
+    parent = Category.objects.create(name='Parent', slug='parent')
+    parent.children.create(name='Child', slug='child')
+    return parent
+
+@pytest.fixture
 def non_default_category(db):  # pylint: disable=W0613
     return Category.objects.create(name='Not default', slug='not-default')
 

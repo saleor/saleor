@@ -1,37 +1,80 @@
 import graphene
+import graphene_django_optimizer as gql_optimizer
 from graphene import relay
 
+from ..core.fields import PrefetchingConnectionField
 from ...discount import DiscountValueType, VoucherType, models
 from ..core.types.common import CountableDjangoObjectType
+from ..product.types import Category, Collection, Product
 
 
 class Voucher(CountableDjangoObjectType):
+    categories = gql_optimizer.field(
+        PrefetchingConnectionField(
+            Category,
+            description='List of categories this voucher applies to.'),
+        model_field='categories')
+    collections = gql_optimizer.field(
+        PrefetchingConnectionField(
+            Collection,
+            description='List of collections this voucher applies to.'),
+        model_field='collections')
+    products = gql_optimizer.field(
+        PrefetchingConnectionField(
+            Product,
+            description='List of products this voucher applies to.'),
+        model_field='products')
+
     class Meta:
-        description = """A token that can be used to purchase products
-        for discounted price."""
+        description = """
+        Vouchers allow giving discounts to particular customers on categories,
+        collections or specific products. They can be used during checkout by
+        providing valid voucher codes."""
         interfaces = [relay.Node]
-        filter_fields = {
-            'name': ['icontains'],
-            'type': ['exact'],
-            'discount_value': ['gte', 'lte'],
-            'start_date': ['exact'],
-            'end_date': ['exact'],
-            'min_amount_spent': ['gte', 'lte']}
         model = models.Voucher
+
+    def resolve_categories(self, info, **kwargs):
+        return self.categories.all()
+
+    def resolve_collections(self, info, **kwargs):
+        return self.collections.all()
+
+    def resolve_products(self, info, **kwargs):
+        return self.products.all()
 
 
 class Sale(CountableDjangoObjectType):
+    categories = gql_optimizer.field(
+        PrefetchingConnectionField(
+            Category,
+            description='List of categories this sale applies to.'),
+        model_field='categories')
+    collections = gql_optimizer.field(
+        PrefetchingConnectionField(
+            Collection,
+            description='List of collections this sale applies to.'),
+        model_field='collections')
+    products = gql_optimizer.field(
+        PrefetchingConnectionField(
+            Product,
+            description='List of products this sale applies to.'),
+        model_field='products')
+
     class Meta:
-        description = """A special event featuring discounts
-        for selected products"""
+        description = """
+        Sales allow creating discounts for categories, collections or
+        products and are visible to all the customers."""
         interfaces = [relay.Node]
-        filter_fields = {
-            'name': ['icontains'],
-            'type': ['icontains'],
-            'value': ['gte', 'lte'],
-            'start_date': ['exact'],
-            'end_date': ['exact']}
         model = models.Sale
+
+    def resolve_categories(self, info, **kwargs):
+        return self.categories.all()
+
+    def resolve_collections(self, info, **kwargs):
+        return self.collections.all()
+
+    def resolve_products(self, info, **kwargs):
+        return self.products.all()
 
 
 class VoucherTypeEnum(graphene.Enum):

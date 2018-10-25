@@ -80,7 +80,7 @@ export interface OrderDetails_order_fulfillments_lines_edges_node {
   __typename: "FulfillmentLine";
   id: string;
   quantity: number;
-  orderLine: OrderDetails_order_fulfillments_lines_edges_node_orderLine;
+  orderLine: OrderDetails_order_fulfillments_lines_edges_node_orderLine | null;
 }
 
 export interface OrderDetails_order_fulfillments_lines_edges {

@@ -86,7 +86,7 @@ export interface OrderLineAdd_draftOrderLineCreate_order_fulfillments_lines_edge
   __typename: "FulfillmentLine";
   id: string;
   quantity: number;
-  orderLine: OrderLineAdd_draftOrderLineCreate_order_fulfillments_lines_edges_node_orderLine;
+  orderLine: OrderLineAdd_draftOrderLineCreate_order_fulfillments_lines_edges_node_orderLine | null;
 }
 
 export interface OrderLineAdd_draftOrderLineCreate_order_fulfillments_lines_edges {

@@ -549,36 +549,3 @@ def test_delete_attribute_value(
 ])
 def test_resolve_attribute_value_type(raw_value, expected_type):
     assert resolve_attribute_value_type(raw_value) == expected_type
-
-
-def test_query_attribute_values(
-        color_attribute, pink_attribute_value, user_api_client):
-    attribute_id = graphene.Node.to_global_id(
-        'Attribute', color_attribute.id)
-    query = """
-    query getAttribute($id: ID!) {
-        attributes(id: $id) {
-            edges {
-                node {
-                    id
-                    name
-                    values {
-                        name
-                        type
-                        value
-                    }
-                }
-            }
-        }
-    }
-    """
-    variables = {'id': attribute_id}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content['data']['attributes']['edges'][0]['node']
-    values = data['values']
-    pink = [v for v in values if v['name'] == pink_attribute_value.name]
-    assert len(pink) == 1
-    pink = pink[0]
-    assert pink['value'] == '#FF69B4'
-    assert pink['type'] == 'COLOR'

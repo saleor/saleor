@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { CollectionInput } from "./../../types/globalTypes";
+import { CollectionCreateInput } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: CreateCollection
@@ -39,5 +39,5 @@ export interface CreateCollection {
 }
 
 export interface CreateCollectionVariables {
-  input: CollectionInput;
+  input: CollectionCreateInput;
 }

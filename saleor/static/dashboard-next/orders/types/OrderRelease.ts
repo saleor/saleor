@@ -80,7 +80,7 @@ export interface OrderRelease_orderRelease_order_fulfillments_lines_edges_node {
   __typename: "FulfillmentLine";
   id: string;
   quantity: number;
-  orderLine: OrderRelease_orderRelease_order_fulfillments_lines_edges_node_orderLine;
+  orderLine: OrderRelease_orderRelease_order_fulfillments_lines_edges_node_orderLine | null;
 }
 
 export interface OrderRelease_orderRelease_order_fulfillments_lines_edges {

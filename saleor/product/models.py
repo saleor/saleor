@@ -97,11 +97,19 @@ class ProductType(models.Model):
 
 
 class ProductQuerySet(models.QuerySet):
+
     def available_products(self):
         today = datetime.date.today()
         return self.filter(
             Q(available_on__lte=today) | Q(available_on__isnull=True),
             Q(is_published=True))
+
+    def visible_to_user(self, user):
+        has_access_to_all = (
+            user.is_active and user.has_perm('product.manage_products'))
+        if has_access_to_all:
+            return self.all()
+        return self.available_products()
 
 
 class Product(SeoModel):
@@ -423,8 +431,16 @@ class VariantImage(models.Model):
 
 
 class CollectionQuerySet(models.QuerySet):
+
     def public(self):
         return self.filter(is_published=True)
+
+    def visible_to_user(self, user):
+        has_access_to_all = (
+            user.is_active and user.has_perm('product.manage_products'))
+        if has_access_to_all:
+            return self.all()
+        return self.public()
 
 
 class Collection(SeoModel):
