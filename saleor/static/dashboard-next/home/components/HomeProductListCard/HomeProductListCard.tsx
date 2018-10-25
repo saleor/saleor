@@ -13,36 +13,26 @@ import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
 import TableCellAvatar from "../../../components/TableCellAvatar";
 import i18n from "../../../i18n";
-import { renderCollection } from "../../../misc";
+import { maybe, renderCollection } from "../../../misc";
+import { Home_productTopToday_edges_node } from "../../types/home";
 
-interface MoneyType {
-  amount: number;
-  currency: string;
-}
 interface HomeProductListProps {
-  topProducts: Array<{
-    id: string;
-    name: string;
-    orders: number;
-    price: MoneyType;
-    thumbnailUrl: string;
-    variant: string;
-  }>;
-  onRowClick: (id: string) => () => void;
+  topProducts: Home_productTopToday_edges_node[];
+  onRowClick: (productId: string, variantId: string) => void;
 }
 
 const decorate = withStyles(theme => ({
   avatarProps: {
-    height: "64px",
-    width: "64px"
+    height: 64,
+    width: 64
   },
   avatarSpacing: {
     paddingBottom: theme.spacing.unit * 2,
     paddingTop: theme.spacing.unit * 2
   },
   noProducts: {
-    paddingBottom: "20px",
-    paddingTop: "20px"
+    paddingBottom: 20,
+    paddingTop: 20
   },
   tableRow: {
     cursor: "pointer" as "pointer"
@@ -57,31 +47,45 @@ export const HomeProductList = decorate<HomeProductListProps>(
         <TableBody>
           {renderCollection(
             topProducts,
-            product => (
+            variant => (
               <TableRow
-                key={product ? product.id : "skeleton"}
-                hover={!!product}
+                key={variant ? variant.id : "skeleton"}
+                hover={!!variant}
                 className={classNames({
-                  [classes.tableRow]: !!product
+                  [classes.tableRow]: !!variant
                 })}
-                onClick={!!product ? onRowClick(product.id) : undefined}
+                onClick={
+                  !!variant
+                    ? () => onRowClick(variant.product.id, variant.id)
+                    : undefined
+                }
               >
                 <TableCellAvatar
                   className={classes.avatarSpacing}
-                  thumbnail={product && product.thumbnailUrl}
+                  thumbnail={maybe(() => variant.product.thumbnailUrl)}
                   avatarProps={classes.avatarProps}
                 />
 
                 <TableCell>
-                  {product ? (
+                  {variant ? (
                     <>
-                      <Typography color={"primary"}>{product.name}</Typography>
+                      <Typography color={"primary"}>
+                        {variant.product.name}
+                      </Typography>
                       <Typography color={"textSecondary"}>
-                        {product.variant}
+                        {maybe(() =>
+                          variant.attributes
+                            .map(attribute => attribute.value)
+                            .sort(
+                              (a, b) => (a.sortOrder > b.sortOrder ? 1 : -1)
+                            )
+                            .map(attribute => attribute.name)
+                            .join(" / ")
+                        )}
                       </Typography>
                       <Typography color={"textSecondary"}>
                         {i18n.t("{{ordersCount}} Orders", {
-                          ordersCount: product.orders
+                          ordersCount: variant.quantityOrdered
                         })}
                       </Typography>
                     </>
@@ -92,15 +96,13 @@ export const HomeProductList = decorate<HomeProductListProps>(
 
                 <TableCell>
                   <Typography align={"right"}>
-                    {product &&
-                    product.price !== undefined &&
-                    product.price.amount !== undefined &&
-                    product.price.currency !== undefined ? (
-                      <Money
-                        amount={product.price.amount}
-                        currency={product.price.currency}
-                      />
-                    ) : (
+                    {maybe(
+                      () => (
+                        <Money
+                          amount={variant.product.price.amount}
+                          currency={variant.product.price.currency}
+                        />
+                      ),
                       <Skeleton />
                     )}
                   </Typography>

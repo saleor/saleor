@@ -11,14 +11,11 @@ import DateFormatter from "../../../components/DateFormatter";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
+import { Home_activities_edges_node } from "../../types/home";
+import { getActivityMessage } from "./activityMessages";
 
 interface HomeProductListCardProps {
-  activities?: Array<{
-    action: string;
-    admin: boolean;
-    date: string;
-    id: string;
-  }>;
+  activities: Home_activities_edges_node[];
 }
 
 const decorate = withStyles({
@@ -40,20 +37,12 @@ const HomeProductListCard = decorate<HomeProductListCardProps>(
         <List dense={true}>
           {renderCollection(
             activities,
-            activity => (
-              <ListItem key={activity ? activity.id : "skeleton"}>
+            (activity, activityId) => (
+              <ListItem key={activityId}>
                 {activity ? (
                   <ListItemText
                     primary={
-                      <Typography
-                        dangerouslySetInnerHTML={{
-                          __html: activity.admin
-                            ? i18n.t(`Saleor shop admin 
-                        ${activity.action}`)
-                            : i18n.t(`${activity.action} a 
-                        `)
-                        }}
-                      />
+                      <Typography>{getActivityMessage(activity)}</Typography>
                     }
                     secondary={<DateFormatter date={activity.date} />}
                   />

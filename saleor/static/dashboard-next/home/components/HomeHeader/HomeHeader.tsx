@@ -9,16 +9,20 @@ interface HomeOrdersCardProps {
   userName: string;
 }
 
-const decorate = withStyles({
+const decorate = withStyles(theme => ({
+  headerContainer: {
+    marginBottom: theme.spacing.unit * 3,
+    marginTop: theme.spacing.unit * 3
+  },
   pageHeader: {
     fontWeight: 600 as 600
   }
-});
+}));
 
 const HomeOrdersCard = decorate<HomeOrdersCardProps>(
   ({ classes, userName }) => {
     return (
-      <div>
+      <div className={classes.headerContainer}>
         <Typography className={classes.pageHeader} variant={"headline"}>
           {userName ? (
             i18n.t("Hello there, {{userName}}", { userName })
@@ -26,7 +30,7 @@ const HomeOrdersCard = decorate<HomeOrdersCardProps>(
             <Skeleton style={{ width: "10em" }} />
           )}
         </Typography>
-        <Typography variant={"subheading"}>
+        <Typography>
           {userName ? (
             i18n.t("Here are some information we gathered about your store")
           ) : (

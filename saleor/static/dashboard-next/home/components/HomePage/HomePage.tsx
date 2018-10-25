@@ -6,38 +6,25 @@ import * as React from "react";
 import CardSpacer from "../../../components/CardSpacer";
 import Container from "../../../components/Container";
 import Money from "../../../components/Money";
+import Skeleton from "../../../components/Skeleton";
+import { maybe } from "../../../misc";
+import {
+  Home_activities_edges_node,
+  Home_productTopToday_edges_node,
+  Home_salesToday_gross
+} from "../../types/home";
 import HomeActivityCard from "../HomeActivityCard";
 import HomeAnalyticsCard from "../HomeAnalyticsCard";
 import HomeHeader from "../HomeHeader";
 import HomeProductListCard from "../HomeProductListCard";
 
-interface MoneyType {
-  amount: number;
-  currency: string;
-}
 export interface HomePageProps {
-  activities: Array<{
-    action: string;
-    admin: boolean;
-    date: string;
-    id: string;
-  }>;
-  daily: {
-    orders: {
-      amount: number;
-    };
-    sales: MoneyType;
-  };
+  activities: Home_activities_edges_node[];
+  orders: number;
+  sales: Home_salesToday_gross;
   userName: string;
-  topProducts: Array<{
-    id: string;
-    name: string;
-    orders: number;
-    price: MoneyType;
-    thumbnailUrl: string;
-    variant: string;
-  }>;
-  onProductClick?(id: string): () => void;
+  topProducts: Home_productTopToday_edges_node[];
+  onProductClick: (productId: string, variantId: string) => void;
 }
 
 const decorate = withStyles(theme => ({
@@ -66,7 +53,15 @@ const decorate = withStyles(theme => ({
   }
 }));
 const HomePage = decorate<HomePageProps>(
-  ({ userName, classes, daily, topProducts, onProductClick, activities }) => (
+  ({
+    userName,
+    classes,
+    orders,
+    sales,
+    topProducts,
+    onProductClick,
+    activities
+  }) => (
     <Container width="md">
       <HomeHeader userName={userName} />
       <CardSpacer />
@@ -77,23 +72,24 @@ const HomePage = decorate<HomePageProps>(
               title={"Sales"}
               icon={<AttachMoney fontSize={"inherit"} />}
             >
-              {daily && daily.sales ? (
-                <Money
-                  amount={daily.sales.amount}
-                  currency={daily.sales.currency}
-                />
-              ) : (
-                undefined
+              {maybe(
+                () => (
+                  <Money amount={sales.amount} currency={sales.currency} />
+                ),
+                <Skeleton style={{ width: "5em" }} />
               )}
             </HomeAnalyticsCard>
             <HomeAnalyticsCard
               title={"Orders"}
               icon={<LocalShipping fontSize={"inherit"} />}
             >
-              {daily && daily.orders ? daily.orders.amount : undefined}
+              {orders === undefined ? (
+                <Skeleton style={{ width: "5em" }} />
+              ) : (
+                orders
+              )}
             </HomeAnalyticsCard>
           </div>
-
           <HomeProductListCard
             onRowClick={onProductClick}
             topProducts={topProducts}

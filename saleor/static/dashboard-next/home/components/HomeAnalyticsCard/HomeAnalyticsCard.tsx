@@ -5,7 +5,6 @@ import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 
 interface HomeAnalyticsCardProps {
@@ -68,7 +67,7 @@ const HomeAnalyticsCard = decorate<HomeAnalyticsCardProps>(
             {i18n.t("Today")}
           </Typography>
           <Typography color={"textPrimary"} variant="headline">
-            {children ? children : <Skeleton style={{ width: "5em" }} />}
+            {children}
           </Typography>
         </div>
         <div className={classes.iconBackground}>{icon}</div>
