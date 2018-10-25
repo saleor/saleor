@@ -888,7 +888,7 @@ exports[`Storyshots Generics / AddressEdit default 1`] = `
               class="MuiInput-input-id"
               name="firstName"
               type="text"
-              value="Alexander"
+              value="Elizabeth"
             />
           </div>
         </div>
@@ -911,7 +911,7 @@ exports[`Storyshots Generics / AddressEdit default 1`] = `
               class="MuiInput-input-id"
               name="lastName"
               type="text"
-              value="Simonis"
+              value="Vaughn"
             />
           </div>
         </div>
@@ -937,6 +937,7 @@ exports[`Storyshots Generics / AddressEdit default 1`] = `
           class="MuiInput-input-id"
           name="companyName"
           type="text"
+          value=""
         />
       </div>
     </div>
@@ -960,7 +961,7 @@ exports[`Storyshots Generics / AddressEdit default 1`] = `
           class="MuiInput-input-id"
           name="streetAddress1"
           type="text"
-          value="83772 Savanah Summit"
+          value="419 Ruiz Orchard Apt. 199"
         />
       </div>
     </div>
@@ -984,6 +985,7 @@ exports[`Storyshots Generics / AddressEdit default 1`] = `
           class="MuiInput-input-id"
           name="streetAddress2"
           type="text"
+          value=""
         />
       </div>
     </div>
@@ -1007,7 +1009,7 @@ exports[`Storyshots Generics / AddressEdit default 1`] = `
           class="MuiInput-input-id"
           name="city"
           type="text"
-          value="Thompsontown"
+          value="Port Danielshire"
         />
       </div>
     </div>
@@ -1018,8 +1020,8 @@ exports[`Storyshots Generics / AddressEdit default 1`] = `
       class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
     >
       <label
-        class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-        data-shrink="true"
+        class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+        data-shrink="false"
       >
         City area
       </label>
@@ -1031,7 +1033,7 @@ exports[`Storyshots Generics / AddressEdit default 1`] = `
           class="MuiInput-input-id"
           name="cityArea"
           type="text"
-          value="Rhode Island"
+          value=""
         />
       </div>
     </div>
@@ -1055,7 +1057,7 @@ exports[`Storyshots Generics / AddressEdit default 1`] = `
           class="MuiInput-input-id"
           name="postalCode"
           type="text"
-          value="47639-5237"
+          value="52203"
         />
       </div>
     </div>
@@ -1091,7 +1093,7 @@ exports[`Storyshots Generics / AddressEdit default 1`] = `
           <input
             name="country"
             type="hidden"
-            value="SW"
+            value="SE"
           />
           <svg
             aria-hidden="true"
@@ -1113,8 +1115,8 @@ exports[`Storyshots Generics / AddressEdit default 1`] = `
       class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
     >
       <label
-        class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-        data-shrink="true"
+        class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+        data-shrink="false"
       >
         Country area
       </label>
@@ -1126,7 +1128,7 @@ exports[`Storyshots Generics / AddressEdit default 1`] = `
           class="MuiInput-input-id"
           name="countryArea"
           type="text"
-          value="Buckinghamshire"
+          value=""
         />
       </div>
     </div>
@@ -1137,8 +1139,8 @@ exports[`Storyshots Generics / AddressEdit default 1`] = `
       class="MuiFormControl-root-id"
     >
       <label
-        class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-        data-shrink="true"
+        class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+        data-shrink="false"
       >
         Phone
       </label>
@@ -1150,7 +1152,7 @@ exports[`Storyshots Generics / AddressEdit default 1`] = `
           class="MuiInput-input-id"
           name="phone"
           type="text"
-          value="+17 253-928-8945"
+          value=""
         />
       </div>
     </div>
@@ -1164,23 +1166,23 @@ exports[`Storyshots Generics / AddressFormatter default 1`] = `
     <span
       class="MuiTypography-root-id MuiTypography-body1-id"
     >
-      Alexander Simonis
+      Elizabeth Vaughn
     </span>
     <span
       class="MuiTypography-root-id MuiTypography-body1-id"
     >
-      83772 Savanah Summit
+      419 Ruiz Orchard Apt. 199
       <br />
     </span>
     <span
       class="MuiTypography-root-id MuiTypography-body1-id"
     >
-       47639-5237 Thompsontown, Rhode Island
+       52203 Port Danielshire
     </span>
     <span
       class="MuiTypography-root-id MuiTypography-body1-id"
     >
-      Buckinghamshire, Swaziland
+      Szwecja
     </span>
   </address>
 </div>
@@ -12458,1297 +12460,2957 @@ exports[`Storyshots Views / Configuration partial access 1`] = `
 
 exports[`Storyshots Views / Customers / Customer details default 1`] = `
 <div>
-  <div
-    class="Component-md-id"
-  >
+  <form>
     <div
-      class="Component-root-id"
+      class="Component-md-id"
     >
-      <h2
-        class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-      >
-        alexander_simonis@example.com
-      </h2>
       <div
-        class="Component-action-id"
-      />
-    </div>
-    <div
-      class="Component-root-id"
-    >
-      <div>
-        <div
-          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-root-id"
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
+          tabindex="0"
+          type="button"
         >
-          <div
-            class="Component-root-id"
+          <span
+            class="MuiIconButton-label-id"
           >
-            <span
-              class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
             >
-              User details
-            </span>
+              <g>
+                <path
+                  d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                />
+              </g>
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
+        >
+          elizabeth.vaughn@example.com
+        </h2>
+        <div
+          class="Component-action-id"
+        />
+      </div>
+      <div
+        class="Component-root-id"
+      >
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
             <div
-              class="Component-toolbar-id"
+              class="Component-root-id Component-cardTitle-id"
             >
-              <button
-                class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-                tabindex="0"
-                type="button"
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                General Information
+                <span
+                  class="MuiTypography-root-id MuiTypography-caption-id"
+                >
+                  Customer since: May 2017
+                </span>
+              </span>
+              <div
+                class="Component-toolbar-id"
+              />
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <label
+                class="MuiFormControlLabel-root-id"
               >
                 <span
-                  class="MuiButton-label-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiSwitchBase-checked-id MuiCheckbox-checked-id"
                 >
-                  Edit customer
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                      />
+                    </svg>
+                    <input
+                      checked=""
+                      class="MuiSwitchBase-input-id"
+                      name="isActive"
+                      type="checkbox"
+                    />
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
                 </span>
                 <span
-                  class="MuiTouchRipple-root-id"
-                />
-              </button>
-              <button
-                class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-                tabindex="0"
-                type="button"
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                >
+                  User account active
+                </span>
+              </label>
+              <div
+                class="Component-spacer-id"
+              />
+              <div
+                class="Component-root-id"
               >
-                <span
-                  class="MuiButton-label-id"
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
-                  Remove customer
-                </span>
-                <span
-                  class="MuiTouchRipple-root-id"
-                />
-              </button>
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                    data-shrink="true"
+                  >
+                    E-mail
+                  </label>
+                  <div
+                    class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInput-input-id MuiInput-inputType-id"
+                      name="email"
+                      type="email"
+                      value="elizabeth.vaughn@example.com"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="Component-spacer-id"
+              />
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
+                >
+                  Note
+                </label>
+                <div
+                  class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-multiline-id MuiInput-underline-id"
+                >
+                  <div
+                    class="Textarea-root-id"
+                    style="height:19px"
+                  >
+                    <textarea
+                      aria-hidden="true"
+                      class="Textarea-textarea-id Textarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-hidden="true"
+                      class="Textarea-textarea-id Textarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-invalid="false"
+                      class="Textarea-textarea-id MuiInput-input-id MuiInput-inputMultiline-id"
+                      name="note"
+                      rows="1"
+                      type="text"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <div
-            class="Component-children-id"
-          >
-            <span
-              class="MuiTypography-root-id MuiTypography-body1-id"
-            >
-              <div
-                class="Component-root-id Component-status-id Component-successDot-id"
-              >
-                Active
-              </div>
-            </span>
-          </div>
-          <hr
-            class="Component-hr-id"
+            class="Component-spacer-id"
           />
           <div
-            class="MuiCardContent-root-id"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
-              class="Component-date-id"
+              class="Component-root-id"
             >
               <span
-                class="MuiTypography-root-id MuiTypography-caption-id Component-userJoinDate-id"
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
               >
-                Joined
+                Recent orders
               </span>
-               
+              <div
+                class="Component-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    View all orders
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </button>
+              </div>
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <table
+              class="MuiTable-root-id"
+              padding="default"
+            >
+              <thead
+                class="MuiTableHead-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-head-id"
+                >
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+                    scope="col"
+                  >
+                    No. of Order
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+                    scope="col"
+                  >
+                    Date
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+                    scope="col"
+                  >
+                    Status
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id Component-textRight-id"
+                    scope="col"
+                  >
+                    Total
+                  </th>
+                </tr>
+              </thead>
+              <tbody
+                class="MuiTableBody-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+                  >
+                    #8234
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+                  >
+                    <time
+                      datetime="1525685850124"
+                      title="Mon May 07 2018 05:37:30 GMT-0400"
+                    >
+                      3 months ago
+                    </time>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+                  >
+                    <div
+                      class="Component-root-id undefined Component-successDot-id"
+                    >
+                      Paid
+                    </div>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id Component-textRight-id"
+                  >
+                    $1,215.89
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
               <span
-                class="MuiTypography-root-id MuiTypography-caption-id"
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Address Information
+              </span>
+              <div
+                class="Component-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Manage
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </button>
+              </div>
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id Component-label-id"
+              >
+                Default address
+              </p>
+              <address>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  Elizabeth Vaughn
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  419 Ruiz Orchard Apt. 199
+                  <br />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                   52203 Port Danielshire
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  Szwecja
+                </span>
+              </address>
+            </div>
+          </div>
+          <div
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Customer History
+              </span>
+              <div
+                class="Component-toolbar-id"
+              />
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <aside
+                class="MuiTypography-root-id MuiTypography-body2-id"
+              >
+                Last login
+              </aside>
+              <h2
+                class="MuiTypography-root-id MuiTypography-title-id Component-value-id"
               >
                 <time
-                  datetime="1507728150831"
-                  title="Wed Oct 11 2017 09:22:30 GMT-0400"
+                  datetime="1525685850124"
+                  title="Mon May 07 2018 05:37:30 GMT-0400"
                 >
-                  10 months ago
+                  3 months ago
                 </time>
-              </span>
+              </h2>
             </div>
-            <p
-              class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
+            <hr
+              class="Component-root-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
             >
-              No note
-            </p>
+              <aside
+                class="MuiTypography-root-id MuiTypography-body2-id"
+              >
+                Last order
+              </aside>
+              <h2
+                class="MuiTypography-root-id MuiTypography-title-id Component-value-id"
+              >
+                <time
+                  datetime="1525685850124"
+                  title="Mon May 07 2018 05:37:30 GMT-0400"
+                >
+                  3 months ago
+                </time>
+              </h2>
+            </div>
           </div>
-        </div>
-        <div
-          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
-        >
-          <table
-            class="MuiTable-root-id"
-            padding="default"
-          >
-            <thead
-              class="MuiTableHead-root-id"
-            >
-              <tr
-                class="MuiTableRow-root-id MuiTableRow-head-id"
-              >
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id"
-                  scope="col"
-                >
-                  #
-                </th>
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id"
-                  scope="col"
-                >
-                  Created
-                </th>
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id"
-                  scope="col"
-                >
-                  Status
-                </th>
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id Component-textRight-id"
-                  scope="col"
-                >
-                  Price
-                </th>
-              </tr>
-            </thead>
-            <tfoot
-              class="MuiTableFooter-root-id"
-            >
-              <tr
-                class="MuiTableRow-root-id MuiTableRow-footer-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
-                  colspan="4"
-                >
-                  <div
-                    class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
-                  >
-                    <div
-                      class="TablePagination-spacer-id"
-                    />
-                    <div
-                      class="TablePaginationActions-root-id"
-                    >
-                      <button
-                        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
-                        disabled=""
-                        tabindex="-1"
-                        type="button"
-                      >
-                        <span
-                          class="MuiIconButton-label-id"
-                        >
-                          <svg
-                            aria-hidden="true"
-                            class="MuiSvgIcon-root-id"
-                            focusable="false"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
-                            />
-                          </svg>
-                        </span>
-                      </button>
-                      <button
-                        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
-                        disabled=""
-                        tabindex="-1"
-                        type="button"
-                      >
-                        <span
-                          class="MuiIconButton-label-id"
-                        >
-                          <svg
-                            aria-hidden="true"
-                            class="MuiSvgIcon-root-id"
-                            focusable="false"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
-                            />
-                          </svg>
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            </tfoot>
-            <tbody
-              class="MuiTableBody-root-id"
-            >
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                >
-                  20
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <time
-                    datetime="1536658650376"
-                    title="Tue Sep 11 2018 05:37:30 GMT-0400"
-                  >
-                    in a month
-                  </time>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <div
-                    class="Component-root-id undefined Component-errorDot-id"
-                  >
-                    Cancelled
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-                >
-                  $305.17
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                >
-                  19
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <time
-                    datetime="1536658650124"
-                    title="Tue Sep 11 2018 05:37:30 GMT-0400"
-                  >
-                    in a month
-                  </time>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <div
-                    class="Component-root-id undefined Component-errorDot-id"
-                  >
-                    Cancelled
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-                >
-                  $1,215.89
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                >
-                  18
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <time
-                    datetime="1536658650019"
-                    title="Tue Sep 11 2018 05:37:30 GMT-0400"
-                  >
-                    in a month
-                  </time>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <div
-                    class="Component-root-id undefined Component-errorDot-id"
-                  >
-                    Draft
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-                >
-                  $321.71
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                >
-                  17
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <time
-                    datetime="1536658649864"
-                    title="Tue Sep 11 2018 05:37:29 GMT-0400"
-                  >
-                    in a month
-                  </time>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <div
-                    class="Component-root-id undefined Component-errorDot-id"
-                  >
-                    Cancelled
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-                >
-                  $271.95
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                >
-                  16
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <time
-                    datetime="1536658649610"
-                    title="Tue Sep 11 2018 05:37:29 GMT-0400"
-                  >
-                    in a month
-                  </time>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <div
-                    class="Component-root-id undefined Component-errorDot-id"
-                  >
-                    Cancelled
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-                >
-                  $335.84
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                >
-                  15
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <time
-                    datetime="1536658649336"
-                    title="Tue Sep 11 2018 05:37:29 GMT-0400"
-                  >
-                    in a month
-                  </time>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <div
-                    class="Component-root-id undefined Component-errorDot-id"
-                  >
-                    Cancelled
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-                >
-                  $1,042.15
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                >
-                  14
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <time
-                    datetime="1536658649103"
-                    title="Tue Sep 11 2018 05:37:29 GMT-0400"
-                  >
-                    in a month
-                  </time>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <div
-                    class="Component-root-id undefined Component-errorDot-id"
-                  >
-                    Cancelled
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-                >
-                  $213.69
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                >
-                  13
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <time
-                    datetime="1536658648921"
-                    title="Tue Sep 11 2018 05:37:28 GMT-0400"
-                  >
-                    in a month
-                  </time>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <div
-                    class="Component-root-id undefined Component-errorDot-id"
-                  >
-                    Cancelled
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-                >
-                  $367.03
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                >
-                  12
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <time
-                    datetime="1536658648750"
-                    title="Tue Sep 11 2018 05:37:28 GMT-0400"
-                  >
-                    in a month
-                  </time>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <div
-                    class="Component-root-id undefined Component-errorDot-id"
-                  >
-                    Cancelled
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-                >
-                  $298.76
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                >
-                  11
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <time
-                    datetime="1536658648598"
-                    title="Tue Sep 11 2018 05:37:28 GMT-0400"
-                  >
-                    in a month
-                  </time>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <div
-                    class="Component-root-id undefined Component-errorDot-id"
-                  >
-                    Unfulfilled
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-                >
-                  $663.69
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                >
-                  10
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <time
-                    datetime="1536658648409"
-                    title="Tue Sep 11 2018 05:37:28 GMT-0400"
-                  >
-                    in a month
-                  </time>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <div
-                    class="Component-root-id undefined Component-errorDot-id"
-                  >
-                    Cancelled
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-                >
-                  $280.41
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                >
-                  9
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <time
-                    datetime="1536658648185"
-                    title="Tue Sep 11 2018 05:37:28 GMT-0400"
-                  >
-                    in a month
-                  </time>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <div
-                    class="Component-root-id undefined Component-neutralDot-id"
-                  >
-                    Partially fulfilled
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-                >
-                  $234.93
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                >
-                  8
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <time
-                    datetime="1536658647953"
-                    title="Tue Sep 11 2018 05:37:27 GMT-0400"
-                  >
-                    in a month
-                  </time>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <div
-                    class="Component-root-id undefined Component-neutralDot-id"
-                  >
-                    Partially fulfilled
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-                >
-                  $485.19
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                >
-                  7
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <time
-                    datetime="1536658647828"
-                    title="Tue Sep 11 2018 05:37:27 GMT-0400"
-                  >
-                    in a month
-                  </time>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <div
-                    class="Component-root-id undefined Component-neutralDot-id"
-                  >
-                    Partially fulfilled
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-                >
-                  $223.54
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                >
-                  6
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <time
-                    datetime="1536658647636"
-                    title="Tue Sep 11 2018 05:37:27 GMT-0400"
-                  >
-                    in a month
-                  </time>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <div
-                    class="Component-root-id undefined Component-successDot-id"
-                  >
-                    Fulfilled
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-                >
-                  $237.55
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                >
-                  5
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <time
-                    datetime="1536658647420"
-                    title="Tue Sep 11 2018 05:37:27 GMT-0400"
-                  >
-                    in a month
-                  </time>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <div
-                    class="Component-root-id undefined Component-neutralDot-id"
-                  >
-                    Partially fulfilled
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-                >
-                  $453.55
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                >
-                  4
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <time
-                    datetime="1536658647230"
-                    title="Tue Sep 11 2018 05:37:27 GMT-0400"
-                  >
-                    in a month
-                  </time>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <div
-                    class="Component-root-id undefined Component-neutralDot-id"
-                  >
-                    Partially fulfilled
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-                >
-                  $812.67
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                >
-                  3
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <time
-                    datetime="1536658646972"
-                    title="Tue Sep 11 2018 05:37:26 GMT-0400"
-                  >
-                    in a month
-                  </time>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <div
-                    class="Component-root-id undefined Component-neutralDot-id"
-                  >
-                    Partially fulfilled
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-                >
-                  $481.41
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                >
-                  2
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <time
-                    datetime="1536658646751"
-                    title="Tue Sep 11 2018 05:37:26 GMT-0400"
-                  >
-                    in a month
-                  </time>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <div
-                    class="Component-root-id undefined Component-neutralDot-id"
-                  >
-                    Partially fulfilled
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-                >
-                  $569.19
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                >
-                  1
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <time
-                    datetime="1536658646314"
-                    title="Tue Sep 11 2018 05:37:26 GMT-0400"
-                  >
-                    in a month
-                  </time>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <div
-                    class="Component-root-id undefined Component-neutralDot-id"
-                  >
-                    Partially fulfilled
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-                >
-                  $557.00
-                </td>
-              </tr>
-            </tbody>
-          </table>
         </div>
       </div>
-      <div>
-        <div
-          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+      <div
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
+          tabindex="0"
+          type="button"
         >
-          <div
-            class="Component-root-id"
+          <span
+            class="MuiButton-label-id"
           >
-            <span
-              class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
-            >
-              Default billing address
-            </span>
-            <div
-              class="Component-toolbar-id"
-            />
-          </div>
-          <div
-            class="Component-children-id"
+            Remove
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
           />
-          <hr
-            class="Component-hr-id"
-          />
-          <div
-            class="MuiCardContent-root-id"
+        </button>
+        <div
+          class="Component-spacer-id"
+        />
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id Component-cancelButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
           >
-            <address>
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id"
-              >
-                Alexander Simonis
-              </span>
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id"
-              >
-                83772 Savanah Summit
-                <br />
-              </span>
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id"
-              >
-                 47639-5237 Thompsontown, Rhode Island
-              </span>
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id"
-              >
-                Buckinghamshire, Swaziland
-              </span>
-            </address>
-          </div>
-          <hr
-            class="Component-hr-id"
+            Cancel
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
           />
-          <div
-            class="Component-root-id"
+        </button>
+        <button
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          disabled=""
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
           >
-            <span
-              class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
-            >
-              Default shipping address
-            </span>
-            <div
-              class="Component-toolbar-id"
-            />
-          </div>
-          <div
-            class="Component-children-id"
-          />
-          <hr
-            class="Component-hr-id"
-          />
-          <div
-            class="MuiCardContent-root-id"
-          >
-            <address>
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id"
-              >
-                Alexander Simonis
-              </span>
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id"
-              >
-                780 Jaime Prairie
-                <br />
-              </span>
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id"
-              >
-                 21665 West Bret, North Dakota
-              </span>
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id"
-              >
-                Sudan
-              </span>
-            </address>
-          </div>
-        </div>
+            Save
+          </span>
+        </button>
       </div>
     </div>
-  </div>
+  </form>
 </div>
 `;
 
-exports[`Storyshots Views / Customers / Customer details when loading 1`] = `
+exports[`Storyshots Views / Customers / Customer details different addresses 1`] = `
 <div>
-  <div
-    class="Component-md-id"
-  >
+  <form>
     <div
-      class="Component-root-id"
+      class="Component-md-id"
     >
-      <h2
-        class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-      >
-        <span
-          class="Skeleton-skeleton-id"
-          style="width:10em"
-        >
-          ‌
-        </span>
-      </h2>
       <div
-        class="Component-action-id"
-      />
-    </div>
-    <div
-      class="Component-root-id"
-    >
-      <div>
-        <div
-          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-root-id"
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
+          tabindex="0"
+          type="button"
         >
-          <div
-            class="Component-root-id"
+          <span
+            class="MuiIconButton-label-id"
           >
-            <span
-              class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
             >
-              User details
-            </span>
+              <g>
+                <path
+                  d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                />
+              </g>
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
+        >
+          elizabeth.vaughn@example.com
+        </h2>
+        <div
+          class="Component-action-id"
+        />
+      </div>
+      <div
+        class="Component-root-id"
+      >
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
             <div
-              class="Component-toolbar-id"
+              class="Component-root-id Component-cardTitle-id"
             >
-              <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id"
-                disabled=""
-                tabindex="-1"
-                type="button"
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                General Information
+                <span
+                  class="MuiTypography-root-id MuiTypography-caption-id"
+                >
+                  Customer since: May 2017
+                </span>
+              </span>
+              <div
+                class="Component-toolbar-id"
+              />
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <label
+                class="MuiFormControlLabel-root-id"
               >
                 <span
-                  class="MuiButton-label-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiSwitchBase-checked-id MuiCheckbox-checked-id"
                 >
-                  Edit customer
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                      />
+                    </svg>
+                    <input
+                      checked=""
+                      class="MuiSwitchBase-input-id"
+                      name="isActive"
+                      type="checkbox"
+                    />
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
                 </span>
-              </button>
-              <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id"
-                disabled=""
-                tabindex="-1"
-                type="button"
-              >
                 <span
-                  class="MuiButton-label-id"
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
                 >
-                  Remove customer
+                  User account active
                 </span>
-              </button>
+              </label>
+              <div
+                class="Component-spacer-id"
+              />
+              <div
+                class="Component-root-id"
+              >
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                    data-shrink="true"
+                  >
+                    E-mail
+                  </label>
+                  <div
+                    class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInput-input-id MuiInput-inputType-id"
+                      name="email"
+                      type="email"
+                      value="elizabeth.vaughn@example.com"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="Component-spacer-id"
+              />
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
+                >
+                  Note
+                </label>
+                <div
+                  class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-multiline-id MuiInput-underline-id"
+                >
+                  <div
+                    class="Textarea-root-id"
+                    style="height:19px"
+                  >
+                    <textarea
+                      aria-hidden="true"
+                      class="Textarea-textarea-id Textarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-hidden="true"
+                      class="Textarea-textarea-id Textarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-invalid="false"
+                      class="Textarea-textarea-id MuiInput-input-id MuiInput-inputMultiline-id"
+                      name="note"
+                      rows="1"
+                      type="text"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <div
-            class="Component-children-id"
-          >
-            <span
-              class="Skeleton-skeleton-id"
-              style="width:10rem"
-            >
-              ‌
-            </span>
-          </div>
-          <hr
-            class="Component-hr-id"
+            class="Component-spacer-id"
           />
           <div
-            class="MuiCardContent-root-id"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
-            <span
-              class="Skeleton-skeleton-id"
+            <div
+              class="Component-root-id"
             >
-              ‌
-            </span>
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Recent orders
+              </span>
+              <div
+                class="Component-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    View all orders
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </button>
+              </div>
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <table
+              class="MuiTable-root-id"
+              padding="default"
+            >
+              <thead
+                class="MuiTableHead-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-head-id"
+                >
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+                    scope="col"
+                  >
+                    No. of Order
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+                    scope="col"
+                  >
+                    Date
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+                    scope="col"
+                  >
+                    Status
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id Component-textRight-id"
+                    scope="col"
+                  >
+                    Total
+                  </th>
+                </tr>
+              </thead>
+              <tbody
+                class="MuiTableBody-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+                  >
+                    #8234
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+                  >
+                    <time
+                      datetime="1525685850124"
+                      title="Mon May 07 2018 05:37:30 GMT-0400"
+                    >
+                      3 months ago
+                    </time>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+                  >
+                    <div
+                      class="Component-root-id undefined Component-successDot-id"
+                    >
+                      Paid
+                    </div>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id Component-textRight-id"
+                  >
+                    $1,215.89
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
-        <div
-          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
-        >
-          <table
-            class="MuiTable-root-id"
-            padding="default"
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
-            <thead
-              class="MuiTableHead-root-id"
+            <div
+              class="Component-root-id"
             >
-              <tr
-                class="MuiTableRow-root-id MuiTableRow-head-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
               >
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id"
-                  scope="col"
+                Address Information
+              </span>
+              <div
+                class="Component-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
                 >
-                  #
-                </th>
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id"
-                  scope="col"
-                >
-                  Created
-                </th>
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id"
-                  scope="col"
-                >
-                  Status
-                </th>
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id Component-textRight-id"
-                  scope="col"
-                >
-                  Price
-                </th>
-              </tr>
-            </thead>
-            <tfoot
-              class="MuiTableFooter-root-id"
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Manage
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </button>
+              </div>
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
             >
-              <tr
-                class="MuiTableRow-root-id MuiTableRow-footer-id"
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id Component-label-id"
               >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
-                  colspan="4"
+                Default billing address
+              </p>
+              <address>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  <div
-                    class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
-                  >
-                    <div
-                      class="TablePagination-spacer-id"
-                    />
-                    <div
-                      class="TablePaginationActions-root-id"
-                    >
-                      <button
-                        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
-                        disabled=""
-                        tabindex="-1"
-                        type="button"
-                      >
-                        <span
-                          class="MuiIconButton-label-id"
-                        >
-                          <svg
-                            aria-hidden="true"
-                            class="MuiSvgIcon-root-id"
-                            focusable="false"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
-                            />
-                          </svg>
-                        </span>
-                      </button>
-                      <button
-                        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
-                        disabled=""
-                        tabindex="-1"
-                        type="button"
-                      >
-                        <span
-                          class="MuiIconButton-label-id"
-                        >
-                          <svg
-                            aria-hidden="true"
-                            class="MuiSvgIcon-root-id"
-                            focusable="false"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
-                            />
-                          </svg>
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            </tfoot>
-            <tbody
-              class="MuiTableBody-root-id"
+                  Elizabeth Vaughn
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  419 Ruiz Orchard Apt. 199
+                  <br />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                   52203 Port Danielshire
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  Szwecja
+                </span>
+              </address>
+            </div>
+            <hr
+              class="Component-root-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
             >
-              <tr
-                class="MuiTableRow-root-id"
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id Component-label-id"
               >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                Default shipping address
+              </p>
+              <address>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  <span
-                    class="Skeleton-skeleton-id"
-                  >
-                    ‌
-                  </span>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                  Elizabeth Vaughn
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  <span
-                    class="Skeleton-skeleton-id"
-                  >
-                    ‌
-                  </span>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                  419 Ruiz Orchard Apt. 199
+                  <br />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  <span
-                    class="Skeleton-skeleton-id"
-                  >
-                    ‌
-                  </span>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+                   52203 Port Danielshire
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  <span
-                    class="Skeleton-skeleton-id"
-                  >
-                    ‌
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                  Szwecja
+                </span>
+              </address>
+            </div>
+          </div>
+          <div
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Customer History
+              </span>
+              <div
+                class="Component-toolbar-id"
+              />
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <aside
+                class="MuiTypography-root-id MuiTypography-body2-id"
+              >
+                Last login
+              </aside>
+              <h2
+                class="MuiTypography-root-id MuiTypography-title-id Component-value-id"
+              >
+                <time
+                  datetime="1525685850124"
+                  title="Mon May 07 2018 05:37:30 GMT-0400"
+                >
+                  3 months ago
+                </time>
+              </h2>
+            </div>
+            <hr
+              class="Component-root-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <aside
+                class="MuiTypography-root-id MuiTypography-body2-id"
+              >
+                Last order
+              </aside>
+              <h2
+                class="MuiTypography-root-id MuiTypography-title-id Component-value-id"
+              >
+                <time
+                  datetime="1525685850124"
+                  title="Mon May 07 2018 05:37:30 GMT-0400"
+                >
+                  3 months ago
+                </time>
+              </h2>
+            </div>
+          </div>
         </div>
       </div>
-      <div>
-        <div
-          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+      <div
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
+          tabindex="0"
+          type="button"
         >
-          <div
-            class="Component-root-id"
+          <span
+            class="MuiButton-label-id"
           >
-            <span
-              class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
-            >
-              Default billing address
-            </span>
-            <div
-              class="Component-toolbar-id"
-            />
-          </div>
-          <div
-            class="Component-children-id"
+            Remove
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
           />
-          <hr
-            class="Component-hr-id"
-          />
-          <div
-            class="MuiCardContent-root-id"
+        </button>
+        <div
+          class="Component-spacer-id"
+        />
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id Component-cancelButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
           >
-            <span
-              class="Skeleton-skeleton-id"
-            >
-              ‌
-            </span>
-          </div>
-          <hr
-            class="Component-hr-id"
+            Cancel
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
           />
-          <div
-            class="Component-root-id"
+        </button>
+        <button
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          disabled=""
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
           >
-            <span
-              class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
-            >
-              Default shipping address
-            </span>
-            <div
-              class="Component-toolbar-id"
-            />
-          </div>
-          <div
-            class="Component-children-id"
-          />
-          <hr
-            class="Component-hr-id"
-          />
-          <div
-            class="MuiCardContent-root-id"
-          >
-            <span
-              class="Skeleton-skeleton-id"
-            >
-              ‌
-            </span>
-          </div>
-        </div>
+            Save
+          </span>
+        </button>
       </div>
     </div>
-  </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Customers / Customer details form errors 1`] = `
+<div>
+  <form>
+    <div
+      class="Component-md-id"
+    >
+      <div
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                />
+              </g>
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
+        >
+          elizabeth.vaughn@example.com
+        </h2>
+        <div
+          class="Component-action-id"
+        />
+      </div>
+      <div
+        class="Component-root-id"
+      >
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id Component-cardTitle-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                General Information
+                <span
+                  class="MuiTypography-root-id MuiTypography-caption-id"
+                >
+                  Customer since: May 2017
+                </span>
+              </span>
+              <div
+                class="Component-toolbar-id"
+              />
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiSwitchBase-checked-id MuiCheckbox-checked-id"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                      />
+                    </svg>
+                    <input
+                      checked=""
+                      class="MuiSwitchBase-input-id"
+                      name="isActive"
+                      type="checkbox"
+                    />
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                >
+                  User account active
+                </span>
+              </label>
+              <div
+                class="Component-spacer-id"
+              />
+              <div
+                class="Component-root-id"
+              >
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                    data-shrink="true"
+                  >
+                    E-mail
+                  </label>
+                  <div
+                    class="MuiInput-root-id MuiInput-error-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+                  >
+                    <input
+                      aria-invalid="true"
+                      class="MuiInput-input-id MuiInput-inputType-id"
+                      name="email"
+                      type="email"
+                      value="elizabeth.vaughn@example.com"
+                    />
+                  </div>
+                  <p
+                    class="MuiFormHelperText-root-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
+                  >
+                    Generic form error
+                  </p>
+                </div>
+              </div>
+              <div
+                class="Component-spacer-id"
+              />
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
+                >
+                  Note
+                </label>
+                <div
+                  class="MuiInput-root-id MuiInput-error-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-multiline-id MuiInput-underline-id"
+                >
+                  <div
+                    class="Textarea-root-id"
+                    style="height:19px"
+                  >
+                    <textarea
+                      aria-hidden="true"
+                      class="Textarea-textarea-id Textarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-hidden="true"
+                      class="Textarea-textarea-id Textarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-invalid="true"
+                      class="Textarea-textarea-id MuiInput-input-id MuiInput-inputMultiline-id"
+                      name="note"
+                      rows="1"
+                      type="text"
+                    />
+                  </div>
+                </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-error-id"
+                >
+                  Generic form error
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Recent orders
+              </span>
+              <div
+                class="Component-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    View all orders
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </button>
+              </div>
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <table
+              class="MuiTable-root-id"
+              padding="default"
+            >
+              <thead
+                class="MuiTableHead-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-head-id"
+                >
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+                    scope="col"
+                  >
+                    No. of Order
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+                    scope="col"
+                  >
+                    Date
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+                    scope="col"
+                  >
+                    Status
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id Component-textRight-id"
+                    scope="col"
+                  >
+                    Total
+                  </th>
+                </tr>
+              </thead>
+              <tbody
+                class="MuiTableBody-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+                  >
+                    #8234
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+                  >
+                    <time
+                      datetime="1525685850124"
+                      title="Mon May 07 2018 05:37:30 GMT-0400"
+                    >
+                      3 months ago
+                    </time>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+                  >
+                    <div
+                      class="Component-root-id undefined Component-successDot-id"
+                    >
+                      Paid
+                    </div>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id Component-textRight-id"
+                  >
+                    $1,215.89
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Address Information
+              </span>
+              <div
+                class="Component-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Manage
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </button>
+              </div>
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id Component-label-id"
+              >
+                Default address
+              </p>
+              <address>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  Elizabeth Vaughn
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  419 Ruiz Orchard Apt. 199
+                  <br />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                   52203 Port Danielshire
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  Szwecja
+                </span>
+              </address>
+            </div>
+          </div>
+          <div
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Customer History
+              </span>
+              <div
+                class="Component-toolbar-id"
+              />
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <aside
+                class="MuiTypography-root-id MuiTypography-body2-id"
+              >
+                Last login
+              </aside>
+              <h2
+                class="MuiTypography-root-id MuiTypography-title-id Component-value-id"
+              >
+                <time
+                  datetime="1525685850124"
+                  title="Mon May 07 2018 05:37:30 GMT-0400"
+                >
+                  3 months ago
+                </time>
+              </h2>
+            </div>
+            <hr
+              class="Component-root-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <aside
+                class="MuiTypography-root-id MuiTypography-body2-id"
+              >
+                Last order
+              </aside>
+              <h2
+                class="MuiTypography-root-id MuiTypography-title-id Component-value-id"
+              >
+                <time
+                  datetime="1525685850124"
+                  title="Mon May 07 2018 05:37:30 GMT-0400"
+                >
+                  3 months ago
+                </time>
+              </h2>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Remove
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <div
+          class="Component-spacer-id"
+        />
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id Component-cancelButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Cancel
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <button
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          disabled=""
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Save
+          </span>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Customers / Customer details loading 1`] = `
+<div>
+  <form>
+    <div
+      class="Component-md-id"
+    >
+      <div
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                />
+              </g>
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
+        >
+          <span
+            class="Skeleton-skeleton-id"
+            style="width:10em"
+          >
+            ‌
+          </span>
+        </h2>
+        <div
+          class="Component-action-id"
+        />
+      </div>
+      <div
+        class="Component-root-id"
+      >
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id Component-cardTitle-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                General Information
+                <span
+                  class="MuiTypography-root-id MuiTypography-caption-id"
+                >
+                  Customer since: Oct 2018
+                </span>
+              </span>
+              <div
+                class="Component-toolbar-id"
+              />
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <label
+                class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+              >
+                <span
+                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiSwitchBase-disabled-id MuiCheckbox-disabled-id"
+                  tabindex="-1"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                      />
+                    </svg>
+                    <input
+                      class="MuiSwitchBase-input-id"
+                      disabled=""
+                      name="isActive"
+                      type="checkbox"
+                    />
+                  </span>
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                >
+                  User account active
+                </span>
+              </label>
+              <div
+                class="Component-spacer-id"
+              />
+              <div
+                class="Component-root-id"
+              >
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                    data-shrink="false"
+                  >
+                    E-mail
+                  </label>
+                  <div
+                    class="MuiInput-root-id MuiInput-disabled-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInput-input-id MuiInput-disabled-id MuiInput-inputType-id"
+                      disabled=""
+                      name="email"
+                      type="email"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="Component-spacer-id"
+              />
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
+                >
+                  Note
+                </label>
+                <div
+                  class="MuiInput-root-id MuiInput-disabled-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-multiline-id MuiInput-underline-id"
+                >
+                  <div
+                    class="Textarea-root-id"
+                    style="height:19px"
+                  >
+                    <textarea
+                      aria-hidden="true"
+                      class="Textarea-textarea-id Textarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-hidden="true"
+                      class="Textarea-textarea-id Textarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-invalid="false"
+                      class="Textarea-textarea-id MuiInput-input-id MuiInput-disabled-id MuiInput-inputMultiline-id"
+                      disabled=""
+                      name="note"
+                      rows="1"
+                      type="text"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Recent orders
+              </span>
+              <div
+                class="Component-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    View all orders
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </button>
+              </div>
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <table
+              class="MuiTable-root-id"
+              padding="default"
+            >
+              <thead
+                class="MuiTableHead-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-head-id"
+                >
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+                    scope="col"
+                  >
+                    No. of Order
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+                    scope="col"
+                  >
+                    Date
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+                    scope="col"
+                  >
+                    Status
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id Component-textRight-id"
+                    scope="col"
+                  >
+                    Total
+                  </th>
+                </tr>
+              </thead>
+              <tbody
+                class="MuiTableBody-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+                  >
+                    <span
+                      class="Skeleton-skeleton-id"
+                    >
+                      ‌
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+                  >
+                    <span
+                      class="Skeleton-skeleton-id"
+                    >
+                      ‌
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+                  >
+                    <span
+                      class="Skeleton-skeleton-id"
+                    >
+                      ‌
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id Component-textRight-id"
+                  >
+                    <span
+                      class="Skeleton-skeleton-id"
+                    >
+                      ‌
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Address Information
+              </span>
+              <div
+                class="Component-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id"
+                  disabled=""
+                  tabindex="-1"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Manage
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id Component-label-id"
+              >
+                Default address
+              </p>
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </div>
+          </div>
+          <div
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Customer History
+              </span>
+              <div
+                class="Component-toolbar-id"
+              />
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <aside
+                class="MuiTypography-root-id MuiTypography-body2-id"
+              >
+                Last login
+              </aside>
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </div>
+            <hr
+              class="Component-root-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <aside
+                class="MuiTypography-root-id MuiTypography-body2-id"
+              >
+                Last order
+              </aside>
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Remove
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <div
+          class="Component-spacer-id"
+        />
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id Component-cancelButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Cancel
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <button
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          disabled=""
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Save
+          </span>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Customers / Customer details never logged 1`] = `
+<div>
+  <form>
+    <div
+      class="Component-md-id"
+    >
+      <div
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                />
+              </g>
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
+        >
+          elizabeth.vaughn@example.com
+        </h2>
+        <div
+          class="Component-action-id"
+        />
+      </div>
+      <div
+        class="Component-root-id"
+      >
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id Component-cardTitle-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                General Information
+                <span
+                  class="MuiTypography-root-id MuiTypography-caption-id"
+                >
+                  Customer since: May 2017
+                </span>
+              </span>
+              <div
+                class="Component-toolbar-id"
+              />
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiSwitchBase-checked-id MuiCheckbox-checked-id"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                      />
+                    </svg>
+                    <input
+                      checked=""
+                      class="MuiSwitchBase-input-id"
+                      name="isActive"
+                      type="checkbox"
+                    />
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                >
+                  User account active
+                </span>
+              </label>
+              <div
+                class="Component-spacer-id"
+              />
+              <div
+                class="Component-root-id"
+              >
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                    data-shrink="true"
+                  >
+                    E-mail
+                  </label>
+                  <div
+                    class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInput-input-id MuiInput-inputType-id"
+                      name="email"
+                      type="email"
+                      value="elizabeth.vaughn@example.com"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="Component-spacer-id"
+              />
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
+                >
+                  Note
+                </label>
+                <div
+                  class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-multiline-id MuiInput-underline-id"
+                >
+                  <div
+                    class="Textarea-root-id"
+                    style="height:19px"
+                  >
+                    <textarea
+                      aria-hidden="true"
+                      class="Textarea-textarea-id Textarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-hidden="true"
+                      class="Textarea-textarea-id Textarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-invalid="false"
+                      class="Textarea-textarea-id MuiInput-input-id MuiInput-inputMultiline-id"
+                      name="note"
+                      rows="1"
+                      type="text"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Recent orders
+              </span>
+              <div
+                class="Component-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    View all orders
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </button>
+              </div>
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <table
+              class="MuiTable-root-id"
+              padding="default"
+            >
+              <thead
+                class="MuiTableHead-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-head-id"
+                >
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+                    scope="col"
+                  >
+                    No. of Order
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+                    scope="col"
+                  >
+                    Date
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+                    scope="col"
+                  >
+                    Status
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id Component-textRight-id"
+                    scope="col"
+                  >
+                    Total
+                  </th>
+                </tr>
+              </thead>
+              <tbody
+                class="MuiTableBody-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+                  >
+                    #8234
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+                  >
+                    <time
+                      datetime="1525685850124"
+                      title="Mon May 07 2018 05:37:30 GMT-0400"
+                    >
+                      3 months ago
+                    </time>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+                  >
+                    <div
+                      class="Component-root-id undefined Component-successDot-id"
+                    >
+                      Paid
+                    </div>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id Component-textRight-id"
+                  >
+                    $1,215.89
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Address Information
+              </span>
+              <div
+                class="Component-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Manage
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </button>
+              </div>
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id Component-label-id"
+              >
+                Default address
+              </p>
+              <address>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  Elizabeth Vaughn
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  419 Ruiz Orchard Apt. 199
+                  <br />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                   52203 Port Danielshire
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  Szwecja
+                </span>
+              </address>
+            </div>
+          </div>
+          <div
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Customer History
+              </span>
+              <div
+                class="Component-toolbar-id"
+              />
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <aside
+                class="MuiTypography-root-id MuiTypography-body2-id"
+              >
+                Last login
+              </aside>
+              <h2
+                class="MuiTypography-root-id MuiTypography-title-id Component-value-id"
+              >
+                Never
+              </h2>
+            </div>
+            <hr
+              class="Component-root-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <aside
+                class="MuiTypography-root-id MuiTypography-body2-id"
+              >
+                Last order
+              </aside>
+              <h2
+                class="MuiTypography-root-id MuiTypography-title-id Component-value-id"
+              >
+                <time
+                  datetime="1525685850124"
+                  title="Mon May 07 2018 05:37:30 GMT-0400"
+                >
+                  3 months ago
+                </time>
+              </h2>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Remove
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <div
+          class="Component-spacer-id"
+        />
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id Component-cancelButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Cancel
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <button
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          disabled=""
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Save
+          </span>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Customers / Customer details never placed order 1`] = `
+<div>
+  <form>
+    <div
+      class="Component-md-id"
+    >
+      <div
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                />
+              </g>
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
+        >
+          elizabeth.vaughn@example.com
+        </h2>
+        <div
+          class="Component-action-id"
+        />
+      </div>
+      <div
+        class="Component-root-id"
+      >
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id Component-cardTitle-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                General Information
+                <span
+                  class="MuiTypography-root-id MuiTypography-caption-id"
+                >
+                  Customer since: May 2017
+                </span>
+              </span>
+              <div
+                class="Component-toolbar-id"
+              />
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiSwitchBase-checked-id MuiCheckbox-checked-id"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                      />
+                    </svg>
+                    <input
+                      checked=""
+                      class="MuiSwitchBase-input-id"
+                      name="isActive"
+                      type="checkbox"
+                    />
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                >
+                  User account active
+                </span>
+              </label>
+              <div
+                class="Component-spacer-id"
+              />
+              <div
+                class="Component-root-id"
+              >
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                    data-shrink="true"
+                  >
+                    E-mail
+                  </label>
+                  <div
+                    class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInput-input-id MuiInput-inputType-id"
+                      name="email"
+                      type="email"
+                      value="elizabeth.vaughn@example.com"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="Component-spacer-id"
+              />
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
+                >
+                  Note
+                </label>
+                <div
+                  class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-multiline-id MuiInput-underline-id"
+                >
+                  <div
+                    class="Textarea-root-id"
+                    style="height:19px"
+                  >
+                    <textarea
+                      aria-hidden="true"
+                      class="Textarea-textarea-id Textarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-hidden="true"
+                      class="Textarea-textarea-id Textarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-invalid="false"
+                      class="Textarea-textarea-id MuiInput-input-id MuiInput-inputMultiline-id"
+                      name="note"
+                      rows="1"
+                      type="text"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Recent orders
+              </span>
+              <div
+                class="Component-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    View all orders
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </button>
+              </div>
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <table
+              class="MuiTable-root-id"
+              padding="default"
+            >
+              <thead
+                class="MuiTableHead-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-head-id"
+                >
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+                    scope="col"
+                  >
+                    No. of Order
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+                    scope="col"
+                  >
+                    Date
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+                    scope="col"
+                  >
+                    Status
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id Component-textRight-id"
+                    scope="col"
+                  >
+                    Total
+                  </th>
+                </tr>
+              </thead>
+              <tbody
+                class="MuiTableBody-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+                  >
+                    #8234
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+                  >
+                    <time
+                      datetime="1525685850124"
+                      title="Mon May 07 2018 05:37:30 GMT-0400"
+                    >
+                      3 months ago
+                    </time>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+                  >
+                    <div
+                      class="Component-root-id undefined Component-successDot-id"
+                    >
+                      Paid
+                    </div>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id Component-textRight-id"
+                  >
+                    $1,215.89
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Address Information
+              </span>
+              <div
+                class="Component-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Manage
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </button>
+              </div>
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id Component-label-id"
+              >
+                Default address
+              </p>
+              <address>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  Elizabeth Vaughn
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  419 Ruiz Orchard Apt. 199
+                  <br />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                   52203 Port Danielshire
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  Szwecja
+                </span>
+              </address>
+            </div>
+          </div>
+          <div
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Customer History
+              </span>
+              <div
+                class="Component-toolbar-id"
+              />
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <aside
+                class="MuiTypography-root-id MuiTypography-body2-id"
+              >
+                Last login
+              </aside>
+              <h2
+                class="MuiTypography-root-id MuiTypography-title-id Component-value-id"
+              >
+                <time
+                  datetime="1525685850124"
+                  title="Mon May 07 2018 05:37:30 GMT-0400"
+                >
+                  3 months ago
+                </time>
+              </h2>
+            </div>
+            <hr
+              class="Component-root-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <aside
+                class="MuiTypography-root-id MuiTypography-body2-id"
+              >
+                Last order
+              </aside>
+              <h2
+                class="MuiTypography-root-id MuiTypography-title-id Component-value-id"
+              >
+                No orders yet
+              </h2>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Remove
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <div
+          class="Component-spacer-id"
+        />
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id Component-cancelButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Cancel
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <button
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          disabled=""
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Save
+          </span>
+        </button>
+      </div>
+    </div>
+  </form>
 </div>
 `;
 
@@ -13763,7 +15425,7 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
       <h2
         class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
       >
-        Customers
+        Product types
       </h2>
       <div
         class="Component-action-id"
@@ -13810,22 +15472,16 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-wideCell-id"
               scope="col"
             >
-              Name
+              Customer e-mail
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-textRight-id"
               scope="col"
             >
-              E-mail
-            </th>
-            <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
-              scope="col"
-            >
-              Localization
+              Orders
             </th>
           </tr>
         </thead>
@@ -13837,7 +15493,7 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
-              colspan="3"
+              colspan="2"
             >
               <div
                 class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
@@ -13901,371 +15557,339 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
           class="MuiTableBody-root-id"
         >
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span
-                class="Component-link-id"
-              >
-                Alexander Simonis
-              </span>
+              curtis.bailey@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              alexander_simonis@example.com
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              Thompsontown, Swaziland
+              2
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span
-                class="Component-link-id"
-              >
-                Augustus Crist
-              </span>
+              curtis.bailey@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              augustus_crist@example.com
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              Lake Adela, Kenya
+              2
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span
-                class="Component-link-id"
-              >
-                Kelton Eichmann
-              </span>
+              elizabeth.vaughn@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              kelton_eichmann@example.com
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              East Raymond, San Marino
+              1
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span
-                class="Component-link-id"
-              >
-                Magnolia Brakus
-              </span>
+              michael.martinez@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              magnolia_brakus@example.com
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              Torphyton, Chad
+              1
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span
-                class="Component-link-id"
-              >
-                Adonis Pacocha
-              </span>
+              kayla.griffin@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              adonis_pacocha@example.com
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              Port Savanahfort, Greenland
+              0
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span
-                class="Component-link-id"
-              >
-                Carlie Walsh
-              </span>
+              donna.robinson@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              carlie_walsh@example.com
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              New Eugenia, Iceland
+              0
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span
-                class="Component-link-id"
-              >
-                Junius Crist
-              </span>
+              james.ball@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              junius_crist@example.com
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              Labadiechester, Morocco
+              1
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span
-                class="Component-link-id"
-              >
-                Pedro Harvey
-              </span>
+              anthony.gonzalez@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              pedro_harvey@example.com
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              Lydiahaven, Cambodia
+              2
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span
-                class="Component-link-id"
-              >
-                Raven Deckow
-              </span>
+              anthony.gonzalez@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              raven_deckow@example.com
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              East Leilafurt, Bulgaria
+              2
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span
-                class="Component-link-id"
-              >
-                Paige Lesch
-              </span>
+              wesley.davis@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              paige_lesch@example.com
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              Windlerton, Andorra
+              1
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span
-                class="Component-link-id"
-              >
-                Santino Bins
-              </span>
+              laura.stone@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              santino_bins@example.com
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              Gleichnerborough, Dominica
+              1
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span
-                class="Component-link-id"
-              >
-                Quinn Barrows
-              </span>
+              william.miller@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              quinn_barrows@example.com
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              North Sister, Bangladesh
+              0
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span
-                class="Component-link-id"
-              >
-                Berry Windler
-              </span>
+              donald.solomon@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              berry_windler@example.com
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              Kenstad, United Arab Emirates
+              0
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span
-                class="Component-link-id"
-              >
-                Johnathon Kohler
-              </span>
+              anthony.young@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              johnathon_kohler@example.com
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              Jamilstad, Uruguay
+              0
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span
-                class="Component-link-id"
-              >
-                Linwood Windler
-              </span>
+              sharon.hanson@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              linwood_windler@example.com
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              Keltonland, Denmark
+              0
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span
-                class="Component-link-id"
-              >
-                Timmy Macejkovic
-              </span>
+              laura.jensen@example.com
             </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              1
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
+          >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              timmy_macejkovic@example.com
+              mark.lee@example.com
             </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              1
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
+          >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              West Feliciamouth, Japan
+              david.lawson@example.com
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              2
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              david.lawson@example.com
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              2
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              faith.smith@example.com
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              0
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              john.jones@example.com
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              0
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              ronald.fisher@example.com
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              0
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              jason.gray@example.com
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              0
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              admin@example.com
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              6
             </td>
           </tr>
         </tbody>
@@ -14275,7 +15899,7 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
 </div>
 `;
 
-exports[`Storyshots Views / Customers / Customer list when loading 1`] = `
+exports[`Storyshots Views / Customers / Customer list loading 1`] = `
 <div>
   <div
     class="Component-md-id"
@@ -14286,7 +15910,7 @@ exports[`Storyshots Views / Customers / Customer list when loading 1`] = `
       <h2
         class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
       >
-        Customers
+        Product types
       </h2>
       <div
         class="Component-action-id"
@@ -14331,22 +15955,16 @@ exports[`Storyshots Views / Customers / Customer list when loading 1`] = `
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-wideCell-id"
               scope="col"
             >
-              Name
+              Customer e-mail
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-textRight-id"
               scope="col"
             >
-              E-mail
-            </th>
-            <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
-              scope="col"
-            >
-              Localization
+              Orders
             </th>
           </tr>
         </thead>
@@ -14358,7 +15976,176 @@ exports[`Storyshots Views / Customers / Customer list when loading 1`] = `
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
-              colspan="3"
+              colspan="2"
+            >
+              <div
+                class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
+              >
+                <div
+                  class="TablePagination-spacer-id"
+                />
+                <div
+                  class="TablePaginationActions-root-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                  <button
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
+        <tbody
+          class="MuiTableBody-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Customers / Customer list no data 1`] = `
+<div>
+  <div
+    class="Component-md-id"
+  >
+    <div
+      class="Component-root-id"
+    >
+      <h2
+        class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
+      >
+        Product types
+      </h2>
+      <div
+        class="Component-action-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Add customer 
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                />
+              </g>
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+      </div>
+    </div>
+    <div
+      class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+    >
+      <table
+        class="MuiTable-root-id"
+        padding="default"
+      >
+        <thead
+          class="MuiTableHead-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-head-id"
+          >
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-wideCell-id"
+              scope="col"
+            >
+              Customer e-mail
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-textRight-id"
+              scope="col"
+            >
+              Orders
+            </th>
+          </tr>
+        </thead>
+        <tfoot
+          class="MuiTableFooter-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-footer-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
+              colspan="2"
             >
               <div
                 class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
@@ -14426,499 +16213,15 @@ exports[`Storyshots Views / Customers / Customer list when loading 1`] = `
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
+              colspan="2"
             >
-              <span
-                class="Skeleton-skeleton-id"
-              >
-                ‌
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="Skeleton-skeleton-id"
-              >
-                ‌
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="Skeleton-skeleton-id"
-              >
-                ‌
-              </span>
+              No customers found
             </td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
-</div>
-`;
-
-exports[`Storyshots Views / Customers / Edit customer default 1`] = `
-<div>
-  <form>
-    <div
-      class="Component-md-id"
-    >
-      <div
-        class="Component-root-id"
-      >
-        <h2
-          class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-        >
-          Edit customer
-        </h2>
-        <div
-          class="Component-action-id"
-        />
-      </div>
-      <div
-        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
-      >
-        <div
-          class="MuiCardContent-root-id"
-        >
-          <div
-            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-          >
-            <label
-              class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-              data-shrink="true"
-            >
-              E-mail
-            </label>
-            <div
-              class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-            >
-              <input
-                aria-invalid="false"
-                class="MuiInput-input-id"
-                name="email"
-                type="text"
-                value="alexander_simonis@example.com"
-              />
-            </div>
-          </div>
-          <div
-            class="Component-spacer-id"
-          />
-          <div
-            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-          >
-            <label
-              class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-              data-shrink="false"
-            >
-              Note
-            </label>
-            <div
-              class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-multiline-id MuiInput-underline-id"
-            >
-              <textarea
-                aria-invalid="false"
-                class="MuiInput-input-id MuiInput-inputMultiline-id"
-                name="note"
-                rows="10"
-                type="text"
-              />
-            </div>
-            <p
-              class="MuiFormHelperText-root-id"
-            >
-              Optional
-            </p>
-          </div>
-        </div>
-      </div>
-      <div
-        class="Component-root-id"
-      >
-        <div
-          class="Component-spacer-id"
-        />
-        <button
-          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id Component-cancelButton-id"
-          tabindex="0"
-          type="button"
-        >
-          <span
-            class="MuiButton-label-id"
-          >
-            Cancel
-          </span>
-          <span
-            class="MuiTouchRipple-root-id"
-          />
-        </button>
-        <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
-          disabled=""
-          tabindex="-1"
-          type="button"
-        >
-          <span
-            class="MuiButton-label-id"
-          >
-            Save
-          </span>
-        </button>
-      </div>
-    </div>
-  </form>
-</div>
-`;
-
-exports[`Storyshots Views / Customers / Edit customer when adding new customer 1`] = `
-<div>
-  <form>
-    <div
-      class="Component-md-id"
-    >
-      <div
-        class="Component-root-id"
-      >
-        <h2
-          class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-        >
-          Add customer
-        </h2>
-        <div
-          class="Component-action-id"
-        />
-      </div>
-      <div
-        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
-      >
-        <div
-          class="MuiCardContent-root-id"
-        >
-          <div
-            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-          >
-            <label
-              class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-              data-shrink="false"
-            >
-              E-mail
-            </label>
-            <div
-              class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-            >
-              <input
-                aria-invalid="false"
-                class="MuiInput-input-id"
-                name="email"
-                type="text"
-                value=""
-              />
-            </div>
-          </div>
-          <div
-            class="Component-spacer-id"
-          />
-          <div
-            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-          >
-            <label
-              class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-              data-shrink="false"
-            >
-              Note
-            </label>
-            <div
-              class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-multiline-id MuiInput-underline-id"
-            >
-              <textarea
-                aria-invalid="false"
-                class="MuiInput-input-id MuiInput-inputMultiline-id"
-                name="note"
-                rows="10"
-                type="text"
-              />
-            </div>
-            <p
-              class="MuiFormHelperText-root-id"
-            >
-              Optional
-            </p>
-          </div>
-        </div>
-      </div>
-      <div
-        class="Component-root-id"
-      >
-        <div
-          class="Component-spacer-id"
-        />
-        <button
-          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id Component-cancelButton-id"
-          tabindex="0"
-          type="button"
-        >
-          <span
-            class="MuiButton-label-id"
-          >
-            Cancel
-          </span>
-          <span
-            class="MuiTouchRipple-root-id"
-          />
-        </button>
-        <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
-          disabled=""
-          tabindex="-1"
-          type="button"
-        >
-          <span
-            class="MuiButton-label-id"
-          >
-            Save
-          </span>
-        </button>
-      </div>
-    </div>
-  </form>
-</div>
-`;
-
-exports[`Storyshots Views / Customers / Edit customer when loading 1`] = `
-<div>
-  <form>
-    <div
-      class="Component-md-id"
-    >
-      <div
-        class="Component-root-id"
-      >
-        <h2
-          class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-        >
-          Edit customer
-        </h2>
-        <div
-          class="Component-action-id"
-        />
-      </div>
-      <div
-        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
-      >
-        <div
-          class="MuiCardContent-root-id"
-        >
-          <div
-            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-          >
-            <label
-              class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-              data-shrink="false"
-            >
-              E-mail
-            </label>
-            <div
-              class="MuiInput-root-id MuiInput-disabled-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-            >
-              <input
-                aria-invalid="false"
-                class="MuiInput-input-id MuiInput-disabled-id"
-                disabled=""
-                name="email"
-                type="text"
-                value=""
-              />
-            </div>
-          </div>
-          <div
-            class="Component-spacer-id"
-          />
-          <div
-            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-          >
-            <label
-              class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-              data-shrink="false"
-            >
-              Note
-            </label>
-            <div
-              class="MuiInput-root-id MuiInput-disabled-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-multiline-id MuiInput-underline-id"
-            >
-              <textarea
-                aria-invalid="false"
-                class="MuiInput-input-id MuiInput-disabled-id MuiInput-inputMultiline-id"
-                disabled=""
-                name="note"
-                rows="10"
-                type="text"
-              />
-            </div>
-            <p
-              class="MuiFormHelperText-root-id"
-            >
-              Optional
-            </p>
-          </div>
-        </div>
-      </div>
-      <div
-        class="Component-root-id"
-      >
-        <div
-          class="Component-spacer-id"
-        />
-        <button
-          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id Component-cancelButton-id"
-          tabindex="0"
-          type="button"
-        >
-          <span
-            class="MuiButton-label-id"
-          >
-            Cancel
-          </span>
-          <span
-            class="MuiTouchRipple-root-id"
-          />
-        </button>
-        <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
-          disabled=""
-          tabindex="-1"
-          type="button"
-        >
-          <span
-            class="MuiButton-label-id"
-          >
-            Save
-          </span>
-        </button>
-      </div>
-    </div>
-  </form>
-</div>
-`;
-
-exports[`Storyshots Views / Customers / Edit customer with errors 1`] = `
-<div>
-  <form>
-    <div
-      class="Component-md-id"
-    >
-      <div
-        class="Component-root-id"
-      >
-        <h2
-          class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-        >
-          Edit customer
-        </h2>
-        <div
-          class="Component-action-id"
-        />
-      </div>
-      <div
-        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
-      >
-        <div
-          class="MuiCardContent-root-id"
-        >
-          <div
-            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-          >
-            <label
-              class="MuiFormLabel-root-id MuiFormLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-              data-shrink="true"
-            >
-              E-mail
-            </label>
-            <div
-              class="MuiInput-root-id MuiInput-error-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-            >
-              <input
-                aria-invalid="true"
-                class="MuiInput-input-id"
-                name="email"
-                type="text"
-                value="alexander_simonis@example.com"
-              />
-            </div>
-            <p
-              class="MuiFormHelperText-root-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
-            >
-              This field cannot be empty
-            </p>
-          </div>
-          <div
-            class="Component-spacer-id"
-          />
-          <div
-            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-          >
-            <label
-              class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-              data-shrink="false"
-            >
-              Note
-            </label>
-            <div
-              class="MuiInput-root-id MuiInput-error-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-multiline-id MuiInput-underline-id"
-            >
-              <textarea
-                aria-invalid="true"
-                class="MuiInput-input-id MuiInput-inputMultiline-id"
-                name="note"
-                rows="10"
-                type="text"
-              />
-            </div>
-            <p
-              class="MuiFormHelperText-root-id MuiFormHelperText-error-id"
-            >
-              this field cannot be empty
-            </p>
-          </div>
-        </div>
-      </div>
-      <div
-        class="Component-root-id"
-      >
-        <div
-          class="Component-spacer-id"
-        />
-        <button
-          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id Component-cancelButton-id"
-          tabindex="0"
-          type="button"
-        >
-          <span
-            class="MuiButton-label-id"
-          >
-            Cancel
-          </span>
-          <span
-            class="MuiTouchRipple-root-id"
-          />
-        </button>
-        <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
-          disabled=""
-          tabindex="-1"
-          type="button"
-        >
-          <span
-            class="MuiButton-label-id"
-          >
-            Save
-          </span>
-        </button>
-      </div>
-    </div>
-  </form>
 </div>
 `;
 
