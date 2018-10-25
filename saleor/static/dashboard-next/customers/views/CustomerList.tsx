@@ -45,7 +45,8 @@ export const CustomerList: React.StatelessComponent<CustomerListProps> = ({
                 onAdd={() => navigate(customerAddUrl)}
                 onNextPage={loadNextPage}
                 onPreviousPage={loadPreviousPage}
-                onRowClick={id => navigate(customerUrl(encodeURIComponent(id)))}
+                onRowClick={id => () =>
+                  navigate(customerUrl(encodeURIComponent(id)))}
               />
             );
           }}
