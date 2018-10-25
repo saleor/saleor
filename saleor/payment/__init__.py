@@ -66,7 +66,7 @@ PROVIDERS_ENUM = Enum(
 
 
 def get_provider(provider_name):
-    if provider_name not in settings.CHECKOUT_PAYMENT_CHOICES.keys():
+    if provider_name not in settings.CHECKOUT_PAYMENT_CHOICES:
         raise ValueError('%s is not allowed provider' % provider_name)
     if provider_name not in settings.PAYMENT_PROVIDERS:
         raise ImproperlyConfigured(

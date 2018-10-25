@@ -182,7 +182,7 @@ MIDDLEWARE = [
     'saleor.core.middleware.taxes',
     'social_django.middleware.SocialAuthExceptionMiddleware',
     'impersonate.middleware.ImpersonateMiddleware',
-    # 'saleor.graphql.middleware.jwt_middleware'
+    'saleor.graphql.middleware.jwt_middleware'
 ]
 
 INSTALLED_APPS = [
@@ -566,7 +566,7 @@ PAYMENT_PROVIDERS = {
 if not DEBUG:
     PROVIDER_PATH = '%(module)s/__init__.py'
     for provider, data in PAYMENT_PROVIDERS.items():
-        if provider not in CHECKOUT_PAYMENT_CHOICES.keys():
+        if provider not in CHECKOUT_PAYMENT_CHOICES:
             continue
         if 'module' not in data or 'connection_params' not in data:
             raise ImproperlyConfigured('Payment provider misconfigured.')

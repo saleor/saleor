@@ -91,7 +91,7 @@ def start_payment(request, order, variant):
         'total': order.total.gross,
         'customer_ip_address': get_client_ip(request),
         **get_billing_data(order)}
-    if variant not in settings.CHECKOUT_PAYMENT_CHOICES.keys():
+    if variant not in settings.CHECKOUT_PAYMENT_CHOICES:
         raise Http404('%r is not a valid payment variant' % (variant,))
     with transaction.atomic():
         payment, _ = Payment.objects.get_or_create(
