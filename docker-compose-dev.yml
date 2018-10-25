@@ -16,12 +16,13 @@ services:
       - 8000:8000
     volumes:
       # - .:/app:Z
-      - type: bind
-        source: ./saleor/static
-        target: /app/static
-      - type: bind
-        source: ./templates
-        target: /app/templates
+      - .:/app
+      # - type: bind
+      #   source: ./saleor/static
+      #   target: /app/static
+      # - type: bind
+      #   source: ./templates
+      #   target: /app/templates
     env_file: common.env
     depends_on:
       - db
@@ -56,7 +57,7 @@ services:
   celery:
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: ./Dockerfile.dev
       args:
         STATIC_URL: '/static/'
     command: celery -A saleor worker --app=saleor.celeryconf:app --loglevel=info
@@ -64,7 +65,8 @@ services:
     networks:
       - saleor-backend-tier
     volumes:
-      - .:/app:Z
+      # - .:/app:Z
+      - .:/app
     env_file: common.env
     depends_on:
       - redis

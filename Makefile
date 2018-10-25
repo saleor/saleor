@@ -14,19 +14,25 @@ build-static:
 
 init-dev:
 		docker-compose exec \
-		web sh -c \
-		'gosu saleor python3 manage.py migrate && \
-		gosu saleor python3 manage.py collectstatic && \
-		gosu saleor python3 manage.py populatedb --createsuperuser' \
+		web gosu saleor sh -c \
+		'npm install && \
+        npm run build-assets --producion && \
+        npm run build-emails --producion && \
+        python3 manage.py migrate && \
+		python3 manage.py collectstatic && \
+		python3 manage.py populatedb --createsuperuser' \
 		-d
 
 up-init-dev:
 		docker-compose up -d
 		docker-compose exec \
-		web sh -c \
-		'gosu saleor python3 manage.py migrate && \
-		gosu saleor python3 manage.py collectstatic && \
-		gosu saleor python3 manage.py populatedb --createsuperuser' \
+		web gosu saleor sh -c \
+		'npm install && \
+        npm run build-assets --producion && \
+        npm run build-emails --producion && \
+        python3 manage.py migrate && \
+		python3 manage.py collectstatic && \
+		python3 manage.py populatedb --createsuperuser' \
 		-d
 
 # end
