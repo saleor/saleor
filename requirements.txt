@@ -59,6 +59,7 @@ google-i18n-address==2.3.2
 google-measurement-protocol==1.0.0
 gprof2dot==2016.10.13
 graphene-django==2.2.0
+graphene-django-optimizer==0.3.5
 graphene==2.1.3
 graphql-core==2.1
 graphql-relay==0.4.5
