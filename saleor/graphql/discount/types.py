@@ -1,7 +1,8 @@
+from textwrap import dedent
+
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from graphene import relay
-from textwrap import dedent
 
 from ..core.fields import PrefetchingConnectionField
 from ...discount import DiscountValueType, VoucherType, models

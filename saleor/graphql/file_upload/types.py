@@ -1,5 +1,6 @@
-import graphene
 from textwrap import dedent
+
+import graphene
 
 
 class Upload(graphene.types.Scalar):

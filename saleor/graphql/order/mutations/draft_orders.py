@@ -1,7 +1,8 @@
+from textwrap import dedent
+
 import graphene
 from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
-from textwrap import dedent
 
 from ....account.models import Address, User
 from ....core.exceptions import InsufficientStock

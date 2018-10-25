@@ -1,8 +1,9 @@
+from textwrap import dedent
+
 import graphene
 from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
-from textwrap import dedent
 
 from ....product import models
 from ....product.utils.attributes import get_name_from_attributes

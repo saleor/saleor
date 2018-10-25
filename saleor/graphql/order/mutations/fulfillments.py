@@ -1,7 +1,8 @@
+from textwrap import dedent
+
 import graphene
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from graphql_jwt.decorators import permission_required
-from textwrap import dedent
 
 from ....dashboard.order.utils import fulfill_order_line
 from ....order import OrderEvents, OrderEventsEmails, models
