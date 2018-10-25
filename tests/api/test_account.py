@@ -343,11 +343,11 @@ def test_customer_create(
 
 
 def test_customer_update(
-        staff_api_client, customer_user, user_api_client, address,
-        permission_manage_users):
+        staff_api_client, customer_user, address, permission_manage_users):
     query = """
-    mutation UpdateCustomer($id: ID!, $note: String, $billing: AddressInput, $shipping: AddressInput) {
+    mutation UpdateCustomer($id: ID!, $isActive: Boolean, $note: String, $billing: AddressInput, $shipping: AddressInput) {
         customerUpdate(id: $id, input: {
+            isActive: $isActive,
             note: $note,
             defaultBillingAddress: $billing
             defaultShippingAddress: $shipping
@@ -358,13 +358,14 @@ def test_customer_update(
             }
             user {
                 id
-                note
                 defaultBillingAddress {
                     id
                 }
                 defaultShippingAddress {
                     id
                 }
+                isActive
+                note
             }
         }
     }
@@ -385,9 +386,7 @@ def test_customer_update(
     address_data['streetAddress1'] = new_street_address
 
     variables = {
-        'id': id,
-        'note': note,
-        'billing': address_data,
+        'id': id, 'isActive': False, 'note': note, 'billing': address_data,
         'shipping': address_data}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_users])
@@ -406,6 +405,7 @@ def test_customer_update(
     data = content['data']['customerUpdate']
     assert data['errors'] == []
     assert data['user']['note'] == note
+    assert not data['user']['isActive']
 
 
 @patch('saleor.account.emails.send_password_reset_email.delay')

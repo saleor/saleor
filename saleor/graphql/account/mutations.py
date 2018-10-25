@@ -56,6 +56,8 @@ class CustomerRegister(ModelMutation):
 class UserInput(graphene.InputObjectType):
     email = graphene.String(
         description='The unique email address of the user.')
+    is_active = graphene.Boolean(
+        required=False, description='User account is active.')
     note = graphene.String(description='A note about the user.')
 
 
@@ -72,8 +74,6 @@ class UserCreateInput(CustomerInput):
 
 
 class StaffInput(UserInput):
-    is_active = graphene.Boolean(
-        required=False, description='User account is activated.')
     permissions = graphene.List(
         graphene.String,
         description='List of permission code names to assign to this user.')
