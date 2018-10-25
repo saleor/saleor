@@ -2,7 +2,8 @@ import { parse as parseQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
-import { customerListUrl } from "./urls";
+import { customerListUrl, customerUrl } from "./urls";
+import CustomerDetailsViewComponent from "./views/CustomerDetails";
 import CustomerListViewComponent from "./views/CustomerList";
 
 const CustomerListView: React.StatelessComponent<RouteComponentProps<{}>> = ({
@@ -16,8 +17,18 @@ const CustomerListView: React.StatelessComponent<RouteComponentProps<{}>> = ({
   return <CustomerListViewComponent params={params} />;
 };
 
+interface CustomerDetailsRouteParams {
+  id: string;
+}
+const CustomerDetailsView: React.StatelessComponent<
+  RouteComponentProps<CustomerDetailsRouteParams>
+> = ({ match }) => (
+  <CustomerDetailsViewComponent id={decodeURIComponent(match.params.id)} />
+);
+
 export const CustomerSection: React.StatelessComponent<{}> = () => (
   <Switch>
-    <Route path={customerListUrl} component={CustomerListView} />
+    <Route exact path={customerListUrl} component={CustomerListView} />
+    <Route path={customerUrl(":id")} component={CustomerDetailsView} />
   </Switch>
 );
