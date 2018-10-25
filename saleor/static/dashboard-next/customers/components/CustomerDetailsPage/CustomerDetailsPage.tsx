@@ -1,6 +1,7 @@
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
+import { UserError } from "../../..";
 import { CardSpacer } from "../../../components/CardSpacer";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
@@ -22,8 +23,9 @@ export interface CustomerDetailsPageFormData {
 export interface CustomerDetailsPageProps {
   customer: CustomerDetails_user;
   disabled: boolean;
+  errors: UserError[];
   onBack: () => void;
-  onSubmit: (data: CustomerDetails_user) => void;
+  onSubmit: (data: CustomerDetailsPageFormData) => void;
   onViewAllOrdersClick: () => void;
   onRowClick: (id: string) => void;
   onAddressManageClick: () => void;
@@ -42,6 +44,7 @@ const CustomerDetailsPage = decorate<CustomerDetailsPageProps>(
     classes,
     customer,
     disabled,
+    errors,
     onBack,
     onSubmit,
     onViewAllOrdersClick,
@@ -50,6 +53,7 @@ const CustomerDetailsPage = decorate<CustomerDetailsPageProps>(
     onDelete
   }) => (
     <Form
+      errors={errors}
       initial={{
         email: maybe(() => customer.email),
         isActive: maybe(() => customer.isActive),
