@@ -40,7 +40,7 @@ def resolve_attributes(info, category_id, query):
 
 
 def resolve_categories(info, query, level=None):
-    qs = models.Category.objects.all()
+    qs = models.Category.objects.prefetch_related('children')
     if level is not None:
         qs = qs.filter(level=level)
     qs = filter_by_query_param(qs, query, CATEGORY_SEARCH_FIELDS)
