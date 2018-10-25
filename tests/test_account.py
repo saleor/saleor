@@ -213,6 +213,49 @@ def test_user_ajax_label_without_address(admin_user):
     assert admin_user.get_ajax_label() == admin_user.email
 
 
+@pytest.mark.parametrize("email, first_name, last_name, full_name", [
+    ('John@example.com', 'John', 'Doe', 'John Doe'),
+    ('John@example.com', 'John', '', 'John'),
+    ('John@example.com', '', 'Doe', 'Doe'),
+    ('John@example.com', '', '', 'John@example.com'),
+])
+def test_get_full_name_user_with_names(email, first_name,
+                                       last_name, full_name, address):
+    user = User(email=email, first_name=first_name, last_name=last_name)
+    assert user.get_full_name() == full_name
+
+
+@pytest.mark.parametrize("email, first_name, last_name, full_name", [
+    ('John@example.com', 'John', 'Doe', 'John Doe'),
+    ('John@example.com', 'John', '', 'John'),
+    ('John@example.com', '', 'Doe', 'Doe'),
+    ('John@example.com', '', '', 'John@example.com'),
+])
+def test_get_full_name_user_with_address(email, first_name,
+                                         last_name, full_name, address):
+    copied_address = address.get_copy()
+    copied_address.first_name = first_name
+    copied_address.last_name = last_name
+    user = User(email=email, default_billing_address=copied_address)
+    assert user.get_full_name() == full_name
+
+
+@pytest.mark.parametrize("email, first_name, last_name, full_name", [
+    ('John@example.com', 'John', 'Doe', 'John Doe'),
+    ('John@example.com', 'John', '', 'John'),
+    ('John@example.com', '', 'Doe', 'Doe'),
+    ('John@example.com', '', '', 'Arnold Green'),
+])
+def test_get_full_name(email, first_name, last_name, full_name, address):
+    copied_address = address.get_copy()
+    copied_address.first_name = "Arnold"
+    copied_address.last_name = "Green"
+    user = User(
+        email=email, first_name=first_name, last_name=last_name,
+        default_billing_address=copied_address)
+    assert user.get_full_name() == full_name
+
+
 def test_disabled_recaptcha():
     """
     This test creates a new form that should not contain any recaptcha field.
