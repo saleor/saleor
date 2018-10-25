@@ -1,23 +1,23 @@
 import re
+from textwrap import dedent
 
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.db.models import Prefetch
 from graphene import relay
 from graphql.error import GraphQLError
-from textwrap import dedent
 
 from ...product import models
 from ...product.templatetags.product_images import get_thumbnail
 from ...product.utils import calculate_revenue_for_variant
 from ...product.utils.availability import get_availability
-from ...product.utils.costs import (
-    get_margin_for_variant, get_product_costs_data)
+from ...product.utils.costs import (get_margin_for_variant,
+                                    get_product_costs_data)
 from ..core.decorators import permission_required
 from ..core.fields import PrefetchingConnectionField
-from ..core.types import (
-    CountableDjangoObjectType, Money, MoneyRange, ReportingPeriod, TaxedMoney,
-    TaxedMoneyRange, TaxRateType)
+from ..core.types import (CountableDjangoObjectType, Money, MoneyRange,
+                          ReportingPeriod, TaxedMoney, TaxedMoneyRange,
+                          TaxRateType)
 from ..utils import get_database_id, reporting_period_to_date
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 

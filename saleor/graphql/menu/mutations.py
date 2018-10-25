@@ -1,11 +1,12 @@
+from textwrap import dedent
+
 import graphene
 from graphql_jwt.decorators import permission_required
-from textwrap import dedent
 
 from ...menu import models
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..product.types import Category, Collection
 from ..page.types import Page
+from ..product.types import Category, Collection
 from .types import Menu
 
 
