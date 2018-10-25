@@ -8,9 +8,9 @@ import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
 import { maybe } from "../../../misc";
 import { CustomerDetails_user } from "../../types/CustomerDetails";
+import CustomerAddresses from "../CustomerAddresses/CustomerAddresses";
 import CustomerDetails from "../CustomerDetails/CustomerDetails";
 import CustomerOrders from "../CustomerOrders/CustomerOrders";
-import CustomerAddresses from "../CustomerAddresses/CustomerAddresses";
 import CustomerStats from "../CustomerStats/CustomerStats";
 
 export interface CustomerDetailsPageFormData {
@@ -27,6 +27,7 @@ export interface CustomerDetailsPageProps {
   onViewAllOrdersClick: () => void;
   onRowClick: (id: string) => void;
   onAddressManageClick: () => void;
+  onDelete: () => void;
 }
 
 const decorate = withStyles(theme => ({
@@ -45,7 +46,8 @@ const CustomerDetailsPage = decorate<CustomerDetailsPageProps>(
     onSubmit,
     onViewAllOrdersClick,
     onRowClick,
-    onAddressManageClick
+    onAddressManageClick,
+    onDelete
   }) => (
     <Form
       initial={{
@@ -91,6 +93,7 @@ const CustomerDetailsPage = decorate<CustomerDetailsPageProps>(
             disabled={disabled || !hasChanged}
             onSave={submit}
             onCancel={onBack}
+            onDelete={onDelete}
           />
         </Container>
       )}

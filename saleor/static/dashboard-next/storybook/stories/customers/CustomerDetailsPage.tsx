@@ -12,6 +12,7 @@ const props: CustomerDetailsPageProps = {
   disabled: false,
   onAddressManageClick: () => undefined,
   onBack: () => undefined,
+  onDelete: () => undefined,
   onRowClick: () => undefined,
   onSubmit: () => undefined,
   onViewAllOrdersClick: () => undefined
