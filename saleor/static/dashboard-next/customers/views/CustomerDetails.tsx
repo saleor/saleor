@@ -4,11 +4,12 @@ import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
+import { orderUrl } from "../../orders";
 import CustomerDetailsPage from "../components/CustomerDetailsPage/CustomerDetailsPage";
 import { TypedUpdateCustomerMutation } from "../mutations";
 import { TypedCustomerDetailsQuery } from "../queries";
 import { UpdateCustomer } from "../types/UpdateCustomer";
-import { customerListUrl, customerUrl } from "../urls";
+import { customerListUrl } from "../urls";
 
 interface CustomerDetailsViewProps {
   id: string;
@@ -50,8 +51,9 @@ export const CustomerDetailsView: React.StatelessComponent<
                       )}
                       onAddressManageClick={() => undefined} // TODO: add address management #3173
                       onBack={() => navigate(customerListUrl)}
-                      onRowClick={id => () =>
-                        navigate(customerUrl(encodeURIComponent(id)))}
+                      onRowClick={id =>
+                        navigate(orderUrl(encodeURIComponent(id)))
+                      }
                       onSubmit={formData =>
                         updateCustomer({
                           variables: {
