@@ -103,7 +103,7 @@ def gateway_authorize(payment: Payment, transaction_token: str) -> Transaction:
     with transaction.atomic():
         txn, error = provider.authorize(
             payment, transaction_token, **provider_params)
-            # FIXME Create an order event ?
+    # FIXME Create an order event ?
     if not txn.is_success:
         raise PaymentError(error)
     return txn
@@ -168,11 +168,11 @@ def gateway_refund(payment, amount: Decimal) -> Transaction:
         txn, error = provider.refund(payment, amount, **provider_params)
         if txn.is_success:
             changed_fields = ['captured_amount']
-            if txn.amount == payment.total:
+            payment.captured_amount -= txn.amount
+            if not payment.captured_amount:
                 payment.charge_status = ChargeStatus.FULLY_REFUNDED
                 payment.is_active = False
                 changed_fields += ['charge_status', 'is_active']
-            payment.captured_amount -= txn.amount
             payment.save(update_fields=changed_fields)
         # FIXME Create an order event ?
     if not txn.is_success:

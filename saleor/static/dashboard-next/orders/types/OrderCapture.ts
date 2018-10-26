@@ -253,8 +253,8 @@ export interface OrderCapture_orderCapture_order {
   subtotal: OrderCapture_orderCapture_order_subtotal | null;
   total: OrderCapture_orderCapture_order_total | null;
   actions: (OrderAction | null)[];
-  totalAuthorized: OrderCapture_orderCapture_order_totalAuthorized;
-  totalCaptured: OrderCapture_orderCapture_order_totalCaptured;
+  totalAuthorized: OrderCapture_orderCapture_order_totalAuthorized | null;
+  totalCaptured: OrderCapture_orderCapture_order_totalCaptured | null;
   user: OrderCapture_orderCapture_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderCapture_orderCapture_order_availableShippingMethods | null)[] | null;

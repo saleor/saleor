@@ -253,8 +253,8 @@ export interface OrderLineUpdate_draftOrderLineUpdate_order {
   subtotal: OrderLineUpdate_draftOrderLineUpdate_order_subtotal | null;
   total: OrderLineUpdate_draftOrderLineUpdate_order_total | null;
   actions: (OrderAction | null)[];
-  totalAuthorized: OrderLineUpdate_draftOrderLineUpdate_order_totalAuthorized;
-  totalCaptured: OrderLineUpdate_draftOrderLineUpdate_order_totalCaptured;
+  totalAuthorized: OrderLineUpdate_draftOrderLineUpdate_order_totalAuthorized | null;
+  totalCaptured: OrderLineUpdate_draftOrderLineUpdate_order_totalCaptured | null;
   user: OrderLineUpdate_draftOrderLineUpdate_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderLineUpdate_draftOrderLineUpdate_order_availableShippingMethods | null)[] | null;

@@ -247,8 +247,8 @@ export interface OrderCancel_orderCancel_order {
   subtotal: OrderCancel_orderCancel_order_subtotal | null;
   total: OrderCancel_orderCancel_order_total | null;
   actions: (OrderAction | null)[];
-  totalAuthorized: OrderCancel_orderCancel_order_totalAuthorized;
-  totalCaptured: OrderCancel_orderCancel_order_totalCaptured;
+  totalAuthorized: OrderCancel_orderCancel_order_totalAuthorized | null;
+  totalCaptured: OrderCancel_orderCancel_order_totalCaptured | null;
   user: OrderCancel_orderCancel_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderCancel_orderCancel_order_availableShippingMethods | null)[] | null;

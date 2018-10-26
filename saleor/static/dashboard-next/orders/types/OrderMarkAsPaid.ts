@@ -253,8 +253,8 @@ export interface OrderMarkAsPaid_orderMarkAsPaid_order {
   subtotal: OrderMarkAsPaid_orderMarkAsPaid_order_subtotal | null;
   total: OrderMarkAsPaid_orderMarkAsPaid_order_total | null;
   actions: (OrderAction | null)[];
-  totalAuthorized: OrderMarkAsPaid_orderMarkAsPaid_order_totalAuthorized;
-  totalCaptured: OrderMarkAsPaid_orderMarkAsPaid_order_totalCaptured;
+  totalAuthorized: OrderMarkAsPaid_orderMarkAsPaid_order_totalAuthorized | null;
+  totalCaptured: OrderMarkAsPaid_orderMarkAsPaid_order_totalCaptured | null;
   user: OrderMarkAsPaid_orderMarkAsPaid_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderMarkAsPaid_orderMarkAsPaid_order_availableShippingMethods | null)[] | null;

@@ -85,9 +85,3 @@ class TaxRateType:
         (SOCIAL_HOUSING, pgettext_lazy('VAT rate type', 'social housing')),
         (STANDARD, pgettext_lazy('VAT rate type', 'standard')),
         (WATER, pgettext_lazy('VAT rate type', 'water')))
-
-
-# FIXME: duplicate of saleor.core.taxes.ZERO_MONEY
-def zero_money():
-    """Function used as a model's default."""
-    return Money(0, currency=settings.DEFAULT_CURRENCY)

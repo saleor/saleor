@@ -44,7 +44,8 @@ from .page.resolvers import resolve_page, resolve_pages
 from .page.types import Page
 from .product.schema import ProductMutations, ProductQueries
 from .payment.types import Payment, PaymentGatewayEnum
-from .payment.resolvers import resolve_payments, resolve_payment_transaction_token
+from .payment.resolvers import (
+    resolve_payments, resolve_payment_transaction_token)
 from .payment.mutations import (
     CheckoutPaymentCreate, PaymentCapture, PaymentRefund,
     PaymentVoid)

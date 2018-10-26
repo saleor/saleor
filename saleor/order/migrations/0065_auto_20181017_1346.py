@@ -17,17 +17,17 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='order',
             name='discount_amount',
-            field=django_prices.models.MoneyField(currency='USD', decimal_places=2, default=saleor.core.zero_money, max_digits=12),
+            field=django_prices.models.MoneyField(currency='USD', decimal_places=2, default=saleor.core.utils.taxes.zero_money, max_digits=12),
         ),
         migrations.AlterField(
             model_name='order',
             name='total_gross',
-            field=django_prices.models.MoneyField(currency='USD', decimal_places=2, default=saleor.core.zero_money, max_digits=12),
+            field=django_prices.models.MoneyField(currency='USD', decimal_places=2, default=saleor.core.utils.taxes.zero_money, max_digits=12),
         ),
         migrations.AlterField(
             model_name='order',
             name='total_net',
-            field=django_prices.models.MoneyField(currency='USD', decimal_places=2, default=saleor.core.zero_money, max_digits=12),
+            field=django_prices.models.MoneyField(currency='USD', decimal_places=2, default=saleor.core.utils.taxes.zero_money, max_digits=12),
         ),
         migrations.RemoveField(
             model_name='payment',

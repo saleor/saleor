@@ -11,8 +11,7 @@ from django_prices.models import MoneyField
 from measurement.measures import Weight
 
 from ..account.models import Address
-from ..core import zero_money
-from ..core.utils.taxes import ZERO_TAXED_MONEY
+from ..core.utils.taxes import ZERO_TAXED_MONEY, zero_money
 from ..shipping.models import ShippingMethod
 
 CENTS = Decimal('0.01')
