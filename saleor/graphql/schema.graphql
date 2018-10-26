@@ -364,8 +364,14 @@ type CustomerCreate {
   user: User
 }
 
+type CustomerDelete {
+  errors: [Error]
+  user: User
+}
+
 input CustomerInput {
   email: String
+  isActive: Boolean
   note: String
   defaultBillingAddress: AddressInput
   defaultShippingAddress: AddressInput
@@ -719,6 +725,7 @@ type Mutations {
   passwordReset(email: String!): PasswordReset
   customerCreate(input: UserCreateInput!): CustomerCreate
   customerUpdate(id: ID!, input: CustomerInput!): CustomerUpdate
+  customerDelete(id: ID!): CustomerDelete
   customerPasswordReset(input: CustomerPasswordResetInput!): CustomerPasswordReset
   customerRegister(input: CustomerRegisterInput!): CustomerRegister
   staffCreate(input: StaffCreateInput!): StaffCreate
@@ -1592,8 +1599,8 @@ type StaffCreate {
 
 input StaffCreateInput {
   email: String
-  note: String
   isActive: Boolean
+  note: String
   permissions: [String]
   sendPasswordEmail: Boolean
 }
@@ -1605,8 +1612,8 @@ type StaffDelete {
 
 input StaffInput {
   email: String
-  note: String
   isActive: Boolean
+  note: String
   permissions: [String]
 }
 
@@ -1665,12 +1672,14 @@ scalar Upload
 
 type User implements Node {
   id: ID!
+  lastLogin: DateTime
   email: String!
   addresses(before: String, after: String, first: Int, last: Int): AddressCountableConnection
   isStaff: Boolean!
   token: UUID!
   isActive: Boolean!
   note: String
+  dateJoined: DateTime!
   defaultShippingAddress: Address
   defaultBillingAddress: Address
   orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
@@ -1690,6 +1699,7 @@ type UserCountableEdge {
 
 input UserCreateInput {
   email: String
+  isActive: Boolean
   note: String
   defaultBillingAddress: AddressInput
   defaultShippingAddress: AddressInput
