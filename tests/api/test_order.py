@@ -49,7 +49,7 @@ def test_orderline_query(
     thumbnails = [l['thumbnailUrl'] for l in order_data['lines']]
     assert len(thumbnails) == 2
     assert None in thumbnails
-    assert '/static/images/placeholder540x540.png' in thumbnails
+    assert '/static/images/placeholder540x540.png' in thumbnails[1]
 
 
 def test_order_query(
