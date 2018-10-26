@@ -46,13 +46,6 @@ class FulfillmentStatus:
             'Canceled'))]
 
 
-class CustomPaymentChoices:
-    MANUAL = 'manual'
-
-    CHOICES = [
-        (MANUAL, pgettext_lazy('Custom payment choice type', 'Manual'))]
-
-
 class OrderEvents(Enum):
     PLACED = 'placed'
     PLACED_FROM_DRAFT = 'draft_placed'

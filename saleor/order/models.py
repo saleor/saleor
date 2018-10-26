@@ -16,8 +16,7 @@ from measurement.measures import Weight
 from prices import Money
 
 from . import (
-    CustomPaymentChoices, FulfillmentStatus, OrderEvents, OrderStatus,
-    display_order_event)
+    FulfillmentStatus, OrderEvents, OrderStatus, display_order_event)
 from ..account.models import Address
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.taxes import ZERO_TAXED_MONEY, zero_money
@@ -221,29 +220,21 @@ class Order(models.Model):
             return False
         order_status_ok = self.status not in {
             OrderStatus.DRAFT, OrderStatus.CANCELED}
-        return (
-            payment.is_active and
-            payment.charge_status == ChargeStatus.NOT_CHARGED and
-            order_status_ok)
+        return payment.can_capture() and order_status_ok
 
     def can_void(self, payment=None):
         if not payment:
             payment = self.get_last_payment()
         if not payment:
             return False
-        return (
-            payment.is_active and
-            payment.charge_status == ChargeStatus.NOT_CHARGED)
+        return payment.can_void()
 
     def can_refund(self, payment=None):
         if not payment:
             payment = self.get_last_payment()
         if not payment:
             return False
-        return (
-            payment.is_active and
-            payment.charge_status == ChargeStatus.CHARGED and
-            payment.variant != CustomPaymentChoices.MANUAL)
+        return payment.can_refund()
 
     def can_mark_as_paid(self):
         return len(self.payments.all()) == 0

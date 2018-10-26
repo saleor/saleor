@@ -3,9 +3,9 @@ from graphql_jwt.decorators import permission_required
 
 from ....account.models import User
 from ....core.utils.taxes import ZERO_TAXED_MONEY
-from ....order import CustomPaymentChoices, OrderEvents, models
+from ....order import OrderEvents, models
 from ....order.utils import cancel_order
-from ....payment import ChargeStatus, PaymentError
+from ....payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from ....payment.models import Payment
 from ....payment.utils import get_billing_data
 from ....shipping.models import ShippingMethod as ShippingMethodModel

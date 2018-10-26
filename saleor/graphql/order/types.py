@@ -8,7 +8,7 @@ from ..account.types import User
 from ..core.fields import PrefetchingConnectionField
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
-from ..payment.types import PaymentChargeStatusEnum
+from ..payment.types import PaymentChargeStatusEnum, OrderAction
 from ..shipping.types import ShippingMethod
 
 OrderEventsEnum = graphene.Enum.from_enum(OrderEvents)
@@ -136,24 +136,6 @@ class OrderLine(CountableDjangoObjectType):
     @staticmethod
     def resolve_unit_price(self, info):
         return self.unit_price
-
-
-class OrderAction(graphene.Enum):
-    CAPTURE = 'CAPTURE'
-    MARK_AS_PAID = 'MARK_AS_PAID'
-    REFUND = 'REFUND'
-    VOID = 'VOID'
-
-    @property
-    def description(self):
-        if self == OrderAction.CAPTURE:
-            return 'Represents the capture action.'
-        if self == OrderAction.MARK_AS_PAID:
-            return 'Represents a mark-as-paid action.'
-        if self == OrderAction.REFUND:
-            return 'Represents a refund action.'
-        if self == OrderAction.VOID:
-            return 'Represents a void action.'
 
 
 class Order(CountableDjangoObjectType):

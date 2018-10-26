@@ -1232,6 +1232,7 @@ type Payment implements Node {
   checkout: Checkout
   order: Order
   transactions(before: String, after: String, first: Int, last: Int, id: ID): TransactionCountableConnection
+  actions: [OrderAction]!
 }
 
 type PaymentCapture {

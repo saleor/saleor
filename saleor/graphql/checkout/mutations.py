@@ -449,7 +449,8 @@ class CheckoutComplete(BaseMutation):
 
         payment = checkout.payments.filter(is_active=True).first()
         # FIXME there could be a situation where order was created but payment
-        # failed. we should cancel the order at this moment I think
+        # failed. we should cancel/delete the order at this moment I think
+
         # authorize payment
         try:
             gateway_authorize(payment, payment.token)

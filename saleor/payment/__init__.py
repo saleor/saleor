@@ -12,6 +12,13 @@ class PaymentError(Exception):
         self.message = message
 
 
+class CustomPaymentChoices:
+    MANUAL = 'manual'
+
+    CHOICES = [
+        (MANUAL, pgettext_lazy('Custom payment choice type', 'Manual'))]
+
+
 class TransactionType:
     """
     - Authorization: An amount reserved against the customer's funding
