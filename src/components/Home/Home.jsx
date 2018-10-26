@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom';
 import { GitHubLink } from '..';
 import { isMobileOnly } from 'react-device-detect';
 import { Helmet } from "react-helmet";
+import Lottie from 'react-lottie';
+import * as animationData from '../../images/data2.json';
 
 import Fade from 'react-reveal/Fade';
 
@@ -42,7 +44,11 @@ class Home extends Component {
     this.toggleNewsBar= this.toggleNewsBar.bind(this);
     this.state = { 
       tabIndex: 0,
-      newsBar: true
+      newsBar: true,
+      isStopped: true, 
+      isPaused: false,
+      speed: 0.5,
+      direction: 1,
     };
   }
 
@@ -52,6 +58,17 @@ class Home extends Component {
   };
 
   render() {
+
+    const { isStopped, isPaused, direction, speed } = this.state;
+
+    const defaultOptions = {
+      loop: false,
+      animationData: animationData,
+      rendererSettings: {
+        preserveAspectRatio: 'xMidYMid slice'
+      }
+    };
+
     return (
         <div id="home" className="container">
           <Helmet>
@@ -90,7 +107,32 @@ class Home extends Component {
                     <div className="image">
                       <h3><span>01<br/>-</span>Modern <br />stack</h3>
                     </div>
+                    <Lottie options={defaultOptions}
+                      height={400}
+                      width={400}
+                      isStopped={this.state.isStopped}
+                      isPaused={this.state.isPaused}
+                      speed={this.state.speed}
+                      direction={this.state.direction}
+                    />
                 </a>
+                <input type="range" value={this.state.speed} min="0" max="3" step="0.5"
+                      onChange={e => this.setState({ speed: e.currentTarget.value })}
+                    />
+                    <button
+                      onClick={() => this.setState({ 
+                          isStopped: true
+                      })}>stop</button>
+                    <button
+                      onClick={() => this.setState({ 
+                          isStopped: false
+                      })}>play</button>
+                    <button
+                      onClick={() => this.setState({ isPaused: !isPaused })}
+                    >pause</button>
+                    <button
+                      onClick={() => this.setState({ direction: direction * -1 })}
+                    >change direction</button>
               </div>
               <div className="col-xs-6 col-sm-6 col-md-3 build-to-scale">
                 <a href="#build-to-scale">
