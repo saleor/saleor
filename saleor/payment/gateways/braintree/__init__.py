@@ -37,13 +37,14 @@ ERROR_CODES_WHITELIST = {
 
 def get_customer_data(payment: Payment) -> Dict:
     return {
+        "order_id": payment.order_id,
         'billing': {
             'first_name': payment.billing_first_name,
             'last_name': payment.billing_last_name,
             'company': payment.billing_company_name,
             'postal_code': payment.billing_postal_code,
-            'street_address': payment.billing_address_1[:255],
-            'extended_address': payment.billing_address_2[:255],
+            'street_address': payment.billing_address_1,
+            'extended_address': payment.billing_address_2,
             "locality": payment.billing_city,
             'region': payment.billing_country_area,
             'country_code_alpha2': payment.billing_country_code},
@@ -90,6 +91,7 @@ def transaction_and_incorrect_token_error(
 
 def extract_gateway_response(braintree_result) -> Dict:
     """Extract data from Braintree response that will be stored locally."""
+    import pdb; pdb.set_trace()
     errors = []
     if not braintree_result.is_success:
         errors = [
@@ -106,16 +108,7 @@ def extract_gateway_response(braintree_result) -> Dict:
     gateway_response = {
         'currency': bt_transaction.currency_iso_code,
         'amount': bt_transaction.amount,  # Decimal type
-        'created_at': str(bt_transaction.created_at),  # datetime type
         'credit_card': bt_transaction.credit_card,
-        'additional_processor_response': bt_transaction.additional_processor_response,  # noqa
-        'gateway_rejection_reason': bt_transaction.gateway_rejection_reason,
-        'processor_response_code': bt_transaction.processor_response_code,
-        'processor_response_text': bt_transaction.processor_response_text,
-        'processor_settlement_response_code': bt_transaction.processor_settlement_response_code,  # noqa
-        'processor_settlement_response_text': bt_transaction.processor_settlement_response_text,  # noqa
-        'risk_data': bt_transaction.risk_data,
-        'status': bt_transaction.status,
         'errors': errors}
     return gateway_response
 
@@ -161,6 +154,17 @@ def authorize(
             payment, type=Transactions.AUTH, token=transaction_token)
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
+    credit_card_data = gateway_response.pop('credit_cart')
+    if credit_card_data:
+        payment.cc_first_digits = credit_card_data.bin
+        payment.cc_last_digits = credit_card_data.last_4
+        payment.cc_brand = credit_card_data.card_type
+        payment.cc_expiry_month = credit_card_data.expiration_month
+        payment.cc_expiry_year = credit_card_data.expiration_year
+        payment.save(update_fields=[
+            'cc_first_digits', 'cc_last_digits', 'cc_brand',
+            'cc_expiry_month', 'cc_expiry_year'])
+
     txn = create_transaction(
         payment=payment,
         kind=Transactions.AUTH,
@@ -194,6 +198,7 @@ def capture(
 
     txn = create_transaction(
         payment=payment,
+        parent=auth_transaction,
         kind=Transactions.CAPTURE,
         amount=gateway_response.pop('amount', amount),
         currency=gateway_response.pop('currency', payment.currency),
@@ -220,6 +225,7 @@ def void(
     error = get_error_for_client(gateway_response['errors'])
     txn = create_transaction(
         payment=payment,
+        parent=auth_transaction,
         kind=Transactions.VOID,
         amount=gateway_response.pop('amount', payment.total),
         currency=gateway_response.pop('currency', payment.currency),
@@ -249,6 +255,7 @@ def refund(
     error = get_error_for_client(gateway_response['errors'])
     txn = create_transaction(
         payment=payment,
+        parent=capture_txn,
         kind=Transactions.REFUND,
         amount=gateway_response.pop('amount', amount),
         currency=gateway_response.pop('currency', payment.currency),
