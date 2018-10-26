@@ -7,7 +7,7 @@ from prices import Money
 
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.payment import (
-    ChargeStatus, PaymentError, TransactionType, get_payment_gateway)
+    ChargeStatus, PaymentError, Transactions, get_payment_gateway)
 from saleor.payment.utils import (
     create_payment, create_transaction, gateway_authorize, gateway_capture,
     gateway_get_transaction_token, gateway_refund, gateway_void,
@@ -22,7 +22,7 @@ def transaction_data(payment_dummy, settings):
     return {
         'payment': payment_dummy,
         'token': 'token',
-        'transaction_type': TransactionType.CAPTURE,
+        'kind': Transactions.CAPTURE,
         'is_success': True,
         'amount': Decimal('10.00'),
         'currency': settings.DEFAULT_CURRENCY,
@@ -135,7 +135,7 @@ def test_create_transaction(transaction_data):
 
     assert txn.payment == transaction_data['payment']
     assert txn.token == transaction_data['token']
-    assert txn.transaction_type == transaction_data['transaction_type']
+    assert txn.kind == transaction_data['kind']
     assert txn.is_success == transaction_data['is_success']
     assert txn.amount == transaction_data['amount']
     assert txn.gateway_response == transaction_data['gateway_response']

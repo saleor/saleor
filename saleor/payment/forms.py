@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.translation import pgettext_lazy
 
-from . import ChargeStatus, TransactionType, get_payment_gateway
+from . import ChargeStatus, Transactions, get_payment_gateway
 from .models import Payment
 from .utils import gateway_authorize, gateway_capture, gateway_refund
 

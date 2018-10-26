@@ -5,7 +5,7 @@ from typing import Dict
 from django.conf import settings
 from prices import Money
 
-from ... import TransactionType
+from ... import Transactions
 from ...models import Payment
 from ...utils import create_transaction
 
@@ -25,7 +25,7 @@ def authorize(payment: Payment, transaction_token: str, **connection_params):
         error = 'Unable to authorize transaction'
     txn = create_transaction(
         payment=payment,
-        transaction_type=TransactionType.AUTH,
+        kind=Transactions.AUTH,
         amount=payment.total,
         currency=payment.currency,
         gateway_response={},
@@ -41,7 +41,7 @@ def void(payment: Payment, **connection_params: Dict):
         error = 'Unable to void transaction'
     txn = create_transaction(
         payment=payment,
-        transaction_type=TransactionType.VOID,
+        kind=Transactions.VOID,
         amount=payment.total,
         currency=payment.currency,
         gateway_response={},
@@ -57,7 +57,7 @@ def capture(payment: Payment, amount: Decimal):
         error = 'Unable to process capture'
     txn = create_transaction(
         payment=payment,
-        transaction_type=TransactionType.CAPTURE,
+        kind=Transactions.CAPTURE,
         amount=amount,
         currency=payment.currency,
         token=str(uuid.uuid4()),
@@ -72,7 +72,7 @@ def refund(payment: Payment, amount: Decimal):
         error = 'Unable to process refund'
     txn = create_transaction(
         payment=payment,
-        transaction_type=TransactionType.REFUND,
+        kind=Transactions.REFUND,
         amount=amount,
         currency=payment.currency,
         token=str(uuid.uuid4()),

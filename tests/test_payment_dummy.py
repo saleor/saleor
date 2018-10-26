@@ -2,13 +2,13 @@ from decimal import Decimal
 
 import pytest
 
-from saleor.payment import ChargeStatus, PaymentError, TransactionType
+from saleor.payment import ChargeStatus, PaymentError, Transactions
 
 
 def test_authorize(payment_dummy):
     txn = payment_dummy.authorize(transaction_token='Fake')
     assert txn.is_success
-    assert txn.transaction_type == TransactionType.AUTH
+    assert txn.kind == Transactions.AUTH
     assert txn.payment == payment_dummy
     payment_dummy.refresh_from_db()
     assert payment_dummy.is_active
@@ -19,7 +19,7 @@ def test_authorize_gateway_error(payment_dummy, monkeypatch):
         'saleor.payment.gateways.dummy.dummy_success', lambda: False)
     with pytest.raises(PaymentError):
         txn = payment_dummy.authorize(transaction_token='Fake')
-        assert txn.transaction_type == TransactionType.AUTH
+        assert txn.kind == Transactions.AUTH
         assert not txn.is_success
         assert txn.payment == payment_dummy
 
@@ -29,7 +29,7 @@ def test_void_success(payment_dummy):
     assert payment_dummy.charge_status == ChargeStatus.NOT_CHARGED
     txn = payment_dummy.void()
     assert txn.is_success
-    assert txn.transaction_type == TransactionType.VOID
+    assert txn.kind == Transactions.VOID
     assert txn.payment == payment_dummy
     payment_dummy.refresh_from_db()
     assert not payment_dummy.is_active
@@ -57,7 +57,7 @@ def test_void_gateway_error(payment_dummy, monkeypatch):
         'saleor.payment.gateways.dummy.dummy_success', lambda: False)
     with pytest.raises(PaymentError):
         txn = payment_dummy.void()
-        assert txn.transaction_type == TransactionType.VOID
+        assert txn.kind == Transactions.VOID
         assert not txn.is_success
         assert txn.payment == payment_dummy
 
@@ -96,7 +96,7 @@ def test_charge_gateway_error(payment_dummy, monkeypatch):
         'saleor.payment.gateways.dummy.dummy_success', lambda: False)
     with pytest.raises(PaymentError):
         txn = payment_dummy.capture(80)
-        assert txn.transaction_type == TransactionType.CHARGE
+        assert txn.kind == Transactions.CHARGE
         assert not txn.is_success
         assert txn.payment == payment_dummy
 
@@ -114,7 +114,7 @@ def test_refund_success(
     payment.captured_amount = initial_captured_amount
     payment.save()
     txn = payment.refund(refund_amount)
-    assert txn.transaction_type == TransactionType.REFUND
+    assert txn.kind == Transactions.REFUND
     assert txn.is_success
     assert txn.payment == payment
     assert payment.charge_status == final_charge_status
@@ -151,7 +151,7 @@ def test_refund_gateway_error(payment_dummy, monkeypatch):
 
     payment.refresh_from_db()
     txn = payment.transactions.first()
-    assert txn.transaction_type == TransactionType.REFUND
+    assert txn.kind == Transactions.REFUND
     assert not txn.is_success
     assert txn.payment == payment
     assert payment.charge_status == ChargeStatus.CHARGED

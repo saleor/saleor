@@ -53,7 +53,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('token', models.CharField(blank=True, default='', max_length=64)),
-                ('transaction_type', models.CharField(choices=[('auth', 'Authorization'), ('capture', 'Charge'), ('refund', 'Refund'), ('capture', 'Capture'), ('void', 'Void')], max_length=10)),
+                ('kind', models.CharField(choices=[('auth', 'Authorization'), ('capture', 'Charge'), ('refund', 'Refund'), ('capture', 'Capture'), ('void', 'Void')], max_length=10)),
                 ('is_success', models.BooleanField(default=False)),
                 ('currency', models.CharField(max_length=10)),
                 ('amount', models.DecimalField(decimal_places=2, default=Decimal('0.0'), max_digits=12)),

@@ -7,7 +7,7 @@ from tests.api.utils import get_graphql_content
 
 from saleor.checkout.models import Cart
 from saleor.order.models import Order
-from saleor.payment import TransactionType
+from saleor.payment import Transactions
 
 
 def test_checkout_create(user_api_client, variant, graphql_address_data):
