@@ -893,7 +893,7 @@ def test_product_image_delete(
         query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     data = content['data']['productImageDelete']
-    assert data['image']['url'] == image_obj.image.url
+    assert image_obj.image.url in data['image']['url']
     with pytest.raises(image_obj._meta.model.DoesNotExist):
         image_obj.refresh_from_db()
     assert node_id == data['image']['id']
