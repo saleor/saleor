@@ -100,8 +100,9 @@ def start_payment(request, order, gateway):
                 order.is_fully_paid()
                 or payment.charge_status == ChargeStatus.FULLY_REFUNDED):
             return redirect(order.get_absolute_url())
-        gateway, gateway_params = get_payment_gateway(payment.gateway)
-        transaction_token = gateway.get_transaction_token(**gateway_params)
+        payment_gateway, gateway_params = get_payment_gateway(payment.gateway)
+        transaction_token = payment_gateway.get_transaction_token(
+            **gateway_params)
         form = get_form_for_payment(payment)
         form = form(data=request.POST or None, instance=payment)
         if form.is_valid():
