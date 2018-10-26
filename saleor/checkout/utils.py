@@ -888,7 +888,7 @@ def create_order(cart, tracking_code, discounts, taxes):
 def is_fully_paid(cart: Cart):
     payments = cart.payments.filter(is_active=True)
     total_paid = sum(
-        [p.captured_amount.amount for p in payments])
+        [p.total.amount for p in payments])
     return total_paid >= cart.get_total().gross.amount
 
 

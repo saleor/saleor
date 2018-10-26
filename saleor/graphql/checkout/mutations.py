@@ -10,6 +10,8 @@ from ...checkout.utils import (
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import get_taxes_for_address
+from ...payment import PaymentError
+from ...payment.utils import gateway_authorize, gateway_capture, gateway_void
 from ...shipping.models import ShippingMethod as ShippingMethodModel
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, User
@@ -423,4 +425,23 @@ class CheckoutComplete(BaseMutation):
             cls.add_error(
                 field=None, message='Insufficient product stock.',
                 errors=errors)
+
+        payment = checkout.payments.filter(is_active=True).first()
+        # FIXME there could be a situation where order was created but payment
+        # failed. we should cancel the order at this moment I think
+        # authorize payment
+        try:
+            gateway_authorize(payment, payment.token)
+        except PaymentError as exc:
+            msg = str(exc)
+            cls.add_error(field=None, message=msg, errors=errors)
+            return CheckoutComplete(order=order, errors=errors)
+        # capture payment
+        try:
+            gateway_capture(payment, payment.total.amount)
+        except PaymentError as exc:
+            msg = str(exc)
+            cls.add_error(field=None, message=msg, errors=errors)
+            # Void payment if the capture failed
+            gateway_void(payment)
         return CheckoutComplete(order=order, errors=errors)
