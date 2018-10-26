@@ -14,9 +14,9 @@ from saleor.graphql.order.mutations.orders import (
     clean_refund_payment, clean_void_payment)
 from saleor.graphql.order.types import OrderEventsEmailsEnum, OrderStatusFilter
 from saleor.graphql.payment.types import PaymentChargeStatusEnum
-from saleor.order import (
-    CustomPaymentChoices, OrderEvents, OrderEventsEmails, OrderStatus)
+from saleor.order import OrderEvents, OrderEventsEmails, OrderStatus
 from saleor.order.models import Order, OrderEvent
+from saleor.payment import CustomPaymentChoices
 from saleor.payment.models import Payment
 from saleor.shipping.models import ShippingMethod
 

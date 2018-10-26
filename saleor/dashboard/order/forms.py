@@ -13,12 +13,12 @@ from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import ZERO_TAXED_MONEY
 from ...discount.models import Voucher
 from ...discount.utils import decrease_voucher_usage, increase_voucher_usage
-from ...order import CustomPaymentChoices, OrderStatus
+from ...order import OrderStatus
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ...order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order,
     change_order_line_quantity, recalculate_order)
-from ...payment import ChargeStatus, PaymentError
+from ...payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from ...payment.models import Payment
 from ...payment.utils import get_billing_data
 from ...product.models import Product, ProductVariant

@@ -7,7 +7,7 @@ from django.db import models
 from django_prices.models import MoneyField
 from prices import Money
 
-from . import ChargeStatus, TransactionType
+from . import ChargeStatus, CustomPaymentChoices, TransactionType
 from ..checkout.models import Cart
 from ..core.utils.taxes import zero_money
 from ..order.models import Order
@@ -24,10 +24,9 @@ class Payment(models.Model):
 
     Several payment methods can be used within a single order.
     """
-    #FIXME we should provide an option to store the card for later usage
+    # FIXME we should provide an option to store the card for later usage
+    # FIXME probably we should have pending status
     variant = models.CharField(max_length=255)
-    # FIXME probably we should have error/pending/active status instead of
-    # a bool
     is_active = models.BooleanField(default=True)
     #: Creation date and time
     created = models.DateTimeField(auto_now_add=True)
@@ -104,14 +103,30 @@ class Payment(models.Model):
     def capture(self, amount=None):
         from . import utils
         if amount is None:
-            amount = self.total
+            # If no amount is specified, capture the maximum possible
+            amount = self.total - self.captured_amount
         return utils.gateway_capture(payment=self, amount=amount)
 
     def refund(self, amount=None):
         from . import utils
         if amount is None:
-            amount = self.total
+            # If no amount is specified, refund the maximum possible
+            amount = self.captured_amount
         return utils.gateway_refund(payment=self, amount=amount)
+
+    def can_capture(self):
+        return (
+            self.is_active and self.charge_status == ChargeStatus.NOT_CHARGED)
+
+    def can_void(self):
+        return (
+            self.is_active and self.charge_status == ChargeStatus.NOT_CHARGED)
+
+    def can_refund(self):
+        return (
+            self.is_active and
+            self.charge_status == ChargeStatus.CHARGED and
+            self.variant != CustomPaymentChoices.MANUAL)
 
 
 class Transaction(models.Model):
