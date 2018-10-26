@@ -302,6 +302,26 @@ class StaffDelete(UserDelete):
                 errors, 'id', 'Cannot delete a non-staff user.')
         return errors
 
+    @classmethod
+    def mutate(cls, root, info, **data):
+        if not cls.user_is_allowed(info.context.user, data):
+            raise PermissionDenied()
+
+        errors = []
+        user_id = data.get('id')
+        instance = cls.get_node_or_error(info, user_id, errors, 'id', User)
+        if instance:
+            cls.clean_instance(info, instance, errors)
+        if errors:
+            return cls(errors=errors)
+
+        db_id = instance.id
+        remove_staff_member(instance)
+        # After the instance is deleted, set its ID to the original database's
+        # ID so that the success response contains ID of the deleted object.
+        instance.id = db_id
+        return cls.success_response(instance)
+
 
 class SetPasswordInput(graphene.InputObjectType):
     token = graphene.String(
