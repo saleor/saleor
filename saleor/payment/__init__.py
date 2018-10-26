@@ -19,6 +19,20 @@ class CustomPaymentChoices:
         (MANUAL, pgettext_lazy('Custom payment choice type', 'Manual'))]
 
 
+class TransactionError(Enum):
+    INCORRECT_NUMBER = 'incorrect_number'
+    INVALID_NUMBER = 'invalid_number'
+    INCORRECT_CVV = 'incorrect_cvv'
+    INVALID_CVV = 'invalid_cvv'
+    INCORRECT_ZIP = 'incorrect_zip'
+    INCORRECT_ADDRESS = 'incorrect_address'
+    INVALID_EXPIRY_DATE = 'invalid_expiry_date'
+    EXPIRED = 'expired'
+    PROCESSING_ERROR = 'processing_error'
+    DECLINED = 'declined'
+
+
+
 class Transactions:
     """
     - Authorization: An amount reserved against the customer's funding

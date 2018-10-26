@@ -69,6 +69,7 @@ class BraintreePaymentForm(forms.Form):
                 'payment error',
                 'Unable to process transaction. Please try again in a moment')
             raise ValidationError(msg)
+        cleaned_data['payment_method_nonce'] = 'fake-valid-nonce'
         return cleaned_data
 
     def process_payment(self):

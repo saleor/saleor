@@ -7,7 +7,8 @@ from django.db import models
 from django_prices.models import MoneyField
 from prices import Money
 
-from . import ChargeStatus, CustomPaymentChoices, Transactions
+from . import (
+    ChargeStatus, CustomPaymentChoices, TransactionError, Transactions)
 from ..checkout.models import Cart
 from ..core.utils.taxes import zero_money
 from ..order.models import Order
@@ -37,7 +38,6 @@ class Payment(models.Model):
         choices=ChargeStatus.CHOICES,
         default=ChargeStatus.NOT_CHARGED)
 
-    # FIXME maybe assign it as a separate Address instance?
     billing_first_name = models.CharField(max_length=256, blank=True)
     billing_last_name = models.CharField(max_length=256, blank=True)
     billing_company_name = models.CharField(max_length=256, blank=True)
@@ -53,8 +53,8 @@ class Payment(models.Model):
     extra_data = models.TextField(blank=True, default='')
     token = models.CharField(max_length=36, blank=True, default='')
 
-    #: Currency code (may be gateway-specific)
-    # FIXME: ISO4217 validator?
+    #: Currency code (might be gateway-specific)
+    # FIXME: add ISO4217 validator?
     currency = models.CharField(max_length=10)
     #: Total amount (gross)
     total = models.DecimalField(
@@ -71,6 +71,13 @@ class Payment(models.Model):
     order = models.ForeignKey(
         Order, null=True, related_name='payments', on_delete=models.PROTECT)
 
+    # Credit Card data, if applicable
+    cc_first_digits = models.CharField(max_length=6, blank=True, default='')
+    cc_last_digits =  models.CharField(max_length=4, blank=True, default='')
+    cc_brand = models.CharField(max_length=40, blank=True, default='')
+    cc_expiry_month =  models.CharField(max_length=2, blank=True, default='')
+    cc_expiry_year = models.CharField(max_length=4, blank=True, default='')
+
     def __repr__(self):
         return 'Payment(gateway=%s, is_active=%s, created=%s, charge_status=%s)' % (
             self.gateway, self.is_active, self.created, self.charge_status)
@@ -81,14 +88,6 @@ class Payment(models.Model):
     def get_captured_amount(self):
         return Money(
             self.captured_amount, self.currency or settings.DEFAULT_CURRENCY)
-
-    def get_last_transaction(self):
-        return max(self.transactions.all(), default=None, key=attrgetter('pk'))
-
-    def get_auth_transaction(self):
-        txn = self.transactions.get(
-            kind=Transactions.AUTH, is_success=True)
-        return txn
 
     def authorize(self, transaction_token):
         from . import utils
@@ -123,9 +122,8 @@ class Payment(models.Model):
 
     def can_refund(self):
         return (
-            self.is_active and
-            self.charge_status == ChargeStatus.CHARGED and
-            self.gateway != CustomPaymentChoices.MANUAL)
+            self.is_active and self.charge_status == ChargeStatus.CHARGED
+            and self.gateway != CustomPaymentChoices.MANUAL)
 
 
 class Transaction(models.Model):
@@ -136,8 +134,7 @@ class Transaction(models.Model):
     payment = models.ForeignKey(
         Payment, related_name='transactions', on_delete=models.PROTECT)
     token = models.CharField(max_length=64, blank=True, default='')
-    kind = models.CharField(
-        max_length=10, choices=Transactions.CHOICES)
+    kind = models.CharField(max_length=10, choices=Transactions.CHOICES)
     # FIXME probably we should have error/pending/success status instead of
     # a bool, eg for payments with 3d secure
     is_success = models.BooleanField(default=False)
@@ -149,7 +146,13 @@ class Transaction(models.Model):
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=Decimal('0.0'))
-
+    # Unified error code across all payment gateways
+    error = models.CharField(
+        choices=[(tag, tag.value) for tag in TransactionError],
+        max_length=256, null=True)
+    parent = models.ForeignKey(
+        'payment.Transaction', related_name='+', on_delete=models.PROTECT,
+        blank=True, null=True)
     gateway_response = JSONField()
 
     def __repr__(self):

@@ -234,3 +234,20 @@ Enabling new payment gateway
 
 Last but not least, if you want to enable your payment gateway in the checkout
 process, add it's name to the ``CHECKOUT_PAYMENT_GATEWAYS`` setting.
+
+Handling errors
+---------------
+
+Gateway-specific errors should be parsed to Saleor's universal format.
+More on this can be found at
+
+Tips
+----
+
+- Whenever possible, use ``currency`` and ``amount`` as **returned** by the
+  payment gateway, not the one that was sent to it. It might happen, that
+  gateway (eg. Braintree) is set to different currency than your shop is.
+  In such case, you might want to charge the customer 70 dollars, but due
+  to gateway misconfiguration, he will be charged 70 euros.
+  Such a situation should be handled, and adequate error should be thrown.
+
