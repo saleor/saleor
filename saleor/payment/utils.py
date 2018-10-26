@@ -15,7 +15,20 @@ from .models import Payment, Transaction
 
 logger = logging.getLogger(__name__)
 
-
+PAYMENT_ERRORS = {
+'incorrect_number':
+'invalid_number':
+'invalid_expiry_date':
+'invalid_cvc':
+'expired_card':
+'incorrect_cvc':
+'incorrect_zip':
+'incorrect_address':
+'card_declined':
+'processing_error':
+'call_issuer':
+'pick_up_card':
+}
 def get_billing_data(order):
     data = {}
     if order.billing_address:
