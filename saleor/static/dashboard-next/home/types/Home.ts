@@ -109,6 +109,7 @@ export interface Home_activities_edges_node {
   emailType: OrderEventsEmails | null;
   id: string;
   message: string | null;
+  orderNumber: string | null;
   oversoldItems: (string | null)[] | null;
   quantity: number | null;
   type: OrderEvents | null;
