@@ -5,9 +5,9 @@ from graphene_django.filter import DjangoFilterConnectionField
 from graphql_jwt.decorators import login_required, permission_required
 
 from .account.mutations import (
-    CustomerCreate, CustomerUpdate, CustomerPasswordReset, CustomerRegister,
-    PasswordReset, SetPassword, StaffCreate, StaffDelete, StaffUpdate,
-    AddressCreate, AddressUpdate, AddressDelete)
+    CustomerCreate, CustomerDelete, CustomerUpdate, CustomerPasswordReset,
+    CustomerRegister, PasswordReset, SetPassword, StaffCreate, StaffDelete,
+    StaffUpdate, AddressCreate, AddressUpdate, AddressDelete)
 from .account.types import AddressValidationData, AddressValidationInput, User
 from .account.resolvers import (
     resolve_address_validator, resolve_customers, resolve_staff_users)
@@ -220,6 +220,7 @@ class Mutations(ProductMutations):
 
     customer_create = CustomerCreate.Field()
     customer_update = CustomerUpdate.Field()
+    customer_delete = CustomerDelete.Field()
     customer_password_reset = CustomerPasswordReset.Field()
     customer_register = CustomerRegister.Field()
 

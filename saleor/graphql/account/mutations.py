@@ -162,53 +162,40 @@ class CustomerUpdate(CustomerCreate):
         model = models.User
 
 
-class StaffDelete(ModelMutation):
+class UserDelete(ModelDeleteMutation):
     class Meta:
-        description = 'Deletes a staff user.'
+        abstract = True
+
+    @classmethod
+    def clean_instance(cls, info, instance, errors):
+        user = info.context.user
+        if instance == user:
+            cls.add_error(
+                errors, 'id', 'You cannot delete your own account.')
+        elif instance.is_superuser:
+            cls.add_error(
+                errors, 'id', 'Only superuser can delete his own account.')
+        return errors
+
+
+class CustomerDelete(UserDelete):
+    class Meta:
+        description = 'Deletes a customer.'
         model = models.User
 
     class Arguments:
         id = graphene.ID(
-            required=True, description='ID of a staff user to delete.')
+            required=True, description='ID of a customer to delete.')
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('account.manage_staff')
+        return user.has_perm('account.manage_users')
 
     @classmethod
-    def mutate(cls, root, info, **data):
-        if not cls.user_is_allowed(info.context.user, data):
-            raise PermissionDenied()
-
-        errors = []
-        user_id = data.get('id')
-        instance = cls.get_node_or_error(info, user_id, errors, 'id', User)
-        cls.clean_user(instance, info.context.user, errors)
-        if errors:
-            return cls(errors=errors)
-
-        db_id = instance.id
-        remove_staff_member(instance)
-        # After the instance is deleted, set its ID to the original database's
-        # ID so that the success response contains ID of the deleted object.
-        instance.id = db_id
-        return cls.success_response(instance)
-
-    @classmethod
-    def clean_user(cls, instance, user, errors):
-        if not instance:
-            return
-        if not instance.is_staff:
-            cls.add_error(
-                errors, 'id',
-                'Only staff users can be deleted with this mutation.')
-        elif instance == user:
-            cls.add_error(
-                errors, 'id',
-                'You cannot delete your own account via dashboard.')
-        elif instance.is_superuser:
-            cls.add_error(
-                errors, 'id', 'Only superuser can delete his own account.')
+    def clean_instance(cls, info, instance, errors):
+        super().clean_instance(info, instance, errors)
+        if instance.is_staff:
+            cls.add_error(errors, 'id', 'Cannot delete a staff account.')
         return errors
 
 
@@ -292,6 +279,28 @@ class StaffUpdate(StaffCreate):
             cleaned_input.get('is_active'), instance, info.context.user,
             errors)
         return cleaned_input
+
+
+class StaffDelete(UserDelete):
+    class Meta:
+        description = 'Deletes a staff user.'
+        model = models.User
+
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of a staff user to delete.')
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('account.manage_staff')
+
+    @classmethod
+    def clean_instance(cls, info, instance, errors):
+        super().clean_instance(info, instance, errors)
+        if not instance.is_staff:
+            cls.add_error(
+                errors, 'id', 'Cannot delete a non-staff user.')
+        return errors
 
 
 class SetPasswordInput(graphene.InputObjectType):

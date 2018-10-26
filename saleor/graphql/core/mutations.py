@@ -298,6 +298,15 @@ class ModelDeleteMutation(ModelMutation):
         abstract = True
 
     @classmethod
+    def clean_instance(cls, info, instance, errors):
+        """Perform additional logic before deleting the model instance.
+
+        Override this method to raise custom validation error and abort
+        the deletion process.
+        """
+        pass
+
+    @classmethod
     def mutate(cls, root, info, **data):
         """Perform a mutation that deletes a model instance."""
         if not cls.user_is_allowed(info.context.user, data):
@@ -308,6 +317,9 @@ class ModelDeleteMutation(ModelMutation):
         model_type = registry.get_type_for_model(cls._meta.model)
         instance = cls.get_node_or_error(
             info, node_id, errors, 'id', model_type)
+
+        if instance:
+            cls.clean_instance(info, instance, errors)
 
         if errors:
             return cls(errors=errors)
