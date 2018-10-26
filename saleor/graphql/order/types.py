@@ -143,8 +143,9 @@ class Order(CountableDjangoObjectType):
             description='List of shipments for the order.'),
         model_field='fulfillments')
     lines = gql_optimizer.field(
-        PrefetchingConnectionField(
-            lambda: OrderLine, description='List of order lines.'),
+        graphene.List(
+            lambda: OrderLine, required=True,
+            description='List of order lines.'),
         model_field='lines')
     is_paid = graphene.Boolean(
         description='Informs if an order is fully paid.')
@@ -174,9 +175,6 @@ class Order(CountableDjangoObjectType):
     available_shipping_methods = graphene.List(
         ShippingMethod, required=False,
         description='Shipping methods that can be used with this order.')
-    lines = graphene.List(
-        OrderLine, required=True,
-        description='List of order lines for the order')
 
     class Meta:
         description = 'Represents an order in the shop.'
