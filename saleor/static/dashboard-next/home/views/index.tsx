@@ -32,9 +32,9 @@ const HomeSection = () => (
                     )
                   )
                 }
-                onOrdersToCaptureClick={() => navigate(orderListUrl)}
-                onOrdersToFulfillClick={() => navigate(orderListUrl)}
-                onProductsOutOfStockClick={() => navigate(productListUrl)}
+                onOrdersToCaptureClick={() => navigate(orderListUrl)} // TODO: #3172
+                onOrdersToFulfillClick={() => navigate(orderListUrl)} // TODO: #3172
+                onProductsOutOfStockClick={() => navigate(productListUrl)} // TODO: #3184
                 ordersToCapture={maybe(() => data.ordersToCapture.totalCount)}
                 ordersToFulfill={maybe(() => data.ordersToFulfill.totalCount)}
                 productsOutOfStock={maybe(
