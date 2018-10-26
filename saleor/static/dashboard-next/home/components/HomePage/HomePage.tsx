@@ -28,9 +28,9 @@ export interface HomePageProps {
   sales: Home_salesToday_gross;
   topProducts: Home_productTopToday_edges_node[];
   userName: string;
-  onOrdersToCaptureClick: () => void; // TODO: #3172
-  onOrdersToFulfillClick: () => void; // TODO: #3172
-  onProductClick: (productId: string, variantId: string) => void; // TODO: #3184
+  onOrdersToCaptureClick: () => void;
+  onOrdersToFulfillClick: () => void;
+  onProductClick: (productId: string, variantId: string) => void;
   onProductsOutOfStockClick: () => void;
 }
 
