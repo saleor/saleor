@@ -98,7 +98,7 @@ def transfer_payments_to_payment_methods(apps, schema_editor):
             'tax': pay.tax}
         payment_method = PaymentMethod.objects.create(
             order=pay.order,
-            variant=pay.variant,
+            gateway=pay.variant,
             created=pay.created,
             modified=pay.modified,
             billing_first_name=pay.billing_first_name,

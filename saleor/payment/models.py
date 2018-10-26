@@ -26,7 +26,7 @@ class Payment(models.Model):
     """
     # FIXME we should provide an option to store the card for later usage
     # FIXME probably we should have pending status
-    variant = models.CharField(max_length=255)
+    gateway = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     #: Creation date and time
     created = models.DateTimeField(auto_now_add=True)
@@ -52,7 +52,7 @@ class Payment(models.Model):
     extra_data = models.TextField(blank=True, default='')
     token = models.CharField(max_length=36, blank=True, default='')
 
-    #: Currency code (may be provider-specific)
+    #: Currency code (may be gateway-specific)
     # FIXME: ISO4217 validator?
     currency = models.CharField(max_length=10)
     #: Total amount (gross)
@@ -71,8 +71,8 @@ class Payment(models.Model):
         Order, null=True, related_name='payments', on_delete=models.PROTECT)
 
     def __repr__(self):
-        return 'Payment(variant=%s, is_active=%s, created=%s, charge_status=%s)' % (
-            self.variant, self.is_active, self.created, self.charge_status)
+        return 'Payment(gateway=%s, is_active=%s, created=%s, charge_status=%s)' % (
+            self.gateway, self.is_active, self.created, self.charge_status)
 
     def __iter__(self):
         return iter(self.transactions.all())
@@ -127,7 +127,7 @@ class Payment(models.Model):
         return (
             self.is_active and
             self.charge_status == ChargeStatus.CHARGED and
-            self.variant != CustomPaymentChoices.MANUAL)
+            self.gateway != CustomPaymentChoices.MANUAL)
 
 
 class Transaction(models.Model):
@@ -143,7 +143,7 @@ class Transaction(models.Model):
     # FIXME probably we should have error/pending/success status instead of
     # a bool, eg for payments with 3d secure
     is_success = models.BooleanField(default=False)
-    #: Currency code (may be provider-specific)
+    #: Currency code (may be gateway-specific)
     # FIXME: ISO4217 validator?
     currency = models.CharField(max_length=10)
     #: Total amount (gross)

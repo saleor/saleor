@@ -15,7 +15,7 @@ from . import FulfillmentStatus
 from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
-from ..payment import ChargeStatus, PaymentError, TransactionType, get_provider
+from ..payment import ChargeStatus, PaymentError, TransactionType, get_payment_gateway
 from ..payment.forms import get_form_for_payment
 from ..payment.models import Payment
 from ..payment.utils import get_billing_data
@@ -75,9 +75,9 @@ def payment(request, token):
         payment_form = PaymentsForm(form_data)
         # FIXME: redirect if there is only one payment
         if payment_form.is_valid():
-            payment = payment_form.cleaned_data['variant']
+            payment = payment_form.cleaned_data['gateway']
             return redirect(
-                'order:payment', token=order.token, variant=payment)
+                'order:payment', token=order.token, gateway=payment)
     ctx = {
         'order': order, 'payment_form': payment_form, 'payments': payments,
         'waiting_payment': waiting_payment,
@@ -86,22 +86,22 @@ def payment(request, token):
 
 
 @check_order_status
-def start_payment(request, order, variant):
+def start_payment(request, order, gateway):
     defaults = {
         'customer_ip_address': get_client_ip(request),
         **get_billing_data(order)}
-    if variant not in settings.CHECKOUT_PAYMENT_CHOICES:
-        raise Http404('%r is not a valid payment variant' % (variant,))
+    if gateway not in settings.CHECKOUT_PAYMENT_GATEWAYS:
+        raise Http404('%r is not a valid payment gateway' % (gateway,))
     with transaction.atomic():
         payment, _ = Payment.objects.get_or_create(
-            variant=variant, is_active=True, order=order, defaults=defaults,
+            gateway=gateway, is_active=True, order=order, defaults=defaults,
             total=order.total.gross.amount, currency=order.total.gross.currency)
         if (
                 order.is_fully_paid()
                 or payment.charge_status == ChargeStatus.FULLY_REFUNDED):
             return redirect(order.get_absolute_url())
-        provider, provider_params = get_provider(payment.variant)
-        transaction_token = provider.get_transaction_token(**provider_params)
+        gateway, gateway_params = get_payment_gateway(payment.gateway)
+        transaction_token = gateway.get_transaction_token(**gateway_params)
         form = get_form_for_payment(payment)
         form = form(data=request.POST or None, instance=payment)
         if form.is_valid():
@@ -111,7 +111,7 @@ def start_payment(request, order, variant):
                 form.add_error(None, exc.message)
             else:
                 return redirect(order.get_absolute_url())
-    template = 'order/payment/%s.html' % variant
+    template = 'order/payment/%s.html' % gateway
     ctx = {
         'form': form, 'payment': payment,
         'transaction_token': transaction_token, 'order': order}

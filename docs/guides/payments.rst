@@ -6,11 +6,11 @@ Payments
 Integrating a new Payment Gateway into Saleor
 ---------------------------------------------
 
-We are using a universal flow, that each provider should fulfill, there are
+We are using a universal flow, that each gateway should fulfill, there are
 several methods that should be implemented.
 
 Your changes should live under the
-``saleor.payment.providers.<provider name>`` module.
+``saleor.payment.gateways.<gateway name>`` module.
 
 .. note::
 
@@ -22,7 +22,7 @@ get_transaction_token(**connection_params)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A transaction token is a signed data blob that includes configuration and
-authorization information required by the payment provider.
+authorization information required by the payment gateway.
 
 These should not be reused; a new transaction token should be generated for
 each payment request.
@@ -33,7 +33,7 @@ Example
 .. code-block:: python
 
     def get_transaction_token(**connection_params: Dict) -> str:
-        gateway = get_gateway(**connection_params)
+        gateway = get_payment_gateway(**connection_params)
         transaction_token = gateway.transaction_token.generate()
         return transaction_token
 
@@ -61,7 +61,7 @@ Example
             transaction_type=TransactionType.AUTH,
             amount=payment.total,
             currency=payment.currency,
-            gateway_response=get_gateway_response(response),
+            gateway_response=get_payment_gateway_response(response),
             token=response.transaction.id,
             is_success=response.is_success)
         return txn, response['error']
@@ -97,7 +97,7 @@ Example
             currency=payment.currency,
             token=response.transaction.id,
             is_success=response.is_success,
-            gateway_response=get_gateway_response(response))
+            gateway_response=get_payment_gateway_response(response))
         return txn, response['error']
 
 capture(payment, amount, **connection_params)
@@ -130,7 +130,7 @@ Example
             currency=payment.currency,
             token=response.transaction.id,
             is_success=response.is_success,
-            gateway_response=get_gateway_response(response))
+            gateway_response=get_payment_gateway_response(response))
         return txn, response['error']
 
 void(payment, **connection_params)
@@ -160,7 +160,7 @@ Example
             transaction_type=TransactionType.VOID,
             amount=payment.total,
             currency=payment.currency,
-            gateway_response=get_gateway_response(response),
+            gateway_response=get_payment_gateway_response(response),
             token=response.transaction.id,
             is_success=response.is_success)
         return txn, response['error']
@@ -191,14 +191,14 @@ Returns
 | ``transaction_token`` | `str`         | Unique transaction's token that will be used on the purpose of completing the payment process.            |
 +-----------------------+---------------+-----------------------------------------------------------------------------------------------------------+
 
-Adding new payment provider in the settings
--------------------------------------------
+Adding new payment gateway to the settings
+------------------------------------------
 
 .. code-block:: python
 
-    PAYMENT_PROVIDERS = {
+    PAYMENT_GATEWAYS = {
         'braintree': {
-            'module': 'saleor.payment.providers.braintree',
+            'module': 'saleor.payment.gateways.braintree',
             'connection_params': {
                 'sandbox_mode': get_bool_from_env('BRAINTREE_SANDBOX_MODE', True),
                 'merchant_id': os.environ.get('BRAINTREE_MERCHANT_ID'),
@@ -211,14 +211,14 @@ Adding new payment provider in the settings
 Please take a moment to consider the example settings above.
 
 - ``braintree``
-    Provider's name, which will be used to identify the gateway
+    Gateway's name, which will be used to identify the gateway
     during the payment process.
-    It's stored in the ``Payment`` model under the ``variant`` value.
+    It's stored in the ``Payment`` model under the ``gateway`` value.
 
 - ``module``
     The path to the integration module
     (assuming that your changes live within the
-    ``saleor.payment.providers.braintree.__init__.py`` file)
+    ``saleor.payment.gateways.braintree.__init__.py`` file)
 
 - ``connection_params``
     List of parameters used for connecting to the payment's gateway.
@@ -229,8 +229,8 @@ Please take a moment to consider the example settings above.
     This is very useful for development but make sure you use
     production mode when deploying to a production server.
 
-Enabling new payment provider
------------------------------
+Enabling new payment gateway
+----------------------------
 
-Last but not least, if you want to enable your payment provider in the checkout
-process, add it's name to the ``CHECKOUT_PAYMENT_CHOICES`` setting.
+Last but not least, if you want to enable your payment gateway in the checkout
+process, add it's name to the ``CHECKOUT_PAYMENT_GATEWAYS`` setting.

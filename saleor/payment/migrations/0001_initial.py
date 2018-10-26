@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
             name='PaymentMethod',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('variant', models.CharField(max_length=255)),
+                ('gateway', models.CharField(max_length=255)),
                 ('is_active', models.BooleanField(default=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('modified', models.DateTimeField(auto_now=True)),

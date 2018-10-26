@@ -62,7 +62,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         payment = create_payment(
             total=input['amount'],
             currency=settings.DEFAULT_CURRENCY,
-            variant=input['gateway'],
+            gateway=input['gateway'],
             billing_email=checkout.email,
             is_active=True,
             extra_data=extra_data,

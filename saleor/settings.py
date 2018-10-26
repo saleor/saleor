@@ -546,16 +546,16 @@ SERIALIZATION_MODULES = {
 
 DUMMY = 'dummy'
 BRAINTREE = 'braintree'
-CHECKOUT_PAYMENT_CHOICES = {
-    DUMMY: pgettext_lazy('Payment method name', 'Dummy provider')
+CHECKOUT_PAYMENT_GATEWAYS = {
+    DUMMY: pgettext_lazy('Payment method name', 'Dummy gateway')
 }
 
-PAYMENT_PROVIDERS = {
+PAYMENT_GATEWAYS = {
     DUMMY: {
-        'module': 'saleor.payment.providers.dummy',
+        'module': 'saleor.payment.gateways.dummy',
         'connection_params': {}},
     BRAINTREE: {
-        'module': 'saleor.payment.providers.braintree',
+        'module': 'saleor.payment.gateways.braintree',
         'connection_params': {
             'sandbox_mode': get_bool_from_env('BRAINTREE_SANDBOX_MODE', True),
             'merchant_id': os.environ.get('BRAINTREE_MERCHANT_ID'),
@@ -565,15 +565,15 @@ PAYMENT_PROVIDERS = {
     }
 }
 if not DEBUG:
-    PROVIDER_PATH = '%(module)s/__init__.py'
-    for provider, data in PAYMENT_PROVIDERS.items():
-        if provider not in CHECKOUT_PAYMENT_CHOICES:
+    GATEWAY_PATH = '%(module)s/__init__.py'
+    for gateway, data in PAYMENT_GATEWAYS.items():
+        if gateway not in CHECKOUT_PAYMENT_GATEWAYS:
             continue
         if 'module' not in data or 'connection_params' not in data:
-            raise ImproperlyConfigured('Payment provider misconfigured.')
+            raise ImproperlyConfigured('Payment gateway misconfigured.')
         module_path = {'module': data['module'].replace('.', '/')}
-        payment_provider_file_exists = os.path.isfile(
-            PROVIDER_PATH % {'module': module_path})
-        if not payment_provider_file_exists:
+        payment_gateway_file_exists = os.path.isfile(
+            GATEWAY_PATH % {'module': module_path})
+        if not payment_gateway_file_exists:
             raise ImproperlyConfigured(
-                'No configuration files for %s payment provider.' % provider)
+                'No configuration files for %s payment gateway.' % gateway)

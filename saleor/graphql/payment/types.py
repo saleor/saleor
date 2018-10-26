@@ -1,11 +1,11 @@
 import graphene
 from graphene import relay
 
-from ...payment import PROVIDERS_ENUM, ChargeStatus, models
+from ...payment import GATEWAYS_ENUM, ChargeStatus, models
 from ..core.types.common import CountableDjangoObjectType
 from ..core.utils import str_to_enum
 
-PaymentGatewayEnum = graphene.Enum.from_enum(PROVIDERS_ENUM)
+PaymentGatewayEnum = graphene.Enum.from_enum(GATEWAYS_ENUM)
 PaymentChargeStatusEnum = graphene.Enum(
     'PaymentChargeStatusEnum',
     [(str_to_enum(code.upper()), code) for code, name in ChargeStatus.CHOICES])

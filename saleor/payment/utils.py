@@ -7,7 +7,7 @@ from django.conf import settings
 from django.db import transaction
 from prices import Money
 
-from . import ChargeStatus, PaymentError, can_be_voided, get_provider
+from . import ChargeStatus, PaymentError, can_be_voided, get_payment_gateway
 from ..core import analytics
 from ..order import OrderEvents, OrderEventsEmails
 from ..order.emails import send_payment_confirmation
@@ -15,20 +15,20 @@ from .models import Payment, Transaction
 
 logger = logging.getLogger(__name__)
 
-PAYMENT_ERRORS = {
-'incorrect_number':
-'invalid_number':
-'invalid_expiry_date':
-'invalid_cvc':
-'expired_card':
-'incorrect_cvc':
-'incorrect_zip':
-'incorrect_address':
-'card_declined':
-'processing_error':
-'call_issuer':
-'pick_up_card':
-}
+# PAYMENT_ERRORS = {
+# 'incorrect_number':
+# 'invalid_number':
+# 'invalid_expiry_date':
+# 'invalid_cvc':
+# 'expired_card':
+# 'incorrect_cvc':
+# 'incorrect_zip':
+# 'incorrect_address':
+# 'card_declined':
+# 'processing_error':
+# 'call_issuer':
+# 'pick_up_card':
+# }
 def get_billing_data(order):
     data = {}
     if order.billing_address:
@@ -101,10 +101,10 @@ def create_transaction(
     return txn
 
 
-def gateway_get_transaction_token(provider_name: str):
+def gateway_get_transaction_token(gateway_name: str):
     # FIXME Add tests
-    provider, provider_params = get_provider(provider_name)
-    return provider.get_transaction_token(**provider_params)
+    gateway, gateway_params = get_payment_gateway(gateway_name)
+    return gateway.get_transaction_token(**gateway_params)
 
 
 @validate_payment
@@ -112,10 +112,10 @@ def gateway_authorize(payment: Payment, transaction_token: str) -> Transaction:
     if not payment.charge_status == ChargeStatus.NOT_CHARGED:
         raise PaymentError('Charged transactions cannot be authorized again.')
 
-    provider, provider_params = get_provider(payment.variant)
+    gateway, gateway_params = get_payment_gateway(payment.gateway)
     with transaction.atomic():
-        txn, error = provider.authorize(
-            payment, transaction_token, **provider_params)
+        txn, error = gateway.authorize(
+            payment, transaction_token, **gateway_params)
     # FIXME Create an order event ?
     if not txn.is_success:
         raise PaymentError(error)
@@ -133,10 +133,10 @@ def gateway_capture(payment: Payment, amount: Decimal) -> Transaction:
             payment.total - payment.captured_amount):
         raise PaymentError('Unable to capture more than authorized amount.')
 
-    provider, provider_params = get_provider(payment.variant)
+    gateway, gateway_params = get_payment_gateway(payment.gateway)
     with transaction.atomic():
-        txn, error = provider.capture(
-            payment, amount=amount, **provider_params)
+        txn, error = gateway.capture(
+            payment, amount=amount, **gateway_params)
         if txn.is_success:
             payment.charge_status = ChargeStatus.CHARGED
             payment.captured_amount += txn.amount
@@ -154,9 +154,9 @@ def gateway_capture(payment: Payment, amount: Decimal) -> Transaction:
 def gateway_void(payment) -> Transaction:
     if not can_be_voided(payment):
         raise PaymentError('Only pre-authorized transactions can be voided.')
-    provider, provider_params = get_provider(payment.variant)
+    gateway, gateway_params = get_payment_gateway(payment.gateway)
     with transaction.atomic():
-        txn, error = provider.void(payment, **provider_params)
+        txn, error = gateway.void(payment, **gateway_params)
         if txn.is_success:
             payment.is_active = False
             payment.save(update_fields=['is_active'])
@@ -176,9 +176,9 @@ def gateway_refund(payment, amount: Decimal) -> Transaction:
         raise PaymentError(
             'Refund is possible only when transaction is captured.')
 
-    provider, provider_params = get_provider(payment.variant)
+    gateway, gateway_params = get_payment_gateway(payment.gateway)
     with transaction.atomic():
-        txn, error = provider.refund(payment, amount, **provider_params)
+        txn, error = gateway.refund(payment, amount, **gateway_params)
         if txn.is_success:
             changed_fields = ['captured_amount']
             payment.captured_amount -= txn.amount

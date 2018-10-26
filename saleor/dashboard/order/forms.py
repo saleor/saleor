@@ -299,7 +299,7 @@ class RefundPaymentForm(ManagePaymentForm):
 
     def clean(self):
         super().clean()
-        if self.payment.variant == CustomPaymentChoices.MANUAL:
+        if self.payment.gateway == CustomPaymentChoices.MANUAL:
             raise forms.ValidationError(
                 pgettext_lazy(
                     'Payment form error',
@@ -359,7 +359,7 @@ class OrderMarkAsPaidForm(forms.Form):
             'currency': self.order.total.gross.currency,
             **get_billing_data(self.order)}
         Payment.objects.get_or_create(
-            variant=CustomPaymentChoices.MANUAL,
+            gateway=CustomPaymentChoices.MANUAL,
             charge_status=ChargeStatus.CHARGED, order=self.order,
             defaults=defaults)
 

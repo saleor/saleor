@@ -120,7 +120,7 @@ def extract_gateway_response(braintree_result) -> Dict:
     return gateway_response
 
 
-def get_gateway(sandbox_mode, merchant_id, public_key, private_key):
+def get_braintree_gateway(sandbox_mode, merchant_id, public_key, private_key):
     if not all([merchant_id, private_key, public_key]):
         raise ImproperlyConfigured('Incorrectly configured Braintree gateway.')
     environment = braintree_sdk.Environment.Sandbox
@@ -137,7 +137,7 @@ def get_gateway(sandbox_mode, merchant_id, public_key, private_key):
 
 
 def get_transaction_token(**connection_params: Dict) -> str:
-    gateway = get_gateway(**connection_params)
+    gateway = get_braintree_gateway(**connection_params)
     transaction_token = gateway.client_token.generate()
     return transaction_token
 
@@ -146,7 +146,7 @@ def authorize(
         payment: Payment,
         transaction_token: str,
         **connection_params: Dict) -> Tuple[Transaction, str]:
-    gateway = get_gateway(**connection_params)
+    gateway = get_braintree_gateway(**connection_params)
     try:
         result = gateway.transaction.sale({
             'amount': str(payment.total),
@@ -176,7 +176,7 @@ def capture(
         payment: Payment,
         amount: Decimal,
         **connection_params: Dict) -> Tuple[Transaction, str]:
-    gateway = get_gateway(**connection_params)
+    gateway = get_braintree_gateway(**connection_params)
     auth_transaction = payment.transactions.filter(
         transaction_type=TransactionType.AUTH, is_success=True).first()
     try:
@@ -206,7 +206,7 @@ def capture(
 def void(
         payment: Payment,
         **connection_params: Dict) -> Tuple[Transaction, str]:
-    gateway = get_gateway(**connection_params)
+    gateway = get_braintree_gateway(**connection_params)
     auth_transaction = payment.transactions.filter(
         transaction_type=TransactionType.AUTH, is_success=True).first()
     try:
@@ -233,7 +233,7 @@ def refund(
         payment: Payment,
         amount: Decimal,
         **connection_params: Dict) -> Tuple[Transaction, str]:
-    gateway = get_gateway(**connection_params)
+    gateway = get_braintree_gateway(**connection_params)
     capture_txn = payment.transactions.filter(
         transaction_type=TransactionType.CAPTURE, is_success=True).first()
     try:

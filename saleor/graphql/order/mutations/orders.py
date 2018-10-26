@@ -97,7 +97,7 @@ def clean_void_payment(payment, errors):
 
 
 def clean_refund_payment(payment, amount, errors):
-    if payment.variant == CustomPaymentChoices.MANUAL:
+    if payment.gateway == CustomPaymentChoices.MANUAL:
         errors.append(
             Error(field='payment',
                   message='Manual payments can not be refunded.'))
@@ -297,7 +297,7 @@ class OrderMarkAsPaid(BaseMutation):
             'currency': order.total.gross.currency,
             **get_billing_data(order)}
         Payment.objects.get_or_create(
-            variant=CustomPaymentChoices.MANUAL,
+            gateway=CustomPaymentChoices.MANUAL,
             charge_status=ChargeStatus.CHARGED, order=order,
             defaults=defaults)
 
