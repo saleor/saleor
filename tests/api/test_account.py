@@ -10,7 +10,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import reverse
 from saleor.account.models import Address, User
 from saleor.graphql.account.mutations import (
-    SetPassword, StaffDelete, StaffUpdate)
+    CustomerDelete, SetPassword, StaffDelete, StaffUpdate, UserDelete)
 from tests.api.utils import get_graphql_content
 
 from .utils import assert_no_permission, convert_dict_keys_to_camel_case
@@ -343,11 +343,11 @@ def test_customer_create(
 
 
 def test_customer_update(
-        staff_api_client, customer_user, user_api_client, address,
-        permission_manage_users):
+        staff_api_client, customer_user, address, permission_manage_users):
     query = """
-    mutation UpdateCustomer($id: ID!, $note: String, $billing: AddressInput, $shipping: AddressInput) {
+    mutation UpdateCustomer($id: ID!, $isActive: Boolean, $note: String, $billing: AddressInput, $shipping: AddressInput) {
         customerUpdate(id: $id, input: {
+            isActive: $isActive,
             note: $note,
             defaultBillingAddress: $billing
             defaultShippingAddress: $shipping
@@ -358,13 +358,14 @@ def test_customer_update(
             }
             user {
                 id
-                note
                 defaultBillingAddress {
                     id
                 }
                 defaultShippingAddress {
                     id
                 }
+                isActive
+                note
             }
         }
     }
@@ -385,9 +386,7 @@ def test_customer_update(
     address_data['streetAddress1'] = new_street_address
 
     variables = {
-        'id': id,
-        'note': note,
-        'billing': address_data,
+        'id': id, 'isActive': False, 'note': note, 'billing': address_data,
         'shipping': address_data}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_users])
@@ -406,6 +405,41 @@ def test_customer_update(
     data = content['data']['customerUpdate']
     assert data['errors'] == []
     assert data['user']['note'] == note
+    assert not data['user']['isActive']
+
+
+def test_customer_delete(staff_api_client, customer_user, permission_manage_users):
+    query = """
+    mutation CustomerDelete($id: ID!) {
+        customerDelete(id: $id){
+            errors {
+                field
+                message
+            }
+            user {
+                id
+            }
+        }
+    }
+    """
+    customer_id = graphene.Node.to_global_id('User', customer_user.pk)
+    variables = {'id': customer_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    data = content['data']['customerDelete']
+    assert data['errors'] == []
+    assert data['user']['id'] == customer_id
+
+
+def test_customer_delete_errors(customer_user, admin_user, staff_user):
+    info = Mock(context=Mock(user=admin_user))
+    errors = CustomerDelete.clean_instance(info, staff_user, [])
+    assert errors[0].field == 'id'
+    assert errors[0].message == 'Cannot delete a staff account.'
+
+    errors = CustomerDelete.clean_instance(info, customer_user, [])
+    assert errors == []
 
 
 @patch('saleor.account.emails.send_password_reset_email.delay')
@@ -522,20 +556,26 @@ def test_staff_delete(staff_api_client, permission_manage_staff):
     assert not User.objects.filter(pk=staff_user.id).exists()
 
 
-def test_staff_delete_errors(staff_user, customer_user, admin_user):
-    errors = StaffDelete.clean_user(customer_user, staff_user, [])
+def test_user_delete_errors(staff_user, customer_user, admin_user):
+    info = Mock(context=Mock(user=staff_user))
+    errors = UserDelete.clean_instance(info, staff_user, [])
     assert errors[0].field == 'id'
-    assert errors[0].message == (
-        'Only staff users can be deleted with this mutation.')
-    errors = StaffDelete.clean_user(staff_user, staff_user, [])
-    assert errors[0].field == 'id'
-    assert errors[0].message == (
-        'You cannot delete your own account via dashboard.')
+    assert errors[0].message == 'You cannot delete your own account.'
 
-    errors = StaffDelete.clean_user(admin_user, staff_user, [])
+    info = Mock(context=Mock(user=staff_user))
+    errors = UserDelete.clean_instance(info, admin_user, [])
     assert errors[0].field == 'id'
     assert errors[0].message == 'Only superuser can delete his own account.'
-    errors = StaffDelete.clean_user(staff_user, admin_user, [])
+
+
+def test_staff_delete_errors(staff_user, customer_user, admin_user):
+    info = Mock(context=Mock(user=staff_user))
+    errors = StaffDelete.clean_instance(info, customer_user, [])
+    assert errors[0].field == 'id'
+    assert errors[0].message == 'Cannot delete a non-staff user.'
+
+    info = Mock(context=Mock(user=admin_user))
+    errors = StaffDelete.clean_instance(info, staff_user, [])
     assert not errors
 
 
