@@ -255,7 +255,7 @@ class ManagePaymentForm(forms.Form):
     amount = MoneyField(
         label=pgettext_lazy(
             'Payment management form (capture, refund, void)', 'Amount'),
-        max_digits=12,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         currency=settings.DEFAULT_CURRENCY)
 

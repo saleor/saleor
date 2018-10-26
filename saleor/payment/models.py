@@ -51,16 +51,17 @@ class Payment(models.Model):
     extra_data = models.TextField(blank=True, default='')
     token = models.CharField(max_length=36, blank=True, default='')
 
-    total = MoneyField(
-        currency=settings.DEFAULT_CURRENCY,
-        max_digits=12,
+    #: Currency code (may be provider-specific)
+    currency = models.CharField(max_length=10)
+    #: Total amount (gross)
+    total = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=zero_money)
-    captured_amount = MoneyField(
-        currency=settings.DEFAULT_CURRENCY,
-        max_digits=12,
+        default='0.0')
+    captured_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=zero_money)
+        default='0.0')
 
     checkout = models.ForeignKey(
         Cart, null=True, related_name='payments', on_delete=models.SET_NULL)
@@ -117,11 +118,13 @@ class Transaction(models.Model):
     # FIXME probably we should have error/pending/success status instead of
     # a bool, eg for payments with 3d secure
     is_success = models.BooleanField(default=False)
-    amount = MoneyField(
-        currency=settings.DEFAULT_CURRENCY,
-        max_digits=12,
+    #: Currency code (may be provider-specific)
+    currency = models.CharField(max_length=10)
+    #: Total amount (gross)
+    amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=zero_money)
+        default='0.0')
 
     gateway_response = JSONField()
 
