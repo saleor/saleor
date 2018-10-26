@@ -10,7 +10,6 @@ import * as React from "react";
 
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
 
 interface HomeNotificationTableProps {
   ordersToCapture: number;
@@ -45,23 +44,21 @@ const HomeNotificationTable = decorate<HomeNotificationTableProps>(
           <TableBody className={classes.tableRow}>
             <TableRow hover={true} onClick={onOrdersToFulfillClick}>
               <TableCell>
-                {maybe(
-                  () =>
-                    ordersToFulfill === 0 ? (
-                      <Typography>
-                        {i18n.t("No orders ready to fulfill")}
-                      </Typography>
-                    ) : (
-                      <Typography
-                        dangerouslySetInnerHTML={{
-                          __html: i18n.t(
-                            "<b>{{ amount }} Orders</b> are ready to fulfill",
-                            { amount: ordersToFulfill }
-                          )
-                        }}
-                      />
-                    ),
+                {ordersToFulfill === undefined ? (
                   <Skeleton />
+                ) : ordersToFulfill === 0 ? (
+                  <Typography>
+                    {i18n.t("No orders ready to fulfill")}
+                  </Typography>
+                ) : (
+                  <Typography
+                    dangerouslySetInnerHTML={{
+                      __html: i18n.t(
+                        "<b>{{ amount }} Orders</b> are ready to fulfill",
+                        { amount: ordersToFulfill }
+                      )
+                    }}
+                  />
                 )}
               </TableCell>
               <TableCell className={classes.arrowIcon}>
@@ -70,23 +67,21 @@ const HomeNotificationTable = decorate<HomeNotificationTableProps>(
             </TableRow>
             <TableRow hover={true} onClick={onOrdersToCaptureClick}>
               <TableCell>
-                {maybe(
-                  () =>
-                    ordersToCapture === 0 ? (
-                      <Typography>
-                        {i18n.t("No payments waiting for capture")}
-                      </Typography>
-                    ) : (
-                      <Typography
-                        dangerouslySetInnerHTML={{
-                          __html: i18n.t(
-                            "<b>{{ amount }} Payments</b> to capture",
-                            { amount: ordersToCapture }
-                          )
-                        }}
-                      />
-                    ),
+                {ordersToCapture === undefined ? (
                   <Skeleton />
+                ) : ordersToCapture === 0 ? (
+                  <Typography>
+                    {i18n.t("No payments waiting for capture")}
+                  </Typography>
+                ) : (
+                  <Typography
+                    dangerouslySetInnerHTML={{
+                      __html: i18n.t(
+                        "<b>{{ amount }} Payments</b> to capture",
+                        { amount: ordersToCapture }
+                      )
+                    }}
+                  />
                 )}
               </TableCell>
               <TableCell className={classes.arrowIcon}>
@@ -95,23 +90,19 @@ const HomeNotificationTable = decorate<HomeNotificationTableProps>(
             </TableRow>
             <TableRow hover={true} onClick={onProductsOutOfStockClick}>
               <TableCell>
-                {maybe(
-                  () =>
-                    productsOutOfStock === 0 ? (
-                      <Typography>
-                        {i18n.t("No products out of stock")}
-                      </Typography>
-                    ) : (
-                      <Typography
-                        dangerouslySetInnerHTML={{
-                          __html: i18n.t(
-                            "<b>{{ amount }} Products</b> out of stock",
-                            { amount: productsOutOfStock }
-                          )
-                        }}
-                      />
-                    ),
+                {productsOutOfStock === undefined ? (
                   <Skeleton />
+                ) : productsOutOfStock === 0 ? (
+                  <Typography>{i18n.t("No products out of stock")}</Typography>
+                ) : (
+                  <Typography
+                    dangerouslySetInnerHTML={{
+                      __html: i18n.t(
+                        "<b>{{ amount }} Products</b> out of stock",
+                        { amount: productsOutOfStock }
+                      )
+                    }}
+                  />
                 )}
               </TableCell>
               <TableCell className={classes.arrowIcon}>
