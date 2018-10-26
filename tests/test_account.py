@@ -233,10 +233,9 @@ def test_get_full_name_user_with_names(email, first_name,
 ])
 def test_get_full_name_user_with_address(email, first_name,
                                          last_name, full_name, address):
-    copied_address = address.get_copy()
-    copied_address.first_name = first_name
-    copied_address.last_name = last_name
-    user = User(email=email, default_billing_address=copied_address)
+    address.first_name = first_name
+    address.last_name = last_name
+    user = User(email=email, default_billing_address=address)
     assert user.get_full_name() == full_name
 
 
@@ -247,12 +246,11 @@ def test_get_full_name_user_with_address(email, first_name,
     ('John@example.com', '', '', 'Arnold Green'),
 ])
 def test_get_full_name(email, first_name, last_name, full_name, address):
-    copied_address = address.get_copy()
-    copied_address.first_name = "Arnold"
-    copied_address.last_name = "Green"
+    address.first_name = "Arnold"
+    address.last_name = "Green"
     user = User(
         email=email, first_name=first_name, last_name=last_name,
-        default_billing_address=copied_address)
+        default_billing_address=address)
     assert user.get_full_name() == full_name
 
 
@@ -264,9 +262,8 @@ def test_get_full_name(email, first_name, last_name, full_name, address):
         ('', '', '')])
 def test_get_user_first_name(first_name, default_billing_address_first_name,
                              result, address):
-    copied_address = address.get_copy()
-    copied_address.first_name = default_billing_address_first_name
-    user = User(first_name=first_name, default_billing_address=copied_address)
+    address.first_name = default_billing_address_first_name
+    user = User(first_name=first_name, default_billing_address=address)
     assert get_user_first_name(user) == result
 
 
@@ -278,9 +275,8 @@ def test_get_user_first_name(first_name, default_billing_address_first_name,
         ('', '', '')])
 def test_get_user_last_name(last_name, default_billing_address_last_name,
                             result, address):
-    copied_address = address.get_copy()
-    copied_address.last_name = default_billing_address_last_name
-    user = User(last_name=last_name, default_billing_address=copied_address)
+    address.last_name = default_billing_address_last_name
+    user = User(last_name=last_name, default_billing_address=address)
     assert get_user_last_name(user) == result
 
 
