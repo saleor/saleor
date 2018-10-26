@@ -3,6 +3,9 @@ from tests.api.utils import get_graphql_content
 
 from saleor.payment.models import (
     ChargeStatus, Payment, Transaction, Transactions)
+from saleor.graphql.payment.types import (
+    PaymentChargeStatusEnum, PaymentGatewayEnum, OrderAction)
+from saleor.core.utils import get_country_name_by_code
 
 VOID_QUERY = """
     mutation PaymentVoid($paymentId: ID!) {
@@ -68,13 +71,9 @@ CREATE_QUERY = """
     mutation CheckoutPaymentCreate($input: PaymentInput!) {
         checkoutPaymentCreate(input: $input) {
             payment {
-                transactions(first: 1) {
-                    edges {
-                        node {
-                            kind,
-                            token
-                        }
-                    }
+                transactions {
+                    kind,
+                    token
                 }
                 chargeStatus
             }
@@ -105,7 +104,7 @@ def test_checkout_add_payment(
     content = get_graphql_content(response)
     data = content['data']['checkoutPaymentCreate']
     assert not data['errors']
-    transactions = data['payment']['transactions']['edges']
+    transactions = data['payment']['transactions']
     assert not transactions
     payment = Payment.objects.get()
     assert payment.checkout == cart
@@ -254,13 +253,44 @@ def test_payment_refund_error(
 
 
 def test_payments_query(
-        payment_dummy, permission_manage_orders, staff_api_client):
+        payment_txn_captured, permission_manage_orders, staff_api_client):
     query = """ {
         payments {
             edges {
                 node {
                     id
                     gateway
+                    capturedAmount {
+                        amount
+                        currency
+                    }
+                    total {
+                        amount
+                        currency
+                    }
+                    actions
+                    chargeStatus
+                    billingAddress {
+                        country {
+                            code
+                            country
+                        }
+                        firstName
+                        lastName
+                        cityArea
+                        countryArea
+                        city
+                        companyName
+                        streetAddress1
+                        streetAddress2
+                        postalCode
+                    }
+                    transactions {
+                        amount {
+                            currency
+                            amount
+                        }
+                    }
                 }
             }
         }
@@ -269,5 +299,31 @@ def test_payments_query(
     response = staff_api_client.post_graphql(
         query, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
-    data = content['data']['payments']
-    assert data['edges'][0]['node']['gateway'] == payment_dummy.gateway
+    data = content['data']['payments']['edges'][0]['node']
+    pay = payment_txn_captured
+    assert data['gateway'] == pay.gateway
+    assert data['capturedAmount'] == {
+        'amount': pay.captured_amount, 'currency': pay.currency}
+    assert data['total'] == {'amount': pay.total, 'currency': pay.currency}
+    assert data['chargeStatus'] == PaymentChargeStatusEnum.CHARGED.name
+    assert data['billingAddress'] == {
+        'firstName': pay.billing_first_name,
+        'lastName': pay.billing_last_name,
+        'city': pay.billing_city,
+        'cityArea': pay.billing_city_area,
+        'countryArea': pay.billing_country_area,
+        'companyName': pay.billing_company_name,
+        'streetAddress1': pay.billing_address_1,
+        'streetAddress2': pay.billing_address_2,
+        'postalCode': pay.billing_postal_code,
+        'country': {
+            'code': pay.billing_country_code,
+            'country': get_country_name_by_code(pay.billing_country_code)
+        }
+    }
+    assert data['actions'] == [OrderAction.REFUND.name]
+    txn = pay.transactions.get()
+    assert data['transactions'] == [{
+        'amount': {
+            'currency': pay.currency,
+            'amount': float(str(txn.amount))}}]

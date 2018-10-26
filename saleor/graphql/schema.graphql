@@ -1218,26 +1218,17 @@ type Payment implements Node {
   created: DateTime!
   modified: DateTime!
   chargeStatus: PaymentChargeStatusEnum!
-  billingFirstName: String!
-  billingLastName: String!
-  billingCompanyName: String!
-  billingAddress1: String!
-  billingAddress2: String!
-  billingCity: String!
-  billingPostalCode: String!
-  billingCountryCode: String!
-  billingCountryArea: String!
   billingEmail: String!
   customerIpAddress: String
   extraData: String!
   token: String!
-  currency: String!
-  total: Float!
-  capturedAmount: Float!
+  total: Money
+  capturedAmount: Money
   checkout: Checkout
   order: Order
-  transactions(before: String, after: String, first: Int, last: Int, id: ID): TransactionCountableConnection
+  transactions: [Transaction]
   actions: [OrderAction]!
+  billingAddress: Address
 }
 
 type PaymentCapture {
@@ -1901,20 +1892,8 @@ type Transaction implements Node {
   token: String!
   kind: TransactionKind!
   isSuccess: Boolean!
-  currency: String!
-  amount: Float!
+  amount: Money
   gatewayResponse: JSONString!
-}
-
-type TransactionCountableConnection {
-  pageInfo: PageInfo!
-  edges: [TransactionCountableEdge!]!
-  totalCount: Int
-}
-
-type TransactionCountableEdge {
-  node: Transaction!
-  cursor: String!
 }
 
 enum TransactionKind {

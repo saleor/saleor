@@ -44,6 +44,7 @@ class Payment(models.Model):
     billing_address_1 = models.CharField(max_length=256, blank=True)
     billing_address_2 = models.CharField(max_length=256, blank=True)
     billing_city = models.CharField(max_length=256, blank=True)
+    billing_city_area = models.CharField(max_length=128, blank=True)
     billing_postal_code = models.CharField(max_length=256, blank=True)
     billing_country_code = models.CharField(max_length=2, blank=True)
     billing_country_area = models.CharField(max_length=256, blank=True)
@@ -73,9 +74,6 @@ class Payment(models.Model):
     def __repr__(self):
         return 'Payment(gateway=%s, is_active=%s, created=%s, charge_status=%s)' % (
             self.gateway, self.is_active, self.created, self.charge_status)
-
-    def __iter__(self):
-        return iter(self.transactions.all())
 
     def get_total(self):
         return Money(self.total, self.currency or settings.DEFAULT_CURRENCY)
@@ -155,5 +153,8 @@ class Transaction(models.Model):
     gateway_response = JSONField()
 
     def __repr__(self):
-        return 'Transaction(created=%s, type=%s, is_success=%s)' % (
-            self.created, self.kind, self.is_success)
+        return 'Transaction(type=%s, is_success=%s, created=%s)' % (
+            self.kind, self.is_success, self.created)
+
+    def get_amount(self):
+        return Money(self.amount, self.currency or settings.DEFAULT_CURRENCY)
