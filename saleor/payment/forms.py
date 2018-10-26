@@ -74,5 +74,10 @@ class BraintreePaymentForm(forms.Form):
     def process_payment(self):
         # FIXME add tests
         self.instance.authorize(self.cleaned_data['payment_method_nonce'])
-        self.instance.capture(self.instance.total.amount)
+        try:
+            self.instance.capture(self.instance.total.amount)
+        except PaymentError as exc:
+            # Void authorization if the capture failed
+            self.instance.void()
+            raise exc
         return self.instance

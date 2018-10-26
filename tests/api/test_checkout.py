@@ -370,16 +370,10 @@ def test_checkout_complete(
     payment.is_active = True
     payment.order = None
     payment.total = total.gross
-    payment.captured_amount = total.gross
     payment.checkout = checkout
     payment.save()
-    payment.transactions.create(
-        transaction_type=TransactionType.AUTH,
-        is_success=True,
-        gateway_response={},
-        amount=total.gross.amount)
     checkout_id = graphene.Node.to_global_id('Checkout', checkout.pk)
-
+    assert not payment.transactions.exists()
     query = """
     mutation checkoutComplete($checkoutId: ID!) {
         checkoutComplete(checkoutId: $checkoutId) {
@@ -414,6 +408,7 @@ def test_checkout_complete(
     assert order.payments.exists()
     order_payment = order.payments.first()
     assert order_payment == payment
+    assert payment.transactions.count() == 2
 
 
 def test_fetch_checkout_by_token(user_api_client, cart_with_item):

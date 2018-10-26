@@ -1,8 +1,8 @@
 import graphene
-from saleor.payment.models import (
-    ChargeStatus, Transaction, TransactionType)
 from tests.api.utils import get_graphql_content
 
+from saleor.payment.models import (
+    ChargeStatus, Payment, Transaction, TransactionType)
 
 VOID_QUERY = """
     mutation PaymentVoid($paymentId: ID!) {
@@ -63,6 +63,7 @@ def test_payment_charge_gateway_error(
     assert txn.transaction_type == TransactionType.VOID
     assert not txn.is_success
 
+
 CREATE_QUERY = """
     mutation CheckoutPaymentCreate($input: PaymentInput!) {
         checkoutPaymentCreate(input: $input) {
@@ -104,14 +105,12 @@ def test_checkout_add_payment(
     content = get_graphql_content(response)
     data = content['data']['checkoutPaymentCreate']
     assert not data['errors']
-    transaction_token = data['payment']['transactions']['edges'][0]['node'][
-        'token']
-    txn = Transaction.objects.filter(token=transaction_token).first()
-    assert txn.transaction_type == TransactionType.AUTH
-    assert txn is not None
-    payment = txn.payment
+    transactions = data['payment']['transactions']['edges']
+    assert not transactions
+    payment = Payment.objects.get()
     assert payment.checkout == cart
     assert payment.is_active
+    assert payment.token == 'sample-token'
     assert payment.total == cart.get_total().gross
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
 

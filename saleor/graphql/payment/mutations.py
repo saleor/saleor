@@ -58,21 +58,17 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             billing_data = cls.clean_billing_address(billing_address)
         extra_data = cls.get_extra_info(info)
         gross = Money(input['amount'], currency=settings.DEFAULT_CURRENCY)
+        # FIXME as we allow only one payment make sure that amount
+        # is same as checkout's total
         payment = create_payment(
             total=gross,
             variant=input['gateway'],
             billing_email=checkout.email,
+            is_active=True,
             extra_data=extra_data,
             checkout=checkout,
+            token=input['transaction_token'],
             **billing_data)
-
-        # authorize payment
-        try:
-            gateway_authorize(payment, input['transaction_token'])
-        except PaymentError as exc:
-            msg = str(exc)
-            cls.add_error(field=None, message=msg, errors=errors)
-
         return CheckoutPaymentCreate(payment=payment, errors=errors)
 
     @classmethod
