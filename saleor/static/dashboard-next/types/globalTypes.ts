@@ -261,16 +261,16 @@ export interface SiteDomainInput {
 
 export interface StaffCreateInput {
   email?: string | null;
-  note?: string | null;
   isActive?: boolean | null;
+  note?: string | null;
   permissions?: (string | null)[] | null;
   sendPasswordEmail?: boolean | null;
 }
 
 export interface StaffInput {
   email?: string | null;
-  note?: string | null;
   isActive?: boolean | null;
+  note?: string | null;
   permissions?: (string | null)[] | null;
 }
 
