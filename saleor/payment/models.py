@@ -1,3 +1,4 @@
+from decimal import Decimal
 from operator import attrgetter
 
 from django.conf import settings
@@ -8,9 +9,8 @@ from prices import Money
 
 from . import ChargeStatus, TransactionType
 from ..checkout.models import Cart
-from ..core import zero_money
+from ..core.utils.taxes import zero_money
 from ..order.models import Order
-from decimal import Decimal
 
 
 class Payment(models.Model):

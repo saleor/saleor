@@ -54,7 +54,7 @@ class BraintreePaymentForm(forms.Form):
         self.instance = instance
         super().__init__(*args, **kwargs)
         self.fields['amount'].initial = self.instance.total
-        #FIXME if environment is Sandbox, we could provide couple of predefined
+        # FIXME if environment is Sandbox, we could provide couple of predefined
         # nounces for easier testing
 
     def clean(self):

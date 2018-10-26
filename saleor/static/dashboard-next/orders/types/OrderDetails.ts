@@ -247,8 +247,8 @@ export interface OrderDetails_order {
   subtotal: OrderDetails_order_subtotal | null;
   total: OrderDetails_order_total | null;
   actions: (OrderAction | null)[];
-  totalAuthorized: OrderDetails_order_totalAuthorized;
-  totalCaptured: OrderDetails_order_totalCaptured;
+  totalAuthorized: OrderDetails_order_totalAuthorized | null;
+  totalCaptured: OrderDetails_order_totalCaptured | null;
   user: OrderDetails_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderDetails_order_availableShippingMethods | null)[] | null;

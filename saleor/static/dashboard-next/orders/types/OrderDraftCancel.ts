@@ -247,8 +247,8 @@ export interface OrderDraftCancel_draftOrderDelete_order {
   subtotal: OrderDraftCancel_draftOrderDelete_order_subtotal | null;
   total: OrderDraftCancel_draftOrderDelete_order_total | null;
   actions: (OrderAction | null)[];
-  totalAuthorized: OrderDraftCancel_draftOrderDelete_order_totalAuthorized;
-  totalCaptured: OrderDraftCancel_draftOrderDelete_order_totalCaptured;
+  totalAuthorized: OrderDraftCancel_draftOrderDelete_order_totalAuthorized | null;
+  totalCaptured: OrderDraftCancel_draftOrderDelete_order_totalCaptured | null;
   user: OrderDraftCancel_draftOrderDelete_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderDraftCancel_draftOrderDelete_order_availableShippingMethods | null)[] | null;

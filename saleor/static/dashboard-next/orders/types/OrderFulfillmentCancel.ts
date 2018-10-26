@@ -253,8 +253,8 @@ export interface OrderFulfillmentCancel_orderFulfillmentCancel_order {
   subtotal: OrderFulfillmentCancel_orderFulfillmentCancel_order_subtotal | null;
   total: OrderFulfillmentCancel_orderFulfillmentCancel_order_total | null;
   actions: (OrderAction | null)[];
-  totalAuthorized: OrderFulfillmentCancel_orderFulfillmentCancel_order_totalAuthorized;
-  totalCaptured: OrderFulfillmentCancel_orderFulfillmentCancel_order_totalCaptured;
+  totalAuthorized: OrderFulfillmentCancel_orderFulfillmentCancel_order_totalAuthorized | null;
+  totalCaptured: OrderFulfillmentCancel_orderFulfillmentCancel_order_totalCaptured | null;
   user: OrderFulfillmentCancel_orderFulfillmentCancel_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderFulfillmentCancel_orderFulfillmentCancel_order_availableShippingMethods | null)[] | null;

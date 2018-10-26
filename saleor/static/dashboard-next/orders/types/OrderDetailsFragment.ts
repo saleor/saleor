@@ -247,8 +247,8 @@ export interface OrderDetailsFragment {
   subtotal: OrderDetailsFragment_subtotal | null;
   total: OrderDetailsFragment_total | null;
   actions: (OrderAction | null)[];
-  totalAuthorized: OrderDetailsFragment_totalAuthorized;
-  totalCaptured: OrderDetailsFragment_totalCaptured;
+  totalAuthorized: OrderDetailsFragment_totalAuthorized | null;
+  totalCaptured: OrderDetailsFragment_totalCaptured | null;
   user: OrderDetailsFragment_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderDetailsFragment_availableShippingMethods | null)[] | null;

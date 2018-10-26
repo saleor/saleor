@@ -80,7 +80,7 @@ export interface OrderVoid_orderVoid_order_fulfillments_lines_edges_node {
   __typename: "FulfillmentLine";
   id: string;
   quantity: number;
-  orderLine: OrderVoid_orderVoid_order_fulfillments_lines_edges_node_orderLine;
+  orderLine: OrderVoid_orderVoid_order_fulfillments_lines_edges_node_orderLine | null;
 }
 
 export interface OrderVoid_orderVoid_order_fulfillments_lines_edges {
@@ -247,8 +247,8 @@ export interface OrderVoid_orderVoid_order {
   subtotal: OrderVoid_orderVoid_order_subtotal | null;
   total: OrderVoid_orderVoid_order_total | null;
   actions: (OrderAction | null)[];
-  totalAuthorized: OrderVoid_orderVoid_order_totalAuthorized;
-  totalCaptured: OrderVoid_orderVoid_order_totalCaptured;
+  totalAuthorized: OrderVoid_orderVoid_order_totalAuthorized | null;
+  totalCaptured: OrderVoid_orderVoid_order_totalCaptured | null;
   user: OrderVoid_orderVoid_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderVoid_orderVoid_order_availableShippingMethods | null)[] | null;

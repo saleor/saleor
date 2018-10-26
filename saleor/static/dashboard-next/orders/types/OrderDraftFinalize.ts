@@ -253,8 +253,8 @@ export interface OrderDraftFinalize_draftOrderComplete_order {
   subtotal: OrderDraftFinalize_draftOrderComplete_order_subtotal | null;
   total: OrderDraftFinalize_draftOrderComplete_order_total | null;
   actions: (OrderAction | null)[];
-  totalAuthorized: OrderDraftFinalize_draftOrderComplete_order_totalAuthorized;
-  totalCaptured: OrderDraftFinalize_draftOrderComplete_order_totalCaptured;
+  totalAuthorized: OrderDraftFinalize_draftOrderComplete_order_totalAuthorized | null;
+  totalCaptured: OrderDraftFinalize_draftOrderComplete_order_totalCaptured | null;
   user: OrderDraftFinalize_draftOrderComplete_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderDraftFinalize_draftOrderComplete_order_availableShippingMethods | null)[] | null;

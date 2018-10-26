@@ -958,7 +958,7 @@ type Order implements Node {
   displayGrossPrices: Boolean!
   customerNote: String!
   weight: Weight
-  lines(before: String, after: String, first: Int, last: Int): OrderLineCountableConnection
+  lines: [OrderLine]!
   fulfillments: [Fulfillment]!
   events: [OrderEvent]
   payments(before: String, after: String, first: Int, last: Int, id: ID): PaymentCountableConnection
@@ -1226,8 +1226,9 @@ type Payment implements Node {
   customerIpAddress: String
   extraData: String!
   token: String!
-  total: Money
-  capturedAmount: Money
+  currency: String!
+  total: Float!
+  capturedAmount: Float!
   checkout: Checkout
   order: Order
   transactions(before: String, after: String, first: Int, last: Int, id: ID): TransactionCountableConnection
@@ -1899,7 +1900,8 @@ type Transaction implements Node {
   token: String!
   transactionType: TransactionTransactionType!
   isSuccess: Boolean!
-  amount: Money
+  currency: String!
+  amount: Float!
   gatewayResponse: JSONString!
 }
 
