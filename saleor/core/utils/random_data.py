@@ -27,11 +27,7 @@ from ...menu.models import Menu
 from ...order.models import Fulfillment, Order
 from ...order.utils import update_order_status
 from ...page.models import Page
-<<<<<<< HEAD
-from ...payment import ChargeStatus, TransactionType
-=======
-from ...payment import ChargeStatus, TransactionType, get_payment_gateway
->>>>>>> Rename Payment Provider to Payment GAteway, Payment's variant to Payment's gateway
+from ...payment import ChargeStatus, Transactions, get_payment_gateway
 from ...payment.models import Payment
 from ...payment.utils import get_billing_data
 from ...product.models import (

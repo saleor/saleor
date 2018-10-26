@@ -83,7 +83,7 @@ def create_payment(**payment_data):
 def create_transaction(
         payment: Payment,
         token: str,
-        transaction_type: str,
+        kind: str,
         is_success: bool,
         amount: Decimal,
         currency: str,
@@ -93,7 +93,7 @@ def create_transaction(
     txn, _ = Transaction.objects.get_or_create(
         payment=payment,
         token=token,
-        transaction_type=transaction_type,
+        kind=kind,
         is_success=is_success,
         amount=amount,
         currency=currency,

@@ -19,7 +19,7 @@ class CustomPaymentChoices:
         (MANUAL, pgettext_lazy('Custom payment choice type', 'Manual'))]
 
 
-class TransactionType:
+class Transactions:
     """
     - Authorization: An amount reserved against the customer's funding
                      source. Money does not change hands until the
@@ -38,11 +38,11 @@ class TransactionType:
     # FIXME we could use another status like WAITING_FOR_AUTH for transactions
     # Which were authorized, but needs to be confirmed manually by staff
     # eg. Braintree with "submit_for_settlement" enabled
-    CHOICES = [(AUTH, pgettext_lazy('transaction type', 'Authorization')),
-               (CHARGE, pgettext_lazy('transaction type', 'Charge')),
-               (REFUND, pgettext_lazy('transaction type', 'Refund')),
-               (CAPTURE, pgettext_lazy('transaction type', 'Capture')),
-               (VOID, pgettext_lazy('transaction type', 'Void'))]
+    CHOICES = [(AUTH, pgettext_lazy('transaction kind', 'Authorization')),
+               (CHARGE, pgettext_lazy('transaction kind', 'Charge')),
+               (REFUND, pgettext_lazy('transaction kind', 'Refund')),
+               (CAPTURE, pgettext_lazy('transaction kind', 'Capture')),
+               (VOID, pgettext_lazy('transaction kind', 'Void'))]
 
 
 class ChargeStatus:

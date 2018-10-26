@@ -77,7 +77,7 @@ Transactions
 Transactions represent attempts to transfer money between your store
 and your customers, within a chosen payment method.
 
-There are 5 possible transaction types:
+There are 5 possible transaction kinds:
 
 +---------+-------------------+----------------------------------------------------------------------------------------------------------------------------+
 | Code    | GraphQL API value | Description                                                                                                                |

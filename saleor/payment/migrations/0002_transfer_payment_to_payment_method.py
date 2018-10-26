@@ -3,7 +3,7 @@ from django.db import migrations
 from prices import Money
 from django.conf import settings
 
-from .. import ChargeStatus, TransactionType
+from .. import ChargeStatus, Transactions
 from ..models import Transaction
 
 class PaymentStatus:
@@ -39,10 +39,10 @@ def get_is_active(status, payment):
     return True
 
 
-def create_transaction(method, transaction_type, created, amount, is_success):
+def create_transaction(method, kind, created, amount, is_success):
     return method.transactions.create(
         created=created,
-        transaction_type=transaction_type,
+        kind=kind,
         is_success=is_success,
         amount=amount,
         gateway_response={})
@@ -56,27 +56,27 @@ def create_transactions(method, payment):
     # Other payments needed to be authorized first
     created = payment.created
     create_transaction(
-        method=method, transaction_type=TransactionType.AUTH,
+        method=method, kind=Transactions.AUTH,
         created=created, amount=payment.total, currency=payment.currency,
         is_success=True, token=payment.transaction_id)
     # This kind of payment needs an unsuccessful capture transaction
     if payment.status in [PaymentStatus.ERROR, PaymentStatus.REJECTED]:
         create_transaction(
-            method=method, transaction_type=TransactionType.CAPTURE,
+            method=method, kind=Transactions.CAPTURE,
             created=created, amount=payment.total, currency=payment.currency,
             is_success=False, token=payment.transaction_id)
         return
 
     # Two other payments left - CONFIRMED and REFUNDED needs to be captured
     create_transaction(
-        method=method, transaction_type=TransactionType.CAPTURE,
+        method=method, kind=Transactions.CAPTURE,
         created=created, amount=payment.total, currency=payment.currency,
         is_success=True, token=payment.transaction_id)
 
     # If payment was refunded, we need to create a refund transaction for it
     if payment.status == PaymentStatus.REFUNDED:
         create_transaction(
-            method=method, transaction_type=TransactionType.REFUND,
+            method=method, kind=Transactions.REFUND,
             created=created, amount=payment.total, currency=payment.currency,
             is_success=True, token=payment.transaction_id)
 

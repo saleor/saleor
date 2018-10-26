@@ -2,7 +2,7 @@ import graphene
 from tests.api.utils import get_graphql_content
 
 from saleor.payment.models import (
-    ChargeStatus, Payment, Transaction, TransactionType)
+    ChargeStatus, Payment, Transaction, Transactions)
 
 VOID_QUERY = """
     mutation PaymentVoid($paymentId: ID!) {
@@ -35,7 +35,7 @@ def test_payment_void_success(
     assert payment_dummy.is_active == False
     assert payment_dummy.transactions.count() == 1
     txn = payment_dummy.transactions.first()
-    assert txn.transaction_type == TransactionType.VOID
+    assert txn.kind == Transactions.VOID
 
 
 def test_payment_charge_gateway_error(
@@ -60,7 +60,7 @@ def test_payment_charge_gateway_error(
     assert payment_dummy.is_active == True
     assert payment_dummy.transactions.count() == 1
     txn = payment_dummy.transactions.first()
-    assert txn.transaction_type == TransactionType.VOID
+    assert txn.kind == Transactions.VOID
     assert not txn.is_success
 
 
@@ -71,7 +71,7 @@ CREATE_QUERY = """
                 transactions(first: 1) {
                     edges {
                         node {
-                            transactionType,
+                            kind,
                             token
                         }
                     }
@@ -152,7 +152,7 @@ def test_payment_charge_success(
     assert payment.charge_status == ChargeStatus.CHARGED
     assert payment.transactions.count() == 1
     txn = payment.transactions.first()
-    assert txn.transaction_type == TransactionType.CHARGE
+    assert txn.kind == Transactions.CHARGE
 
 
 def test_payment_charge_gateway_error(
@@ -179,7 +179,7 @@ def test_payment_charge_gateway_error(
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
     assert payment.transactions.count() == 1
     txn = payment.transactions.first()
-    assert txn.transaction_type == TransactionType.CHARGE
+    assert txn.kind == Transactions.CHARGE
     assert not txn.is_success
 
 
@@ -220,7 +220,7 @@ def test_payment_refund_success(
     assert payment.charge_status == ChargeStatus.FULLY_REFUNDED
     assert payment.transactions.count() == 1
     txn = payment.transactions.first()
-    assert txn.transaction_type == TransactionType.REFUND
+    assert txn.kind == Transactions.REFUND
 
 
 def test_payment_refund_error(
@@ -249,7 +249,7 @@ def test_payment_refund_error(
     assert payment.charge_status == ChargeStatus.CHARGED
     assert payment.transactions.count() == 1
     txn = payment.transactions.first()
-    assert txn.transaction_type == TransactionType.REFUND
+    assert txn.kind == Transactions.REFUND
     assert not txn.is_success
 
 

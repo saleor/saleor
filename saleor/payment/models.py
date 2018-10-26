@@ -7,7 +7,7 @@ from django.db import models
 from django_prices.models import MoneyField
 from prices import Money
 
-from . import ChargeStatus, CustomPaymentChoices, TransactionType
+from . import ChargeStatus, CustomPaymentChoices, Transactions
 from ..checkout.models import Cart
 from ..core.utils.taxes import zero_money
 from ..order.models import Order
@@ -89,7 +89,7 @@ class Payment(models.Model):
 
     def get_auth_transaction(self):
         txn = self.transactions.get(
-            transaction_type=TransactionType.AUTH, is_success=True)
+            kind=Transactions.AUTH, is_success=True)
         return txn
 
     def authorize(self, transaction_token):
@@ -138,8 +138,8 @@ class Transaction(models.Model):
     payment = models.ForeignKey(
         Payment, related_name='transactions', on_delete=models.PROTECT)
     token = models.CharField(max_length=64, blank=True, default='')
-    transaction_type = models.CharField(
-        max_length=10, choices=TransactionType.CHOICES)
+    kind = models.CharField(
+        max_length=10, choices=Transactions.CHOICES)
     # FIXME probably we should have error/pending/success status instead of
     # a bool, eg for payments with 3d secure
     is_success = models.BooleanField(default=False)
@@ -156,4 +156,4 @@ class Transaction(models.Model):
 
     def __repr__(self):
         return 'Transaction(created=%s, type=%s, is_success=%s)' % (
-            self.created, self.transaction_type, self.is_success)
+            self.created, self.kind, self.is_success)

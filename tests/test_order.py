@@ -478,7 +478,7 @@ def test_order_payment_flow(
     assert payment.total == order.total.gross.amount
     assert payment.currency == order.total.gross.currency
     assert payment.transactions.count() == 1
-    assert payment.transactions.first().transaction_type == 'auth'
+    assert payment.transactions.first().kind == 'auth'
 
 
 def test_create_user_after_order(order, client):
