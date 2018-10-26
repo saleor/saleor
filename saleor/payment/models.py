@@ -53,6 +53,7 @@ class Payment(models.Model):
     token = models.CharField(max_length=36, blank=True, default='')
 
     #: Currency code (may be provider-specific)
+    # FIXME: ISO4217 validator?
     currency = models.CharField(max_length=10)
     #: Total amount (gross)
     total = models.DecimalField(
@@ -143,6 +144,7 @@ class Transaction(models.Model):
     # a bool, eg for payments with 3d secure
     is_success = models.BooleanField(default=False)
     #: Currency code (may be provider-specific)
+    # FIXME: ISO4217 validator?
     currency = models.CharField(max_length=10)
     #: Total amount (gross)
     amount = models.DecimalField(
