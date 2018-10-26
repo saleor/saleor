@@ -63,6 +63,7 @@ const home = gql`
           emailType
           id
           message
+          orderNumber
           oversoldItems
           quantity
           type
