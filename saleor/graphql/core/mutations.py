@@ -57,7 +57,7 @@ class BaseMutation(graphene.Mutation):
         cls._meta.fields.update(fields)
 
     @classmethod
-    def add_error(cls, errors, field, message):
+    def add_error(cls, errors, field, message, code=None):
         """Add a mutation user error.
 
         `errors` is the list of errors that happened during the execution of
@@ -70,7 +70,7 @@ class BaseMutation(graphene.Mutation):
         object to be returned as mutation result.
         """
         field = snake_to_camel_case(field)
-        errors.append(Error(field=field, message=message))
+        errors.append(Error(field=field, message=message, code=code))
 
     @classmethod
     def get_node_or_error(cls, info, global_id, errors, field, only_type=None):
@@ -83,7 +83,7 @@ class BaseMutation(graphene.Mutation):
         else:
             if node is None:
                 message = "Couldn't resolve to a node: %s" % global_id
-                cls.add_error(errors, field, message)
+                cls.add_error(errors, field, message, code='not_found')
         return node
 
     @classmethod
@@ -106,13 +106,17 @@ class BaseMutation(graphene.Mutation):
         try:
             instance.full_clean()
         except ValidationError as validation_errors:
-            message_dict = validation_errors.message_dict
-            for field in message_dict:
-                if hasattr(cls._meta, 'exclude') and field in cls._meta.exclude:
+            error_dict = validation_errors.error_dict
+            for field in error_dict:
+                if hasattr(cls._meta,
+                           'exclude') and field in cls._meta.exclude:
                     continue
-                for message in message_dict[field]:
+                for error in error_dict[field]:
                     field = snake_to_camel_case(field)
-                    cls.add_error(errors, field, message)
+                    msg = error.message
+                    if error.params:
+                        msg %= error.params
+                    cls.add_error(errors, field, msg, code=error.code)
         return errors
 
 
