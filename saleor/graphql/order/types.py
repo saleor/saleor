@@ -128,8 +128,9 @@ class OrderLine(CountableDjangoObjectType):
             return None
         if not size:
             size = 255
-        return get_thumbnail(
+        url = get_thumbnail(
             self.variant.get_first_image(), size, method='thumbnail')
+        return info.context.build_absolute_uri(url)
 
     @staticmethod
     def resolve_unit_price(obj, info):

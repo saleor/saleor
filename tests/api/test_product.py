@@ -1356,7 +1356,7 @@ def test_category_image_query(user_api_client, non_default_category):
     content = get_graphql_content(response)
     data = content['data']['category']
     thumbnail_url = category.background_image.thumbnail['120x120'].url
-    assert data['backgroundImage']['url'] == thumbnail_url
+    assert thumbnail_url in data['backgroundImage']['url']
 
 
 def test_category_image_query_without_associated_file(
@@ -1400,7 +1400,7 @@ def test_collection_image_query(user_api_client, collection):
     content = get_graphql_content(response)
     data = content['data']['collection']
     thumbnail_url = collection.background_image.thumbnail['120x120'].url
-    assert data['backgroundImage']['url'] == thumbnail_url
+    assert thumbnail_url in data['backgroundImage']['url']
 
 
 def test_collection_image_query_without_associated_file(
