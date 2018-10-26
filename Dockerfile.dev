@@ -1,5 +1,5 @@
 ### Build and install packages
-FROM python:3.6-stretch as build-python
+FROM python:3.6 as build-python
 
 ARG HOST_UID
 ARG HOST_GID
@@ -20,7 +20,7 @@ RUN pipenv install --system --deploy --dev
 
 
 ### Final image
-FROM python:3.6-slim-stretch
+FROM python:3.6-slim
 
 ARG STATIC_URL
 ENV STATIC_URL ${STATIC_URL:-/static/}
@@ -38,16 +38,12 @@ RUN \
 
 COPY --from=build-python /usr/local/lib/python3.6/site-packages/ /usr/local/lib/python3.6/site-packages/
 COPY --from=build-python /usr/local/bin/ /usr/local/bin/
-COPY --from=node:10-stretch /usr/local/lib/ /usr/local/lib/
-COPY --from=node:10-stretch /usr/local/bin/ /usr/local/bin/
+COPY --from=node:10 /usr/local/lib/ /usr/local/lib/
+COPY --from=node:10 /usr/local/bin/ /usr/local/bin/
 
 COPY docker-entrypoint.sh /usr/local/bin/
 
 WORKDIR /app
-
-# RUN SECRET_KEY=dummy \
-#     STATIC_URL=${STATIC_URL} \
-#     python3 manage.py collectstatic --no-input
 
 RUN useradd -u $APP_USER -g $APP_GROUP -m saleor && \
     mkdir -p /app/media /app/static && \
