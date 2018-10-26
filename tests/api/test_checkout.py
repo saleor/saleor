@@ -369,7 +369,8 @@ def test_checkout_complete(
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
-    payment.total = total.gross
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
     payment.checkout = checkout
     payment.save()
     checkout_id = graphene.Node.to_global_id('Checkout', checkout.pk)

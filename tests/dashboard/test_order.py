@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 
 import pytest
 from django.conf import settings
@@ -79,7 +80,8 @@ def test_view_capture_order_payment_preauth(
     assert response.status_code == 302
     payment = order.payments.last()
     assert payment.charge_status == ChargeStatus.CHARGED
-    assert payment.captured_amount == order.total.gross
+    assert payment.captured_amount == order.total.gross.amount
+    assert payment.currency == order.total.gross.currency
 
 
 @pytest.mark.integration
@@ -148,11 +150,11 @@ def test_view_refund_order_payment_confirmed(
     response = admin_client.post(
         url, {
             'csrfmiddlewaretoken': 'hello',
-            'amount': str(payment_confirmed.captured_amount.amount)})
+            'amount': str(payment_confirmed.captured_amount)})
     assert response.status_code == 302
     payment = order.payments.last()
     assert payment.charge_status == ChargeStatus.FULLY_REFUNDED
-    assert payment.captured_amount == Money(0, 'USD')
+    assert payment.captured_amount == Decimal('0.00')
 
 
 @pytest.mark.integration
@@ -210,7 +212,7 @@ def test_view_void_order_payment_preauth(
     last_transaction = order_payment.transactions.latest('pk')
 
     assert last_transaction.transaction_type == TransactionType.VOID
-    assert order_payment.captured_amount == Money(0, 'USD')
+    assert order_payment.captured_amount == Decimal('0.00')
 
 
 
@@ -230,7 +232,9 @@ def test_view_void_order_invalid_payment_confirmed_status(
     assert response.status_code == 400
     order_payment = order.payments.last()
     assert order_payment.charge_status == ChargeStatus.CHARGED
-    assert order_payment.captured_amount == order.total.gross
+    assert order_payment.captured_amount == order.total.gross.amount
+    assert order_payment.total == order.total.gross.amount
+    assert order_payment.currency == order.total.gross.currency
 
 
 @pytest.mark.integration
@@ -249,7 +253,7 @@ def test_view_void_order_invalid_payment_refunded_status(
     assert response.status_code == 400
     payment = order.payments.last()
     assert payment.charge_status == ChargeStatus.FULLY_REFUNDED
-    assert payment.captured_amount == Money(0, 'USD')
+    assert payment.captured_amount == Decimal('0.00')
 
 
 @pytest.mark.integration

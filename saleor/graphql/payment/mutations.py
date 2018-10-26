@@ -57,11 +57,11 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                 return CheckoutPaymentCreate(errors=errors)
             billing_data = cls.clean_billing_address(billing_address)
         extra_data = cls.get_extra_info(info)
-        gross = Money(input['amount'], currency=settings.DEFAULT_CURRENCY)
         # FIXME as we allow only one payment make sure that amount
         # is same as checkout's total
         payment = create_payment(
-            total=gross,
+            total=input['amount'],
+            currency=settings.DEFAULT_CURRENCY,
             variant=input['gateway'],
             billing_email=checkout.email,
             is_active=True,

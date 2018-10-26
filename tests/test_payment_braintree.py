@@ -31,7 +31,7 @@ def braintree_success_response():
         transaction=Mock(
             id='1x02131',
             spec=Transaction,
-            amount='0.20',
+            amount=Decimal('0.20'),
             created_at='2018-10-20 18:34:22',
             credit_card={
                 'token': None,
@@ -85,6 +85,12 @@ def gateway_config():
         'private_key': '789'}
 
 
+def success_gateway_response(gateway_response):
+    data = extract_gateway_response(gateway_response)
+    data.pop('currency')
+    data.pop('amount')
+    return data
+
 def test_get_customer_data(payment_dummy):
     payment = payment_dummy
     result = get_customer_data(payment)
@@ -132,8 +138,8 @@ def test_extract_gateway_response(braintree_success_response):
     result = extract_gateway_response(braintree_success_response)
     t = braintree_success_response.transaction
     expected_result = {
-        'currency_iso_code': t.currency_iso_code,
-        'amount': str(t.amount),
+        'currency': t.currency_iso_code,
+        'amount': t.amount,
         'created_at': str(t.created_at),
         'credit_card': t.credit_card,
         'additional_processor_response': t.additional_processor_response,
@@ -205,6 +211,8 @@ def test_authorize_error_response(
     assert txn.gateway_response == extract_gateway_response(
         braintree_error_response)
     assert not txn.is_success
+    assert txn.amount == payment.total
+    assert txn.currency == payment.currency
     assert error == DEFAULT_ERROR
 
 
@@ -239,14 +247,15 @@ def test_authorize(
 
     assert txn.payment == payment
     assert txn.transaction_type == TransactionType.AUTH
-    assert txn.amount == payment.total
-    assert txn.gateway_response == extract_gateway_response(
+    assert txn.amount == braintree_success_response.transaction.amount
+    assert txn.currency == braintree_success_response.transaction.currency_iso_code
+    assert txn.gateway_response == success_gateway_response(
         braintree_success_response)
     assert txn.token == braintree_success_response.transaction.id
     assert txn.is_success == braintree_success_response.is_success
 
     mock_response.assert_called_once_with({
-        'amount': str(payment.total.amount),
+        'amount': str(payment.total),
         'payment_method_nonce': 'transaction-token',
         'options': {
             'submit_for_settlement': CONFIRM_MANUALLY,
@@ -269,8 +278,9 @@ def test_refund(
 
     assert txn.payment == payment
     assert txn.transaction_type == TransactionType.REFUND
-    assert txn.amount == Money(amount, settings.DEFAULT_CURRENCY)
-    assert txn.gateway_response == extract_gateway_response(
+    assert txn.amount == braintree_success_response.transaction.amount
+    assert txn.currency == braintree_success_response.transaction.currency_iso_code
+    assert txn.gateway_response == success_gateway_response(
         braintree_success_response)
     assert txn.token == braintree_success_response.transaction.id
     assert txn.is_success == braintree_success_response.is_success
@@ -315,6 +325,8 @@ def test_refund_error_response(
     assert txn.gateway_response == extract_gateway_response(
         braintree_error_response)
     assert not txn.is_success
+    assert txn.amount == amount
+    assert txn.currency == payment.currency
     assert error == DEFAULT_ERROR
 
 
@@ -334,8 +346,9 @@ def test_capture(
 
     assert txn.payment == payment
     assert txn.transaction_type == TransactionType.CAPTURE
-    assert txn.amount == Money(amount, settings.DEFAULT_CURRENCY)
-    assert txn.gateway_response == extract_gateway_response(
+    assert txn.amount == braintree_success_response.transaction.amount
+    assert txn.currency == braintree_success_response.transaction.currency_iso_code
+    assert txn.gateway_response == success_gateway_response(
         braintree_success_response)
     assert txn.token == braintree_success_response.transaction.id
     assert txn.is_success == braintree_success_response.is_success
@@ -383,6 +396,8 @@ def test_capture_error_response(
     assert txn.gateway_response == extract_gateway_response(
         braintree_error_response)
     assert not txn.is_success
+    assert txn.amount == amount
+    assert txn.currency == payment.currency
     assert error == DEFAULT_ERROR
 
 
@@ -399,8 +414,9 @@ def test_void(
 
     assert txn.payment == payment
     assert txn.transaction_type == TransactionType.VOID
-    assert txn.amount == payment.total
-    assert txn.gateway_response == extract_gateway_response(
+    assert txn.amount == braintree_success_response.transaction.amount
+    assert txn.currency == braintree_success_response.transaction.currency_iso_code
+    assert txn.gateway_response == success_gateway_response(
         braintree_success_response)
     assert txn.token == braintree_success_response.transaction.id
     assert txn.is_success == braintree_success_response.is_success
@@ -441,6 +457,8 @@ def test_void_error_response(
     assert txn.gateway_response == extract_gateway_response(
         braintree_error_response)
     assert not txn.is_success
+    assert txn.amount == payment.total
+    assert txn.currency == payment.currency
     assert error == DEFAULT_ERROR
 
 
@@ -453,7 +471,8 @@ def test_transaction_and_incorrect_token_error_helper(payment_dummy, settings):
     assert txn.transaction_type == TransactionType.AUTH
     assert txn.token == 'example-token'
     assert not txn.gateway_response
-    assert txn.amount == Money(amount, settings.DEFAULT_CURRENCY)
+    assert txn.amount == amount
+    assert txn.currency == settings.DEFAULT_CURRENCY
 
 
 def test_transaction_and_incorrect_token_error_helper_no_amount(payment_dummy):

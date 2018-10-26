@@ -54,28 +54,31 @@ def create_transactions(method, payment):
         return
 
     # Other payments needed to be authorized first
-    amount = Money(payment.total, payment.currency)
     created = payment.created
     create_transaction(
         method=method, transaction_type=TransactionType.AUTH,
-        created=created, amount=amount, is_success=True)
+        created=created, amount=payment.total, currency=payment.currency,
+        is_success=True, token=payment.transaction_id)
     # This kind of payment needs an unsuccessful capture transaction
     if payment.status in [PaymentStatus.ERROR, PaymentStatus.REJECTED]:
         create_transaction(
             method=method, transaction_type=TransactionType.CAPTURE,
-            created=created, amount=amount, is_success=False)
+            created=created, amount=payment.total, currency=payment.currency,
+            is_success=False, token=payment.transaction_id)
         return
 
     # Two other payments left - CONFIRMED and REFUNDED needs to be captured
     create_transaction(
         method=method, transaction_type=TransactionType.CAPTURE,
-        created=created, amount=amount, is_success=True)
+        created=created, amount=payment.total, currency=payment.currency,
+        is_success=True, token=payment.transaction_id)
 
     # If payment was refunded, we need to create a refund transaction for it
     if payment.status == PaymentStatus.REFUNDED:
         create_transaction(
             method=method, transaction_type=TransactionType.REFUND,
-            created=created, amount=amount, is_success=True)
+            created=created, amount=payment.total, currency=payment.currency,
+            is_success=True, token=payment.transaction_id)
 
 
 def transfer_payments_to_payment_methods(apps, schema_editor):
@@ -109,8 +112,9 @@ def transfer_payments_to_payment_methods(apps, schema_editor):
             customer_ip_address=pay.customer_ip_address,
             extra_data=extra_data,
             token=pay.token,
-            captured_amount=Money(pay.captured_amount, pay.currency or settings.DEFAULT_CURRENCY),
-            total=Money(pay.total, pay.currency or settings.DEFAULT_CURRENCY),
+            captured_amount=pay.captured_amount,
+            total=pay.total,
+            currency=pay.currency or settings.DEFAULT_CURRENCY,
             is_active=get_is_active(pay.status, pay),
             charge_status=get_charge_status(pay))
         create_transactions(payment_method, pay)

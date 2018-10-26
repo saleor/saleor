@@ -22,7 +22,7 @@ THREE_D_SECURE_REQUIRED = False
 
 # FIXME: Provide list of visible errors and messages translations
 # FIXME: We should also store universal visible errors for all payment
-# gateways, and parse gateway-specific errors to this unified version
+# gateways, and parse gateway-specific errors to the unified version
 
 # Error codes whitelist should be a dict of code: error_msg_override
 # if no error_msg_override is provided,
@@ -73,12 +73,11 @@ def transaction_and_incorrect_token_error(
         token: str,
         type: TransactionType,
         amount: Decimal = None) -> Tuple[Transaction, str]:
-    amount = (
-        payment.total
-        if amount is None else Money(amount, settings.DEFAULT_CURRENCY))
+    amount = amount or payment.total
     txn = create_transaction(
         payment=payment,
         transaction_type=type,
+        currency=payment.currency,
         amount=amount,
         gateway_response={},
         token=token,
@@ -105,8 +104,8 @@ def extract_gateway_response(braintree_result) -> Dict:
     # FIXME we should have a predefined list of fields that will be supported
     # in the API
     gateway_response = {
-        'currency_iso_code': bt_transaction.currency_iso_code,
-        'amount': str(bt_transaction.amount),  # Decimal type
+        'currency': bt_transaction.currency_iso_code,
+        'amount': bt_transaction.amount,  # Decimal type
         'created_at': str(bt_transaction.created_at),  # datetime type
         'credit_card': bt_transaction.credit_card,
         'additional_processor_response': bt_transaction.additional_processor_response,  # noqa
@@ -150,7 +149,7 @@ def authorize(
     gateway = get_gateway(**connection_params)
     try:
         result = gateway.transaction.sale({
-            'amount': str(payment.total.amount),
+            'amount': str(payment.total),
             'payment_method_nonce': transaction_token,
             'options': {
                 'submit_for_settlement': CONFIRM_MANUALLY,
@@ -165,7 +164,8 @@ def authorize(
     txn = create_transaction(
         payment=payment,
         transaction_type=TransactionType.AUTH,
-        amount=payment.total,
+        amount=gateway_response.pop('amount', payment.total),
+        currency=gateway_response.pop('currency', payment.currency),
         gateway_response=gateway_response,
         token=getattr(result.transaction, 'id', ''),
         is_success=result.is_success)
@@ -195,7 +195,8 @@ def capture(
     txn = create_transaction(
         payment=payment,
         transaction_type=TransactionType.CAPTURE,
-        amount=Money(amount, settings.DEFAULT_CURRENCY),
+        amount=gateway_response.pop('amount', amount),
+        currency=gateway_response.pop('currency', payment.currency),
         token=getattr(result.transaction, 'id', ''),
         is_success=result.is_success,
         gateway_response=gateway_response)
@@ -220,7 +221,8 @@ def void(
     txn = create_transaction(
         payment=payment,
         transaction_type=TransactionType.VOID,
-        amount=payment.total,
+        amount=gateway_response.pop('amount', payment.total),
+        currency=gateway_response.pop('currency', payment.currency),
         gateway_response=gateway_response,
         token=getattr(result.transaction, 'id', ''),
         is_success=result.is_success)
@@ -248,7 +250,8 @@ def refund(
     txn = create_transaction(
         payment=payment,
         transaction_type=TransactionType.REFUND,
-        amount=Money(amount, settings.DEFAULT_CURRENCY),
+        amount=gateway_response.pop('amount', amount),
+        currency=gateway_response.pop('currency', payment.currency),
         token=getattr(result.transaction, 'id', ''),
         is_success=result.is_success,
         gateway_response=gateway_response)

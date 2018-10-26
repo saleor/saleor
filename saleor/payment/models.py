@@ -4,11 +4,13 @@ from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django_prices.models import MoneyField
+from prices import Money
 
 from . import ChargeStatus, TransactionType
 from ..checkout.models import Cart
 from ..core import zero_money
 from ..order.models import Order
+from decimal import Decimal
 
 
 class Payment(models.Model):
@@ -57,11 +59,11 @@ class Payment(models.Model):
     total = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default='0.0')
+        default=Decimal('0.0'))
     captured_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default='0.0')
+        default=Decimal('0.0'))
 
     checkout = models.ForeignKey(
         Cart, null=True, related_name='payments', on_delete=models.SET_NULL)
@@ -74,6 +76,13 @@ class Payment(models.Model):
 
     def __iter__(self):
         return iter(self.transactions.all())
+
+    def get_total(self):
+        return Money(self.total, self.currency or settings.DEFAULT_CURRENCY)
+
+    def get_captured_amount(self):
+        return Money(
+            self.captured_amount, self.currency or settings.DEFAULT_CURRENCY)
 
     def get_last_transaction(self):
         return max(self.transactions.all(), default=None, key=attrgetter('pk'))
@@ -95,13 +104,13 @@ class Payment(models.Model):
     def capture(self, amount=None):
         from . import utils
         if amount is None:
-            amount = self.total.amount
+            amount = self.total
         return utils.gateway_capture(payment=self, amount=amount)
 
     def refund(self, amount=None):
         from . import utils
         if amount is None:
-            amount = self.total.amount
+            amount = self.total
         return utils.gateway_refund(payment=self, amount=amount)
 
 
@@ -124,7 +133,7 @@ class Transaction(models.Model):
     amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default='0.0')
+        default=Decimal('0.0'))
 
     gateway_response = JSONField()
 

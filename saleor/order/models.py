@@ -1,3 +1,4 @@
+from decimal import Decimal
 from operator import attrgetter
 from uuid import uuid4
 
@@ -12,6 +13,7 @@ from django.utils.translation import pgettext_lazy
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
 from measurement.measures import Weight
+from prices import Money
 
 from . import (
     CustomPaymentChoices, FulfillmentStatus, OrderEvents, OrderStatus,
@@ -140,7 +142,8 @@ class Order(models.Model):
     def is_fully_paid(self):
         payments = self.payments.filter(
             charge_status=ChargeStatus.CHARGED)
-        total_captured = [payment.captured_amount for payment in payments]
+        total_captured = [
+            payment.get_captured_amount() for payment in payments]
         total_paid = sum(total_captured, ZERO_TAXED_MONEY)
         return total_paid.gross >= self.total.gross
 
@@ -247,22 +250,22 @@ class Order(models.Model):
         return len(self.payments.all()) == 0
 
     @property
-    def authorized_amount(self):
+    def total_authorized(self):
         payment = self.get_last_payment()
         if payment:
-            return payment.total
+            return Money(payment.total, payment.currency)
         return zero_money()
 
     @property
-    def captured_amount(self):
+    def total_captured(self):
         payment = self.get_last_payment()
         if payment and payment.charge_status == ChargeStatus.CHARGED:
-            return payment.captured_amount
+            return Money(payment.captured_amount, payment.currency)
         return zero_money()
 
     @property
     def total_balance(self):
-        return self.captured_amount - self.total.gross
+        return self.total_captured - self.total.gross
 
     def get_total_weight(self):
         # Cannot use `sum` as it parses an empty Weight to an int
@@ -298,7 +301,7 @@ class OrderLine(models.Model):
     unit_price = TaxedMoneyField(
         net_field='unit_price_net', gross_field='unit_price_gross')
     tax_rate = models.DecimalField(
-        max_digits=5, decimal_places=2, default='0.0')
+        max_digits=5, decimal_places=2, default=Decimal('0.0'))
 
     def __str__(self):
         return self.product_name

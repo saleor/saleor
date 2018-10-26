@@ -55,11 +55,10 @@ def validate_payment(view):
     """
 
     @wraps(view)
-    def func(payment, *args, **kwargs):
+    def func(payment: Payment, *args, **kwargs):
         if not payment.is_active:
             raise PaymentError('This payment is no longer active.')
         return view(payment, *args, **kwargs)
-
     return func
 
 
@@ -73,7 +72,8 @@ def create_transaction(
         token: str,
         transaction_type: str,
         is_success: bool,
-        amount: Money,
+        amount: Decimal,
+        currency: str,
         gateway_response: Optional[Dict] = None) -> Transaction:
     if not gateway_response:
         gateway_response = {}
@@ -83,6 +83,7 @@ def create_transaction(
         transaction_type=transaction_type,
         is_success=is_success,
         amount=amount,
+        currency=currency,
         gateway_response=gateway_response)
     return txn
 
@@ -115,8 +116,8 @@ def gateway_capture(payment: Payment, amount: Decimal) -> Transaction:
     if payment.charge_status not in {ChargeStatus.CHARGED,
                                      ChargeStatus.NOT_CHARGED}:
         raise PaymentError('This payment cannot be captured.')
-    if amount > payment.total.amount or amount > (
-            payment.total.amount - payment.captured_amount.amount):
+    if amount > payment.total or amount > (
+            payment.total - payment.captured_amount):
         raise PaymentError('Unable to capture more than authorized amount.')
 
     provider, provider_params = get_provider(payment.variant)
@@ -156,7 +157,7 @@ def gateway_void(payment) -> Transaction:
 def gateway_refund(payment, amount: Decimal) -> Transaction:
     if amount <= 0:
         raise PaymentError('Amount should be a positive number.')
-    if amount > payment.captured_amount.amount:
+    if amount > payment.captured_amount:
         raise PaymentError('Cannot refund more than captured')
     if not payment.charge_status == ChargeStatus.CHARGED:
         raise PaymentError(

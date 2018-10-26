@@ -27,6 +27,7 @@ def authorize(payment: Payment, transaction_token: str, **connection_params):
         payment=payment,
         transaction_type=TransactionType.AUTH,
         amount=payment.total,
+        currency=payment.currency,
         gateway_response={},
         token=str(uuid.uuid4()),
         is_success=success)
@@ -42,6 +43,7 @@ def void(payment: Payment, **connection_params: Dict):
         payment=payment,
         transaction_type=TransactionType.VOID,
         amount=payment.total,
+        currency=payment.currency,
         gateway_response={},
         token=str(uuid.uuid4()),
         is_success=success)
@@ -56,7 +58,8 @@ def capture(payment: Payment, amount: Decimal):
     txn = create_transaction(
         payment=payment,
         transaction_type=TransactionType.CAPTURE,
-        amount=Money(amount, settings.DEFAULT_CURRENCY),
+        amount=amount,
+        currency=payment.currency,
         token=str(uuid.uuid4()),
         is_success=success)
     return txn, error
@@ -70,7 +73,8 @@ def refund(payment: Payment, amount: Decimal):
     txn = create_transaction(
         payment=payment,
         transaction_type=TransactionType.REFUND,
-        amount=Money(amount, settings.DEFAULT_CURRENCY),
+        amount=amount,
+        currency=payment.currency,
         token=str(uuid.uuid4()),
         is_success=success)
     return txn, error
