@@ -16,15 +16,22 @@ import {
 import HomeActivityCard from "../HomeActivityCard";
 import HomeAnalyticsCard from "../HomeAnalyticsCard";
 import HomeHeader from "../HomeHeader";
+import HomeNotificationTable from "../HomeNotificationTable/HomeNotificationTable";
 import HomeProductListCard from "../HomeProductListCard";
 
 export interface HomePageProps {
   activities: Home_activities_edges_node[];
   orders: number;
+  ordersToCapture: number;
+  ordersToFulfill: number;
+  productsOutOfStock: number;
   sales: Home_salesToday_gross;
-  userName: string;
   topProducts: Home_productTopToday_edges_node[];
+  userName: string;
+  onOrdersToCaptureClick: () => void;
+  onOrdersToFulfillClick: () => void;
   onProductClick: (productId: string, variantId: string) => void;
+  onProductsOutOfStockClick: () => void;
 }
 
 const decorate = withStyles(theme => ({
@@ -60,7 +67,13 @@ const HomePage = decorate<HomePageProps>(
     sales,
     topProducts,
     onProductClick,
-    activities
+    activities,
+    onOrdersToCaptureClick,
+    onOrdersToFulfillClick,
+    onProductsOutOfStockClick,
+    ordersToCapture,
+    ordersToFulfill,
+    productsOutOfStock
   }) => (
     <Container width="md">
       <HomeHeader userName={userName} />
@@ -90,6 +103,15 @@ const HomePage = decorate<HomePageProps>(
               )}
             </HomeAnalyticsCard>
           </div>
+          <HomeNotificationTable
+            onOrdersToCaptureClick={onOrdersToCaptureClick}
+            onOrdersToFulfillClick={onOrdersToFulfillClick}
+            onProductsOutOfStockClick={onProductsOutOfStockClick}
+            ordersToCapture={ordersToCapture}
+            ordersToFulfill={ordersToFulfill}
+            productsOutOfStock={productsOutOfStock}
+          />
+          <CardSpacer />
           <HomeProductListCard
             onRowClick={onProductClick}
             topProducts={topProducts}
