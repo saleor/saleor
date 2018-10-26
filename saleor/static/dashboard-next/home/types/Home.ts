@@ -23,52 +23,19 @@ export interface Home_ordersToday {
   totalCount: number | null;
 }
 
-export interface Home_ordersToFulfill_edges_node {
-  __typename: "Order";
-  id: string;
-  number: string | null;
-}
-
-export interface Home_ordersToFulfill_edges {
-  __typename: "OrderCountableEdge";
-  node: Home_ordersToFulfill_edges_node;
-}
-
 export interface Home_ordersToFulfill {
   __typename: "OrderCountableConnection";
-  edges: Home_ordersToFulfill_edges[];
-}
-
-export interface Home_ordersToCapture_edges_node {
-  __typename: "Order";
-  id: string;
-  number: string | null;
-}
-
-export interface Home_ordersToCapture_edges {
-  __typename: "OrderCountableEdge";
-  node: Home_ordersToCapture_edges_node;
+  totalCount: number | null;
 }
 
 export interface Home_ordersToCapture {
   __typename: "OrderCountableConnection";
-  edges: Home_ordersToCapture_edges[];
-}
-
-export interface Home_productsOutOfStock_edges_node {
-  __typename: "Product";
-  id: string;
-  name: string;
-}
-
-export interface Home_productsOutOfStock_edges {
-  __typename: "ProductCountableEdge";
-  node: Home_productsOutOfStock_edges_node;
+  totalCount: number | null;
 }
 
 export interface Home_productsOutOfStock {
   __typename: "ProductCountableConnection";
-  edges: Home_productsOutOfStock_edges[];
+  totalCount: number | null;
 }
 
 export interface Home_productTopToday_edges_node_revenue_gross {

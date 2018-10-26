@@ -3,7 +3,8 @@ import * as React from "react";
 import { UserContext } from "../../auth";
 import Navigator from "../../components/Navigator";
 import { maybe } from "../../misc";
-import { productVariantEditUrl } from "../../products";
+import { orderListUrl } from "../../orders";
+import { productListUrl, productVariantEditUrl } from "../../products";
 import HomePage from "../components/HomePage";
 import { HomePageQuery } from "../queries";
 
@@ -31,6 +32,14 @@ const HomeSection = () => (
                     )
                   )
                 }
+                onOrdersToCaptureClick={() => navigate(orderListUrl)}
+                onOrdersToFulfillClick={() => navigate(orderListUrl)}
+                onProductsOutOfStockClick={() => navigate(productListUrl)}
+                ordersToCapture={maybe(() => data.ordersToCapture.totalCount)}
+                ordersToFulfill={maybe(() => data.ordersToFulfill.totalCount)}
+                productsOutOfStock={maybe(
+                  () => data.productsOutOfStock.totalCount
+                )}
                 userName={user.email}
               />
             )}

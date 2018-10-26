@@ -15,28 +15,13 @@ const home = gql`
       totalCount
     }
     ordersToFulfill: orders(status: READY_TO_FULFILL, created: TODAY) {
-      edges {
-        node {
-          id
-          number
-        }
-      }
+      totalCount
     }
     ordersToCapture: orders(status: READY_TO_CAPTURE, created: TODAY) {
-      edges {
-        node {
-          id
-          number
-        }
-      }
+      totalCount
     }
     productsOutOfStock: products(stockAvailability: OUT_OF_STOCK) {
-      edges {
-        node {
-          id
-          name
-        }
-      }
+      totalCount
     }
     productTopToday: reportProductSales(period: TODAY) {
       edges {
