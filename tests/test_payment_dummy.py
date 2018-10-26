@@ -1,8 +1,8 @@
+from decimal import Decimal
+
 import pytest
 
 from saleor.payment import ChargeStatus, PaymentError, TransactionType
-
-from .utils import money
 
 
 def test_authorize(payment_dummy):
@@ -74,10 +74,10 @@ def test_charge_success(amount, payment_dummy):
 
 @pytest.mark.parametrize(
     'amount, captured_amount, charge_status, is_active', [
-        (80, money(0), ChargeStatus.NOT_CHARGED, False),
-        (80, money(0), ChargeStatus.FULLY_REFUNDED, True),
-        (80, money(80), ChargeStatus.CHARGED, True),
-        (120, money(0), ChargeStatus.NOT_CHARGED, True), ])
+        (80, 0, ChargeStatus.NOT_CHARGED, False),
+        (80, 0, ChargeStatus.FULLY_REFUNDED, True),
+        (80, 80, ChargeStatus.CHARGED, True),
+        (120, 0, ChargeStatus.NOT_CHARGED, True), ])
 def test_charge_failed(
         amount, captured_amount, charge_status, is_active,
         payment_dummy):
@@ -104,8 +104,8 @@ def test_charge_gateway_error(payment_dummy, monkeypatch):
 @pytest.mark.parametrize(
     'initial_captured_amount, refund_amount, final_captured_amount, final_charge_status, active_after',
     [
-        (money(80), 80, money(0), ChargeStatus.FULLY_REFUNDED, False),
-        (money(80), 10, money(70), ChargeStatus.CHARGED, True), ])
+        (80, 80, 0, ChargeStatus.FULLY_REFUNDED, False),
+        (80, 10, 70, ChargeStatus.CHARGED, True), ])
 def test_refund_success(
         initial_captured_amount, refund_amount, final_captured_amount,
         final_charge_status, active_after, payment_dummy):
@@ -124,15 +124,15 @@ def test_refund_success(
 
 @pytest.mark.parametrize(
     'initial_captured_amount, refund_amount, initial_charge_status', [
-        (money(80), 0, ChargeStatus.FULLY_REFUNDED),
-        (money(0), 10, ChargeStatus.NOT_CHARGED),
-        (money(10), 20, ChargeStatus.CHARGED), ])
+        (80, 0, ChargeStatus.FULLY_REFUNDED),
+        (0, 10, ChargeStatus.NOT_CHARGED),
+        (10, 20, ChargeStatus.CHARGED), ])
 def test_refund_failed(
         initial_captured_amount, refund_amount, initial_charge_status,
         payment_dummy):
     payment = payment_dummy
     payment.charge_status = initial_charge_status
-    payment.captured_amount = initial_captured_amount
+    payment.captured_amount = Decimal(initial_captured_amount)
     payment.save()
     with pytest.raises(PaymentError):
         txn = payment.refund(refund_amount)
@@ -144,13 +144,15 @@ def test_refund_gateway_error(payment_dummy, monkeypatch):
         'saleor.payment.providers.dummy.dummy_success', lambda: False)
     payment = payment_dummy
     payment.charge_status = ChargeStatus.CHARGED
-    payment.captured_amount = money(80)
+    payment.captured_amount = Decimal('80.00')
     payment.save()
     with pytest.raises(PaymentError):
-        txn = payment.refund(80)
-        payment.refresh_from_db()
-        assert txn.transaction_type == TransactionType.REFUND
-        assert not txn.is_success
-        assert txn.payment == payment
-        assert payment.charge_status == ChargeStatus.CHARGED
-        assert payment.captured_amount == money(80)
+        payment.refund(Decimal('80.00'))
+
+    payment.refresh_from_db()
+    txn = payment.transactions.first()
+    assert txn.transaction_type == TransactionType.REFUND
+    assert not txn.is_success
+    assert txn.payment == payment
+    assert payment.charge_status == ChargeStatus.CHARGED
+    assert payment.captured_amount == Decimal('80.00')

@@ -137,8 +137,8 @@
                   {% trans "Preauthorized amount" context "Order summary card header" %}
                 </td>
                 <td class="right-align">
-                  {% if order.authorized_amount %}
-                    {% price order.authorized_amount %}
+                  {% if order.total_authorized %}
+                    {% price order.total_authorized %}
                   {% else %}
                     {% trans "N/A" context "Preauthorized amount not available" %}
                   {% endif %}
@@ -149,7 +149,7 @@
                   {% trans "Captured amount" context "Order summary card header" %}
                 </td>
                 <td class="right-align">
-                  {% price order.captured_amount %}
+                  {% price order.total_captured %}
                 </td>
               </tr>
             </tbody>
@@ -599,7 +599,7 @@
                     {% render_status payment.charge_status payment.get_charge_status_display %}
                   </td>
                   <td>
-                    {% price payment.total %}
+                    {% price payment.get_total %}
                   </td>
                 </tr>
               {% endfor %}

@@ -18,13 +18,14 @@ EXAMPLE_ERROR = 'Example dummy error'
 
 
 @pytest.fixture
-def transaction_data(payment_dummy):
+def transaction_data(payment_dummy, settings):
     return {
         'payment': payment_dummy,
         'token': 'token',
         'transaction_type': TransactionType.CAPTURE,
         'is_success': True,
         'amount': Decimal('10.00'),
+        'currency': settings.DEFAULT_CURRENCY,
         'gateway_response': {
             'credit_cart': '4321'}}
 
@@ -230,7 +231,7 @@ def test_gateway_capture(
     txn = payment_txn_preauth.transactions.first()
     payment = payment_txn_preauth
     assert not payment.captured_amount
-    amount = payment.total.amount
+    amount = payment.total
 
     mock_capture = Mock(return_value=(txn, ''))
     mock_get_provider.return_value = (
@@ -253,9 +254,10 @@ def test_gateway_capture_partial_capture(
         mock_get_provider, mock_handle_fully_paid_order, payment_txn_preauth,
         provider_params, settings):
     payment = payment_txn_preauth
-    amount = payment.total.amount * Decimal('0.5')
+    amount = payment.total * Decimal('0.5')
     txn = payment.transactions.first()
-    txn.amount = Money(amount, settings.DEFAULT_CURRENCY)
+    txn.amount = amount
+    txn.currency = settings.DEFAULT_CURRENCY
 
     mock_capture = Mock(return_value=(txn, ''))
     mock_get_provider.return_value = (
@@ -265,7 +267,8 @@ def test_gateway_capture_partial_capture(
 
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.CHARGED
-    assert payment.captured_amount == Money(amount, settings.DEFAULT_CURRENCY)
+    assert payment.captured_amount == amount
+    assert payment.currency == settings.DEFAULT_CURRENCY
     assert not mock_handle_fully_paid_order.called
 
 
@@ -278,7 +281,7 @@ def test_gateway_capture_failed(
     txn.is_success = False
 
     payment = payment_txn_preauth
-    amount = payment.total.amount
+    amount = payment.total
 
     mock_capture = Mock(return_value=(txn, EXAMPLE_ERROR))
     mock_get_provider.return_value = (
@@ -355,7 +358,7 @@ def test_gateway_refund(
         mock_get_provider, payment_txn_captured, provider_params):
     txn = payment_txn_captured.transactions.first()
     payment = payment_txn_captured
-    amount = payment.total.amount
+    amount = payment.total
 
     mock_refund = Mock(return_value=(txn, ''))
     mock_get_provider.return_value = (
@@ -374,9 +377,10 @@ def test_gateway_refund(
 def test_gateway_refund_partial_refund(
         mock_get_provider, payment_txn_captured, provider_params, settings):
     payment = payment_txn_captured
-    amount = payment.total.amount * Decimal('0.5')
+    amount = payment.total * Decimal('0.5')
     txn = payment_txn_captured.transactions.first()
-    txn.amount = Money(amount, settings.DEFAULT_CURRENCY)
+    txn.amount = amount
+    txn.currency = settings.DEFAULT_CURRENCY
 
     mock_refund = Mock(return_value=(txn, ''))
     mock_get_provider.return_value = (
@@ -386,8 +390,7 @@ def test_gateway_refund_partial_refund(
 
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.CHARGED
-    assert payment.captured_amount == payment.total - Money(
-        amount, settings.DEFAULT_CURRENCY)
+    assert payment.captured_amount == payment.total - amount
 
 
 @patch('saleor.payment.utils.get_provider')

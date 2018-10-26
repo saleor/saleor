@@ -53,7 +53,7 @@ class BraintreePaymentForm(forms.Form):
     def __init__(self, instance, *args, **kwargs):
         self.instance = instance
         super().__init__(*args, **kwargs)
-        self.fields['amount'].initial = self.instance.total.amount
+        self.fields['amount'].initial = self.instance.total
         #FIXME if environment is Sandbox, we could provide couple of predefined
         # nounces for easier testing
 
@@ -64,7 +64,7 @@ class BraintreePaymentForm(forms.Form):
         # when manually adjusting the template value as we do not allow
         # partial-payments at this moment, error is returned instead.
         amount = cleaned_data.get('amount')
-        if amount and amount != self.instance.total.amount:
+        if amount and amount != self.instance.total:
             msg = pgettext_lazy(
                 'payment error',
                 'Unable to process transaction. Please try again in a moment')
@@ -75,7 +75,7 @@ class BraintreePaymentForm(forms.Form):
         # FIXME add tests
         self.instance.authorize(self.cleaned_data['payment_method_nonce'])
         try:
-            self.instance.capture(self.instance.total.amount)
+            self.instance.capture(self.instance.total)
         except PaymentError as exc:
             # Void authorization if the capture failed
             self.instance.void()

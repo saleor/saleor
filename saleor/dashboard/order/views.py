@@ -158,11 +158,11 @@ def capture_payment(request, order_pk, payment_pk):
     orders = Order.objects.confirmed().prefetch_related('payments')
     order = get_object_or_404(orders, pk=order_pk)
     payment = get_object_or_404(order.payments, pk=payment_pk)
-    amount = order.total.quantize('0.01').gross
+    amount = order.total.gross
     form = CapturePaymentForm(
-        request.POST or None, payment=payment, initial={'amount': amount})
+        request.POST or None, payment=payment,
+        initial={'amount': amount.amount})
     if form.is_valid() and form.capture():
-        amount = form.cleaned_data['amount']
         msg = pgettext_lazy(
             'Dashboard message related to a payment',
             'Captured %(amount)s') % {'amount': prices_i18n.amount(amount)}
@@ -174,7 +174,7 @@ def capture_payment(request, order_pk, payment_pk):
         return redirect('dashboard:order-details', order_pk=order.pk)
     status = 400 if form.errors else 200
     ctx = {
-        'captured': payment.captured_amount,
+        'captured': amount,
         'form': form,
         'order': order,
         'payment': payment}
@@ -195,7 +195,8 @@ def refund_payment(request, order_pk, payment_pk):
         amount = form.cleaned_data['amount']
         msg = pgettext_lazy(
             'Dashboard message related to a payment',
-            'Refunded %(amount)s') % {'amount': prices_i18n.amount(amount)}
+            'Refunded %(amount)s') % {
+                'amount': prices_i18n.amount(payment.get_captured_amount())}
         order.events.create(
             parameters={'amount': amount},
             user=request.user,
@@ -204,7 +205,7 @@ def refund_payment(request, order_pk, payment_pk):
         return redirect('dashboard:order-details', order_pk=order.pk)
     status = 400 if form.errors else 200
     ctx = {
-        'captured': payment.captured_amount,
+        'captured': payment.get_captured_amount(),
         'form': form,
         'order': order,
         'payment': payment}
@@ -228,8 +229,7 @@ def void_payment(request, order_pk, payment_pk):
         return redirect('dashboard:order-details', order_pk=order.pk)
     status = 400 if form.errors else 200
     ctx = {
-        'captured': payment.captured_amount, 'form': form, 'order': order,
-        'payment': payment}
+        'form': form, 'order': order, 'payment': payment}
     return TemplateResponse(request, 'dashboard/order/modal/void.html', ctx,
                             status=status)
 

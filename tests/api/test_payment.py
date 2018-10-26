@@ -111,7 +111,9 @@ def test_checkout_add_payment(
     assert payment.checkout == cart
     assert payment.is_active
     assert payment.token == 'sample-token'
-    assert payment.total == cart.get_total().gross
+    total = cart.get_total().gross
+    assert payment.total == total.amount
+    assert payment.currency == total.currency
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
 
 
@@ -140,7 +142,7 @@ def test_payment_charge_success(
 
     variables = {
         'paymentId': payment_id,
-        'amount': str(payment_dummy.total.amount)}
+        'amount': str(payment_dummy.total)}
     response = staff_api_client.post_graphql(
         CHARGE_QUERY, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
@@ -162,7 +164,7 @@ def test_payment_charge_gateway_error(
         'Payment', payment_dummy.pk)
     variables = {
         'paymentId': payment_id,
-        'amount': str(payment_dummy.total.amount)}
+        'amount': str(payment_dummy.total)}
     monkeypatch.setattr(
         'saleor.payment.providers.dummy.dummy_success', lambda: False)
     response = staff_api_client.post_graphql(
@@ -208,7 +210,7 @@ def test_payment_refund_success(
 
     variables = {
         'paymentId': payment_id,
-        'amount': str(payment_dummy.total.amount)}
+        'amount': str(payment_dummy.total)}
     response = staff_api_client.post_graphql(
         REFUND_QUERY, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
@@ -232,7 +234,7 @@ def test_payment_refund_error(
         'Payment', payment_dummy.pk)
     variables = {
         'paymentId': payment_id,
-        'amount': str(payment.total.amount)}
+        'amount': str(payment.total)}
     monkeypatch.setattr(
         'saleor.payment.providers.dummy.dummy_success', lambda: False)
     response = staff_api_client.post_graphql(

@@ -5,6 +5,7 @@ from django.db import migrations, models
 import django.db.models.deletion
 import django_prices.models
 import saleor.core
+from decimal import Decimal
 
 
 class Migration(migrations.Migration):
@@ -39,8 +40,9 @@ class Migration(migrations.Migration):
                 ('customer_ip_address', models.GenericIPAddressField(blank=True, null=True)),
                 ('extra_data', models.TextField(blank=True, default='')),
                 ('token', models.CharField(blank=True, default='', max_length=36)),
-                ('total', django_prices.models.MoneyField(currency='USD', decimal_places=2, default=saleor.core.zero_money, max_digits=12)),
-                ('captured_amount', django_prices.models.MoneyField(currency='USD', decimal_places=2, default=saleor.core.zero_money, max_digits=12)),
+                ('currency', models.CharField(max_length=10)),
+                ('total', models.DecimalField(decimal_places=2, default=Decimal('0.0'), max_digits=12)),
+                ('captured_amount', models.DecimalField(decimal_places=2, default=Decimal('0.0'), max_digits=12)),
                 ('checkout', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='payment_methods', to='checkout.Cart')),
                 ('order', models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, related_name='payment_methods', to='order.Order')),
             ],
@@ -53,7 +55,8 @@ class Migration(migrations.Migration):
                 ('token', models.CharField(blank=True, default='', max_length=64)),
                 ('transaction_type', models.CharField(choices=[('auth', 'Authorization'), ('capture', 'Charge'), ('refund', 'Refund'), ('capture', 'Capture'), ('void', 'Void')], max_length=10)),
                 ('is_success', models.BooleanField(default=False)),
-                ('amount', django_prices.models.MoneyField(currency='USD', decimal_places=2, default=saleor.core.zero_money, max_digits=12)),
+                ('currency', models.CharField(max_length=10)),
+                ('amount', models.DecimalField(decimal_places=2, default=Decimal('0.0'), max_digits=12)),
                 ('gateway_response', django.contrib.postgres.fields.jsonb.JSONField()),
                 ('payment_method', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='transactions', to='payment.PaymentMethod')),
             ],

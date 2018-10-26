@@ -4,7 +4,7 @@ Payments
 ========
 
 Integrating a new Payment Gateway into Saleor
--------------------------------------------
+---------------------------------------------
 
 We are using a universal flow, that each provider should fulfill, there are
 several methods that should be implemented.
@@ -33,8 +33,8 @@ Example
 .. code-block:: python
 
     def get_transaction_token(**connection_params: Dict) -> str:
-        gateway - get_gateway(**connection_params)
-        transaction_token - gateway.transaction_token.generate()
+        gateway = get_gateway(**connection_params)
+        transaction_token = gateway.transaction_token.generate()
         return transaction_token
 
 authorize(payment, transaction_token, **connection_params)
@@ -54,15 +54,16 @@ Example
             **connection_params: Dict) -> Tuple[Transaction, str]:
 
         # Handle connecting to the gateway and sending the auth request here
-        response - gateway.auth(token-transaction_token)
+        response = gateway.auth(token=transaction_token)
 
-        txn - Transaction.objects.create(
-            payment-payment,
-            transaction_type-TransactionType.AUTH,
-            amount-payment.total.amount,
-            gateway_response-get_gateway_response(response),
-            token-response.transaction.id,
-            is_success-response.is_success)
+        txn = Transaction.objects.create(
+            payment=payment,
+            transaction_type=TransactionType.AUTH,
+            amount=payment.total,
+            currency=payment.currency,
+            gateway_response=get_gateway_response(response),
+            token=response.transaction.id,
+            is_success=response.is_success)
         return txn, response['error']
 
 
@@ -82,20 +83,21 @@ Example
             **connection_params: Dict) -> Tuple[Transaction, str]:
 
         # Please note that token from the last AUTH transaction should be used
-        capture_txn - payment.transactions.filter(
-            transaction_type-TransactionType.CAPTURE).first()
-        transaction_token - capture_txn.token
+        capture_txn = payment.transactions.filter(
+            transaction_type=TransactionType.CAPTURE).first()
+        transaction_token = capture_txn.token
 
         # Handle connecting to the gateway and sending the refund request here
-        response - gateway.refund(token-transaction_token)
+        response = gateway.refund(token=transaction_token)
 
-        txn - create_transaction(
-            payment-payment,
-            transaction_type-TransactionType.REFUND,
-            amount-amount,
-            token-response.transaction.id,
-            is_success-response.is_success,
-            gateway_response-get_gateway_response(response))
+        txn = create_transaction(
+            payment=payment,
+            transaction_type=TransactionType.REFUND,
+            amount=amount,
+            currency=payment.currency,
+            token=response.transaction.id,
+            is_success=response.is_success,
+            gateway_response=get_gateway_response(response))
         return txn, response['error']
 
 capture(payment, amount, **connection_params)
@@ -114,20 +116,21 @@ Example
             **connection_params: Dict) -> Tuple[Transaction, str]:
 
         # Please note that token from the last AUTH transaction should be used
-        auth_transaction - payment.transactions.filter(
-            transaction_type-TransactionType.AUTH).first()
-        transaction_token - auth_transaction.token
+        auth_transaction = payment.transactions.filter(
+            transaction_type=TransactionType.AUTH).first()
+        transaction_token = auth_transaction.token
 
         # Handle connecting to the gateway and sending the capture request here
-        response - gateway.capture(token-transaction_token)
+        response = gateway.capture(token=transaction_token)
 
-        txn - create_transaction(
-            payment-payment,
-            transaction_type-TransactionType.CAPTURE,
-            amount-amount,
-            token-response.transaction.id,
-            is_success-response.is_success,
-            gateway_response-get_gateway_response(response))
+        txn = create_transaction(
+            payment=payment,
+            transaction_type=TransactionType.CAPTURE,
+            amount=amount,
+            currency=payment.currency,
+            token=response.transaction.id,
+            is_success=response.is_success,
+            gateway_response=get_gateway_response(response))
         return txn, response['error']
 
 void(payment, **connection_params)
@@ -145,20 +148,21 @@ Example
             **connection_params: Dict) -> Tuple[Transaction, str]:
 
         # Please note that token from the last AUTH transaction should be used
-        auth_transaction - payment.transactions.filter(
-            transaction_type-TransactionType.AUTH).first()
-        transaction_token - auth_transaction.token
+        auth_transaction = payment.transactions.filter(
+            transaction_type=TransactionType.AUTH).first()
+        transaction_token = auth_transaction.token
 
         # Handle connecting to the gateway and sending the void request here
-        response - gateway.void(token-transaction_token)
+        response = gateway.void(token=transaction_token)
 
-        txn - create_transaction(
-            payment-payment,
-            transaction_type-TransactionType.VOID,
-            amount-payment.total.amount,
-            gateway_response-get_gateway_response(response),
-            token-response.transaction.id,
-            is_success-response.is_success)
+        txn = create_transaction(
+            payment=payment,
+            transaction_type=TransactionType.VOID,
+            amount=payment.total,
+            currency=payment.currency,
+            gateway_response=get_gateway_response(response),
+            token=response.transaction.id,
+            is_success=response.is_success)
         return txn, response['error']
 
 Parameters
@@ -192,7 +196,7 @@ Adding new payment provider in the settings
 
 .. code-block:: python
 
-    PAYMENT_PROVIDERS - {
+    PAYMENT_PROVIDERS = {
         'braintree': {
             'module': 'saleor.payment.providers.braintree',
             'connection_params': {

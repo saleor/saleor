@@ -438,7 +438,7 @@ class CheckoutComplete(BaseMutation):
             return CheckoutComplete(order=order, errors=errors)
         # capture payment
         try:
-            gateway_capture(payment, payment.total.amount)
+            gateway_capture(payment, payment.total)
         except PaymentError as exc:
             msg = str(exc)
             cls.add_error(field=None, message=msg, errors=errors)

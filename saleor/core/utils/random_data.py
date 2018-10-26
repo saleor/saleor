@@ -28,17 +28,8 @@ from ...order.models import Fulfillment, Order
 from ...order.utils import update_order_status
 from ...page.models import Page
 from ...payment import ChargeStatus, TransactionType
-<<<<<<< HEAD
-<<<<<<< HEAD
-from ...payment.models import PaymentMethod
-=======
-from ...payment.utils import get_billing_data
-from ...payment.models import Payment
->>>>>>> Rename PaymentMethod to Payment
-=======
 from ...payment.models import Payment
 from ...payment.utils import get_billing_data
->>>>>>> Add documentation on adding new payment gateway, fix style and inconsistencies in naming
 from ...product.models import (
     Attribute, AttributeValue, Category, Collection, Product, ProductImage,
     ProductType, ProductVariant)
@@ -423,12 +414,27 @@ def create_payment(order):
         customer_ip_address=fake.ipv4(),
         is_active=True,
         order=order,
-        total=order.total.gross,
+        total=order.total.gross.amount,
+        currency=order.total.gross.currency,
         **get_billing_data(order))
-    if status == ChargeStatus.CHARGED:
-        payment.captured_amount = payment.total
-        payment.save()
-    create_transactions(payment)
+
+    provider, provider_params = get_provider(payment.variant)
+    transaction_token = provider.get_transaction_token(**provider_params)
+
+    # Create authorization transaction
+    gateway_authorize(payment, transaction_token, **provider_params)
+    # 20% chance to void the transaction at this stage
+    if random.choice([0, 0, 0, 0, 1]):
+        gateway_void(payment, **provider_params)
+        return payment
+    # 25% to end the payment at the authorization stage
+    if not random.choice([1, 1, 1, 0]):
+        return payment
+    # Create capture transaction
+    gateway_capture(payment, payment.total, **provider_params)
+    # 25% to refund the payment
+    if random.choice([0, 0, 0, 1]):
+        gateway_refund(payment, payment.total, **provider_params)
     return payment
 
 

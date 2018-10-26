@@ -134,8 +134,8 @@ class OrderLine(CountableDjangoObjectType):
         return info.context.build_absolute_uri(url)
 
     @staticmethod
-    def resolve_unit_price(obj, info):
-        return obj.unit_price
+    def resolve_unit_price(self, info):
+        return self.unit_price
 
 
 class OrderAction(graphene.Enum):
@@ -218,98 +218,94 @@ class Order(CountableDjangoObjectType):
             'total_net']
 
     @staticmethod
-    def resolve_shipping_price(obj, info):
-        return obj.shipping_price
+    def resolve_shipping_price(self, info):
+        return self.shipping_price
 
-    def resolve_actions(obj, info):
+    def resolve_actions(self, info):
         actions = []
-        payment = obj.get_last_payment()
-        if obj.can_capture(payment):
+        payment = self.get_last_payment()
+        if self.can_capture(payment):
             actions.append(OrderAction.CAPTURE)
-        if obj.can_mark_as_paid():
+        if self.can_mark_as_paid():
             actions.append(OrderAction.MARK_AS_PAID)
-        if obj.can_refund(payment):
+        if self.can_refund(payment):
             actions.append(OrderAction.REFUND)
-        if obj.can_void(payment):
+        if self.can_void(payment):
             actions.append(OrderAction.VOID)
         return actions
 
     @staticmethod
-    def resolve_subtotal(obj, info):
-        return obj.get_subtotal()
+    def resolve_subtotal(self, info):
+        return self.get_subtotal()
 
     @staticmethod
-    def resolve_total(obj, info):
-        return obj.total
+    def resolve_total(self, info):
+        return self.total
 
     @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related='payments')
-    def resolve_total_authorized(obj, info):
+    def resolve_total_authorized(self, info):
         # FIXME adjust to multiple payments in the future
-        payment = obj.get_last_payment()
-        if payment:
-            return payment.total
+        return self.total_authorized
 
     @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related='payments')
-    def resolve_total_captured(obj, info):
+    def resolve_total_captured(self, info):
         # FIXME adjust to multiple payments in the future
-        payment = obj.get_last_payment()
-        if payment:
-            return payment.captured_amount
+        return self.total_captured
 
     @staticmethod
-    def resolve_total_balance(obj, info):
-        return obj.total_balance
+    def resolve_total_balance(self, info):
+        return self.total_balance
 
     @staticmethod
-    def resolve_fulfillments(obj, info):
-        return obj.fulfillments.all()
+    def resolve_fulfillments(self, info):
+        return self.fulfillments.all()
 
     @staticmethod
-    def resolve_lines(obj, info):
-        return obj.lines.all()
+    def resolve_lines(self, info):
+        return self.lines.all()
 
     @staticmethod
-    def resolve_events(obj, info):
-        return obj.events.all()
-
-    @staticmethod
-    @gql_optimizer.resolver_hints(prefetch_related='payments')
-    def resolve_is_paid(obj, info):
-        return obj.is_fully_paid()
-
-    @staticmethod
-    def resolve_number(obj, info):
-        return str(obj.pk)
+    def resolve_events(self, info):
+        return self.events.all()
 
     @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related='payments')
-    def resolve_payment_status(obj, info):
-        return obj.get_last_payment_status()
+    def resolve_is_paid(self, info):
+        return self.is_fully_paid()
+
+    @staticmethod
+    def resolve_number(self, info):
+        return str(self.pk)
 
     @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related='payments')
-    def resolve_payment_status_display(obj, info):
-        return obj.get_last_payment_status_display()
+    def resolve_payment_status(self, info):
+        return self.get_last_payment_status()
 
     @staticmethod
-    def resolve_status_display(obj, info):
-        return obj.get_status_display()
+    @gql_optimizer.resolver_hints(prefetch_related='payments')
+    def resolve_payment_status_display(self, info):
+        return self.get_last_payment_status_display()
 
     @staticmethod
-    def resolve_user_email(obj, info):
-        if obj.user_email:
-            return obj.user_email
-        if obj.user_id:
-            return obj.user.email
+    def resolve_status_display(self, info):
+        return self.get_status_display()
+
+    @staticmethod
+    def resolve_user_email(self, info):
+        if self.user_email:
+            return self.user_email
+        if self.user_id:
+            return self.user.email
         return None
 
     @staticmethod
-    def resolve_available_shipping_methods(obj, info):
+    def resolve_available_shipping_methods(self, info):
         from .resolvers import resolve_shipping_methods
         return resolve_shipping_methods(
-            obj, info, obj.get_subtotal().gross.amount)
+            self, info, self.get_subtotal().gross.amount)
 
     def resolve_is_shipping_required(self, info):
         return self.is_shipping_required()

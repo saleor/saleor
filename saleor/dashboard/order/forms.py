@@ -252,12 +252,11 @@ class OrderNoteForm(forms.Form):
 
 
 class ManagePaymentForm(forms.Form):
-    amount = MoneyField(
+    amount = forms.DecimalField(
         label=pgettext_lazy(
             'Payment management form (capture, refund, void)', 'Amount'),
         max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        currency=settings.DEFAULT_CURRENCY)
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES)
 
     def __init__(self, *args, **kwargs):
         self.payment = kwargs.pop('payment')
@@ -273,9 +272,9 @@ class ManagePaymentForm(forms.Form):
                 'Payment form error', 'Payment gateway error: %s') % message)
 
     def try_payment_action(self, action):
-        money = self.cleaned_data['amount']
+        amount = self.cleaned_data['amount']
         try:
-            action(money.amount)
+            action(amount)
         except (PaymentError, ValueError) as e:
             self.payment_error(str(e))
             return False
@@ -355,8 +354,9 @@ class OrderMarkAsPaidForm(forms.Form):
     def save(self):
         # FIXME add more fields to the payment method
         defaults = {
-            'total': self.order.total.gross,
-            'captured_amount': self.order.total.gross,
+            'total': self.order.total.gross.amount,
+            'captured_amount': self.order.total.gross.amount,
+            'currency': self.order.total.gross.currency,
             **get_billing_data(self.order)}
         Payment.objects.get_or_create(
             variant=CustomPaymentChoices.MANUAL,

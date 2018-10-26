@@ -88,7 +88,6 @@ def payment(request, token):
 @check_order_status
 def start_payment(request, order, variant):
     defaults = {
-        'total': order.total.gross,
         'customer_ip_address': get_client_ip(request),
         **get_billing_data(order)}
     if variant not in settings.CHECKOUT_PAYMENT_CHOICES:
@@ -96,7 +95,7 @@ def start_payment(request, order, variant):
     with transaction.atomic():
         payment, _ = Payment.objects.get_or_create(
             variant=variant, is_active=True, order=order, defaults=defaults,
-            total=order.total.gross)
+            total=order.total.gross.amount, currency=order.total.gross.currency)
         if (
                 order.is_fully_paid()
                 or payment.charge_status == ChargeStatus.FULLY_REFUNDED):

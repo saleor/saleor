@@ -370,7 +370,9 @@ def test_order_queryset_to_ship():
     for order in orders_to_ship:
         order.payments.create(
             variant=settings.DUMMY, charge_status=ChargeStatus.CHARGED,
-            total=order.total.gross, captured_amount=order.total_gross)
+            total=order.total.gross.amount,
+            captured_amount=order.total.gross.amount,
+            currency=order.total.gross.currency)
 
     orders_not_to_ship = [
         Order.objects.create(status=OrderStatus.DRAFT, total=total),
@@ -459,10 +461,11 @@ def test_order_payment_flow(
 
     # Go to payment details page, enter payment data
     data = {
-        'variant': 'dummy',
+        'variant': settings.DUMMY,
         'is_active': True,
-        'total': order.total.gross,
-        'charge_status': 'not-charged'}
+        'total': order.total.gross.amount,
+        'currency': order.total.gross.currency,
+        'charge_status': ChargeStatus.NOT_CHARGED}
     response = client.post(redirect_url, data)
 
     assert response.status_code == 302
@@ -472,7 +475,8 @@ def test_order_payment_flow(
 
     # Assert that payment object was created and contains correct data
     payment = order.payments.all()[0]
-    assert payment.total == order.total_gross
+    assert payment.total == order.total.gross.amount
+    assert payment.currency == order.total.gross.currency
     assert payment.transactions.count() == 1
     assert payment.transactions.first().transaction_type == 'auth'
 
