@@ -83,11 +83,13 @@ class Order(models.Model):
         ShippingMethod, blank=True, null=True, related_name='orders',
         on_delete=models.SET_NULL)
     shipping_price_net = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=0, editable=False)
     shipping_price_gross = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=0, editable=False)
     shipping_price = TaxedMoneyField(
@@ -96,11 +98,13 @@ class Order(models.Model):
         max_length=255, null=True, default=None, blank=True, editable=False)
     token = models.CharField(max_length=36, unique=True, blank=True)
     total_net = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=zero_money)
     total_gross = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=zero_money)
     total = TaxedMoneyField(net_field='total_net', gross_field='total_gross')
@@ -108,7 +112,8 @@ class Order(models.Model):
         Voucher, blank=True, null=True, related_name='+',
         on_delete=models.SET_NULL)
     discount_amount = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=zero_money)
     discount_name = models.CharField(max_length=255, default='', blank=True)
@@ -283,10 +288,12 @@ class OrderLine(models.Model):
     quantity_fulfilled = models.IntegerField(
         validators=[MinValueValidator(0)], default=0)
     unit_price_net = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES)
     unit_price_gross = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES)
     unit_price = TaxedMoneyField(
         net_field='unit_price_net', gross_field='unit_price_gross')

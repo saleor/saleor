@@ -56,7 +56,8 @@ class Cart(models.Model):
         on_delete=models.SET_NULL)
     note = models.TextField(blank=True, default='')
     discount_amount = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=zero_money)
     discount_name = models.CharField(max_length=255, blank=True, null=True)
