@@ -180,6 +180,16 @@ class CheckoutLinesAdd(BaseMutation):
             for variant, quantity in zip(variants, quantities):
                 add_variant_to_cart(
                     checkout, variant, quantity, replace=replace)
+        # FIXME test if below function is called
+        clean_shipping_method(
+            checkout=checkout,
+            method=checkout.shipping_method,
+            errors=errors,
+            discounts=info.context.discounts,
+            taxes=get_taxes_for_address(checkout.shipping_address))
+        if errors:
+            CheckoutLinesAdd(errors=errors)
+
         return CheckoutLinesAdd(checkout=checkout, errors=errors)
 
 
@@ -215,7 +225,18 @@ class CheckoutLineDelete(BaseMutation):
             info, line_id, errors, 'line_id', only_type=CheckoutLine)
         if line and line in checkout.lines.all():
             line.delete()
-        return CheckoutLinesAdd(checkout=checkout, errors=errors)
+
+        # FIXME test if below function is called
+        clean_shipping_method(
+            checkout=checkout,
+            method=checkout.shipping_method,
+            errors=errors,
+            discounts=info.context.discounts,
+            taxes=get_taxes_for_address(checkout.shipping_address))
+        if errors:
+            CheckoutLineDelete(errors=errors)
+
+        return CheckoutLineDelete(checkout=checkout, errors=errors)
 
 
 class CheckoutCustomerAttach(BaseMutation):
