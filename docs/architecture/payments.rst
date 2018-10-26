@@ -7,8 +7,8 @@ Supported Gateways
 The default configuration uses the `dummy` backend.
 It's meant to allow developers to easily simulate different payment results.
 
-Supported payment providers:
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Supported payment gateways:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Braintree (supports PayPal and Credit Cards)
 
@@ -29,7 +29,7 @@ Authorization and capture is a two-step process.
 
 Firstly the funds are locked on the payer's account but are not transferred to your bank.
 
-Then depending on the provider and the card type, you have between a few days and a month to charge the card for an amount not exceeding the authorized amount.
+Then depending on the gateway and the card type, you have between a few days and a month to charge the card for an amount not exceeding the authorized amount.
 
 This is very useful when an exact price cannot be determined until after the order is prepared,
 or we want to capture the money as soon as we ship the order.

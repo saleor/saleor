@@ -1075,7 +1075,7 @@ def test_clean_order_void_payment():
 
 def test_clean_order_refund_payment():
     payment = MagicMock(spec=Payment)
-    payment.variant = CustomPaymentChoices.MANUAL
+    payment.gateway = CustomPaymentChoices.MANUAL
     amount = Mock(spec='string')
     errors = clean_refund_payment(payment, amount, [])
     assert errors[0].field == 'payment'

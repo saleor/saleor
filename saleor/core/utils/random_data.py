@@ -27,7 +27,11 @@ from ...menu.models import Menu
 from ...order.models import Fulfillment, Order
 from ...order.utils import update_order_status
 from ...page.models import Page
+<<<<<<< HEAD
 from ...payment import ChargeStatus, TransactionType
+=======
+from ...payment import ChargeStatus, TransactionType, get_payment_gateway
+>>>>>>> Rename Payment Provider to Payment GAteway, Payment's variant to Payment's gateway
 from ...payment.models import Payment
 from ...payment.utils import get_billing_data
 from ...product.models import (
@@ -409,8 +413,7 @@ def create_payment(order):
             ChargeStatus.CHARGED,
             ChargeStatus.NOT_CHARGED])
     payment = Payment.objects.create(
-        charge_status=status,
-        variant='default',
+        gateway=settings.DUMMY,
         customer_ip_address=fake.ipv4(),
         is_active=True,
         order=order,
@@ -418,23 +421,23 @@ def create_payment(order):
         currency=order.total.gross.currency,
         **get_billing_data(order))
 
-    provider, provider_params = get_provider(payment.variant)
-    transaction_token = provider.get_transaction_token(**provider_params)
+    gateway, gateway_params = get_payment_gateway(payment.gateway)
+    transaction_token = gateway.get_transaction_token(**gateway_params)
 
     # Create authorization transaction
-    gateway_authorize(payment, transaction_token, **provider_params)
+    gateway_authorize(payment, transaction_token, **gateway_params)
     # 20% chance to void the transaction at this stage
     if random.choice([0, 0, 0, 0, 1]):
-        gateway_void(payment, **provider_params)
+        gateway_void(payment, **gateway_params)
         return payment
     # 25% to end the payment at the authorization stage
     if not random.choice([1, 1, 1, 0]):
         return payment
     # Create capture transaction
-    gateway_capture(payment, payment.total, **provider_params)
+    gateway_capture(payment, payment.total, **gateway_params)
     # 25% to refund the payment
     if random.choice([0, 0, 0, 1]):
-        gateway_refund(payment, payment.total, **provider_params)
+        gateway_refund(payment, payment.total, **gateway_params)
     return payment
 
 

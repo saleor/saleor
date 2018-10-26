@@ -3,17 +3,17 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.translation import pgettext_lazy
 
-from . import ChargeStatus, TransactionType, get_provider
+from . import ChargeStatus, TransactionType, get_payment_gateway
 from .models import Payment
 from .utils import gateway_authorize, gateway_capture, gateway_refund
 
 
 def get_form_for_payment(payment):
-    if payment.variant == settings.DUMMY:
+    if payment.gateway == settings.DUMMY:
         return DummyPaymentForm
-    elif payment.variant == settings.BRAINTREE:
+    elif payment.gateway == settings.BRAINTREE:
         return BraintreePaymentForm
-    raise ValueError('Unknown payment provider')
+    raise ValueError('Unknown payment gateway')
 
 
 class DummyPaymentForm(forms.Form):
@@ -28,8 +28,8 @@ class DummyPaymentForm(forms.Form):
 
     def process_payment(self):
         # FIXME add tests
-        provider, provider_params = get_provider(self.instance.variant)
-        transaction_token = provider.get_transaction_token(**provider_params)
+        gateway, gateway_params = get_payment_gateway(self.instance.gateway)
+        transaction_token = gateway.get_transaction_token(**gateway_params)
         charge_status = self.cleaned_data['charge_status']
         self.instance.authorize(transaction_token)
         if charge_status == ChargeStatus.NOT_CHARGED:

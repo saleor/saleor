@@ -8,11 +8,11 @@ from ..payment.models import Payment
 from .models import Order
 
 PAYMENT_CHOICES = [
-    (k, v) for k, v in settings.CHECKOUT_PAYMENT_CHOICES.items()]
+    (k, v) for k, v in settings.CHECKOUT_PAYMENT_GATEWAYS.items()]
 
 
 class PaymentsForm(forms.Form):
-    variant = forms.ChoiceField(
+    gateway = forms.ChoiceField(
         label=pgettext_lazy('Payments form label', 'Payment Method'),
         choices=PAYMENT_CHOICES,
         initial=PAYMENT_CHOICES[0][0],

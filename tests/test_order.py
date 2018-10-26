@@ -369,7 +369,7 @@ def test_order_queryset_to_ship():
     ]
     for order in orders_to_ship:
         order.payments.create(
-            variant=settings.DUMMY, charge_status=ChargeStatus.CHARGED,
+            gateway=settings.DUMMY, charge_status=ChargeStatus.CHARGED,
             total=order.total.gross.amount,
             captured_amount=order.total.gross.amount,
             currency=order.total.gross.currency)
@@ -449,19 +449,19 @@ def test_order_payment_flow(
 
     # Select payment
     url = reverse('order:payment', kwargs={'token': order.token})
-    data = {'variant': settings.DUMMY}
+    data = {'gateway':settings.DUMMY}
     response = client.post(url, data, follow=True)
 
     assert len(response.redirect_chain) == 1
     assert response.status_code == 200
     redirect_url = reverse(
         'order:payment',
-        kwargs={'token': order.token, 'variant': settings.DUMMY})
+        kwargs={'token': order.token, 'gateway':settings.DUMMY})
     assert response.request['PATH_INFO'] == redirect_url
 
     # Go to payment details page, enter payment data
     data = {
-        'variant': settings.DUMMY,
+        'gateway':settings.DUMMY,
         'is_active': True,
         'total': order.total.gross.amount,
         'currency': order.total.gross.currency,

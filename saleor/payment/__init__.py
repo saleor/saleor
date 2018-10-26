@@ -66,23 +66,23 @@ class ChargeStatus:
         (FULLY_REFUNDED, pgettext_lazy('payment status', 'Fully refunded'))]
 
 
-PROVIDERS_ENUM = Enum(
-    'ProvidersEnum',
+GATEWAYS_ENUM = Enum(
+    'GatewaysEnum',
     {key.upper(): key.lower()
-     for key in settings.PAYMENT_PROVIDERS})
+     for key in settings.PAYMENT_GATEWAYS})
 
 
-def get_provider(provider_name):
-    if provider_name not in settings.CHECKOUT_PAYMENT_CHOICES:
-        raise ValueError('%s is not allowed provider' % provider_name)
-    if provider_name not in settings.PAYMENT_PROVIDERS:
+def get_payment_gateway(gateway_name):
+    if gateway_name not in settings.CHECKOUT_PAYMENT_GATEWAYS:
+        raise ValueError('%s is not allowed gateway' % gateway_name)
+    if gateway_name not in settings.PAYMENT_GATEWAYS:
         raise ImproperlyConfigured(
-            'Payment provider %s is not configured.' % provider_name)
-    provider_module = importlib.import_module(
-        settings.PAYMENT_PROVIDERS[provider_name]['module'])
-    provider_params = settings.PAYMENT_PROVIDERS[provider_name][
+            'Payment gateway %s is not configured.' % gateway_name)
+    gateway_module = importlib.import_module(
+        settings.PAYMENT_GATEWAYS[gateway_name]['module'])
+    gateway_params = settings.PAYMENT_GATEWAYS[gateway_name][
         'connection_params']
-    return provider_module, provider_params
+    return gateway_module, gateway_params
 
 
 def can_be_voided(payment):

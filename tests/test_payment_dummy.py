@@ -16,7 +16,7 @@ def test_authorize(payment_dummy):
 
 def test_authorize_gateway_error(payment_dummy, monkeypatch):
     monkeypatch.setattr(
-        'saleor.payment.providers.dummy.dummy_success', lambda: False)
+        'saleor.payment.gateways.dummy.dummy_success', lambda: False)
     with pytest.raises(PaymentError):
         txn = payment_dummy.authorize(transaction_token='Fake')
         assert txn.transaction_type == TransactionType.AUTH
@@ -54,7 +54,7 @@ def test_void_failed(is_active, charge_status, payment_dummy):
 
 def test_void_gateway_error(payment_dummy, monkeypatch):
     monkeypatch.setattr(
-        'saleor.payment.providers.dummy.dummy_success', lambda: False)
+        'saleor.payment.gateways.dummy.dummy_success', lambda: False)
     with pytest.raises(PaymentError):
         txn = payment_dummy.void()
         assert txn.transaction_type == TransactionType.VOID
@@ -93,7 +93,7 @@ def test_charge_failed(
 
 def test_charge_gateway_error(payment_dummy, monkeypatch):
     monkeypatch.setattr(
-        'saleor.payment.providers.dummy.dummy_success', lambda: False)
+        'saleor.payment.gateways.dummy.dummy_success', lambda: False)
     with pytest.raises(PaymentError):
         txn = payment_dummy.capture(80)
         assert txn.transaction_type == TransactionType.CHARGE
@@ -141,7 +141,7 @@ def test_refund_failed(
 
 def test_refund_gateway_error(payment_dummy, monkeypatch):
     monkeypatch.setattr(
-        'saleor.payment.providers.dummy.dummy_success', lambda: False)
+        'saleor.payment.gateways.dummy.dummy_success', lambda: False)
     payment = payment_dummy
     payment.charge_status = ChargeStatus.CHARGED
     payment.captured_amount = Decimal('80.00')

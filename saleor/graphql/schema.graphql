@@ -677,6 +677,11 @@ input FulfillmentUpdateTrackingInput {
   notifyCustomer: Boolean
 }
 
+enum GatewaysEnum {
+  DUMMY
+  BRAINTREE
+}
+
 scalar GenericScalar
 
 type Geolocalization {
@@ -1208,7 +1213,7 @@ type PasswordReset {
 
 type Payment implements Node {
   id: ID!
-  variant: String!
+  gateway: String!
   isActive: Boolean!
   created: DateTime!
   modified: DateTime!
@@ -1258,7 +1263,7 @@ type PaymentCountableEdge {
 }
 
 input PaymentInput {
-  gateway: ProvidersEnum
+  gateway: GatewaysEnum
   checkoutId: ID
   transactionToken: String!
   amount: Decimal!
@@ -1557,11 +1562,6 @@ type ProductVariantUpdate {
   productVariant: ProductVariant
 }
 
-enum ProvidersEnum {
-  DUMMY
-  BRAINTREE
-}
-
 type Query {
   attributes(query: String, inCategory: ID, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
   categories(query: String, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
@@ -1591,7 +1591,7 @@ type Query {
   page(id: ID, slug: String): Page
   pages(query: String, before: String, after: String, first: Int, last: Int): PageCountableConnection
   payment(id: ID): Payment
-  paymentTransactionToken(gateway: ProvidersEnum): String
+  paymentTransactionToken(gateway: GatewaysEnum): String
   payments(before: String, after: String, first: Int, last: Int): PaymentCountableConnection
   sale(id: ID!): Sale
   sales(query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection

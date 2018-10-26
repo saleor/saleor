@@ -46,7 +46,7 @@ def test_payment_charge_gateway_error(
         'Payment', payment_dummy.pk)
     variables = {'paymentId': payment_id}
     monkeypatch.setattr(
-        'saleor.payment.providers.dummy.dummy_success', lambda: False)
+        'saleor.payment.gateways.dummy.dummy_success', lambda: False)
     response = staff_api_client.post_graphql(
         VOID_QUERY, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
@@ -166,7 +166,7 @@ def test_payment_charge_gateway_error(
         'paymentId': payment_id,
         'amount': str(payment_dummy.total)}
     monkeypatch.setattr(
-        'saleor.payment.providers.dummy.dummy_success', lambda: False)
+        'saleor.payment.gateways.dummy.dummy_success', lambda: False)
     response = staff_api_client.post_graphql(
         CHARGE_QUERY, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
@@ -236,7 +236,7 @@ def test_payment_refund_error(
         'paymentId': payment_id,
         'amount': str(payment.total)}
     monkeypatch.setattr(
-        'saleor.payment.providers.dummy.dummy_success', lambda: False)
+        'saleor.payment.gateways.dummy.dummy_success', lambda: False)
     response = staff_api_client.post_graphql(
         REFUND_QUERY, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
@@ -260,7 +260,7 @@ def test_payments_query(
             edges {
                 node {
                     id
-                    variant
+                    gateway
                 }
             }
         }
@@ -270,4 +270,4 @@ def test_payments_query(
         query, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
     data = content['data']['payments']
-    assert data['edges'][0]['node']['variant'] == payment_dummy.variant
+    assert data['edges'][0]['node']['gateway'] == payment_dummy.gateway
