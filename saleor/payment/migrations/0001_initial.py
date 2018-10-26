@@ -33,6 +33,7 @@ class Migration(migrations.Migration):
                 ('billing_address_1', models.CharField(blank=True, max_length=256)),
                 ('billing_address_2', models.CharField(blank=True, max_length=256)),
                 ('billing_city', models.CharField(blank=True, max_length=256)),
+                ('billing_city_area', models.CharField(blank=True, max_length=128)),
                 ('billing_postal_code', models.CharField(blank=True, max_length=256)),
                 ('billing_country_code', models.CharField(blank=True, max_length=2)),
                 ('billing_country_area', models.CharField(blank=True, max_length=256)),

@@ -4,6 +4,7 @@ import random
 import unicodedata
 from datetime import date
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -377,37 +378,10 @@ def create_fake_user():
     user.save()
     return user
 
-
-def create_transactions(payment):
-    # FIXME Add tests for this function
-    payment.transactions.create(
-        transaction_type=TransactionType.AUTH,
-        is_success=True, amount=payment.total, gateway_response={})
-    if payment.charge_status == ChargeStatus.NOT_CHARGED:
-        if random.randint(0, 1):
-            payment.transactions.create(
-                transaction_type=TransactionType.VOID,
-                is_success=True, amount=payment.total,
-                gateway_response={})
-        return
-    payment.transactions.create(
-        transaction_type=TransactionType.CAPTURE,
-        is_success=True, amount=payment.total, gateway_response={})
-    if payment.charge_status == ChargeStatus.FULLY_REFUNDED:
-            payment.transactions.create(
-                transaction_type=TransactionType.REFUND,
-                is_success=True, amount=payment.total,
-                gateway_response={})
-    return payment
-
-
-def create_payment(order):
-    # FIXME Add tests for this function
-    status = random.choice(
-        [
-            ChargeStatus.FULLY_REFUNDED,
-            ChargeStatus.CHARGED,
-            ChargeStatus.NOT_CHARGED])
+# We don't want to spam the console with payment confirmations sent to
+# non-existing fake customers.
+@patch('saleor.order.emails.send_payment_confirmation.delay')
+def create_payment(mock_email_confirmation, order):
     payment = Payment.objects.create(
         gateway=settings.DUMMY,
         customer_ip_address=fake.ipv4(),
@@ -506,9 +480,8 @@ def create_fake_order(discounts, taxes):
     order.weight = weight
     order.save()
 
+    create_payment(order=order)
     create_fulfillments(order)
-
-    create_payment(order)
     return order
 
 
