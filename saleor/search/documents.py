@@ -71,10 +71,10 @@ class OrderDocument(DocType):
         return instance.user_email
 
     def prepare_first_name(self, instance):
-        get_user_first_name(instance.user)
+        return get_user_first_name(instance.user)
 
     def prepare_last_name(self, instance):
-        get_user_last_name(instance.user)
+        return get_user_last_name(instance.user)
 
     class Meta:
         model = Order
