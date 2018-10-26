@@ -7,7 +7,7 @@ from ...account.models import CustomerNote, User
 def get_name_placeholder(name):
     return pgettext_lazy(
         'Customer form: Name field placeholder',
-        '%(name)s (Inherit from default biling address)') % {
+        '%(name)s (Inherit from default billing address)') % {
             'name': name}
 
 
