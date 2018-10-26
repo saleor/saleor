@@ -7,28 +7,18 @@ services:
       dockerfile: ./Dockerfile.dev
       args:
         STATIC_URL: '/static/'
-        HOST_UID: 1000
-        HOST_GID: 100
     restart: unless-stopped
     networks:
       - saleor-backend-tier
     ports:
       - 8000:8000
     volumes:
-      # - .:/app:Z
-      - .:/app
-      # - type: bind
-      #   source: ./saleor/static
-      #   target: /app/static
-      # - type: bind
-      #   source: ./templates
-      #   target: /app/templates
+      - .:/app:Z
     env_file: common.env
     depends_on:
       - db
       - redis
       - search
-    entrypoint: docker-entrypoint.sh
     command: python manage.py runserver 0.0.0.0:8000
 
   db:
@@ -65,8 +55,7 @@ services:
     networks:
       - saleor-backend-tier
     volumes:
-      # - .:/app:Z
-      - .:/app
+      - .:/app:Z
     env_file: common.env
     depends_on:
       - redis
