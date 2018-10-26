@@ -12,7 +12,8 @@ import { withStyles, WithStyles } from "@material-ui/core/styles";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import MenuIcon from "@material-ui/icons/Menu";
-import PersonIcon from "@material-ui/icons/Person";
+import Person from "@material-ui/icons/Person";
+import PersonOutline from "@material-ui/icons/PersonOutline";
 import SettingsIcon from "@material-ui/icons/Settings";
 import * as classNames from "classnames";
 import * as React from "react";
@@ -28,6 +29,7 @@ import MenuToggle from "./components/MenuToggle";
 import Navigator from "./components/Navigator";
 import Toggle from "./components/Toggle";
 import { configurationMenu, configurationMenuUrl } from "./configuration";
+import { customerListUrl } from "./customers/urls";
 import i18n from "./i18n";
 import ArrowDropdown from "./icons/ArrowDropdown";
 import Home from "./icons/Home";
@@ -79,6 +81,13 @@ const menuStructure: IMenuItem[] = [
     label: i18n.t("Orders", { context: "Menu label" }),
     permission: PermissionEnum.MANAGE_ORDERS,
     url: "/orders/"
+  },
+  {
+    ariaLabel: "customers",
+    icon: <PersonOutline />,
+    label: i18n.t("Customers", { context: "Menu label" }),
+    permission: PermissionEnum.MANAGE_USERS,
+    url: customerListUrl
   }
 ];
 
@@ -424,7 +433,7 @@ export const AppRoot = decorate(
                                   </Hidden>
                                   <Hidden mdUp>
                                     <IconButton className={classes.userIcon}>
-                                      <PersonIcon />
+                                      <Person />
                                     </IconButton>
                                   </Hidden>
                                 </div>
