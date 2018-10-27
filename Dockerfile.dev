@@ -43,11 +43,12 @@ COPY --from=node:10 /usr/local/bin/ /usr/local/bin/
 
 COPY docker-entrypoint.sh /usr/local/bin/
 
-WORKDIR /app
+RUN useradd -u $APP_USER -o -g $APP_GROUP -m saleor && \
+    install -d -o $APP_USER -g $APP_GROUP /app/node_modules && \
+    install -d -o $APP_USER -g $APP_GROUP /app/media && \
+    install -d -o $APP_USER -g $APP_GROUP /app/static
 
-RUN useradd -u $APP_USER -g $APP_GROUP -m saleor && \
-    mkdir -p /app/media /app/static && \
-    chown -R $APP_USER:$APP_GROUP /app/
+WORKDIR /app
 
 EXPOSE 8000
 ENV PORT 8000
