@@ -1,18 +1,12 @@
 # Package manager lock files
-Pipfile.lock linguist-generated
-package-lock.json linguist-generated
-
-# Generated GraphQL schemas
-*.graphql linguist-generated
-
-# Generated GraphQL types
-gql-types.ts linguist-generated
+Pipfile.lock linguist-generated -diff -merge
+package-lock.json linguist-generated -diff -merge
 
 # Generated django migration files
 *_auto_*.py linguist-generated
 
 # Generated locale pot files
-*.po linguist-generated
+*.po -merge
 
 # Software made SVG files
 *.svg linguist-generated
