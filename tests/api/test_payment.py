@@ -291,6 +291,13 @@ def test_payments_query(
                             amount
                         }
                     }
+                    creditCard {
+                        expMonth
+                        expYear
+                        brand
+                        firstDigits
+                        lastDigits
+                    }
                 }
             }
         }
@@ -327,3 +334,9 @@ def test_payments_query(
         'amount': {
             'currency': pay.currency,
             'amount': float(str(txn.amount))}}]
+    assert data['creditCard'] == {
+        'expMonth': pay.cc_exp_month,
+        'expYear': pay.cc_exp_year,
+        'brand': pay.cc_brand,
+        'firstDigits': pay.cc_first_digits,
+        'lastDigits': pay.cc_last_digits}

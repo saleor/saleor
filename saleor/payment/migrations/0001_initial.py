@@ -6,6 +6,7 @@ import django.db.models.deletion
 import django_prices.models
 import saleor.core
 from decimal import Decimal
+import django.core.validators
 
 
 class Migration(migrations.Migration):
@@ -39,6 +40,11 @@ class Migration(migrations.Migration):
                 ('billing_country_area', models.CharField(blank=True, max_length=256)),
                 ('billing_email', models.EmailField(blank=True, max_length=254)),
                 ('customer_ip_address', models.GenericIPAddressField(blank=True, null=True)),
+                ('cc_brand', models.CharField(blank=True, default='', max_length=40)),
+                ('cc_exp_month', models.PositiveIntegerField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(12)])),
+                ('cc_exp_year', models.PositiveIntegerField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(1000)])),
+                ('cc_first_digits', models.CharField(blank=True, default='', max_length=6)),
+                ('cc_last_digits', models.CharField(blank=True, default='', max_length=4)),
                 ('extra_data', models.TextField(blank=True, default='')),
                 ('token', models.CharField(blank=True, default='', max_length=36)),
                 ('currency', models.CharField(max_length=10)),

@@ -49,6 +49,21 @@ class Transaction(CountableDjangoObjectType):
         return self.get_amount()
 
 
+class CreditCard(graphene.ObjectType):
+    brand = graphene.String(
+        description='Card brand.', required=True)
+    first_digits = graphene.String(
+        description='The host name of the domain.', required=True)
+    last_digits = graphene.Boolean(
+        description='Last 4 digits of the card number.', required=True)
+    exp_month = graphene.Int(
+        description='Two-digit number representing the card’s expiration month.',
+        required=True)
+    exp_year = graphene.Int(
+        description='Four-digit number representing the card’s expiration year.',
+        required=True)
+
+
 class Payment(CountableDjangoObjectType):
     # FIXME gateway_response field should be resolved into query-readable format
     # if we want to use it on the frontend
@@ -71,6 +86,9 @@ class Payment(CountableDjangoObjectType):
         Money, description='Maximum amount of money that can be captured.')
     available_refund_amount = graphene.Field(
         Money, description='Maximum amount of money that can be refunded.')
+    credit_card = graphene.Field(
+        CreditCard,
+        description='The details of the card used for this payment.')
 
     class Meta:
         description = 'Represents a payment of a given type.'
@@ -126,3 +144,14 @@ class Payment(CountableDjangoObjectType):
         if not self.can_capture():
             return None
         return self.get_total() - self.get_captured_amount()
+
+    def resolve_credit_card(self, info):
+        data = {
+            'first_digits': self.cc_first_digits,
+            'last_digits': self.cc_last_digits,
+            'brand': self.cc_brand,
+            'exp_month': self.cc_exp_month,
+            'exp_year': self.cc_exp_year}
+        if not any(data.values()):
+            return None
+        return CreditCard(**data)
