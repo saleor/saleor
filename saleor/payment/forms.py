@@ -29,9 +29,10 @@ class DummyPaymentForm(forms.Form):
     def process_payment(self):
         # FIXME add tests
         gateway, gateway_params = get_payment_gateway(self.instance.gateway)
-        transaction_token = gateway.get_transaction_token(**gateway_params)
+        # Dummy provider requires no token
+        fake_token = gateway.get_client_token(**gateway_params)
+        self.instance.authorize(fake_token)
         charge_status = self.cleaned_data['charge_status']
-        self.instance.authorize(transaction_token)
         if charge_status == ChargeStatus.NOT_CHARGED:
             return
         self.instance.capture()
@@ -44,9 +45,9 @@ class BraintreePaymentForm(forms.Form):
     amount = forms.DecimalField()
 
     # Unique transaction identifier returned by Braintree
-    # for testing in the sandbox please refer to
+    # for testing in the sandbox mode please refer to
     # https://developers.braintreepayments.com/reference/general/testing/python#nonces-representing-cards
-    # as it's values should be hardcoded to simulate each payment-gateway
+    # as it's values should be hardcoded to simulate each payment gateway
     # response
     payment_method_nonce = forms.CharField()
 
@@ -69,12 +70,16 @@ class BraintreePaymentForm(forms.Form):
                 'payment error',
                 'Unable to process transaction. Please try again in a moment')
             raise ValidationError(msg)
-        cleaned_data['payment_method_nonce'] = 'fake-valid-nonce'
+        cleaned_data['payment_method_nonce'] = 'fake-valid-nonce'  # FIXME remove after testing
         return cleaned_data
 
     def process_payment(self):
         # FIXME add tests
-        self.instance.authorize(self.cleaned_data['payment_method_nonce'])
+        payment_token = self.cleaned_data['payment_method_nonce']
+        self.instance.token = payment_token
+        self.instance.save(updated_fields=['token'])
+
+        self.instance.authorize(payment_token)
         try:
             self.instance.capture(self.instance.total)
         except PaymentError as exc:

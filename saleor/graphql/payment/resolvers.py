@@ -1,5 +1,5 @@
 from ...payment import models
-from ...payment.utils import gateway_get_transaction_token
+from ...payment.utils import gateway_get_client_token
 from ..utils import filter_by_query_param
 
 PAYMENT_SEARCH_FIELDS = ['id']
@@ -12,6 +12,6 @@ def resolve_payments(info, query):
     return queryset
 
 
-def resolve_payment_transaction_token(gateway=None):
+def resolve_payment_client_token(gateway=None):
     # FIXME Add tests
-    return gateway_get_transaction_token(gateway)
+    return gateway_get_client_token(gateway)

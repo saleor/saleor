@@ -89,10 +89,10 @@ class Payment(models.Model):
         return Money(
             self.captured_amount, self.currency or settings.DEFAULT_CURRENCY)
 
-    def authorize(self, transaction_token):
+    def authorize(self, payment_token):
         from . import utils
         return utils.gateway_authorize(
-            payment=self, transaction_token=transaction_token)
+            payment=self, payment_token=payment_token)
 
     def void(self):
         from . import utils
@@ -112,9 +112,17 @@ class Payment(models.Model):
             amount = self.captured_amount
         return utils.gateway_refund(payment=self, amount=amount)
 
-    def can_capture(self):
+    def can_authorize(self):
         return (
             self.is_active and self.charge_status == ChargeStatus.NOT_CHARGED)
+
+    def can_capture(self):
+        # FIXME should have auth transaction
+        not_charged = self.charge_status == ChargeStatus.NOT_CHARGED
+        not_fully_charged = (
+            self.charge_status == ChargeStatus.CHARGED
+            and self.get_total() > self.get_captured_amount())
+        return self.is_active and not_charged or not_fully_charged
 
     def can_void(self):
         return (

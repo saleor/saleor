@@ -129,21 +129,21 @@ def get_braintree_gateway(sandbox_mode, merchant_id, public_key, private_key):
     return gateway
 
 
-def get_transaction_token(**connection_params: Dict) -> str:
+def get_client_token(**connection_params: Dict) -> str:
     gateway = get_braintree_gateway(**connection_params)
-    transaction_token = gateway.client_token.generate()
-    return transaction_token
+    client_token = gateway.client_token.generate()
+    return client_token
 
 
 def authorize(
         payment: Payment,
-        transaction_token: str,
+        payment_token: str,
         **connection_params: Dict) -> Tuple[Transaction, str]:
     gateway = get_braintree_gateway(**connection_params)
     try:
         result = gateway.transaction.sale({
             'amount': str(payment.total),
-            'payment_method_nonce': transaction_token,
+            'payment_method_nonce': payment_token,
             'options': {
                 'submit_for_settlement': CONFIRM_MANUALLY,
                 'three_d_secure': {
@@ -151,7 +151,7 @@ def authorize(
             **get_customer_data(payment)})
     except braintree_sdk.exceptions.NotFoundError:
         return transaction_and_incorrect_token_error(
-            payment, type=Transactions.AUTH, token=transaction_token)
+            payment, type=Transactions.AUTH, token=payment_token)
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
     credit_card_data = gateway_response.pop('credit_cart')

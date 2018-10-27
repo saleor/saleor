@@ -2,6 +2,7 @@ import itertools
 import os
 import random
 import unicodedata
+import uuid
 from datetime import date
 from decimal import Decimal
 from unittest.mock import patch
@@ -28,7 +29,7 @@ from ...menu.models import Menu
 from ...order.models import Fulfillment, Order
 from ...order.utils import update_order_status
 from ...page.models import Page
-from ...payment import ChargeStatus, Transactions, get_payment_gateway
+from ...payment import ChargeStatus, Transactions
 from ...payment.models import Payment
 from ...payment.utils import get_billing_data
 from ...product.models import (
@@ -379,7 +380,7 @@ def create_fake_user():
     return user
 
 # We don't want to spam the console with payment confirmations sent to
-# non-existing fake customers.
+# fake customers.
 @patch('saleor.order.emails.send_payment_confirmation.delay')
 def create_payment(mock_email_confirmation, order):
     payment = Payment.objects.create(
@@ -387,27 +388,26 @@ def create_payment(mock_email_confirmation, order):
         customer_ip_address=fake.ipv4(),
         is_active=True,
         order=order,
+        token=str(uuid.uuid4()),
         total=order.total.gross.amount,
         currency=order.total.gross.currency,
         **get_billing_data(order))
 
-    gateway, gateway_params = get_payment_gateway(payment.gateway)
-    transaction_token = gateway.get_transaction_token(**gateway_params)
 
     # Create authorization transaction
-    gateway_authorize(payment, transaction_token, **gateway_params)
+    payment.authorize(payment.token)
     # 20% chance to void the transaction at this stage
     if random.choice([0, 0, 0, 0, 1]):
-        gateway_void(payment, **gateway_params)
+        payment.void()
         return payment
     # 25% to end the payment at the authorization stage
     if not random.choice([1, 1, 1, 0]):
         return payment
     # Create capture transaction
-    gateway_capture(payment, payment.total, **gateway_params)
+    payment.capture()
     # 25% to refund the payment
     if random.choice([0, 0, 0, 1]):
-        gateway_refund(payment, payment.total, **gateway_params)
+        payment.refund()
     return payment
 
 

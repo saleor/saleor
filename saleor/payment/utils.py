@@ -7,7 +7,7 @@ from django.conf import settings
 from django.db import transaction
 from prices import Money
 
-from . import ChargeStatus, PaymentError, can_be_voided, get_payment_gateway
+from . import ChargeStatus, PaymentError, get_payment_gateway
 from ..core import analytics
 from ..order import OrderEvents, OrderEventsEmails
 from ..order.emails import send_payment_confirmation
@@ -88,21 +88,26 @@ def create_transaction(
     return txn
 
 
-def gateway_get_transaction_token(gateway_name: str):
+def gateway_get_client_token(gateway_name: str):
     # FIXME Add tests
     gateway, gateway_params = get_payment_gateway(gateway_name)
-    return gateway.get_transaction_token(**gateway_params)
+    return gateway.get_client_token(**gateway_params)
 
 
 @validate_payment
-def gateway_authorize(payment: Payment, transaction_token: str) -> Transaction:
-    if not payment.charge_status == ChargeStatus.NOT_CHARGED:
+def gateway_authorize(payment: Payment, payment_token: str) -> Transaction:
+    """Authorizes the payment and creates relevant transaction.
+
+    Args:
+     - payment_token: One-time-use reference to payment information.
+    """
+    if not payment.can_authorize():
         raise PaymentError('Charged transactions cannot be authorized again.')
 
     gateway, gateway_params = get_payment_gateway(payment.gateway)
     with transaction.atomic():
         txn, error = gateway.authorize(
-            payment, transaction_token, **gateway_params)
+            payment, payment_token, **gateway_params)
     # FIXME Create an order event ?
     if not txn.is_success:
         raise PaymentError(error)
@@ -113,8 +118,7 @@ def gateway_authorize(payment: Payment, transaction_token: str) -> Transaction:
 def gateway_capture(payment: Payment, amount: Decimal) -> Transaction:
     if amount <= 0:
         raise PaymentError('Amount should be a positive number.')
-    if payment.charge_status not in {ChargeStatus.CHARGED,
-                                     ChargeStatus.NOT_CHARGED}:
+    if not payment.can_capture():
         raise PaymentError('This payment cannot be captured.')
     if amount > payment.total or amount > (
             payment.total - payment.captured_amount):
@@ -139,7 +143,7 @@ def gateway_capture(payment: Payment, amount: Decimal) -> Transaction:
 
 @validate_payment
 def gateway_void(payment) -> Transaction:
-    if not can_be_voided(payment):
+    if not payment.can_void():
         raise PaymentError('Only pre-authorized transactions can be voided.')
     gateway, gateway_params = get_payment_gateway(payment.gateway)
     with transaction.atomic():
@@ -159,9 +163,8 @@ def gateway_refund(payment, amount: Decimal) -> Transaction:
         raise PaymentError('Amount should be a positive number.')
     if amount > payment.captured_amount:
         raise PaymentError('Cannot refund more than captured')
-    if not payment.charge_status == ChargeStatus.CHARGED:
-        raise PaymentError(
-            'Refund is possible only when transaction is captured.')
+    if not payment.can_refund():
+        raise PaymentError('This payment cannot be refunded.')
 
     gateway, gateway_params = get_payment_gateway(payment.gateway)
     with transaction.atomic():

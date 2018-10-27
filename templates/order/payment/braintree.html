@@ -10,6 +10,9 @@
       {% for non_field_error in form.non_field_errors %}
         {{ non_field_error }}
       {% endfor %}
+      {% for error in form.errors %}
+        {{ error }}
+      {% endfor %}
     </blockquote>
   {% endif %}
   <div class="form-group">
@@ -31,7 +34,7 @@
 <script src="https://js.braintreegateway.com/web/dropin/1.13.0/js/dropin.min.js"></script>
 <script>
   var form = document.querySelector('#payment-form');
-  var client_token = '{{ transaction_token }}';
+  var client_token = '{{ client_token }}';
   braintree.dropin.create({
     authorization: client_token,
     container: '#bt-dropin',
