@@ -3,6 +3,7 @@ from operator import attrgetter
 
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django_prices.models import MoneyField
 from prices import Money
@@ -75,8 +76,12 @@ class Payment(models.Model):
     cc_first_digits = models.CharField(max_length=6, blank=True, default='')
     cc_last_digits =  models.CharField(max_length=4, blank=True, default='')
     cc_brand = models.CharField(max_length=40, blank=True, default='')
-    cc_expiry_month =  models.CharField(max_length=2, blank=True, default='')
-    cc_expiry_year = models.CharField(max_length=4, blank=True, default='')
+    cc_exp_month = models.PositiveIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(12)],
+        null=True, blank=True)
+    # exp year should be in 4 digits format
+    cc_exp_year = models.PositiveIntegerField(
+        validators=[MinValueValidator(1000)], null=True, blank=True)
 
     def __repr__(self):
         return 'Payment(gateway=%s, is_active=%s, created=%s, charge_status=%s)' % (

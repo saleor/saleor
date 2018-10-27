@@ -91,7 +91,6 @@ def transaction_and_incorrect_token_error(
 
 def extract_gateway_response(braintree_result) -> Dict:
     """Extract data from Braintree response that will be stored locally."""
-    import pdb; pdb.set_trace()
     errors = []
     if not braintree_result.is_success:
         errors = [
@@ -159,11 +158,11 @@ def authorize(
         payment.cc_first_digits = credit_card_data.bin
         payment.cc_last_digits = credit_card_data.last_4
         payment.cc_brand = credit_card_data.card_type
-        payment.cc_expiry_month = credit_card_data.expiration_month
-        payment.cc_expiry_year = credit_card_data.expiration_year
+        payment.cc_exp_month = credit_card_data.expiration_month
+        payment.cc_exp_year = credit_card_data.expiration_year
         payment.save(update_fields=[
             'cc_first_digits', 'cc_last_digits', 'cc_brand',
-            'cc_expiry_month', 'cc_expiry_year'])
+            'cc_exp_month', 'cc_exp_year'])
 
     txn = create_transaction(
         payment=payment,

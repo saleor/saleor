@@ -427,5 +427,10 @@ def test_gateway_refund_errors(payment_txn_captured):
     payment.charge_status = ChargeStatus.NOT_CHARGED
     with pytest.raises(PaymentError) as exc:
         gateway_refund(payment, Decimal('1'))
-    assert exc.value.message == (
-        'Refund is possible only when transaction is captured.')
+    assert exc.value.message == 'This payment cannot be captured.'
+
+
+def test_payment_provider_templates_exists(payment_dummy):
+    # FIXME test if for each payment provider there's corresponding
+    # module and template for the old checkout
+    pass
