@@ -10,7 +10,7 @@ from saleor.payment import (
     ChargeStatus, PaymentError, Transactions, get_payment_gateway)
 from saleor.payment.utils import (
     create_payment, create_transaction, gateway_authorize, gateway_capture,
-    gateway_get_transaction_token, gateway_refund, gateway_void,
+    gateway_get_client_token, gateway_refund, gateway_void,
     get_billing_data, handle_fully_paid_order, validate_payment)
 
 NOT_ACTIVE_PAYMENT_ERROR = 'This payment is no longer active.'
@@ -150,27 +150,27 @@ def test_create_transaction_no_gateway_response(transaction_data):
     assert txn.gateway_response == {}
 
 
-def test_gateway_get_transaction_token(settings):
+def test_gateway_get_client_token(settings):
     gateway_name = list(settings.PAYMENT_GATEWAYS.keys())[0]
     gateway = settings.PAYMENT_GATEWAYS[gateway_name]
     module = gateway['module']
-    with patch('%s.get_transaction_token' % module) as transaction_token_mock:
-        gateway_get_transaction_token(gateway_name)
+    with patch('%s.get_client_token' % module) as transaction_token_mock:
+        gateway_get_client_token(gateway_name)
         transaction_token_mock.assert_called_once_with()
 
 
-def test_gateway_get_transaction_token_not_allowed_gateway(settings):
+def test_gateway_get_client_token_not_allowed_gateway(settings):
     gateway = 'example-gateway'
     settings.CHECKOUT_PAYMENT_GATEWAYS = {}
     with pytest.raises(ValueError):
-        gateway_get_transaction_token(gateway)
+        gateway_get_client_token(gateway)
 
 
-def test_gateway_get_transaction_token_not_existing_gateway(settings):
+def test_gateway_get_client_token_not_existing_gateway(settings):
     gateway = 'example-gateway'
     settings.CHECKOUT_PAYMENT_GATEWAYS = {gateway: 'Example gateway'}
     with pytest.raises(ImproperlyConfigured):
-        gateway_get_transaction_token(gateway)
+        gateway_get_client_token(gateway)
 
 
 @pytest.mark.parametrize(
@@ -178,14 +178,14 @@ def test_gateway_get_transaction_token_not_existing_gateway(settings):
 def test_payment_needs_to_be_active_for_any_action(func, payment_dummy):
     payment_dummy.is_active = False
     with pytest.raises(PaymentError) as exc:
-        func(payment_dummy, 'transaction-token')
+        func(payment_dummy, 'token')
     assert exc.value.message == NOT_ACTIVE_PAYMENT_ERROR
 
 
 def test_gateway_authorize_errors(payment_dummy):
     payment_dummy.charge_status = ChargeStatus.CHARGED
     with pytest.raises(PaymentError) as exc:
-        gateway_authorize(payment_dummy, 'transaction-token')
+        gateway_authorize(payment_dummy, 'payment-token')
     assert exc.value.message == (
         'Charged transactions cannot be authorized again.')
 
@@ -194,6 +194,7 @@ def test_gateway_authorize_errors(payment_dummy):
 def test_gateway_authorize(
         mock_get_payment_gateway, payment_txn_preauth, gateway_params,
         transaction_token):
+    payment_token = transaction_token
     txn = payment_txn_preauth.transactions.first()
     payment = payment_txn_preauth
 
@@ -201,16 +202,17 @@ def test_gateway_authorize(
     mock_get_payment_gateway.return_value = (
         Mock(authorize=mock_authorize), gateway_params)
 
-    gateway_authorize(payment, transaction_token)
+    gateway_authorize(payment, payment_token)
     mock_get_payment_gateway.assert_called_once_with(payment.gateway)
     mock_authorize.assert_called_once_with(
-        payment, transaction_token, **gateway_params)
+        payment, payment_token, **gateway_params)
 
 
 @patch('saleor.payment.utils.get_payment_gateway')
 def test_gateway_authorize_failed(
         mock_get_payment_gateway, payment_txn_preauth, gateway_params,
         transaction_token):
+    payment_token = transaction_token
     txn = payment_txn_preauth.transactions.first()
     txn.is_success = False
     payment = payment_txn_preauth
@@ -219,7 +221,7 @@ def test_gateway_authorize_failed(
     mock_get_payment_gateway.return_value = (
         Mock(authorize=mock_authorize), gateway_params)
     with pytest.raises(PaymentError) as exc:
-        gateway_authorize(payment, transaction_token)
+        gateway_authorize(payment, payment_token)
     assert exc.value.message == EXAMPLE_ERROR
 
 

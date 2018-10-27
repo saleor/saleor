@@ -97,7 +97,3 @@ def get_payment_gateway(gateway_name):
     gateway_params = settings.PAYMENT_GATEWAYS[gateway_name][
         'connection_params']
     return gateway_module, gateway_params
-
-
-def can_be_voided(payment):
-    return payment.charge_status == ChargeStatus.NOT_CHARGED

@@ -101,8 +101,7 @@ def start_payment(request, order, gateway):
                 or payment.charge_status == ChargeStatus.FULLY_REFUNDED):
             return redirect(order.get_absolute_url())
         payment_gateway, gateway_params = get_payment_gateway(payment.gateway)
-        transaction_token = payment_gateway.get_transaction_token(
-            **gateway_params)
+        client_token = payment_gateway.get_client_token(**gateway_params)
         form = get_form_for_payment(payment)
         form = form(data=request.POST or None, instance=payment)
         if form.is_valid():
@@ -115,7 +114,7 @@ def start_payment(request, order, gateway):
     template = 'order/payment/%s.html' % gateway
     ctx = {
         'form': form, 'payment': payment,
-        'transaction_token': transaction_token, 'order': order}
+        'client_token': client_token, 'order': order}
     return TemplateResponse(
         request, [template, 'order/payment/default.html'], ctx)
 

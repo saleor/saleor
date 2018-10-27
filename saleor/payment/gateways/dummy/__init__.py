@@ -14,11 +14,11 @@ def dummy_success():
     return True
 
 
-def get_transaction_token(**connection_params):
+def get_client_token(**connection_params):
     return str(uuid.uuid4())
 
 
-def authorize(payment: Payment, transaction_token: str, **connection_params):
+def authorize(payment: Payment, payment_token: str, **connection_params):
     success = dummy_success()
     error = None
     if not success:
@@ -29,7 +29,7 @@ def authorize(payment: Payment, transaction_token: str, **connection_params):
         amount=payment.total,
         currency=payment.currency,
         gateway_response={},
-        token=str(uuid.uuid4()),
+        token=payment_token,
         is_success=success)
     return txn, error
 

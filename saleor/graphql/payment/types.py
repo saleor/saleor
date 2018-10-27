@@ -67,6 +67,10 @@ class Payment(CountableDjangoObjectType):
     transactions = graphene.List(
         Transaction,
         description='List of all transactions within this payment.')
+    available_capture_amount = graphene.Field(
+        Money, description='Maximum amount of money that can be captured.')
+    available_refund_amount = graphene.Field(
+        Money, description='Maximum amount of money that can be refunded.')
 
     class Meta:
         description = 'Represents a payment of a given type.'
@@ -110,3 +114,15 @@ class Payment(CountableDjangoObjectType):
 
     def resolve_transactions(self, info):
         return self.transactions.all()
+
+    def resolve_available_refund_amount(self, info):
+        # FIXME TESTME
+        if not self.can_refund():
+            return None
+        return self.get_captured_amount()
+
+    def resolve_available_capture_amount(self, info):
+        # FIXME TESTME
+        if not self.can_capture():
+            return None
+        return self.get_total() - self.get_captured_amount()

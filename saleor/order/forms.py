@@ -3,7 +3,6 @@ from django.conf import settings
 from django.utils.translation import pgettext_lazy
 
 from ..account.forms import SignupForm
-from ..payment import can_be_voided
 from ..payment.models import Payment
 from .models import Order
 
@@ -34,7 +33,7 @@ class PaymentDeleteForm(forms.Form):
             self._errors['number'] = self.error_class([
                 pgettext_lazy(
                     'Payment delete form error', 'Payment does not exist')])
-        elif not can_be_voided(payment):
+        elif not payment.can_void():
             self._errors['number'] = self.error_class([
                 pgettext_lazy(
                     'Payment delete form error',

@@ -18,13 +18,13 @@ Your changes should live under the
     available from the API level. You will also need to integrate it into your
     Frontend's workflow.
 
-get_transaction_token(**connection_params)
+get_client_token(**connection_params)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A transaction token is a signed data blob that includes configuration and
+A client token is a signed data blob that includes configuration and
 authorization information required by the payment gateway.
 
-These should not be reused; a new transaction token should be generated for
+These should not be reused; a new client token should be generated for
 each payment request.
 
 Example
@@ -32,12 +32,12 @@ Example
 
 .. code-block:: python
 
-    def get_transaction_token(**connection_params: Dict) -> str:
+    def get_client_token(**connection_params: Dict) -> str:
         gateway = get_payment_gateway(**connection_params)
-        transaction_token = gateway.transaction_token.generate()
-        return transaction_token
+        client_token = gateway.client_token.generate()
+        return client_token
 
-authorize(payment, transaction_token, **connection_params)
+authorize(payment, payment_token, **connection_params)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A process of reserving the amount of money against the customer's funding
@@ -50,11 +50,11 @@ Example
 
     def authorize(
             payment: Payment,
-            transaction_token: str,
+            payment_token: str,
             **connection_params: Dict) -> Tuple[Transaction, str]:
 
         # Handle connecting to the gateway and sending the auth request here
-        response = gateway.auth(token=transaction_token)
+        response = gateway.authorize(token=payment_token)
 
         txn = Transaction.objects.create(
             payment=payment,
