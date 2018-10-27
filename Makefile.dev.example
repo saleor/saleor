@@ -1,7 +1,18 @@
+# A quick and conveniant way to use this Makefile is by creating a
+# make shell alias like the following:
+#
+# alias saleor='make -f Makefile.dev.exmaple'
+#
+# then use it as you would make:
+#
+# saleor <target>
+
+# SKIP_LOCK=
+SKIP_LOCK=--skip-lock
 HOST_UID=1000
 HOST_GID=100
 COMPOSE_DEV=docker-compose -f docker-compose.dev.yml
-EXEC_WEB=exec web gosu saleor
+EXEC_WEB=exec web gosu $(HOST_UID)
 
 define BUILD_STATIC_CMD
 'npm run build-assets --production &&\
@@ -14,30 +25,42 @@ define INIT_EXAMPLE_CMD
  python3 manage.py populatedb --createsuperuser'
 endef
 
+define NPM_INSTALL_CMD
+'npm install &&\
+ chown -R $(HOST_UID):$(HOST_GID) node_modules'
+endef
+
 default:
 
-dev-build-image:
+build-image:
 	$(COMPOSE_DEV) build \
+	--build-arg=SKIP_LOCK=$(SKIP_LOCK) \
 	--build-arg=HOST_UID=$(HOST_UID) \
 	--build-arg=HOST_GID=$(HOST_GID)
 
-dev-up:
+up:
 	$(COMPOSE_DEV) up -d
 
-dev-down:
+down:
 	$(COMPOSE_DEV) down
 
-dev-start:
+start:
 	$(COMPOSE_DEV) start
 
-dev-stop:
+stop:
 	$(COMPOSE_DEV) stop
 
-dev-build-static:
+npm-install:
+	$(COMPOSE_DEV) $(EXEC_WEB) sh -c $(NPM_INSTALL_CMD)
+
+build-static:
 	$(COMPOSE_DEV) $(EXEC_WEB) sh -c $(BUILD_STATIC_CMD)
 
-dev-init-example:
+init-example:
 	$(COMPOSE_DEV) $(EXEC_WEB) sh -c $(INIT_EXAMPLE_CMD)
 
-dev-connect-tty:
+connect-tty-user:
 	$(COMPOSE_DEV) $(EXEC_WEB) bash
+
+connect-tty-root:
+	$(COMPOSE_DEV) exec web bash
