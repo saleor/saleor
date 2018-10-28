@@ -1,6 +1,5 @@
 ### Build and install packages
 FROM python:3.6 as build-python
-
 ARG STATIC_URL
 ARG SKIP_LOCK
 ARG HOST_UID
@@ -22,7 +21,6 @@ RUN pipenv install $SKIP_LOCK --system --deploy --dev
 
 ### Final image
 FROM python:3.6-slim
-
 ARG STATIC_URL
 ENV STATIC_URL ${STATIC_URL:-/static/}
 ARG SKIP_LOCK
