@@ -28,7 +28,7 @@ from saleor.order import OrderStatus, OrderEvents
 from saleor.order.models import Order, OrderEvent
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
-from saleor.payment import ChargeStatus, Transactions
+from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.models import Payment
 from saleor.product.models import (
     Attribute, AttributeTranslation, AttributeValue, Category, Collection,
@@ -476,7 +476,7 @@ def payment_txn_preauth(order_with_lines, payment_dummy):
 
     payment.transactions.create(
         amount=payment.total,
-        kind=Transactions.AUTH,
+        kind=TransactionKind.AUTH,
         gateway_response={},
         is_success=True)
     return payment
@@ -493,7 +493,7 @@ def payment_txn_captured(order_with_lines, payment_dummy):
 
     payment.transactions.create(
         amount=payment.total,
-        kind=Transactions.CAPTURE,
+        kind=TransactionKind.CAPTURE,
         gateway_response={},
         is_success=True)
     return payment
@@ -510,7 +510,7 @@ def payment_txn_refunded(order_with_lines, payment_dummy):
 
     payment.transactions.create(
         amount=payment.total,
-        kind=Transactions.REFUND,
+        kind=TransactionKind.REFUND,
         gateway_response={},
         is_success=True)
     return payment

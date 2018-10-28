@@ -41,7 +41,7 @@ class Transaction(CountableDjangoObjectType):
         description = 'An object representing a single payment.'
         interfaces = [relay.Node]
         model = models.Transaction
-        filter_fields = ['id', 'charge_status', 'is_success']
+        filter_fields = ['id']
         exclude_fields = ['currency']
 
     @staticmethod
@@ -54,7 +54,7 @@ class CreditCard(graphene.ObjectType):
         description='Card brand.', required=True)
     first_digits = graphene.String(
         description='The host name of the domain.', required=True)
-    last_digits = graphene.Boolean(
+    last_digits = graphene.String(
         description='Last 4 digits of the card number.', required=True)
     exp_month = graphene.Int(
         description='Two-digit number representing the card’s expiration month.',

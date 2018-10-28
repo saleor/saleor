@@ -74,7 +74,7 @@ Payment has 3 possible charge statuses:
 Transactions
 ------------
 
-Transactions represent attempts to transfer money between your store
+Transaction represent attempts to transfer money between your store
 and your customers, within a chosen payment method.
 
 There are 5 possible transaction kinds:

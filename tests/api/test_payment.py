@@ -2,7 +2,7 @@ import graphene
 from tests.api.utils import get_graphql_content
 
 from saleor.payment.models import (
-    ChargeStatus, Payment, Transaction, Transactions)
+    ChargeStatus, Payment, Transaction, TransactionKind)
 from saleor.graphql.payment.types import (
     PaymentChargeStatusEnum, PaymentGatewayEnum, OrderAction)
 from saleor.core.utils import get_country_name_by_code
@@ -38,7 +38,7 @@ def test_payment_void_success(
     assert payment_dummy.is_active == False
     assert payment_dummy.transactions.count() == 1
     txn = payment_dummy.transactions.first()
-    assert txn.kind == Transactions.VOID
+    assert txn.kind == TransactionKind.VOID
 
 
 def test_payment_charge_gateway_error(
@@ -63,7 +63,7 @@ def test_payment_charge_gateway_error(
     assert payment_dummy.is_active == True
     assert payment_dummy.transactions.count() == 1
     txn = payment_dummy.transactions.first()
-    assert txn.kind == Transactions.VOID
+    assert txn.kind == TransactionKind.VOID
     assert not txn.is_success
 
 
@@ -151,7 +151,7 @@ def test_payment_charge_success(
     assert payment.charge_status == ChargeStatus.CHARGED
     assert payment.transactions.count() == 1
     txn = payment.transactions.first()
-    assert txn.kind == Transactions.CHARGE
+    assert txn.kind == TransactionKind.CHARGE
 
 
 def test_payment_charge_gateway_error(
@@ -178,7 +178,7 @@ def test_payment_charge_gateway_error(
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
     assert payment.transactions.count() == 1
     txn = payment.transactions.first()
-    assert txn.kind == Transactions.CHARGE
+    assert txn.kind == TransactionKind.CHARGE
     assert not txn.is_success
 
 
@@ -219,7 +219,7 @@ def test_payment_refund_success(
     assert payment.charge_status == ChargeStatus.FULLY_REFUNDED
     assert payment.transactions.count() == 1
     txn = payment.transactions.first()
-    assert txn.kind == Transactions.REFUND
+    assert txn.kind == TransactionKind.REFUND
 
 
 def test_payment_refund_error(
@@ -248,7 +248,7 @@ def test_payment_refund_error(
     assert payment.charge_status == ChargeStatus.CHARGED
     assert payment.transactions.count() == 1
     txn = payment.transactions.first()
-    assert txn.kind == Transactions.REFUND
+    assert txn.kind == TransactionKind.REFUND
     assert not txn.is_success
 
 
