@@ -2,9 +2,7 @@
 FROM python:3.6 as build-python
 
 ARG STATIC_URL
-
 ARG SKIP_LOCK
-
 ARG HOST_UID
 ARG HOST_GID
 
@@ -28,9 +26,7 @@ FROM python:3.6-slim
 
 ARG STATIC_URL
 ENV STATIC_URL ${STATIC_URL:-/static/}
-
 ARG SKIP_LOCK
-
 ARG HOST_UID
 ARG HOST_GID
 ENV APP_USER=${HOST_UID:-saleor}
