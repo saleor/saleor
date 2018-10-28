@@ -1,16 +1,17 @@
 # A quick and conveniant way to use this Makefile is by creating a
 # make shell alias like the following:
 #
-# alias saleor='make -f Makefile.dev.exmaple'
+# alias saleor='make -f Makefile.dev.example'
 #
 # then use it as you would make:
 #
 # saleor <target>
 
-# SKIP_LOCK=
-SKIP_LOCK=--skip-lock
-HOST_UID=1000
-HOST_GID=100
+# --build-arg=SKIP_LOCK=$(SKIP_LOCK) can be added to the 
+# image-build target below to build with latest pipfile.
+# SKIP_LOCK=--skip-lock
+HOST_UID=1000 # Change this to your systems userid
+HOST_GID=1000 # Change this to your systems groupid
 COMPOSE_DEV=docker-compose -f docker-compose.dev.yml
 EXEC_WEB=exec web gosu $(HOST_UID)
 
@@ -34,7 +35,6 @@ default:
 
 build-image:
 	$(COMPOSE_DEV) build \
-	--build-arg=SKIP_LOCK=$(SKIP_LOCK) \
 	--build-arg=HOST_UID=$(HOST_UID) \
 	--build-arg=HOST_GID=$(HOST_GID)
 
