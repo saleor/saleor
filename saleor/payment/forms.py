@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.translation import pgettext_lazy
 
-from . import ChargeStatus, Transactions, get_payment_gateway
+from . import ChargeStatus, PaymentError, Transactions, get_payment_gateway
 from .models import Payment
 from .utils import gateway_authorize, gateway_capture, gateway_refund
 
@@ -13,35 +13,44 @@ def get_form_for_payment(payment):
         return DummyPaymentForm
     elif payment.gateway == settings.BRAINTREE:
         return BraintreePaymentForm
-    raise ValueError('Unknown payment gateway')
+    raise NotImplementedError('Unknown payment gateway')
 
 
-class DummyPaymentForm(forms.Form):
+class PaymentForm(forms.Form):
+    """FIXME: DOCS & DOCSTRINGS."""
+
+    def __init__(self, payment, gateway, gateway_params, *args, **kwargs):
+        self.payment = payment
+        self.gateway = gateway
+        self.gateway_params = gateway_params
+        super().__init__(*args, **kwargs)
+
+    def process_payment(self):
+        raise NotImplementedError()
+
+
+class DummyPaymentForm(PaymentForm):
     charge_status = forms.ChoiceField(
         label=pgettext_lazy('Payment status form field', 'Payment status'),
         choices=ChargeStatus.CHOICES, initial=ChargeStatus.NOT_CHARGED,
         widget=forms.RadioSelect)
 
-    def __init__(self, instance, *args, **kwargs):
-        self.instance = instance
-        super().__init__(*args, **kwargs)
 
     def process_payment(self):
         # FIXME add tests
-        gateway, gateway_params = get_payment_gateway(self.instance.gateway)
-        # Dummy provider requires no token
-        fake_token = gateway.get_client_token(**gateway_params)
-        self.instance.authorize(fake_token)
+        # Dummy provider requires no real token
+        fake_token = self.gateway.get_client_token(**self.gateway_params)
+        self.payment.authorize(fake_token)
         charge_status = self.cleaned_data['charge_status']
         if charge_status == ChargeStatus.NOT_CHARGED:
             return
-        self.instance.capture()
+        self.payment.capture()
         if charge_status == ChargeStatus.FULLY_REFUNDED:
-            self.instance.refund()
-        return self.instance
+            self.payment.refund()
+        return self.payment
 
 
-class BraintreePaymentForm(forms.Form):
+class BraintreePaymentForm(PaymentForm):
     amount = forms.DecimalField()
 
     # Unique transaction identifier returned by Braintree
@@ -51,10 +60,9 @@ class BraintreePaymentForm(forms.Form):
     # response
     payment_method_nonce = forms.CharField()
 
-    def __init__(self, instance, *args, **kwargs):
-        self.instance = instance
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['amount'].initial = self.instance.total
+        self.fields['amount'].initial = self.payment.total
         # FIXME if environment is Sandbox, we could provide couple of predefined
         # nounces for easier testing
 
@@ -65,7 +73,7 @@ class BraintreePaymentForm(forms.Form):
         # when manually adjusting the template value as we do not allow
         # partial-payments at this moment, error is returned instead.
         amount = cleaned_data.get('amount')
-        if amount and amount != self.instance.total:
+        if amount and amount != self.payment.total:
             msg = pgettext_lazy(
                 'payment error',
                 'Unable to process transaction. Please try again in a moment')
@@ -76,14 +84,14 @@ class BraintreePaymentForm(forms.Form):
     def process_payment(self):
         # FIXME add tests
         payment_token = self.cleaned_data['payment_method_nonce']
-        self.instance.token = payment_token
-        self.instance.save(updated_fields=['token'])
+        self.payment.token = payment_token
+        self.payment.save(updated_fields=['token'])
 
-        self.instance.authorize(payment_token)
+        self.payment.authorize(payment_token)
         try:
-            self.instance.capture(self.instance.total)
+            self.payment.capture(self.payment.total)
         except PaymentError as exc:
             # Void authorization if the capture failed
-            self.instance.void()
+            self.payment.void()
             raise exc
-        return self.instance
+        return self.payment

@@ -26,6 +26,8 @@ from .utils import attach_order_to_user, check_order_status
 
 logger = logging.getLogger(__name__)
 
+PAYMENT_TEMPLATE = 'order/payment/%s.html'
+
 
 def details(request, token):
     note_form = None
@@ -103,7 +105,9 @@ def start_payment(request, order, gateway):
         payment_gateway, gateway_params = get_payment_gateway(payment.gateway)
         client_token = payment_gateway.get_client_token(**gateway_params)
         form = get_form_for_payment(payment)
-        form = form(data=request.POST or None, instance=payment)
+        form = form(
+            data=request.POST or None, payment=payment,
+            gateway=payment_gateway, gateway_params=gateway_params)
         if form.is_valid():
             try:
                 form.process_payment()
@@ -111,7 +115,7 @@ def start_payment(request, order, gateway):
                 form.add_error(None, exc.message)
             else:
                 return redirect(order.get_absolute_url())
-    template = 'order/payment/%s.html' % gateway
+    template = PAYMENT_TEMPLATE % gateway
     ctx = {
         'form': form, 'payment': payment,
         'client_token': client_token, 'order': order}

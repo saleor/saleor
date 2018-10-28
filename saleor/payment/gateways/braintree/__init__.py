@@ -72,12 +72,12 @@ def get_error_for_client(errors: List) -> str:
 def transaction_and_incorrect_token_error(
         payment: Payment,
         token: str,
-        type: Transactions,
+        kind: Transactions,
         amount: Decimal = None) -> Tuple[Transaction, str]:
     amount = amount or payment.total
     txn = create_transaction(
         payment=payment,
-        kind=type,
+        kind=kind,
         currency=payment.currency,
         amount=amount,
         gateway_response={},
@@ -150,7 +150,7 @@ def authorize(
             **get_customer_data(payment)})
     except braintree_sdk.exceptions.NotFoundError:
         return transaction_and_incorrect_token_error(
-            payment, type=Transactions.AUTH, token=payment_token)
+            payment, kind=Transactions.AUTH, token=payment_token)
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
     credit_card_data = gateway_response.pop('credit_cart')
@@ -188,7 +188,7 @@ def capture(
     except braintree_sdk.exceptions.NotFoundError:
         return transaction_and_incorrect_token_error(
             payment,
-            type=Transactions.CAPTURE,
+            kind=Transactions.CAPTURE,
             token=auth_transaction.token,
             amount=amount)
 
@@ -218,7 +218,7 @@ def void(
             transaction_id=auth_transaction.token)
     except braintree_sdk.exceptions.NotFoundError:
         return transaction_and_incorrect_token_error(
-            payment, type=Transactions.VOID, token=auth_transaction.token)
+            payment, kind=Transactions.VOID, token=auth_transaction.token)
 
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
@@ -247,7 +247,7 @@ def refund(
             amount_or_options=str(amount))
     except braintree_sdk.exceptions.NotFoundError:
         return transaction_and_incorrect_token_error(
-            payment, type=Transactions.REFUND, token=capture_txn.token,
+            payment, kind=Transactions.REFUND, token=capture_txn.token,
             amount=amount)
 
     gateway_response = extract_gateway_response(result)
