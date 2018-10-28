@@ -10,7 +10,7 @@ from braintree.validation_error import ValidationError
 from django.core.exceptions import ImproperlyConfigured
 from prices import Money
 
-from saleor.payment import Transactions
+from saleor.payment import TransactionKind
 from saleor.payment.gateways.braintree import (
     CONFIRM_MANUALLY, THREE_D_SECURE_REQUIRED, authorize, capture,
     extract_gateway_response, get_client_token, get_customer_data,
@@ -232,7 +232,7 @@ def test_authorize_incorrect_token(
     result = authorize(payment, payment_token)
     assert result == expected_result
     mock_transaction.assert_called_once_with(
-        payment, type=Transactions.AUTH, token=payment_token)
+        payment, kind=TransactionKind.AUTH, token=payment_token)
 
 
 @pytest.mark.integration
@@ -247,7 +247,7 @@ def test_authorize(
     assert not error
 
     assert txn.payment == payment
-    assert txn.kind == Transactions.AUTH
+    assert txn.kind == TransactionKind.AUTH
     assert txn.amount == braintree_success_response.transaction.amount
     assert txn.currency == braintree_success_response.transaction.currency_iso_code
     assert txn.gateway_response == success_gateway_response(
@@ -278,7 +278,7 @@ def test_refund(
     assert not error
 
     assert txn.payment == payment
-    assert txn.kind == Transactions.REFUND
+    assert txn.kind == TransactionKind.REFUND
     assert txn.amount == braintree_success_response.transaction.amount
     assert txn.currency == braintree_success_response.transaction.currency_iso_code
     assert txn.gateway_response == success_gateway_response(
@@ -287,7 +287,7 @@ def test_refund(
     assert txn.is_success == braintree_success_response.is_success
 
     capture_txn = payment.transactions.filter(
-        kind=Transactions.CAPTURE).first()
+        kind=TransactionKind.CAPTURE).first()
     mock_response.assert_called_once_with(
         amount_or_options=str(amount), transaction_id=capture_txn.token)
 
@@ -307,9 +307,9 @@ def test_refund_incorrect_token(
     result = refund(payment, amount)
     assert result == expected_result
     capture_txn = payment.transactions.filter(
-        kind=Transactions.CAPTURE).first()
+        kind=TransactionKind.CAPTURE).first()
     mock_transaction.assert_called_once_with(
-        payment, type=Transactions.REFUND, token=capture_txn.token,
+        payment, kind=TransactionKind.REFUND, token=capture_txn.token,
         amount=amount)
 
 
@@ -346,7 +346,7 @@ def test_capture(
     assert not error
 
     assert txn.payment == payment
-    assert txn.kind == Transactions.CAPTURE
+    assert txn.kind == TransactionKind.CAPTURE
     assert txn.amount == braintree_success_response.transaction.amount
     assert txn.currency == braintree_success_response.transaction.currency_iso_code
     assert txn.gateway_response == success_gateway_response(
@@ -355,7 +355,7 @@ def test_capture(
     assert txn.is_success == braintree_success_response.is_success
 
     auth_txn = payment.transactions.filter(
-        kind=Transactions.AUTH).first()
+        kind=TransactionKind.AUTH).first()
     mock_response.assert_called_once_with(
         amount=str(amount), transaction_id=auth_txn.token)
 
@@ -377,9 +377,9 @@ def test_capture_incorrect_token(
     result = capture(payment, amount)
     assert result == expected_result
     auth_txn = payment.transactions.filter(
-        kind=Transactions.AUTH).first()
+        kind=TransactionKind.AUTH).first()
     mock_transaction.assert_called_once_with(
-        payment, type=Transactions.CAPTURE, token=auth_txn.token,
+        payment, kind=TransactionKind.CAPTURE, token=auth_txn.token,
         amount=amount)
 
 
@@ -414,7 +414,7 @@ def test_void(
     assert not error
 
     assert txn.payment == payment
-    assert txn.kind == Transactions.VOID
+    assert txn.kind == TransactionKind.VOID
     assert txn.amount == braintree_success_response.transaction.amount
     assert txn.currency == braintree_success_response.transaction.currency_iso_code
     assert txn.gateway_response == success_gateway_response(
@@ -423,7 +423,7 @@ def test_void(
     assert txn.is_success == braintree_success_response.is_success
 
     auth_txn = payment.transactions.filter(
-        kind=Transactions.AUTH).first()
+        kind=TransactionKind.AUTH).first()
     mock_response.assert_called_once_with(transaction_id=auth_txn.token)
 
 
@@ -441,9 +441,9 @@ def test_void_incorrect_token(
     result = void(payment)
     assert result == expected_result
     auth_txn = payment.transactions.filter(
-        kind=Transactions.AUTH).first()
+        kind=TransactionKind.AUTH).first()
     mock_transaction.assert_called_once_with(
-        payment, type=Transactions.VOID, token=auth_txn.token)
+        payment, kind=TransactionKind.VOID, token=auth_txn.token)
 
 
 @pytest.mark.integration
@@ -466,10 +466,10 @@ def test_void_error_response(
 def test_transaction_and_incorrect_token_error_helper(payment_dummy, settings):
     amount = Decimal('10.00')
     txn, error = transaction_and_incorrect_token_error(
-        payment_dummy, 'example-token', Transactions.AUTH, amount=amount)
+        payment_dummy, 'example-token', TransactionKind.AUTH, amount=amount)
     assert error == INCORRECT_TOKEN_ERROR
     assert not txn.is_success
-    assert txn.kind == Transactions.AUTH
+    assert txn.kind == TransactionKind.AUTH
     assert txn.token == 'example-token'
     assert not txn.gateway_response
     assert txn.amount == amount
@@ -478,5 +478,5 @@ def test_transaction_and_incorrect_token_error_helper(payment_dummy, settings):
 
 def test_transaction_and_incorrect_token_error_helper_no_amount(payment_dummy):
     txn, error = transaction_and_incorrect_token_error(
-        payment_dummy, 'example-token', Transactions.AUTH)
+        payment_dummy, 'example-token', TransactionKind.AUTH)
     assert txn.amount == payment_dummy.total

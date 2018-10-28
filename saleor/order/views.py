@@ -15,7 +15,7 @@ from . import FulfillmentStatus
 from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
-from ..payment import ChargeStatus, PaymentError, Transactions, get_payment_gateway
+from ..payment import ChargeStatus, PaymentError, TransactionKind, get_payment_gateway
 from ..payment.forms import get_form_for_payment
 from ..payment.models import Payment
 from ..payment.utils import get_billing_data
@@ -63,7 +63,7 @@ def payment(request, token):
     waiting_payment = payments.filter(
         is_active=True,
         charge_status=ChargeStatus.NOT_CHARGED,
-        transactions__kind=Transactions.AUTH).first()
+        transactions__kind=TransactionKind.AUTH).first()
     if not waiting_payment:
         waiting_payment_form = None
     else:

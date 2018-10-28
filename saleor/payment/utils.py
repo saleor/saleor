@@ -93,6 +93,36 @@ def gateway_get_client_token(gateway_name: str):
     gateway, gateway_params = get_payment_gateway(gateway_name)
     return gateway.get_client_token(**gateway_params)
 
+def clean_capture(payment: Payment, amount: Decimal):
+    if amount <= 0:
+        raise PaymentError('Amount should be a positive number.')
+    if not payment.can_capture():
+        raise PaymentError('This payment cannot be captured.')
+    if amount > payment.total or amount > (
+            payment.total - payment.captured_amount):
+        raise PaymentError('Unable to capture more than authorized amount.')
+
+def clean_authorize(payment: Payment):
+    if not payment.can_authorize():
+        raise PaymentError('Charged transactions cannot be authorized again.')
+
+
+@validate_payment
+def gateway_charge(
+        payment: Payment,
+        payment_token: str,
+        amount: Decimal) -> Transaction:
+    clean_authorize(payment)
+    clean_capture(payment, amount)
+
+    gateway, gateway_params = get_payment_gateway(payment.gateway)
+    with transaction.atomic():
+        txn, error = gateway.charge(
+            payment, payment_token, **gateway_params)
+    if not txn.is_success:
+        raise PaymentError(error)
+    return txn
+
 
 @validate_payment
 def gateway_authorize(payment: Payment, payment_token: str) -> Transaction:
@@ -101,8 +131,7 @@ def gateway_authorize(payment: Payment, payment_token: str) -> Transaction:
     Args:
      - payment_token: One-time-use reference to payment information.
     """
-    if not payment.can_authorize():
-        raise PaymentError('Charged transactions cannot be authorized again.')
+    clean_authorize(payment)
 
     gateway, gateway_params = get_payment_gateway(payment.gateway)
     with transaction.atomic():
@@ -116,13 +145,7 @@ def gateway_authorize(payment: Payment, payment_token: str) -> Transaction:
 
 @validate_payment
 def gateway_capture(payment: Payment, amount: Decimal) -> Transaction:
-    if amount <= 0:
-        raise PaymentError('Amount should be a positive number.')
-    if not payment.can_capture():
-        raise PaymentError('This payment cannot be captured.')
-    if amount > payment.total or amount > (
-            payment.total - payment.captured_amount):
-        raise PaymentError('Unable to capture more than authorized amount.')
+    clean_capture(payment, amount)
 
     gateway, gateway_params = get_payment_gateway(payment.gateway)
     with transaction.atomic():

@@ -3,7 +3,7 @@ from django.db import migrations
 from prices import Money
 from django.conf import settings
 
-from .. import ChargeStatus, Transactions
+from .. import ChargeStatus, TransactionKind
 from ..models import Transaction
 
 class PaymentStatus:
@@ -39,12 +39,13 @@ def get_is_active(status, payment):
     return True
 
 
-def create_transaction(method, kind, created, amount, is_success):
+def create_transaction(method, kind, created, amount, is_success, currency):
     return method.transactions.create(
         created=created,
         kind=kind,
         is_success=is_success,
         amount=amount,
+        currency=currency,
         gateway_response={})
 
 
@@ -56,27 +57,27 @@ def create_transactions(method, payment):
     # Other payments needed to be authorized first
     created = payment.created
     create_transaction(
-        method=method, kind=Transactions.AUTH,
+        method=method, kind=TransactionKind.AUTH,
         created=created, amount=payment.total, currency=payment.currency,
         is_success=True, token=payment.transaction_id)
     # This kind of payment needs an unsuccessful capture transaction
     if payment.status in [PaymentStatus.ERROR, PaymentStatus.REJECTED]:
         create_transaction(
-            method=method, kind=Transactions.CAPTURE,
+            method=method, kind=TransactionKind.CAPTURE,
             created=created, amount=payment.total, currency=payment.currency,
             is_success=False, token=payment.transaction_id)
         return
 
     # Two other payments left - CONFIRMED and REFUNDED needs to be captured
     create_transaction(
-        method=method, kind=Transactions.CAPTURE,
+        method=method, kind=TransactionKind.CAPTURE,
         created=created, amount=payment.total, currency=payment.currency,
         is_success=True, token=payment.transaction_id)
 
     # If payment was refunded, we need to create a refund transaction for it
     if payment.status == PaymentStatus.REFUNDED:
         create_transaction(
-            method=method, kind=Transactions.REFUND,
+            method=method, kind=TransactionKind.REFUND,
             created=created, amount=payment.total, currency=payment.currency,
             is_success=True, token=payment.transaction_id)
 

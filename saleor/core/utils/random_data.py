@@ -29,7 +29,7 @@ from ...menu.models import Menu
 from ...order.models import Fulfillment, Order
 from ...order.utils import update_order_status
 from ...page.models import Page
-from ...payment import ChargeStatus, Transactions
+from ...payment import ChargeStatus, TransactionKind
 from ...payment.models import Payment
 from ...payment.utils import get_billing_data
 from ...product.models import (

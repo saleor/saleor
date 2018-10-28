@@ -22,7 +22,7 @@ from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.taxes import ZERO_TAXED_MONEY, zero_money
 from ..core.weight import WeightUnits, zero_weight
 from ..discount.models import Voucher
-from ..payment import ChargeStatus, Transactions
+from ..payment import ChargeStatus, TransactionKind
 from ..shipping.models import ShippingMethod
 
 
@@ -187,7 +187,7 @@ class Order(models.Model):
         # payment gateways in the future.
         return self.payments.filter(
             is_active=True,
-            transactions__kind=Transactions.AUTH).exists()
+            transactions__kind=TransactionKind.AUTH).exists()
 
     @property
     def quantity_fulfilled(self):

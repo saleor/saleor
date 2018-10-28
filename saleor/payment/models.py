@@ -9,7 +9,7 @@ from django_prices.models import MoneyField
 from prices import Money
 
 from . import (
-    ChargeStatus, CustomPaymentChoices, TransactionError, Transactions)
+    ChargeStatus, CustomPaymentChoices, TransactionError, TransactionKind)
 from ..checkout.models import Cart
 from ..core.utils.taxes import zero_money
 from ..order.models import Order
@@ -140,14 +140,14 @@ class Payment(models.Model):
 
 
 class Transaction(models.Model):
-    """Transactions represent attempts to transfer money between your store
+    """Transaction represent attempts to transfer money between your store
     and your customers, with a chosen payment method.
     """
     created = models.DateTimeField(auto_now_add=True, editable=False)
     payment = models.ForeignKey(
         Payment, related_name='transactions', on_delete=models.PROTECT)
     token = models.CharField(max_length=64, blank=True, default='')
-    kind = models.CharField(max_length=10, choices=Transactions.CHOICES)
+    kind = models.CharField(max_length=10, choices=TransactionKind.CHOICES)
     # FIXME probably we should have error/pending/success status instead of
     # a bool, eg for payments with 3d secure
     is_success = models.BooleanField(default=False)

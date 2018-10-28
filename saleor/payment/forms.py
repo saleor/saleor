@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.translation import pgettext_lazy
 
-from . import ChargeStatus, PaymentError, Transactions, get_payment_gateway
+from . import ChargeStatus, PaymentError, TransactionKind, get_payment_gateway
 from .models import Payment
 from .utils import gateway_authorize, gateway_capture, gateway_refund
 
@@ -85,8 +85,7 @@ class BraintreePaymentForm(PaymentForm):
         # FIXME add tests
         payment_token = self.cleaned_data['payment_method_nonce']
         self.payment.token = payment_token
-        self.payment.save(updated_fields=['token'])
-
+        self.payment.save(update_fields=['token'])
         self.payment.authorize(payment_token)
         try:
             self.payment.capture(self.payment.total)

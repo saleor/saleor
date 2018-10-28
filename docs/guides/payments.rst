@@ -58,7 +58,7 @@ Example
 
         txn = Transaction.objects.create(
             payment=payment,
-            kind=Transactions.AUTH,
+            kind=TransactionKind.AUTH,
             amount=payment.total,
             currency=payment.currency,
             gateway_response=get_payment_gateway_response(response),
@@ -84,7 +84,7 @@ Example
 
         # Please note that token from the last AUTH transaction should be used
         capture_txn = payment.transactions.filter(
-            kind=Transactions.CAPTURE).first()
+            kind=TransactionKind.CAPTURE).first()
         transaction_token = capture_txn.token
 
         # Handle connecting to the gateway and sending the refund request here
@@ -92,7 +92,7 @@ Example
 
         txn = create_transaction(
             payment=payment,
-            kind=Transactions.REFUND,
+            kind=TransactionKind.REFUND,
             amount=amount,
             currency=payment.currency,
             token=response.transaction.id,
@@ -117,7 +117,7 @@ Example
 
         # Please note that token from the last AUTH transaction should be used
         auth_transaction = payment.transactions.filter(
-            kind=Transactions.AUTH).first()
+            kind=TransactionKind.AUTH).first()
         transaction_token = auth_transaction.token
 
         # Handle connecting to the gateway and sending the capture request here
@@ -125,7 +125,7 @@ Example
 
         txn = create_transaction(
             payment=payment,
-            kind=Transactions.CAPTURE,
+            kind=TransactionKind.CAPTURE,
             amount=amount,
             currency=payment.currency,
             token=response.transaction.id,
@@ -149,7 +149,7 @@ Example
 
         # Please note that token from the last AUTH transaction should be used
         auth_transaction = payment.transactions.filter(
-            kind=Transactions.AUTH).first()
+            kind=TransactionKind.AUTH).first()
         transaction_token = auth_transaction.token
 
         # Handle connecting to the gateway and sending the void request here
@@ -157,7 +157,7 @@ Example
 
         txn = create_transaction(
             payment=payment,
-            kind=Transactions.VOID,
+            kind=TransactionKind.VOID,
             amount=payment.total,
             currency=payment.currency,
             gateway_response=get_payment_gateway_response(response),

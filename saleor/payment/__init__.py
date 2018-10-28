@@ -33,7 +33,7 @@ class TransactionError(Enum):
 
 
 
-class Transactions:
+class TransactionKind:
     """
     - Authorization: An amount reserved against the customer's funding
                      source. Money does not change hands until the
@@ -45,7 +45,7 @@ class Transactions:
     - Refund: Full or partial return of captured funds to the customer.
     """
     AUTH = 'auth'
-    CHARGE = 'capture'
+    CHARGE = 'charge'
     CAPTURE = 'capture'
     VOID = 'void'
     REFUND = 'refund'
@@ -70,9 +70,11 @@ class ChargeStatus:
     NOT_CHARGED = 'not-charged'
     FULLY_REFUNDED = 'fully-refunded'
     # FIXME
-    # We should probably support other statuses, like:
+    # We could probably support other statuses, like:
     # partially charged
     # partially refunded
+    # fully charged
+    # ...?
 
     CHOICES = [
         (CHARGED, pgettext_lazy('payment status', 'Charged')),

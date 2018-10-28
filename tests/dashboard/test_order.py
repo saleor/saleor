@@ -18,7 +18,7 @@ from saleor.order import (
     FulfillmentStatus, OrderEvents, OrderEventsEmails, OrderStatus)
 from saleor.order.models import Order, OrderEvent, OrderLine
 from saleor.order.utils import add_variant_to_order, change_order_line_quantity
-from saleor.payment import ChargeStatus, Transactions
+from saleor.payment import ChargeStatus, TransactionKind
 from saleor.product.models import ProductVariant
 from saleor.shipping.models import ShippingZone
 
@@ -211,7 +211,7 @@ def test_view_void_order_payment_preauth(
     assert order_payment.charge_status == ChargeStatus.NOT_CHARGED
     last_transaction = order_payment.transactions.latest('pk')
 
-    assert last_transaction.kind == Transactions.VOID
+    assert last_transaction.kind == TransactionKind.VOID
     assert order_payment.captured_amount == Decimal('0.00')
 
 
