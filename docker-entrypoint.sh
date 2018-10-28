@@ -2,4 +2,4 @@
 
 set -e
 
-exec gosu "$APP_USER" "$@"
+exec gosu "$HOST_UID" "$@"
