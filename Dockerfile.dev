@@ -6,8 +6,7 @@ ARG SKIP_LOCK
 ARG HOST_UID
 ARG HOST_GID
 
-RUN \
-    apt-get -y update && \
+RUN apt-get -y update && \
     apt-get install -y gettext && \
     # Cleanup apt cache
     apt-get clean && \
@@ -29,8 +28,8 @@ ENV STATIC_URL ${STATIC_URL:-/static/}
 ARG SKIP_LOCK
 ARG HOST_UID
 ARG HOST_GID
-ENV APP_USER=${HOST_UID:-saleor}
-ENV APP_GROUP=$HOST_GID
+ENV HOST_UID=${HOST_UID:-1000}
+ENV HOST_GID=${HOST_GID:-HOST_UID}
 
 RUN apt-get update && \
     apt-get install -y libxml2 libssl1.1 libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 shared-mime-info mime-support gosu && \
@@ -44,10 +43,10 @@ COPY --from=node:10 /usr/local/bin/ /usr/local/bin/
 
 COPY docker-entrypoint.sh /usr/local/bin/
 
-RUN useradd -u $APP_USER -o -g $APP_GROUP -m saleor && \
-    install -d -o $APP_USER -g $APP_GROUP /app/node_modules && \
-    install -d -o $APP_USER -g $APP_GROUP /app/media && \
-    install -d -o $APP_USER -g $APP_GROUP /app/static
+RUN useradd --non-unique --uid $HOST_UID --gid $HOST_GID --create-home saleor && \
+    install -d -o $HOST_UID -g $HOST_GID /app/node_modules && \
+    install -d -o $HOST_UID -g $HOST_GID /app/media && \
+    install -d -o $HOST_UID -g $HOST_GID /app/static
 
 WORKDIR /app
 
