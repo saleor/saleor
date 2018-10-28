@@ -163,9 +163,10 @@ class Transaction(models.Model):
     error = models.CharField(
         choices=[(tag, tag.value) for tag in TransactionError],
         max_length=256, null=True)
+    # Parent transaction, from which the transaction_id was used
     parent = models.ForeignKey(
-        'payment.Transaction', related_name='+', on_delete=models.PROTECT,
-        blank=True, null=True)
+        'payment.Transaction', related_name='children',
+        on_delete=models.PROTECT, blank=True, null=True)
     gateway_response = JSONField()
 
     def __repr__(self):

@@ -232,7 +232,7 @@ def test_authorize_incorrect_token(
     result = authorize(payment, payment_token)
     assert result == expected_result
     mock_transaction.assert_called_once_with(
-        payment, type=Transactions.AUTH, token=token)
+        payment, type=Transactions.AUTH, token=payment_token)
 
 
 @pytest.mark.integration

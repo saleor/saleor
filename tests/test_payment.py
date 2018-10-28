@@ -2,16 +2,18 @@ from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import pytest
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from prices import Money
 
 from saleor.order import OrderEvents, OrderEventsEmails
+from saleor.order.views import PAYMENT_TEMPLATE
 from saleor.payment import (
     ChargeStatus, PaymentError, Transactions, get_payment_gateway)
 from saleor.payment.utils import (
     create_payment, create_transaction, gateway_authorize, gateway_capture,
-    gateway_get_client_token, gateway_refund, gateway_void,
-    get_billing_data, handle_fully_paid_order, validate_payment)
+    gateway_get_client_token, gateway_refund, gateway_void, get_billing_data,
+    handle_fully_paid_order, validate_payment)
 
 NOT_ACTIVE_PAYMENT_ERROR = 'This payment is no longer active.'
 EXAMPLE_ERROR = 'Example dummy error'
@@ -427,10 +429,13 @@ def test_gateway_refund_errors(payment_txn_captured):
     payment.charge_status = ChargeStatus.NOT_CHARGED
     with pytest.raises(PaymentError) as exc:
         gateway_refund(payment, Decimal('1'))
-    assert exc.value.message == 'This payment cannot be captured.'
+    assert exc.value.message == 'This payment cannot be refunded.'
 
 
-def test_payment_provider_templates_exists(payment_dummy):
-    # FIXME test if for each payment provider there's corresponding
-    # module and template for the old checkout
-    pass
+@pytest.mark.parametrize('gateway_name', settings.PAYMENT_GATEWAYS.keys())
+def test_payment_provider_templates_exists(gateway_name):
+    """Test if for each payment provider there's a corresponding
+    template for the old checkout.
+    """
+    template = PAYMENT_TEMPLATE % gateway_name
+    django.template.loader.get_template(template)
