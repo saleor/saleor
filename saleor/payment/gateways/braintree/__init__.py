@@ -11,6 +11,7 @@ from prices import Money
 from ... import TransactionKind
 from ...models import Payment, Transaction
 from ...utils import create_transaction
+from .forms import BraintreePaymentForm
 
 logger = logging.getLogger(__name__)
 # FIXME: Move to SiteSettings
@@ -112,6 +113,10 @@ def extract_gateway_response(braintree_result) -> Dict:
     return gateway_response
 
 
+def get_form_class():
+    return BraintreePaymentForm
+
+
 def get_braintree_gateway(sandbox_mode, merchant_id, public_key, private_key):
     if not all([merchant_id, private_key, public_key]):
         raise ImproperlyConfigured('Incorrectly configured Braintree gateway.')
@@ -153,7 +158,7 @@ def authorize(
             payment, kind=TransactionKind.AUTH, token=payment_token)
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
-    credit_card_data = gateway_response.pop('credit_cart')
+    credit_card_data = gateway_response.pop('credit_cart', None)
     if credit_card_data:
         payment.cc_first_digits = credit_card_data.bin
         payment.cc_last_digits = credit_card_data.last_4
@@ -197,7 +202,6 @@ def capture(
 
     txn = create_transaction(
         payment=payment,
-        parent=auth_transaction,
         kind=TransactionKind.CAPTURE,
         amount=gateway_response.pop('amount', amount),
         currency=gateway_response.pop('currency', payment.currency),
@@ -224,7 +228,6 @@ def void(
     error = get_error_for_client(gateway_response['errors'])
     txn = create_transaction(
         payment=payment,
-        parent=auth_transaction,
         kind=TransactionKind.VOID,
         amount=gateway_response.pop('amount', payment.total),
         currency=gateway_response.pop('currency', payment.currency),
@@ -254,7 +257,6 @@ def refund(
     error = get_error_for_client(gateway_response['errors'])
     txn = create_transaction(
         payment=payment,
-        parent=capture_txn,
         kind=TransactionKind.REFUND,
         amount=gateway_response.pop('amount', amount),
         currency=gateway_response.pop('currency', payment.currency),

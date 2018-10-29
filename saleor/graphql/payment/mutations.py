@@ -1,8 +1,11 @@
+import decimal
+
 import graphene
 from django.conf import settings
 from graphql_jwt.decorators import permission_required
 from prices import Money, TaxedMoney
 
+from ...core.utils.taxes import get_taxes_for_address
 from ...payment import PaymentError
 from ...payment.utils import (
     create_payment, gateway_authorize, gateway_capture, gateway_refund,
@@ -18,8 +21,11 @@ from .types import Payment, PaymentGatewayEnum
 class PaymentInput(graphene.InputObjectType):
     gateway = PaymentGatewayEnum()
     checkout_id = graphene.ID(description='Checkout ID.')
-    transaction_token = graphene.String(
-        required=True, description='One time transaction token.')
+    token = graphene.String(
+        required=True,
+        description=(
+            'Client-side generated token, representing customer\'s billing'
+            'data in secure manner.'))
     amount = Decimal(
         required=True,
         description=(
@@ -57,17 +63,28 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                 return CheckoutPaymentCreate(errors=errors)
             billing_data = cls.clean_billing_address(billing_address)
         extra_data = cls.get_extra_info(info)
-        # FIXME as we allow only one payment make sure that amount
-        # is same as checkout's total
+
+        amount = input['amount']
+        checkout_total = checkout.get_total(
+            discounts=info.context.discounts,
+            taxes=get_taxes_for_address(checkout.shipping_address))
+
+        if decimal.Decimal(str(amount)) != checkout_total.gross.amount:
+            cls.add_error(
+                errors, 'amount',
+                'Partial payments are not allowed, '
+                'amount should be equal checkout\'s total.')
+            return CheckoutPaymentCreate(errors=errors)
+
         payment = create_payment(
-            total=input['amount'],
+            total=amount,
             currency=settings.DEFAULT_CURRENCY,
             gateway=input['gateway'],
             billing_email=checkout.email,
             is_active=True,
             extra_data=extra_data,
             checkout=checkout,
-            token=input['transaction_token'],
+            token=input['token'],
             **billing_data)
         return CheckoutPaymentCreate(payment=payment, errors=errors)
 

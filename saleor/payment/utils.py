@@ -93,7 +93,9 @@ def gateway_get_client_token(gateway_name: str):
     gateway, gateway_params = get_payment_gateway(gateway_name)
     return gateway.get_client_token(**gateway_params)
 
+
 def clean_capture(payment: Payment, amount: Decimal):
+    # FIXME add tests
     if amount <= 0:
         raise PaymentError('Amount should be a positive number.')
     if not payment.can_capture():
@@ -102,7 +104,9 @@ def clean_capture(payment: Payment, amount: Decimal):
             payment.total - payment.captured_amount):
         raise PaymentError('Unable to capture more than authorized amount.')
 
+
 def clean_authorize(payment: Payment):
+    # FIXME add tests
     if not payment.can_authorize():
         raise PaymentError('Charged transactions cannot be authorized again.')
 
@@ -119,6 +123,13 @@ def gateway_charge(
     with transaction.atomic():
         txn, error = gateway.charge(
             payment, payment_token, **gateway_params)
+        if txn.is_success:
+            payment.charge_status = ChargeStatus.CHARGED
+            payment.captured_amount += txn.amount
+            payment.save(update_fields=['charge_status', 'captured_amount'])
+            order = payment.order
+            if order and order.is_fully_paid():
+                handle_fully_paid_order(order)
     if not txn.is_success:
         raise PaymentError(error)
     return txn
@@ -137,7 +148,6 @@ def gateway_authorize(payment: Payment, payment_token: str) -> Transaction:
     with transaction.atomic():
         txn, error = gateway.authorize(
             payment, payment_token, **gateway_params)
-    # FIXME Create an order event ?
     if not txn.is_success:
         raise PaymentError(error)
     return txn
@@ -158,7 +168,6 @@ def gateway_capture(payment: Payment, amount: Decimal) -> Transaction:
             order = payment.order
             if order and order.is_fully_paid():
                 handle_fully_paid_order(order)
-            # FIXME Create an order event ?
     if not txn.is_success:
         raise PaymentError(error)
     return txn
@@ -174,7 +183,6 @@ def gateway_void(payment) -> Transaction:
         if txn.is_success:
             payment.is_active = False
             payment.save(update_fields=['is_active'])
-            # FIXME Create an order event ?
     if not txn.is_success:
         raise PaymentError(error)
     return txn
@@ -200,7 +208,6 @@ def gateway_refund(payment, amount: Decimal) -> Transaction:
                 payment.is_active = False
                 changed_fields += ['charge_status', 'is_active']
             payment.save(update_fields=changed_fields)
-        # FIXME Create an order event ?
     if not txn.is_success:
         raise PaymentError(error)
     return txn

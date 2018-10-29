@@ -15,8 +15,8 @@ from . import FulfillmentStatus
 from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
-from ..payment import ChargeStatus, PaymentError, TransactionKind, get_payment_gateway
-from ..payment.forms import get_form_for_payment
+from ..payment import (
+    ChargeStatus, PaymentError, TransactionKind, get_payment_gateway)
 from ..payment.models import Payment
 from ..payment.utils import get_billing_data
 from .forms import (
@@ -89,6 +89,7 @@ def payment(request, token):
 
 @check_order_status
 def start_payment(request, order, gateway):
+    # FIXME We should test this flow for each payment gateway
     defaults = {
         'customer_ip_address': get_client_ip(request),
         **get_billing_data(order)}
@@ -104,7 +105,7 @@ def start_payment(request, order, gateway):
             return redirect(order.get_absolute_url())
         payment_gateway, gateway_params = get_payment_gateway(payment.gateway)
         client_token = payment_gateway.get_client_token(**gateway_params)
-        form = get_form_for_payment(payment)
+        form = payment_gateway.get_form_class()
         form = form(
             data=request.POST or None, payment=payment,
             gateway=payment_gateway, gateway_params=gateway_params)

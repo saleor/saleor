@@ -24,7 +24,8 @@ from .types import Checkout, CheckoutLine
 
 
 def clean_shipping_method(
-        checkout, method, errors, discounts, taxes, country_code=None):
+        checkout, method, errors, discounts, taxes, country_code=None,
+        remove=True):
     # FIXME Add tests for this function
     if not method:
         return errors
@@ -48,11 +49,14 @@ def clean_shipping_method(
             country_code=country_code or checkout.shipping_address.country.code
         ))
     valid_methods = valid_methods.values_list('id', flat=True)
-    if method.pk not in valid_methods:
+    if method.pk not in valid_methods and not remove:
         errors.append(
             Error(
                 field='shippingMethod',
                 message='Shipping method cannot be used with this checkout.'))
+    if remove:
+        checkout.shipping_method = None
+        checkout.save(update_fields=['shipping_method'])
     return errors
 
 
@@ -401,7 +405,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         clean_shipping_method(
             checkout, shipping_method, errors, info.context.discounts,
-            info.context.taxes)
+            info.context.taxes, remove=False)
         if errors:
             return CheckoutShippingMethodUpdate(errors=errors)
 
