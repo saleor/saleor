@@ -29,8 +29,7 @@ define INIT_EXAMPLE_CMD
 endef
 
 define NPM_INSTALL_CMD
-'npm install &&\
- chown -R $(HOST_UID):$(HOST_GID) node_modules'
+'npm install'
 endef
 
 default:
