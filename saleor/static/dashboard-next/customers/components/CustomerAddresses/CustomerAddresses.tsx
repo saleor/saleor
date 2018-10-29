@@ -1,4 +1,3 @@
-import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import { withStyles } from "@material-ui/core/styles";
@@ -25,20 +24,20 @@ const decorate = withStyles(theme => ({
   }
 }));
 const CustomerAddresses = decorate<CustomerAddressesProps>(
-  ({ classes, customer, disabled, onAddressManageClick }) => (
+  ({ classes, customer }) => (
     <Card>
       <CardTitle
         title={i18n.t("Address Information")}
-        toolbar={
-          <Button
-            color="secondary"
-            disabled={disabled}
-            variant="flat"
-            onClick={onAddressManageClick}
-          >
-            {i18n.t("Manage", { context: "button" })}
-          </Button>
-        }
+        // toolbar={ // TODO: add address management #3173
+        //   <Button
+        //     color="secondary"
+        //     disabled={disabled}
+        //     variant="flat"
+        //     onClick={onAddressManageClick}
+        //   >
+        //     {i18n.t("Manage", { context: "button" })}
+        //   </Button>
+        // }
       />
       {customer &&
       customer.defaultBillingAddress &&
@@ -50,7 +49,7 @@ const CustomerAddresses = decorate<CustomerAddressesProps>(
         <>
           <CardContent>
             <Typography className={classes.label}>
-              {i18n.t("Default billing address")}
+              {i18n.t("Billing address")}
             </Typography>
             <AddressFormatter
               address={maybe(() => customer.defaultBillingAddress)}
@@ -59,7 +58,7 @@ const CustomerAddresses = decorate<CustomerAddressesProps>(
           <Hr />
           <CardContent>
             <Typography className={classes.label}>
-              {i18n.t("Default shipping address")}
+              {i18n.t("Shipping address")}
             </Typography>
             <AddressFormatter
               address={maybe(() => customer.defaultShippingAddress)}
@@ -68,9 +67,7 @@ const CustomerAddresses = decorate<CustomerAddressesProps>(
         </>
       ) : (
         <CardContent>
-          <Typography className={classes.label}>
-            {i18n.t("Default address")}
-          </Typography>
+          <Typography className={classes.label}>{i18n.t("Address")}</Typography>
           <AddressFormatter
             address={maybe(() => customer.defaultBillingAddress)}
           />

@@ -16,21 +16,27 @@ export interface CustomerStatsProps {
   customer: CustomerDetails_user;
 }
 
-const decorate = withStyles({
+const decorate = withStyles(theme => ({
+  label: {
+    marginBottom: theme.spacing.unit,
+    textTransform: "uppercase" as "uppercase"
+  },
   value: {
     fontSize: 24
   }
-});
+}));
 const CustomerStats = decorate<CustomerStatsProps>(({ classes, customer }) => (
   <Card>
     <CardTitle title={i18n.t("Customer History")} />
     <CardContent>
-      <Typography variant="body2">{i18n.t("Last login")}</Typography>
+      <Typography className={classes.label} variant="body2">
+        {i18n.t("Last login")}
+      </Typography>
       {maybe(
         () => (
           <Typography variant="title" className={classes.value}>
             {customer.lastLogin === null ? (
-              i18n.t("Never")
+              i18n.t("-")
             ) : (
               <DateFormatter date={customer.lastLogin} />
             )}
@@ -41,12 +47,14 @@ const CustomerStats = decorate<CustomerStatsProps>(({ classes, customer }) => (
     </CardContent>
     <Hr />
     <CardContent>
-      <Typography variant="body2">{i18n.t("Last order")}</Typography>
+      <Typography className={classes.label} variant="body2">
+        {i18n.t("Last order")}
+      </Typography>
       {maybe(
         () => (
           <Typography variant="title" className={classes.value}>
             {customer.lastPlacedOrder.edges.length === 0 ? (
-              i18n.t("No orders yet")
+              i18n.t("-")
             ) : (
               <DateFormatter
                 date={customer.lastPlacedOrder.edges[0].node.created}

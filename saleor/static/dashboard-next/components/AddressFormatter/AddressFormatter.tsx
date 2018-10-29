@@ -15,7 +15,11 @@ const AddressFormatter: React.StatelessComponent<AddressFormatterProps> = ({
     return <Skeleton />;
   }
   return (
-    <address>
+    <address
+      style={{
+        fontStyle: "inherit"
+      }}
+    >
       <Typography component="span">
         {address.firstName} {address.lastName}
       </Typography>
