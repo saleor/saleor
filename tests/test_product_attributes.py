@@ -1,7 +1,10 @@
+from unittest.mock import MagicMock, Mock
+
 import pytest
 
 from saleor.product.models import (
-    AttributeValue, Product, Attribute)
+    Attribute, AttributeValue, Product, ProductType)
+from saleor.product.tasks import _update_variants_names
 from saleor.product.utils.attributes import (
     generate_name_from_values, get_attributes_display_map,
     get_name_from_attributes)
@@ -67,3 +70,18 @@ def test_generate_name_from_values():
 def test_generate_name_from_values_empty():
     name = generate_name_from_values({})
     assert name == ''
+
+
+def test_product_type_update_changes_variant_name(product_type):
+    variant = product_type.variant_attributes.first()
+    variant.name = "test_name"
+    variant.save()
+    _update_variants_names(product_type, set([variant]))
+    assert product_type.variant_attributes.first().name == "test_name"
+
+
+def test_update_variants_changed_does_nothing_with_no_attributes():
+    product_type = MagicMock(spec=ProductType)
+    product_type.variant_attributes.all = Mock(return_value=[])
+    saved_attributes = []
+    assert _update_variants_names(product_type, saved_attributes) is None
