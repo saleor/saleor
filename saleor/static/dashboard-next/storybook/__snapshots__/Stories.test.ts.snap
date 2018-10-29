@@ -1153,7 +1153,9 @@ exports[`Storyshots Generics / AddressEdit default 1`] = `
 
 exports[`Storyshots Generics / AddressFormatter default 1`] = `
 <div>
-  <address>
+  <address
+    style="font-style:inherit"
+  >
     <span
       class="MuiTypography-root-id MuiTypography-body1-id"
     >
@@ -14231,28 +14233,24 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                 class="Component-spacer-id"
               />
               <div
-                class="Component-root-id"
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                    data-shrink="true"
-                  >
-                    E-mail
-                  </label>
-                  <div
-                    class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-                  >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInput-input-id MuiInput-inputType-id"
-                      name="email"
-                      type="email"
-                      value="elizabeth.vaughn@example.com"
-                    />
-                  </div>
+                  E-mail
+                </label>
+                <div
+                  class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInput-input-id MuiInput-inputType-id"
+                    name="email"
+                    type="email"
+                    value="elizabeth.vaughn@example.com"
+                  />
                 </div>
               </div>
               <div
@@ -14429,22 +14427,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
               </span>
               <div
                 class="Component-toolbar-id"
-              >
-                <button
-                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-                  tabindex="0"
-                  type="button"
-                >
-                  <span
-                    class="MuiButton-label-id"
-                  >
-                    Manage
-                  </span>
-                  <span
-                    class="MuiTouchRipple-root-id"
-                  />
-                </button>
-              </div>
+              />
             </div>
             <div
               class="Component-children-id"
@@ -14458,9 +14441,11 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-label-id"
               >
-                Default address
+                Address
               </p>
-              <address>
+              <address
+                style="font-style:inherit"
+              >
                 <span
                   class="MuiTypography-root-id MuiTypography-body1-id"
                 >
@@ -14513,7 +14498,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
               class="MuiCardContent-root-id"
             >
               <aside
-                class="MuiTypography-root-id MuiTypography-body2-id"
+                class="MuiTypography-root-id MuiTypography-body2-id Component-label-id"
               >
                 Last login
               </aside>
@@ -14535,7 +14520,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
               class="MuiCardContent-root-id"
             >
               <aside
-                class="MuiTypography-root-id MuiTypography-body2-id"
+                class="MuiTypography-root-id MuiTypography-body2-id Component-label-id"
               >
                 Last order
               </aside>
@@ -14721,28 +14706,24 @@ exports[`Storyshots Views / Customers / Customer details different addresses 1`]
                 class="Component-spacer-id"
               />
               <div
-                class="Component-root-id"
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                    data-shrink="true"
-                  >
-                    E-mail
-                  </label>
-                  <div
-                    class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-                  >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInput-input-id MuiInput-inputType-id"
-                      name="email"
-                      type="email"
-                      value="elizabeth.vaughn@example.com"
-                    />
-                  </div>
+                  E-mail
+                </label>
+                <div
+                  class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInput-input-id MuiInput-inputType-id"
+                    name="email"
+                    type="email"
+                    value="elizabeth.vaughn@example.com"
+                  />
                 </div>
               </div>
               <div
@@ -14919,22 +14900,7 @@ exports[`Storyshots Views / Customers / Customer details different addresses 1`]
               </span>
               <div
                 class="Component-toolbar-id"
-              >
-                <button
-                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-                  tabindex="0"
-                  type="button"
-                >
-                  <span
-                    class="MuiButton-label-id"
-                  >
-                    Manage
-                  </span>
-                  <span
-                    class="MuiTouchRipple-root-id"
-                  />
-                </button>
-              </div>
+              />
             </div>
             <div
               class="Component-children-id"
@@ -14948,9 +14914,11 @@ exports[`Storyshots Views / Customers / Customer details different addresses 1`]
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-label-id"
               >
-                Default billing address
+                Billing address
               </p>
-              <address>
+              <address
+                style="font-style:inherit"
+              >
                 <span
                   class="MuiTypography-root-id MuiTypography-body1-id"
                 >
@@ -14983,9 +14951,11 @@ exports[`Storyshots Views / Customers / Customer details different addresses 1`]
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-label-id"
               >
-                Default shipping address
+                Shipping address
               </p>
-              <address>
+              <address
+                style="font-style:inherit"
+              >
                 <span
                   class="MuiTypography-root-id MuiTypography-body1-id"
                 >
@@ -15038,7 +15008,7 @@ exports[`Storyshots Views / Customers / Customer details different addresses 1`]
               class="MuiCardContent-root-id"
             >
               <aside
-                class="MuiTypography-root-id MuiTypography-body2-id"
+                class="MuiTypography-root-id MuiTypography-body2-id Component-label-id"
               >
                 Last login
               </aside>
@@ -15060,7 +15030,7 @@ exports[`Storyshots Views / Customers / Customer details different addresses 1`]
               class="MuiCardContent-root-id"
             >
               <aside
-                class="MuiTypography-root-id MuiTypography-body2-id"
+                class="MuiTypography-root-id MuiTypography-body2-id Component-label-id"
               >
                 Last order
               </aside>
@@ -15246,34 +15216,30 @@ exports[`Storyshots Views / Customers / Customer details form errors 1`] = `
                 class="Component-spacer-id"
               />
               <div
-                class="Component-root-id"
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                    data-shrink="true"
-                  >
-                    E-mail
-                  </label>
-                  <div
-                    class="MuiInput-root-id MuiInput-error-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-                  >
-                    <input
-                      aria-invalid="true"
-                      class="MuiInput-input-id MuiInput-inputType-id"
-                      name="email"
-                      type="email"
-                      value="elizabeth.vaughn@example.com"
-                    />
-                  </div>
-                  <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
-                  >
-                    Generic form error
-                  </p>
+                  E-mail
+                </label>
+                <div
+                  class="MuiInput-root-id MuiInput-error-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+                >
+                  <input
+                    aria-invalid="true"
+                    class="MuiInput-input-id MuiInput-inputType-id"
+                    name="email"
+                    type="email"
+                    value="elizabeth.vaughn@example.com"
+                  />
                 </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
+                >
+                  Generic form error
+                </p>
               </div>
               <div
                 class="Component-spacer-id"
@@ -15454,22 +15420,7 @@ exports[`Storyshots Views / Customers / Customer details form errors 1`] = `
               </span>
               <div
                 class="Component-toolbar-id"
-              >
-                <button
-                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-                  tabindex="0"
-                  type="button"
-                >
-                  <span
-                    class="MuiButton-label-id"
-                  >
-                    Manage
-                  </span>
-                  <span
-                    class="MuiTouchRipple-root-id"
-                  />
-                </button>
-              </div>
+              />
             </div>
             <div
               class="Component-children-id"
@@ -15483,9 +15434,11 @@ exports[`Storyshots Views / Customers / Customer details form errors 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-label-id"
               >
-                Default address
+                Address
               </p>
-              <address>
+              <address
+                style="font-style:inherit"
+              >
                 <span
                   class="MuiTypography-root-id MuiTypography-body1-id"
                 >
@@ -15538,7 +15491,7 @@ exports[`Storyshots Views / Customers / Customer details form errors 1`] = `
               class="MuiCardContent-root-id"
             >
               <aside
-                class="MuiTypography-root-id MuiTypography-body2-id"
+                class="MuiTypography-root-id MuiTypography-body2-id Component-label-id"
               >
                 Last login
               </aside>
@@ -15560,7 +15513,7 @@ exports[`Storyshots Views / Customers / Customer details form errors 1`] = `
               class="MuiCardContent-root-id"
             >
               <aside
-                class="MuiTypography-root-id MuiTypography-body2-id"
+                class="MuiTypography-root-id MuiTypography-body2-id Component-label-id"
               >
                 Last order
               </aside>
@@ -15749,28 +15702,24 @@ exports[`Storyshots Views / Customers / Customer details loading 1`] = `
                 class="Component-spacer-id"
               />
               <div
-                class="Component-root-id"
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                    data-shrink="false"
-                  >
-                    E-mail
-                  </label>
-                  <div
-                    class="MuiInput-root-id MuiInput-disabled-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-                  >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInput-input-id MuiInput-disabled-id MuiInput-inputType-id"
-                      disabled=""
-                      name="email"
-                      type="email"
-                    />
-                  </div>
+                  E-mail
+                </label>
+                <div
+                  class="MuiInput-root-id MuiInput-disabled-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInput-input-id MuiInput-disabled-id MuiInput-inputType-id"
+                    disabled=""
+                    name="email"
+                    type="email"
+                  />
                 </div>
               </div>
               <div
@@ -15955,20 +15904,7 @@ exports[`Storyshots Views / Customers / Customer details loading 1`] = `
               </span>
               <div
                 class="Component-toolbar-id"
-              >
-                <button
-                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id"
-                  disabled=""
-                  tabindex="-1"
-                  type="button"
-                >
-                  <span
-                    class="MuiButton-label-id"
-                  >
-                    Manage
-                  </span>
-                </button>
-              </div>
+              />
             </div>
             <div
               class="Component-children-id"
@@ -15982,7 +15918,7 @@ exports[`Storyshots Views / Customers / Customer details loading 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-label-id"
               >
-                Default address
+                Address
               </p>
               <span
                 class="Skeleton-skeleton-id"
@@ -16019,7 +15955,7 @@ exports[`Storyshots Views / Customers / Customer details loading 1`] = `
               class="MuiCardContent-root-id"
             >
               <aside
-                class="MuiTypography-root-id MuiTypography-body2-id"
+                class="MuiTypography-root-id MuiTypography-body2-id Component-label-id"
               >
                 Last login
               </aside>
@@ -16036,7 +15972,7 @@ exports[`Storyshots Views / Customers / Customer details loading 1`] = `
               class="MuiCardContent-root-id"
             >
               <aside
-                class="MuiTypography-root-id MuiTypography-body2-id"
+                class="MuiTypography-root-id MuiTypography-body2-id Component-label-id"
               >
                 Last order
               </aside>
@@ -16217,28 +16153,24 @@ exports[`Storyshots Views / Customers / Customer details never logged 1`] = `
                 class="Component-spacer-id"
               />
               <div
-                class="Component-root-id"
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                    data-shrink="true"
-                  >
-                    E-mail
-                  </label>
-                  <div
-                    class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-                  >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInput-input-id MuiInput-inputType-id"
-                      name="email"
-                      type="email"
-                      value="elizabeth.vaughn@example.com"
-                    />
-                  </div>
+                  E-mail
+                </label>
+                <div
+                  class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInput-input-id MuiInput-inputType-id"
+                    name="email"
+                    type="email"
+                    value="elizabeth.vaughn@example.com"
+                  />
                 </div>
               </div>
               <div
@@ -16415,22 +16347,7 @@ exports[`Storyshots Views / Customers / Customer details never logged 1`] = `
               </span>
               <div
                 class="Component-toolbar-id"
-              >
-                <button
-                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-                  tabindex="0"
-                  type="button"
-                >
-                  <span
-                    class="MuiButton-label-id"
-                  >
-                    Manage
-                  </span>
-                  <span
-                    class="MuiTouchRipple-root-id"
-                  />
-                </button>
-              </div>
+              />
             </div>
             <div
               class="Component-children-id"
@@ -16444,9 +16361,11 @@ exports[`Storyshots Views / Customers / Customer details never logged 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-label-id"
               >
-                Default address
+                Address
               </p>
-              <address>
+              <address
+                style="font-style:inherit"
+              >
                 <span
                   class="MuiTypography-root-id MuiTypography-body1-id"
                 >
@@ -16499,14 +16418,14 @@ exports[`Storyshots Views / Customers / Customer details never logged 1`] = `
               class="MuiCardContent-root-id"
             >
               <aside
-                class="MuiTypography-root-id MuiTypography-body2-id"
+                class="MuiTypography-root-id MuiTypography-body2-id Component-label-id"
               >
                 Last login
               </aside>
               <h2
                 class="MuiTypography-root-id MuiTypography-title-id Component-value-id"
               >
-                Never
+                -
               </h2>
             </div>
             <hr
@@ -16516,7 +16435,7 @@ exports[`Storyshots Views / Customers / Customer details never logged 1`] = `
               class="MuiCardContent-root-id"
             >
               <aside
-                class="MuiTypography-root-id MuiTypography-body2-id"
+                class="MuiTypography-root-id MuiTypography-body2-id Component-label-id"
               >
                 Last order
               </aside>
@@ -16702,28 +16621,24 @@ exports[`Storyshots Views / Customers / Customer details never placed order 1`] 
                 class="Component-spacer-id"
               />
               <div
-                class="Component-root-id"
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                    data-shrink="true"
-                  >
-                    E-mail
-                  </label>
-                  <div
-                    class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-                  >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInput-input-id MuiInput-inputType-id"
-                      name="email"
-                      type="email"
-                      value="elizabeth.vaughn@example.com"
-                    />
-                  </div>
+                  E-mail
+                </label>
+                <div
+                  class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInput-input-id MuiInput-inputType-id"
+                    name="email"
+                    type="email"
+                    value="elizabeth.vaughn@example.com"
+                  />
                 </div>
               </div>
               <div
@@ -16900,22 +16815,7 @@ exports[`Storyshots Views / Customers / Customer details never placed order 1`] 
               </span>
               <div
                 class="Component-toolbar-id"
-              >
-                <button
-                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-                  tabindex="0"
-                  type="button"
-                >
-                  <span
-                    class="MuiButton-label-id"
-                  >
-                    Manage
-                  </span>
-                  <span
-                    class="MuiTouchRipple-root-id"
-                  />
-                </button>
-              </div>
+              />
             </div>
             <div
               class="Component-children-id"
@@ -16929,9 +16829,11 @@ exports[`Storyshots Views / Customers / Customer details never placed order 1`] 
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-label-id"
               >
-                Default address
+                Address
               </p>
-              <address>
+              <address
+                style="font-style:inherit"
+              >
                 <span
                   class="MuiTypography-root-id MuiTypography-body1-id"
                 >
@@ -16984,7 +16886,7 @@ exports[`Storyshots Views / Customers / Customer details never placed order 1`] 
               class="MuiCardContent-root-id"
             >
               <aside
-                class="MuiTypography-root-id MuiTypography-body2-id"
+                class="MuiTypography-root-id MuiTypography-body2-id Component-label-id"
               >
                 Last login
               </aside>
@@ -17006,14 +16908,14 @@ exports[`Storyshots Views / Customers / Customer details never placed order 1`] 
               class="MuiCardContent-root-id"
             >
               <aside
-                class="MuiTypography-root-id MuiTypography-body2-id"
+                class="MuiTypography-root-id MuiTypography-body2-id Component-label-id"
               >
                 Last order
               </aside>
               <h2
                 class="MuiTypography-root-id MuiTypography-title-id Component-value-id"
               >
-                No orders yet
+                -
               </h2>
             </div>
           </div>
