@@ -28,16 +28,11 @@ export interface CustomerDetailsProps {
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
-const decorate = withStyles(theme => ({
+const decorate = withStyles({
   cardTitle: {
     height: 64
-  },
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "1fr 1fr"
   }
-}));
+});
 const CustomerDetails = decorate<CustomerDetailsProps>(
   ({ classes, customer, data, disabled, errors, onChange }) => (
     <Card>
@@ -66,19 +61,17 @@ const CustomerDetails = decorate<CustomerDetailsProps>(
           onChange={onChange}
         />
         <FormSpacer />
-        <div className={classes.root}>
-          <TextField
-            disabled={disabled}
-            error={!!errors.email}
-            fullWidth
-            helperText={errors.email}
-            name="email"
-            type="email"
-            label={i18n.t("E-mail")}
-            value={data.email}
-            onChange={onChange}
-          />
-        </div>
+        <TextField
+          disabled={disabled}
+          error={!!errors.email}
+          fullWidth
+          helperText={errors.email}
+          name="email"
+          type="email"
+          label={i18n.t("E-mail")}
+          value={data.email}
+          onChange={onChange}
+        />
         <FormSpacer />
         <TextField
           disabled={disabled}
