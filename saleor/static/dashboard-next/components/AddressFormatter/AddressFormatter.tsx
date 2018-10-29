@@ -1,7 +1,7 @@
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import { AddressType } from "../../customers/";
+import { AddressType } from "../../customers/types";
 import Skeleton from "../Skeleton";
 
 interface AddressFormatterProps {
@@ -15,7 +15,11 @@ const AddressFormatter: React.StatelessComponent<AddressFormatterProps> = ({
     return <Skeleton />;
   }
   return (
-    <address>
+    <address
+      style={{
+        fontStyle: "inherit"
+      }}
+    >
       <Typography component="span">
         {address.firstName} {address.lastName}
       </Typography>

@@ -1,3 +1,7 @@
+import { ListCustomers_customers_edges_node } from "./types/ListCustomers";
+import { CustomerDetails_user } from "./types/CustomerDetails";
+import { PaymentStatusEnum } from "../types/globalTypes";
+
 export const customers = [
   {
     dateJoined: "2017-10-11T13:22:30.831Z",
@@ -672,4 +676,305 @@ export const customers = [
     note: "Dolorem vitae."
   }
 ];
-export const customer = customers[0];
+
+export const customerList: ListCustomers_customers_edges_node[] = [
+  {
+    __typename: "User",
+    email: "curtis.bailey@example.com",
+    id: "VXNlcjox",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 2
+    }
+  },
+  {
+    __typename: "User",
+    email: "curtis.bailey@example.com",
+    id: "VXNlcjox",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 2
+    }
+  },
+  {
+    __typename: "User",
+    email: "elizabeth.vaughn@example.com",
+    id: "VXNlcjoy",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 1
+    }
+  },
+  {
+    __typename: "User",
+    email: "michael.martinez@example.com",
+    id: "VXNlcjoz",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 1
+    }
+  },
+  {
+    __typename: "User",
+    email: "kayla.griffin@example.com",
+    id: "VXNlcjo0",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 0
+    }
+  },
+  {
+    __typename: "User",
+    email: "donna.robinson@example.com",
+    id: "VXNlcjo1",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 0
+    }
+  },
+  {
+    __typename: "User",
+    email: "james.ball@example.com",
+    id: "VXNlcjo2",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 1
+    }
+  },
+  {
+    __typename: "User",
+    email: "anthony.gonzalez@example.com",
+    id: "VXNlcjo3",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 2
+    }
+  },
+  {
+    __typename: "User",
+    email: "anthony.gonzalez@example.com",
+    id: "VXNlcjo3",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 2
+    }
+  },
+  {
+    __typename: "User",
+    email: "wesley.davis@example.com",
+    id: "VXNlcjo4",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 1
+    }
+  },
+  {
+    __typename: "User",
+    email: "laura.stone@example.com",
+    id: "VXNlcjo5",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 1
+    }
+  },
+  {
+    __typename: "User",
+    email: "william.miller@example.com",
+    id: "VXNlcjoxMA==",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 0
+    }
+  },
+  {
+    __typename: "User",
+    email: "donald.solomon@example.com",
+    id: "VXNlcjoxMQ==",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 0
+    }
+  },
+  {
+    __typename: "User",
+    email: "anthony.young@example.com",
+    id: "VXNlcjoxMg==",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 0
+    }
+  },
+  {
+    __typename: "User",
+    email: "sharon.hanson@example.com",
+    id: "VXNlcjoxMw==",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 0
+    }
+  },
+  {
+    __typename: "User",
+    email: "laura.jensen@example.com",
+    id: "VXNlcjoxNA==",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 1
+    }
+  },
+  {
+    __typename: "User",
+    email: "mark.lee@example.com",
+    id: "VXNlcjoxNQ==",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 1
+    }
+  },
+  {
+    __typename: "User",
+    email: "david.lawson@example.com",
+    id: "VXNlcjoxNg==",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 2
+    }
+  },
+  {
+    __typename: "User",
+    email: "david.lawson@example.com",
+    id: "VXNlcjoxNg==",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 2
+    }
+  },
+  {
+    __typename: "User",
+    email: "faith.smith@example.com",
+    id: "VXNlcjoxNw==",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 0
+    }
+  },
+  {
+    __typename: "User",
+    email: "john.jones@example.com",
+    id: "VXNlcjoxOA==",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 0
+    }
+  },
+  {
+    __typename: "User",
+    email: "ronald.fisher@example.com",
+    id: "VXNlcjoxOQ==",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 0
+    }
+  },
+  {
+    __typename: "User",
+    email: "jason.gray@example.com",
+    id: "VXNlcjoyMA==",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 0
+    }
+  },
+  {
+    __typename: "User",
+    email: "admin@example.com",
+    id: "VXNlcjoyMQ==",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 6
+    }
+  }
+];
+export const customer: CustomerDetails_user = {
+  __typename: "User",
+  dateJoined: "2017-05-07T09:37:30.124154+00:00",
+  defaultBillingAddress: {
+    __typename: "Address",
+    city: "Port Danielshire",
+    cityArea: "",
+    companyName: "",
+    country: {
+      __typename: "CountryDisplay",
+      code: "SE",
+      country: "Szwecja"
+    },
+    countryArea: "",
+    firstName: "Elizabeth",
+    id: "QWRkcmVzczoy",
+    lastName: "Vaughn",
+    phone: "",
+    postalCode: "52203",
+    streetAddress1: "419 Ruiz Orchard Apt. 199",
+    streetAddress2: ""
+  },
+  defaultShippingAddress: {
+    __typename: "Address",
+    city: "Port Danielshire",
+    cityArea: "",
+    companyName: "",
+    country: {
+      __typename: "CountryDisplay",
+      code: "SE",
+      country: "Szwecja"
+    },
+    countryArea: "",
+    firstName: "Elizabeth",
+    id: "QWRkcmVzczoy",
+    lastName: "Vaughn",
+    phone: "",
+    postalCode: "52203",
+    streetAddress1: "419 Ruiz Orchard Apt. 199",
+    streetAddress2: ""
+  },
+  email: "elizabeth.vaughn@example.com",
+  id: "VXNlcjoy",
+  isActive: true,
+  lastLogin: "2018-05-07T09:37:30.124154+00:00",
+  lastPlacedOrder: {
+    __typename: "OrderCountableConnection",
+    edges: [
+      {
+        __typename: "OrderCountableEdge",
+        node: {
+          __typename: "Order",
+          created: "2018-05-07T09:37:30.124154+00:00",
+          id: "T3JkZXI6MTk="
+        }
+      }
+    ]
+  },
+  note: null,
+  orders: {
+    __typename: "OrderCountableConnection",
+    edges: [
+      {
+        __typename: "OrderCountableEdge",
+        node: {
+          __typename: "Order",
+          created: "2018-05-07T09:37:30.124154+00:00",
+          id: "T3JkZXI6MTk=",
+          number: "8234",
+          paymentStatus: PaymentStatusEnum.CONFIRMED,
+          total: {
+            __typename: "TaxedMoney",
+            gross: {
+              __typename: "Money",
+              amount: 1215.89,
+              currency: "USD"
+            }
+          }
+        }
+      }
+    ]
+  }
+};
