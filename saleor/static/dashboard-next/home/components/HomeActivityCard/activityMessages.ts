@@ -1,6 +1,6 @@
 import i18n from "../../../i18n";
 import { OrderEvents } from "../../../types/globalTypes";
-import { Home_activities_edges_node } from "../../types/home";
+import { Home_activities_edges_node } from "../../types/Home";
 
 export const getActivityMessage = (activity: Home_activities_edges_node) => {
   switch (activity.type) {

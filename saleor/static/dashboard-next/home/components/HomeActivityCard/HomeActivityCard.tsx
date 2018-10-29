@@ -11,7 +11,7 @@ import DateFormatter from "../../../components/DateFormatter";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
-import { Home_activities_edges_node } from "../../types/home";
+import { Home_activities_edges_node } from "../../types/Home";
 import { getActivityMessage } from "./activityMessages";
 
 interface HomeProductListCardProps {

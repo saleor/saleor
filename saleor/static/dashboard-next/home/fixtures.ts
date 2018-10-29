@@ -1,5 +1,5 @@
 import { OrderEvents } from "../types/globalTypes";
-import { Home } from "./types/home";
+import { Home } from "./types/Home";
 
 export const shop: (placeholderImage: string) => Home = (
   placeholderImage: string

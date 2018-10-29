@@ -12,7 +12,7 @@ import {
   Home_activities_edges_node,
   Home_productTopToday_edges_node,
   Home_salesToday_gross
-} from "../../types/home";
+} from "../../types/Home";
 import HomeActivityCard from "../HomeActivityCard";
 import HomeAnalyticsCard from "../HomeAnalyticsCard";
 import HomeHeader from "../HomeHeader";

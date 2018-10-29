@@ -14,7 +14,7 @@ import Skeleton from "../../../components/Skeleton";
 import TableCellAvatar from "../../../components/TableCellAvatar";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
-import { Home_productTopToday_edges_node } from "../../types/home";
+import { Home_productTopToday_edges_node } from "../../types/Home";
 
 interface HomeProductListProps {
   topProducts: Home_productTopToday_edges_node[];
