@@ -281,6 +281,14 @@ export interface StaffInput {
   permissions?: (string | null)[] | null;
 }
 
+export interface UserCreateInput {
+  email?: string | null;
+  note?: string | null;
+  defaultBillingAddress?: AddressInput | null;
+  defaultShippingAddress?: AddressInput | null;
+  sendPasswordEmail?: boolean | null;
+}
+
 //==============================================================
 // END Enums and Input Objects
 //==============================================================

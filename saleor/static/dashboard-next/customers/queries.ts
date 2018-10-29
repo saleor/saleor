@@ -2,6 +2,7 @@ import gql from "graphql-tag";
 
 import { fragmentAddress } from "../orders/queries";
 import { TypedQuery } from "../queries";
+import { CustomerCreateData } from "./types/CustomerCreateData";
 import {
   CustomerDetails,
   CustomerDetailsVariables
@@ -100,3 +101,17 @@ export const TypedCustomerDetailsQuery = TypedQuery<
   CustomerDetails,
   CustomerDetailsVariables
 >(customerDetails);
+
+const customerCreateData = gql`
+  query CustomerCreateData {
+    shop {
+      countries {
+        code
+        country
+      }
+    }
+  }
+`;
+export const TypedCustomerCreateDataQuery = TypedQuery<CustomerCreateData, {}>(
+  customerCreateData
+);

@@ -36,7 +36,7 @@ const CustomerCreateNote: React.StatelessComponent<CustomerCreateNoteProps> = ({
         fullWidth
         multiline
         name="note"
-        label={i18n.t("E-mail")}
+        label={i18n.t("Note")}
         value={data.note}
         onChange={onChange}
       />

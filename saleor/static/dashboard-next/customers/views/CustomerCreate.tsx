@@ -1,5 +1,83 @@
-import * as React from 'react'
+import * as React from "react";
 
-import Navigator from '../../components/Navigator'
-import Messages from '../../components/messages'
-import 
+import Messages from "../../components/messages";
+import Navigator from "../../components/Navigator";
+import i18n from "../../i18n";
+import { maybe } from "../../misc";
+import CustomerCreatePage from "../components/CustomerCreatePage";
+import { TypedCreateCustomerMutation } from "../mutations";
+import { TypedCustomerCreateDataQuery } from "../queries";
+import { CreateCustomer } from "../types/CreateCustomer";
+import { customerListUrl, customerUrl } from "../urls";
+
+export const CustomerCreate: React.StatelessComponent<{}> = () => (
+  <Navigator>
+    {navigate => (
+      <Messages>
+        {pushMessage => {
+          const handleCreateCustomerSuccess = (data: CreateCustomer) => {
+            if (
+              data.customerCreate.errors === null ||
+              data.customerCreate.errors.length === 0
+            ) {
+              pushMessage({
+                text: i18n.t("Customer created", {
+                  context: "notification"
+                })
+              });
+              navigate(customerUrl(data.customerCreate.user.id));
+            }
+          };
+          return (
+            <TypedCustomerCreateDataQuery>
+              {({ data, loading }) => (
+                <TypedCreateCustomerMutation
+                  onCompleted={handleCreateCustomerSuccess}
+                >
+                  {(createCustomer, createCustomerOpts) => (
+                    <CustomerCreatePage
+                      countries={maybe(() => data.shop.countries, [])}
+                      disabled={loading || createCustomerOpts.loading}
+                      errors={maybe(
+                        () => createCustomerOpts.data.customerCreate.errors,
+                        []
+                      )}
+                      onBack={() => navigate(customerListUrl)}
+                      onSubmit={formData => {
+                        const address = {
+                          city: formData.city,
+                          cityArea: formData.cityArea,
+                          companyName: formData.companyName,
+                          country: formData.country,
+                          countryArea: formData.countryArea,
+                          firstName: formData.firstName,
+                          lastName: formData.lastName,
+                          phone: formData.phone,
+                          postalCode: formData.postalCode,
+                          streetAddress1: formData.streetAddress1,
+                          streetAddress2: formData.streetAddress2
+                        };
+                        createCustomer({
+                          variables: {
+                            input: {
+                              defaultBillingAddress: address,
+                              defaultShippingAddress: address,
+                              email: formData.email,
+                              note: formData.note,
+                              sendPasswordEmail: true
+                            }
+                          }
+                        });
+                      }}
+                    />
+                  )}
+                </TypedCreateCustomerMutation>
+              )}
+            </TypedCustomerCreateDataQuery>
+          );
+        }}
+      </Messages>
+    )}
+  </Navigator>
+);
+export default CustomerCreate;
