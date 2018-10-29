@@ -5,6 +5,7 @@ from .utils.attributes import get_name_from_attributes
 
 
 def _update_variants_names(instance, saved_attributes):
+    """update saved variants name for products type."""
     initial_attributes = set(instance.variant_attributes.all())
     attributes_changed = initial_attributes.intersection(saved_attributes)
     if not attributes_changed:

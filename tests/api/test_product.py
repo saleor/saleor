@@ -12,6 +12,7 @@ from saleor.graphql.core.types import ReportingPeriod
 from saleor.graphql.product.types import StockAvailability
 from saleor.product.models import (
     Category, Collection, Product, ProductImage, ProductType, ProductVariant)
+from saleor.product.tasks import update_variants_names
 
 from .utils import assert_no_permission, get_multipart_request_body
 
@@ -1239,6 +1240,7 @@ def test_unassign_not_assigned_variant_image(
     assert content['data']['variantImageUnassign']['errors'][0]['field'] == (
         'imageId')
 
+
 @patch('saleor.product.tasks.update_variants_names.delay')
 def test_product_type_update_changes_variant_name(
         mock_update_variants_names, staff_api_client, product_type,
@@ -1286,6 +1288,14 @@ def test_product_type_update_changes_variant_name(
     mock_update_variants_names.assert_called_once_with(
         product_type, variant_attributes)
 
+
+@patch('saleor.product.tasks._update_variants_names')
+def test_product_update_variants_names(mock__update_variants_names,
+                                       product_type):
+    variant_attributes = [product_type.variant_attributes.first()]
+    update_variants_names(product_type, variant_attributes)
+    mock__update_variants_names.assert_called_once_with(
+        product_type, variant_attributes)
 
 
 def test_product_variants_by_ids(user_api_client, variant):
