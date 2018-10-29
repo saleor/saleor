@@ -99,8 +99,8 @@ export const HomeProductList = decorate<HomeProductListProps>(
                     {maybe(
                       () => (
                         <Money
-                          amount={variant.product.price.amount}
-                          currency={variant.product.price.currency}
+                          amount={variant.revenue.gross.amount}
+                          currency={variant.revenue.gross.currency}
                         />
                       ),
                       <Skeleton />

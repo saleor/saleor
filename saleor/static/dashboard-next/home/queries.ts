@@ -23,7 +23,7 @@ const home = gql`
     productsOutOfStock: products(stockAvailability: OUT_OF_STOCK) {
       totalCount
     }
-    productTopToday: reportProductSales(period: TODAY) {
+    productTopToday: reportProductSales(period: TODAY, first: 5) {
       edges {
         node {
           id
@@ -44,10 +44,6 @@ const home = gql`
             id
             name
             thumbnailUrl
-            price {
-              amount
-              currency
-            }
           }
           quantityOrdered
         }
