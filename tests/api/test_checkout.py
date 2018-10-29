@@ -523,3 +523,67 @@ def test_checkout_shipping_method_update(
     assert checkout.shipping_method == shipping_method
     mock_clean_shipping.assert_called_once_with(
         checkout, shipping_method, [], ANY, ANY, remove=False)
+
+
+def test_query_checkout_line(cart_with_item, user_api_client):
+    query = """
+    query checkoutLine($id: ID) {
+        checkoutLine(id: $id) {
+            id
+        }
+    }
+    """
+    checkout = cart_with_item
+    line = checkout.lines.first()
+    line_id = graphene.Node.to_global_id('CheckoutLine', line.pk)
+    variables = {'id': line_id}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    received_id = content['data']['checkoutLine']['id']
+    assert received_id == line_id
+
+
+def test_query_checkouts(
+        cart_with_item, staff_api_client, permission_manage_orders):
+    query = """
+    {
+        checkouts {
+            edges {
+                node {
+                    token
+                }
+            }
+        }
+    }
+    """
+    checkout = cart_with_item
+    response = staff_api_client.post_graphql(
+        query, {}, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+    received_checkout = content['data']['checkouts']['edges'][0]['node']
+    assert str(checkout.token) == received_checkout['token']
+
+
+def test_query_checkout_lines(
+        cart_with_item, staff_api_client, permission_manage_orders):
+    query = """
+    {
+        checkoutLines {
+            edges {
+                node {
+                    id
+                }
+            }
+        }
+    }
+    """
+    checkout = cart_with_item
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+    lines = content['data']['checkoutLines']['edges']
+    checkout_lines_ids = [line['node']['id'] for line in lines]
+    expected_lines_ids = [
+        graphene.Node.to_global_id('CheckoutLine', item.pk)
+        for item in checkout]
+    assert expected_lines_ids == checkout_lines_ids

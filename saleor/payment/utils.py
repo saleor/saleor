@@ -89,7 +89,6 @@ def create_transaction(
 
 
 def gateway_get_client_token(gateway_name: str):
-    # FIXME Add tests
     gateway, gateway_params = get_payment_gateway(gateway_name)
     return gateway.get_client_token(**gateway_params)
 

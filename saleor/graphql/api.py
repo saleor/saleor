@@ -78,6 +78,7 @@ class Query(ProductQueries):
     checkout = graphene.Field(
         Checkout, description='Single checkout.',
         token=graphene.Argument(graphene.UUID))
+    # FIXME we could optimize the below field
     checkouts = DjangoConnectionField(
         Checkout,description='List of checkouts.')
     checkout_lines = PrefetchingConnectionField(
@@ -129,8 +130,7 @@ class Query(ProductQueries):
     payment_client_token = graphene.Field(
         graphene.String, args={'gateway': PaymentGatewayEnum()})
     payments = PrefetchingConnectionField(
-        Payment,
-        description='List of payments')
+        Payment, description='List of payments')
     sale = graphene.Field(
         Sale, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup a sale by ID.')

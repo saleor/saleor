@@ -1,11 +1,14 @@
+from unittest.mock import patch
+
 import graphene
 from tests.api.utils import get_graphql_content
 
+from saleor.core.utils import get_country_name_by_code
+from saleor.graphql.payment.types import (
+    OrderAction, PaymentChargeStatusEnum, PaymentGatewayEnum)
 from saleor.payment.models import (
     ChargeStatus, Payment, Transaction, TransactionKind)
-from saleor.graphql.payment.types import (
-    PaymentChargeStatusEnum, PaymentGatewayEnum, OrderAction)
-from saleor.core.utils import get_country_name_by_code
+
 
 VOID_QUERY = """
     mutation PaymentVoid($paymentId: ID!) {
@@ -339,3 +342,62 @@ def test_payments_query(
         'brand': pay.cc_brand,
         'firstDigits': pay.cc_first_digits,
         'lastDigits': pay.cc_last_digits}
+
+
+def test_query_payment(payment_dummy, user_api_client):
+    query = """
+    query payment($id: ID) {
+        payment(id: $id) {
+            id
+        }
+    }
+    """
+    payment = payment_dummy
+    payment_id = graphene.Node.to_global_id('Payment', payment.pk)
+    variables = {'id': payment_id}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    received_id = content['data']['payment']['id']
+    assert received_id == payment_id
+
+
+def test_query_payments(
+        payment_dummy, permission_manage_orders, staff_api_client):
+    query = """
+    {
+        payments {
+            edges {
+                node {
+                    id
+                }
+            }
+        }
+    }
+    """
+    payment = payment_dummy
+    payment_id = graphene.Node.to_global_id('Payment', payment.pk)
+    response = staff_api_client.post_graphql(
+        query, {}, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+    edges = content['data']['payments']['edges']
+    payment_ids = [edge['node']['id'] for edge in edges]
+    assert payment_ids == [payment_id]
+
+
+@patch('saleor.graphql.payment.resolvers.gateway_get_client_token')
+def test_query_payment_client_token(mock_get_client_token, user_api_client):
+    query = """
+    query paymentClientToken($gateway: GatewaysEnum) {
+        paymentClientToken(gateway: $gateway)
+    }
+    """
+    example_token = 'example-token'
+    mock_get_client_token.return_value = example_token
+    variables = {'gateway': PaymentGatewayEnum.BRAINTREE.name}
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert mock_get_client_token.called_once_with(
+        PaymentGatewayEnum.BRAINTREE.name)
+    token = content['data']['paymentClientToken']
+    assert token == example_token
