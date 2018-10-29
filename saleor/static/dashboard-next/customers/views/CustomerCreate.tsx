@@ -42,6 +42,9 @@ export const CustomerCreate: React.StatelessComponent<{}> = () => (
                         () => createCustomerOpts.data.customerCreate.errors,
                         []
                       )}
+                      saveButtonBar={
+                        createCustomerOpts.loading ? "loading" : "default"
+                      }
                       onBack={() => navigate(customerListUrl)}
                       onSubmit={formData => {
                         const address = {

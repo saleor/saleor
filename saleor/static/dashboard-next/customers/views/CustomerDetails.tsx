@@ -78,6 +78,9 @@ export const CustomerDetailsView: React.StatelessComponent<
                               () =>
                                 updateCustomerOpts.data.customerUpdate.errors
                             )}
+                            saveButtonBar={
+                              updateCustomerOpts.loading ? "loading" : "default"
+                            }
                             onAddressManageClick={() => undefined} // TODO: add address management #3173
                             onBack={() => navigate(customerListUrl)}
                             onRowClick={id =>
@@ -89,7 +92,8 @@ export const CustomerDetailsView: React.StatelessComponent<
                                   id,
                                   input: {
                                     email: formData.email,
-                                    note: formData.note // TODO: add isActive #3174
+                                    isActive: formData.isActive,
+                                    note: formData.note
                                   }
                                 }
                               })

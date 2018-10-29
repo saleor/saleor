@@ -6,7 +6,9 @@ import { CardSpacer } from "../../../components/CardSpacer";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar from "../../../components/SaveButtonBar";
+import SaveButtonBar, {
+  SaveButtonBarState
+} from "../../../components/SaveButtonBar";
 import { maybe } from "../../../misc";
 import { CustomerDetails_user } from "../../types/CustomerDetails";
 import CustomerAddresses from "../CustomerAddresses/CustomerAddresses";
@@ -24,6 +26,7 @@ export interface CustomerDetailsPageProps {
   customer: CustomerDetails_user;
   disabled: boolean;
   errors: UserError[];
+  saveButtonBar: SaveButtonBarState;
   onBack: () => void;
   onSubmit: (data: CustomerDetailsPageFormData) => void;
   onViewAllOrdersClick: () => void;
@@ -45,6 +48,7 @@ const CustomerDetailsPage = decorate<CustomerDetailsPageProps>(
     customer,
     disabled,
     errors,
+    saveButtonBar,
     onBack,
     onSubmit,
     onViewAllOrdersClick,
@@ -95,6 +99,7 @@ const CustomerDetailsPage = decorate<CustomerDetailsPageProps>(
           </div>
           <SaveButtonBar
             disabled={disabled || !hasChanged}
+            state={saveButtonBar}
             onSave={submit}
             onCancel={onBack}
             onDelete={onDelete}
