@@ -22,6 +22,7 @@ export interface CustomerCreateNoteProps {
 const CustomerCreateNote: React.StatelessComponent<CustomerCreateNoteProps> = ({
   data,
   disabled,
+  errors,
   onChange
 }) => (
   <Card>
@@ -33,9 +34,11 @@ const CustomerCreateNote: React.StatelessComponent<CustomerCreateNoteProps> = ({
       <FormSpacer />
       <TextField
         disabled={disabled}
+        error={!!errors.note}
         fullWidth
         multiline
         name="note"
+        helperText={errors.note}
         label={i18n.t("Note")}
         value={data.note}
         onChange={onChange}
