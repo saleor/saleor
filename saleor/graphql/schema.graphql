@@ -871,6 +871,7 @@ type OrderEvent implements Node {
   amount: Float
   quantity: Int
   composedId: String
+  orderNumber: String
   oversoldItems: [String]
 }
 
