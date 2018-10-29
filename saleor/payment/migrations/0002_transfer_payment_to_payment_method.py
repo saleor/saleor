@@ -39,12 +39,14 @@ def get_is_active(status, payment):
     return True
 
 
-def create_transaction(method, kind, created, amount, is_success, currency):
+def create_transaction(
+        method, kind, created, amount, is_success, currency, token):
     return method.transactions.create(
         created=created,
         kind=kind,
         is_success=is_success,
         amount=amount,
+        token=token,
         currency=currency,
         gateway_response={})
 
