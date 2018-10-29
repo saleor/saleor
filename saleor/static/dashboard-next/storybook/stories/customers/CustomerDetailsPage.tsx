@@ -17,7 +17,8 @@ const props: CustomerDetailsPageProps = {
   onDelete: () => undefined,
   onRowClick: () => undefined,
   onSubmit: () => undefined,
-  onViewAllOrdersClick: () => undefined
+  onViewAllOrdersClick: () => undefined,
+  saveButtonBar: "default"
 };
 
 storiesOf("Views / Customers / Customer details", module)
