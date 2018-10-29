@@ -18,6 +18,7 @@ def resolve_customers(info, query):
         Q(is_staff=False) | (Q(is_staff=True) & Q(orders__isnull=False)))
     qs = filter_by_query_param(
         queryset=qs, query=query, search_fields=USER_SEARCH_FIELDS)
+    qs = qs.order_by('email')
     qs = qs.distinct()
     return gql_optimizer.query(qs, info)
 
@@ -26,6 +27,7 @@ def resolve_staff_users(info, query):
     qs = models.User.objects.filter(is_staff=True)
     qs = filter_by_query_param(
         queryset=qs, query=query, search_fields=USER_SEARCH_FIELDS)
+    qs = qs.order_by('email')
     qs = qs.distinct()
     return gql_optimizer.query(qs, info)
 

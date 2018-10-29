@@ -177,6 +177,14 @@ export interface CollectionInput {
   seo?: SeoInput | null;
 }
 
+export interface CustomerInput {
+  email?: string | null;
+  isActive?: boolean | null;
+  note?: string | null;
+  defaultBillingAddress?: AddressInput | null;
+  defaultShippingAddress?: AddressInput | null;
+}
+
 export interface DraftOrderInput {
   billingAddress?: AddressInput | null;
   user?: string | null;
@@ -261,17 +269,26 @@ export interface SiteDomainInput {
 
 export interface StaffCreateInput {
   email?: string | null;
-  note?: string | null;
   isActive?: boolean | null;
+  note?: string | null;
   permissions?: (string | null)[] | null;
   sendPasswordEmail?: boolean | null;
 }
 
 export interface StaffInput {
   email?: string | null;
-  note?: string | null;
   isActive?: boolean | null;
+  note?: string | null;
   permissions?: (string | null)[] | null;
+}
+
+export interface UserCreateInput {
+  email?: string | null;
+  isActive?: boolean | null;
+  note?: string | null;
+  defaultBillingAddress?: AddressInput | null;
+  defaultShippingAddress?: AddressInput | null;
+  sendPasswordEmail?: boolean | null;
 }
 
 //==============================================================

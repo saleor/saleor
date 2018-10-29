@@ -47,8 +47,8 @@ function loadStories() {
   require("./stories/configuration/ConfigurationPage");
 
   // Customers
+  require("./stories/customers/CustomerCreatePage");
   require("./stories/customers/CustomerDetailsPage");
-  require("./stories/customers/CustomerEditPage");
   require("./stories/customers/CustomerListPage");
 
   // Homepage
