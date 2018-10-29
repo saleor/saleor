@@ -2,8 +2,9 @@ from decimal import Decimal
 
 import pytest
 
-from saleor.payment import ChargeStatus, PaymentError, TransactionKind
-
+from saleor.payment import (
+    ChargeStatus, PaymentError, TransactionKind, get_payment_gateway)
+from saleor.payment.gateways.dummy.forms import DummyPaymentForm
 
 def test_authorize(payment_dummy):
     txn = payment_dummy.authorize(payment_token='Fake')
@@ -156,3 +157,28 @@ def test_refund_gateway_error(payment_dummy, monkeypatch):
     assert txn.payment == payment
     assert payment.charge_status == ChargeStatus.CHARGED
     assert payment.captured_amount == Decimal('80.00')
+
+
+@pytest.mark.parametrize(
+    'kind, charge_status',
+    (
+        (TransactionKind.REFUND, ChargeStatus.FULLY_REFUNDED),
+        (TransactionKind.AUTH, ChargeStatus.NOT_CHARGED),
+        (TransactionKind.CAPTURE, ChargeStatus.CHARGED)))
+def test_dummy_payment_form(kind, charge_status, settings, payment_dummy):
+    payment = payment_dummy
+    data = {'charge_status': charge_status}
+    payment_gateway, gateway_params = get_payment_gateway(payment.gateway)
+
+    form = DummyPaymentForm(
+        data=data, payment=payment, gateway=payment_gateway,
+        gateway_params=gateway_params)
+    assert form.is_valid()
+    form.process_payment()
+    payment.refresh_from_db()
+    assert payment.transactions.last().kind == kind
+
+
+def test_get_form_class(settings):
+    payment_gateway, gateway_params = get_payment_gateway(settings.DUMMY)
+    assert payment_gateway.get_form_class() == DummyPaymentForm

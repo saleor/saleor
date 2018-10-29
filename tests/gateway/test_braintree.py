@@ -1,21 +1,23 @@
 import datetime
 from decimal import Decimal
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, MagicMock
 
 import pytest
-from braintree import Environment, ErrorResult, SuccessfulResult, Transaction
+from braintree import (
+    CreditCard, Environment, ErrorResult, SuccessfulResult, Transaction)
 from braintree.errors import Errors
 from braintree.exceptions import NotFoundError
 from braintree.validation_error import ValidationError
 from django.core.exceptions import ImproperlyConfigured
 from prices import Money
 
-from saleor.payment import TransactionKind
+from saleor.payment import TransactionKind, get_payment_gateway
 from saleor.payment.gateways.braintree import (
     CONFIRM_MANUALLY, THREE_D_SECURE_REQUIRED, authorize, capture,
-    extract_gateway_response, get_client_token, get_customer_data,
-    get_error_for_client, get_braintree_gateway, refund,
+    extract_gateway_response, get_braintree_gateway, get_client_token,
+    get_customer_data, get_error_for_client, refund,
     transaction_and_incorrect_token_error, void)
+from saleor.payment.gateways.braintree.forms import BraintreePaymentForm
 
 INCORRECT_TOKEN_ERROR = (
     'Unable to process the transaction. Transaction\'s token is incorrect '
@@ -33,14 +35,7 @@ def braintree_success_response():
             spec=Transaction,
             amount=Decimal('0.20'),
             created_at='2018-10-20 18:34:22',
-            credit_card=Mock(
-                token=None,
-                bin='400000',
-                last_4='0002',
-                card_type='Visa',
-                expiration_month='01',
-                expiration_year='2020',
-                customer_location='International'),
+            credit_card='',  # FIXME we should provide a proper CreditCard mock
             additional_processor_response='',
             gateway_rejection_reason='',
             processor_response_code='1000',
@@ -50,6 +45,7 @@ def braintree_success_response():
             risk_data='',
             currency_iso_code='EUR',
             status='authorized'))
+
 
 @pytest.fixture
 def braintree_error():
@@ -91,10 +87,12 @@ def success_gateway_response(gateway_response):
     data.pop('amount')
     return data
 
+
 def test_get_customer_data(payment_dummy):
     payment = payment_dummy
     result = get_customer_data(payment)
     expected_result = {
+        'order_id': payment.order_id,
         'billing': {
             'first_name': payment.billing_first_name,
             'last_name': payment.billing_last_name,
@@ -140,16 +138,7 @@ def test_extract_gateway_response(braintree_success_response):
     expected_result = {
         'currency': t.currency_iso_code,
         'amount': t.amount,
-        'created_at': str(t.created_at),
         'credit_card': t.credit_card,
-        'additional_processor_response': t.additional_processor_response,
-        'gateway_rejection_reason': t.gateway_rejection_reason,
-        'processor_response_code': t.processor_response_code,
-        'processor_response_text': t.processor_response_text,
-        'processor_settlement_response_code': t.processor_settlement_response_code,  # noqa
-        'processor_settlement_response_text': t.processor_settlement_response_text,  # noqa
-        'risk_data': t.risk_data,
-        'status': t.status,
         'errors': []}
     assert result == expected_result
 
@@ -214,7 +203,6 @@ def test_authorize_error_response(
     assert txn.amount == payment.total
     assert txn.currency == payment.currency
     assert error == DEFAULT_ERROR
-
 
 
 @pytest.mark.integration
@@ -402,7 +390,6 @@ def test_capture_error_response(
     assert error == DEFAULT_ERROR
 
 
-
 @pytest.mark.integration
 @patch('saleor.payment.gateways.braintree.get_braintree_gateway')
 def test_void(
@@ -480,3 +467,36 @@ def test_transaction_and_incorrect_token_error_helper_no_amount(payment_dummy):
     txn, error = transaction_and_incorrect_token_error(
         payment_dummy, 'example-token', TransactionKind.AUTH)
     assert txn.amount == payment_dummy.total
+
+
+def test_braintree_payment_form_incorrect_amount(payment_dummy):
+    amount = Decimal('0.01')
+    data = {'amount': amount, 'payment_method_nonce': 'fake-nonce'}
+    assert amount != payment_dummy.total
+
+    payment_gateway, gateway_params = get_payment_gateway(
+        payment_dummy.gateway)
+    form = BraintreePaymentForm(
+        data=data, payment=payment_dummy, gateway=payment_gateway,
+        gateway_params=gateway_params)
+    assert not form.is_valid()
+    assert form.non_field_errors
+
+
+def test_braintree_payment_form(settings, payment_dummy):
+    payment = payment_dummy
+    payment.gateway = settings.BRAINTREE
+    data = {'amount': payment.total, 'payment_method_nonce': 'fake-nonce'}
+    payment_gateway, gateway_params = get_payment_gateway(payment.gateway)
+
+    form = BraintreePaymentForm(
+        data=data, payment=payment, gateway=payment_gateway,
+        gateway_params=gateway_params)
+    assert form.is_valid()
+    # FIXME check if appropriate methods were called
+    form.process_payment()
+
+
+def test_get_form_class(settings):
+    payment_gateway, gateway_params = get_payment_gateway(settings.BRAINTREE)
+    assert payment_gateway.get_form_class() == BraintreePaymentForm

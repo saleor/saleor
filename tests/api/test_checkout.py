@@ -522,4 +522,4 @@ def test_checkout_shipping_method_update(
     checkout.refresh_from_db()
     assert checkout.shipping_method == shipping_method
     mock_clean_shipping.assert_called_once_with(
-        checkout, shipping_method, [], ANY, ANY)
+        checkout, shipping_method, [], ANY, ANY, remove=False)

@@ -11,8 +11,6 @@ from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.views import PAYMENT_TEMPLATE
 from saleor.payment import (
     ChargeStatus, PaymentError, TransactionKind, get_payment_gateway)
-from saleor.payment.forms import (
-    BraintreePaymentForm, DummyPaymentForm, get_form_for_payment)
 from saleor.payment.utils import (
     create_payment, create_transaction, gateway_authorize, gateway_capture,
     gateway_get_client_token, gateway_refund, gateway_void, get_billing_data,
@@ -444,19 +442,6 @@ def test_payment_gateway_templates_exists(gateway_name):
     get_template(template)
 
 
-def test_get_form_for_payment(settings, payment_dummy):
-    payment_dummy.gateway = settings.BRAINTREE
-    assert get_form_for_payment(payment_dummy) == BraintreePaymentForm
-    payment_dummy.gateway = settings.DUMMY
-    assert get_form_for_payment(payment_dummy) == DummyPaymentForm
-
-
-def test_get_form_for_payment_non_existing_gateway(payment_dummy):
-    with pytest.raises(NotImplementedError):
-        payment_dummy.gateway = 'non-existing-provider'
-        get_form_for_payment(payment_dummy)
-
-
 @pytest.mark.parametrize('gateway_name', settings.PAYMENT_GATEWAYS.keys())
 def test_payment_gateway_form_exists(gateway_name, payment_dummy):
     """Test if for each payment gateway there's a corresponding
@@ -464,45 +449,6 @@ def test_payment_gateway_form_exists(gateway_name, payment_dummy):
 
     An error will be raised if it's missing.
     """
-    payment_dummy.gateway = gateway_name
-    get_form_for_payment(payment_dummy)
-
-
-def test_braintree_payment_form_incorrect_amount(payment_dummy):
-    amount = Decimal('0.01')
-    data = {'amount': amount, 'payment_method_nonce': 'fake-nonce'}
-    assert amount != payment_dummy.total
-
     payment_gateway, gateway_params = get_payment_gateway(
-        payment_dummy.gateway)
-    form = BraintreePaymentForm(
-        data=data, payment=payment_dummy, gateway=payment_gateway,
-        gateway_params=gateway_params)
-    assert not form.is_valid()
-    assert form.non_field_errors
-
-
-def test_braintree_payment_form(settings, payment_dummy):
-    payment = payment_dummy
-    payment.gateway = settings.BRAINTREE
-    data = {'amount': payment.total, 'payment_method_nonce': 'fake-nonce'}
-    payment_gateway, gateway_params = get_payment_gateway(payment.gateway)
-
-    form = BraintreePaymentForm(
-        data=data, payment=payment, gateway=payment_gateway,
-        gateway_params=gateway_params)
-    assert form.is_valid()
-    # FIXME check if appropriate methods were called
-    form.process_payment()
-
-
-def test_start_payment_braintree():
-    raise ValueError
-
-
-def test_start_payment_dummy():
-    raise ValueError
-
-
-def test_dummy_payment_form():
-    raise ValueError
+        gateway_name)
+    payment_gateway.get_form_class()

@@ -87,6 +87,9 @@ class Payment(models.Model):
         return 'Payment(gateway=%s, is_active=%s, created=%s, charge_status=%s)' % (
             self.gateway, self.is_active, self.created, self.charge_status)
 
+    def get_last_transaction(self):
+        return max(self.transactions.all(), default=None, key=attrgetter('pk'))
+
     def get_total(self):
         return Money(self.total, self.currency or settings.DEFAULT_CURRENCY)
 
@@ -163,10 +166,6 @@ class Transaction(models.Model):
     error = models.CharField(
         choices=[(tag, tag.value) for tag in TransactionError],
         max_length=256, null=True)
-    # Parent transaction, from which the transaction_id was used
-    parent = models.ForeignKey(
-        'payment.Transaction', related_name='children',
-        on_delete=models.PROTECT, blank=True, null=True)
     gateway_response = JSONField()
 
     def __repr__(self):

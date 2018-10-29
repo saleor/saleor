@@ -8,6 +8,7 @@ from prices import Money
 from ... import TransactionKind
 from ...models import Payment
 from ...utils import create_transaction
+from .forms import DummyPaymentForm
 
 
 def dummy_success():
@@ -16,6 +17,10 @@ def dummy_success():
 
 def get_client_token(**connection_params):
     return str(uuid.uuid4())
+
+
+def get_form_class():
+    return DummyPaymentForm
 
 
 def authorize(payment: Payment, payment_token: str, **connection_params):
@@ -38,7 +43,7 @@ def void(payment: Payment, **connection_params: Dict):
     error = None
     success = dummy_success()
     if not success:
-        error = 'Unable to void transaction'
+        error = 'Unable to void the transaction.'
     txn = create_transaction(
         payment=payment,
         kind=TransactionKind.VOID,
