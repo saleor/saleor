@@ -7,6 +7,10 @@ import {
   CreateCustomerVariables
 } from "./types/CreateCustomer";
 import {
+  RemoveCustomer,
+  RemoveCustomerVariables
+} from "./types/RemoveCustomer";
+import {
   UpdateCustomer,
   UpdateCustomerVariables
 } from "./types/UpdateCustomer";
@@ -48,8 +52,17 @@ export const TypedCreateCustomerMutation = TypedMutation<
   CreateCustomerVariables
 >(createCustomer);
 
-// const removeCustomer = gql`
-//   mutation RemoveCustomer($id: ID!) {
-//     customerRemove
-//   }
-// `
+const removeCustomer = gql`
+  mutation RemoveCustomer($id: ID!) {
+    customerDelete(id: $id) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedRemoveCustomerMutation = TypedMutation<
+  RemoveCustomer,
+  RemoveCustomerVariables
+>(removeCustomer);
