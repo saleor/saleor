@@ -16,7 +16,8 @@ const props: CustomerCreatePageProps = {
   disabled: false,
   errors: [],
   onBack: () => undefined,
-  onSubmit: () => undefined
+  onSubmit: () => undefined,
+  saveButtonBar: "default"
 };
 
 storiesOf("Views / Customers / Create customer", module)
