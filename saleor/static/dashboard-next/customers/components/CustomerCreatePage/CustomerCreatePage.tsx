@@ -1,6 +1,7 @@
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
+import { UserError } from "../../..";
 import { CardSpacer } from "../../../components/CardSpacer";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
@@ -8,6 +9,7 @@ import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
 import i18n from "../../../i18n";
 import { AddressTypeInput } from "../../types";
+import { CustomerCreateData_shop_countries } from "../../types/CustomerCreateData";
 import CustomerCreateAddress from "../CustomerCreateAddress/CustomerCreateAddress";
 import CustomerCreateDetails from "../CustomerCreateDetails";
 import CustomerCreateNote from "../CustomerCreateNote/CustomerCreateNote";
@@ -18,8 +20,11 @@ export interface CustomerCreatePageFormData extends AddressTypeInput {
 }
 
 export interface CustomerCreatePageProps {
+  countries: CustomerCreateData_shop_countries[];
   disabled: boolean;
+  errors: UserError[];
   onBack: () => void;
+  onSubmit: (data: CustomerCreatePageFormData) => void;
 }
 
 const initialForm: CustomerCreatePageFormData = {
@@ -46,8 +51,8 @@ const decorate = withStyles(theme => ({
   }
 }));
 const CustomerCreatePage = decorate<CustomerCreatePageProps>(
-  ({ classes, disabled, onBack }) => (
-    <Form initial={initialForm}>
+  ({ classes, countries, disabled, errors, onBack, onSubmit }) => (
+    <Form initial={initialForm} onSubmit={onSubmit} errors={errors}>
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container width="md">
           <PageHeader title={i18n.t("Add customer")} onBack={onBack} />
@@ -61,6 +66,7 @@ const CustomerCreatePage = decorate<CustomerCreatePageProps>(
               />
               <CardSpacer />
               <CustomerCreateAddress
+                countries={countries}
                 data={data}
                 disabled={disabled}
                 errors={formErrors}

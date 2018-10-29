@@ -7,6 +7,10 @@ import CustomerCreatePage, {
 import Decorator from "../../Decorator";
 
 const props: CustomerCreatePageProps = {
+  countries: [
+    { __typename: "CountryDisplay", code: "UK", country: "United Kingdom" },
+    { __typename: "CountryDisplay", code: "PL", country: "Poland" }
+  ],
   disabled: false,
   onBack: () => undefined
 };

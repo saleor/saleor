@@ -8,8 +8,10 @@ import CardTitle from "../../../components/CardTitle";
 import { FormSpacer } from "../../../components/FormSpacer";
 import i18n from "../../../i18n";
 import { AddressTypeInput } from "../../types";
+import { CustomerCreateData_shop_countries } from "../../types/CustomerCreateData";
 
 export interface CustomerCreateAddressProps {
+  countries: CustomerCreateData_shop_countries[];
   data: AddressTypeInput;
   disabled: boolean;
   errors: { [T in keyof AddressTypeInput]?: string };
@@ -18,13 +20,17 @@ export interface CustomerCreateAddressProps {
 
 const CustomerCreateAddress: React.StatelessComponent<
   CustomerCreateAddressProps
-> = ({ data, disabled, errors, onChange }) => (
+> = ({ countries, data, disabled, errors, onChange }) => (
   <Card>
     <CardTitle title={i18n.t("Primary address")} />
     <CardContent>
       <Typography>{i18n.t("The primary address of this customer.")}</Typography>
       <FormSpacer />
       <AddressEdit
+        countries={countries.map(country => ({
+          code: country.code,
+          label: country.country
+        }))}
         data={data}
         disabled={disabled}
         errors={errors}
