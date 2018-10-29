@@ -17789,17 +17789,19 @@ exports[`Storyshots Views / HomePage default 1`] = `
   <div
     class="Component-md-id"
   >
-    <div>
+    <div
+      class="Component-headerContainer-id"
+    >
       <h1
         class="MuiTypography-root-id MuiTypography-headline-id Component-pageHeader-id"
       >
-        Hello there, John Smith
+        Hello there, admin@example.com
       </h1>
-      <h3
-        class="MuiTypography-root-id MuiTypography-subheading-id"
+      <p
+        class="MuiTypography-root-id MuiTypography-body1-id"
       >
         Here are some information we gathered about your store
-      </h3>
+      </p>
     </div>
     <div
       class="Component-spacer-id"
@@ -17831,7 +17833,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                 <h1
                   class="MuiTypography-root-id MuiTypography-headline-id MuiTypography-colorTextPrimary-id"
                 >
-                  PLN 12,325.00
+                  $57.15
                 </h1>
               </div>
               <div
@@ -17872,7 +17874,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                 <h1
                   class="MuiTypography-root-id MuiTypography-headline-id MuiTypography-colorTextPrimary-id"
                 >
-                  1223
+                  1
                 </h1>
               </div>
               <div
@@ -17894,6 +17896,112 @@ exports[`Storyshots Views / HomePage default 1`] = `
             </div>
           </div>
         </div>
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <table
+            class="MuiTable-root-id"
+            padding="default"
+          >
+            <tbody
+              class="MuiTableBody-root-id Component-tableRow-id"
+            >
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id"
+                  >
+                    <b>
+                      1 Orders
+                    </b>
+                     are ready to fulfill
+                  </p>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-arrowIcon-id"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-id"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <g>
+                      <path
+                        d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                      />
+                    </g>
+                  </svg>
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id"
+                  >
+                    No payments waiting for capture
+                  </p>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-arrowIcon-id"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-id"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <g>
+                      <path
+                        d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                      />
+                    </g>
+                  </svg>
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id"
+                  >
+                    No products out of stock
+                  </p>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-arrowIcon-id"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-id"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <g>
+                      <path
+                        d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                      />
+                    </g>
+                  </svg>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div
+          class="Component-spacer-id"
+        />
         <div
           class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
         >
@@ -17943,17 +18051,17 @@ exports[`Storyshots Views / HomePage default 1`] = `
                   <p
                     class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorPrimary-id"
                   >
-                    Lake Success
+                    Gardner-Martin
                   </p>
                   <p
                     class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
                   >
-                    Hardcover
+                    XS
                   </p>
                   <p
                     class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
                   >
-                    123 Orders
+                    1 Orders
                   </p>
                 </td>
                 <td
@@ -17962,139 +18070,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                   <p
                     class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-alignRight-id"
                   >
-                    PLN 54.00
-                  </p>
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id Component-avatarSpacing-id"
-                >
-                  <div
-                    class="MuiAvatar-root-id Component-avatar-id Component-avatarProps-id"
-                  >
-                    <img
-                      class="MuiAvatar-img-id"
-                      src="placeholder60x60.png"
-                    />
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <p
-                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorPrimary-id"
-                  >
-                    The Sadness of Beautiful Things
-                  </p>
-                  <p
-                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
-                  >
-                    Softcover
-                  </p>
-                  <p
-                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
-                  >
-                    111 Orders
-                  </p>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <p
-                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-alignRight-id"
-                  >
-                    PLN 23.00
-                  </p>
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id Component-avatarSpacing-id"
-                >
-                  <div
-                    class="MuiAvatar-root-id Component-avatar-id Component-avatarProps-id"
-                  >
-                    <img
-                      class="MuiAvatar-img-id"
-                      src="placeholder60x60.png"
-                    />
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <p
-                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorPrimary-id"
-                  >
-                    The Messy Middle
-                  </p>
-                  <p
-                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
-                  >
-                    Softcover
-                  </p>
-                  <p
-                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
-                  >
-                    93 Orders
-                  </p>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <p
-                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-alignRight-id"
-                  >
-                    PLN 112.00
-                  </p>
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id Component-avatarSpacing-id"
-                >
-                  <div
-                    class="MuiAvatar-root-id Component-avatar-id Component-avatarProps-id"
-                  >
-                    <img
-                      class="MuiAvatar-img-id"
-                      src="placeholder60x60.png"
-                    />
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <p
-                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorPrimary-id"
-                  >
-                    Everything's Trash
-                  </p>
-                  <p
-                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
-                  >
-                    Hardcover
-                  </p>
-                  <p
-                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
-                  >
-                    32 Orders
-                  </p>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <p
-                    class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-alignRight-id"
-                  >
-                    PLN 15.00
+                    $37.65
                   </p>
                 </td>
               </tr>
@@ -18139,15 +18115,14 @@ exports[`Storyshots Views / HomePage default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  published a 
-                        
+                  Order #15 had been placed from draft by admin@example.com
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
                 >
                   <time
-                    datetime="1536585744376"
-                    title="Mon Sep 10 2018 09:22:24 GMT-0400"
+                    datetime="1536941427137"
+                    title="Fri Sep 14 2018 12:10:27 GMT-0400"
                   >
                     in a month
                   </time>
@@ -18163,15 +18138,14 @@ exports[`Storyshots Views / HomePage default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  published a 
-                        
+                  Order #15 had been placed
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
                 >
                   <time
-                    datetime="1539868944376"
-                    title="Thu Oct 18 2018 09:22:24 GMT-0400"
+                    datetime="1538573326325"
+                    title="Wed Oct 03 2018 09:28:46 GMT-0400"
                   >
                     in 2 months
                   </time>
@@ -18187,17 +18161,16 @@ exports[`Storyshots Views / HomePage default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  created a 
-                        
+                  Order #15 had been fully paid
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
                 >
                   <time
-                    datetime="1537363344376"
-                    title="Wed Sep 19 2018 09:22:24 GMT-0400"
+                    datetime="1538573341837"
+                    title="Wed Oct 03 2018 09:29:01 GMT-0400"
                   >
-                    in a month
+                    in 2 months
                   </time>
                 </p>
               </div>
@@ -18211,17 +18184,223 @@ exports[`Storyshots Views / HomePage default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  Saleor shop admin 
-                        added
+                  Order #15 had been placed from draft by admin@example.com
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
                 >
                   <time
-                    datetime="1537449744376"
-                    title="Thu Sep 20 2018 09:22:24 GMT-0400"
+                    datetime="1538614911243"
+                    title="Wed Oct 03 2018 21:01:51 GMT-0400"
                   >
-                    in a month
+                    in 2 months
+                  </time>
+                </p>
+              </div>
+            </li>
+            <li
+              class="MuiListItem-root-id MuiListItem-default-id MuiListItem-dense-id MuiListItem-gutters-id"
+            >
+              <div
+                class="MuiListItemText-root-id MuiListItemText-dense-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  Order #15 had been placed from draft by admin@example.com
+                </p>
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
+                >
+                  <time
+                    datetime="1538681778831"
+                    title="Thu Oct 04 2018 15:36:18 GMT-0400"
+                  >
+                    in 2 months
+                  </time>
+                </p>
+              </div>
+            </li>
+            <li
+              class="MuiListItem-root-id MuiListItem-default-id MuiListItem-dense-id MuiListItem-gutters-id"
+            >
+              <div
+                class="MuiListItemText-root-id MuiListItemText-dense-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  Order #15 had been placed from draft by admin@example.com
+                </p>
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
+                >
+                  <time
+                    datetime="1538681881420"
+                    title="Thu Oct 04 2018 15:38:01 GMT-0400"
+                  >
+                    in 2 months
+                  </time>
+                </p>
+              </div>
+            </li>
+            <li
+              class="MuiListItem-root-id MuiListItem-default-id MuiListItem-dense-id MuiListItem-gutters-id"
+            >
+              <div
+                class="MuiListItemText-root-id MuiListItemText-dense-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  Order #15 had been placed from draft by admin@example.com
+                </p>
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
+                >
+                  <time
+                    datetime="1538742657268"
+                    title="Fri Oct 05 2018 08:30:57 GMT-0400"
+                  >
+                    in 2 months
+                  </time>
+                </p>
+              </div>
+            </li>
+            <li
+              class="MuiListItem-root-id MuiListItem-default-id MuiListItem-dense-id MuiListItem-gutters-id"
+            >
+              <div
+                class="MuiListItemText-root-id MuiListItemText-dense-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  Order #15 had been placed
+                </p>
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
+                >
+                  <time
+                    datetime="1538992242622"
+                    title="Mon Oct 08 2018 05:50:42 GMT-0400"
+                  >
+                    in 2 months
+                  </time>
+                </p>
+              </div>
+            </li>
+            <li
+              class="MuiListItem-root-id MuiListItem-default-id MuiListItem-dense-id MuiListItem-gutters-id"
+            >
+              <div
+                class="MuiListItemText-root-id MuiListItemText-dense-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  Order #15 had been placed from draft by admin@example.com
+                </p>
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
+                >
+                  <time
+                    datetime="1539359471665"
+                    title="Fri Oct 12 2018 11:51:11 GMT-0400"
+                  >
+                    in 2 months
+                  </time>
+                </p>
+              </div>
+            </li>
+            <li
+              class="MuiListItem-root-id MuiListItem-default-id MuiListItem-dense-id MuiListItem-gutters-id"
+            >
+              <div
+                class="MuiListItemText-root-id MuiListItemText-dense-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  Order #15 had been placed
+                </p>
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
+                >
+                  <time
+                    datetime="1540466758843"
+                    title="Thu Oct 25 2018 07:25:58 GMT-0400"
+                  >
+                    in 3 months
+                  </time>
+                </p>
+              </div>
+            </li>
+            <li
+              class="MuiListItem-root-id MuiListItem-default-id MuiListItem-dense-id MuiListItem-gutters-id"
+            >
+              <div
+                class="MuiListItemText-root-id MuiListItemText-dense-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  Order #15 had been placed
+                </p>
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
+                >
+                  <time
+                    datetime="1540546497580"
+                    title="Fri Oct 26 2018 05:34:57 GMT-0400"
+                  >
+                    in 3 months
+                  </time>
+                </p>
+              </div>
+            </li>
+            <li
+              class="MuiListItem-root-id MuiListItem-default-id MuiListItem-dense-id MuiListItem-gutters-id"
+            >
+              <div
+                class="MuiListItemText-root-id MuiListItemText-dense-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  Order #15 had been fully paid
+                </p>
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
+                >
+                  <time
+                    datetime="1540546682440"
+                    title="Fri Oct 26 2018 05:38:02 GMT-0400"
+                  >
+                    in 3 months
+                  </time>
+                </p>
+              </div>
+            </li>
+            <li
+              class="MuiListItem-root-id MuiListItem-default-id MuiListItem-dense-id MuiListItem-gutters-id"
+            >
+              <div
+                class="MuiListItemText-root-id MuiListItemText-dense-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id"
+                >
+                  Order #15 had been fully paid
+                </p>
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
+                >
+                  <time
+                    datetime="1540546682467"
+                    title="Fri Oct 26 2018 05:38:02 GMT-0400"
+                  >
+                    in 3 months
                   </time>
                 </p>
               </div>
@@ -18239,7 +18418,9 @@ exports[`Storyshots Views / HomePage loading 1`] = `
   <div
     class="Component-md-id"
   >
-    <div>
+    <div
+      class="Component-headerContainer-id"
+    >
       <h1
         class="MuiTypography-root-id MuiTypography-headline-id Component-pageHeader-id"
       >
@@ -18250,8 +18431,8 @@ exports[`Storyshots Views / HomePage loading 1`] = `
           ‌
         </span>
       </h1>
-      <h3
-        class="MuiTypography-root-id MuiTypography-subheading-id"
+      <p
+        class="MuiTypography-root-id MuiTypography-body1-id"
       >
         <span
           class="Skeleton-skeleton-id"
@@ -18259,7 +18440,7 @@ exports[`Storyshots Views / HomePage loading 1`] = `
         >
           ‌
         </span>
-      </h3>
+      </p>
     </div>
     <div
       class="Component-spacer-id"
@@ -18364,6 +18545,109 @@ exports[`Storyshots Views / HomePage loading 1`] = `
             </div>
           </div>
         </div>
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <table
+            class="MuiTable-root-id"
+            padding="default"
+          >
+            <tbody
+              class="MuiTableBody-root-id Component-tableRow-id"
+            >
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-arrowIcon-id"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-id"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <g>
+                      <path
+                        d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                      />
+                    </g>
+                  </svg>
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-arrowIcon-id"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-id"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <g>
+                      <path
+                        d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                      />
+                    </g>
+                  </svg>
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-arrowIcon-id"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-id"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <g>
+                      <path
+                        d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                      />
+                    </g>
+                  </svg>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div
+          class="Component-spacer-id"
+        />
         <div
           class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
         >
@@ -18500,17 +18784,19 @@ exports[`Storyshots Views / HomePage no data 1`] = `
   <div
     class="Component-md-id"
   >
-    <div>
+    <div
+      class="Component-headerContainer-id"
+    >
       <h1
         class="MuiTypography-root-id MuiTypography-headline-id Component-pageHeader-id"
       >
-        Hello there, John Smith
+        Hello there, admin@example.com
       </h1>
-      <h3
-        class="MuiTypography-root-id MuiTypography-subheading-id"
+      <p
+        class="MuiTypography-root-id MuiTypography-body1-id"
       >
         Here are some information we gathered about your store
-      </h3>
+      </p>
     </div>
     <div
       class="Component-spacer-id"
@@ -18542,7 +18828,7 @@ exports[`Storyshots Views / HomePage no data 1`] = `
                 <h1
                   class="MuiTypography-root-id MuiTypography-headline-id MuiTypography-colorTextPrimary-id"
                 >
-                  PLN 12,325.00
+                  $57.15
                 </h1>
               </div>
               <div
@@ -18583,7 +18869,7 @@ exports[`Storyshots Views / HomePage no data 1`] = `
                 <h1
                   class="MuiTypography-root-id MuiTypography-headline-id MuiTypography-colorTextPrimary-id"
                 >
-                  1223
+                  1
                 </h1>
               </div>
               <div
@@ -18605,6 +18891,112 @@ exports[`Storyshots Views / HomePage no data 1`] = `
             </div>
           </div>
         </div>
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <table
+            class="MuiTable-root-id"
+            padding="default"
+          >
+            <tbody
+              class="MuiTableBody-root-id Component-tableRow-id"
+            >
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id"
+                  >
+                    <b>
+                      1 Orders
+                    </b>
+                     are ready to fulfill
+                  </p>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-arrowIcon-id"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-id"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <g>
+                      <path
+                        d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                      />
+                    </g>
+                  </svg>
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id"
+                  >
+                    No payments waiting for capture
+                  </p>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-arrowIcon-id"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-id"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <g>
+                      <path
+                        d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                      />
+                    </g>
+                  </svg>
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id"
+                  >
+                    No products out of stock
+                  </p>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-arrowIcon-id"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-id"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <g>
+                      <path
+                        d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                      />
+                    </g>
+                  </svg>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div
+          class="Component-spacer-id"
+        />
         <div
           class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
         >

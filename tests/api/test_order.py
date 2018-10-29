@@ -179,6 +179,7 @@ def test_nested_order_events_query(
                         amount
                         quantity
                         composedId
+                        orderNumber
                         }
                     }
                 }
@@ -206,6 +207,7 @@ def test_nested_order_events_query(
     assert data['user']['email'] == staff_user.email
     assert data['type'] == OrderEvents.OTHER.value.upper()
     assert data['date'] == event.date.isoformat()
+    assert data['orderNumber'] == str(fulfilled_order.pk)
 
 
 def test_non_staff_user_can_only_see_his_order(user_api_client, order):

@@ -40,6 +40,8 @@ class OrderEvent(CountableDjangoObjectType):
     quantity = graphene.Int(description='Number of items.')
     composed_id = graphene.String(
         description='Composed id of the Fulfillment.')
+    order_number = graphene.String(
+        description='User-friendly number of an order.')
     oversold_items = graphene.List(
         graphene.String, description='List of oversold lines names.')
 
@@ -71,6 +73,9 @@ class OrderEvent(CountableDjangoObjectType):
 
     def resolve_oversold_items(self, info):
         return self.parameters.get('oversold_items', None)
+
+    def resolve_order_number(self, info):
+        return self.order_id
 
 
 class Fulfillment(CountableDjangoObjectType):

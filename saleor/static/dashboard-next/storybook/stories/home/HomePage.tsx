@@ -8,11 +8,18 @@ import Decorator from "../../Decorator";
 const shop = shopFixture(placeholderImage);
 
 const HomePageProps: HomePageProps = {
-  activities: shop.activities,
-  daily: shop.daily,
+  activities: shop.activities.edges.map(edge => edge.node),
+  onOrdersToCaptureClick: () => undefined,
+  onOrdersToFulfillClick: () => undefined,
   onProductClick: () => undefined,
-  topProducts: shop.topProducts,
-  userName: shop.userName
+  onProductsOutOfStockClick: () => undefined,
+  orders: shop.ordersToday.totalCount,
+  ordersToCapture: shop.ordersToCapture.totalCount,
+  ordersToFulfill: shop.ordersToFulfill.totalCount,
+  productsOutOfStock: shop.productsOutOfStock.totalCount,
+  sales: shop.salesToday.gross,
+  topProducts: shop.productTopToday.edges.map(edge => edge.node),
+  userName: "admin@example.com"
 };
 
 storiesOf("Views / HomePage", module)
@@ -21,9 +28,13 @@ storiesOf("Views / HomePage", module)
   .add("loading", () => (
     <HomePage
       {...HomePageProps}
-      topProducts={undefined}
-      daily={undefined}
       activities={undefined}
+      orders={undefined}
+      ordersToCapture={undefined}
+      ordersToFulfill={undefined}
+      productsOutOfStock={undefined}
+      sales={undefined}
+      topProducts={undefined}
       userName={undefined}
     />
   ))
