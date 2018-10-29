@@ -26,16 +26,18 @@ const decorate = withStyles(theme => ({
   }
 }));
 const CustomerCreateDetails = decorate<CustomerCreateDetailsProps>(
-  ({ classes, data, disabled, onChange }) => (
+  ({ classes, data, disabled, errors, onChange }) => (
     <Card>
       <CardTitle title={i18n.t("Customer overview")} />
       <CardContent>
         <div className={classes.root}>
           <TextField
             disabled={disabled}
+            error={!!errors.email}
             fullWidth
             name="email"
             label={i18n.t("E-mail")}
+            helperText={errors.email}
             type="email"
             value={data.email}
             onChange={onChange}

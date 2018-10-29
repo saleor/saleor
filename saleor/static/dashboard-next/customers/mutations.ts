@@ -47,3 +47,9 @@ export const TypedCreateCustomerMutation = TypedMutation<
   CreateCustomer,
   CreateCustomerVariables
 >(createCustomer);
+
+// const removeCustomer = gql`
+//   mutation RemoveCustomer($id: ID!) {
+//     customerRemove
+//   }
+// `
