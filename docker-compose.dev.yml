@@ -7,6 +7,8 @@ services:
       dockerfile: ./Dockerfile.dev
       args:
         STATIC_URL: '/static/'
+        HOST_UID:
+        HOST_GID:
     restart: unless-stopped
     networks:
       - saleor-backend-tier
@@ -51,6 +53,8 @@ services:
       dockerfile: ./Dockerfile.dev
       args:
         STATIC_URL: '/static/'
+        HOST_UID:
+        HOST_GID:
     command: celery -A saleor worker --app=saleor.celeryconf:app --loglevel=info
     restart: unless-stopped
     networks:
