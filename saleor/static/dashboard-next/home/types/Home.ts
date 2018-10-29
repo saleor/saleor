@@ -61,18 +61,11 @@ export interface Home_productTopToday_edges_node_attributes {
   value: Home_productTopToday_edges_node_attributes_value | null;
 }
 
-export interface Home_productTopToday_edges_node_product_price {
-  __typename: "Money";
-  amount: number;
-  currency: string;
-}
-
 export interface Home_productTopToday_edges_node_product {
   __typename: "Product";
   id: string;
   name: string;
   thumbnailUrl: string | null;
-  price: Home_productTopToday_edges_node_product_price | null;
 }
 
 export interface Home_productTopToday_edges_node {
