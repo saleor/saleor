@@ -6,7 +6,9 @@ import { CardSpacer } from "../../../components/CardSpacer";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar from "../../../components/SaveButtonBar";
+import SaveButtonBar, {
+  SaveButtonBarState
+} from "../../../components/SaveButtonBar";
 import i18n from "../../../i18n";
 import { AddressTypeInput } from "../../types";
 import { CustomerCreateData_shop_countries } from "../../types/CustomerCreateData";
@@ -23,6 +25,7 @@ export interface CustomerCreatePageProps {
   countries: CustomerCreateData_shop_countries[];
   disabled: boolean;
   errors: UserError[];
+  saveButtonBar: SaveButtonBarState;
   onBack: () => void;
   onSubmit: (data: CustomerCreatePageFormData) => void;
 }
@@ -51,7 +54,15 @@ const decorate = withStyles(theme => ({
   }
 }));
 const CustomerCreatePage = decorate<CustomerCreatePageProps>(
-  ({ classes, countries, disabled, errors, onBack, onSubmit }) => (
+  ({
+    classes,
+    countries,
+    disabled,
+    errors,
+    saveButtonBar,
+    onBack,
+    onSubmit
+  }) => (
     <Form initial={initialForm} onSubmit={onSubmit} errors={errors}>
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container width="md">
@@ -83,6 +94,7 @@ const CustomerCreatePage = decorate<CustomerCreatePageProps>(
           </div>
           <SaveButtonBar
             disabled={disabled || !hasChanged}
+            state={saveButtonBar}
             onSave={submit}
             onCancel={onBack}
           />
