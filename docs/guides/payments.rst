@@ -170,13 +170,13 @@ Parameters
 +-----------------------+-----------+------------------------------------------------------------------------------------------------+
 | name                  | type      | description                                                                                    |
 +-----------------------+-----------+------------------------------------------------------------------------------------------------+
-| ``payment``           | `Payment` | Payment instance, for which the transaction will be created.                                   |
+| ``payment``           | ``Payment`` | Payment instance, for which the transaction will be created.                                   |
 +-----------------------+-----------+------------------------------------------------------------------------------------------------+
-| ``transaction_token`` | `str`     | Unique transaction's token that will be used on the purpose of completing the payment process. |
+| ``transaction_token`` | ``str``     | Unique transaction's token that will be used on the purpose of completing the payment process. |
 +-----------------------+-----------+------------------------------------------------------------------------------------------------+
-| ``connection_params`` | `dict`    | List of parameters used for connecting to the payment's gateway.                               |
+| ``connection_params`` | ``dict``    | List of parameters used for connecting to the payment's gateway.                               |
 +-----------------------+-----------+------------------------------------------------------------------------------------------------+
-| ``amount``            | `Decimal` | Amount of Money to be refunded/captured.                                                       |
+| ``amount``            | ``Decimal`` | Amount of Money to be refunded/captured.                                                       |
 +-----------------------+-----------+------------------------------------------------------------------------------------------------+
 
 Returns
@@ -184,11 +184,11 @@ Returns
 +-----------------------+---------------+-----------------------------------------------------------------------------------------------------------+
 | name                  | type          | description                                                                                               |
 +-----------------------+---------------+-----------------------------------------------------------------------------------------------------------+
-| ``txn``               | `Transaction` | Transaction created during the payment process, with ``is_success`` set to ``True`` if no error occurred. |
+| ``txn``               | ``Transaction`` | Transaction created during the payment process, with ``is_success`` set to ``True`` if no error occurred. |
 +-----------------------+---------------+-----------------------------------------------------------------------------------------------------------+
-| ``error``             | `str`         | Error message to be displayed in the UI, empty if no error occurred.                                      |
+| ``error``             | ``str``         | Error message to be displayed in the UI, empty if no error occurred.                                      |
 +-----------------------+---------------+-----------------------------------------------------------------------------------------------------------+
-| ``transaction_token`` | `str`         | Unique transaction's token that will be used on the purpose of completing the payment process.            |
+| ``transaction_token`` | ``str``         | Unique transaction's token that will be used on the purpose of completing the payment process.            |
 +-----------------------+---------------+-----------------------------------------------------------------------------------------------------------+
 
 Adding new payment gateway to the settings
