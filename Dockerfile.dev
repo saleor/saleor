@@ -22,12 +22,14 @@ RUN pipenv install $SKIP_LOCK --system --deploy --dev
 ### Final image
 FROM python:3.6-slim
 ARG STATIC_URL
-ENV STATIC_URL ${STATIC_URL:-/static/}
-ARG SKIP_LOCK
 ARG HOST_UID
 ARG HOST_GID
-ENV HOST_UID=${HOST_UID:-1000}
-ENV HOST_GID=${HOST_GID:-HOST_UID}
+ENV STATIC_URL ${STATIC_URL:-/static/} \
+    HOST_UID ${HOST_UID:-1000} \
+    HOST_GID ${HOST_GID:-HOST_UID} \
+    PORT 8000 \
+    PYTHONUNBUFFERED 1 \
+    PROCESSES 4
 
 RUN apt-get update && \
     apt-get install -y libxml2 libssl1.1 libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 shared-mime-info mime-support gosu && \
@@ -49,9 +51,5 @@ RUN useradd --non-unique --uid $HOST_UID --gid $HOST_GID --create-home saleor &&
 WORKDIR /app
 
 EXPOSE 8000
-ENV PORT 8000
-
-ENV PYTHONUNBUFFERED 1
-ENV PROCESSES 4
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["uwsgi", "/app/saleor/wsgi/uwsgi.ini"]
