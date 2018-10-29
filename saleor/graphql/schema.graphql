@@ -485,6 +485,14 @@ type CreateToken {
   user: User
 }
 
+type CreditCard {
+  brand: String!
+  firstDigits: String!
+  lastDigits: String!
+  expMonth: Int!
+  expYear: Int!
+}
+
 type CustomerCreate {
   errors: [Error]
   user: User
@@ -1226,9 +1234,17 @@ type Payment implements Node {
   capturedAmount: Money
   checkout: Checkout
   order: Order
+  ccFirstDigits: String!
+  ccLastDigits: String!
+  ccBrand: String!
+  ccExpMonth: Int
+  ccExpYear: Int
   transactions: [Transaction]
   actions: [OrderAction]!
   billingAddress: Address
+  availableCaptureAmount: Money
+  availableRefundAmount: Money
+  creditCard: CreditCard
 }
 
 type PaymentCapture {
@@ -1256,7 +1272,7 @@ type PaymentCountableEdge {
 input PaymentInput {
   gateway: GatewaysEnum
   checkoutId: ID
-  transactionToken: String!
+  token: String!
   amount: Decimal!
   billingAddress: AddressInput
 }
@@ -1582,7 +1598,7 @@ type Query {
   page(id: ID, slug: String): Page
   pages(query: String, before: String, after: String, first: Int, last: Int): PageCountableConnection
   payment(id: ID): Payment
-  paymentTransactionToken(gateway: GatewaysEnum): String
+  paymentClientToken(gateway: GatewaysEnum): String
   payments(before: String, after: String, first: Int, last: Int): PaymentCountableConnection
   sale(id: ID!): Sale
   sales(query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
@@ -1893,14 +1909,28 @@ type Transaction implements Node {
   kind: TransactionKind!
   isSuccess: Boolean!
   amount: Money
+  error: TransactionError
   gatewayResponse: JSONString!
+}
+
+enum TransactionError {
+  TRANSACTIONERROR_INCORRECT_NUMBER
+  TRANSACTIONERROR_INVALID_NUMBER
+  TRANSACTIONERROR_INCORRECT_CVV
+  TRANSACTIONERROR_INVALID_CVV
+  TRANSACTIONERROR_INCORRECT_ZIP
+  TRANSACTIONERROR_INCORRECT_ADDRESS
+  TRANSACTIONERROR_INVALID_EXPIRY_DATE
+  TRANSACTIONERROR_EXPIRED
+  TRANSACTIONERROR_PROCESSING_ERROR
+  TRANSACTIONERROR_DECLINED
 }
 
 enum TransactionKind {
   AUTH
-  CAPTURE
+  CHARGE
   REFUND
-  CAPTURE_3
+  CAPTURE
   VOID
 }
 
