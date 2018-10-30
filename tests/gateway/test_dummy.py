@@ -1,5 +1,5 @@
 from decimal import Decimal
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 import pytest
 
 from saleor.payment import (
@@ -7,19 +7,25 @@ from saleor.payment import (
 from saleor.payment.gateways.dummy.forms import DummyPaymentForm
 
 
-@patch('saleor.payment.gateways.dummy.authorize')
-@patch('saleor.payment.gateways.dummy.capture')
-def test_charge(mock_capture, mock_authorize, payment_dummy):
-    token = 'fake-token'
-    amount = payment_dummy.total
+def test_charge(payment_dummy):
+    payment_dummy.charge(
+        payment_token='fake-token', amount=payment_dummy.total)
+    capture_txn, auth_txn = payment_dummy.transactions.all()
 
-    expected_result = ['txn', 'error']
-    mock_capture.return_value = expected_result
-    result = payment_dummy.charge(
-        payment_token=token, amount=amount)
-    assert result == expected_result
-    mock_capture.assert_called_once_with(payment, amount)
-    mock_authorize.assert_called_once_with(token)
+    assert auth_txn.is_success
+    assert auth_txn.kind == TransactionKind.AUTH
+    assert auth_txn.payment == payment_dummy
+
+    assert capture_txn.is_success
+    assert capture_txn.kind == TransactionKind.CAPTURE
+    assert capture_txn.payment == payment_dummy
+    assert capture_txn.amount == payment_dummy.total
+
+    payment_dummy.refresh_from_db()
+    assert payment_dummy.charge_status == ChargeStatus.CHARGED
+    assert payment_dummy.captured_amount == payment_dummy.total
+    assert payment_dummy.is_active
+
 
 def test_authorize(payment_dummy):
     txn = payment_dummy.authorize(payment_token='Fake')
@@ -79,7 +85,7 @@ def test_void_gateway_error(payment_dummy, monkeypatch):
 
 
 @pytest.mark.parametrize('amount', [80, 70])
-def test_charge_success(amount, payment_dummy):
+def test_capture_success(amount, payment_dummy):
     txn = payment_dummy.capture(amount=amount)
     assert txn.is_success
     assert txn.payment == payment_dummy
@@ -94,7 +100,7 @@ def test_charge_success(amount, payment_dummy):
         (80, 0, ChargeStatus.FULLY_REFUNDED, True),
         (80, 80, ChargeStatus.CHARGED, True),
         (120, 0, ChargeStatus.NOT_CHARGED, True), ])
-def test_charge_failed(
+def test_capture_failed(
         amount, captured_amount, charge_status, is_active,
         payment_dummy):
     payment = payment_dummy
@@ -107,7 +113,7 @@ def test_charge_failed(
         assert txn is None
 
 
-def test_charge_gateway_error(payment_dummy, monkeypatch):
+def test_capture_gateway_error(payment_dummy, monkeypatch):
     monkeypatch.setattr(
         'saleor.payment.gateways.dummy.dummy_success', lambda: False)
     with pytest.raises(PaymentError):
