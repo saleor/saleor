@@ -10,30 +10,28 @@
   A modular, high performance ecommerce storefront built with GraphQL, Django and ReactJS.
 </div>
 
-<div align="center">
-  Join our active, engaged community:
-  <a href="https://getsaleor.com/">
-    Website
-  </a>
-  <span> | </span>
-  <a href="https://medium.com/saleor">
-    Blog
-  </a>
-  <span> | </span>
-  <a href="https://twitter.com/getsaleor">
-    Twitter
-  </a>
-  <span> | </span>
-  <a href="https://gitter.im/mirumee/saleor">
-    Gitter
-  </a>
-</div>
+<br>
 
 <div align="center">
-  [![Build Status](https://travis-ci.org/mirumee/saleor.svg?branch=master)](https://travis-ci.org/mirumee/saleor)
-  [![codecov.io](http://codecov.io/github/mirumee/saleor/coverage.svg?branch=master)](http://codecov.io/github/mirumee/saleor?branch=master)
-  [![Join the chat at https://gitter.im/mirumee/saleor](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/mirumee/saleor?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-  [![Twitter URL](.github/badges/twitter.svg)](https://twitter.com/getsaleor) 
+  Join our active, engaged community: <br>
+  <a href="https://getsaleor.com/">Website</a>
+  <span> | </span>
+  <a href="https://medium.com/saleor">Blog</a>
+  <span> | </span>
+  <a href="https://twitter.com/getsaleor">Twitter</a>
+  <span> | </span>
+  <a href="https://gitter.im/mirumee/saleor">Gitter</a>
+</div>
+
+<br>
+
+<div align="center">
+  <a href="https://travis-ci.org/mirumee/saleor">
+    <img src="https://travis-ci.org/mirumee/saleor.svg?branch=master" alt="API stability" />
+  </a>
+  <a href="http://codecov.io/github/mirumee/saleor?branch=master">
+    <img src="http://codecov.io/github/mirumee/saleor/coverage.svg?branch=master" alt="NPM version" />
+  </a>
 </div>
 
 
@@ -50,7 +48,7 @@
 
 ## What makes Saleor special?
 
-Saleor is a rapidly-growing open source ecommerce platform that has served high-volume companies from branches like publishing and apparel since 2012. Based on Python and Django, the latest major update introduces a modular front end with a GraphQL API and storefront and dashboard written in React to make Saleor a full-functionality open source ecommerce. 
+Saleor is a rapidly-growing open source ecommerce platform that has served high-volume companies from branches like publishing and apparel since 2012. Based on Python and Django, the latest major update introduces a modular front end with a GraphQL API and storefront and dashboard written in React to make Saleor a full-functionality open source ecommerce.
 
 
 ## Features
@@ -60,7 +58,7 @@ Saleor is a rapidly-growing open source ecommerce platform that has served high-
 - __UX and UI__: Designed for a user experience that rivals even the top commercial platforms
 - __Dashboard__: Administrators have total control of users, processes and products
 - __Orders__: A comprehensive system for orders, dispatch and refunds
-- __Cart__: Advanced payment and tax options, with full control over discounts and promotions 
+- __Cart__: Advanced payment and tax options, with full control over discounts and promotions
 - __Payments__: Flexible API architecture allows integration of any payment method. Comes with Braintree support our of the box.
 - __Geo-adaptive__: Automatic localized pricing. Over 20 local languages. Localized checkout experience by country.
 - __SEO__: Packed with features that get stores to a wider audience
@@ -105,7 +103,7 @@ Did you know that Saleor is available in almost 30 languages, translated entirel
 
 If you'd like to help us, you can join one of our translation teams on [the localization platform Transifex](https://www.transifex.com/mirumee/saleor-1/languages/).
 
-The repository gets synchronized weekly with the latest contributions. 
+The repository gets synchronized weekly with the latest contributions.
 
 
 ## Your feedback
@@ -116,7 +114,7 @@ Fill out this short survey and help us grow. It will take just a minute, but mea
 [Take a survey](https://mirumee.typeform.com/to/sOIJbJ)
 
 
-## License 
+## License
 
 Disclaimer: everything you see here is open and free to use as long as you comply with the [license](https://github.com/mirumee/saleor/blob/master/LICENSE). There are no hidden charges we promise to do our best to fix bugs and improve the code.
 
