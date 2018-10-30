@@ -1,3 +1,5 @@
+from textwrap import dedent
+
 import graphene
 from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
@@ -44,8 +46,8 @@ class DraftOrderInput(InputObjectType):
 class DraftOrderCreateInput(DraftOrderInput):
     lines = graphene.List(
         OrderLineCreateInput,
-        description="""Variant line input consisting of variant ID
-        and quantity of products.""")
+        description=dedent("""Variant line input consisting of variant ID
+        and quantity of products."""))
 
 
 class DraftOrderCreate(ModelMutation):
@@ -247,9 +249,9 @@ class DraftOrderLineCreate(BaseMutation):
             description='ID of the draft order to add the lines to.')
         input = OrderLineCreateInput(
             required=True,
-            description="""
+            description=dedent("""
             Variant line input consisting of variant ID and quantity of
-            products.""")
+            products."""))
 
     class Meta:
         description = 'Create an order line for a draft order.'
