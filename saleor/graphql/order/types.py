@@ -8,7 +8,7 @@ from ..account.types import User
 from ..core.fields import PrefetchingConnectionField
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
-from ..payment.types import PaymentChargeStatusEnum, OrderAction
+from ..payment.types import OrderAction, PaymentChargeStatusEnum
 from ..shipping.types import ShippingMethod
 
 OrderEventsEnum = graphene.Enum.from_enum(OrderEvents)

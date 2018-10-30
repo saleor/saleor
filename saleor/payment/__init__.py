@@ -32,7 +32,6 @@ class TransactionError(Enum):
     DECLINED = 'declined'
 
 
-
 class TransactionKind:
     """
     - Authorization: An amount reserved against the customer's funding
@@ -74,7 +73,6 @@ class ChargeStatus:
     # partially refunded
     # fully charged
     # ...?
-
     CHOICES = [
         (CHARGED, pgettext_lazy('payment status', 'Charged')),
         (NOT_CHARGED, pgettext_lazy('payment status', 'Not charged')),

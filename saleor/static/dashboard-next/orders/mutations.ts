@@ -48,12 +48,12 @@ import {
   OrderMarkAsPaidVariables
 } from "./types/OrderMarkAsPaid";
 import { OrderRefund, OrderRefundVariables } from "./types/OrderRefund";
-import { OrderVoid, OrderVoidVariables } from "./types/OrderVoid";
 import {
   OrderShippingMethodUpdate,
   OrderShippingMethodUpdateVariables
 } from "./types/OrderShippingMethodUpdate";
 import { OrderUpdate, OrderUpdateVariables } from "./types/OrderUpdate";
+import { OrderVoid, OrderVoidVariables } from "./types/OrderVoid";
 
 const orderCancelMutation = gql`
   ${fragmentOrderDetails}

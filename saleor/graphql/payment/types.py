@@ -57,15 +57,17 @@ class CreditCard(graphene.ObjectType):
     last_digits = graphene.String(
         description='Last 4 digits of the card number.', required=True)
     exp_month = graphene.Int(
-        description='Two-digit number representing the card’s expiration month.',
+        description=(
+            'Two-digit number representing the card’s expiration month.'),
         required=True)
     exp_year = graphene.Int(
-        description='Four-digit number representing the card’s expiration year.',
+        description=(
+            'Four-digit number representing the card’s expiration year.'),
         required=True)
 
 
 class Payment(CountableDjangoObjectType):
-    # FIXME gateway_response field should be resolved into query-readable format
+    # FIXME gateway_response field should be resolved
     # if we want to use it on the frontend
     # otherwise it should be removed from this type
     charge_status = PaymentChargeStatusEnum(

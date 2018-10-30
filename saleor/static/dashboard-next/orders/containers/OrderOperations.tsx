@@ -42,13 +42,17 @@ import {
   OrderLineUpdate,
   OrderLineUpdateVariables
 } from "../types/OrderLineUpdate";
+import {
+  OrderMarkAsPaid,
+  OrderMarkAsPaidVariables
+} from "../types/OrderMarkAsPaid";
 import { OrderRefund, OrderRefundVariables } from "../types/OrderRefund";
-import { OrderVoid, OrderVoidVariables } from "../types/OrderVoid";
 import {
   OrderShippingMethodUpdate,
   OrderShippingMethodUpdateVariables
 } from "../types/OrderShippingMethodUpdate";
 import { OrderUpdate, OrderUpdateVariables } from "../types/OrderUpdate";
+import { OrderVoid, OrderVoidVariables } from "../types/OrderVoid";
 import OrderCancelMutationProvider from "./OrderCancel";
 import OrderCreateFulfillmentProvider from "./OrderCreateFulfillment";
 import OrderDraftCancelMutationProvider from "./OrderDraftCancel";
@@ -59,17 +63,13 @@ import OrderFulfillmentUpdateTrackingProvider from "./OrderFulfillmentUpdateTrac
 import OrderLineAddProvider from "./OrderLineAdd";
 import OrderLineDeleteProvider from "./OrderLineDelete";
 import OrderLineUpdateProvider from "./OrderLineUpdate";
+import OrderMarkAsPaidProvider from "./OrderMarkAsPaid";
 import OrderNoteAddProvider from "./OrderNoteAdd";
 import OrderPaymentCaptureProvider from "./OrderPaymentCapture";
 import OrderPaymentRefundProvider from "./OrderPaymentRefund";
-import OrderVoidMutationProvider from "./OrderVoid";
 import OrderShippingMethodUpdateProvider from "./OrderShippingUpdate";
 import OrderUpdateProvider from "./OrderUpdate";
-import {
-  OrderMarkAsPaid,
-  OrderMarkAsPaidVariables
-} from "../types/OrderMarkAsPaid";
-import OrderMarkAsPaidProvider from "./OrderMarkAsPaid";
+import OrderVoidMutationProvider from "./OrderVoid";
 
 interface OrderOperationsProps extends MutationProviderProps {
   order: string;
@@ -106,10 +106,7 @@ interface OrderOperationsProps extends MutationProviderProps {
       OrderMarkAsPaid,
       OrderMarkAsPaidVariables
     >;
-    orderVoid: PartialMutationProviderOutput<
-      OrderVoid,
-      OrderVoidVariables
-    >;
+    orderVoid: PartialMutationProviderOutput<OrderVoid, OrderVoidVariables>;
     orderUpdate: PartialMutationProviderOutput<
       OrderUpdate,
       OrderUpdateVariables
@@ -554,18 +551,6 @@ const OrderOperations: React.StatelessComponent<OrderOperationsProps> = ({
                                                                               }
                                                                             )
                                                                         },
-                                                                        orderVoid: {
-                                                                          data:
-                                                                            orderVoid.data,
-                                                                          loading:
-                                                                            orderVoid.loading,
-                                                                          mutate: variables =>
-                                                                            orderVoid.mutate(
-                                                                              {
-                                                                                variables
-                                                                              }
-                                                                            )
-                                                                        },
                                                                         orderShippingMethodUpdate: {
                                                                           data:
                                                                             updateShippingMethod.data,
@@ -585,6 +570,18 @@ const OrderOperations: React.StatelessComponent<OrderOperationsProps> = ({
                                                                             update.loading,
                                                                           mutate: variables =>
                                                                             update.mutate(
+                                                                              {
+                                                                                variables
+                                                                              }
+                                                                            )
+                                                                        },
+                                                                        orderVoid: {
+                                                                          data:
+                                                                            orderVoid.data,
+                                                                          loading:
+                                                                            orderVoid.loading,
+                                                                          mutate: variables =>
+                                                                            orderVoid.mutate(
                                                                               {
                                                                                 variables
                                                                               }

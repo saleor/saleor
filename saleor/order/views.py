@@ -97,8 +97,12 @@ def start_payment(request, order, gateway):
         raise Http404('%r is not a valid payment gateway' % (gateway,))
     with transaction.atomic():
         payment, _ = Payment.objects.get_or_create(
-            gateway=gateway, is_active=True, order=order, defaults=defaults,
-            total=order.total.gross.amount, currency=order.total.gross.currency)
+            gateway=gateway,
+            is_active=True,
+            order=order,
+            defaults=defaults,
+            total=order.total.gross.amount,
+            currency=order.total.gross.currency)
         if (
                 order.is_fully_paid()
                 or payment.charge_status == ChargeStatus.FULLY_REFUNDED):

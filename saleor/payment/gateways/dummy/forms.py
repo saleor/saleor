@@ -1,8 +1,8 @@
-from ...forms import PaymentForm
 from django import forms
 from django.utils.translation import pgettext_lazy
 
 from ... import ChargeStatus
+from ...forms import PaymentForm
 
 
 class DummyPaymentForm(PaymentForm):
@@ -10,7 +10,6 @@ class DummyPaymentForm(PaymentForm):
         label=pgettext_lazy('Payment status form field', 'Payment status'),
         choices=ChargeStatus.CHOICES, initial=ChargeStatus.NOT_CHARGED,
         widget=forms.RadioSelect)
-
 
     def process_payment(self):
         # Dummy provider requires no real token

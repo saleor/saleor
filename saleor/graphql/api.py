@@ -80,7 +80,7 @@ class Query(ProductQueries):
         token=graphene.Argument(graphene.UUID))
     # FIXME we could optimize the below field
     checkouts = DjangoConnectionField(
-        Checkout,description='List of checkouts.')
+        Checkout, description='List of checkouts.')
     checkout_lines = PrefetchingConnectionField(
         CheckoutLine, description='List of checkout lines')
     checkout_line = graphene.Field(
