@@ -2,19 +2,20 @@ from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import pytest
+
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.template.loader import get_template
 from prices import Money
-
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.views import PAYMENT_TEMPLATE
 from saleor.payment import (
     ChargeStatus, PaymentError, TransactionKind, get_payment_gateway)
 from saleor.payment.utils import (
-    create_payment, create_transaction, gateway_authorize, gateway_capture,
-    gateway_get_client_token, gateway_refund, gateway_void, get_billing_data,
-    handle_fully_paid_order, validate_payment)
+    clean_authorize, clean_capture, create_payment, create_transaction,
+    gateway_authorize, gateway_capture, gateway_get_client_token,
+    gateway_refund, gateway_void, get_billing_data, handle_fully_paid_order,
+    validate_payment)
 
 NOT_ACTIVE_PAYMENT_ERROR = 'This payment is no longer active.'
 EXAMPLE_ERROR = 'Example dummy error'
@@ -452,3 +453,42 @@ def test_payment_gateway_form_exists(gateway_name, payment_dummy):
     payment_gateway, gateway_params = get_payment_gateway(
         gateway_name)
     payment_gateway.get_form_class()
+
+
+def test_clean_authorize():
+    payment = Mock(can_authorize=Mock(return_value=True))
+    clean_authorize(payment)
+
+    payment = Mock(can_authorize=Mock(return_value=False))
+    with pytest.raises(PaymentError):
+        clean_authorize(payment)
+
+
+def test_clean_capture():
+    # Amount should be a positive number
+    payment = Mock()
+    amount = Decimal('0.00')
+    with pytest.raises(PaymentError):
+        clean_capture(payment, amount)
+
+    # Payment cannot be captured
+    payment = Mock(can_capture=Mock(return_value=False))
+    amount = Decimal('1.00')
+    with pytest.raises(PaymentError):
+        clean_capture(payment, amount)
+
+    # Amount is larger than payment's total
+    payment = Mock(
+        can_capture=Mock(return_value=True),
+        total=Decimal('1.00'),
+        captured_amount=Decimal('0.00'))
+    amount = Decimal('2.00')
+    with pytest.raises(PaymentError):
+        clean_capture(payment, amount)
+
+    amount = Decimal('2.00')
+    payment = Mock(
+        can_capture=Mock(return_value=True),
+        total=amount,
+        captured_amount=Decimal('0.00'))
+    clean_capture(payment, amount)
