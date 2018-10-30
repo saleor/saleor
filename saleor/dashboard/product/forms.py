@@ -17,6 +17,7 @@ from ...core.weight import WeightField
 from ...product.models import (
     Attribute, AttributeValue, Category, Collection, Product, ProductImage,
     ProductType, ProductVariant, VariantImage)
+from ...product.tasks import update_variants_names
 from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
 from ..forms import ModelChoiceOrCreationField, OrderedModelMultipleChoiceField
@@ -146,26 +147,9 @@ class ProductTypeForm(forms.ModelForm):
             return data
 
         self.check_if_variants_changed(has_variants)
-        self.update_variants_names(saved_attributes=variant_attr)
+        update_variants_names.delay(
+            self.instance, saved_attributes=variant_attr)
         return data
-
-    def update_variants_names(self, saved_attributes):
-        # Some variant attributes could be removed so name should be updated
-        # accordingly
-        initial_attributes = set(self.instance.variant_attributes.all())
-        attributes_changed = initial_attributes.intersection(saved_attributes)
-        if not attributes_changed:
-            return
-        variants_to_be_updated = ProductVariant.objects.filter(
-            product__in=self.instance.products.all(),
-            product__product_type__variant_attributes__in=attributes_changed)
-        variants_to_be_updated = variants_to_be_updated.prefetch_related(
-            'product__product_type__variant_attributes__values').all()
-        attributes = self.instance.variant_attributes.prefetch_related(
-            'translations', 'values__translations')
-        for variant in variants_to_be_updated:
-            variant.name = get_name_from_attributes(variant, attributes)
-            variant.save(update_fields=['name'])
 
     def check_if_variants_changed(self, has_variants):
         variants_changed = (
