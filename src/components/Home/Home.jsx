@@ -5,6 +5,12 @@ import { Link } from 'react-router-dom';
 import { GitHubLink } from '..';
 import { isMobileOnly } from 'react-device-detect';
 import { Helmet } from "react-helmet";
+import Lottie from 'react-lottie';
+
+import * as modernStack from '../../images/modernStack.json';
+import * as buildToScale from '../../images/buildToScale.json';
+import * as easyToCustomize from '../../images/easyToCustomize.json';
+import * as greatExperience from '../../images/greatExperience.json';
 
 import Fade from 'react-reveal/Fade';
 
@@ -40,10 +46,32 @@ import ogImage from '../../images/og-homepage.jpg';
 class Home extends Component {
   constructor(props) {
     super(props);
-    this.toggleNewsBar= this.toggleNewsBar.bind(this);
+    this.toggleNewsBar = this.toggleNewsBar.bind(this);
+
+    this.modernStackEnter = this.modernStackEnter.bind(this);
+    this.modernStackLeave = this.modernStackLeave.bind(this);
+    this.buildToScaleEnter = this.buildToScaleEnter.bind(this);
+    this.buildToScaleLeave = this.buildToScaleLeave.bind(this);
+    this.easyToCustomizeEnter = this.easyToCustomizeEnter.bind(this);
+    this.easyToCustomizeLeave = this.easyToCustomizeLeave.bind(this);
+    this.greatExperienceEnter = this.greatExperienceEnter.bind(this);
+    this.greatExperienceLeave = this.greatExperienceLeave.bind(this);
+    
     this.state = { 
       tabIndex: 0,
-      newsBar: true
+      newsBar: true,
+      modernStack: {
+        isPaused: true,
+      },
+      buildToScale: {
+        isPaused: true,
+      },
+      easyToCustomize: {
+        isPaused: true,
+      },
+      greatExperience: {
+        isPaused: true,
+      }
     };
   }
 
@@ -52,7 +80,53 @@ class Home extends Component {
     this.setState({ newsBar: !currentState });
   };
 
+  modernStackEnter() { this.setState(prevState => ({ modernStack: { ...prevState.modernStack, isPaused: false }}))};
+  modernStackLeave() { this.setState(prevState => ({ modernStack: { ...prevState.modernStack, isPaused: true } }))};
+  buildToScaleEnter() { this.setState(prevState => ({ buildToScale: { ...prevState.buildToScale, isPaused: false }}))};
+  buildToScaleLeave() { this.setState(prevState => ({ buildToScale: { ...prevState.buildToScale, isPaused: true } }))};
+  easyToCustomizeEnter() { this.setState(prevState => ({ easyToCustomize: { ...prevState.easyToCustomize, isPaused: false }}))};
+  easyToCustomizeLeave() { this.setState(prevState => ({ easyToCustomize: { ...prevState.easyToCustomize, isPaused: true } }))};
+  greatExperienceEnter() { this.setState(prevState => ({ greatExperience: { ...prevState.greatExperience, isPaused: false }}))};
+  greatExperienceLeave() { this.setState(prevState => ({ greatExperience: { ...prevState.greatExperience, isPaused: true } }))};
+
+
   render() {
+    const modernStackOptions = {
+      loop: true,
+      autoplay: false,
+      animationData: modernStack,
+      rendererSettings: {
+        preserveAspectRatio: 'xMidYMid slice'
+      }
+    };
+
+    const buildToScaleOptions = {
+      loop: true,
+      autoplay: false,
+      animationData: buildToScale,
+      rendererSettings: {
+        preserveAspectRatio: 'xMidYMid slice'
+      }
+    };
+
+    const easyToCustomizeOptions = {
+      loop: true,
+      autoplay: false,
+      animationData: easyToCustomize,
+      rendererSettings: {
+        preserveAspectRatio: 'xMidYMid slice'
+      }
+    };
+
+    const greatExperienceOptions = {
+      loop: true,
+      autoplay: false,
+      animationData: greatExperience,
+      rendererSettings: {
+        preserveAspectRatio: 'xMidYMid slice'
+      }
+    };
+
     return (
         <div id="home" className="container">
           <Helmet>
@@ -86,30 +160,44 @@ class Home extends Component {
           <section id="features-section" className="features">
             <Fade bottom cascade duration={1500}>
             <div className="grid icons">
-              <div className="col-xs-6 col-sm-6 col-md-3 software-stack">
+              <div className="col-xs-6 col-sm-6 col-md-3 software-stack" >
                 <a href="#software-stack">
-                    <div className="image">
+                    <div className="image" onMouseEnter={this.modernStackEnter} onMouseLeave={this.modernStackLeave}>
+                      <Lottie options={modernStackOptions}
+                        isPaused={this.state.modernStack.isPaused}
+                      />
                       <h3><span>01<br/>-</span>Modern <br />stack</h3>
                     </div>
+                    
                 </a>
               </div>
-              <div className="col-xs-6 col-sm-6 col-md-3 build-to-scale">
+              <div className="col-xs-6 col-sm-6 col-md-3 build-to-scale" >
                 <a href="#build-to-scale">
-                  <div className="image">
+                  <div className="image" onMouseEnter={this.buildToScaleEnter} onMouseLeave={this.buildToScaleLeave}>
+                      <Lottie options={buildToScaleOptions}
+                        isPaused={this.state.buildToScale.isPaused}
+                      />
                     <h3><span>02<br/>-</span>Built to <br />scale</h3>
                   </div>
+                  
                 </a>
               </div>
               <div className="col-xs-6 col-sm-6 col-md-3 easy-to-customize">
                 <a href="#easy-to-customize">
-                  <div className="image">
+                  <div className="image" onMouseEnter={this.easyToCustomizeEnter} onMouseLeave={this.easyToCustomizeLeave}>
+                    <Lottie options={easyToCustomizeOptions}
+                      isPaused={this.state.easyToCustomize.isPaused}
+                    />
                     <h3><span>03<br/>-</span>Easy to <br />customize</h3>
                   </div>
                 </a>
               </div>
               <div className="col-xs-6 col-sm-6 col-md-3 user-experience">
                 <a href="#user-experience">
-                  <div className="image">
+                  <div className="image" onMouseEnter={this.greatExperienceEnter} onMouseLeave={this.greatExperienceLeave}>
+                    <Lottie options={greatExperienceOptions}
+                      isPaused={this.state.greatExperience.isPaused}
+                    />
                     <h3><span>04<br/>-</span>Great <br />experience</h3>
                   </div>
                 </a>

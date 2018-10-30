@@ -190,26 +190,29 @@
         }
         & .image {
           width: 60%;
-          height: 470px;
+          height: 400px;
           background-size: 100%;
           background-repeat: no-repeat;
           position: relative;
           transition: opacity 1s ease, top 1s ease;
+          & div[aria-label="animation"] {
+            height: auto !important;
+          }
           &.visible {
             opacity: 1;
             top: 0;
           }
           @media (min-width: 2500px) {
-            height: 500px;
+            height: 420px;
           }
           @media (max-width: 1440px) {
-            height: 350px;
+            height: 300px;
           }
           @media (max-width: 1024px) {
-            height: 250px;
+            height: 230px;
           }
           @media (max-width: 768px) {
-            height: 340px;
+            height: 300px;
           }
           & h3 {
             position: absolute;
@@ -227,7 +230,7 @@
             }
           }
         }
-        & .software-stack {
+        /* & .software-stack {
           & .image {
             background-image: url('../../images/modern-stack.svg');
           }
@@ -246,7 +249,7 @@
           & .image {
             background-image: url('../../images/great-experience.svg');
           }
-        }
+        } */
       }
       & img {
         margin-bottom: var(--spacer);
