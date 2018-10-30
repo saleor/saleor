@@ -11,7 +11,6 @@ RUN \
 # Install Python dependencies
 RUN pip install pipenv
 ADD Pipfile /app/
-ADD Pipfile.lock /app/
 WORKDIR /app
 RUN pipenv install --system --deploy --dev
 
