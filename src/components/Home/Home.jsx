@@ -12,6 +12,7 @@ import { ScrollLink } from '..';
 
 import css from './home.css';
 
+import parrot from '../../images/parrot-bg.png';
 import modernStackIcon from '../../images/modern-stack.svg';
 import buildToScaleIcon from '../../images/build-to-scale.svg';
 import easyToCustomizeIcon from '../../images/easy-to-customize.svg';
@@ -59,7 +60,7 @@ class Home extends Component {
             <meta name="description" content="A GraphQL-first eCommerce platform for perfectionists. It is open sourced, PWA-ready and looks beautiful. Find out why developers love it." />
           </Helmet>
           <section className="hero">
-            <div className="bg-container"></div>
+            <div className="bg-container"><img src={parrot} /></div>
             <div className="plane">
               {this.state.newsBar &&
               <div className="news">

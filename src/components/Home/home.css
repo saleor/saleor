@@ -4,24 +4,23 @@
       position: relative;
       margin-bottom: calc(var(--spacer) * 6);
       & .bg-container {
-        background-image: url('../../images/parrot-bg.png');
-        background-size: 95%;
-        background-position: 150% 30%;
-        @media (max-width: 1440px) {
-          background-size: 80%;
-          background-position: 100% 0%;
+        width: 100%;
+        position: absolute;
+        top: -10%;
+        @media (min-width: 2500px) {
+          top: 0;
         }
         @media (max-width: 1024px) {
-          background-size: 100%;
-          background-position: 100% 0%;
+          top: 0;
         }
         @media (max-width: 768px) {
-          background-position: 80% 0%;
-          background-size: 120%;
+          width: 130%;
+          left: -25%;
         }
         @media (max-width: 450px) {
-          background-position: 80% 100%;
-          background-size: 250%;
+          width: 240%;
+          left: -100%;
+          top: -13%;
         }
       }
       & .plane {
@@ -135,7 +134,13 @@
         left: 50%;
         transform: translateX(-50%);
         z-index: 98;
-        bottom: calc(var(--spacer) * 4);
+        bottom: calc(var(--spacer) * 7);
+        @media (max-width: 1680px) {
+          bottom: calc(var(--spacer) * 12);
+        }
+        @media (max-width: 1440px) {
+          bottom: calc(var(--spacer) * 5);
+        }
         @media (max-width: 1024px) {
           bottom: calc(var(--spacer) * 4);
         }
@@ -754,6 +759,12 @@
         right: 43.5%;
         top: 31.5%;
         z-index: 2;
+        @media (max-width: 1920px) {
+          right: 43%;
+        }
+        @media (max-width: 1680px) {
+          right: 42%;
+        }
         @media (max-width: 1440px) {
           right: 41%;
         }
