@@ -72,14 +72,18 @@ def test_generate_name_from_values_empty():
     assert name == ''
 
 
-def test_product_type_update_changes_variant_name(product_type):
+def test_product_type_update_changes_variant_name(product):
     new_name = 'test_name'
-    variant_attr = product_type.variant_attributes.first()
-    assert not variant_attr.name == new_name
-    variant_attr.name = new_name
-    variant_attr.save()
-    _update_variants_names(product_type, [variant_attr])
-    assert product_type.variant_attributes.first().name == new_name
+    product_variant = product.variants.first()
+    assert not product_variant.name == new_name
+    attribute = product.product_type.variant_attributes.first()
+    attribute_value = attribute.values.first()
+    attribute_value.name = new_name
+    attribute_value.save()
+    _update_variants_names(product.product_type, [attribute])
+    product_variant.refresh_from_db()
+    assert product_variant.name == new_name
+
 
 
 def test_update_variants_changed_does_nothing_with_no_attributes():
