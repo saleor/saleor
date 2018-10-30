@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, Mock
+from unittest.mock import patch
 
 import graphene
 import pytest
@@ -10,9 +10,9 @@ from tests.utils import create_image, create_pdf_file_with_image_ext
 
 from saleor.graphql.core.types import ReportingPeriod
 from saleor.graphql.product.types import StockAvailability
-from saleor.graphql.product.utils import update_variants_names
 from saleor.product.models import (
     Category, Collection, Product, ProductImage, ProductType, ProductVariant)
+from saleor.product.tasks import update_variants_names
 
 from .utils import assert_no_permission, get_multipart_request_body
 
@@ -1241,8 +1241,10 @@ def test_unassign_not_assigned_variant_image(
         'imageId')
 
 
+@patch('saleor.product.tasks.update_variants_names.delay')
 def test_product_type_update_changes_variant_name(
-        staff_api_client, product_type, product, permission_manage_products):
+        mock_update_variants_names, staff_api_client, product_type,
+        product, permission_manage_products):
     query = """
     mutation updateProductType(
         $id: ID!,
@@ -1282,18 +1284,18 @@ def test_product_type_update_changes_variant_name(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
-    product.refresh_from_db()
-    variant = product.variants.first()
-    attribute = product.product_type.variant_attributes.first()
-    value = attribute.values.first().name
-    assert variant.name == value
+    variant_attributes = set(variant_attributes)
+    mock_update_variants_names.assert_called_once_with(
+        product_type, variant_attributes)
 
 
-def test_update_variants_changed_does_nothing_with_no_attributes():
-    product_type = MagicMock(spec=ProductType)
-    product_type.variant_attributes.all = Mock(return_value=[])
-    saved_attributes = []
-    assert update_variants_names(product_type, saved_attributes) is None
+@patch('saleor.product.tasks._update_variants_names')
+def test_product_update_variants_names(mock__update_variants_names,
+                                       product_type):
+    variant_attributes = [product_type.variant_attributes.first()]
+    update_variants_names(product_type, variant_attributes)
+    mock__update_variants_names.assert_called_once_with(
+        product_type, variant_attributes)
 
 
 def test_product_variants_by_ids(user_api_client, variant):

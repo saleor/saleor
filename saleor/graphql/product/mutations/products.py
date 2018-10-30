@@ -6,6 +6,7 @@ from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
 
 from ....product import models
+from ....product.tasks import update_variants_names
 from ....product.utils.attributes import get_name_from_attributes
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import Decimal, SeoInput
@@ -14,7 +15,7 @@ from ...core.utils import clean_seo_fields
 from ...file_upload.types import Upload
 from ...shipping.types import WeightScalar
 from ..types import Category, Collection, Product, ProductImage, ProductVariant
-from ..utils import attributes_to_hstore, update_variants_names
+from ..utils import attributes_to_hstore
 
 
 class CategoryInput(graphene.InputObjectType):
@@ -494,7 +495,7 @@ class ProductTypeUpdate(ProductTypeCreate):
         variant_attr = cleaned_input.get('variant_attributes')
         if variant_attr:
             variant_attr = set(variant_attr)
-            update_variants_names(instance, variant_attr)
+            update_variants_names.delay(instance, variant_attr)
         super().save(info, instance, cleaned_input)
 
 

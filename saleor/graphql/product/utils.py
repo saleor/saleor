@@ -1,7 +1,6 @@
 from django.utils.text import slugify
 
-from ...product.models import Attribute, AttributeValue, ProductVariant
-from ...product.utils.attributes import get_name_from_attributes
+from ...product.models import Attribute, AttributeValue
 
 
 def attributes_to_hstore(attribute_value_input, attributes_queryset):
@@ -42,19 +41,3 @@ def attributes_to_hstore(attribute_value_input, attributes_queryset):
         attributes_hstore[str(attribute_id)] = str(value_id)
 
     return attributes_hstore
-
-
-def update_variants_names(instance, saved_attributes):
-    initial_attributes = set(instance.variant_attributes.all())
-    attributes_changed = initial_attributes.intersection(saved_attributes)
-    if not attributes_changed:
-        return
-    variants_to_be_updated = ProductVariant.objects.filter(
-        product__in=instance.products.all(),
-        product__product_type__variant_attributes__in=attributes_changed)
-    variants_to_be_updated = variants_to_be_updated.prefetch_related(
-        'product__product_type__variant_attributes__values').all()
-    attributes = instance.variant_attributes.all()
-    for variant in variants_to_be_updated:
-        variant.name = get_name_from_attributes(variant, attributes)
-        variant.save()
