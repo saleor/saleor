@@ -119,12 +119,11 @@ class Home extends Component {
               <div id="software-stack" className="grid feature-item software-stack">
                 <div className="col-xs-12 col-sm-6 col-md-6 text">
                   <h2>01. State of the art software stack</h2>
-                  <p>Saleor is powered by a GraphQL server running on top of Python 3 and a Django 2 framework</p>
-                  <p className="text-light">Both the storefront and the dashboard are React applications written in TypeScript and use Apollo GraphQL. Strict quality checks and reviews make the code easy to read and understand. High test coverage ensures it’s also safe to deploy in a continuous manner.</p>
+                  <p>Saleor is powered by a GraphQL server running on top of Python&nbsp;3 and a Django&nbsp;2&nbsp;framework</p>
+                  <p className="text-light">Both the storefront and the dashboard are React applications written in TypeScript and use Apollo GraphQL. Strict quality checks and reviews make the code easy to read and understand. High test coverage ensures it’s also safe to deploy in a continuous&nbsp;manner.</p>
                 </div>
                 <Fade bottom when={true} appear={!isMobileOnly} duration={1500}>
                 <div className="col-xs-12 col-sm-6 col-md-6 image"></div>
-                <div className="col-xs-12 col-sm-6 col-md-6 shadow-image"></div>
                 </Fade>
               </div>
               <div id="build-to-scale" className="grid feature-item build-to-scale">
@@ -133,15 +132,15 @@ class Home extends Component {
                 </Fade>
                 <div className="col-xs-12 col-sm-6 col-md-6 text">
                   <h2>02. Build to scale</h2>
-                  <p>Serve millions of products and thousands of customers without breaking a sweat</p>
-                  <p className="text-light">Saleor is optimized for cloud deployments using Docker. Horizontal scalability allows Saleor to take advantage of platforms such as AWS and Google Cloud and adapt to your traffic. Multi-container deployments allow your software to scale without downtime. Persistent GraphQL Queries take advantage of CDN to ensure snappy performance under even the heaviest of loads.</p>
+                  <p>Serve millions of products and thousands of customers without breaking a&nbsp;sweat</p>
+                  <p className="text-light">Saleor is optimized for cloud deployments using Docker. Horizontal scalability allows Saleor to take advantage of platforms such as AWS and Google&nbsp;Cloud and adapt to your traffic. Multi-container deployments allow your software to scale without downtime. Persistent GraphQL Queries take advantage of CDN to ensure snappy performance under even the heaviest of&nbsp;loads.</p>
                 </div>
               </div>
               <div id="easy-to-customize" className="grid feature-item easy-to-customize">
                 <div className="col-xs-12 col-sm-6 col-md-6 text">
                   <h2>03. Easy to customize</h2>
                   <p>Saleor delivers ecommerce even when you need more than an out-of-the-box solution</p>
-                  <p className="text-light">Take it even further to automate any process like ordering, shipping or payment. Whether you’re a local florist or a government agency, Saleor is a solid Django based foundation to build and deliver bespoke solutions to your specific problems. Build the store that you want instead of trying to bend your requirements around enterprise platforms.</p>
+                  <p className="text-light">Take it even further to automate any process like ordering, shipping or payment. Whether you’re a local florist or a government agency, Saleor is a solid Django based foundation to build and deliver bespoke solutions to your specific problems. Build the store that you want instead of trying to bend your requirements around enterprise&nbsp;platforms.</p>
                 </div>
                 <Fade bottom when={true} appear={!isMobileOnly} duration={1500}>
                 <div className="col-xs-12 col-sm-6 col-md-6 image"></div>
@@ -149,16 +148,16 @@ class Home extends Component {
               </div>
               <div id="user-experience" className="grid feature-item user-experience">
                 <div className="col-xs-12 col-sm-12 col-md-12 text">
-                  <h2>04. User experience that simply rocks</h2>
-                  <p>The user experience with Saleor is more than you ever expect from open source, rivalling the very best commercial solutions.</p>
+                  <h2>04. User experience that simply&nbsp;rocks</h2>
+                  <p>The user experience with Saleor is more than you ever expect from open source, rivalling the very best commercial&nbsp;solutions.</p>
                 </div>
                 <div className="col-xs-12 col-sm-6 col-md-6 storefront">
                   <Fade bottom when={true} appear={!isMobileOnly} duration={1300}>
                     <img src={storefrontIcon} srcSet={`${storefrontIcon} 1x, ${storefrontIconX2} 2x, ${storefrontIconX3} 3x`} alt="storefont screen" />
                   </Fade>
                   <h2>Storefront</h2>
-                  <p>Saleor takes advantage of PWA standards to optimize mobile experiences of the rapidly growing group of people shopping on the run.</p>
-                  <p className="text-light">Allow your customers to buy their next pair of jeans while enjoying a virgin margarita on a plane. They will only need an internet connection when they go to pay with Apple Pay or one of the cards stored by their phone. </p>
+                  <p>Saleor takes advantage of PWA standards to optimize mobile experiences of the rapidly growing group of people shopping on the&nbsp;run.</p>
+                  <p className="text-light">Allow your customers to buy their next pair of jeans while enjoying a virgin margarita on a plane. They will only need an internet connection when they go to pay with Apple Pay or one of the cards stored by their&nbsp;phone. </p>
                   <a href="https://demo.getsaleor.com" target="blank">See Storefront</a>
                 </div>
                 <div className="col-xs-12 col-sm-6 col-md-6 dashboard">
@@ -166,8 +165,8 @@ class Home extends Component {
                     <img src={dashboardIcon} srcSet={`${dashboardIcon} 1x, ${dashboardIconX2} 2x, ${dashboardIconX3} 3x`} alt="dashboard screen" />
                   </Fade>
                   <h2>Dashboard</h2>
-                  <p>Easy-to-use dashboard makes managing your store a pleasant experience whether you’re using the latest Macbook or a two-year-old smartphone.</p>
-                  <p className="text-light">Its intuitive interface is designed to aid your staff in daily routines like order management, inventory tracking or reporting. Saleor dashboard’s friendly home screen will also suggest items that may need your attention so you always stay on top of things.</p>
+                  <p>Easy-to-use dashboard makes managing your store a pleasant experience whether you’re using the latest Macbook or a two-year-old&nbsp;smartphone.</p>
+                  <p className="text-light">Its intuitive interface is designed to aid your staff in daily routines like order management, inventory tracking or reporting. Saleor dashboard’s friendly home screen will also suggest items that may need your attention so you always stay on top of&nbsp;things.</p>
                   <a href="https://demo.getsaleor.com/en/account/login/" target="blank">See Dashboard</a>
                 </div>
                 <div className="col-xs-12 col-sm-12 col-md-12 more-btn">
@@ -181,37 +180,37 @@ class Home extends Component {
             <div className="section-container">
               <div className="text">
                 <h2>Open source</h2>
-                <p>While built and maintained by Mirumee Software, Saleor’s community is among the fastest growing open source ecommerce platforms.</p>
-                <p className="text-light">What started in 2010 as a humble solution to a local problem has become a vital working platform for our great Python and Django contributors and supporters.</p>
+                <p>While built and maintained by Mirumee Software, Saleor’s community is among the fastest growing open source ecommerce&nbsp;platforms.</p>
+                <p className="text-light">What started in 2010 as a humble solution to a local problem has become a vital working platform for our great Python and Django contributors and&nbsp;supporters.</p>
                 <div className="grid icons">
                   <div className="icon col-xs-12 col-sm-12 col-md-6">
                     <a className="grid" href="https://github.com/mirumee/saleor">
                     <ReactSVG className="github-icon logo col-xs-2 col-sm-2 col-md-3" path="images/github-icon.svg" />
-                    <h5 className="col-xs-9 col-sm-10 col-md-9">Suggest features and propose changes</h5>
+                    <h5 className="col-xs-9 col-sm-10 col-md-9">Suggest features and propose&nbsp;changes</h5>
                     </a>
                   </div>
                   <div className="icon col-xs-12 col-sm-12 col-md-6">
                     <a className="grid" href="https://www.transifex.com/mirumee/saleor-1/">
                       <ReactSVG className="transifex-icon logo col-xs-2 col-sm-2 col-md-3" path="images/transifex-icon.svg" />
-                      <h5 className="col-xs-9 col-sm-10 col-md-9">Translate Saleor to your language</h5>
+                      <h5 className="col-xs-9 col-sm-10 col-md-9">Translate Saleor to your&nbsp;language</h5>
                     </a>
                   </div>
                   <div className="icon col-xs-12 col-sm-12 col-md-6">
                     <a className="grid" href="https://gitter.im/mirumee/saleor">
                       <ReactSVG className="gitter-icon logo col-xs-2 col-sm-2 col-md-3" path="images/gitter-icon.svg" />
-                      <h5 className="col-xs-9 col-sm-10 col-md-9">Discuss the future of Saleor</h5>
+                      <h5 className="col-xs-9 col-sm-10 col-md-9">Discuss the future of&nbsp;Saleor</h5>
                     </a>
                   </div>
                   <div className="icon col-xs-12 col-sm-12 col-md-6">
                     <a className="grid" href="https://stackoverflow.com/questions/tagged/saleor">
                       <ReactSVG className="stackoverflow-icon logo col-xs-2 col-sm-2 col-md-3" path="images/stackoverflow-icon.svg" />
-                      <h5 className="col-xs-9 col-sm-10 col-md-9">Ask for help</h5>
+                      <h5 className="col-xs-9 col-sm-10 col-md-9">Ask for&nbsp;help</h5>
                     </a>
                   </div>
                   <div className="icon col-xs-12 col-sm-12 col-md-6">
                     <a className="grid" href="https://medium.com/saleor">
                       <ReactSVG className="medium-icon logo col-xs-2 col-sm-2 col-md-3" path="images/medium-icon.svg" />
-                      <h5 className="col-xs-9 col-sm-10 col-md-9">Follow Saleor's development</h5>
+                      <h5 className="col-xs-9 col-sm-10 col-md-9">Follow Saleor's&nbsp;development</h5>
                     </a>
                   </div>
                 </div>
@@ -257,7 +256,7 @@ class Home extends Component {
                     </div>
                     <div className="col-xs-12 col-sm-12 col-md-6">
                       <div className="pg-quote">
-                        <p>“The response time of the website has improved dramatically. We’re down below the 1-second mark whereas previously we were 3.5-4 seconds on average. We've also been able to maintain that response time during extreme high-traffic.”</p>
+                        <p>“The response time of the website has improved dramatically. We’re down below the 1-second mark whereas previously we were 3.5-4 seconds on average. We've also been able to maintain that response time during extreme&nbsp;high-traffic.”</p>
                         <div className="author">
                           <img src={timKalic} alt="Tim Kalic" />
                           <h5>Tim Kalic, <br/>Head of Digital, Pretty Green</h5>
