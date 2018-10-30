@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_billing_data(order):
+    """Extracts order's billing address into payment-friendly billing data."""
     data = {}
     if order.billing_address:
         data = {
@@ -89,11 +90,15 @@ def create_transaction(
 
 
 def gateway_get_client_token(gateway_name: str):
+    """Gets client token, that will be used as a customer's identificator for
+    client-side tokenization of the chosen payment method.
+    """
     gateway, gateway_params = get_payment_gateway(gateway_name)
     return gateway.get_client_token(**gateway_params)
 
 
 def clean_capture(payment: Payment, amount: Decimal):
+    """Checks if payment can be captured."""
     if amount <= 0:
         raise PaymentError('Amount should be a positive number.')
     if not payment.can_capture():
@@ -104,6 +109,7 @@ def clean_capture(payment: Payment, amount: Decimal):
 
 
 def clean_authorize(payment: Payment):
+    """Checks if payment can be authorized."""
     if not payment.can_authorize():
         raise PaymentError('Charged transactions cannot be authorized again.')
 
@@ -113,6 +119,15 @@ def gateway_charge(
         payment: Payment,
         payment_token: str,
         amount: Decimal) -> Transaction:
+    """Performs authorization and capture in a single run.
+
+    For gateways not supporting the authorization it should be a
+    dedicated CHARGE transaction.
+
+    For gateways not supporting capturing without authorizing,
+    it should create two transaction - auth and capture, but only the last one
+    is returned.
+    """
     clean_authorize(payment)
     clean_capture(payment, amount)
 
@@ -152,6 +167,7 @@ def gateway_authorize(payment: Payment, payment_token: str) -> Transaction:
 
 @validate_payment
 def gateway_capture(payment: Payment, amount: Decimal) -> Transaction:
+    """Captures the money that was reserved during the authorization stage."""
     clean_capture(payment, amount)
 
     gateway, gateway_params = get_payment_gateway(payment.gateway)
@@ -187,6 +203,9 @@ def gateway_void(payment) -> Transaction:
 
 @validate_payment
 def gateway_refund(payment, amount: Decimal) -> Transaction:
+    """Refunds the charged funds back to the customer.
+    Refunds can be total or partial.
+    """
     if amount <= 0:
         raise PaymentError('Amount should be a positive number.')
     if amount > payment.captured_amount:
