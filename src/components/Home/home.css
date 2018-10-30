@@ -135,9 +135,6 @@
         transform: translateX(-50%);
         z-index: 98;
         bottom: calc(var(--spacer) * 7);
-        @media (max-width: 1680px) {
-          bottom: calc(var(--spacer) * 12);
-        }
         @media (max-width: 1440px) {
           bottom: calc(var(--spacer) * 5);
         }

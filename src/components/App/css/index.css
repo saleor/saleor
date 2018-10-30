@@ -301,10 +301,10 @@ ul {
 section.hero {
   height: 1440px;
   @media (max-width: 1920px) {
-    height: 1080px;
+    height: 900px;
   }
   @media (max-width: 1440px) {
-    height: 768px;
+    height: 700px;
   }
   @media (max-width: 768px) {
     height: 650px;
