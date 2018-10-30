@@ -160,7 +160,7 @@ def test_gateway_get_client_token(settings):
     module = gateway['module']
     with patch('%s.get_client_token' % module) as transaction_token_mock:
         gateway_get_client_token(gateway_name)
-        transaction_token_mock.assert_called_once_with()
+        assert transaction_token_mock.called
 
 
 def test_gateway_get_client_token_not_allowed_gateway(settings):
