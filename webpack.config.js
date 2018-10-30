@@ -122,19 +122,19 @@ module.exports = (env, argv) => {
       }),
       new HtmlWebpackPlugin({
         template: `${sourceDir}pages/features.ejs`,
-        filename: `${distDir}features.html`,
+        filename: `${distDir}features/index.html`,
         googleTagManager: 'GTM-KL4NB3Z',
         domainURL: devMode ? devUrl : prodUrl
       }),
       new HtmlWebpackPlugin({
         template: `${sourceDir}pages/roadmap.ejs`,
-        filename: `${distDir}roadmap.html`,
+        filename: `${distDir}roadmap/index.html`,
         googleTagManager: 'GTM-KL4NB3Z',
         domainURL: devMode ? devUrl : prodUrl
       }),
       new HtmlWebpackPlugin({
         template: `${sourceDir}pages/privacy-policy.ejs`,
-        filename: `${distDir}privacy-policy.html`,
+        filename: `${distDir}privacy-policy/index.html`,
         googleTagManager: 'GTM-KL4NB3Z',
         domainURL: devMode ? devUrl : prodUrl
       }),
