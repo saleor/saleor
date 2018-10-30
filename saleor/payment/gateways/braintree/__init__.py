@@ -22,8 +22,6 @@ CONFIRM_MANUALLY = False
 THREE_D_SECURE_REQUIRED = False
 
 # FIXME: Provide list of visible errors and messages translations
-# FIXME: We should also store universal visible errors for all payment
-# gateways, and parse gateway-specific errors to the unified version
 
 # Error codes whitelist should be a dict of code: error_msg_override
 # if no error_msg_override is provided,

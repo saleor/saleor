@@ -19,7 +19,8 @@ class BraintreePaymentForm(PaymentForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['amount'].initial = self.payment.total
-        # FIXME if environment is Sandbox, we could provide couple of predefined
+        # FIXME IMPROVEMENT:
+        # if environment is Sandbox, we could provide couple of predefined
         # nounces for easier testing
 
     def clean(self):

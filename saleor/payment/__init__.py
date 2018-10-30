@@ -71,7 +71,6 @@ class ChargeStatus:
     FULLY_REFUNDED = 'fully-refunded'
     # FIXME
     # We could probably support other statuses, like:
-    # partially charged
     # partially refunded
     # fully charged
     # ...?

@@ -13,7 +13,6 @@ class DummyPaymentForm(PaymentForm):
 
 
     def process_payment(self):
-        # FIXME add tests
         # Dummy provider requires no real token
         fake_token = self.gateway.get_client_token(**self.gateway_params)
         self.payment.authorize(fake_token)

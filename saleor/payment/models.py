@@ -27,7 +27,7 @@ class Payment(models.Model):
     Several payment methods can be used within a single order.
     """
     # FIXME we should provide an option to store the card for later usage
-    # FIXME probably we should have pending status
+    # FIXME probably we should have pending status for 3d secure
     gateway = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     #: Creation date and time
@@ -125,7 +125,7 @@ class Payment(models.Model):
             self.is_active and self.charge_status == ChargeStatus.NOT_CHARGED)
 
     def can_capture(self):
-        # FIXME should have auth transaction
+        # FIXME should also have an auth transaction
         not_charged = self.charge_status == ChargeStatus.NOT_CHARGED
         not_fully_charged = (
             self.charge_status == ChargeStatus.CHARGED
