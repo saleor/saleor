@@ -1,4 +1,5 @@
 from itertools import chain
+from textwrap import dedent
 
 import graphene
 from django.core.exceptions import ImproperlyConfigured, ValidationError
@@ -49,6 +50,7 @@ class BaseMutation(graphene.Mutation):
     def __init_subclass_with_meta__(cls, description=None, **options):
         if not description:
             raise ImproperlyConfigured('No description provided in Meta')
+        description = dedent(description)
         super().__init_subclass_with_meta__(description=description, **options)
 
     @classmethod

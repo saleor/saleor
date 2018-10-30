@@ -1,3 +1,5 @@
+from textwrap import dedent
+
 import graphene
 import graphql_jwt
 from graphql_jwt.decorators import login_required, permission_required
@@ -10,6 +12,7 @@ from .account.types import AddressValidationData, AddressValidationInput, User
 from .account.resolvers import (
     resolve_address_validator, resolve_customers, resolve_staff_users)
 from .core.types import TaxedMoney, ReportingPeriod
+from .core.mutations import CreateToken, VerifyToken
 from .core.fields import PrefetchingConnectionField
 from .menu.resolvers import resolve_menu, resolve_menus, resolve_menu_items
 from .menu.types import Menu, MenuItem
@@ -18,16 +21,11 @@ from .menu.mutations import (
     AssignNavigation, MenuCreate, MenuDelete, MenuUpdate, MenuItemCreate,
     MenuItemDelete, MenuItemUpdate)
 from .descriptions import DESCRIPTIONS
-from .discount.resolvers import resolve_sales, resolve_vouchers
-from .discount.types import Sale, Voucher
 from .discount.mutations import (
     SaleCreate, SaleDelete, SaleUpdate, VoucherCreate, VoucherDelete,
     VoucherUpdate)
-from .core.mutations import CreateToken, VerifyToken
-from .order.resolvers import (
-    resolve_order, resolve_orders, resolve_orders_total,
-    resolve_homepage_events)
-from .order.types import Order, OrderStatusFilter, OrderEvent
+from .discount.resolvers import resolve_sales, resolve_vouchers
+from .discount.types import Sale, Voucher
 from .order.mutations.draft_orders import (
     DraftOrderComplete, DraftOrderCreate, DraftOrderDelete,
     DraftOrderLineCreate, DraftOrderLineDelete, DraftOrderLineUpdate,
@@ -37,19 +35,23 @@ from .order.mutations.fulfillments import (
 from .order.mutations.orders import (
     OrderAddNote, OrderCancel, OrderCapture, OrderMarkAsPaid, OrderRefund,
     OrderRelease, OrderUpdate, OrderUpdateShipping)
-from .page.resolvers import resolve_pages, resolve_page
-from .page.types import Page
+from .order.resolvers import (
+    resolve_homepage_events, resolve_order, resolve_orders,
+    resolve_orders_total)
+from .order.types import Order, OrderEvent, OrderStatusFilter
 from .page.mutations import PageCreate, PageDelete, PageUpdate
+from .page.resolvers import resolve_page, resolve_pages
+from .page.types import Page
 from .product.schema import ProductMutations, ProductQueries
+from .shipping.mutations import (
+    ShippingPriceCreate, ShippingPriceDelete, ShippingPriceUpdate,
+    ShippingZoneCreate, ShippingZoneDelete, ShippingZoneUpdate)
 from .shipping.resolvers import resolve_shipping_zones
 from .shipping.types import ShippingZone
-from .shipping.mutations import (
-    ShippingZoneCreate, ShippingZoneDelete, ShippingZoneUpdate,
-    ShippingPriceCreate, ShippingPriceDelete, ShippingPriceUpdate)
-from .shop.types import Shop
 from .shop.mutations import (
-    AuthorizationKeyAdd, AuthorizationKeyDelete, ShopDomainUpdate,
-    ShopSettingsUpdate, HomepageCollectionUpdate)
+    AuthorizationKeyAdd, AuthorizationKeyDelete, HomepageCollectionUpdate,
+    ShopDomainUpdate, ShopSettingsUpdate)
+from .shop.types import Shop
 
 
 class Query(ProductQueries):
@@ -87,8 +89,8 @@ class Query(ProductQueries):
             OrderStatusFilter, description='Filter order by status'),
         description='List of the shop\'s orders.')
     homepage_events = PrefetchingConnectionField(
-        OrderEvent, description='''List of activity events to display on
-        homepage (at the moment it only contains order-events).''')
+        OrderEvent, description=dedent('''List of activity events to display on
+        homepage (at the moment it only contains order-events).'''))
     page = graphene.Field(
         Page, id=graphene.Argument(graphene.ID), slug=graphene.String(),
         description='Lookup a page by ID or by slug.')
