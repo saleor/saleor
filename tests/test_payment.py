@@ -209,7 +209,7 @@ def test_gateway_authorize(
     gateway_authorize(payment, payment_token)
     mock_get_payment_gateway.assert_called_once_with(payment.gateway)
     mock_authorize.assert_called_once_with(
-        payment, payment_token, **gateway_params)
+        payment=payment, payment_token=payment_token, **gateway_params)
 
 
 @patch('saleor.payment.utils.get_payment_gateway')
@@ -246,7 +246,7 @@ def test_gateway_capture(
     gateway_capture(payment, amount)
     mock_get_payment_gateway.assert_called_once_with(payment.gateway)
     mock_capture.assert_called_once_with(
-        payment, amount=amount, **gateway_params)
+        payment=payment, amount=amount, **gateway_params)
 
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.CHARGED
@@ -329,7 +329,7 @@ def test_gateway_void(mock_get_payment_gateway, payment_txn_preauth, gateway_par
 
     gateway_void(payment)
     mock_get_payment_gateway.assert_called_once_with(payment.gateway)
-    mock_void.assert_called_once_with(payment, **gateway_params)
+    mock_void.assert_called_once_with(payment=payment, **gateway_params)
 
     payment.refresh_from_db()
     assert payment.is_active == False
@@ -372,7 +372,8 @@ def test_gateway_refund(
 
     gateway_refund(payment, amount)
     mock_get_payment_gateway.assert_called_once_with(payment.gateway)
-    mock_refund.assert_called_once_with(payment, amount, **gateway_params)
+    mock_refund.assert_called_once_with(
+        payment=payment, amount=amount, **gateway_params)
 
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.FULLY_REFUNDED

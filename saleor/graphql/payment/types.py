@@ -145,7 +145,7 @@ class Payment(CountableDjangoObjectType):
         # FIXME TESTME
         if not self.can_capture():
             return None
-        return self.get_total() - self.get_captured_amount()
+        return self.get_charge_amount()
 
     def resolve_credit_card(self, info):
         data = {

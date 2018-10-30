@@ -116,9 +116,7 @@ def clean_authorize(payment: Payment):
 
 @validate_payment
 def gateway_charge(
-        payment: Payment,
-        payment_token: str,
-        amount: Decimal) -> Transaction:
+        payment: Payment, payment_token: str, amount: Decimal) -> Transaction:
     """Performs authorization and capture in a single run.
 
     For gateways not supporting the authorization it should be a
@@ -134,7 +132,10 @@ def gateway_charge(
     gateway, gateway_params = get_payment_gateway(payment.gateway)
     with transaction.atomic():
         txn, error = gateway.charge(
-            payment, payment_token, **gateway_params)
+            payment=payment,
+            payment_token=payment_token,
+            amount=amount,
+            **gateway_params)
         if txn.is_success:
             payment.charge_status = ChargeStatus.CHARGED
             payment.captured_amount += txn.amount
@@ -159,7 +160,7 @@ def gateway_authorize(payment: Payment, payment_token: str) -> Transaction:
     gateway, gateway_params = get_payment_gateway(payment.gateway)
     with transaction.atomic():
         txn, error = gateway.authorize(
-            payment, payment_token, **gateway_params)
+            payment=payment, payment_token=payment_token, **gateway_params)
     if not txn.is_success:
         raise PaymentError(error)
     return txn
@@ -173,7 +174,7 @@ def gateway_capture(payment: Payment, amount: Decimal) -> Transaction:
     gateway, gateway_params = get_payment_gateway(payment.gateway)
     with transaction.atomic():
         txn, error = gateway.capture(
-            payment, amount=amount, **gateway_params)
+            payment=payment, amount=amount, **gateway_params)
         if txn.is_success:
             payment.charge_status = ChargeStatus.CHARGED
             payment.captured_amount += txn.amount
@@ -192,7 +193,7 @@ def gateway_void(payment) -> Transaction:
         raise PaymentError('Only pre-authorized transactions can be voided.')
     gateway, gateway_params = get_payment_gateway(payment.gateway)
     with transaction.atomic():
-        txn, error = gateway.void(payment, **gateway_params)
+        txn, error = gateway.void(payment=payment, **gateway_params)
         if txn.is_success:
             payment.is_active = False
             payment.save(update_fields=['is_active'])
@@ -215,7 +216,8 @@ def gateway_refund(payment, amount: Decimal) -> Transaction:
 
     gateway, gateway_params = get_payment_gateway(payment.gateway)
     with transaction.atomic():
-        txn, error = gateway.refund(payment, amount, **gateway_params)
+        txn, error = gateway.refund(
+            payment=payment, amount=amount, **gateway_params)
         if txn.is_success:
             changed_fields = ['captured_amount']
             payment.captured_amount -= txn.amount
