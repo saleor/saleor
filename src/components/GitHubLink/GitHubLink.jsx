@@ -14,7 +14,9 @@ class GitHubLink extends Component {
   }
 
   updateStars() {
-    const apiUrl = `https://api.github.com/repos/${this.props.owner}/${this.props.name}`;
+    const clientID = 'Iv1.f57e790baceb1324&';
+    const clientSecret = '6fa1790eddb3149031446293e62f92da52c50f9e';
+    const apiUrl = `https://api.github.com/repos/${this.props.owner}/${this.props.name}?client_id=${clientID}client_secret=${clientSecret}`;
     const request = new XMLHttpRequest();
     request.open('GET', apiUrl);
     request.send();
