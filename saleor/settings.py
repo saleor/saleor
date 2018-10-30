@@ -564,16 +564,3 @@ PAYMENT_GATEWAYS = {
         }
     }
 }
-if not DEBUG:
-    GATEWAY_PATH = '%(module)s/__init__.py'
-    for gateway, data in PAYMENT_GATEWAYS.items():
-        if gateway not in CHECKOUT_PAYMENT_GATEWAYS:
-            continue
-        if 'module' not in data or 'connection_params' not in data:
-            raise ImproperlyConfigured('Payment gateway misconfigured.')
-        module_path = {'module': data['module'].replace('.', '/')}
-        payment_gateway_file_exists = os.path.isfile(
-            GATEWAY_PATH % {'module': module_path})
-        if not payment_gateway_file_exists:
-            raise ImproperlyConfigured(
-                'No configuration files for %s payment gateway.' % gateway)
