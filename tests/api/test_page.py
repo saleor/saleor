@@ -59,7 +59,6 @@ def test_staff_query_unpublished_page(
     # query by ID
     variables = {'id': graphene.Node.to_global_id('Page', page.id)}
     response = staff_api_client.post_graphql(PAGE_QUERY, variables)
-    import ipdb; ipdb.set_trace()
     content = get_graphql_content(response)
     assert content['data']['page'] is None
     # query by slug
