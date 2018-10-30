@@ -449,7 +449,7 @@ def test_order_payment_flow(
 
     # Select payment
     url = reverse('order:payment', kwargs={'token': order.token})
-    data = {'gateway':settings.DUMMY}
+    data = {'gateway': settings.DUMMY}
     response = client.post(url, data, follow=True)
 
     assert len(response.redirect_chain) == 1

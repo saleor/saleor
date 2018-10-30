@@ -290,7 +290,6 @@ class OrderMarkAsPaid(BaseMutation):
         clean_order_mark_as_paid(order, errors)
         if errors:
             return OrderMarkAsPaid(errors=errors)
-        # FIXME add more fields to the payment method
         defaults = {
             'total': order.total.gross.amount,
             'captured_amount': order.total.gross.amount,

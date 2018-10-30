@@ -352,7 +352,6 @@ class OrderMarkAsPaidForm(forms.Form):
                     'Orders with payments can not be manually marked as paid'))
 
     def save(self):
-        # FIXME add more fields to the payment method
         defaults = {
             'total': self.order.total.gross.amount,
             'captured_amount': self.order.total.gross.amount,
