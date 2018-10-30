@@ -18,8 +18,8 @@ Your changes should live under the
     available from the API level. You will also need to integrate it into your
     Frontend's workflow.
 
-get_client_token(**connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+get_client_token(\*\*connection_params)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A client token is a signed data blob that includes configuration and
 authorization information required by the payment gateway.
@@ -37,8 +37,8 @@ Example
         client_token = gateway.client_token.generate()
         return client_token
 
-authorize(payment, payment_token, **connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+authorize(payment, payment_token, \*\*connection_params)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A process of reserving the amount of money against the customer's funding
 source. Money does not change hands until the authorization is captured.
@@ -67,8 +67,8 @@ Example
         return txn, response['error']
 
 
-refund(payment, amount, **connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+refund(payment, amount, \*\*connection_params)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Full or partial return of captured funds to the customer.
 
@@ -100,8 +100,8 @@ Example
             gateway_response=get_payment_gateway_response(response))
         return txn, response['error']
 
-capture(payment, amount, **connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+capture(payment, amount, \*\*connection_params)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A transfer of the money that was reserved during the authorization stage.
 
@@ -133,8 +133,8 @@ Example
             gateway_response=get_payment_gateway_response(response))
         return txn, response['error']
 
-void(payment, **connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+void(payment, \*\*connection_params)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A cancellation of a pending authorization or capture.
 

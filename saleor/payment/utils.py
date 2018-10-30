@@ -94,7 +94,6 @@ def gateway_get_client_token(gateway_name: str):
 
 
 def clean_capture(payment: Payment, amount: Decimal):
-    # FIXME add tests
     if amount <= 0:
         raise PaymentError('Amount should be a positive number.')
     if not payment.can_capture():
@@ -105,7 +104,6 @@ def clean_capture(payment: Payment, amount: Decimal):
 
 
 def clean_authorize(payment: Payment):
-    # FIXME add tests
     if not payment.can_authorize():
         raise PaymentError('Charged transactions cannot be authorized again.')
 
