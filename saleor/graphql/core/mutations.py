@@ -28,6 +28,10 @@ def get_model_name(model):
 def get_output_fields(model, return_field_name):
     """Return mutation output field for model instance."""
     model_type = registry.get_type_for_model(model)
+    if not model_type:
+        raise ImproperlyConfigured(
+            'Unable to find type for model %s in graphene registry' %
+            model.__name__)
     fields = {return_field_name: graphene.Field(model_type)}
     return fields
 
@@ -103,7 +107,7 @@ class BaseMutation(graphene.Mutation):
 
         Once a instance is created, this method runs `full_clean()` to perform
         model fields' validation. Returns errors ready to be returned by
-        the GraphQL response (if any occured).
+        the GraphQL response (if any occurred).
         """
         try:
             instance.full_clean()
@@ -117,6 +121,28 @@ class BaseMutation(graphene.Mutation):
                     cls.add_error(errors, field, message)
         return errors
 
+    @classmethod
+    def construct_instance(cls, instance, cleaned_data):
+        """Fill instance fields with cleaned data.
+
+        The `instance` argument is either an empty instance of a already
+        existing one which was fetched from the database. `cleaned_data` is
+        data to be set in instance fields. Returns `instance` with filled
+        fields, but not saved to the database.
+        """
+        from django.db import models
+        opts = instance._meta
+
+        for f in opts.fields:
+            if any([not f.editable, isinstance(f, models.AutoField),
+                    f.name not in cleaned_data]):
+                continue
+            data = cleaned_data[f.name]
+            if not f.null and data is None:
+                data = f._get_default()
+            f.save_form_data(instance, data)
+        return instance
+
 
 class ModelMutation(BaseMutation):
     class Meta:
@@ -124,8 +150,8 @@ class ModelMutation(BaseMutation):
 
     @classmethod
     def __init_subclass_with_meta__(
-            cls, arguments=None, model=None, exclude=None, _meta=None,
-            **options):
+            cls, arguments=None, model=None, exclude=None,
+            return_field_name=None, _meta=None, **options):
         if not model:
             raise ImproperlyConfigured('model is required for ModelMutation')
         if not _meta:
@@ -134,7 +160,8 @@ class ModelMutation(BaseMutation):
         if exclude is None:
             exclude = []
 
-        return_field_name = get_model_name(model)
+        if not return_field_name:
+            return_field_name = get_model_name(model)
         if arguments is None:
             arguments = {}
         fields = get_output_fields(model, return_field_name)
@@ -205,28 +232,6 @@ class ModelMutation(BaseMutation):
                 else:
                     cleaned_input[field_name] = value
         return cleaned_input
-
-    @classmethod
-    def construct_instance(cls, instance, cleaned_data):
-        """Fill instance fields with cleaned data.
-
-        The `instance` argument is either an empty instance of a already
-        existing one which was fetched from the database. `cleaned_data` is
-        data to be set in instance fields. Returns `instance` with filled
-        fields, but not saved to the database.
-        """
-        from django.db import models
-        opts = instance._meta
-
-        for f in opts.fields:
-            if any([not f.editable, isinstance(f, models.AutoField),
-                    f.name not in cleaned_data]):
-                continue
-            data = cleaned_data[f.name]
-            if not f.null and data is None:
-                data = f._get_default()
-            f.save_form_data(instance, data)
-        return instance
 
     @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):

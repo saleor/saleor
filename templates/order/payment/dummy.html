@@ -3,13 +3,13 @@
 {% load i18n %}
 
 {% block forms %}
-<form method="{{ form.method }}" id="payment-form" class="form-horizontal"{% if form.action %} action="{{ form.action }}"{% endif %} novalidate>
+<form method="POST" id="payment-form" class="form-horizontal"{% if form.action %} action="{{ form.action }}"{% endif %} novalidate>
   {% csrf_token %}
   {{ form.media }}
-  {% bootstrap_form form layout="horizontal" %}
+  {% bootstrap_form form layout="vertical" %}
   {% if form.errors %}
     <a class="btn" href="{% url "order:details" token=payment.order.token %}">
-      {% trans "Change payment method" context "Payment form (Stripe) secondary action" %}
+      {% trans "Change payment" context "Payment form (Stripe) secondary action" %}
     </a>
   {% endif %}
   {% if not form.autosubmit %}

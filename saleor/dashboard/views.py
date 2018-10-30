@@ -4,9 +4,10 @@ from django.contrib.admin.views.decorators import (
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.db.models import Q, Sum
 from django.template.response import TemplateResponse
-from payments import PaymentStatus
 
-from ..order.models import Order, Payment
+from ..order.models import Order
+from ..payment import ChargeStatus
+from ..payment.models import Payment
 from ..product.models import Product
 
 
@@ -36,7 +37,8 @@ def index(request):
     orders_to_ship = Order.objects.ready_to_fulfill().select_related(
         'user').prefetch_related('lines', 'payments')
     payments = Payment.objects.filter(
-        status=PaymentStatus.PREAUTH).order_by('-created')
+        is_active=True, charge_status=ChargeStatus.NOT_CHARGED
+    ).order_by('-created')
     payments = payments.select_related('order', 'order__user')
     low_stock = get_low_stock_products()
     ctx = {'preauthorized_payments': payments[:paginate_by],

@@ -2,8 +2,10 @@ import itertools
 import os
 import random
 import unicodedata
+import uuid
 from datetime import date
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -13,7 +15,6 @@ from django_countries.fields import Country
 from faker import Factory
 from faker.providers import BaseProvider
 from measurement.measures import Weight
-from payments import PaymentStatus
 from prices import Money
 
 from ...account.models import Address, User
@@ -25,9 +26,12 @@ from ...dashboard.menu.utils import update_menu
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
 from ...menu.models import Menu
-from ...order.models import Fulfillment, Order, Payment
+from ...order.models import Fulfillment, Order
 from ...order.utils import update_order_status
 from ...page.models import Page
+from ...payment import ChargeStatus, TransactionKind
+from ...payment.models import Payment
+from ...payment.utils import get_billing_data
 from ...product.models import (
     Attribute, AttributeValue, Category, Collection, Product, ProductImage,
     ProductType, ProductVariant)
@@ -376,31 +380,34 @@ def create_fake_user():
     return user
 
 
-def create_payment(order):
-    status = random.choice(
-        [
-            PaymentStatus.WAITING,
-            PaymentStatus.PREAUTH,
-            PaymentStatus.CONFIRMED])
+# We don't want to spam the console with payment confirmations sent to
+# fake customers.
+@patch('saleor.order.emails.send_payment_confirmation.delay')
+def create_payment(mock_email_confirmation, order):
     payment = Payment.objects.create(
-        order=order,
-        status=status,
-        variant='default',
-        transaction_id=str(fake.random_int(1, 100000)),
-        currency=settings.DEFAULT_CURRENCY,
-        total=order.total.gross.amount,
-        tax=order.total.tax.amount,
-        delivery=order.shipping_price.net.amount,
+        gateway=settings.DUMMY,
         customer_ip_address=fake.ipv4(),
-        billing_first_name=order.billing_address.first_name,
-        billing_last_name=order.billing_address.last_name,
-        billing_address_1=order.billing_address.street_address_1,
-        billing_city=order.billing_address.city,
-        billing_postcode=order.billing_address.postal_code,
-        billing_country_code=order.billing_address.country)
-    if status == PaymentStatus.CONFIRMED:
-        payment.captured_amount = payment.total
-        payment.save()
+        is_active=True,
+        order=order,
+        token=str(uuid.uuid4()),
+        total=order.total.gross.amount,
+        currency=order.total.gross.currency,
+        **get_billing_data(order))
+
+    # Create authorization transaction
+    payment.authorize(payment.token)
+    # 20% chance to void the transaction at this stage
+    if random.choice([0, 0, 0, 0, 1]):
+        payment.void()
+        return payment
+    # 25% to end the payment at the authorization stage
+    if not random.choice([1, 1, 1, 0]):
+        return payment
+    # Create capture transaction
+    payment.capture()
+    # 25% to refund the payment
+    if random.choice([0, 0, 0, 1]):
+        payment.refund()
     return payment
 
 
@@ -473,9 +480,8 @@ def create_fake_order(discounts, taxes):
     order.weight = weight
     order.save()
 
+    create_payment(order=order)
     create_fulfillments(order)
-
-    create_payment(order)
     return order
 
 

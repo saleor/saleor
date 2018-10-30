@@ -1309,7 +1309,7 @@ def test_product_variants_by_ids(user_api_client, variant):
                 }
             }
         }
-        """
+    """
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
 
     variables = {'ids': [variant_id]}
@@ -1331,7 +1331,7 @@ def test_product_variants_no_ids_list(user_api_client, variant):
                 }
             }
         }
-        """
+    """
     response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content['data']['productVariants']

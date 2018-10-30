@@ -130,6 +130,7 @@ export const fragmentOrderDetails = gql`
         currency
       }
     }
+    actions
     totalAuthorized {
       amount
       currency

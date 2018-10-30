@@ -3,6 +3,8 @@ from textwrap import dedent
 import graphene
 import graphql_jwt
 from graphql_jwt.decorators import login_required, permission_required
+import graphene_django_optimizer as gql_optimizer
+from graphene_django.fields import DjangoConnectionField
 
 from .account.mutations import (
     CustomerCreate, CustomerDelete, CustomerUpdate, CustomerPasswordReset,
@@ -34,7 +36,7 @@ from .order.mutations.fulfillments import (
     FulfillmentCancel, FulfillmentCreate, FulfillmentUpdateTracking)
 from .order.mutations.orders import (
     OrderAddNote, OrderCancel, OrderCapture, OrderMarkAsPaid, OrderRefund,
-    OrderRelease, OrderUpdate, OrderUpdateShipping)
+    OrderVoid, OrderUpdate, OrderUpdateShipping)
 from .order.resolvers import (
     resolve_homepage_events, resolve_order, resolve_orders,
     resolve_orders_total)
@@ -43,11 +45,26 @@ from .page.mutations import PageCreate, PageDelete, PageUpdate
 from .page.resolvers import resolve_page, resolve_pages
 from .page.types import Page
 from .product.schema import ProductMutations, ProductQueries
-from .shipping.mutations import (
-    ShippingPriceCreate, ShippingPriceDelete, ShippingPriceUpdate,
-    ShippingZoneCreate, ShippingZoneDelete, ShippingZoneUpdate)
+from .payment.types import Payment, PaymentGatewayEnum
+from .payment.resolvers import (
+    resolve_payments, resolve_payment_client_token)
+from .payment.mutations import (
+    CheckoutPaymentCreate, PaymentCapture, PaymentRefund,
+    PaymentVoid)
 from .shipping.resolvers import resolve_shipping_zones
 from .shipping.types import ShippingZone
+from .shipping.mutations import (
+    ShippingZoneCreate, ShippingZoneDelete, ShippingZoneUpdate,
+    ShippingPriceCreate, ShippingPriceDelete, ShippingPriceUpdate)
+from .checkout.types import CheckoutLine, Checkout
+from .checkout.mutations import (
+    CheckoutCreate, CheckoutLinesAdd, CheckoutLinesUpdate, CheckoutLineDelete,
+    CheckoutCustomerAttach, CheckoutCustomerDetach,
+    CheckoutShippingAddressUpdate, CheckoutEmailUpdate, CheckoutComplete,
+    CheckoutShippingMethodUpdate, CheckoutBillingAddressUpdate)
+from .checkout.resolvers import (
+    resolve_checkouts, resolve_checkout_lines, resolve_checkout)
+
 from .shop.mutations import (
     AuthorizationKeyAdd, AuthorizationKeyDelete, HomepageCollectionUpdate,
     ShopDomainUpdate, ShopSettingsUpdate)
@@ -58,6 +75,17 @@ class Query(ProductQueries):
     address_validator = graphene.Field(
         AddressValidationData,
         input=graphene.Argument(AddressValidationInput, required=True))
+    checkout = graphene.Field(
+        Checkout, description='Single checkout.',
+        token=graphene.Argument(graphene.UUID))
+    # FIXME we could optimize the below field
+    checkouts = DjangoConnectionField(
+        Checkout, description='List of checkouts.')
+    checkout_lines = PrefetchingConnectionField(
+        CheckoutLine, description='List of checkout lines')
+    checkout_line = graphene.Field(
+        CheckoutLine, id=graphene.Argument(graphene.ID),
+        description='Single checkout line.')
     menu = graphene.Field(
         Menu, id=graphene.Argument(graphene.ID),
         name=graphene.Argument(graphene.String, description="Menu name."),
@@ -98,6 +126,11 @@ class Query(ProductQueries):
         Page, query=graphene.String(
             description=DESCRIPTIONS['page']),
         description='List of the shop\'s pages.')
+    payment = graphene.Field(Payment, id=graphene.Argument(graphene.ID))
+    payment_client_token = graphene.Field(
+        graphene.String, args={'gateway': PaymentGatewayEnum()})
+    payments = PrefetchingConnectionField(
+        Payment, description='List of payments')
     sale = graphene.Field(
         Sale, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup a sale by ID.')
@@ -128,7 +161,21 @@ class Query(ProductQueries):
         query=graphene.String(description=DESCRIPTIONS['user']))
     node = graphene.Node.Field()
 
-    @permission_required(['account.manage_users'])
+    def resolve_checkout(self, info, token):
+        return resolve_checkout(info, token)
+
+    def resolve_checkout_line(self, info, id):
+        return graphene.Node.get_node_from_global_id(info, id, CheckoutLine)
+
+    @permission_required('order.manage_orders')
+    def resolve_checkout_lines(self, info, query=None, **kwargs):
+        return resolve_checkout_lines(info, query)
+
+    @permission_required('order.manage_orders')
+    def resolve_checkouts(self, info, query=None, **kwargs):
+        resolve_checkouts(info, query)
+
+    @permission_required('account.manage_users')
     def resolve_user(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, User)
 
@@ -165,6 +212,20 @@ class Query(ProductQueries):
     @permission_required('order.manage_orders')
     def resolve_orders_total(self, info, period, **kwargs):
         return resolve_orders_total(info, period)
+
+    @login_required
+    def resolve_orders(self, info, query=None, **kwargs):
+        return resolve_orders(info, query)
+
+    def resolve_payment(self, info, id):
+        return graphene.Node.get_node_from_global_id(info, id, Payment)
+
+    def resolve_payment_client_token(self, info, gateway=None):
+        return resolve_payment_client_token(gateway)
+
+    @permission_required('order.manage_orders')
+    def resolve_payments(self, info, query=None, **kwargs):
+        return resolve_payments(info, query)
 
     @login_required
     def resolve_orders(
@@ -233,6 +294,19 @@ class Mutations(ProductMutations):
     address_update = AddressUpdate.Field()
     address_delete = AddressDelete.Field()
 
+    checkout_create = CheckoutCreate.Field()
+    checkout_lines_add = CheckoutLinesAdd.Field()
+    checkout_lines_update = CheckoutLinesUpdate.Field()
+    checkout_line_delete = CheckoutLineDelete.Field()
+    checkout_customer_attach = CheckoutCustomerAttach.Field()
+    checkout_customer_detach = CheckoutCustomerDetach.Field()
+    checkout_billing_address_update = CheckoutBillingAddressUpdate.Field()
+    checkout_shipping_address_update = CheckoutShippingAddressUpdate.Field()
+    checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field()
+    checkout_email_update = CheckoutEmailUpdate.Field()
+    checkout_payment_create = CheckoutPaymentCreate.Field()
+    checkout_complete = CheckoutComplete.Field()
+
     menu_create = MenuCreate.Field()
     menu_delete = MenuDelete.Field()
     menu_update = MenuUpdate.Field()
@@ -257,12 +331,16 @@ class Mutations(ProductMutations):
     order_mark_as_paid = OrderMarkAsPaid.Field()
     order_update_shipping = OrderUpdateShipping.Field()
     order_refund = OrderRefund.Field()
-    order_release = OrderRelease.Field()
+    order_void = OrderVoid.Field()
     order_update = OrderUpdate.Field()
 
     page_create = PageCreate.Field()
     page_delete = PageDelete.Field()
     page_update = PageUpdate.Field()
+
+    payment_capture = PaymentCapture.Field()
+    payment_refund = PaymentRefund.Field()
+    payment_void = PaymentVoid.Field()
 
     sale_create = SaleCreate.Field()
     sale_delete = SaleDelete.Field()

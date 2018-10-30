@@ -1,6 +1,6 @@
-import { ListCustomers_customers_edges_node } from "./types/ListCustomers";
 import { CustomerDetails_user } from "./types/CustomerDetails";
-import { PaymentStatusEnum } from "../types/globalTypes";
+import { ListCustomers_customers_edges_node } from "./types/ListCustomers";
+import { PaymentChargeStatusEnum } from "../types/globalTypes";
 
 export const customers = [
   {
@@ -964,7 +964,7 @@ export const customer: CustomerDetails_user = {
           created: "2018-05-07T09:37:30.124154+00:00",
           id: "T3JkZXI6MTk=",
           number: "8234",
-          paymentStatus: PaymentStatusEnum.CONFIRMED,
+          paymentStatus: PaymentChargeStatusEnum.CHARGED,
           total: {
             __typename: "TaxedMoney",
             gross: {

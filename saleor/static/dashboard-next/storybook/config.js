@@ -86,7 +86,7 @@ function loadStories() {
   require("./stories/orders/OrderHistory");
   require("./stories/orders/OrderListPage");
   require("./stories/orders/OrderPaymentDialog");
-  require("./stories/orders/OrderPaymentReleaseDialog");
+  require("./stories/orders/OrderPaymentVoidDialog");
   require("./stories/orders/OrderProductAddDialog");
   require("./stories/orders/OrderShippingMethodEditDialog");
 

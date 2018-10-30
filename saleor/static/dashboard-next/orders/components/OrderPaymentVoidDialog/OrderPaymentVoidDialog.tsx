@@ -8,20 +8,20 @@ import * as React from "react";
 
 import i18n from "../../../i18n";
 
-interface OrderPaymentReleaseDialogProps {
+interface OrderPaymentVoidDialogProps {
   open: boolean;
   onClose?();
   onConfirm?();
 }
 
-const OrderPaymentReleaseDialog: React.StatelessComponent<
-  OrderPaymentReleaseDialogProps
+const OrderPaymentVoidDialog: React.StatelessComponent<
+  OrderPaymentVoidDialogProps
 > = ({ open, onConfirm, onClose }) => (
   <Dialog open={open}>
-    <DialogTitle>{i18n.t("Release payment", { context: "title" })}</DialogTitle>
+    <DialogTitle>{i18n.t("Void payment", { context: "title" })}</DialogTitle>
     <DialogContent>
       <DialogContentText>
-        {i18n.t("Are you sure you want to release this payment?")}
+        {i18n.t("Are you sure you want to void this payment?")}
       </DialogContentText>
     </DialogContent>
     <DialogActions>
@@ -32,4 +32,4 @@ const OrderPaymentReleaseDialog: React.StatelessComponent<
     </DialogActions>
   </Dialog>
 );
-export default OrderPaymentReleaseDialog;
+export default OrderPaymentVoidDialog;

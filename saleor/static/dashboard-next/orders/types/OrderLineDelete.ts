@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderLineDelete
@@ -244,7 +244,7 @@ export interface OrderLineDelete_draftOrderLineDelete_order {
   fulfillments: (OrderLineDelete_draftOrderLineDelete_order_fulfillments | null)[];
   lines: (OrderLineDelete_draftOrderLineDelete_order_lines | null)[];
   number: string | null;
-  paymentStatus: PaymentStatusEnum | null;
+  paymentStatus: PaymentChargeStatusEnum | null;
   shippingAddress: OrderLineDelete_draftOrderLineDelete_order_shippingAddress | null;
   shippingMethod: OrderLineDelete_draftOrderLineDelete_order_shippingMethod | null;
   shippingMethodName: string | null;
@@ -252,6 +252,7 @@ export interface OrderLineDelete_draftOrderLineDelete_order {
   status: OrderStatus;
   subtotal: OrderLineDelete_draftOrderLineDelete_order_subtotal | null;
   total: OrderLineDelete_draftOrderLineDelete_order_total | null;
+  actions: (OrderAction | null)[];
   totalAuthorized: OrderLineDelete_draftOrderLineDelete_order_totalAuthorized | null;
   totalCaptured: OrderLineDelete_draftOrderLineDelete_order_totalCaptured | null;
   user: OrderLineDelete_draftOrderLineDelete_order_user | null;

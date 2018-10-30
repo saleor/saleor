@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { FulfillmentCreateInput, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { FulfillmentCreateInput, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderCreateFulfillment
@@ -244,7 +244,7 @@ export interface OrderCreateFulfillment_orderFulfillmentCreate_order {
   fulfillments: (OrderCreateFulfillment_orderFulfillmentCreate_order_fulfillments | null)[];
   lines: (OrderCreateFulfillment_orderFulfillmentCreate_order_lines | null)[];
   number: string | null;
-  paymentStatus: PaymentStatusEnum | null;
+  paymentStatus: PaymentChargeStatusEnum | null;
   shippingAddress: OrderCreateFulfillment_orderFulfillmentCreate_order_shippingAddress | null;
   shippingMethod: OrderCreateFulfillment_orderFulfillmentCreate_order_shippingMethod | null;
   shippingMethodName: string | null;
@@ -252,6 +252,7 @@ export interface OrderCreateFulfillment_orderFulfillmentCreate_order {
   status: OrderStatus;
   subtotal: OrderCreateFulfillment_orderFulfillmentCreate_order_subtotal | null;
   total: OrderCreateFulfillment_orderFulfillmentCreate_order_total | null;
+  actions: (OrderAction | null)[];
   totalAuthorized: OrderCreateFulfillment_orderFulfillmentCreate_order_totalAuthorized | null;
   totalCaptured: OrderCreateFulfillment_orderFulfillmentCreate_order_totalCaptured | null;
   user: OrderCreateFulfillment_orderFulfillmentCreate_order_user | null;

@@ -12,6 +12,7 @@ from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..discount.models import NotApplicable
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import OrderLine
+from ..payment import ChargeStatus
 from ..product.utils import allocate_stock, deallocate_stock, increase_stock
 
 
@@ -106,6 +107,16 @@ def cancel_order(order, restock):
         fulfillment.save(update_fields=['status'])
     order.status = OrderStatus.CANCELED
     order.save(update_fields=['status'])
+
+    payments = order.payments.filter(
+        is_active=True,
+        charge_status__in=[ChargeStatus.NOT_CHARGED, ChargeStatus.CHARGED])
+
+    for payment in payments:
+        if payment.can_refund():
+            payment.refund()
+        elif payment.can_void():
+            payment.void()
 
 
 def update_order_status(order):

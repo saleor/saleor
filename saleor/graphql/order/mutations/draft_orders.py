@@ -4,12 +4,13 @@ import graphene
 from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
 
-from ....account.models import Address, User
+from ....account.models import User
 from ....core.exceptions import InsufficientStock
 from ....core.utils.taxes import ZERO_TAXED_MONEY
 from ....order import OrderEvents, OrderStatus, models
 from ....order.utils import (
     add_variant_to_order, allocate_stock, recalculate_order)
+from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import Decimal, Error
@@ -50,7 +51,7 @@ class DraftOrderCreateInput(DraftOrderInput):
         and quantity of products."""))
 
 
-class DraftOrderCreate(ModelMutation):
+class DraftOrderCreate(ModelMutation, I18nMixin):
     class Arguments:
         input = DraftOrderCreateInput(
             required=True,
@@ -88,14 +89,15 @@ class DraftOrderCreate(ModelMutation):
                 'billing_address'] = user.default_billing_address
 
         if shipping_address:
-            shipping_address = Address(**shipping_address)
-            cls.clean_instance(shipping_address, errors)
+            shipping_address, errors = cls.validate_address(
+                shipping_address, errors, 'shipping_address',
+                instance=instance.shipping_address)
             cleaned_input['shipping_address'] = shipping_address
         if billing_address:
-            billing_address = Address(**billing_address)
-            cls.clean_instance(billing_address, errors)
+            billing_address, errors = cls.validate_address(
+                billing_address, errors, 'billing_address',
+                instance=instance.billing_address)
             cleaned_input['billing_address'] = billing_address
-
         return cleaned_input
 
     @classmethod
