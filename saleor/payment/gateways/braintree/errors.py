@@ -22,17 +22,6 @@ INVALID_EXPIRY_DATE_ERRORS = [
     '81712',  # Expiration month is invalid.
     '81713',  # Expiration year is invalid.
 ]
-INCORRECT_ADDRESS_ERRORS = [
-    '81801',  # Addresses must have at least one field filled in.
-    '81802',  # Company is too long.
-    '81804',  # Extended address is too long.
-    '81805',  # First name is too long.
-    '81806',  # Last name is too long.
-    '81807',  # Locality is too long.
-    '81810',  # Region is too long.
-    '81811',  # Street address is required.
-    '81812',  # Street address is too long.
-]
 INCORRECT_ZIP_ERRORS = [
     '81813',  # ZIP can only contain letters, numbers, spaces, and hyphens.
     '81808',  # ZIP is required.
@@ -64,6 +53,15 @@ INCORRECT_NUMBER_ERRORS = [
     '81717',  # Credit card number is not an accepted test number.
 ]
 INCORRECT_ADDRESS_ERRORS = [
+    '81801',  # Addresses must have at least one field filled in.
+    '81802',  # Company is too long.
+    '81804',  # Extended address is too long.
+    '81805',  # First name is too long.
+    '81806',  # Last name is too long.
+    '81807',  # Locality is too long.
+    '81810',  # Region is too long.
+    '81811',  # Street address is required.
+    '81812',  # Street address is too long.
     '81827',  # US state codes must be two characters to meet PayPal Seller
               # Protection requirements.
     '91803',  # Country name is not an accepted country.
