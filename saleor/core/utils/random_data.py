@@ -719,4 +719,4 @@ def get_product_list_images_dir(placeholder_dir):
 
 def get_image(image_dir, image_name):
     img_path = os.path.join(image_dir, image_name)
-    return File(open(img_path, 'rb'))
+    return File(open(img_path, 'rb'), name=image_name)
