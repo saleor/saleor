@@ -1,10 +1,11 @@
+from textwrap import dedent
+
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.conf import settings
 from django_countries import countries
 from graphql_jwt.decorators import permission_required
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
-from textwrap import dedent
 
 from ...core.permissions import get_permissions
 from ...core.utils import get_client_ip, get_country_by_ip

@@ -4,8 +4,8 @@ import graphene
 import graphene_django_optimizer as gql_optimizer
 from graphene import relay
 
-from ..core.fields import PrefetchingConnectionField
 from ...discount import DiscountValueType, VoucherType, models
+from ..core.fields import PrefetchingConnectionField
 from ..core.types.common import CountableDjangoObjectType
 from ..product.types import Category, Collection, Product
 
