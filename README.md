@@ -27,10 +27,10 @@
 
 <div align="center">
   <a href="https://travis-ci.org/mirumee/saleor">
-    <img src="https://travis-ci.org/mirumee/saleor.svg?branch=master" alt="API stability" />
+    <img src="https://travis-ci.org/mirumee/saleor.svg?branch=master" alt="Build status" />
   </a>
   <a href="http://codecov.io/github/mirumee/saleor?branch=master">
-    <img src="http://codecov.io/github/mirumee/saleor/coverage.svg?branch=master" alt="NPM version" />
+    <img src="http://codecov.io/github/mirumee/saleor/coverage.svg?branch=master" alt="Codecov" />
   </a>
 </div>
 
