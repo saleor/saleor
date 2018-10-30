@@ -14,6 +14,7 @@ from ...utils import create_transaction
 from .forms import BraintreePaymentForm
 
 logger = logging.getLogger(__name__)
+
 # FIXME: Move to SiteSettings
 
 # If this option is checked, then one needs to authorize the amount paid

@@ -379,6 +379,7 @@ def create_fake_user():
     user.save()
     return user
 
+
 # We don't want to spam the console with payment confirmations sent to
 # fake customers.
 @patch('saleor.order.emails.send_payment_confirmation.delay')
@@ -392,7 +393,6 @@ def create_payment(mock_email_confirmation, order):
         total=order.total.gross.amount,
         currency=order.total.gross.currency,
         **get_billing_data(order))
-
 
     # Create authorization transaction
     payment.authorize(payment.token)

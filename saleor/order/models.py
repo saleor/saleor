@@ -15,8 +15,7 @@ from django_prices.models import MoneyField, TaxedMoneyField
 from measurement.measures import Weight
 from prices import Money
 
-from . import (
-    FulfillmentStatus, OrderEvents, OrderStatus, display_order_event)
+from . import FulfillmentStatus, OrderEvents, OrderStatus, display_order_event
 from ..account.models import Address
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.taxes import ZERO_TAXED_MONEY, zero_money
@@ -182,9 +181,6 @@ class Order(models.Model):
         return None
 
     def is_pre_authorized(self):
-        # FIXME for Braintree, payment is preauthorized if it was added
-        # properly and set to active. This might need to be adjusted for other
-        # payment gateways in the future.
         return self.payments.filter(
             is_active=True,
             transactions__kind=TransactionKind.AUTH).exists()

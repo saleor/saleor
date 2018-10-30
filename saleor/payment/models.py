@@ -74,7 +74,7 @@ class Payment(models.Model):
 
     # Credit Card data, if applicable
     cc_first_digits = models.CharField(max_length=6, blank=True, default='')
-    cc_last_digits =  models.CharField(max_length=4, blank=True, default='')
+    cc_last_digits = models.CharField(max_length=4, blank=True, default='')
     cc_brand = models.CharField(max_length=40, blank=True, default='')
     cc_exp_month = models.PositiveIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(12)],

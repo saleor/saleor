@@ -1,8 +1,8 @@
 import {
   FulfillmentStatus,
+  OrderAction,
   OrderEvents,
   OrderStatus,
-  OrderAction,
   PaymentChargeStatusEnum
 } from "../types/globalTypes";
 import { transformOrderStatus, transformPaymentStatus } from "./";
@@ -744,11 +744,6 @@ export const order = (placeholder: string): OrderDetails_order => ({
     OrderAction.REFUND,
     OrderAction.VOID
   ],
-  totalAuthorized: {
-    __typename: "Money",
-    amount: 234.93,
-    currency: "USD"
-  },
   availableShippingMethods: [
     {
       __typename: "ShippingMethod",
@@ -799,11 +794,6 @@ export const order = (placeholder: string): OrderDetails_order => ({
     postalCode: "66272",
     streetAddress1: "487 Roberto Shores",
     streetAddress2: ""
-  },
-  totalCaptured: {
-    __typename: "Money",
-    amount: 0,
-    currency: "USD"
   },
   created: "2018-09-11T09:37:28.185874+00:00",
   events: [
@@ -1009,15 +999,23 @@ export const order = (placeholder: string): OrderDetails_order => ({
       currency: "USD"
     }
   },
+  totalAuthorized: {
+    __typename: "Money",
+    amount: 234.93,
+    currency: "USD"
+  },
+  totalCaptured: {
+    __typename: "Money",
+    amount: 0,
+    currency: "USD"
+  },
   user: null,
   userEmail: "melissa.simon@example.com"
 });
 export const draftOrder = (placeholder: string) => ({
   __typename: "Order" as "Order",
-  totalAuthorized: null,
   availableShippingMethods: null,
   billingAddress: null,
-  totalCaptured: null,
   created: "2018-09-20T23:23:39.811428+00:00",
   events: [],
   fulfillments: [],
@@ -1103,6 +1101,8 @@ export const draftOrder = (placeholder: string) => ({
       currency: "USD"
     }
   },
+  totalAuthorized: null,
+  totalCaptured: null,
   user: null,
   userEmail: null
 });
