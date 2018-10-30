@@ -97,10 +97,21 @@ class Payment(models.Model):
         return Money(
             self.captured_amount, self.currency or settings.DEFAULT_CURRENCY)
 
+    def get_amount_to_charge(self):
+        """Retrieve the maximum capture possible."""
+        return self.total - self.captured_amount
+
     def authorize(self, payment_token):
         from . import utils
         return utils.gateway_authorize(
             payment=self, payment_token=payment_token)
+
+    def charge(self, payment_token, amount=None):
+        from . import utils
+        if amount is None:
+            amount = self.get_amount_to_charge()
+        return utils.gateway_charge(
+            payment=self, payment_token=payment_token, amount=amount)
 
     def void(self):
         from . import utils
@@ -109,8 +120,7 @@ class Payment(models.Model):
     def capture(self, amount=None):
         from . import utils
         if amount is None:
-            # If no amount is specified, capture the maximum possible
-            amount = self.total - self.captured_amount
+            amount = self.get_amount_to_charge()
         return utils.gateway_capture(payment=self, amount=amount)
 
     def refund(self, amount=None):
