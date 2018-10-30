@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderCancel
@@ -238,7 +238,7 @@ export interface OrderCancel_orderCancel_order {
   fulfillments: (OrderCancel_orderCancel_order_fulfillments | null)[];
   lines: (OrderCancel_orderCancel_order_lines | null)[];
   number: string | null;
-  paymentStatus: PaymentStatusEnum | null;
+  paymentStatus: PaymentChargeStatusEnum | null;
   shippingAddress: OrderCancel_orderCancel_order_shippingAddress | null;
   shippingMethod: OrderCancel_orderCancel_order_shippingMethod | null;
   shippingMethodName: string | null;
@@ -246,6 +246,7 @@ export interface OrderCancel_orderCancel_order {
   status: OrderStatus;
   subtotal: OrderCancel_orderCancel_order_subtotal | null;
   total: OrderCancel_orderCancel_order_total | null;
+  actions: (OrderAction | null)[];
   totalAuthorized: OrderCancel_orderCancel_order_totalAuthorized | null;
   totalCaptured: OrderCancel_orderCancel_order_totalCaptured | null;
   user: OrderCancel_orderCancel_order_user | null;

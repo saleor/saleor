@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.checks import Warning, register
 from django.utils.translation import pgettext_lazy
+from prices import Money
 
 TOKEN_PATTERN = ('(?P<token>[0-9a-z]{8}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}'
                  '-[0-9a-z]{12})')

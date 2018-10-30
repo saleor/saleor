@@ -1,9 +1,9 @@
 from unittest.mock import MagicMock, Mock
 
-import pytest
-
 import graphene
-from payments import PaymentStatus
+import pytest
+from tests.api.utils import get_graphql_content
+
 from saleor.account.models import Address
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.graphql.core.types import ReportingPeriod
@@ -11,14 +11,14 @@ from saleor.graphql.order.mutations.draft_orders import (
     check_for_draft_order_errors)
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel, clean_order_capture, clean_order_mark_as_paid,
-    clean_refund_payment, clean_release_payment)
-from saleor.graphql.order.types import (
-    OrderEventsEmailsEnum, PaymentStatusEnum, OrderStatusFilter)
-from saleor.order import (
-    CustomPaymentChoices, OrderEvents, OrderEventsEmails, OrderStatus)
-from saleor.order.models import Order, OrderEvent, Payment
+    clean_refund_payment, clean_void_payment)
+from saleor.graphql.order.types import OrderEventsEmailsEnum, OrderStatusFilter
+from saleor.graphql.payment.types import PaymentChargeStatusEnum
+from saleor.order import OrderEvents, OrderEventsEmails, OrderStatus
+from saleor.order.models import Order, OrderEvent
+from saleor.payment import CustomPaymentChoices
+from saleor.payment.models import Payment
 from saleor.shipping.models import ShippingMethod
-from tests.api.utils import get_graphql_content
 
 from .utils import assert_no_permission
 
@@ -211,9 +211,6 @@ def test_nested_order_events_query(
 
 
 def test_non_staff_user_can_only_see_his_order(user_api_client, order):
-    # FIXME: Remove client.login() when JWT authentication is re-enabled.
-    user_api_client.login(username=order.user.email, password='password')
-
     query = """
     query OrderQuery($id: ID!) {
         order(id: $id) {
@@ -238,7 +235,8 @@ def test_non_staff_user_can_only_see_his_order(user_api_client, order):
 
 def test_draft_order_create(
         staff_api_client, permission_manage_orders, customer_user,
-        product_without_shipping, shipping_method, variant, voucher):
+        product_without_shipping, shipping_method, variant, voucher,
+        graphql_address_data):
     variant_0 = variant
     query = """
     mutation draftCreate(
@@ -281,7 +279,7 @@ def test_draft_order_create(
     variant_list = [
         {'variantId': variant_0_id, 'quantity': 2},
         {'variantId': variant_1_id, 'quantity': 1}]
-    shipping_address = {'firstName': 'John', 'country': 'PL'}
+    shipping_address = graphql_address_data
     shipping_id = graphene.Node.to_global_id(
         'ShippingMethod', shipping_method.id)
     voucher_id = graphene.Node.to_global_id('Voucher', voucher.id)
@@ -295,6 +293,7 @@ def test_draft_order_create(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
+    assert not content['data']['draftOrderCreate']['errors']
     data = content['data']['draftOrderCreate']['order']
     assert data['status'] == OrderStatus.DRAFT.upper()
     assert data['voucher']['code'] == voucher.code
@@ -303,8 +302,7 @@ def test_draft_order_create(
     assert order.user == customer_user
     assert order.billing_address == customer_user.default_billing_address
     assert order.shipping_method == shipping_method
-    assert order.shipping_address == Address(
-        **{'first_name': 'John', 'country': 'PL'})
+    assert order.shipping_address.first_name == graphql_address_data['firstName']
 
 
 def test_draft_order_update(
@@ -680,20 +678,19 @@ def test_require_draft_order_when_removing_lines(
 
 
 def test_order_update(
-        staff_api_client, permission_manage_orders, order_with_lines):
+        staff_api_client, permission_manage_orders, order_with_lines,
+        graphql_address_data):
     order = order_with_lines
     order.user = None
     order.save()
     query = """
         mutation orderUpdate(
-        $id: ID!, $email: String, $first_name: String, $last_name: String,
-        $country_code: String) {
+        $id: ID!, $email: String, $address: AddressInput) {
             orderUpdate(
                 id: $id, input: {
-                    userEmail: $email, shippingAddress:
-                    {firstName: $first_name, country: $country_code},
-                    billingAddress:
-                    {lastName: $last_name, country: $country_code}}) {
+                    userEmail: $email,
+                    shippingAddress: $address,
+                    billingAddress: $address}) {
                 errors {
                     field
                     message
@@ -705,46 +702,41 @@ def test_order_update(
         }
         """
     email = 'not_default@example.com'
-    first_name = 'Test fname'
-    last_name = 'Test lname'
     assert not order.user_email == email
-    assert not order.shipping_address.first_name == first_name
-    assert not order.billing_address.last_name == last_name
+    assert not order.shipping_address.first_name == graphql_address_data['firstName']
+    assert not order.billing_address.last_name == graphql_address_data['lastName']
     order_id = graphene.Node.to_global_id('Order', order.id)
     variables = {
-        'id': order_id,
-        'email': email,
-        'first_name': first_name,
-        'last_name': last_name,
-        'country_code': 'PL'}
+        'id': order_id, 'email': email, 'address': graphql_address_data}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
+    assert not content['data']['orderUpdate']['errors']
     data = content['data']['orderUpdate']['order']
     assert data['userEmail'] == email
 
     order.refresh_from_db()
-    assert order.shipping_address.first_name == first_name
-    assert order.billing_address.last_name == last_name
+    order.shipping_address.refresh_from_db()
+    order.billing_address.refresh_from_db()
+    assert order.shipping_address.first_name == graphql_address_data['firstName']
+    assert order.billing_address.last_name == graphql_address_data['lastName']
     assert order.user_email == email
     assert order.user is None
 
 
 def test_order_update_anonymous_user_no_user_email(
-        staff_api_client, order_with_lines, permission_manage_orders):
+        staff_api_client, order_with_lines, permission_manage_orders,
+        graphql_address_data):
     order = order_with_lines
     order.user = None
     order.save()
     query = """
             mutation orderUpdate(
-            $id: ID!, $first_name: String, $last_name: String,
-            $country_code: String) {
+            $id: ID!, $address: AddressInput) {
                 orderUpdate(
                     id: $id, input: {
-                        shippingAddress:
-                        {firstName: $first_name, country: $country_code},
-                        billingAddress:
-                        {lastName: $last_name, country: $country_code}}) {
+                        shippingAddress: $address,
+                        billingAddress: $address}) {
                     errors {
                         field
                         message
@@ -758,9 +750,7 @@ def test_order_update_anonymous_user_no_user_email(
     first_name = 'Test fname'
     last_name = 'Test lname'
     order_id = graphene.Node.to_global_id('Order', order.id)
-    variables = {
-        'id': order_id, 'first_name': first_name, 'last_name': last_name,
-        'country_code': 'PL'}
+    variables = {'id': order_id, 'address': graphql_address_data}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
@@ -770,27 +760,25 @@ def test_order_update_anonymous_user_no_user_email(
         'message': 'User_email field is null while order was created by '
                    'anonymous user'}
 
-    order.refresh_from_db()
+    order.shipping_address.refresh_from_db()
+    order.billing_address.refresh_from_db()
     assert order.shipping_address.first_name != first_name
     assert order.billing_address.last_name != last_name
 
 
 def test_order_update_user_email_existing_user(
         staff_api_client, order_with_lines, customer_user,
-        permission_manage_orders):
+        permission_manage_orders, graphql_address_data):
     order = order_with_lines
     order.user = None
     order.save()
     query = """
         mutation orderUpdate(
-        $id: ID!, $email: String, $first_name: String, $last_name: String,
-        $country_code: String) {
+        $id: ID!, $email: String, $address: AddressInput) {
             orderUpdate(
                 id: $id, input: {
-                    userEmail: $email, shippingAddress:
-                    {firstName: $first_name, country: $country_code},
-                    billingAddress:
-                    {lastName: $last_name, country: $country_code}}) {
+                    userEmail: $email, shippingAddress: $address,
+                    billingAddress: $address}) {
                 errors {
                     field
                     message
@@ -802,21 +790,21 @@ def test_order_update_user_email_existing_user(
         }
         """
     email = customer_user.email
-    first_name = 'Test fname'
-    last_name = 'Test lname'
     order_id = graphene.Node.to_global_id('Order', order.id)
     variables = {
-        'id': order_id, 'email': email, 'first_name': first_name,
-        'last_name': last_name, 'country_code': 'PL'}
+        'id': order_id, 'address': graphql_address_data, 'email': email}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
+    assert not content['data']['orderUpdate']['errors']
     data = content['data']['orderUpdate']['order']
     assert data['userEmail'] == email
 
     order.refresh_from_db()
-    assert order.shipping_address.first_name == first_name
-    assert order.billing_address.last_name == last_name
+    order.shipping_address.refresh_from_db()
+    order.billing_address.refresh_from_db()
+    assert order.shipping_address.first_name == graphql_address_data['firstName']
+    assert order.billing_address.last_name == graphql_address_data['lastName']
     assert order.user_email == email
     assert order.user == customer_user
 
@@ -911,8 +899,9 @@ def test_order_cancel(
 
 
 def test_order_capture(
-        staff_api_client, permission_manage_orders, payment_preauth, staff_user):
-    order = payment_preauth.order
+        staff_api_client, permission_manage_orders,
+        payment_txn_preauth, staff_user):
+    order = payment_txn_preauth.order
     query = """
         mutation captureOrder($id: ID!, $amount: Decimal!) {
             orderCapture(id: $id, amount: $amount) {
@@ -927,14 +916,14 @@ def test_order_capture(
         }
     """
     order_id = graphene.Node.to_global_id('Order', order.id)
-    amount = float(payment_preauth.get_total().gross.amount)
+    amount = float(payment_txn_preauth.total)
     variables = {'id': order_id, 'amount': amount}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
     data = content['data']['orderCapture']['order']
     order.refresh_from_db()
-    assert data['paymentStatus'] == PaymentStatusEnum.CONFIRMED.name
+    assert data['paymentStatus'] == PaymentChargeStatusEnum.CHARGED.name
     assert data['isPaid']
     assert data['totalCaptured']['amount'] == float(amount)
 
@@ -953,8 +942,9 @@ def test_order_capture(
 
 
 def test_paid_order_mark_as_paid(
-        staff_api_client, permission_manage_orders, payment_preauth):
-    order = payment_preauth.order
+        staff_api_client, permission_manage_orders,
+        payment_txn_preauth):
+    order = payment_txn_preauth.order
     query = """
             mutation markPaid($id: ID!) {
                 orderMarkAsPaid(id: $id) {
@@ -1011,12 +1001,13 @@ def test_order_mark_as_paid(
     assert event_order_paid.user == staff_user
 
 
-def test_order_release(
-        staff_api_client, permission_manage_orders, payment_preauth, staff_user):
-    order = payment_preauth.order
+def test_order_void(
+        staff_api_client, permission_manage_orders, payment_txn_preauth,
+        staff_user):
+    order = payment_txn_preauth.order
     query = """
-            mutation releaseOrder($id: ID!) {
-                orderRelease(id: $id) {
+            mutation voidOrder($id: ID!) {
+                orderVoid(id: $id) {
                     order {
                         paymentStatus
                     }
@@ -1028,16 +1019,17 @@ def test_order_release(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
-    data = content['data']['orderRelease']['order']
-    assert data['paymentStatus'] == PaymentStatusEnum.REFUNDED.name
-    event_payment_released = order.events.last()
-    assert event_payment_released.type == OrderEvents.PAYMENT_RELEASED.value
-    assert event_payment_released.user == staff_user
+    data = content['data']['orderVoid']['order']
+    assert data['paymentStatus'] == PaymentChargeStatusEnum.NOT_CHARGED.name
+    event_payment_voided = order.events.last()
+    assert event_payment_voided.type == OrderEvents.PAYMENT_VOIDED.value
+    assert event_payment_voided.user == staff_user
 
 
 def test_order_refund(
-        staff_api_client, permission_manage_orders, payment_confirmed):
-    order = order = payment_confirmed.order
+        staff_api_client, permission_manage_orders,
+        payment_txn_captured):
+    order = order = payment_txn_captured.order
     query = """
         mutation refundOrder($id: ID!, $amount: Decimal!) {
             orderRefund(id: $id, amount: $amount) {
@@ -1050,7 +1042,7 @@ def test_order_refund(
         }
     """
     order_id = graphene.Node.to_global_id('Order', order.id)
-    amount = float(payment_confirmed.get_total().gross.amount)
+    amount = float(payment_txn_captured.total)
     variables = {'id': order_id, 'amount': amount}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
@@ -1058,7 +1050,7 @@ def test_order_refund(
     data = content['data']['orderRefund']['order']
     order.refresh_from_db()
     assert data['status'] == order.status.upper()
-    assert data['paymentStatus'] == PaymentStatusEnum.REFUNDED.name
+    assert data['paymentStatus'] == PaymentChargeStatusEnum.FULLY_REFUNDED.name
     assert data['isPaid'] == False
 
     order_event = order.events.last()
@@ -1066,24 +1058,24 @@ def test_order_refund(
     assert order_event.type == OrderEvents.PAYMENT_REFUNDED.value
 
 
-def test_clean_order_release_payment():
+def test_clean_order_void_payment():
     payment = MagicMock(spec=Payment)
-    payment.status = 'not preauth'
-    errors = clean_release_payment(payment, [])
+    payment.is_active = False
+    errors = clean_void_payment(payment, [])
     assert errors[0].field == 'payment'
-    assert errors[0].message == 'Only pre-authorized payments can be released'
+    assert errors[0].message == 'Only pre-authorized payments can be voided'
 
-    payment.status = PaymentStatus.PREAUTH
+    payment.is_active = True
     error_msg = 'error has happened.'
-    payment.release = Mock(side_effect=ValueError(error_msg))
-    errors = clean_release_payment(payment, [])
+    payment.void = Mock(side_effect=ValueError(error_msg))
+    errors = clean_void_payment(payment, [])
     assert errors[0].field == 'payment'
     assert errors[0].message == error_msg
 
 
 def test_clean_order_refund_payment():
     payment = MagicMock(spec=Payment)
-    payment.variant = CustomPaymentChoices.MANUAL
+    payment.gateway = CustomPaymentChoices.MANUAL
     amount = Mock(spec='string')
     errors = clean_refund_payment(payment, amount, [])
     assert errors[0].field == 'payment'
@@ -1098,14 +1090,15 @@ def test_clean_order_capture():
         'There\'s no payment associated with the order.')
 
 
-def test_clean_order_mark_as_paid(payment_preauth):
-    order = payment_preauth.order
+def test_clean_order_mark_as_paid(payment_txn_preauth):
+    order = payment_txn_preauth.order
     errors = clean_order_mark_as_paid(order, [])
     assert errors[0].field == 'payment'
     assert errors[0].message == (
         'Orders with payments can not be manually marked as paid.')
 
-    order.payments.all().delete()
+
+def test_clean_order_mark_as_paid_no_payments(order):
     assert clean_order_mark_as_paid(order, []) == []
 
 
@@ -1264,5 +1257,3 @@ def test_orders_total(
     assert (
         content['data']['ordersTotal']['gross']['amount'] ==
         order_with_lines.total.gross.amount)
-
-

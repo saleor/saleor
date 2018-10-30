@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderMarkAsPaid
@@ -244,7 +244,7 @@ export interface OrderMarkAsPaid_orderMarkAsPaid_order {
   fulfillments: (OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments | null)[];
   lines: (OrderMarkAsPaid_orderMarkAsPaid_order_lines | null)[];
   number: string | null;
-  paymentStatus: PaymentStatusEnum | null;
+  paymentStatus: PaymentChargeStatusEnum | null;
   shippingAddress: OrderMarkAsPaid_orderMarkAsPaid_order_shippingAddress | null;
   shippingMethod: OrderMarkAsPaid_orderMarkAsPaid_order_shippingMethod | null;
   shippingMethodName: string | null;
@@ -252,6 +252,7 @@ export interface OrderMarkAsPaid_orderMarkAsPaid_order {
   status: OrderStatus;
   subtotal: OrderMarkAsPaid_orderMarkAsPaid_order_subtotal | null;
   total: OrderMarkAsPaid_orderMarkAsPaid_order_total | null;
+  actions: (OrderAction | null)[];
   totalAuthorized: OrderMarkAsPaid_orderMarkAsPaid_order_totalAuthorized | null;
   totalCaptured: OrderMarkAsPaid_orderMarkAsPaid_order_totalCaptured | null;
   user: OrderMarkAsPaid_orderMarkAsPaid_order_user | null;

@@ -5,6 +5,7 @@ import dj_database_url
 import dj_email_url
 import django_cache_url
 from django.contrib.messages import constants as messages
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext_lazy as _, pgettext_lazy
 from django_prices.templatetags.prices_i18n import get_currency_fraction
 
@@ -207,7 +208,7 @@ INSTALLED_APPS = [
     'saleor.core',
     'saleor.graphql',
     'saleor.menu',
-    'saleor.order.OrderAppConfig',
+    'saleor.order',
     'saleor.dashboard',
     'saleor.seo',
     'saleor.shipping',
@@ -215,6 +216,7 @@ INSTALLED_APPS = [
     'saleor.site',
     'saleor.data_feeds',
     'saleor.page',
+    'saleor.payment',
 
     # External apps
     'versatileimagefield',
@@ -226,7 +228,6 @@ INSTALLED_APPS = [
     'django_prices_vatlayer',
     'graphene_django',
     'mptt',
-    'payments',
     'webpack_loader',
     'social_django',
     'django_countries',
@@ -312,6 +313,7 @@ LOGIN_URL = '/account/login/'
 DEFAULT_COUNTRY = os.environ.get('DEFAULT_COUNTRY', 'US')
 DEFAULT_CURRENCY = os.environ.get('DEFAULT_CURRENCY', 'USD')
 DEFAULT_DECIMAL_PLACES = get_currency_fraction(DEFAULT_CURRENCY)
+DEFAULT_MAX_DIGITS = 12
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
 COUNTRIES_OVERRIDE = {
     'EU': pgettext_lazy(
@@ -342,18 +344,12 @@ PAYMENT_HOST = get_host
 
 PAYMENT_MODEL = 'order.Payment'
 
-PAYMENT_VARIANTS = {
-    'default': ('payments.dummy.DummyProvider', {})}
-
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 
 # Do not use cached session if locmem cache backend is used but fallback to use
 # default django.contrib.sessions.backends.db instead
 if not CACHES['default']['BACKEND'].endswith('LocMemCache'):
     SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
-
-CHECKOUT_PAYMENT_CHOICES = [
-    ('default', 'Dummy provider')]
 
 MESSAGE_TAGS = {
     messages.ERROR: 'danger'}
@@ -546,3 +542,38 @@ if SENTRY_DSN:
 
 SERIALIZATION_MODULES = {
     'json': 'saleor.core.utils.json_serializer'}
+
+
+DUMMY = 'dummy'
+BRAINTREE = 'braintree'
+CHECKOUT_PAYMENT_GATEWAYS = {
+    DUMMY: pgettext_lazy('Payment method name', 'Dummy gateway')
+}
+
+PAYMENT_GATEWAYS = {
+    DUMMY: {
+        'module': 'saleor.payment.gateways.dummy',
+        'connection_params': {}},
+    BRAINTREE: {
+        'module': 'saleor.payment.gateways.braintree',
+        'connection_params': {
+            'sandbox_mode': get_bool_from_env('BRAINTREE_SANDBOX_MODE', True),
+            'merchant_id': os.environ.get('BRAINTREE_MERCHANT_ID'),
+            'public_key': os.environ.get('BRAINTREE_PUBLIC_KEY'),
+            'private_key': os.environ.get('BRAINTREE_PRIVATE_KEY')
+        }
+    }
+}
+if not DEBUG:
+    GATEWAY_PATH = '%(module)s/__init__.py'
+    for gateway, data in PAYMENT_GATEWAYS.items():
+        if gateway not in CHECKOUT_PAYMENT_GATEWAYS:
+            continue
+        if 'module' not in data or 'connection_params' not in data:
+            raise ImproperlyConfigured('Payment gateway misconfigured.')
+        module_path = {'module': data['module'].replace('.', '/')}
+        payment_gateway_file_exists = os.path.isfile(
+            GATEWAY_PATH % {'module': module_path})
+        if not payment_gateway_file_exists:
+            raise ImproperlyConfigured(
+                'No configuration files for %s payment gateway.' % gateway)

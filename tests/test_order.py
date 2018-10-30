@@ -1,23 +1,25 @@
 from decimal import Decimal
 
 import pytest
+
+from django.conf import settings
 from django.urls import reverse
 from django_countries.fields import Country
-from payments import FraudStatus, PaymentStatus
 from prices import Money, TaxedMoney
-from tests.utils import get_redirect_location
-
 from saleor.account.models import User
 from saleor.checkout.utils import create_order
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.utils.taxes import (
     DEFAULT_TAX_RATE_NAME, get_tax_rate_by_name, get_taxes_for_country)
 from saleor.order import FulfillmentStatus, OrderStatus, models
-from saleor.order.models import Order, Payment
+from saleor.order.models import Order
 from saleor.order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order, recalculate_order,
     restock_fulfillment_lines, restock_order_lines, update_order_prices,
     update_order_status)
+from saleor.payment import ChargeStatus
+from saleor.payment.models import Payment
+from tests.utils import get_redirect_location
 
 
 def test_total_setter():
@@ -367,9 +369,10 @@ def test_order_queryset_to_ship():
     ]
     for order in orders_to_ship:
         order.payments.create(
-            variant='default', status=PaymentStatus.CONFIRMED, currency='USD',
-            total=order.total_gross.amount,
-            captured_amount=order.total_gross.amount)
+            gateway=settings.DUMMY, charge_status=ChargeStatus.CHARGED,
+            total=order.total.gross.amount,
+            captured_amount=order.total.gross.amount,
+            currency=order.total.gross.currency)
 
     orders_not_to_ship = [
         Order.objects.create(status=OrderStatus.DRAFT, total=total),
@@ -391,7 +394,9 @@ def test_queryset_ready_to_capture():
 
     preauth_order = Order.objects.create(
         status=OrderStatus.UNFULFILLED, total=total)
-    Payment.objects.create(order=preauth_order, status=PaymentStatus.PREAUTH)
+    Payment.objects.create(
+        order=preauth_order,
+        charge_status=ChargeStatus.NOT_CHARGED, is_active=True)
 
     orders = [
         Order.objects.create(status=OrderStatus.DRAFT, total=total),
@@ -442,46 +447,38 @@ def test_order_payment_flow(
     order = create_order(
         request_cart_with_item, 'tracking_code', discounts=None, taxes=None)
 
-    # Select payment method
+    # Select payment
     url = reverse('order:payment', kwargs={'token': order.token})
-    data = {'method': 'default'}
+    data = {'gateway': settings.DUMMY}
     response = client.post(url, data, follow=True)
 
     assert len(response.redirect_chain) == 1
     assert response.status_code == 200
     redirect_url = reverse(
-        'order:payment', kwargs={'token': order.token, 'variant': 'default'})
+        'order:payment',
+        kwargs={'token': order.token, 'gateway':settings.DUMMY})
     assert response.request['PATH_INFO'] == redirect_url
 
     # Go to payment details page, enter payment data
     data = {
-        'status': PaymentStatus.PREAUTH,
-        'fraud_status': FraudStatus.UNKNOWN,
-        'gateway_response': '3ds-disabled',
-        'verification_result': 'waiting'}
-
+        'gateway':settings.DUMMY,
+        'is_active': True,
+        'total': order.total.gross.amount,
+        'currency': order.total.gross.currency,
+        'charge_status': ChargeStatus.NOT_CHARGED}
     response = client.post(redirect_url, data)
 
     assert response.status_code == 302
     redirect_url = reverse(
-        'order:payment-success', kwargs={'token': order.token})
-    assert get_redirect_location(response) == redirect_url
-
-    # Complete payment, go to checkout success page
-    data = {'status': 'ok'}
-    response = client.post(redirect_url, data)
-    assert response.status_code == 302
-    redirect_url = reverse(
-        'order:checkout-success', kwargs={'token': order.token})
+        'order:details', kwargs={'token': order.token})
     assert get_redirect_location(response) == redirect_url
 
     # Assert that payment object was created and contains correct data
     payment = order.payments.all()[0]
     assert payment.total == order.total.gross.amount
-    assert payment.tax == order.total.tax.amount
-    assert payment.currency == order.total.currency
-    assert payment.delivery == order.shipping_price.net.amount
-    assert len(payment.get_purchased_items()) == len(order.lines.all())
+    assert payment.currency == order.total.gross.currency
+    assert payment.transactions.count() == 1
+    assert payment.transactions.first().kind == 'auth'
 
 
 def test_create_user_after_order(order, client):

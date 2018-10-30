@@ -47,8 +47,7 @@ translatable_urlpatterns = [
         include((account_urls, 'account'), namespace='account')),
     url(r'^feeds/',
         include((feed_urls, 'data_feeds'), namespace='data_feeds')),
-    url(r'^search/', include((search_urls, 'search'), namespace='search')),
-    url(r'', include('payments.urls'))]
+    url(r'^search/', include((search_urls, 'search'), namespace='search'))]
 
 urlpatterns = non_translatable_urlpatterns + i18n_patterns(
     *translatable_urlpatterns)
@@ -59,7 +58,7 @@ if settings.DEBUG:
         url(r'^__debug__/', include(debug_toolbar.urls)),
         # static files (images, css, javascript, etc.)
         url(r'^static/(?P<path>.*)$', serve)] + static(
-            settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+            '/media/', document_root=settings.MEDIA_ROOT)
 
 if settings.ENABLE_SILK:
     urlpatterns += [

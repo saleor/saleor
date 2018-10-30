@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL fragment: OrderDetailsFragment
@@ -238,7 +238,7 @@ export interface OrderDetailsFragment {
   fulfillments: (OrderDetailsFragment_fulfillments | null)[];
   lines: (OrderDetailsFragment_lines | null)[];
   number: string | null;
-  paymentStatus: PaymentStatusEnum | null;
+  paymentStatus: PaymentChargeStatusEnum | null;
   shippingAddress: OrderDetailsFragment_shippingAddress | null;
   shippingMethod: OrderDetailsFragment_shippingMethod | null;
   shippingMethodName: string | null;
@@ -246,6 +246,7 @@ export interface OrderDetailsFragment {
   status: OrderStatus;
   subtotal: OrderDetailsFragment_subtotal | null;
   total: OrderDetailsFragment_total | null;
+  actions: (OrderAction | null)[];
   totalAuthorized: OrderDetailsFragment_totalAuthorized | null;
   totalCaptured: OrderDetailsFragment_totalCaptured | null;
   user: OrderDetailsFragment_user | null;

@@ -1,13 +1,13 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import OrderPaymentReleaseDialog from "../../../orders/components/OrderPaymentReleaseDialog";
+import OrderPaymentVoidDialog from "../../../orders/components/OrderPaymentVoidDialog";
 import Decorator from "../../Decorator";
 
-storiesOf("Orders / OrderPaymentReleaseDialog", module)
+storiesOf("Orders / OrderPaymentVoidDialog", module)
   .addDecorator(Decorator)
   .add("default", () => (
-    <OrderPaymentReleaseDialog
+    <OrderPaymentVoidDialog
       open={true}
       onConfirm={undefined}
       onClose={undefined}

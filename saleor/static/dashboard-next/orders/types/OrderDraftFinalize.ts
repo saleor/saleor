@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderDraftFinalize
@@ -244,7 +244,7 @@ export interface OrderDraftFinalize_draftOrderComplete_order {
   fulfillments: (OrderDraftFinalize_draftOrderComplete_order_fulfillments | null)[];
   lines: (OrderDraftFinalize_draftOrderComplete_order_lines | null)[];
   number: string | null;
-  paymentStatus: PaymentStatusEnum | null;
+  paymentStatus: PaymentChargeStatusEnum | null;
   shippingAddress: OrderDraftFinalize_draftOrderComplete_order_shippingAddress | null;
   shippingMethod: OrderDraftFinalize_draftOrderComplete_order_shippingMethod | null;
   shippingMethodName: string | null;
@@ -252,6 +252,7 @@ export interface OrderDraftFinalize_draftOrderComplete_order {
   status: OrderStatus;
   subtotal: OrderDraftFinalize_draftOrderComplete_order_subtotal | null;
   total: OrderDraftFinalize_draftOrderComplete_order_total | null;
+  actions: (OrderAction | null)[];
   totalAuthorized: OrderDraftFinalize_draftOrderComplete_order_totalAuthorized | null;
   totalCaptured: OrderDraftFinalize_draftOrderComplete_order_totalCaptured | null;
   user: OrderDraftFinalize_draftOrderComplete_order_user | null;
