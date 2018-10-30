@@ -1,29 +1,84 @@
 [![Saleor](http://getsaleor.com/mr-saleor-readme.png)](http://getsaleor.com)
 
-# Saleor
+<h1 align="center">Saleor</h1>
 
-[![Build Status](https://travis-ci.org/mirumee/saleor.svg?branch=master)](https://travis-ci.org/mirumee/saleor)
-[![codecov.io](http://codecov.io/github/mirumee/saleor/coverage.svg?branch=master)](http://codecov.io/github/mirumee/saleor?branch=master)
-[![Join the chat at https://gitter.im/mirumee/saleor](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/mirumee/saleor?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Twitter URL](.github/badges/twitter.svg)](https://twitter.com/getsaleor) 
+<div align="center">
+  <strong>Ecommerce for the PWA era</strong>
+</div>
 
-Saleor is a high-performance e-commerce solution created with Python and Django.
+<div align="center">
+  A modular, high performance ecommerce storefront built with GraphQL, Django and ReactJS.
+</div>
 
-We believe that better service-based architecture means productive developers, trying to keep it simple, lightweight, and modular.
+<div align="center">
+  Join our active, engaged community:
+  <a href="https://getsaleor.com/">
+    Website
+  </a>
+  <span> | </span>
+  <a href="https://medium.com/saleor">
+    Blog
+  </a>
+  <span> | </span>
+  <a href="https://twitter.com/getsaleor">
+    Twitter
+  </a>
+  <span> | </span>
+  <a href="https://gitter.im/mirumee/saleor">
+    Gitter
+  </a>
+</div>
 
-Built with top-notch technologies. Django, PostgreSQL, ElasticSearch, GraphQL and Docker.
+<div align="center">
+  [![Build Status](https://travis-ci.org/mirumee/saleor.svg?branch=master)](https://travis-ci.org/mirumee/saleor)
+  [![codecov.io](http://codecov.io/github/mirumee/saleor/coverage.svg?branch=master)](http://codecov.io/github/mirumee/saleor?branch=master)
+  [![Join the chat at https://gitter.im/mirumee/saleor](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/mirumee/saleor?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+  [![Twitter URL](.github/badges/twitter.svg)](https://twitter.com/getsaleor) 
+</div>
 
-[Visit our homepage to find out more](http://getsaleor.com/)
 
-# Getting started
+## Table of Contents
+- [What makes Saleor special?](#what-makes-saleor-special)
+- [Features](#features)
+- [Installation](#installation)
+- [Demo](#demo)
+- [Contributing](#contributing)
+- [Translations](#translations)
+- [Your feedback](#your-feedback)
+- [License](#license)
 
-## 💾 Installation and requirements
+
+## What makes Saleor special?
+
+Saleor is a rapidly-growing open source ecommerce platform that has served high-volume companies from branches like publishing and apparel since 2012. Based on Python and Django, the latest major update introduces a modular front end with a GraphQL API and storefront and dashboard written in React to make Saleor a full-functionality open source ecommerce. 
+
+
+## Features
+- __PWA__: End users can shop offline for better sales and shopping experiences
+- __GraphQL API__: Access all data from any web or mobile client using the latest technology
+- __Headless commerce__: Build mobile apps, customize storefronts and externalize processes
+- __UX and UI__: Designed for a user experience that rivals even the top commercial platforms
+- __Dashboard__: Administrators have total control of users, processes and products
+- __Orders__: A comprehensive system for orders, dispatch and refunds
+- __Cart__: Advanced payment and tax options, with full control over discounts and promotions 
+- __Payments__: Flexible API architecture allows integration of any payment method. Comes with Braintree support our of the box.
+- __Geo-adaptive__: Automatic localized pricing. Over 20 local languages. Localized checkout experience by country.
+- __SEO__: Packed with features that get stores to a wider audience
+- __Cloud__: Optimized for deployments using Docker
+- __Analytics__: Server-side Google Analytics to report ecommerce metrics without affecting privacy
+
+Saleor is free and always will be.
+Help us out… If you love free stuff and great software, give us a star!
+
+
+## Installation
 
 Saleor requires Python 3.5+, Node.js 10.0+, PostgreSQL and OS-specific dependency tools.
 
 [See the Saleor docs](https://saleor.readthedocs.io) for step-by-step installation and deployment instructions.
 
-## ▶️ Demo
+
+## Demo
 
 Want to see Saleor in action?
 
@@ -35,27 +90,16 @@ Or launch the demo on a free Heroku instance.
 
 Login credentials: `admin@example.com`/`admin`
 
-# Get involved
 
-## ❤️ Community
+## Contributing
+We love your contributions and do our best to provide you with mentorship and support. If you are looking for an issue to tackle, take a look at issues labelled [`Help Wanted`](https://github.com/mirumee/saleor/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22).
 
-* Join the chat on [gitter](https://gitter.im/mirumee/saleor)
-* Follow us on [Twitter](https://twitter.com/getsaleor?lang=en)
-* Check our latest blog posts on [Medium](https://medium.com/saleor)
-
-## 🎁 Contribute
-Any contributions are warmly welcomed, we will do our best to provide you with mentorship and support throughout the whole collaboration.
-
-If you are looking for an issue to tackle, take a look at issues labelled
-[`Help Wanted`](https://github.com/mirumee/saleor/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22).
-
-Some of them however might not be listed yet. Check [our roadmap](https://github.com/mirumee/saleor/projects/6) or if you think of your own feature, then drop us a message and we will discuss the most efficient way to handle it!
-
-If you have any ideas, just [open an issue](https://github.com/mirumee/saleor/issues/new) and tell us what you think!
+If nothing grabs your attention, check [our roadmap](https://github.com/mirumee/saleor/projects/6) or come up with your own feature. Just drop us a line or [open an issue](https://github.com/mirumee/saleor/issues/new) and we’ll work out how to handle it.
 
 Get more details in our [Contributing Guide](https://saleor.readthedocs.io/en/latest/contributing.html).
 
-## 🌎 Translate
+
+## Translations
 
 Did you know that Saleor is available in almost 30 languages, translated entirely by our community?
 
@@ -63,18 +107,21 @@ If you'd like to help us, you can join one of our translation teams on [the loca
 
 The repository gets synchronized weekly with the latest contributions. 
 
-## 📝 Your feedback
+
+## Your feedback
 
 Do you use Saleor as an e-commerce platform?
 Fill out this short survey and help us grow. It will take just a minute, but mean a lot!
 
 [Take a survey](https://mirumee.typeform.com/to/sOIJbJ)
 
-# Commercial support
 
-Disclaimer: everything you see here is open and free to use as long as you comply with the [license](LICENSE). It is not bait to force you to pay us later and we promise to do our best to fix bugs and improve the code.
+## License 
 
-Some situations however call for extra code being written. Whether you need us to cover an exotic use case or build you a custom e-commerce appliance, our team can help.
+Disclaimer: everything you see here is open and free to use as long as you comply with the [license](https://github.com/mirumee/saleor/blob/master/LICENSE). There are no hidden charges we promise to do our best to fix bugs and improve the code.
+
+Some situations do call for extra code; we can cover exotic use cases or build you a custom e-commerce appliance.
+
 
 #### Crafted with ❤️ by [Mirumee Software](http://mirumee.com)
 hello@mirumee.com
