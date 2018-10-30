@@ -1,10 +1,25 @@
 from decimal import Decimal
-
+from unittest.mock import patch
 import pytest
 
 from saleor.payment import (
     ChargeStatus, PaymentError, TransactionKind, get_payment_gateway)
 from saleor.payment.gateways.dummy.forms import DummyPaymentForm
+
+
+@patch('saleor.payment.gateways.dummy.authorize')
+@patch('saleor.payment.gateways.dummy.capture')
+def test_charge(mock_capture, mock_authorize, payment_dummy):
+    token = 'fake-token'
+    amount = payment_dummy.total
+
+    expected_result = ['txn', 'error']
+    mock_capture.return_value = expected_result
+    result = payment_dummy.charge(
+        payment_token=token, amount=amount)
+    assert result == expected_result
+    mock_capture.assert_called_once_with(payment, amount)
+    mock_authorize.assert_called_once_with(token)
 
 def test_authorize(payment_dummy):
     txn = payment_dummy.authorize(payment_token='Fake')
