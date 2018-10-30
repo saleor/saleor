@@ -52,7 +52,7 @@ class Payment(models.Model):
     billing_email = models.EmailField(blank=True)
     customer_ip_address = models.GenericIPAddressField(blank=True, null=True)
     extra_data = models.TextField(blank=True, default='')
-    token = models.CharField(max_length=36, blank=True, default='')
+    token = models.CharField(max_length=128, blank=True, default='')
 
     #: Currency code (might be gateway-specific)
     # FIXME: add ISO4217 validator?
@@ -149,7 +149,7 @@ class Transaction(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     payment = models.ForeignKey(
         Payment, related_name='transactions', on_delete=models.PROTECT)
-    token = models.CharField(max_length=64, blank=True, default='')
+    token = models.CharField(max_length=128, blank=True, default='')
     kind = models.CharField(max_length=10, choices=TransactionKind.CHOICES)
     # FIXME probably we should have error/pending/success status instead of
     # a bool, eg for payments with 3d secure
