@@ -493,7 +493,6 @@ def test_braintree_payment_form(settings, payment_dummy):
         data=data, payment=payment, gateway=payment_gateway,
         gateway_params=gateway_params)
     assert form.is_valid()
-    form.process_payment()
 
 
 def test_get_form_class(settings):

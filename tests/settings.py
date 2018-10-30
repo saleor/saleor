@@ -17,3 +17,8 @@ if 'sqlite' in DATABASES['default']['ENGINE']:  # noqa
         'SERIALIZE': False,
         'NAME': ':memory:',
         'MIRROR': None}
+
+CHECKOUT_PAYMENT_GATEWAYS = {
+    DUMMY: 'Dummy gateway',
+    BRAINTREE: 'Braintree'
+}
