@@ -1162,9 +1162,9 @@ type OrderVoid {
 }
 
 type Page implements Node {
+  id: ID!
   seoTitle: String
   seoDescription: String
-  id: ID!
   slug: String!
   title: String!
   content: String!
@@ -1306,9 +1306,9 @@ enum PermissionEnum {
 }
 
 type Product implements Node {
-  id: ID!
   seoTitle: String
   seoDescription: String
+  id: ID!
   productType: ProductType!
   name: String!
   description: String!

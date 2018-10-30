@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { PaymentStatusEnum } from "./../../types/globalTypes";
+import { PaymentChargeStatusEnum } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL query operation: CustomerDetails
@@ -67,7 +67,7 @@ export interface CustomerDetails_user_orders_edges_node {
   id: string;
   created: any;
   number: string | null;
-  paymentStatus: PaymentStatusEnum | null;
+  paymentStatus: PaymentChargeStatusEnum | null;
   total: CustomerDetails_user_orders_edges_node_total | null;
 }
 
