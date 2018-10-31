@@ -48,6 +48,12 @@
 
 <body>
 {% block header %}
+{# Demo specific - alert about the new demo #}
+<div class="alert alert-primary demo-alert" role="alert">
+    <a href="https://pwa.getsaleor.com/">
+      Try out our new PWA, <span class="graphql">GraphQL-driven</span> storefront here!
+    </a>
+</div>
   <header class="navbar" role="navigation">
     <div class="navbar__login container-fluid {% if user.is_impersonate %} bg-warning{% endif %}">
       <div class=" d-none d-md-block container">
