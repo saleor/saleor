@@ -22,10 +22,10 @@ from prices import Money
 from ...account.models import Address, User
 from ...account.utils import store_user_address
 from ...checkout import AddressType
-from ...core.weight import zero_weight
+from ...core.utils.json_serializer import object_hook
 from ...core.utils.taxes import get_tax_rate_by_name, get_taxes_for_country
 from ...core.utils.text import strip_html_and_truncate
-from ...core.utils.json_serializer import object_hook
+from ...core.weight import zero_weight
 from ...dashboard.menu.utils import update_menu
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
@@ -59,36 +59,35 @@ COLLECTIONS_SCHEMA = [
         'image_name': 'sale.jpg'}]
 
 IMAGES_MAPPING = {
-   61: ['saleordemoproduct_paints_01.png'],
-   62: ['saleordemoproduct_paints_02.png'],
-   63: ['saleordemoproduct_paints_03.png'],
-   64: ['saleordemoproduct_paints_04.png'],
-   65: ['saleordemoproduct_paints_05.png'],
-   71: ['saleordemoproduct_fd_juice_06.png'],
-   73: ['saleordemoproduct_fd_juice_05.png'],
-   74: ['saleordemoproduct_fd_juice_01.png'],
-   77: ['saleordemoproduct_fd_juice_03.png'],
-   78: ['saleordemoproduct_fd_juice_04.png'],
-   79: ['saleordemoproduct_fd_juice_02.png'],
-   81: ['saleordemoproduct_wine-red.png'],
-   82: ['saleordemoproduct_wine-white.png'],
-   83: ['saleordemoproduct_beer-02_1.png', 'saleordemoproduct_beer-02_2.png'],
-   84: ['saleordemoproduct_beer-01_1.png', 'saleordemoproduct_beer-01_2.png'],
-   85: ['saleordemoproduct_cuschion01.png'],
-   86: ['saleordemoproduct_cuschion02.png'],
-   87: [
-       'saleordemoproduct_sneakers_01_1.png',
-       'saleordemoproduct_sneakers_01_2.png',
-       'saleordemoproduct_sneakers_01_3.png',
-       'saleordemoproduct_sneakers_01_4.png'],
-   88: [
-       'saleordemoproduct_sneakers_02_1.png',
-       'saleordemoproduct_sneakers_02_2.png',
-       'saleordemoproduct_sneakers_02_3.png',
-       'saleordemoproduct_sneakers_02_4.png'],
-    89: [
-        'saleordemoproduct_cl_boot07_1.png',
-        'saleordemoproduct_cl_boot07_2.png'],
+    61: ['saleordemoproduct_paints_01.png'],
+    62: ['saleordemoproduct_paints_02.png'],
+    63: ['saleordemoproduct_paints_03.png'],
+    64: ['saleordemoproduct_paints_04.png'],
+    65: ['saleordemoproduct_paints_05.png'],
+    71: ['saleordemoproduct_fd_juice_06.png'],
+    73: ['saleordemoproduct_fd_juice_05.png'],
+    74: ['saleordemoproduct_fd_juice_01.png'],
+    77: ['saleordemoproduct_fd_juice_03.png'],
+    78: ['saleordemoproduct_fd_juice_04.png'],
+    79: ['saleordemoproduct_fd_juice_02.png'],
+    81: ['saleordemoproduct_wine-red.png'],
+    82: ['saleordemoproduct_wine-white.png'],
+    83: ['saleordemoproduct_beer-02_1.png', 'saleordemoproduct_beer-02_2.png'],
+    84: ['saleordemoproduct_beer-01_1.png', 'saleordemoproduct_beer-01_2.png'],
+    85: ['saleordemoproduct_cuschion01.png'],
+    86: ['saleordemoproduct_cuschion02.png'],
+    87: [
+        'saleordemoproduct_sneakers_01_1.png',
+        'saleordemoproduct_sneakers_01_2.png',
+        'saleordemoproduct_sneakers_01_3.png',
+        'saleordemoproduct_sneakers_01_4.png'],
+    88: [
+        'saleordemoproduct_sneakers_02_1.png',
+        'saleordemoproduct_sneakers_02_2.png',
+        'saleordemoproduct_sneakers_02_3.png',
+        'saleordemoproduct_sneakers_02_4.png'],
+    89:
+    ['saleordemoproduct_cl_boot07_1.png', 'saleordemoproduct_cl_boot07_2.png'],
     107: ['saleordemoproduct_cl_polo01.png'],
     108: ['saleordemoproduct_cl_polo02.png'],
     109: ['saleordemoproduct_cl_polo03-woman.png'],
@@ -238,11 +237,10 @@ def get_or_create_collection(name, placeholder_dir, image_name):
 
 
 def create_product_image(product, placeholder_dir, image_name):
-    placeholder_root = os.path.join(settings.PROJECT_ROOT, placeholder_dir)
     image = get_image(placeholder_dir, image_name)
     # We don't want to create duplicated product images
     if product.images.count() >= len(IMAGES_MAPPING.get(product.pk, [])):
-        return
+        return None
     product_image = ProductImage(product=product, image=image)
     product_image.save()
     create_product_thumbnails.delay(product_image.pk)
