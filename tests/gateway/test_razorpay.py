@@ -24,24 +24,29 @@ def razorpay_payment(payment_dummy):
     return payment_dummy
 
 
-def _get_razorpay_widget(*, payment, prefill=True, **kwargs):
-    return RazorPayCheckoutWidget(
-        payment=payment, prefill=prefill, public_key='123',
-        store_name='Saleor', store_image='image.png', **kwargs)
+def _get_gateway_params(*, prefill=True):
+    return {
+        'prefill': prefill,
+        'public_key': '123',
+        'store_name': 'Saleor',
+        'store_image': 'image.png'}
 
 
 def test_checkout_widget_render_without_prefill(payment_dummy):
-    widget = _get_razorpay_widget(payment=payment_dummy, prefill=False)
+    widget = RazorPayCheckoutWidget(
+        payment=payment_dummy, attrs={'data-custom': '123'},
+        **_get_gateway_params(prefill=False))
     assert widget.render() == (
         '<script data-amount="8000" data-buttontext="Pay now with Razorpay" '
-        'data-currency="USD" '
+        'data-currency="USD" data-custom="123" '
         'data-description="Total payment" '
         'data-image="image.png" data-key="123" data-name="Saleor" '
         'src="https://checkout.razorpay.com/v1/checkout.js"></script>')
 
 
 def test_checkout_widget_render_with_prefill(payment_dummy):
-    widget = _get_razorpay_widget(payment=payment_dummy, prefill=True)
+    widget = RazorPayCheckoutWidget(
+        payment=payment_dummy, **_get_gateway_params(prefill=True))
     assert widget.render() == (
         '<script data-amount="8000" data-buttontext="Pay now with Razorpay" '
         'data-currency="USD" data-description="Total payment" '
@@ -49,6 +54,17 @@ def test_checkout_widget_render_with_prefill(payment_dummy):
         'data-prefill.email="test@example.com" '
         'data-prefill.name="Doe John" '
         'src="https://checkout.razorpay.com/v1/checkout.js"></script>')
+
+
+def test_checkout_form(payment_dummy):
+    form = RazorPaymentForm(
+        data={'razorpay_payment_id': '123'},
+        payment=payment_dummy,
+        gateway=None, gateway_params=_get_gateway_params())
+    assert form.is_valid()
+    with patch.object(payment_dummy, 'charge') as mocked_charge:
+        assert form.process_payment() == payment_dummy
+        mocked_charge.assert_called_once_with('123')
 
 
 def test_gateway_get_form_class():
