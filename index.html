@@ -1,377 +1,65 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Saleor — an open source storefront written in Python and Django</title>
-    <meta name="application-name" content="Saleor — an open source storefront written in Python and Django">
-    <link rel="stylesheet" href="/app.css">
-    <link rel="apple-touch-icon" sizes="180x180" href="images/favicons/apple-touch-icon.png">
-    <link rel="icon" type="image/png" href="images/favicons/favicon-32x32.png" sizes="32x32">
-    <link rel="icon" type="image/png" href="images/favicons/favicon-16x16.png" sizes="16x16">
-    <link rel="manifest" href="images/favicons/manifest.json">
-    <meta name="theme-color" content="#ffffff">
-    <meta name="google-site-verification" content="o3fAcqwEAmUxNIxf07503fA79ulBGaXsCpxyCf1zb9w">
-    <meta property="og:title" content="Saleor — an open source storefront platform for perfectionists" />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="http://getsaleor.com" />
-    <meta property="og:image" content="http://getsaleor.com/main-pic-mobile.png" />
-    <meta property="og:description" content="Written in python, best served as a bespoke, high-performance e-commerce solution" />
-  </head>
-  <body>
-    <header>
-      <nav class="navbar navbar-custom">
-  <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <div class="logo">
-        <a href="/"><img src="images/saleor-logo.svg" /></a>
-      </div>
-    </div>
-    <div id="navbar" class="menu navbar-collapse collapse navbar-right">
-      <ul>
-        <li>Great for <a href="#developers">DEVELOPERS</a>, <a href="#store-managers">MANAGERS</a> &amp; <a href="#customers">CUSTOMERS</a></strong></li>
-        
-            <li><a href="https://saleor.readthedocs.io/en/latest/" target="_blank">Documentation</a></li>
-        
-            <li><a href="/#services" >Services</a></li>
-        
-            <li><a href="http://demo.getsaleor.com" target="_blank">Demo</a></li>
-        
-            <li><a href="https://github.com/mirumee/saleor" target="_blank">Get started</a></li>
-        
-      </ul>
-    </div>
-  </div>
-</nav>
-
-    </header>
-    <div class="page">
-      <div class="section section-top">
-        <div class="container">
-  <div class="row">
-    <div class="col-md-12">
-      <h2>An opensource<br> storefront platform<br> for perfectionists</h2>
-      <h3>Written in python, best served as a bespoke,<br> high-performance e-commerce solution</h3>
-      <div class="image">
-        <picture>
-          <source media="(max-width: 768px)" srcset="images/main-pic-mobile.svg">
-          <img src="images/main-pic.svg" alt="Human">
-        </picture>
-      </div>
-    </div>
-  </div>
-</div>
-
-      </div>
-      <div id="developers" class="section section-developers">
-        <div class="container">
-  <div class="row">
-    <div class="col-md-8 col-center">
-      <div class="count">1</div>
-      <h2>Great for <span>developers</span></h2>
-      <h3>Better architecture means<br> productive developers</h3>
-      <div class="row boxes">
-        <div class="col-sm-6 item">
-          <div class="image">
-            <img src="images/clear-architecture.svg" />
-          </div>
-          <h4>Clear architecture</h4>
-          <p>Many e-commerce features are either trival to implement or depend heavily on specific business needs so <strong>we focus on the&nbsp;architecure</strong>.</p>
-        </div>
-        <div class="col-sm-6 item">
-          <div class="image">
-            <img src="images/optimized.svg" />
-          </div>
-          <h4>Optimized the Right Way&trade;</h4>
-          <p>No blanket caching. We want Saleor to be <strong>great for development</strong>. It is cache-friendly yet it does not rely on caching when it comes to&nbsp;performance.</p>
-        </div>
-        <div class="col-sm-6 item">
-          <div class="image">
-            <img src="images/modern-development.svg" />
-          </div>
-          <h4>Modern development</h4>
-          <p>Straighforward local development, service-based architecture, top-notch technologies. Django, PostgreSQL, ElasticSearch, GraphQL and Docker. Saleor runs on <strong>Python 2.x and&nbsp;3.x</strong>.</p>
-        </div>
-        <div class="col-sm-6 item">
-          <div class="image">
-            <img src="images/easy-customize.svg" />
-          </div>
-          <h4>Easy to customize</h4>
-          <p>We keep it <strong>simple, lightweight, and modular</strong>. Saleor doesn't aim to solve all problems. Fork it and make it your very own. It's easy to theme thanks to <strong>semantic templates, Bootstrap 4, and&nbsp;Sass</strong>.</p>
-        </div>
-        <div class="ship-wheel hidden-sm hidden-xs"></div>
-      </div>
-      <a href="https://github.com/mirumee/saleor" class="btn btn-primary" target="_blank">Fork it on Github</a>
-    </div>
-  </div>
-</div>
-
-      </div>
-      <div id="store-managers" class="section section-store_managers">
-        <div class="container">
-  <div class="row">
-    <div class="col-md-12">
-      <div class="count">2</div>
-      <h2>Great for <span>store managers</span></h2>
-      <h3>Better dashboard means<br> a satisfied sales team</h3>
-      <div class="row">
-        <div class="col-sm-4 item">
-          <div class="image">
-            <img src="images/responsive-dashboard.svg" />
-          </div>
-          <h4>Intuitive, responsive dashboard</h4>
-          <p>It works with <strong>all screen sizes</strong>.<br> Saleor's easy-to-use dashboard makes it possible to <strong>manage your store from any modern device</strong> even when you don't have access to your&nbsp;laptop.</p>
-        </div>
-        <div class="col-sm-4 item">
-          <div class="image">
-            <img src="images/great-outofthebox.svg" />
-          </div>
-          <h4>Great shopping experience</h4>
-          <p>Saleor sports an industry-standard checkout process, offers an excellent mobile shopping experience, and it’s <strong>search engine-friendly</strong>. It scales well to support <strong>millions of products, customers, and&nbsp;orders</strong>.</p>
-        </div>
-        <div class="col-sm-4 item">
-          <div class="image">
-            <img src="images/integrations.svg" />
-          </div>
-          <h4>Integrations &amp; internationalization</h4>
-          <p>Track your store with <strong>Google Analytics</strong>. Sell with <strong>Google Merchant</strong>. Translate your site and your products. Show prices in <strong>local currencies</strong> and accept payments using <strong>popular payment gateways</strong>.</p>
-        </div>
-      </div>
-      <p class="dahsboard-credentials">Username: <strong>admin@example.com</strong><br>Password: <strong>admin</strong></p>
-      <a href="http://demo.getsaleor.com/dashboard/" class="btn btn-primary" target="_blank">See dashboard</a>
-    </div>
-  </div>
-</div>
-
-      </div>
-      <div id="customers" class="section section-customers">
-        <div class="container">
-  <div class="row">
-    <div class="col-md-12">
-      <div class="count">3</div>
-      <h2>Great for <span>customers</span></h2>
-      <h3>Better user expierience means<br> happier customer</h3>
-      <div class="row">
-        <div class="col-sm-4 item">
-          <div class="image">
-            <img src="images/performance.svg" />
-          </div>
-          <h4>Smooth shopping experience</h4>
-          <p>Saleor is sleek. It uses <strong>geolocation</strong> to enhance the experience of your customers. It understands <strong>international addresses</strong>, can <strong>convert prices</strong> to other currencies, and offers translation where&nbsp;needed.</p>
-        </div>
-        <div class="col-sm-4 item">
-          <div class="image">
-            <img src="images/high-availability.svg" />
-          </div>
-          <h4>Scalable &amp; resilient</h4>
-          <p>Saleor was built with scalibility and fault resilience in mind. Never lose a customer due to high traffic volumes or a single broken server. <strong>Run a small fleet</strong> instead of a single huge ship!</p>
-        </div>
-        <div class="col-sm-4 item">
-          <div class="image">
-            <img src="images/essential-features.svg" />
-          </div>
-          <h4>All of the standard features</h4>
-          <p>Saleor is not trying to come with all possible features. It does, however, provide great implementations of the common ones. It has a great search tool and a state-of-the-art checkout&nbsp;process.</p>
-        </div>
-      </div>
-      <a href="http://demo.getsaleor.com/" class="btn btn-primary" target="_blank">See demo store</a>
-    </div>
-  </div>
-</div>
-
-      </div>
-      <div class="section section-slider">
-        <div class="container">
-  <div class="row">
-    <div class="col-md-12">
-      <div class="count">4</div>
-      <div class="slider-bg">
-        <div id="dashboard-screens" class="carousel slide" data-ride="carousel">
-          <ol class="carousel-indicators">
-            <li data-target="#dashboard-screens" data-slide-to="0" class="active"></li>
-            <li data-target="#dashboard-screens" data-slide-to="1"></li>
-            <li data-target="#dashboard-screens" data-slide-to="2"></li>
-            <li data-target="#dashboard-screens" data-slide-to="3"></li>
-            <li data-target="#dashboard-screens" data-slide-to="4"></li>
-            <li data-target="#dashboard-screens" data-slide-to="5"></li>
-            <li data-target="#dashboard-screens" data-slide-to="6"></li>
-            <li data-target="#dashboard-screens" data-slide-to="7"></li>
-            <li data-target="#dashboard-screens" data-slide-to="8"></li>
-          </ol>
-          <div class="carousel-inner" role="listbox">
-            <div class="item active">
-              <picture>
-                <source media="(max-width: 768px)" srcset="images/screens/SC01m.png">
-                <img src="images/screens/SC01.png" alt="Human">
-              </picture>
-            </div>
-            <div class="item">
-              <picture>
-                <source media="(max-width: 768px)" srcset="images/screens/SC02m.png">
-                <img src="images/screens/SC02.png" alt="Human">
-              </picture>
-            </div>
-            <div class="item">
-              <picture>
-                <source media="(max-width: 768px)" srcset="images/screens/SC03m.png">
-                <img src="images/screens/SC03.png" alt="Human">
-              </picture>
-            </div>
-            <div class="item">
-              <picture>
-                <source media="(max-width: 768px)" srcset="images/screens/SC04m.png">
-                <img src="images/screens/SC04.png" alt="Human">
-              </picture>
-            </div>
-            <div class="item">
-              <picture>
-                <source media="(max-width: 768px)" srcset="images/screens/SC05m.png">
-                <img src="images/screens/DB01.png" alt="Human">
-              </picture>
-            </div>
-            <div class="item">
-              <picture>
-                <source media="(max-width: 768px)" srcset="images/screens/DB01m.png">
-                <img src="images/screens/DB02.png" alt="Human">
-              </picture>
-            </div>
-            <div class="item">
-              <picture>
-                <source media="(max-width: 768px)" srcset="images/screens/DB02m.png">
-                <img src="images/screens/DB03.png" alt="Human">
-              </picture>
-            </div>
-            <div class="item">
-              <picture>
-                <source media="(max-width: 768px)" srcset="images/screens/DB03m.png">
-                <img src="images/screens/DB04.png" alt="Human">
-              </picture>
-            </div>
-            <div class="item">
-              <picture>
-                <source media="(max-width: 768px)" srcset="images/screens/DB04m.png">
-                <img src="images/screens/DB05.png" alt="Human">
-              </picture>
-            </div>
-          </div>
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-      </div>
-      <div id="services" class="section section-services">
-        <div class="container">
-  <div class="row">
-    <div class="col-md-6 col-center">
-      <div class="count">5</div>
-      <h2>ENTERPRISE-GRADE SERVICES</h2>
-      <h3>Great tools are one half of success. Get the best people for the job.</h3>
-      <p>Saleor is open and free to use. It is not a bait to force you to pay us later and we promise to do our bests to fix bugs and improve the&nbsp;code.</p>
-      <p>Some situations however call for a custom solution and extra code to be written. Whether you need us to cover an exotic use case or build you a custom e-commerce appliance, our team can&nbsp;help.</p>
-      <ul class="row logos">
-        <li><img src="images/salesforce-logo.png" /></li>
-        <li><img src="images/eurostop-logo.png" /></li>
-        <li><img src="images/styleman-logo.png" /></li>
-        <li><img src="images/sap-logo.png" /></li>
-        <li><img src="images/microsoft-dynamics-logo.png" /></li>
-      </ul>
-      <p>Take a minute and fill out our project initiation form.</p>
-      <a href="https://mirumee.typeform.com/to/gf97sQ" class="btn btn-primary" target="_blank">Start now</a>
-    </div>
-  </div>
-</div>
-
-      </div>
-      <div class="section section-github">
-        <div class="container">
-  <div class="row">
-    <div class="col-md-12">
-      <h2>Simple <span>is</span> better</h2>
-      <h2>Less <span>is</span> more</h2>
-      <h2>Saleor <span>is</span> free</h2>
-      <a href="https://github.com/mirumee/saleor" class="btn btn-tertiary" target="_blank">Fork it on Github</a>
-    </div>
-  </div>
-</div>
-
-      </div>
-    </div>
-    <footer>
-      <div class="container">
-  <div class="row">
-    <div class="col-xs-10 col-center">
-      <div class="row rows">
-        <div class="col-xs-12 col-md-5 logo">
-          <div class="row">
-            <div class="col-xs-6 col-center">
-              <div class="saleor"><a href="/"><img src="images/saleor-logo-white.svg" /></a></div>
-              <div class="mirumee">
-                <div class="row no-gutter">
-                  <div class="col-xs-5"><span>Crafted by</span></div>
-                  <div class="col-xs-7"><a href="https://mirumee.com/"><img src="images/mirumee-logo.svg" /></a></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-xs-12 col-md-5 links">
-          <div class="row">
-            <div class="col-xs-5 col-sm-6">
-              <h3>Great for</h3>
-              <ul>
-                <li><a href="#developers">Developers</a></li>
-                <li><a href="#store-managers">Managers</a></li>
-                <li><a href="#customers">Customers</a></li>
-              </ul>
-            </div>
-            <div class="col-xs-7 col-sm-6">
-              <h3>Links</h3>
-              <ul>
-                
-                  <li><a href="https://saleor.readthedocs.io/en/latest/" target="_blank">Documentation</a></li>
-              
-                  <li><a href="/#services" >Services</a></li>
-              
-                  <li><a href="http://demo.getsaleor.com" target="_blank">Demo</a></li>
-              
-                  <li><a href="https://github.com/mirumee/saleor" target="_blank">Get started</a></li>
-              
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div class="col-xs-12 col-md-2 follow-us">
-          <h3>Follow us</h3>
-          <ul class="icons">
-            <li><a href="https://github.com/mirumee/saleor" target="_blank"><img src="images/github-icon.svg" /></a></li>
-            <li><a href="https://twitter.com/getsaleor" target="_blank"><img src="images/twitter-icon.svg"/></a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-      <script src="/js/jquery.js"></script>
-<script src="/js/app.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 user-scalable=no">
+    <meta name="author" content="Mirumee Labs">
+    <meta property="og:type" content="website">
+    <meta name="og:description" content="A GraphQL-first eCommerce platform for perfectionists. It is open sourced, PWA-ready and looks beautiful. Find out why developers love it." />
+    <meta property="og:title" content="A GraphQL-first Open Source eCommerce Platform | Saleor" />
+    <meta property="og:image" content="https://beta.getsaleor.com/images/og-homepage.1fd2afb52ecd6cd92f8d16f7254ba7a6.jpg" />
+    <link href="//cloud.typenetwork.com/projects/2710/fontface.css/" rel="stylesheet" type="text/css">
+    
+      <!-- Google Tag Manager -->
       <script>
-        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-        ga('create', 'UA-10159761-12', 'auto');
-        ga('send', 'pageview');
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','GTM-KL4NB3Z');
       </script>
-    </footer>
-  </body>
+      <!-- End Google Tag Manager -->
+    
+  <link href="/css/app.7bf906ff4830abc0b210.css" rel="stylesheet"><link rel="shortcut icon" href="images/favicons/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicons/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicons/favicon-32x32.png">
+<link rel="manifest" href="images/favicons/manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#fff">
+<meta name="application-name" content="Get Saleor">
+<link rel="apple-touch-icon" sizes="57x57" href="images/favicons/apple-touch-icon-57x57.png">
+<link rel="apple-touch-icon" sizes="60x60" href="images/favicons/apple-touch-icon-60x60.png">
+<link rel="apple-touch-icon" sizes="72x72" href="images/favicons/apple-touch-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="76x76" href="images/favicons/apple-touch-icon-76x76.png">
+<link rel="apple-touch-icon" sizes="114x114" href="images/favicons/apple-touch-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="120x120" href="images/favicons/apple-touch-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="144x144" href="images/favicons/apple-touch-icon-144x144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="images/favicons/apple-touch-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="images/favicons/apple-touch-icon-180x180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Get Saleor">
+<link rel="apple-touch-startup-image" media="(device-width: 320px) and (device-height: 480px) and (-webkit-device-pixel-ratio: 1)" href="images/favicons/apple-touch-startup-image-320x460.png">
+<link rel="apple-touch-startup-image" media="(device-width: 320px) and (device-height: 480px) and (-webkit-device-pixel-ratio: 2)" href="images/favicons/apple-touch-startup-image-640x920.png">
+<link rel="apple-touch-startup-image" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" href="images/favicons/apple-touch-startup-image-640x1096.png">
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" href="images/favicons/apple-touch-startup-image-750x1294.png">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 736px) and (orientation: landscape) and (-webkit-device-pixel-ratio: 3)" href="images/favicons/apple-touch-startup-image-1182x2208.png">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 736px) and (orientation: portrait) and (-webkit-device-pixel-ratio: 3)" href="images/favicons/apple-touch-startup-image-1242x2148.png">
+<link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (orientation: landscape) and (-webkit-device-pixel-ratio: 1)" href="images/favicons/apple-touch-startup-image-748x1024.png">
+<link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (orientation: portrait) and (-webkit-device-pixel-ratio: 1)" href="images/favicons/apple-touch-startup-image-768x1004.png">
+<link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (orientation: landscape) and (-webkit-device-pixel-ratio: 2)" href="images/favicons/apple-touch-startup-image-1496x2048.png">
+<link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (orientation: portrait) and (-webkit-device-pixel-ratio: 2)" href="images/favicons/apple-touch-startup-image-1536x2008.png">
+<link rel="icon" type="image/png" sizes="228x228" href="images/favicons/coast-228x228.png">
+<meta name="msapplication-TileColor" content="#fff">
+<meta name="msapplication-TileImage" content="images/favicons/mstile-144x144.png">
+<meta name="msapplication-config" content="images/favicons/browserconfig.xml"></head>
+  <body>
+    
+      <!-- Google Tag Manager (noscript) -->
+      <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KL4NB3Z"
+        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+      <!-- End Google Tag Manager (noscript) -->
+    
+    <div id="root"></div>
+  <script type="text/javascript" src="/js/app.e1525e3aa576aa0a0d39.js"></script></body>
 </html>

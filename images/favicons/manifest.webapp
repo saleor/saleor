@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "name": "Get Saleor",
+  "description": "A GraphQL-first eCommerce platform for perfectionists. It is open sourced, PWA ready and stunningly beautiful. Find out why developers love it.",
+  "icons": {
+    "60": "images/favicons/firefox_app_60x60.png",
+    "128": "images/favicons/firefox_app_128x128.png",
+    "512": "images/favicons/firefox_app_512x512.png"
+  },
+  "developer": {
+    "name": "Mirumee Labs",
+    "url": "https://mirumee.com/"
+  }
+}
