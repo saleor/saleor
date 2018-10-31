@@ -175,7 +175,7 @@ def create_product_variants(variants_data):
 
 
 def create_products_by_schema(placeholder_dir, create_images, stdout=None):
-    with open('static/db.json') as f:
+    with open('saleor/static/db.json') as f:
         db_items = json.load(f, object_hook=object_hook)
     types = defaultdict(list)
     # Sort db objects by its model
