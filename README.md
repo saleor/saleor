@@ -1,6 +1,4 @@
-![saleordwazero_04](https://user-images.githubusercontent.com/5421321/47790160-bf1a7000-dd16-11e8-881b-1226bd436023.jpg)
-
-<h1 align="center">Saleor</h1>
+![saleor](https://user-images.githubusercontent.com/5421321/47790330-2b956f00-dd17-11e8-8993-8f08c1923f76.jpg)
 
 <div align="center">
   <strong>Ecommerce for the PWA era</strong>
