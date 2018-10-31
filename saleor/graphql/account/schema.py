@@ -8,7 +8,8 @@ from .mutations import (
     CustomerDelete, CustomerPasswordReset, CustomerRegister, CustomerUpdate,
     PasswordReset, SetPassword, StaffCreate, StaffDelete, StaffUpdate)
 from .resolvers import (
-    resolve_address_validator, resolve_customers, resolve_staff_users)
+    resolve_address_validator, resolve_customers, resolve_staff_users,
+    resolve_user)
 from .types import AddressValidationData, AddressValidationInput, User
 
 
@@ -39,7 +40,7 @@ class AccountQueries(graphene.ObjectType):
 
     @permission_required('account.manage_users')
     def resolve_user(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, User)
+        return resolve_user(info, id)
 
 
 class AccountMutations(graphene.ObjectType):
