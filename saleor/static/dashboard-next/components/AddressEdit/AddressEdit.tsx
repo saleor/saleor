@@ -165,4 +165,5 @@ const AddressEdit = decorate<AddressEditProps>(
     </>
   )
 );
+AddressEdit.displayName = "AddressEdit";
 export default AddressEdit;
