@@ -7,14 +7,11 @@ services:
       dockerfile: ./Dockerfile
       args:
         STATIC_URL: '/static/'
-    container_name: saleor-web
     restart: unless-stopped
     networks:
       - saleor-backend-tier
     ports:
       - 8000:8000
-    volumes:
-      - .:/app:Z
     env_file: common.env
     depends_on:
       - db
@@ -24,7 +21,6 @@ services:
 
   db:
     image: library/postgres:latest
-    container_name: saleor-postgres
     restart: unless-stopped
     networks:
       - saleor-backend-tier
@@ -38,7 +34,6 @@ services:
 
   redis:
     image: library/redis:latest
-    container_name: saleor-redis
     restart: unless-stopped
     networks:
       - saleor-backend-tier
@@ -53,7 +48,6 @@ services:
       dockerfile: ./Dockerfile
       args:
         STATIC_URL: '/static/'
-    container_name: saleor-celery
     command: celery -A saleor worker --app=saleor.celeryconf:app --loglevel=info
     restart: unless-stopped
     networks:
@@ -65,8 +59,7 @@ services:
       - redis
 
   search:
-    image: elasticsearch:5.4.3
-    container_name: saleor-elasticsearch
+    image: elasticsearch:6.4.2
     restart: unless-stopped
     networks:
       - saleor-backend-tier
@@ -77,7 +70,7 @@ services:
     # See https://github.com/docker/compose/issues/4513 if updating to version '3'
     mem_limit: 512m
     environment:
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m -Dlog4j2.disable.jmx=true"
 
 volumes:
   saleor-db:

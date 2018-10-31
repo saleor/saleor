@@ -6,20 +6,11 @@ import { PageListProps } from "../../..";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
-import {
-  ProductTypeList_productTypes_edges_node_productAttributes,
-  ProductTypeList_productTypes_edges_node_variantAttributes
-} from "../../types/ProductTypeList";
+import { ProductTypeList_productTypes_edges_node } from "../../types/ProductTypeList";
 import ProductTypeList from "../ProductTypeList";
 
 interface ProductTypeListPageProps extends PageListProps {
-  productTypes?: Array<{
-    id: string;
-    name?: string;
-    hasVariants?: boolean;
-    productAttributes?: ProductTypeList_productTypes_edges_node_productAttributes[];
-    variantAttributes?: ProductTypeList_productTypes_edges_node_variantAttributes[];
-  }>;
+  productTypes: ProductTypeList_productTypes_edges_node[];
 }
 
 const ProductTypeListPage: React.StatelessComponent<

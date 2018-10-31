@@ -21,7 +21,9 @@ interface StaffDetailsRouteProps {
 }
 const StaffDetails: React.StatelessComponent<
   RouteComponentProps<StaffDetailsRouteProps>
-> = ({ match }) => <StaffDetailsComponent id={match.params.id} />;
+> = ({ match }) => (
+  <StaffDetailsComponent id={decodeURIComponent(match.params.id)} />
+);
 
 const Component = ({ match }) => (
   <Switch>

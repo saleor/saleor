@@ -12,7 +12,6 @@ CONFIRM_ORDER_TEMPLATE = 'order/confirm_order'
 CONFIRM_FULFILLMENT_TEMPLATE = 'order/confirm_fulfillment'
 UPDATE_FULFILLMENT_TEMPLATE = 'order/update_fulfillment'
 CONFIRM_PAYMENT_TEMPLATE = 'order/payment/confirm_payment'
-CONFIRM_NOTE_TEMPLATE = 'order/note/confirm_note'
 
 
 def collect_data_for_email(order_pk, template):
@@ -71,11 +70,4 @@ def send_fulfillment_update(order_pk, fulfillment_pk):
 def send_payment_confirmation(order_pk):
     """Sends payment confirmation email."""
     email_data = collect_data_for_email(order_pk, CONFIRM_PAYMENT_TEMPLATE)
-    send_templated_mail(**email_data)
-
-
-@shared_task
-def send_note_confirmation(order_pk):
-    """Notifies customer, when new note was added to an order."""
-    email_data = collect_data_for_email(order_pk, CONFIRM_NOTE_TEMPLATE)
     send_templated_mail(**email_data)

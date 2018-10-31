@@ -13,7 +13,7 @@ import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { OrderStatus, PaymentStatusEnum } from "../../../types/globalTypes";
+import { OrderAction, OrderStatus } from "../../../types/globalTypes";
 import { OrderDetails_order } from "../../types/OrderDetails";
 
 interface OrderPaymentProps {
@@ -21,7 +21,7 @@ interface OrderPaymentProps {
   onCapture: () => void;
   onMarkAsPaid: () => void;
   onRefund: () => void;
-  onRelease: () => void;
+  onVoid: () => void;
 }
 
 const decorate = withStyles(theme => ({
@@ -38,24 +38,19 @@ const decorate = withStyles(theme => ({
   }
 }));
 const OrderPayment = decorate<OrderPaymentProps>(
-  ({ classes, order, onCapture, onMarkAsPaid, onRefund, onRelease }) => {
-    const canCapture = maybe(() => order.paymentStatus)
-      ? order.paymentStatus === PaymentStatusEnum.PREAUTH &&
-        order.status !== OrderStatus.CANCELED
+  ({ classes, order, onCapture, onMarkAsPaid, onRefund, onVoid }) => {
+    const canCapture = maybe(() => order.actions)
+      ? order.actions.includes(OrderAction.CAPTURE)
       : false;
-    const canRelease = maybe(() => order.paymentStatus)
-      ? order.paymentStatus === PaymentStatusEnum.PREAUTH
+    const canVoid = maybe(() => order.actions)
+      ? order.actions.includes(OrderAction.VOID)
       : false;
-    const canRefund = maybe(() => order.paymentStatus)
-      ? order.paymentStatus === PaymentStatusEnum.CONFIRMED &&
-        order.status !== OrderStatus.CANCELED
+    const canRefund = maybe(() => order.actions)
+      ? order.actions.includes(OrderAction.REFUND)
       : false;
-    const canMarkAsPaid =
-      maybe(() => order.paymentStatus) !== undefined
-        ? [null, PaymentStatusEnum.ERROR, PaymentStatusEnum.REJECTED].includes(
-            order.paymentStatus
-          )
-        : false;
+    const canMarkAsPaid = maybe(() => order.actions)
+      ? order.actions.includes(OrderAction.MARK_AS_PAID)
+      : false;
     const payment = transformPaymentStatus(maybe(() => order.paymentStatus));
     return (
       <Card>
@@ -146,7 +141,7 @@ const OrderPayment = decorate<OrderPaymentProps>(
           </table>
         </CardContent>
         {maybe(() => order.status) !== OrderStatus.CANCELED &&
-          (canCapture || canRefund || canRelease || canMarkAsPaid) && (
+          (canCapture || canRefund || canVoid || canMarkAsPaid) && (
             <>
               <Hr />
               <CardActions>
@@ -160,9 +155,9 @@ const OrderPayment = decorate<OrderPaymentProps>(
                     {i18n.t("Refund", { context: "button" })}
                   </Button>
                 )}
-                {canRelease && (
-                  <Button color="secondary" variant="flat" onClick={onRelease}>
-                    {i18n.t("Release", { context: "button" })}
+                {canVoid && (
+                  <Button color="secondary" variant="flat" onClick={onVoid}>
+                    {i18n.t("Void", { context: "button" })}
                   </Button>
                 )}
                 {canMarkAsPaid && (

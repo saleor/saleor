@@ -1,4 +1,7 @@
+from textwrap import dedent
+
 import graphene
+import graphene_django_optimizer as gql_optimizer
 from django.conf import settings
 from django_countries import countries
 from graphql_jwt.decorators import permission_required
@@ -6,9 +9,12 @@ from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
 from ...core.permissions import get_permissions
 from ...core.utils import get_client_ip, get_country_by_ip
-from ...site import models as site_models
+from ...menu import models as menu_models
+from ...product import models as product_models
+from ...site import AuthenticationBackends, models as site_models
 from ..core.types.common import (
     CountryDisplay, LanguageDisplay, PermissionDisplay, WeightUnitsEnum)
+from ..core.utils import str_to_enum
 from ..menu.types import Menu
 from ..product.types import Collection
 from ..utils import format_permissions_for_display
@@ -22,9 +28,16 @@ class Navigation(graphene.ObjectType):
         description = 'Represents shop\'s navigation menus.'
 
 
+AuthorizationKeyType = graphene.Enum(
+    'AuthorizationKeyType', [(str_to_enum(auth_type[0]), auth_type[0])
+                             for auth_type in AuthenticationBackends.BACKENDS])
+
+
 class AuthorizationKey(graphene.ObjectType):
-    name = graphene.String(description='Name of the key.', required=True)
-    key = graphene.String(description='Value of the key.', required=True)
+    name = AuthorizationKeyType(
+        description='Name of the authorization backend.', required=True)
+    key = graphene.String(
+        description='Authorization key (client ID).', required=True)
 
 
 class Domain(graphene.ObjectType):
@@ -53,7 +66,10 @@ class Shop(graphene.ObjectType):
         Geolocalization,
         description='Customer\'s geolocalization data.')
     authorization_keys = graphene.List(
-        AuthorizationKey, description='List of configured authorization keys.',
+        AuthorizationKey,
+        description=dedent('''List of configured authorization keys. Authorization
+        keys are used to enable thrid party OAuth authorization (currently
+        Facebook or Google).'''),
         required=True)
     countries = graphene.List(
         CountryDisplay, description='List of countries available in the shop.',
@@ -92,9 +108,9 @@ class Shop(graphene.ObjectType):
     default_weight_unit = WeightUnitsEnum(description='Default weight unit')
 
     class Meta:
-        description = '''
+        description = dedent('''
         Represents a shop resource containing general shop\'s data
-        and configuration.'''
+        and configuration.''')
 
     @permission_required('site.manage_settings')
     def resolve_authorization_keys(self, info):
@@ -131,7 +147,9 @@ class Shop(graphene.ObjectType):
         return info.context.site.settings.description
 
     def resolve_homepage_collection(self, info):
-        return info.context.site.settings.homepage_collection
+        collection_pk = info.context.site.settings.homepage_collection_id
+        qs = product_models.Collection.objects.all()
+        return get_node_optimized(qs, {'pk': collection_pk}, info)
 
     def resolve_languages(self, info):
         return [
@@ -143,8 +161,12 @@ class Shop(graphene.ObjectType):
 
     def resolve_navigation(self, info):
         site_settings = info.context.site.settings
-        return Navigation(
-            main=site_settings.top_menu, secondary=site_settings.bottom_menu)
+        qs = menu_models.Menu.objects.all()
+        top_menu = get_node_optimized(
+            qs, {'pk': site_settings.top_menu_id}, info)
+        bottom_menu = get_node_optimized(
+            qs, {'pk': site_settings.bottom_menu_id}, info)
+        return Navigation(main=top_menu, secondary=bottom_menu)
 
     @permission_required('account.manage_users')
     def resolve_permissions(self, info):
@@ -178,3 +200,9 @@ class Shop(graphene.ObjectType):
         else:
             default_country = None
         return default_country
+
+
+def get_node_optimized(qs, lookup, info):
+    qs = qs.filter(**lookup)
+    qs = gql_optimizer.query(qs, info)
+    return qs[0] if qs else None

@@ -8,10 +8,10 @@ import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
 import { ListProps } from "../..";
+import { CategoryDetails_category_products_edges_node } from "../../categories/types/CategoryDetails";
 import TableCellAvatar from "../../components/TableCellAvatar";
 import i18n from "../../i18n";
 import { renderCollection } from "../../misc";
-import { MoneyType } from "../../products";
 import Money from "../Money";
 import Skeleton from "../Skeleton";
 import StatusLabel from "../StatusLabel";
@@ -35,18 +35,7 @@ const decorate = withStyles(theme => ({
 }));
 
 interface ProductListProps extends ListProps {
-  products?: Array<{
-    id: string;
-    name: string;
-    productType: {
-      name: string;
-    };
-    thumbnailUrl: string;
-    availability: {
-      available: boolean;
-    };
-    price: MoneyType;
-  }>;
+  products: CategoryDetails_category_products_edges_node[];
 }
 
 export const ProductList = decorate<ProductListProps>(

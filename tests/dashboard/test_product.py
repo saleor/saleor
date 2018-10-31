@@ -231,7 +231,7 @@ def test_view_product_not_deleted_before_confirmation(
 
 def test_view_product_bulk_update_publish(admin_client, product_list):
     url = reverse('dashboard:product-bulk-update')
-    products =  [product.pk for product in product_list]
+    products = [product.pk for product in product_list]
     data = {'action': ProductBulkAction.PUBLISH, 'products': products}
 
     response = admin_client.post(url, data)
@@ -246,7 +246,7 @@ def test_view_product_bulk_update_publish(admin_client, product_list):
 
 def test_view_product_bulk_update_unpublish(admin_client, product_list):
     url = reverse('dashboard:product-bulk-update')
-    products =  [product.pk for product in product_list]
+    products = [product.pk for product in product_list]
     data = {'action': ProductBulkAction.UNPUBLISH, 'products': products}
 
     response = admin_client.post(url, data)
@@ -781,7 +781,7 @@ def test_view_attribute_list(db, admin_client, color_attribute):
     assert len(result) == 1
     assert result[0][0] == color_attribute.pk
     assert result[0][1] == color_attribute.name
-    assert len(result[0][2]) == 2
+    assert len(result[0][3]) == 2
     assert not response.context['is_empty']
 
 

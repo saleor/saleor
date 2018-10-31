@@ -14,4 +14,6 @@ storiesOf("Views / Product types / Product types list", module)
       {...pageListProps.default}
     />
   ))
-  .add("loading", () => <ProductTypeListPage {...pageListProps.loading} />);
+  .add("loading", () => (
+    <ProductTypeListPage productTypes={undefined} {...pageListProps.loading} />
+  ));

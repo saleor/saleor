@@ -42,6 +42,11 @@
           <span class="card-title">
             {{ attribute.name }}
           </span>
+          {% if product_type %}
+            {% trans "Product type" %}: <a href="{% url "dashboard:product-type-update" pk=product_type.pk %}">{{ product_type }}</a>
+          {% elif attribute.pk %}
+            <a href="{% url "dashboard:product-type-list" %}">Assign to a product type</a>
+          {% endif %}
         </div>
         <div class="card-action">
           <a class="btn-flat waves-effect" href="{% url "dashboard:attribute-update" attribute.pk %}">

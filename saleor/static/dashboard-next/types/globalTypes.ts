@@ -5,9 +5,26 @@
 // START Enums and Input Objects
 //==============================================================
 
+export enum AttributeTypeEnum {
+  PRODUCT = "PRODUCT",
+  VARIANT = "VARIANT",
+}
+
+export enum AuthorizationKeyType {
+  FACEBOOK = "FACEBOOK",
+  GOOGLE_OAUTH2 = "GOOGLE_OAUTH2",
+}
+
 export enum FulfillmentStatus {
   CANCELED = "CANCELED",
   FULFILLED = "FULFILLED",
+}
+
+export enum OrderAction {
+  CAPTURE = "CAPTURE",
+  MARK_AS_PAID = "MARK_AS_PAID",
+  REFUND = "REFUND",
+  VOID = "VOID",
 }
 
 export enum OrderEvents {
@@ -23,7 +40,7 @@ export enum OrderEvents {
   OVERSOLD_ITEMS = "OVERSOLD_ITEMS",
   PAYMENT_CAPTURED = "PAYMENT_CAPTURED",
   PAYMENT_REFUNDED = "PAYMENT_REFUNDED",
-  PAYMENT_RELEASED = "PAYMENT_RELEASED",
+  PAYMENT_VOIDED = "PAYMENT_VOIDED",
   PLACED = "PLACED",
   PLACED_FROM_DRAFT = "PLACED_FROM_DRAFT",
   TRACKING_UPDATED = "TRACKING_UPDATED",
@@ -45,14 +62,23 @@ export enum OrderStatus {
   UNFULFILLED = "UNFULFILLED",
 }
 
-export enum PaymentStatusEnum {
-  CONFIRMED = "CONFIRMED",
-  ERROR = "ERROR",
-  INPUT = "INPUT",
-  PREAUTH = "PREAUTH",
-  REFUNDED = "REFUNDED",
-  REJECTED = "REJECTED",
-  WAITING = "WAITING",
+export enum PaymentChargeStatusEnum {
+  CHARGED = "CHARGED",
+  FULLY_REFUNDED = "FULLY_REFUNDED",
+  NOT_CHARGED = "NOT_CHARGED",
+}
+
+export enum PermissionEnum {
+  IMPERSONATE_USERS = "IMPERSONATE_USERS",
+  MANAGE_DISCOUNTS = "MANAGE_DISCOUNTS",
+  MANAGE_MENUS = "MANAGE_MENUS",
+  MANAGE_ORDERS = "MANAGE_ORDERS",
+  MANAGE_PAGES = "MANAGE_PAGES",
+  MANAGE_PRODUCTS = "MANAGE_PRODUCTS",
+  MANAGE_SETTINGS = "MANAGE_SETTINGS",
+  MANAGE_SHIPPING = "MANAGE_SHIPPING",
+  MANAGE_STAFF = "MANAGE_STAFF",
+  MANAGE_USERS = "MANAGE_USERS",
 }
 
 export enum TaxRateType {
@@ -82,6 +108,13 @@ export enum TaxRateType {
   WATER = "WATER",
 }
 
+export enum WeightUnitsEnum {
+  g = "g",
+  kg = "kg",
+  lb = "lb",
+  oz = "oz",
+}
+
 export interface AddressInput {
   firstName?: string | null;
   lastName?: string | null;
@@ -91,14 +124,68 @@ export interface AddressInput {
   city?: string | null;
   cityArea?: string | null;
   postalCode?: string | null;
-  country?: string | null;
+  country: string;
   countryArea?: string | null;
   phone?: string | null;
+}
+
+export interface AttributeCreateInput {
+  name: string;
+  values?: (AttributeValueCreateInput | null)[] | null;
+}
+
+export interface AttributeUpdateInput {
+  name?: string | null;
+  removeValues?: (string | null)[] | null;
+  addValues?: (AttributeValueCreateInput | null)[] | null;
+}
+
+export interface AttributeValueCreateInput {
+  name: string;
+  value?: string | null;
 }
 
 export interface AttributeValueInput {
   slug: string;
   value: string;
+}
+
+export interface AuthorizationKeyInput {
+  key: string;
+  password: string;
+}
+
+export interface CategoryInput {
+  description?: string | null;
+  name?: string | null;
+  slug?: string | null;
+  seo?: SeoInput | null;
+  backgroundImage?: any | null;
+}
+
+export interface CollectionCreateInput {
+  isPublished?: boolean | null;
+  name?: string | null;
+  slug?: string | null;
+  backgroundImage?: any | null;
+  seo?: SeoInput | null;
+  products?: (string | null)[] | null;
+}
+
+export interface CollectionInput {
+  isPublished?: boolean | null;
+  name?: string | null;
+  slug?: string | null;
+  backgroundImage?: any | null;
+  seo?: SeoInput | null;
+}
+
+export interface CustomerInput {
+  email?: string | null;
+  isActive?: boolean | null;
+  note?: string | null;
+  defaultBillingAddress?: AddressInput | null;
+  defaultShippingAddress?: AddressInput | null;
 }
 
 export interface DraftOrderInput {
@@ -164,19 +251,47 @@ export interface ProductTypeInput {
   taxRate?: TaxRateType | null;
 }
 
+export interface SeoInput {
+  title?: string | null;
+  description?: string | null;
+}
+
+export interface ShopSettingsInput {
+  headerText?: string | null;
+  description?: string | null;
+  includeTaxesInPrices?: boolean | null;
+  displayGrossPrices?: boolean | null;
+  trackInventoryByDefault?: boolean | null;
+  defaultWeightUnit?: WeightUnitsEnum | null;
+}
+
+export interface SiteDomainInput {
+  domain?: string | null;
+  name?: string | null;
+}
+
 export interface StaffCreateInput {
   email?: string | null;
-  note?: string | null;
   isActive?: boolean | null;
+  note?: string | null;
   permissions?: (string | null)[] | null;
   sendPasswordEmail?: boolean | null;
 }
 
 export interface StaffInput {
   email?: string | null;
-  note?: string | null;
   isActive?: boolean | null;
+  note?: string | null;
   permissions?: (string | null)[] | null;
+}
+
+export interface UserCreateInput {
+  email?: string | null;
+  isActive?: boolean | null;
+  note?: string | null;
+  defaultBillingAddress?: AddressInput | null;
+  defaultShippingAddress?: AddressInput | null;
+  sendPasswordEmail?: boolean | null;
 }
 
 //==============================================================

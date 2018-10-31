@@ -57,7 +57,6 @@ def test_collect_data_for_email(order):
 
 @pytest.mark.parametrize('send_email,template', [
     (emails.send_payment_confirmation, emails.CONFIRM_PAYMENT_TEMPLATE),
-    (emails.send_note_confirmation, emails.CONFIRM_NOTE_TEMPLATE),
     (emails.send_order_confirmation, emails.CONFIRM_ORDER_TEMPLATE)])
 @mock.patch('saleor.order.emails.send_templated_mail')
 def test_send_emails(mocked_templated_email, order, template, send_email):

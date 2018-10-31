@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { FulfillmentCancelInput, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { FulfillmentCancelInput, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderFulfillmentCancel
@@ -86,7 +86,7 @@ export interface OrderFulfillmentCancel_orderFulfillmentCancel_order_fulfillment
   __typename: "FulfillmentLine";
   id: string;
   quantity: number;
-  orderLine: OrderFulfillmentCancel_orderFulfillmentCancel_order_fulfillments_lines_edges_node_orderLine;
+  orderLine: OrderFulfillmentCancel_orderFulfillmentCancel_order_fulfillments_lines_edges_node_orderLine | null;
 }
 
 export interface OrderFulfillmentCancel_orderFulfillmentCancel_order_fulfillments_lines_edges {
@@ -244,7 +244,7 @@ export interface OrderFulfillmentCancel_orderFulfillmentCancel_order {
   fulfillments: (OrderFulfillmentCancel_orderFulfillmentCancel_order_fulfillments | null)[];
   lines: (OrderFulfillmentCancel_orderFulfillmentCancel_order_lines | null)[];
   number: string | null;
-  paymentStatus: PaymentStatusEnum | null;
+  paymentStatus: PaymentChargeStatusEnum | null;
   shippingAddress: OrderFulfillmentCancel_orderFulfillmentCancel_order_shippingAddress | null;
   shippingMethod: OrderFulfillmentCancel_orderFulfillmentCancel_order_shippingMethod | null;
   shippingMethodName: string | null;
@@ -252,6 +252,7 @@ export interface OrderFulfillmentCancel_orderFulfillmentCancel_order {
   status: OrderStatus;
   subtotal: OrderFulfillmentCancel_orderFulfillmentCancel_order_subtotal | null;
   total: OrderFulfillmentCancel_orderFulfillmentCancel_order_total | null;
+  actions: (OrderAction | null)[];
   totalAuthorized: OrderFulfillmentCancel_orderFulfillmentCancel_order_totalAuthorized | null;
   totalCaptured: OrderFulfillmentCancel_orderFulfillmentCancel_order_totalCaptured | null;
   user: OrderFulfillmentCancel_orderFulfillmentCancel_order_user | null;

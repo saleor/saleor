@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction, WeightUnitsEnum } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL query operation: OrderDetails
@@ -80,7 +80,7 @@ export interface OrderDetails_order_fulfillments_lines_edges_node {
   __typename: "FulfillmentLine";
   id: string;
   quantity: number;
-  orderLine: OrderDetails_order_fulfillments_lines_edges_node_orderLine;
+  orderLine: OrderDetails_order_fulfillments_lines_edges_node_orderLine | null;
 }
 
 export interface OrderDetails_order_fulfillments_lines_edges {
@@ -238,7 +238,7 @@ export interface OrderDetails_order {
   fulfillments: (OrderDetails_order_fulfillments | null)[];
   lines: (OrderDetails_order_lines | null)[];
   number: string | null;
-  paymentStatus: PaymentStatusEnum | null;
+  paymentStatus: PaymentChargeStatusEnum | null;
   shippingAddress: OrderDetails_order_shippingAddress | null;
   shippingMethod: OrderDetails_order_shippingMethod | null;
   shippingMethodName: string | null;
@@ -246,6 +246,7 @@ export interface OrderDetails_order {
   status: OrderStatus;
   subtotal: OrderDetails_order_subtotal | null;
   total: OrderDetails_order_total | null;
+  actions: (OrderAction | null)[];
   totalAuthorized: OrderDetails_order_totalAuthorized | null;
   totalCaptured: OrderDetails_order_totalCaptured | null;
   user: OrderDetails_order_user | null;
@@ -262,6 +263,7 @@ export interface OrderDetails_shop_countries {
 export interface OrderDetails_shop {
   __typename: "Shop";
   countries: (OrderDetails_shop_countries | null)[];
+  defaultWeightUnit: WeightUnitsEnum | null;
 }
 
 export interface OrderDetails {

@@ -13,14 +13,10 @@ export const productTypeListUrl = "/productTypes";
 const ProductTypeList: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
-  const queryString = parseQs(location.search.substr(1));
+  const qs = parseQs(location.search.substr(1));
   const params = {
-    after: queryString.after
-      ? decodeURIComponent(queryString.after)
-      : undefined,
-    before: queryString.before
-      ? decodeURIComponent(queryString.before)
-      : undefined
+    after: qs.after,
+    before: qs.before
   };
   return <ProductTypeListComponent params={params} />;
 };
@@ -30,7 +26,9 @@ interface ProductTypeUpdateRouteParams {
 }
 const ProductTypeUpdate: React.StatelessComponent<
   RouteComponentProps<ProductTypeUpdateRouteParams>
-> = ({ match }) => <ProductTypeUpdateComponent id={match.params.id} />;
+> = ({ match }) => (
+  <ProductTypeUpdateComponent id={decodeURIComponent(match.params.id)} />
+);
 
 export const ProductTypeRouter: React.StatelessComponent<
   RouteComponentProps<any>
@@ -38,7 +36,7 @@ export const ProductTypeRouter: React.StatelessComponent<
   <Switch>
     <Route exact path={match.url} component={ProductTypeList} />
     <Route exact path={match.url + "/add/"} component={ProductTypeCreate} />
-    <Route exact path={match.url + "/:id/"} component={ProductTypeUpdate} />
+    <Route path={match.url + "/:id/"} component={ProductTypeUpdate} />
   </Switch>
 );
 ProductTypeRouter.displayName = "ProductTypeRouter";

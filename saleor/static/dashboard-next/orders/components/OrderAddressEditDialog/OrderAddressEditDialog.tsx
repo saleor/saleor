@@ -6,7 +6,7 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import * as React from "react";
 
 import AddressEdit from "../../../components/AddressEdit/AddressEdit";
-import { AddressTypeInput } from "../../../customers/";
+import { AddressTypeInput } from "../../../customers/types";
 import i18n from "../../../i18n";
 
 interface OrderAddressEditDialogProps {

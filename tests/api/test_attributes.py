@@ -3,7 +3,7 @@ import pytest
 import graphene
 from django.template.defaultfilters import slugify
 from saleor.graphql.product.types import (
-    AttributeValueType, resolve_attribute_value_type)
+    AttributeTypeEnum, AttributeValueType, resolve_attribute_value_type)
 from saleor.graphql.product.utils import attributes_to_hstore
 from saleor.product.models import Attribute, AttributeValue, Category
 from tests.api.utils import get_graphql_content
@@ -91,33 +91,42 @@ def test_attributes_in_category_query(user_api_client, product):
 
 CREATE_ATTRIBUTES_QUERY = """
     mutation createAttribute(
-            $name: String!, $values: [AttributeCreateValueInput]) {
-        attributeCreate(
-                input: {name: $name, values: $values}) {
-            errors {
-                field
-                message
-            }
-            attribute {
+        $name: String!, $values: [AttributeValueCreateInput],
+        $id: ID!, $type: AttributeTypeEnum!) {
+    attributeCreate(
+            id: $id, type: $type, input: {name: $name, values: $values}) {
+        errors {
+            field
+            message
+        }
+        attribute {
+            name
+            slug
+            values {
                 name
                 slug
-                values {
-                    name
-                    slug
-                }
             }
         }
+        productType {
+            id
+            name
+        }
     }
+}
 """
 
 
 def test_create_attribute_and_attribute_values(
-        staff_api_client, permission_manage_products):
+        staff_api_client, permission_manage_products, product_type):
     query = CREATE_ATTRIBUTES_QUERY
+    id = graphene.Node.to_global_id('ProductType', product_type.id)
+
     attribute_name = 'Example name'
     name = 'Value name'
     variables = {
-        'name': 'Example name', 'values': [{'name': name, 'value': '#1231'}]}
+        'name': attribute_name, 'id': id,
+        'type': AttributeTypeEnum.PRODUCT.name,
+        'values': [{'name': name, 'value': '#1231'}]}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     assert_read_only_mode(response)
@@ -127,16 +136,18 @@ def test_create_attribute_and_attribute_values(
     'name_1, name_2, error_msg', (
         (
             'Red color', 'Red color',
-            'Duplicated AttributeValue names provided.'),
+            'Provided values are not unique.'),
         (
             'Red color', 'red color',
-            'Provided AttributeValue names are not unique.')))
+            'Provided values are not unique.')))
 def test_create_attribute_and_attribute_values_errors(
         staff_api_client, name_1, name_2, error_msg,
-        permission_manage_products):
+        permission_manage_products, product_type):
     query = CREATE_ATTRIBUTES_QUERY
+    id = graphene.Node.to_global_id('ProductType', product_type.id)
     variables = {
-        'name': 'Example name',
+        'name': 'Example name', 'id': id,
+        'type': AttributeTypeEnum.PRODUCT.name,
         'values': [
             {'name': name_1, 'value': '#1231'},
             {'name': name_2, 'value': '#121'}]}
@@ -145,9 +156,36 @@ def test_create_attribute_and_attribute_values_errors(
     assert_read_only_mode(response)
 
 
+def test_create_variant_attribute(
+        staff_api_client, permission_manage_products, product_type):
+    product_type.has_variants = True
+    product_type.save()
+
+    query = CREATE_ATTRIBUTES_QUERY
+    id = graphene.Node.to_global_id('ProductType', product_type.id)
+    attribute_name = 'Example name'
+    variables = {
+        'name': attribute_name, 'id': id,
+        'type': AttributeTypeEnum.VARIANT.name, 'values': []}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    assert_read_only_mode(response)
+
+
+def test_create_attribute_incorrect_product_type_id(
+        staff_api_client, permission_manage_products, product_type):
+    query = CREATE_ATTRIBUTES_QUERY
+    variables = {
+        'name': 'Example name', 'id': 'incorrect-id',
+        'type': AttributeTypeEnum.PRODUCT.name, 'values': []}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    assert_read_only_mode(response)
+
+
 UPDATE_ATTRIBUTE_QUERY = """
     mutation updateAttribute(
-        $id: ID!, $name: String!, $addValues: [AttributeCreateValueInput]!,
+        $id: ID!, $name: String!, $addValues: [AttributeValueCreateInput]!,
         $removeValues: [ID]!) {
     attributeUpdate(
             id: $id,
@@ -166,13 +204,18 @@ UPDATE_ATTRIBUTE_QUERY = """
                 slug
             }
         }
+        productType {
+            id
+            name
+        }
     }
 }
 """
 
 
 def test_update_attribute_name(
-        staff_api_client, color_attribute, permission_manage_products):
+        staff_api_client, color_attribute, product_type,
+        permission_manage_products):
     query = UPDATE_ATTRIBUTE_QUERY
     attribute = color_attribute
     name = 'Wings name'
@@ -202,14 +245,31 @@ def test_update_attribute_remove_and_add_values(
     assert_read_only_mode(response)
 
 
+def test_update_empty_attribute_and_add_values(
+        staff_api_client, color_attribute_without_values,
+        permission_manage_products):
+    query = UPDATE_ATTRIBUTE_QUERY
+    attribute = color_attribute_without_values
+    name = 'Wings name'
+    attribute_value_name = 'Yellow Color'
+    id = graphene.Node.to_global_id('Attribute', attribute.id)
+    variables = {
+        'name': name, 'id': id,
+        'addValues': [{'name': attribute_value_name, 'value': '#1231'}],
+        'removeValues': []}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    assert_read_only_mode(response)
+
+
 @pytest.mark.parametrize(
     'name_1, name_2, error_msg', (
         (
             'Red color', 'Red color',
-            'Duplicated AttributeValue names provided.'),
+            'Provided values are not unique.'),
         (
             'Red color', 'red color',
-            'Provided AttributeValue names are not unique.')))
+            'Provided values are not unique.')))
 def test_update_attribute_and_add_attribute_values_errors(
         staff_api_client, name_1, name_2, error_msg, color_attribute,
         permission_manage_products):
@@ -243,13 +303,21 @@ def test_update_attribute_and_remove_others_attribute_value(
 
 
 def test_delete_attribute(
-        staff_api_client, color_attribute, permission_manage_products):
+        staff_api_client, color_attribute, permission_manage_products,
+        product_type):
     attribute = color_attribute
     query = """
     mutation deleteAttribute($id: ID!) {
         attributeDelete(id: $id) {
+            errors {
+                field
+                message
+            }
             attribute {
                 id
+            }
+            productType {
+                name
             }
         }
     }
@@ -263,9 +331,9 @@ def test_delete_attribute(
 
 CREATE_ATTRIBUTE_VALUE_QUERY = """
     mutation createAttributeValue(
-        $id: ID!, $name: String!, $value: String!) {
+        $attributeId: ID!, $name: String!, $value: String) {
     attributeValueCreate(
-        attribute: $id, input: {name: $name, value: $value}) {
+        attribute: $attributeId, input: {name: $name, value: $value}) {
         errors {
             field
             message
@@ -293,7 +361,7 @@ def test_create_attribute_value(
     attribute_id = graphene.Node.to_global_id('Attribute', attribute.id)
     name = 'test name'
     value = 'test-string'
-    variables = {'name': name, 'value': value, 'id': attribute_id}
+    variables = {'name': name, 'value': value, 'attributeId': attribute_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     assert_read_only_mode(response)
@@ -306,7 +374,8 @@ def test_create_attribute_value_not_unique_name(
     attribute_id = graphene.Node.to_global_id('Attribute', attribute.id)
     value_name = attribute.values.first().name
     variables = {
-        'name': value_name, 'value': 'test-string', 'id': attribute_id}
+        'name': value_name, 'value': 'test-string',
+        'attributeId': attribute_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     assert_read_only_mode(response)
@@ -314,7 +383,7 @@ def test_create_attribute_value_not_unique_name(
 
 UPDATE_ATTRIBUTE_VALUE_QUERY = """
 mutation updateChoice(
-        $id: ID!, $name: String!, $value: String!) {
+        $id: ID!, $name: String!, $value: String) {
     attributeValueUpdate(
     id: $id, input: {name: $name, value: $value}) {
         errors {
@@ -411,36 +480,3 @@ def test_delete_attribute_value(
 ])
 def test_resolve_attribute_value_type(raw_value, expected_type):
     assert resolve_attribute_value_type(raw_value) == expected_type
-
-
-def test_query_attribute_values(
-        color_attribute, pink_attribute_value, user_api_client):
-    attribute_id = graphene.Node.to_global_id(
-        'Attribute', color_attribute.id)
-    query = """
-    query getAttribute($id: ID!) {
-        attributes(id: $id) {
-            edges {
-                node {
-                    id
-                    name
-                    values {
-                        name
-                        type
-                        value
-                    }
-                }
-            }
-        }
-    }
-    """
-    variables = {'id': attribute_id}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content['data']['attributes']['edges'][0]['node']
-    values = data['values']
-    pink = [v for v in values if v['name'] == pink_attribute_value.name]
-    assert len(pink) == 1
-    pink = pink[0]
-    assert pink['value'] == '#FF69B4'
-    assert pink['type'] == 'COLOR'

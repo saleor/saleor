@@ -2,12 +2,12 @@ import * as React from "react";
 import { arrayMove } from "react-sortable-hoc";
 
 import * as placeholderImg from "../../../images/placeholder255x255.png";
-import { attributesListUrl } from "../../attributes";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import i18n from "../../i18n";
 import { decimal } from "../../misc";
+import { productTypeDetailsUrl } from "../../productTypes";
 import ProductUpdatePage from "../components/ProductUpdatePage";
 import ProductUpdateOperations from "../containers/ProductUpdateOperations";
 import {
@@ -56,7 +56,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                       text: i18n.t("Image successfully deleted")
                     });
                   const handleVariantAdd = () =>
-                    navigate(productVariantAddUrl(id));
+                    navigate(productVariantAddUrl(encodeURIComponent(id)));
 
                   const product = data ? data.product : undefined;
                   const allCollections =
@@ -90,7 +90,12 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                         const handleImageDelete = (id: string) => () =>
                           deleteProductImage.mutate({ id });
                         const handleImageEdit = (imageId: string) => () =>
-                          navigate(productImageUrl(id, imageId));
+                          navigate(
+                            productImageUrl(
+                              encodeURIComponent(id),
+                              encodeURIComponent(imageId)
+                            )
+                          );
                         const handleSubmit = data => {
                           if (product) {
                             updateProduct.mutate({
@@ -143,7 +148,15 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                                 ? product.variants.edges.map(edge => edge.node)
                                 : undefined
                             }
-                            onAttributesEdit={() => navigate(attributesListUrl)}
+                            onAttributesEdit={() =>
+                              navigate(
+                                productTypeDetailsUrl(
+                                  encodeURIComponent(
+                                    data.product.productType.id
+                                  )
+                                )
+                              )
+                            }
                             onBack={() => {
                               navigate(productListUrl);
                             }}
@@ -167,7 +180,10 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                             onVariantAdd={handleVariantAdd}
                             onVariantShow={variantId => () =>
                               navigate(
-                                productVariantEditUrl(product.id, variantId)
+                                productVariantEditUrl(
+                                  encodeURIComponent(product.id),
+                                  encodeURIComponent(variantId)
+                                )
                               )}
                             onImageUpload={event => {
                               if (product) {

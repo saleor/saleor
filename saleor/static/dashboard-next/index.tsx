@@ -1,6 +1,6 @@
 import CssBaseline from "@material-ui/core/CssBaseline";
 import MuiThemeProvider from "@material-ui/core/styles/MuiThemeProvider";
-import { InMemoryCache } from "apollo-cache-inmemory";
+import { defaultDataIdFromObject, InMemoryCache } from "apollo-cache-inmemory";
 import { ApolloClient, ApolloError } from "apollo-client";
 import { setContext } from "apollo-link-context";
 import { ErrorResponse, onError } from "apollo-link-error";
@@ -17,10 +17,12 @@ import LoginLoading from "./auth/components/LoginLoading/LoginLoading";
 import SectionRoute from "./auth/components/SectionRoute";
 import { hasPermission } from "./auth/misc";
 import CategorySection from "./categories";
+import CollectionSection from "./collections";
 import { DateProvider } from "./components/DateFormatter";
 import { LocaleProvider } from "./components/Locale";
 import { MessageManager } from "./components/messages";
 import ConfigurationSection, { configurationMenu } from "./configuration";
+import { CustomerSection } from "./customers";
 import HomePage from "./home";
 import "./i18n";
 import { NotFound } from "./NotFound";
@@ -28,8 +30,10 @@ import OrdersSection from "./orders";
 import PageSection from "./pages";
 import ProductSection from "./products";
 import ProductTypesSection from "./productTypes";
+import SiteSettingsSection from "./siteSettings";
 import StaffSection from "./staff";
 import theme from "./theme";
+import { PermissionEnum } from "./types/globalTypes";
 
 const cookies = new Cookies();
 
@@ -66,7 +70,16 @@ const uploadLink = createUploadLink({
 });
 
 const apolloClient = new ApolloClient({
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    dataIdFromObject: (obj: any) => {
+      // We need to set manually shop's ID, since it is singleton and
+      // API does not return its ID
+      if (obj.__typename === "Shop") {
+        return "shop";
+      }
+      return defaultDataIdFromObject(obj);
+    }
+  }),
   link: invalidTokenLink.concat(authLink.concat(uploadLink))
 });
 
@@ -94,34 +107,49 @@ render(
                     <Switch>
                       <SectionRoute exact path="/" component={HomePage} />
                       <SectionRoute
-                        permissions={["product.manage_products"]}
+                        permissions={[PermissionEnum.MANAGE_PRODUCTS]}
                         path="/categories"
                         component={CategorySection}
                       />
                       <SectionRoute
-                        permissions={["page.manage_pages"]}
+                        permissions={[PermissionEnum.MANAGE_PRODUCTS]}
+                        path="/collections"
+                        component={CollectionSection}
+                      />
+                      <SectionRoute
+                        permissions={[PermissionEnum.MANAGE_USERS]}
+                        path="/customers"
+                        component={CustomerSection}
+                      />
+                      <SectionRoute
+                        permissions={[PermissionEnum.MANAGE_PAGES]}
                         path="/pages"
                         component={PageSection}
                       />
                       <SectionRoute
-                        permissions={["order.manage_orders"]}
+                        permissions={[PermissionEnum.MANAGE_ORDERS]}
                         path="/orders"
                         component={OrdersSection}
                       />
                       <SectionRoute
-                        permissions={["product.manage_products"]}
+                        permissions={[PermissionEnum.MANAGE_PRODUCTS]}
                         path="/products"
                         component={ProductSection}
                       />
                       <SectionRoute
-                        permissions={["product.manage_products"]}
+                        permissions={[PermissionEnum.MANAGE_PRODUCTS]}
                         path="/productTypes"
                         component={ProductTypesSection}
                       />
                       <SectionRoute
-                        permissions={["account.manage_staff"]}
+                        permissions={[PermissionEnum.MANAGE_STAFF]}
                         path="/staff"
                         component={StaffSection}
+                      />
+                      <SectionRoute
+                        permissions={[PermissionEnum.MANAGE_SETTINGS]}
+                        path="/siteSettings"
+                        component={SiteSettingsSection}
                       />
                       {configurationMenu.filter(menuItem =>
                         hasPermission(menuItem.permission, user)
@@ -200,5 +228,5 @@ export interface MutationProviderProps {
   onError?: (error: ApolloError) => void;
 }
 export type MutationProviderRenderProps<T> = (
-  props: T & { errors: UserError[] }
+  props: T & { errors?: UserError[] }
 ) => React.ReactElement<any>;

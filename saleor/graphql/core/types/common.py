@@ -1,10 +1,18 @@
 import decimal
+from textwrap import dedent
 
 import graphene
 from graphene_django import DjangoObjectType
+from saleor.core.permissions import MODELS_PERMISSIONS
+from saleor.graphql.core.utils import str_to_enum
 
 from ....core import weight
 from ..connection import CountableConnection
+
+
+class ReportingPeriod(graphene.Enum):
+    TODAY = 'TODAY'
+    THIS_MONTH = 'THIS_MONTH'
 
 
 class Decimal(graphene.Float):
@@ -45,9 +53,9 @@ class CountableDjangoObjectType(DjangoObjectType):
 
 class Error(graphene.ObjectType):
     field = graphene.String(
-        description="""Name of a field that caused the error. A value of
+        description=dedent("""Name of a field that caused the error. A value of
         `null` indicates that the error isn't associated with a particular
-        field.""", required=False)
+        field."""), required=False)
     message = graphene.String(description='The error message.')
 
     class Meta:
@@ -59,8 +67,14 @@ class LanguageDisplay(graphene.ObjectType):
     language = graphene.String(description='Language.', required=True)
 
 
+PermissionEnum = graphene.Enum(
+    'PermissionEnum', [
+        (str_to_enum(codename.split('.')[1]), codename)
+        for codename in MODELS_PERMISSIONS])
+
+
 class PermissionDisplay(graphene.ObjectType):
-    code = graphene.String(
+    code = PermissionEnum(
         description='Internal code for permission.', required=True)
     name = graphene.String(
         description='Describe action(s) allowed to do by permission.',

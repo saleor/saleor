@@ -52,11 +52,13 @@ class Voucher(models.Model):
         max_length=10, choices=DiscountValueType.CHOICES,
         default=DiscountValueType.FIXED)
     discount_value = models.DecimalField(
-        max_digits=12, decimal_places=settings.DEFAULT_DECIMAL_PLACES)
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES)
     # not mandatory fields, usage depends on type
     countries = CountryField(multiple=True, blank=True)
     min_amount_spent = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, null=True, blank=True)
     products = models.ManyToManyField('product.Product', blank=True)
     collections = models.ManyToManyField('product.Collection', blank=True)
@@ -159,7 +161,8 @@ class Sale(models.Model):
         max_length=10, choices=DiscountValueType.CHOICES,
         default=DiscountValueType.FIXED)
     value = models.DecimalField(
-        max_digits=12, decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=0)
     products = models.ManyToManyField('product.Product', blank=True)
     categories = models.ManyToManyField('product.Category', blank=True)

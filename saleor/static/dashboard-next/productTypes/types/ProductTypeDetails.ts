@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { TaxRateType } from "./../../types/globalTypes";
+import { TaxRateType, WeightUnitsEnum } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL query operation: ProductTypeDetails
@@ -37,19 +37,32 @@ export interface ProductTypeDetails_productType_variantAttributes {
   values: (ProductTypeDetails_productType_variantAttributes_values | null)[] | null;
 }
 
+export interface ProductTypeDetails_productType_weight {
+  __typename: "Weight";
+  unit: string;
+  value: number;
+}
+
 export interface ProductTypeDetails_productType {
   __typename: "ProductType";
   id: string;
   name: string;
   hasVariants: boolean;
-  productAttributes: (ProductTypeDetails_productType_productAttributes | null)[] | null;
-  variantAttributes: (ProductTypeDetails_productType_variantAttributes | null)[] | null;
   isShippingRequired: boolean;
   taxRate: TaxRateType | null;
+  productAttributes: (ProductTypeDetails_productType_productAttributes | null)[] | null;
+  variantAttributes: (ProductTypeDetails_productType_variantAttributes | null)[] | null;
+  weight: ProductTypeDetails_productType_weight | null;
+}
+
+export interface ProductTypeDetails_shop {
+  __typename: "Shop";
+  defaultWeightUnit: WeightUnitsEnum | null;
 }
 
 export interface ProductTypeDetails {
   productType: ProductTypeDetails_productType | null;
+  shop: ProductTypeDetails_shop | null;
 }
 
 export interface ProductTypeDetailsVariables {

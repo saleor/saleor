@@ -1,41 +1,29 @@
 import gql from "graphql-tag";
-import * as React from "react";
-import { Query, QueryProps } from "react-apollo";
 
+import { TypedQuery } from "../queries";
 import {
   CategoryDetails,
   CategoryDetailsVariables
 } from "./types/CategoryDetails";
-import {
-  CategoryProperties,
-  CategoryPropertiesVariables
-} from "./types/CategoryProperties";
-import { RootCategoryChildren } from "./types/RootCategoryChildren";
+import { RootCategories } from "./types/RootCategories";
 
-export const TypedCategoryDetailsQuery = Query as React.ComponentType<
-  QueryProps<CategoryDetails, CategoryDetailsVariables>
->;
-export const categoryDetailsQuery = gql`
-  query CategoryDetails($id: ID!) {
-    category(id: $id) {
+export const categoryDetailsFragment = gql`
+  fragment CategoryDetailsFragment on Category {
+    id
+    name
+    description
+    seoDescription
+    seoTitle
+    parent {
       id
-      name
-      description
-      parent {
-        id
-      }
     }
   }
 `;
 
-export const TypedRootCategoryChildrenQuery = Query as React.ComponentType<
-  QueryProps<RootCategoryChildren>
->;
-export const rootCategoryChildrenQuery = gql`
-  query RootCategoryChildren {
+export const rootCategories = gql`
+  query RootCategories {
     categories(level: 0) {
       edges {
-        cursor
         node {
           id
           name
@@ -50,12 +38,13 @@ export const rootCategoryChildrenQuery = gql`
     }
   }
 `;
+export const TypedRootCategoriesQuery = TypedQuery<RootCategories, {}>(
+  rootCategories
+);
 
-export const TypedCategoryPropertiesQuery = Query as React.ComponentType<
-  QueryProps<CategoryProperties, CategoryPropertiesVariables>
->;
-export const categoryPropertiesQuery = gql`
-  query CategoryProperties(
+export const categoryDetails = gql`
+  ${categoryDetailsFragment}
+  query CategoryDetails(
     $id: ID!
     $first: Int
     $after: String
@@ -63,12 +52,7 @@ export const categoryPropertiesQuery = gql`
     $before: String
   ) {
     category(id: $id) {
-      id
-      name
-      description
-      parent {
-        id
-      }
+      ...CategoryDetailsFragment
       children {
         edges {
           node {
@@ -84,7 +68,6 @@ export const categoryPropertiesQuery = gql`
         }
       }
       products(first: $first, after: $after, last: $last, before: $before) {
-        totalCount
         pageInfo {
           endCursor
           hasNextPage
@@ -96,7 +79,14 @@ export const categoryPropertiesQuery = gql`
           node {
             id
             name
+            availability {
+              available
+            }
             thumbnailUrl
+            price {
+              amount
+              currency
+            }
             productType {
               id
               name
@@ -107,3 +97,7 @@ export const categoryPropertiesQuery = gql`
     }
   }
 `;
+export const TypedCategoryDetailsQuery = TypedQuery<
+  CategoryDetails,
+  CategoryDetailsVariables
+>(categoryDetails);

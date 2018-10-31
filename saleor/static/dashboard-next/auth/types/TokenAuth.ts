@@ -1,6 +1,8 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
+import { PermissionEnum } from "./../../types/globalTypes";
+
 // ====================================================
 // GraphQL mutation operation: TokenAuth
 // ====================================================
@@ -13,7 +15,7 @@ export interface TokenAuth_tokenCreate_errors {
 
 export interface TokenAuth_tokenCreate_user_permissions {
   __typename: "PermissionDisplay";
-  code: string;
+  code: PermissionEnum;
   name: string;
 }
 

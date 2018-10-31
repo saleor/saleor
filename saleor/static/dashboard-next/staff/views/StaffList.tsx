@@ -47,7 +47,11 @@ export const StaffList: React.StatelessComponent<OrderListProps> = ({
                     pushMessage({
                       text: i18n.t("Succesfully added staff member")
                     });
-                    navigate(staffMemberDetailsUrl(data.staffCreate.user.id));
+                    navigate(
+                      staffMemberDetailsUrl(
+                        encodeURIComponent(data.staffCreate.user.id)
+                      )
+                    );
                   }
                 };
                 return (
@@ -84,7 +88,9 @@ export const StaffList: React.StatelessComponent<OrderListProps> = ({
                           onNextPage={loadNextPage}
                           onPreviousPage={loadPreviousPage}
                           onRowClick={id => () =>
-                            navigate(staffMemberDetailsUrl(id))}
+                            navigate(
+                              staffMemberDetailsUrl(encodeURIComponent(id))
+                            )}
                         />
                       );
                     }}

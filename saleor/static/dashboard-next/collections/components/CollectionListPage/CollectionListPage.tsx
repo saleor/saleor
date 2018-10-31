@@ -6,48 +6,31 @@ import { PageListProps } from "../../..";
 import { Container } from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
+import { CollectionList_collections_edges_node } from "../../types/CollectionList";
 import CollectionList from "../CollectionList/CollectionList";
 
-interface CollectionListPageProps extends PageListProps {
-  collections?: Array<{
-    id: string;
-    name: string;
-    slug: string;
-    isPublished: boolean;
-    products: {
-      totalCount: number;
-    };
-  }>;
+export interface CollectionListPageProps extends PageListProps {
+  collections: CollectionList_collections_edges_node[];
 }
 
 const CollectionListPage: React.StatelessComponent<CollectionListPageProps> = ({
-  collections,
   disabled,
-  pageInfo,
   onAdd,
-  onNextPage,
-  onPreviousPage,
-  onRowClick
+  ...listProps
 }) => (
   <Container width="md">
-    <PageHeader title={i18n.t("Collections")}>
+    <PageHeader title={i18n.t("Collections", { context: "page title" })}>
       <Button
         color="secondary"
-        variant="contained"
         disabled={disabled}
+        variant="contained"
         onClick={onAdd}
       >
-        {i18n.t("Add collection")} <AddIcon />
+        {i18n.t("Add collection", { context: "button" })}
+        <AddIcon />
       </Button>
     </PageHeader>
-    <CollectionList
-      collections={collections}
-      disabled={disabled}
-      pageInfo={pageInfo}
-      onRowClick={onRowClick}
-      onNextPage={onNextPage}
-      onPreviousPage={onPreviousPage}
-    />
+    <CollectionList disabled={disabled} {...listProps} />
   </Container>
 );
 CollectionListPage.displayName = "CollectionListPage";

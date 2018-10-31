@@ -63,9 +63,9 @@ def staff_create(request):
             'Dashboard message', 'Added staff member %s') % (staff,)
         messages.success(request, msg)
         if created:
-            send_set_password_email(staff)
+            send_set_password_email.delay(staff)
         else:
-            send_promote_customer_to_staff_email(staff)
+            send_promote_customer_to_staff_email.delay(staff)
         return redirect('dashboard:staff-list')
     ctx = {'form': form}
     return TemplateResponse(request, 'dashboard/staff/detail.html', ctx)

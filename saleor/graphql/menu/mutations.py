@@ -1,11 +1,13 @@
+from textwrap import dedent
+
 import graphene
 from graphql_jwt.decorators import permission_required
 from graphql_jwt.exceptions import PermissionDenied
 
 from ...menu import models
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..product.types import Category, Collection
 from ..page.types import Page
+from ..product.types import Category, Collection
 from .types import Menu
 
 
@@ -25,9 +27,9 @@ class MenuItemCreateInput(MenuItemInput):
         description='Menu to which item belongs to.', name='menu',
         required=True)
     parent = graphene.ID(
-        description='''
+        description=dedent('''
         ID of the parent menu. If empty, menu will be top level
-        menu.''',
+        menu.'''),
         name='parent')
 
 
@@ -129,9 +131,9 @@ class MenuItemCreate(ModelMutation):
     class Arguments:
         input = MenuItemCreateInput(
             required=True,
-            description="""Fields required to update a menu item.
+            description=dedent("""Fields required to update a menu item.
             Only one of 'url', 'category', 'page', 'collection' is allowed
-            per item""")
+            per item"""))
 
     class Meta:
         description = 'Creates a new Menu'
@@ -161,9 +163,9 @@ class MenuItemUpdate(MenuItemCreate):
             required=True, description='ID of a menu item to update.')
         input = MenuItemInput(
             required=True,
-            description="""Fields required to update a menu item.
+            description=dedent("""Fields required to update a menu item.
             Only one of 'url', 'category', 'page', 'collection' is allowed
-            per item""")
+            per item"""))
 
     class Meta:
         description = 'Updates a menu item.'
