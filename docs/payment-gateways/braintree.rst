@@ -18,3 +18,6 @@ This gateway implements payments using `Braintree <https://www.braintreepayments
 .. note::
 
     This backend does not support fraud detection.
+    
+  .. warning::
+     Make sure that Braintree's currency is the same as your shop's, otherwise, customers will be charged the wrong amount.
