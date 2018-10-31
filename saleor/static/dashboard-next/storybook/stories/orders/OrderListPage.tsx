@@ -29,7 +29,10 @@ storiesOf("Views / Orders / Order list", module)
       orders={orders}
       {...pageListProps.default}
       filtersList={[]}
+      onAllProducts={() => undefined}
       currentTab={0}
+      onToFulfill={() => undefined}
+      onToCapture={() => undefined}
     />
   ))
   .add("with custom filters", () => (
@@ -38,6 +41,9 @@ storiesOf("Views / Orders / Order list", module)
       {...pageListProps.loading}
       filtersList={filtersList}
       currentTab={0}
+      onAllProducts={() => undefined}
+      onToFulfill={() => undefined}
+      onToCapture={() => undefined}
     />
   ))
   .add("loading", () => (
@@ -46,6 +52,9 @@ storiesOf("Views / Orders / Order list", module)
       {...pageListProps.loading}
       filtersList={undefined}
       currentTab={undefined}
+      onAllProducts={() => undefined}
+      onToFulfill={() => undefined}
+      onToCapture={() => undefined}
     />
   ))
   .add("when no data", () => (
@@ -54,5 +63,8 @@ storiesOf("Views / Orders / Order list", module)
       {...pageListProps.default}
       filtersList={[]}
       currentTab={0}
+      onAllProducts={() => undefined}
+      onToFulfill={() => undefined}
+      onToCapture={() => undefined}
     />
   ));

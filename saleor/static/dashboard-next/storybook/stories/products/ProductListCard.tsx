@@ -36,6 +36,9 @@ storiesOf("Views / Products / Product list", module)
       currentTab={0}
       products={products}
       {...pageListProps.default}
+      onAllProducts={() => undefined}
+      onAvailable={() => undefined}
+      onOfStock={() => undefined}
     />
   ))
   .add("with custom filters", () => (
@@ -44,6 +47,9 @@ storiesOf("Views / Products / Product list", module)
       {...pageListProps.default}
       filtersList={filtersList}
       currentTab={0}
+      onAllProducts={() => undefined}
+      onAvailable={() => undefined}
+      onOfStock={() => undefined}
     />
   ))
   .add("loading", () => (
@@ -52,6 +58,9 @@ storiesOf("Views / Products / Product list", module)
       products={undefined}
       filtersList={undefined}
       currentTab={undefined}
+      onAllProducts={() => undefined}
+      onAvailable={() => undefined}
+      onOfStock={() => undefined}
     />
   ))
   .add("no data", () => (
@@ -60,5 +69,8 @@ storiesOf("Views / Products / Product list", module)
       {...pageListProps.default}
       filtersList={[]}
       currentTab={0}
+      onAllProducts={() => undefined}
+      onAvailable={() => undefined}
+      onOfStock={() => undefined}
     />
   ));

@@ -19,6 +19,9 @@ interface ProductListCardProps extends PageListProps {
   currentTab: number;
   filtersList: Filter[];
   products: CategoryDetails_category_products_edges_node[];
+  onAllProducts: () => void;
+  onAvailable: () => void;
+  onOfStock: () => void;
 }
 
 export const ProductListCard: React.StatelessComponent<
@@ -32,7 +35,10 @@ export const ProductListCard: React.StatelessComponent<
   onPreviousPage,
   onRowClick,
   filtersList,
-  currentTab
+  currentTab,
+  onAllProducts,
+  onAvailable,
+  onOfStock
 }) => (
   <Container width="md">
     <PageHeader title={i18n.t("Products")}>
@@ -41,7 +47,13 @@ export const ProductListCard: React.StatelessComponent<
       </Button>
     </PageHeader>
     <Card>
-      <ProductListFilter currentTab={currentTab} filtersList={filtersList} />
+      <ProductListFilter
+        currentTab={currentTab}
+        filtersList={filtersList}
+        onAllProducts={onAllProducts}
+        onAvailable={onAvailable}
+        onOfStock={onOfStock}
+      />
       <ProductList
         products={products}
         disabled={disabled}

@@ -16,6 +16,9 @@ interface OrderListPageProps extends PageListProps {
   orders: OrderList_orders_edges_node[];
   currentTab: number;
   filtersList: Filter[];
+  onAllProducts: () => void;
+  onToFulfill: () => void;
+  onToCapture: () => void;
 }
 
 const OrderListPage: React.StatelessComponent<OrderListPageProps> = ({
@@ -27,7 +30,10 @@ const OrderListPage: React.StatelessComponent<OrderListPageProps> = ({
   onPreviousPage,
   onRowClick,
   currentTab,
-  filtersList
+  filtersList,
+  onAllProducts,
+  onToFulfill,
+  onToCapture
 }) => (
   <Container width="md">
     <PageHeader title={i18n.t("Orders")}>
@@ -41,7 +47,13 @@ const OrderListPage: React.StatelessComponent<OrderListPageProps> = ({
       </Button>
     </PageHeader>
     <Card>
-      <OrderListFilter currentTab={currentTab} filtersList={filtersList} />
+      <OrderListFilter
+        currentTab={currentTab}
+        filtersList={filtersList}
+        onAllProducts={onAllProducts}
+        onToFulfill={onToFulfill}
+        onToCapture={onToCapture}
+      />
       <OrderList
         disabled={disabled}
         onRowClick={onRowClick}
