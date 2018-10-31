@@ -14,7 +14,7 @@
             max-height: 750px;
           }
           @media (max-width: 1440px) {
-            max-height: 630px;
+            max-height: 610px;
           }
         }
         @media (min-width: 2500px) {
