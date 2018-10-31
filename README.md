@@ -46,7 +46,7 @@
 
 ## What makes Saleor special?
 
-Saleor is a rapidly-growing open source ecommerce platform that has served high-volume companies from branches like publishing and apparel since 2012. Based on Python and Django, the latest major update introduces a modular front end with a GraphQL API and storefront and dashboard written in React to make Saleor a full-functionality open source ecommerce.
+Saleor is a rapidly-growing open source e-commerce platform that has served high-volume companies from branches like publishing and apparel since 2012. Based on Python and Django, the latest major update introduces a modular front end with a GraphQL API and storefront and dashboard written in React to make Saleor a full-functionality open source e-commerce.
 
 
 ## Features
@@ -61,7 +61,7 @@ Saleor is a rapidly-growing open source ecommerce platform that has served high-
 - __Geo-adaptive__: Automatic localized pricing. Over 20 local languages. Localized checkout experience by country.
 - __SEO__: Packed with features that get stores to a wider audience
 - __Cloud__: Optimized for deployments using Docker
-- __Analytics__: Server-side Google Analytics to report ecommerce metrics without affecting privacy
+- __Analytics__: Server-side Google Analytics to report e-commerce metrics without affecting privacy
 
 Saleor is free and always will be.
 Help us out… If you love free stuff and great software, give us a star!
@@ -114,7 +114,7 @@ Fill out this short survey and help us grow. It will take just a minute, but mea
 
 ## License
 
-Disclaimer: everything you see here is open and free to use as long as you comply with the [license](https://github.com/mirumee/saleor/blob/master/LICENSE). There are no hidden charges we promise to do our best to fix bugs and improve the code.
+Disclaimer: Everything you see here is open and free to use as long as you comply with the [license](https://github.com/mirumee/saleor/blob/master/LICENSE). There are no hidden charges. We promise to do our best to fix bugs and improve the code.
 
 Some situations do call for extra code; we can cover exotic use cases or build you a custom e-commerce appliance.
 
