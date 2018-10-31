@@ -9,6 +9,7 @@ import PageHeader from "../../../components/PageHeader";
 import ProductList from "../../../components/ProductList";
 import i18n from "../../../i18n";
 import { PageListProps } from "../../../types";
+import ProductListFilter from "../ProductListFilter";
 
 interface ProductListCardProps extends PageListProps {
   products: CategoryDetails_category_products_edges_node[];
@@ -32,6 +33,7 @@ export const ProductListCard: React.StatelessComponent<
       </Button>
     </PageHeader>
     <Card>
+      <ProductListFilter />
       <ProductList
         products={products}
         disabled={disabled}
