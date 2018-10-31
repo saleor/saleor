@@ -1,6 +1,8 @@
 # pylint: disable=W0401, W0614
 from saleor.settings import *  # noqa
 
+CELERY_TASK_ALWAYS_EAGER = True
+
 SECRET_KEY = 'NOTREALLY'
 
 DEFAULT_CURRENCY = 'USD'
