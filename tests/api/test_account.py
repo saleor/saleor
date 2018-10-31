@@ -119,8 +119,8 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
     """
     ID = graphene.Node.to_global_id('User', customer_user.id)
     variables = {'id': ID}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_users])
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['user']
     assert data['email'] == user.email
@@ -141,6 +141,30 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
     assert address['country']['code'] == user_address.country.code
     assert address['countryArea'] == user_address.country_area
     assert address['phone'] == user_address.phone.as_e164
+
+
+def test_non_staff_user_can_only_see_his_user_data(user_api_client,
+                                                   staff_user):
+    query = """
+    query User($id: ID!) {
+        user(id: $id) {
+            email
+        }
+    }
+    """
+    ID = graphene.Node.to_global_id('User', staff_user.id)
+    variables = {'id': ID}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['user']
+    assert data is None
+    user = user_api_client.user
+    ID = graphene.Node.to_global_id('User', user.id)
+    variables = {'id': ID}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['user']
+    assert data['email'] == user.email
 
 
 def test_query_customers(
@@ -223,7 +247,10 @@ def test_who_can_see_user(
     ID = graphene.Node.to_global_id('User', customer_user.id)
     variables = {'id': ID}
     response = staff_api_client.post_graphql(query, variables)
-    assert_no_permission(response)
+    data = get_graphql_content(response)
+    content = get_graphql_content(response)
+    data = content['data']['user']
+    assert data is None
 
     response = staff_api_client.post_graphql(query_2)
     assert_no_permission(response)
