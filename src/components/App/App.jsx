@@ -23,7 +23,7 @@ class App extends Component {
               <Switch>
                 <Route exact path="/" component={Home} />
                 <Route path="/features" component={Feature} />
-                <Route path="/privacy-policy" component={PrivacyPolicy} />
+                <Route path="/privacy-policy&terms-and-conditions" component={PrivacyPolicy} />
                 <Route path="/roadmap" component={Roadmap} />
               </Switch>
             </section>

@@ -3,14 +3,16 @@ import ReactSVG from 'react-svg';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { Link } from 'react-router-dom';
 import { GitHubLink } from '..';
+import { Lottie } from '..';
 import { isMobileOnly } from 'react-device-detect';
 import { Helmet } from "react-helmet";
-import Lottie from 'react-lottie';
+import VisibilitySensor from "react-visibility-sensor";
 
 import * as modernStack from '../../images/modernStack.json';
 import * as buildToScale from '../../images/buildToScale.json';
 import * as easyToCustomize from '../../images/easyToCustomize.json';
 import * as greatExperience from '../../images/greatExperience.json';
+import * as parrot from '../../images/parrot.json';
 
 import Fade from 'react-reveal/Fade';
 
@@ -18,11 +20,6 @@ import { ScrollLink } from '..';
 
 import css from './home.css';
 
-import parrot from '../../images/parrot-bg.png';
-import modernStackIcon from '../../images/modern-stack.svg';
-import buildToScaleIcon from '../../images/build-to-scale.svg';
-import easyToCustomizeIcon from '../../images/easy-to-customize.svg';
-import greatExperienceIcon from '../../images/great-experience.svg';
 import starsBg from '../../images/open-source-bg.svg';
 import background from '../../images/background.svg';
 import dashboardIcon from '../../images/dashboard-icon.png';
@@ -56,23 +53,56 @@ class Home extends Component {
     this.easyToCustomizeLeave = this.easyToCustomizeLeave.bind(this);
     this.greatExperienceEnter = this.greatExperienceEnter.bind(this);
     this.greatExperienceLeave = this.greatExperienceLeave.bind(this);
+    this.isVisibleBuildToScale = this.isVisibleBuildToScale.bind(this);
+    this.isVisibleEasyToCustomize = this.isVisibleEasyToCustomize.bind(this);
+    this.parrotPlayAndStop = this.parrotPlayAndStop.bind(this);
     
     this.state = { 
       tabIndex: 0,
       newsBar: true,
       modernStack: {
         isPaused: true,
+        direction: 1,
       },
       buildToScale: {
         isPaused: true,
+        direction: 1,
+      },
+      buildToScaleBig: {
+        isPaused: true,
+        direction: 1,
       },
       easyToCustomize: {
         isPaused: true,
+        direction: 1,
+      },
+      easyToCustomizeBig: {
+        isPaused: true,
+        direction: 1,
       },
       greatExperience: {
         isPaused: true,
+        direction: 1,
+      },
+      parrot: {
+        isPaused: true,
+        direction: 1,
       }
     };
+  }
+
+  parrotDelay() {
+    
+  }
+
+  parrotPlayAndStop() {
+    setTimeout(
+      function() {
+        this.setState(prevState => ({ parrot: { ...prevState.parrot, isPaused: true, direction: 1 }}))
+      }
+      .bind(this),
+      2000
+    );
   }
 
   toggleNewsBar() {
@@ -80,19 +110,35 @@ class Home extends Component {
     this.setState({ newsBar: !currentState });
   };
 
-  modernStackEnter() { this.setState(prevState => ({ modernStack: { ...prevState.modernStack, isPaused: false }}))};
-  modernStackLeave() { this.setState(prevState => ({ modernStack: { ...prevState.modernStack, isPaused: true } }))};
-  buildToScaleEnter() { this.setState(prevState => ({ buildToScale: { ...prevState.buildToScale, isPaused: false }}))};
-  buildToScaleLeave() { this.setState(prevState => ({ buildToScale: { ...prevState.buildToScale, isPaused: true } }))};
-  easyToCustomizeEnter() { this.setState(prevState => ({ easyToCustomize: { ...prevState.easyToCustomize, isPaused: false }}))};
-  easyToCustomizeLeave() { this.setState(prevState => ({ easyToCustomize: { ...prevState.easyToCustomize, isPaused: true } }))};
-  greatExperienceEnter() { this.setState(prevState => ({ greatExperience: { ...prevState.greatExperience, isPaused: false }}))};
-  greatExperienceLeave() { this.setState(prevState => ({ greatExperience: { ...prevState.greatExperience, isPaused: true } }))};
+  isVisibleBuildToScale (isVisible) {
+    if(isVisible) {
+      this.setState(prevState => ({ buildToScaleBig: { ...prevState.buildToScaleBig, isPaused: false }}))
+    }
+  }
 
+  isVisibleEasyToCustomize (isVisible) {
+    if(isVisible) {
+      this.setState(prevState => ({ easyToCustomizeBig: { ...prevState.easyToCustomizeBig, isPaused: false }}))
+    }
+  }
+
+  modernStackEnter() { this.setState(prevState => ({ modernStack: { ...prevState.modernStack, isPaused: false, direction: 1 }}))};
+  modernStackLeave() { this.setState(prevState => ({ modernStack: { ...prevState.modernStack, direction: -1 } }))};
+  buildToScaleEnter() { this.setState(prevState => ({ buildToScale: { ...prevState.buildToScale, isPaused: false, direction: 1 }}))};
+  buildToScaleLeave() { this.setState(prevState => ({ buildToScale: { ...prevState.buildToScale, direction: -1 } }))};
+  easyToCustomizeEnter() { this.setState(prevState => ({ easyToCustomize: { ...prevState.easyToCustomize, isPaused: false, direction: 1 }}))};
+  easyToCustomizeLeave() { this.setState(prevState => ({ easyToCustomize: { ...prevState.easyToCustomize, direction: -1 } }))};
+  greatExperienceEnter() { this.setState(prevState => ({ greatExperience: { ...prevState.greatExperience, isPaused: false, direction: 1 }}))};
+  greatExperienceLeave() { this.setState(prevState => ({ greatExperience: { ...prevState.greatExperience, direction: -1 } }))};
+
+  componentDidMount() {
+    this.setState(prevState => ({ parrot: { ...prevState.parrot, isPaused: false, direction: 1 }}));
+    this.parrotPlayAndStop();
+  }
 
   render() {
     const modernStackOptions = {
-      loop: true,
+      loop: false,
       autoplay: false,
       animationData: modernStack,
       rendererSettings: {
@@ -101,7 +147,7 @@ class Home extends Component {
     };
 
     const buildToScaleOptions = {
-      loop: true,
+      loop: false,
       autoplay: false,
       animationData: buildToScale,
       rendererSettings: {
@@ -110,7 +156,7 @@ class Home extends Component {
     };
 
     const easyToCustomizeOptions = {
-      loop: true,
+      loop: false,
       autoplay: false,
       animationData: easyToCustomize,
       rendererSettings: {
@@ -119,7 +165,7 @@ class Home extends Component {
     };
 
     const greatExperienceOptions = {
-      loop: true,
+      loop: false,
       autoplay: false,
       animationData: greatExperience,
       rendererSettings: {
@@ -127,7 +173,14 @@ class Home extends Component {
       }
     };
 
-    console.log(this.state.tabIndex);
+    const parrotOptions = {
+      loop: false,
+      autoplay: false,
+      animationData: parrot,
+      rendererSettings: {
+        preserveAspectRatio: 'xMidYMid slice'
+      }
+    };
 
     return (
         <div id="home" className="container">
@@ -136,7 +189,13 @@ class Home extends Component {
             <meta name="description" content="A GraphQL-first eCommerce platform for perfectionists. It is open sourced, PWA-ready and looks beautiful. Find out why developers love it." />
           </Helmet>
           <section className="hero">
-            <div className="bg-container"><img src={parrot} /></div>
+            <div className="bg-container">
+              {/* <img src={parrot} /> */}
+              <Lottie options={parrotOptions}
+                isPaused={this.state.parrot.isPaused}
+                direction={this.state.parrot.direction}
+              />
+              </div>
             <div className="plane">
               {this.state.newsBar &&
               <div className="news">
@@ -152,7 +211,7 @@ class Home extends Component {
                 <a href="https://demo.getsaleor.com/pl/" target="_blank" rel="noopener" className="btn btn-primary">
                   <span>See demo</span>
                 </a>
-                <a href="https://mirumee.com/hire-us/" target="_blank" rel="noopener" className="btn btn-secondary">
+                <a href="https://mirumee.typeform.com/to/Xwfril" target="_blank" rel="noopener" className="btn btn-secondary">
                   <span>Brief us</span>
                 </a>
               </div>
@@ -167,6 +226,7 @@ class Home extends Component {
                     <div className="image" onMouseEnter={this.modernStackEnter} onMouseLeave={this.modernStackLeave}>
                       <Lottie options={modernStackOptions}
                         isPaused={this.state.modernStack.isPaused}
+                        direction={this.state.modernStack.direction}
                       />
                       <h3><span>01<br/>-</span>Modern <br />stack</h3>
                     </div>
@@ -178,6 +238,7 @@ class Home extends Component {
                   <div className="image" onMouseEnter={this.buildToScaleEnter} onMouseLeave={this.buildToScaleLeave}>
                       <Lottie options={buildToScaleOptions}
                         isPaused={this.state.buildToScale.isPaused}
+                        direction={this.state.buildToScale.direction}
                       />
                     <h3><span>02<br/>-</span>Built to <br />scale</h3>
                   </div>
@@ -189,6 +250,7 @@ class Home extends Component {
                   <div className="image" onMouseEnter={this.easyToCustomizeEnter} onMouseLeave={this.easyToCustomizeLeave}>
                     <Lottie options={easyToCustomizeOptions}
                       isPaused={this.state.easyToCustomize.isPaused}
+                      direction={this.state.easyToCustomize.direction}
                     />
                     <h3><span>03<br/>-</span>Easy to <br />customize</h3>
                   </div>
@@ -199,6 +261,7 @@ class Home extends Component {
                   <div className="image" onMouseEnter={this.greatExperienceEnter} onMouseLeave={this.greatExperienceLeave}>
                     <Lottie options={greatExperienceOptions}
                       isPaused={this.state.greatExperience.isPaused}
+                      direction={this.state.greatExperience.direction}
                     />
                     <h3><span>04<br/>-</span>Great <br />experience</h3>
                   </div>
@@ -219,7 +282,14 @@ class Home extends Component {
               </div>
               <div id="build-to-scale" className="grid feature-item build-to-scale">
                 <Fade bottom when={true} appear={!isMobileOnly} duration={1500}>
-                <div className="col-xs-12 col-sm-6 col-md-6 image"></div>
+                <div className="col-xs-12 col-sm-6 col-md-6 image">
+                    <VisibilitySensor onChange={this.isVisibleBuildToScale}>
+                      <Lottie options={buildToScaleOptions}
+                        isPaused={this.state.buildToScaleBig.isPaused}
+                        direction={this.state.buildToScaleBig.direction}
+                      />
+                    </VisibilitySensor>
+                </div>
                 </Fade>
                 <div className="col-xs-12 col-sm-6 col-md-6 text">
                   <h2>02. Build to scale</h2>
@@ -234,7 +304,13 @@ class Home extends Component {
                   <p className="text-light">Take it even further to automate any process like ordering, shipping or payment. Whether you’re a local florist or a government agency, Saleor is a solid Django based foundation to build and deliver bespoke solutions to your specific problems. Build the store that you want instead of trying to bend your requirements around enterprise&nbsp;platforms.</p>
                 </div>
                 <Fade bottom when={true} appear={!isMobileOnly} duration={1500}>
-                <div className="col-xs-12 col-sm-6 col-md-6 image"></div>
+                <div className="col-xs-12 col-sm-6 col-md-6 image">
+                  <VisibilitySensor onChange={this.isVisibleEasyToCustomize}>
+                    <Lottie options={easyToCustomizeOptions}
+                      isPaused={this.state.easyToCustomizeBig.isPaused}
+                    />
+                  </VisibilitySensor>
+                </div>
                 </Fade>
               </div>
               <div id="user-experience" className="grid feature-item user-experience">
@@ -354,9 +430,9 @@ class Home extends Component {
                 <TabPanel className="implementation">
                   <div className="grid">
                     <div className="col-xs-12 col-sm-12 col-md-6 item roomLab">
-                      <div class="imageLayer">
-                        <div class="hoverLayer">
-                          <a href="https://roomlab.co.uk" target="_blank" rel="noopener">Visit website</a>
+                      <div className="imageLayer">
+                        <div className="hoverLayer">
+                          <a href="https://roomlab.co.uk" target="_blank" rel="noopener"><span>Visit website</span></a>
                         </div>
                       </div>
                       <div className="grid">
@@ -364,13 +440,13 @@ class Home extends Component {
                           <ReactSVG className="logo" path="images/roomlab-logo.svg" />
                         </div>
                         <div className="col-xs-6 col-sm-6 col-md-12 link">
-                          <a href="https://roomlab.co.uk" target="_blank" rel="noopener">Visit website</a>
+                          <a href="https://roomlab.co.uk" target="_blank" rel="noopener"><span>Visit website</span></a>
                         </div>
                       </div>
                     </div>
                     <div className="col-xs-12 col-sm-12 col-md-6 item patchGarden">
-                      <div class="imageLayer">
-                        <div class="hoverLayer">
+                      <div className="imageLayer">
+                        <div className="hoverLayer">
                           <a href="https://patch.garden/" target="_blank" rel="noopener"><span>Visit website</span></a>
                         </div>
                       </div>
@@ -410,7 +486,7 @@ class Home extends Component {
                 </div>
               </div>
               <div className="btn-container">
-                <a className="btn btn-primary" href="https://mirumee.com/hire-us/" target="_blank" rel="noopener"><span>Estimate your project</span></a>
+                <a className="btn btn-primary" href="https://mirumee.typeform.com/to/Xwfril" target="_blank" rel="noopener"><span>Estimate your project</span></a>
               </div>
             </div>
           </section>

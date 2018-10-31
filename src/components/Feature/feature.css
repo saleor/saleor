@@ -4,21 +4,21 @@
           background-image: url('../../images/feature-bg.svg');
           background-size: 70%;
           background-repeat: no-repeat;
-          background-position: 100% 0%;
+          background-position: 100% 50%;
           width: 100%;
           height: 100%;
           position: absolute;
           @media (min-width: 2500px) {
             background-size: 90%;
-            background-position: 250% 0%;
+            background-position: 100% 30%;
           }
           @media (max-width: 1024px) {
             background-size: 90%;
-            background-position: 120% 0%;
+            background-position: 120% 30%;
           }
           @media (max-width: 768px) {
             opacity: 0.5;
-            background-position: 50% -20%;
+            background-position: 50% 40%;
             background-size: 120%;
           }
           @media (max-width: 450px) {

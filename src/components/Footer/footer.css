@@ -13,16 +13,31 @@ footer {
     padding: 0;
   }
   & .logo {
-    width: 120px;
+    width: 240px;
     padding-top: calc(var(--spacer) * 2.5);
     padding-bottom: var(--spacer);
     padding-left: calc(var(--spacer) * 10);
+    & .mirumee-logo {
+      width: 100px;
+      display: inline-block;
+      padding-left: var(--spacer);
+    }
+    & .saleor-logo {
+      width: 100px;
+      display: inline-block;
+    }
     @media (max-width: 1024px) {
       padding: calc(var(--spacer) * 2.5) calc(var(--spacer) * 4) var(--spacer) calc(var(--spacer) * 4);
     }
     @media (max-width: 450px) {
       width: 80px;
       padding: calc(var(--spacer) * 3.5) 0 0 0;
+      & .mirumee-logo {
+      width: 100px;
+      display: inline-block;
+      padding-left: 0;
+      padding-top: var(--spacer);
+    }
     }
   }
   & .content {

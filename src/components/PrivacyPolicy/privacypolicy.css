@@ -29,7 +29,7 @@
       position: relative;
       margin-bottom: calc(var(--spacer) * 4);
 			& .plane {
-				width: 50%;
+				width: 60%;
 				position: absolute;
         top: 50%;
         left: 10%;
@@ -117,6 +117,25 @@
             color: var(--body-color);
           }
         }
+      }
+    }
+    & h3 {
+      margin-bottom: var(--spacer);
+    }
+    & p {
+      margin-bottom: var(--spacer);
+      &.subtitle {
+        font-weight: 500;
+        padding-left: calc(var(--spacer) * 2);
+      }
+    }
+    & strong {
+      font-weight: 500;
+    }
+    & ul {
+      &.regularlist {
+        padding-left: calc(var(--spacer) * 2);
+        padding-bottom: calc(var(--spacer));
       }
     }
   }

@@ -299,9 +299,12 @@ ul {
 }
 
 section.hero {
-  height: 1440px;
+  height: 1240px;
   @media (max-width: 1920px) {
     height: 900px;
+  }
+  @media (max-width: 1680px) {
+    height: 800px;
   }
   @media (max-width: 1440px) {
     height: 700px;

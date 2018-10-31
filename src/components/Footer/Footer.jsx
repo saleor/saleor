@@ -9,7 +9,8 @@ const Footer = () => (
     <footer>
       <div className="container">
         <div className="logo">
-          <Link to="/" aria-label="Saleor Logo"><ReactSVG path="images/saleor-logo.svg" /></Link>
+          <Link to="/" aria-label="Saleor Logo"><ReactSVG className="saleor-logo" path="images/saleor-logo.svg" /></Link>
+          <ReactSVG className="mirumee-logo" path="images/logo-mirumee.svg" />
         </div>
         <div className="content">
           <div className="grid">
@@ -20,7 +21,7 @@ const Footer = () => (
                     <li><h4>Company</h4></li>
                     <li><a href="https://medium.com/saleor">Blog</a></li>
                     <li><a href="https://mirumee.com/jobs/">Careers</a></li>
-                    <li><a href="https://mirumee.com/hire-us/">Contact</a></li>
+                    <li><a href="https://mirumee.typeform.com/to/Xwfril">Contact</a></li>
                   </ul>
                 </div>
                 <div className="col-xs-6 col-sm-4 col-md-3 col-lg-2 col-xlg-1 menu-item">
@@ -43,7 +44,7 @@ const Footer = () => (
                 <div className="col-xs-6 col-sm-4 col-md-3 col-lg-2 col-xlg-1 menu-item">
                   <ul>
                     <li><h4>About</h4></li>
-                    <li><Link to="/privacy-policy">Privacy policy</Link></li>
+                    <li><Link to="/privacy-policy&terms-and-conditions">Privacy policy</Link></li>
                     {/* <li><a href="">Terms of service</a></li> */}
                   </ul>
                 </div>
