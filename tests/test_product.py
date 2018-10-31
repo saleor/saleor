@@ -6,7 +6,6 @@ from unittest.mock import patch
 
 import pytest
 
-from django.conf import settings
 from django.core import serializers
 from django.core.serializers.base import DeserializationError
 from django.urls import reverse
@@ -68,7 +67,7 @@ def test_product_preview(admin_client, client, product):
     assert response.status_code == 200
 
 
-def test_filtering_by_attribute(db, color_attribute, category):
+def test_filtering_by_attribute(db, color_attribute, category, settings):
     product_type_a = models.ProductType.objects.create(
         name='New class', has_variants=True)
     product_type_a.product_attributes.add(color_attribute)
