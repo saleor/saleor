@@ -135,7 +135,7 @@ class ProductVariant(CountableDjangoObjectType):
         price is used."""))
     price = graphene.Field(Money, description="Price of the product variant.")
     attributes = graphene.List(
-        SelectedAttribute,
+        graphene.NonNull(SelectedAttribute), required=True,
         description='List of attributes assigned to this variant.')
     cost_price = graphene.Field(
         Money, description='Cost price of the variant.')
