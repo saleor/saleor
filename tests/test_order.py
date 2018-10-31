@@ -2,7 +2,6 @@ from decimal import Decimal
 
 import pytest
 
-from django.conf import settings
 from django.urls import reverse
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
@@ -360,7 +359,7 @@ def test_order_queryset_drafts(draft_order):
     assert all([order not in draft_orders for order in other_orders])
 
 
-def test_order_queryset_to_ship():
+def test_order_queryset_to_ship(settings):
     total = TaxedMoney(net=Money(10, 'USD'), gross=Money(15, 'USD'))
     orders_to_ship = [
         Order.objects.create(status=OrderStatus.UNFULFILLED, total=total),
@@ -436,7 +435,7 @@ def test_update_order_prices(order_with_lines):
 
 
 def test_order_payment_flow(
-        request_cart_with_item, client, address, shipping_zone):
+        request_cart_with_item, client, address, shipping_zone, settings):
     request_cart_with_item.shipping_address = address
     request_cart_with_item.billing_address = address.get_copy()
     request_cart_with_item.email = 'test@example.com'
@@ -456,12 +455,12 @@ def test_order_payment_flow(
     assert response.status_code == 200
     redirect_url = reverse(
         'order:payment',
-        kwargs={'token': order.token, 'gateway':settings.DUMMY})
+        kwargs={'token': order.token, 'gateway': settings.DUMMY})
     assert response.request['PATH_INFO'] == redirect_url
 
     # Go to payment details page, enter payment data
     data = {
-        'gateway':settings.DUMMY,
+        'gateway': settings.DUMMY,
         'is_active': True,
         'total': order.total.gross.amount,
         'currency': order.total.gross.currency,

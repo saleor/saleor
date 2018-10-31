@@ -1,7 +1,6 @@
 import json
 from unittest.mock import MagicMock, Mock
 
-from django.conf import settings
 from django.forms import HiddenInput
 from django.forms.models import model_to_dict
 from django.urls import reverse
@@ -77,7 +76,7 @@ def test_view_product_list_with_filters_no_results(admin_client, product_list):
     assert list(response.context['filter_set'].qs) == []
 
 
-def test_view_product_list_pagination(admin_client, product_list):
+def test_view_product_list_pagination(admin_client, product_list, settings):
     settings.DASHBOARD_PAGINATE_BY = 1
     url = reverse('dashboard:product-list')
     data = {'page': '1'}
@@ -95,7 +94,8 @@ def test_view_product_list_pagination(admin_client, product_list):
     assert not response.context['filter_set'].is_bound_unsorted
 
 
-def test_view_product_list_pagination_with_filters(admin_client, product_list):
+def test_view_product_list_pagination_with_filters(
+        admin_client, product_list, settings):
     settings.DASHBOARD_PAGINATE_BY = 1
     url = reverse('dashboard:product-list')
     data = {
@@ -559,7 +559,8 @@ def test_view_variant_images(admin_client, product_with_image):
     assert variant.variant_images.filter(image=product_image).exists()
 
 
-def test_view_ajax_available_variants_list(admin_client, product, category):
+def test_view_ajax_available_variants_list(
+        admin_client, product, category, settings):
     unavailable_product = Product.objects.create(
         name='Test product', price=Money(10, settings.DEFAULT_CURRENCY),
         product_type=product.product_type,
@@ -1037,7 +1038,8 @@ def test_product_form_assign_collection_to_product(product):
     assert collection.products.first().name == product.name
 
 
-def test_product_form_sanitize_product_description(product_type, category):
+def test_product_form_sanitize_product_description(
+        product_type, category, settings):
     product = Product.objects.create(
         name='Test Product', price=Money(10, settings.DEFAULT_CURRENCY),
         description='', pk=10, product_type=product_type, category=category)

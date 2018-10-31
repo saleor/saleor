@@ -1,5 +1,4 @@
 import graphene
-from django.conf import settings
 from django_countries import countries
 from saleor.core.permissions import MODELS_PERMISSIONS
 from saleor.graphql.core.utils import str_to_enum
@@ -45,7 +44,7 @@ def test_query_countries(user_api_client):
     assert len(data['countries']) == len(countries)
 
 
-def test_query_currencies(user_api_client):
+def test_query_currencies(user_api_client, settings):
     query = """
     query {
         shop {
@@ -77,7 +76,7 @@ def test_query_name(user_api_client, site_settings):
     assert data['name'] == site_settings.site.name
 
 
-def test_query_domain(user_api_client, site_settings):
+def test_query_domain(user_api_client, site_settings, settings):
     query = """
     query {
         shop {
