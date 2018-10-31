@@ -495,7 +495,7 @@ class ProductTypeUpdate(ProductTypeCreate):
         variant_attr = cleaned_input.get('variant_attributes')
         if variant_attr:
             variant_attr = set(variant_attr)
-            update_variants_names.delay(instance, variant_attr)
+            update_variants_names.delay(instance.pk, variant_attr)
         super().save(info, instance, cleaned_input)
 
 

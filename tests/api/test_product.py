@@ -1293,7 +1293,7 @@ def test_product_type_update_changes_variant_name(
 def test_product_update_variants_names(mock__update_variants_names,
                                        product_type):
     variant_attributes = [product_type.variant_attributes.first()]
-    update_variants_names(product_type, variant_attributes)
+    update_variants_names(product_type.pk, variant_attributes)
     mock__update_variants_names.assert_called_once_with(
         product_type, variant_attributes)
 
