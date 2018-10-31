@@ -1,8 +1,8 @@
+import uuid
 from decimal import Decimal
+from typing import Dict, Tuple
 
 import razorpay
-import uuid
-from typing import Dict, Tuple
 
 from ... import TransactionKind
 from ...utils import create_transaction
@@ -18,7 +18,7 @@ def _generate_transaction(
         payment, kind: str, amount=None,
         *, id='', is_success=True, **data):
 
-    if type(amount) is int:
+    if isinstance(amount, int):
         amount = Decimal(amount) / 100
     elif amount is None:
         amount = payment.total
