@@ -1,4 +1,4 @@
-[![Saleor](http://getsaleor.com/mr-saleor-readme.png)](http://getsaleor.com)
+![saleordwazero_04](https://user-images.githubusercontent.com/5421321/47790160-bf1a7000-dd16-11e8-881b-1226bd436023.jpg)
 
 <h1 align="center">Saleor</h1>
 
