@@ -112,50 +112,6 @@ def test_create_address(db):
     assert Address.objects.all().count() == 1
 
 
-def test_create_attribute(db):
-    data = {'slug': 'best_attribute', 'name': 'Best attribute'}
-    attribute = random_data.create_attribute(**data)
-    assert attribute.name == data['name']
-    assert attribute.slug == data['slug']
-
-
-def test_create_product_types_by_schema(db):
-    product_type = random_data.create_product_types_by_schema(
-        type_schema)[0][0]
-    assert product_type.name == 'Vegetable'
-    assert product_type.product_attributes.count() == 2
-    assert product_type.variant_attributes.count() == 1
-    assert product_type.is_shipping_required
-
-
-@patch('saleor.core.utils.random_data.create_product_thumbnails.delay')
-def test_create_products_by_type(
-        mock_create_thumbnails, db, monkeypatch, product_image):
-    # Tests shouldn't depend on images present in placeholder folder
-    monkeypatch.setattr(
-        'saleor.core.utils.random_data.get_image',
-        Mock(return_value=product_image))
-    dummy_file_names = ['example.jpg', 'example2.jpg']
-    monkeypatch.setattr(
-        'saleor.core.utils.random_data.os.listdir',
-        Mock(return_value=dummy_file_names))
-
-    assert Product.objects.all().count() == 0
-    how_many = 5
-    product_type = random_data.create_product_types_by_schema(
-        type_schema)[0][0]
-    random_data.create_products_by_type(
-        product_type, type_schema['Vegetable'], '/',
-        how_many=how_many, create_images=True)
-    assert Product.objects.all().count() == how_many
-    assert mock_create_thumbnails.called
-    assert ProductVariant.objects.annotate(
-        base_price=Case(
-            When(price_override__lt=0, then='price_override'),
-            default='product__price')).\
-        filter(base_price__lt=F('cost_price')).count() == 0
-
-
 def test_create_fake_order(db, monkeypatch, product_image):
     # Tests shouldn't depend on images present in placeholder folder
     monkeypatch.setattr(
