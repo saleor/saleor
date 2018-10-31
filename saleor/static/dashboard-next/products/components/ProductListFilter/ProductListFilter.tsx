@@ -10,6 +10,9 @@ import { Filter } from "../ProductListCard";
 interface ProductListFilterProps {
   currentTab: number;
   filtersList: Filter[];
+  onAllProducts: () => void;
+  onAvailable: () => void;
+  onOfStock: () => void;
 }
 
 const decorate = withStyles(theme => ({
@@ -57,23 +60,33 @@ const decorate = withStyles(theme => ({
 }));
 
 const ProductListFilter = decorate<ProductListFilterProps>(
-  ({ classes, filtersList, currentTab }) => (
+  ({
+    classes,
+    filtersList,
+    currentTab,
+    onAllProducts,
+    onAvailable,
+    onOfStock
+  }) => (
     <>
       <Tabs className={classes.tabsRoot} value={0} indicatorColor={"primary"}>
         <Tab
           disableRipple
           classes={{ root: classes.tabRoot, label: classes.tabLabel }}
           label={i18n.t("All Products")}
+          onClick={onAllProducts}
         />
         <Tab
           disableRipple
           classes={{ root: classes.tabRoot, label: classes.tabLabel }}
           label={i18n.t("Available")}
+          onClick={onAvailable}
         />
         <Tab
           disableRipple
           classes={{ root: classes.tabRoot, label: classes.tabLabel }}
           label={i18n.t("Out of stock")}
+          onClick={onOfStock}
         />
         {(currentTab === 0 || undefined) &&
           filtersList &&

@@ -11,6 +11,9 @@ import { Filter } from "../../../products/components/ProductListCard";
 interface OrderListFilterProps {
   currentTab: number;
   filtersList: Filter[];
+  onAllProducts: () => void;
+  onToFulfill: () => void;
+  onToCapture: () => void;
 }
 
 const decorate = withStyles(theme => ({
@@ -58,23 +61,33 @@ const decorate = withStyles(theme => ({
 }));
 
 const OrderListFilter = decorate<OrderListFilterProps>(
-  ({ classes, filtersList, currentTab }) => (
+  ({
+    classes,
+    filtersList,
+    currentTab,
+    onAllProducts,
+    onToFulfill,
+    onToCapture
+  }) => (
     <>
       <Tabs className={classes.tabsRoot} value={0} indicatorColor={"primary"}>
         <Tab
           disableRipple
           classes={{ root: classes.tabRoot, label: classes.tabLabel }}
           label={i18n.t("All Products")}
+          onClick={onAllProducts}
         />
         <Tab
           disableRipple
           classes={{ root: classes.tabRoot, label: classes.tabLabel }}
           label={i18n.t("Ready to fulfill")}
+          onClick={onToFulfill}
         />
         <Tab
           disableRipple
           classes={{ root: classes.tabRoot, label: classes.tabLabel }}
           label={i18n.t("Ready to capture")}
+          onClick={onToCapture}
         />
         {(currentTab === 0 || undefined) &&
           filtersList &&
