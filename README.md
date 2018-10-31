@@ -1,6 +1,10 @@
 ![github_saleor_readmew_header_01](https://user-images.githubusercontent.com/5421321/47800694-19bec680-dd2d-11e8-8625-2ed7c690bc13.jpg)
 
 <div align="center">
+  <h1>Saleor</h1>
+</div>
+
+<div align="center">
   <strong>E-commerce for the PWA era</strong>
 </div>
 
