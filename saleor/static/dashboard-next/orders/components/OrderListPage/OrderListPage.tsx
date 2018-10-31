@@ -1,16 +1,21 @@
 import Button from "@material-ui/core/Button";
+import Card from "@material-ui/core/Card";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
+import { Filter } from "../../../products/components/ProductListCard";
 import { PageListProps } from "../../../types";
 import { OrderList_orders_edges_node } from "../../types/OrderList";
 import OrderList from "../OrderList";
+import OrderListFilter from "../OrderListFilter";
 
 interface OrderListPageProps extends PageListProps {
   orders: OrderList_orders_edges_node[];
+  currentTab: number;
+  filtersList: Filter[];
 }
 
 const OrderListPage: React.StatelessComponent<OrderListPageProps> = ({
@@ -20,7 +25,9 @@ const OrderListPage: React.StatelessComponent<OrderListPageProps> = ({
   onAdd,
   onNextPage,
   onPreviousPage,
-  onRowClick
+  onRowClick,
+  currentTab,
+  filtersList
 }) => (
   <Container width="md">
     <PageHeader title={i18n.t("Orders")}>
@@ -33,14 +40,17 @@ const OrderListPage: React.StatelessComponent<OrderListPageProps> = ({
         {i18n.t("Create order", { context: "button" })} <AddIcon />
       </Button>
     </PageHeader>
-    <OrderList
-      disabled={disabled}
-      onRowClick={onRowClick}
-      orders={orders}
-      pageInfo={pageInfo}
-      onNextPage={onNextPage}
-      onPreviousPage={onPreviousPage}
-    />
+    <Card>
+      <OrderListFilter currentTab={currentTab} filtersList={filtersList} />
+      <OrderList
+        disabled={disabled}
+        onRowClick={onRowClick}
+        orders={orders}
+        pageInfo={pageInfo}
+        onNextPage={onNextPage}
+        onPreviousPage={onPreviousPage}
+      />
+    </Card>
   </Container>
 );
 OrderListPage.displayName = "OrderListPage";

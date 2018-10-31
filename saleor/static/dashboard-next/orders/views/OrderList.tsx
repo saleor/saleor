@@ -56,6 +56,8 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
                       >
                         {({ loadNextPage, loadPreviousPage, pageInfo }) => (
                           <OrderListPage
+                            filtersList={[]}
+                            currentTab={0}
                             disabled={loading}
                             orders={maybe(() =>
                               data.orders.edges.map(edge => edge.node)
