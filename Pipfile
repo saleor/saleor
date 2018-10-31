@@ -61,6 +61,7 @@ celery = {version = "*", extras = ["redis"]}
 weasyprint = ">=0.42.2"
 graphene-django-optimizer = "*"
 braintree = "==3.49.0"
+razorpay = ">=1.1.1"
 
 [dev-packages]
 pytest = "*"

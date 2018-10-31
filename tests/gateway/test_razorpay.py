@@ -3,9 +3,19 @@ from unittest.mock import patch
 import pytest
 from django.conf import settings
 
-from saleor.payment import ChargeStatus, TransactionKind, PaymentError
+from saleor.payment import ChargeStatus, PaymentError, TransactionKind
 from saleor.payment.gateways import razorpay
-from saleor.payment.gateways.razorpay.forms import RazorPayCheckoutWidget
+from saleor.payment.gateways.razorpay.forms import (
+    RazorPayCheckoutWidget, RazorPaymentForm)
+
+
+@pytest.fixture()
+def mocked_gateway_client(razorpay_payment):
+    with patch('razorpay.Client') as mocked:
+        response = {'amount': int(razorpay_payment.total * 100)}
+        mocked().payment.capture.return_value = response
+        mocked().payment.refund.return_value = response
+        yield mocked
 
 
 @pytest.fixture()
@@ -41,6 +51,10 @@ def test_checkout_widget_render_with_prefill(payment_dummy):
         'src="https://checkout.razorpay.com/v1/checkout.js"></script>')
 
 
+def test_gateway_get_form_class():
+    assert razorpay.get_form_class() == RazorPaymentForm
+
+
 def test_gateway_void(razorpay_payment):
     txn = razorpay_payment.void()
     razorpay_payment.refresh_from_db()
@@ -51,7 +65,6 @@ def test_gateway_void(razorpay_payment):
     assert not razorpay_payment.is_active
 
 
-@patch.object(razorpay, 'get_client')
 def test_gateway_charge(mocked_gateway_client, razorpay_payment):
     capture_txn = razorpay_payment.charge(payment_token='token')
 
@@ -69,7 +82,6 @@ def test_gateway_charge(mocked_gateway_client, razorpay_payment):
     assert razorpay_payment.is_active
 
 
-@patch.object(razorpay, 'get_client')
 def test_refund_success(mocked_gateway_client, razorpay_payment):
     razorpay_payment.captured_amount = razorpay_payment.total
     razorpay_payment.charge_status = ChargeStatus.CHARGED
@@ -84,18 +96,19 @@ def test_refund_success(mocked_gateway_client, razorpay_payment):
     txn = razorpay_payment.refund()
     razorpay_payment.refresh_from_db()
 
-    assert txn.payment == razorpay_payment
-    assert txn.kind == TransactionKind.REFUND
-    assert txn.is_success
-
     mocked_gateway_client().payment.refund.assert_called_once_with(
         razorpay_payment.token, int(razorpay_payment.total * 100))
+
+    assert txn.payment == razorpay_payment
+    assert txn.kind == TransactionKind.REFUND
+    assert txn.amount == razorpay_payment.total
+    assert txn.is_success
+
     assert razorpay_payment.charge_status == ChargeStatus.FULLY_REFUNDED
     assert not razorpay_payment.captured_amount
     assert not razorpay_payment.is_active
 
 
-@patch.object(razorpay, 'get_client')
 def test_refund_failed(mocked_gateway_client, razorpay_payment):
     razorpay_payment.captured_amount = razorpay_payment.total
     razorpay_payment.charge_status = ChargeStatus.CHARGED
