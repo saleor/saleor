@@ -82,4 +82,5 @@ export const CategoryCreatePage = decorate<CategoryCreatePageProps>(
     );
   }
 );
+CategoryCreatePage.displayName = "CategoryCreatePage";
 export default CategoryCreatePage;
