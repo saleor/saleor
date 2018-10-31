@@ -115,4 +115,5 @@ const HomeNotificationTable = decorate<HomeNotificationTableProps>(
     );
   }
 );
+HomeNotificationTable.displayName = "HomeNotificationTable";
 export default HomeNotificationTable;
