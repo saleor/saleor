@@ -133,7 +133,7 @@ export interface VariantCreate_productVariantCreate_productVariant_product {
 export interface VariantCreate_productVariantCreate_productVariant {
   __typename: "ProductVariant";
   id: string;
-  attributes: (VariantCreate_productVariantCreate_productVariant_attributes | null)[] | null;
+  attributes: VariantCreate_productVariantCreate_productVariant_attributes[];
   costPrice: VariantCreate_productVariantCreate_productVariant_costPrice | null;
   images: VariantCreate_productVariantCreate_productVariant_images | null;
   name: string;

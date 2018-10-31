@@ -1507,7 +1507,7 @@ type ProductVariant implements Node {
   name: String!
   priceOverride: Money
   product: Product!
-  attributes: [SelectedAttribute]
+  attributes: [SelectedAttribute!]!
   images(before: String, after: String, first: Int, last: Int): ProductImageCountableConnection
   trackInventory: Boolean!
   quantity: Int!
