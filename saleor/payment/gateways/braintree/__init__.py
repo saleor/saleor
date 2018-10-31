@@ -22,8 +22,6 @@ logger = logging.getLogger(__name__)
 CONFIRM_MANUALLY = False
 THREE_D_SECURE_REQUIRED = False
 
-# FIXME: Provide list of visible errors and messages translations
-
 # Error codes whitelist should be a dict of code: error_msg_override
 # if no error_msg_override is provided,
 # then error message returned by the gateway will be used
