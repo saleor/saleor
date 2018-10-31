@@ -146,4 +146,5 @@ const OrderFulfillmentDialog = decorate<OrderFulfillmentDialogProps>(
     </Dialog>
   )
 );
+OrderFulfillmentDialog.displayName = "OrderFulfillmentDialog";
 export default OrderFulfillmentDialog;

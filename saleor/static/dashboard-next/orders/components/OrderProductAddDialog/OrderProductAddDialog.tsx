@@ -92,4 +92,5 @@ const OrderProductAddDialog = decorate<OrderProductAddDialogProps>(
     </Dialog>
   )
 );
+OrderProductAddDialog.displayName = "OrderProductAddDialog";
 export default OrderProductAddDialog;
