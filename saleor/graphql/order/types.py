@@ -242,15 +242,15 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_fulfillments(self, info):
-        return self.fulfillments.all()
+        return self.fulfillments.all().order_by('pk')
 
     @staticmethod
     def resolve_lines(self, info):
-        return self.lines.all()
+        return self.lines.all().order_by('pk')
 
     @staticmethod
     def resolve_events(self, info):
-        return self.events.all()
+        return self.events.all().order_by('pk')
 
     @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related='payments')

@@ -48,7 +48,7 @@ def test_orderline_query(
     order_data = content['data']['orders']['edges'][0]['node']
     thumbnails = [l['thumbnailUrl'] for l in order_data['lines']]
     assert len(thumbnails) == 2
-    assert None in thumbnails
+    assert thumbnails[0] is None
     assert '/static/images/placeholder540x540.png' in thumbnails[1]
 
 
