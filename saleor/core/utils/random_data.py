@@ -116,6 +116,13 @@ IMAGES_MAPPING = {
         'saleordemoproduct_cl_bogo04_2.png']}
 
 
+CATEGORY_IMAGES = {
+    7: 'DEMO-04.png',
+    8: 'DEMO-01-.png',
+    9: 'DEMO-02-.png'
+}
+
+
 def get_weight(weight):
     if not weight:
         return zero_weight()
@@ -131,10 +138,15 @@ def create_product_types(product_type_data):
         ProductType.objects.update_or_create(pk=pk, defaults=defaults)
 
 
-def create_categories(categories_data):
+def create_categories(categories_data, placeholder_dir):
+    placeholder_dir = get_product_list_images_dir(placeholder_dir)
     for category in categories_data:
         pk = category['pk']
-        Category.objects.update_or_create(pk=pk, defaults=category['fields'])
+        defaults = category['fields']
+        image_name = CATEGORY_IMAGES[pk]
+        background_image = get_image(placeholder_dir, image_name)
+        defaults['background_image'] = background_image
+        Category.objects.update_or_create(pk=pk, defaults=defaults)
 
 
 def create_attributes(attributes_data):
@@ -197,7 +209,9 @@ def create_products_by_schema(placeholder_dir, create_images, stdout=None):
         types[model].append(item)
 
     create_product_types(product_type_data=types['product.producttype'])
-    create_categories(categories_data=types['product.category'])
+    create_categories(
+        categories_data=types['product.category'],
+        placeholder_dir=placeholder_dir)
     create_attributes(attributes_data=types['product.attribute'])
     create_attributes_values(values_data=types['product.attributevalue'])
     create_products(
@@ -223,23 +237,6 @@ def get_email(first_name, last_name):
     _last = unicodedata.normalize('NFD', last_name).encode('ascii', 'ignore')
     return '%s.%s@example.com' % (
         _first.lower().decode('utf-8'), _last.lower().decode('utf-8'))
-
-
-def get_or_create_category(category_schema, placeholder_dir):
-    if 'parent' in category_schema:
-        parent_id = get_or_create_category(
-            category_schema['parent'], placeholder_dir).id
-    else:
-        parent_id = None
-    category_name = category_schema['name']
-    image_name = category_schema['image_name']
-    image_dir = get_product_list_images_dir(placeholder_dir)
-    defaults = {
-        'description': fake.text(),
-        'slug': fake.slug(category_name),
-        'background_image': get_image(image_dir, image_name)}
-    return Category.objects.get_or_create(
-        name=category_name, parent_id=parent_id, defaults=defaults)[0]
 
 
 def get_or_create_collection(name, placeholder_dir, image_name):
