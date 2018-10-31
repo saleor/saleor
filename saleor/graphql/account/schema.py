@@ -1,5 +1,5 @@
 import graphene
-from graphql_jwt.decorators import permission_required
+from graphql_jwt.decorators import login_required, permission_required
 
 from ..core.fields import PrefetchingConnectionField
 from ..descriptions import DESCRIPTIONS
@@ -38,7 +38,7 @@ class AccountQueries(graphene.ObjectType):
     def resolve_staff_users(self, info, query=None, **kwargs):
         return resolve_staff_users(info, query=query)
 
-    @permission_required('account.manage_users')
+    @login_required
     def resolve_user(self, info, id):
         return resolve_user(info, id)
 
