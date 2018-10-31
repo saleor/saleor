@@ -116,6 +116,7 @@ def get_weight(weight):
     value, unit = weight.split()
     return Weight(**{unit: value})
 
+
 def create_product_types(product_type_data):
     for product_type in product_type_data:
         pk = product_type['pk']
