@@ -3,7 +3,9 @@ import pytest
 import graphene
 from django.template.defaultfilters import slugify
 from saleor.product.models import Category
-from tests.api.utils import assert_read_only_mode, get_graphql_content
+from tests.utils import create_image
+from tests.api.utils import (
+    assert_read_only_mode, get_graphql_content, get_multipart_request_body)
 
 
 def test_category_query(user_api_client, product):
@@ -46,14 +48,15 @@ def test_category_query(user_api_client, product):
 def test_category_create_mutation(
         staff_api_client, permission_manage_products):
     query = """
-        mutation($name: String, $slug: String, $description: String, $parentId: ID) {
+        mutation($name: String, $slug: String, $description: String, $backgroundImage: Upload, $parentId: ID) {
             categoryCreate(
                 input: {
                     name: $name
                     slug: $slug
                     description: $description
-                    parent: $parentId
-                }
+                    backgroundImage: $backgroundImage
+                },
+                parent: $parentId
             ) {
                 category {
                     id
@@ -76,6 +79,7 @@ def test_category_create_mutation(
     category_name = 'Test category'
     category_slug = slugify(category_name)
     category_description = 'Test description'
+    image_file, image_name = create_image()
 
     # test creating root category
     variables = {
@@ -89,12 +93,13 @@ def test_category_create_mutation(
 def test_category_update_mutation(
         staff_api_client, category, permission_manage_products):
     query = """
-        mutation($id: ID!, $name: String, $slug: String, $description: String) {
+        mutation($id: ID!, $name: String, $slug: String, $backgroundImage: Upload, $description: String) {
             categoryUpdate(
                 id: $id
                 input: {
                     name: $name
                     description: $description
+                    backgroundImage: $backgroundImage
                     slug: $slug
                 }
             ) {
@@ -120,6 +125,7 @@ def test_category_update_mutation(
     category_name = 'Updated name'
     category_slug = slugify(category_name)
     category_description = 'Updated description'
+    image_file, image_name = create_image()
 
     category_id = graphene.Node.to_global_id('Category', child_category.pk)
     variables = {

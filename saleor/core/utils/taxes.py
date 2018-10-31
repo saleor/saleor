@@ -13,6 +13,11 @@ ZERO_MONEY = Money(0, settings.DEFAULT_CURRENCY)
 ZERO_TAXED_MONEY = TaxedMoney(net=ZERO_MONEY, gross=ZERO_MONEY)
 
 
+def zero_money():
+    """Function used as a model's default."""
+    return ZERO_MONEY
+
+
 def apply_tax_to_price(taxes, rate_name, base):
     if not taxes or not rate_name:
         # Naively convert Money to TaxedMoney for consistency with price

@@ -20,7 +20,6 @@ interface SeoFormProps {
   helperText?: string;
   title: string;
   titlePlaceholder: string;
-  storefrontUrl?: string;
   onChange(event: any);
   onClick?();
 }
@@ -73,10 +72,12 @@ const SeoForm = decorate<SeoFormProps>(
   ({
     classes,
     description,
+    descriptionPlaceholder,
     disabled,
     helperText,
     loading,
     title,
+    titlePlaceholder,
     onChange
   }) => (
     <Toggle>
@@ -121,6 +122,7 @@ const SeoForm = decorate<SeoFormProps>(
                   value={title.slice(0, 69)}
                   disabled={loading || disabled}
                   InputLabelProps={{ shrink: true }}
+                  placeholder={titlePlaceholder}
                   onChange={onChange}
                   fullWidth
                 />
@@ -148,6 +150,7 @@ const SeoForm = decorate<SeoFormProps>(
                   disabled={loading || disabled}
                   fullWidth
                   multiline
+                  placeholder={descriptionPlaceholder}
                   InputLabelProps={{ shrink: true }}
                   rows={10}
                 />

@@ -37,7 +37,9 @@ class ApiClient(Client):
         kwargs['content_type'] = 'application/json'
         return super().post(API_PATH, data, **kwargs)
 
-    def post_graphql(self, query, variables=None, permissions=None, **kwargs):
+    def post_graphql(
+            self, query, variables=None, permissions=None,
+            check_no_permissions=True, **kwargs):
         """Dedicated helper for posting GraphQL queries.
 
         Sets the `application/json` content type and json.dumps the variables
@@ -52,8 +54,9 @@ class ApiClient(Client):
 
         if permissions:
             # DEMO: disable permission check on demo
-            # response = super().post(API_PATH, data, **kwargs)
-            # assert_no_permission(response)
+            # if check_no_permissions:
+            #     response = super().post(API_PATH, data, **kwargs)
+            #     assert_no_permission(response)
             self.user.user_permissions.add(*permissions)
 
         return super().post(API_PATH, data, **kwargs)

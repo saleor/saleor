@@ -6,7 +6,7 @@ import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 import SVG from "react-inlinesvg";
 
-import * as saleorLogo from "../../../../images/logo.svg";
+import * as saleorLogo from "../../../../images/logo-document.svg";
 import Container from "../../../components/Container";
 import { ControlledCheckbox } from "../../../components/ControlledCheckbox";
 import Form from "../../../components/Form";
@@ -45,9 +45,6 @@ const decorate = withStyles(theme => ({
     width: "100%"
   },
   logo: {
-    "& path": {
-      fill: theme.palette.primary.main
-    },
     "& svg": {
       display: "block" as "block",
       margin: `0 auto ${theme.spacing.unit * 7}px`

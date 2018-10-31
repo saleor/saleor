@@ -47,10 +47,11 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                 return <ErrorMessageCard message="Something went wrong" />;
               }
               const variant = data ? data.productVariant : undefined;
-              const handleBack = () => navigate(productUrl(productId));
+              const handleBack = () =>
+                navigate(productUrl(encodeURIComponent(productId)));
               const handleDelete = () => {
                 pushMessage({ text: i18n.t("Variant removed") });
-                navigate(productUrl(productId));
+                navigate(productUrl(encodeURIComponent(productId)));
               };
               const handleUpdate = (data: VariantUpdate) => {
                 if (!maybe(() => data.productVariantUpdate.errors.length)) {
@@ -131,7 +132,12 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                           }
                         }}
                         onVariantClick={variantId => {
-                          navigate(productVariantEditUrl(productId, variantId));
+                          navigate(
+                            productVariantEditUrl(
+                              encodeURIComponent(productId),
+                              encodeURIComponent(variantId)
+                            )
+                          );
                         }}
                       />
                     );

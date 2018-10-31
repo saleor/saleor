@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { StaffCreateInput } from "./../../types/globalTypes";
+import { StaffCreateInput, PermissionEnum } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: StaffMemberAdd
@@ -15,7 +15,7 @@ export interface StaffMemberAdd_staffCreate_errors {
 
 export interface StaffMemberAdd_staffCreate_user_permissions {
   __typename: "PermissionDisplay";
-  code: string;
+  code: PermissionEnum;
   name: string;
 }
 

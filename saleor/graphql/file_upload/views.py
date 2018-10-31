@@ -1,6 +1,5 @@
 import json
 
-import graphene
 from django.conf import settings
 from django.shortcuts import render
 from graphene_django.views import GraphQLView
@@ -47,8 +46,8 @@ class FileUploadGraphQLView(GraphQLView):
         response['Access-Control-Allow-Origin'] = ','.join(
             settings.ALLOWED_HOSTS)
         response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
-        response[
-            'Access-Control-Allow-Headers'] = 'Origin, Content-Type, Accept, Authorization'
+        response['Access-Control-Allow-Headers'] = (
+            'Origin, Content-Type, Accept, Authorization')
         return response
 
     def render_graphiql(self, request, **data):
@@ -67,8 +66,8 @@ class FileUploadGraphQLView(GraphQLView):
         # not checked in the original version from `graphene-file-upload`).
         if content_type and 'multipart/form-data' in content_type:
             query, variables, operation_name, id = super(
-                FileUploadGraphQLView, FileUploadGraphQLView).get_graphql_params(
-                    request, data)
+                FileUploadGraphQLView,
+                FileUploadGraphQLView).get_graphql_params(request, data)
             operations = data.get('operations')
             files_map = data.get('map')
             try:
@@ -79,15 +78,16 @@ class FileUploadGraphQLView(GraphQLView):
                     # file key is which file it is in the form-data
                     file_instances = files_map[file_key]
                     for file_instance in file_instances:
-                        test = obj_set(operations, file_instance, file_key, False)
+                        test = obj_set(
+                            operations, file_instance, file_key, False)
                 query = operations.get('query')
                 variables = operations.get('variables')
             except Exception as e:
                 raise e
         else:
             query, variables, operation_name, id = super(
-                FileUploadGraphQLView, FileUploadGraphQLView).get_graphql_params(
-                    request, data)
+                FileUploadGraphQLView,
+                FileUploadGraphQLView).get_graphql_params(request, data)
         return query, variables, operation_name, id
 
 
@@ -116,7 +116,7 @@ def obj_set(obj, path, value, doNotReplace):
         return obj
     if isinstance(path, str):
         newPath = list(map(getKey, path.split('.')))
-        return obj_set(obj, newPath, value, doNotReplace )
+        return obj_set(obj, newPath, value, doNotReplace)
 
     currentPath = path[0]
     currentValue = getShallowProperty(obj, currentPath)

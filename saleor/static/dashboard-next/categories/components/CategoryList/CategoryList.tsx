@@ -46,7 +46,7 @@ const CategoryList = decorate<CategoryListProps>(
     <Card>
       {!isRoot && (
         <CardTitle
-          title={i18n.t("Subcategories")}
+          title={i18n.t("All Subcategories")}
           toolbar={
             <Button color="secondary" variant="flat" onClick={onAdd}>
               {i18n.t("Add subcategory")}
@@ -58,9 +58,9 @@ const CategoryList = decorate<CategoryListProps>(
         <TableHead>
           <TableRow>
             <TableCell className={classes.wideColumn}>
-              {i18n.t("Name", { context: "object" })}
+              {i18n.t("Category Name", { context: "object" })}
             </TableCell>
-            <TableCell>
+            <TableCell className={classes.centerText}>
               {i18n.t("Subcategories", { context: "object" })}
             </TableCell>
             <TableCell className={classes.centerText}>
@@ -83,7 +83,7 @@ const CategoryList = decorate<CategoryListProps>(
                 <TableCell>
                   {category && category.name ? category.name : <Skeleton />}
                 </TableCell>
-                <TableCell>
+                <TableCell className={classes.centerText}>
                   {category &&
                   category.children &&
                   category.children.totalCount !== undefined ? (

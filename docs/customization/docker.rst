@@ -50,6 +50,4 @@ Usage
     $ docker-compose up
 
 
-By default, the application is started in debug mode, will automatically reload code and is configured to listen on port ``8000``.
-
-
+By default, the application is started in debug mode and is configured to listen on port ``8000``.

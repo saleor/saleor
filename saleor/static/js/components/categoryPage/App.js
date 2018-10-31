@@ -6,6 +6,7 @@ import gql from 'graphql-tag';
 import Loading from '../Loading';
 import CategoryPage from './CategoryPage';
 import ProductFilters from './ProductFilters';
+import ProductList from './ProductList';
 
 class App extends React.Component {
   static propTypes = {
@@ -30,6 +31,16 @@ const rootQuery = gql`
     $minPrice: Float,
     $maxPrice: Float
   ) {
+    products(
+      first: $first
+      attributes: $attributesFilter,
+      categories: [$categoryId],
+      priceGte: $minPrice,
+      priceLte: $maxPrice,
+      sortBy: $sortBy,
+    ) {
+      ...ProductListFragmentQuery
+    }
     category(id: $categoryId) {
       ...CategoryPageFragmentQuery
     }
@@ -42,6 +53,7 @@ const rootQuery = gql`
     }
   }
   ${CategoryPage.fragments.category}
+  ${ProductList.fragments.products}
   ${ProductFilters.fragments.attributes}
 `;
 

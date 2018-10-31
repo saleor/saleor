@@ -3,26 +3,15 @@ import Card from "@material-ui/core/Card";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
-import { MoneyType } from "../..";
 import { PageListProps } from "../../..";
+import { CategoryDetails_category_products_edges_node } from "../../../categories/types/CategoryDetails";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import ProductList from "../../../components/ProductList";
 import i18n from "../../../i18n";
 
 interface ProductListCardProps extends PageListProps {
-  products?: Array<{
-    id: string;
-    name: string;
-    productType: {
-      name: string;
-    };
-    thumbnailUrl: string;
-    availability: {
-      available: boolean;
-    };
-    price: MoneyType;
-  }>;
+  products: CategoryDetails_category_products_edges_node[];
 }
 
 export const ProductListCard: React.StatelessComponent<

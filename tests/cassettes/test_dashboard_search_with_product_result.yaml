@@ -6,9 +6,9 @@ interactions:
       connection: [keep-alive]
       content-type: [application/json]
     method: GET
-    uri: http://search:9200/storefront/product_document/_search
+    uri: http://search:9200/storefront/doc/_search
   response:
-    body: {string: '{"took":2,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":3,"max_score":2.9128819,"hits":[{"_index":"storefront","_type":"product_document","_id":"23","_score":2.9128819,"_source":{}},{"_index":"storefront","_type":"product_document","_id":"58","_score":2.9128819,"_source":{}},{"_index":"storefront","_type":"product_document","_id":"56","_score":2.9128819,"_source":{}}]}}'}
+    body: {string: '{"took":2,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":3,"max_score":2.9128819,"hits":[{"_index":"storefront","_type":"doc","_id":"23","_score":2.9128819,"_source":{}},{"_index":"storefront","_type":"doc","_id":"58","_score":2.9128819,"_source":{}},{"_index":"storefront","_type":"doc","_id":"56","_score":2.9128819,"_source":{}}]}}'}
     headers:
       Warning: ['299 Elasticsearch-5.4.3-eed30a8 "Deprecated field [exclude] used,
           expected [excludes] instead" "Thu, 16 Nov 2017 09:44:25 GMT"']
@@ -22,7 +22,7 @@ interactions:
       connection: [keep-alive]
       content-type: [application/json]
     method: GET
-    uri: http://search:9200/orders/order_document/_search
+    uri: http://search:9200/orders/doc/_search
   response:
     body: {string: '{"took":1,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":0,"max_score":null,"hits":[]}}'}
     headers:
@@ -39,7 +39,7 @@ interactions:
       connection: [keep-alive]
       content-type: [application/json]
     method: GET
-    uri: http://search:9200/users/user_document/_search
+    uri: http://search:9200/users/doc/_search
   response:
     body: {string: '{"took":1,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":0,"max_score":null,"hits":[]}}'}
     headers:

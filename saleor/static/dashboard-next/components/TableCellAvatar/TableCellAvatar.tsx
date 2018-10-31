@@ -10,6 +10,7 @@ import NoPhoto from "../../icons/NoPhoto";
 interface TableCellAvatarProps {
   className?: string;
   thumbnail?: string;
+  avatarProps?: string;
 }
 
 const decorate = withStyles(theme => ({
@@ -27,18 +28,21 @@ const decorate = withStyles(theme => ({
   }
 }));
 const TableCellAvatar = decorate<TableCellAvatarProps>(
-  ({ classes, className, thumbnail }) => (
+  ({ classes, className, thumbnail, avatarProps }) => (
     <TableCell className={classNames(classes.root, className)}>
       {thumbnail === undefined ? (
-        <Avatar className={classes.avatar}>
+        <Avatar className={classNames(classes.avatar, avatarProps)}>
           <Cached />
         </Avatar>
       ) : thumbnail === null ? (
-        <Avatar className={classes.avatar}>
+        <Avatar className={classNames(classes.avatar, avatarProps)}>
           <NoPhoto />
         </Avatar>
       ) : (
-        <Avatar className={classes.avatar} src={thumbnail} />
+        <Avatar
+          className={classNames(classes.avatar, avatarProps)}
+          src={thumbnail}
+        />
       )}
     </TableCell>
   )

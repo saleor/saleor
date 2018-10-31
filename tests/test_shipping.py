@@ -8,11 +8,7 @@ from saleor.core.utils import format_money
 from saleor.core.utils.taxes import get_taxed_shipping_price
 from saleor.shipping.models import (
     ShippingMethod, ShippingMethodType, ShippingZone)
-
-
-def money(amount):
-    return Money(amount, 'USD')
-
+from .utils import money
 
 @pytest.mark.parametrize('price, charge_taxes, expected_price', [
     (Money(10, 'USD'), False, TaxedMoney(

@@ -131,7 +131,7 @@ export interface VariantImageAssign_variantImageAssign_productVariant_product {
 export interface VariantImageAssign_variantImageAssign_productVariant {
   __typename: "ProductVariant";
   id: string;
-  attributes: (VariantImageAssign_variantImageAssign_productVariant_attributes | null)[] | null;
+  attributes: VariantImageAssign_variantImageAssign_productVariant_attributes[];
   costPrice: VariantImageAssign_variantImageAssign_productVariant_costPrice | null;
   images: VariantImageAssign_variantImageAssign_productVariant_images | null;
   name: string;

@@ -61,7 +61,7 @@ def customer_create(request):
         form.save()
         msg = pgettext_lazy(
             'Dashboard message', 'Added customer %s') % customer
-        send_set_password_email(customer)
+        send_set_password_email.delay(customer.pk)
         messages.success(request, msg)
         return redirect('dashboard:customer-details', pk=customer.pk)
     ctx = {'form': form, 'customer': customer}

@@ -130,6 +130,7 @@ export const fragmentOrderDetails = gql`
         currency
       }
     }
+    actions
     totalAuthorized {
       amount
       currency
@@ -204,6 +205,7 @@ export const orderDetailsQuery = gql`
         code
         country
       }
+      defaultWeightUnit
     }
   }
 `;

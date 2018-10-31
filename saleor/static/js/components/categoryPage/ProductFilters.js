@@ -15,7 +15,7 @@ class ProductFilters extends Component {
   }
 
   static propTypes = {
-    attributes: PropTypes.array,
+    attributes: PropTypes.object,
     checkedAttributes: PropTypes.array,
     onFilterChanged: PropTypes.func.isRequired
   };

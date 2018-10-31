@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderDraftCancel
@@ -80,7 +80,7 @@ export interface OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_edge
   __typename: "FulfillmentLine";
   id: string;
   quantity: number;
-  orderLine: OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_edges_node_orderLine;
+  orderLine: OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_edges_node_orderLine | null;
 }
 
 export interface OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_edges {
@@ -238,7 +238,7 @@ export interface OrderDraftCancel_draftOrderDelete_order {
   fulfillments: (OrderDraftCancel_draftOrderDelete_order_fulfillments | null)[];
   lines: (OrderDraftCancel_draftOrderDelete_order_lines | null)[];
   number: string | null;
-  paymentStatus: PaymentStatusEnum | null;
+  paymentStatus: PaymentChargeStatusEnum | null;
   shippingAddress: OrderDraftCancel_draftOrderDelete_order_shippingAddress | null;
   shippingMethod: OrderDraftCancel_draftOrderDelete_order_shippingMethod | null;
   shippingMethodName: string | null;
@@ -246,6 +246,7 @@ export interface OrderDraftCancel_draftOrderDelete_order {
   status: OrderStatus;
   subtotal: OrderDraftCancel_draftOrderDelete_order_subtotal | null;
   total: OrderDraftCancel_draftOrderDelete_order_total | null;
+  actions: (OrderAction | null)[];
   totalAuthorized: OrderDraftCancel_draftOrderDelete_order_totalAuthorized | null;
   totalCaptured: OrderDraftCancel_draftOrderDelete_order_totalCaptured | null;
   user: OrderDraftCancel_draftOrderDelete_order_user | null;

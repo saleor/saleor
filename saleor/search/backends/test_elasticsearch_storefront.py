@@ -3,7 +3,7 @@ from . import elasticsearch_storefront
 PHRASE = 'How fortunate man with none'
 FIELDS = ['title', 'name', 'description']
 INDEX = 'storefront'
-DOC_TYPE = 'product_document'
+DOC_TYPE = 'doc'
 QUERY = {
     '_source': False,
     'query': {

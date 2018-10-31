@@ -12,7 +12,8 @@ import { withStyles, WithStyles } from "@material-ui/core/styles";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import MenuIcon from "@material-ui/icons/Menu";
-import PersonIcon from "@material-ui/icons/Person";
+import Person from "@material-ui/icons/Person";
+import PersonOutline from "@material-ui/icons/PersonOutline";
 import SettingsIcon from "@material-ui/icons/Settings";
 import * as classNames from "classnames";
 import * as React from "react";
@@ -23,10 +24,12 @@ import * as saleorLogo from "../images/logo.svg";
 import { UserContext } from "./auth";
 import { User } from "./auth/types/User";
 import { categoryListUrl } from "./categories";
+import { collectionListUrl } from "./collections/urls";
 import MenuToggle from "./components/MenuToggle";
 import Navigator from "./components/Navigator";
 import Toggle from "./components/Toggle";
 import { configurationMenu, configurationMenuUrl } from "./configuration";
+import { customerListUrl } from "./customers/urls";
 import i18n from "./i18n";
 import ArrowDropdown from "./icons/ArrowDropdown";
 import Home from "./icons/Home";
@@ -34,6 +37,7 @@ import Shop from "./icons/Shop";
 import Truck from "./icons/Truck";
 import { removeDoubleSlashes } from "./misc";
 import { productListUrl } from "./products";
+import { PermissionEnum } from "./types/globalTypes";
 
 const drawerWidth = 256;
 const navigationBarHeight = 64;
@@ -59,18 +63,31 @@ const menuStructure: IMenuItem[] = [
         icon: <Shop />,
         label: i18n.t("Categories", { context: "Menu label" }),
         url: categoryListUrl
+      },
+      {
+        ariaLabel: "collections",
+        icon: <Shop />,
+        label: i18n.t("Collections", { context: "Menu label" }),
+        url: collectionListUrl
       }
     ],
     icon: <Shop />,
     label: i18n.t("Catalogue", { context: "Menu label" }),
-    permission: "product.manage_products"
+    permission: PermissionEnum.MANAGE_PRODUCTS
   },
   {
     ariaLabel: "orders",
     icon: <Truck />,
     label: i18n.t("Orders", { context: "Menu label" }),
-    permission: "order.manage_orders",
+    permission: PermissionEnum.MANAGE_ORDERS,
     url: "/orders/"
+  },
+  {
+    ariaLabel: "customers",
+    icon: <PersonOutline />,
+    label: i18n.t("Customers", { context: "Menu label" }),
+    permission: PermissionEnum.MANAGE_USERS,
+    url: customerListUrl
   }
 ];
 
@@ -236,7 +253,7 @@ interface IMenuItem {
   children?: IMenuItem[];
   icon: React.ReactNode;
   label: string;
-  permission?: string;
+  permission?: PermissionEnum;
   url?: string;
 }
 interface MenuListProps {
@@ -416,7 +433,7 @@ export const AppRoot = decorate(
                                   </Hidden>
                                   <Hidden mdUp>
                                     <IconButton className={classes.userIcon}>
-                                      <PersonIcon />
+                                      <Person />
                                     </IconButton>
                                   </Hidden>
                                 </div>

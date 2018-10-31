@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
@@ -75,10 +76,6 @@ class CategoryTranslation(SeoModelTranslation):
 class ProductType(models.Model):
     name = models.CharField(max_length=128)
     has_variants = models.BooleanField(default=True)
-    product_attributes = models.ManyToManyField(
-        'Attribute', related_name='product_types', blank=True)
-    variant_attributes = models.ManyToManyField(
-        'Attribute', related_name='product_variant_types', blank=True)
     is_shipping_required = models.BooleanField(default=False)
     tax_rate = models.CharField(
         max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True,
@@ -100,11 +97,19 @@ class ProductType(models.Model):
 
 
 class ProductQuerySet(models.QuerySet):
+
     def available_products(self):
         today = datetime.date.today()
         return self.filter(
             Q(available_on__lte=today) | Q(available_on__isnull=True),
             Q(is_published=True))
+
+    def visible_to_user(self, user):
+        has_access_to_all = (
+            user.is_active and user.has_perm('product.manage_products'))
+        if has_access_to_all:
+            return self.all()
+        return self.available_products()
 
 
 class Product(SeoModel):
@@ -115,7 +120,8 @@ class Product(SeoModel):
     category = models.ForeignKey(
         Category, related_name='products', on_delete=models.CASCADE)
     price = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES)
     available_on = models.DateField(blank=True, null=True)
     is_published = models.BooleanField(default=True)
@@ -207,7 +213,8 @@ class ProductVariant(models.Model):
     sku = models.CharField(max_length=32, unique=True)
     name = models.CharField(max_length=255, blank=True)
     price_override = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, blank=True, null=True)
     product = models.ForeignKey(
         Product, related_name='variants', on_delete=models.CASCADE)
@@ -219,7 +226,8 @@ class ProductVariant(models.Model):
     quantity_allocated = models.IntegerField(
         validators=[MinValueValidator(0)], default=Decimal(0))
     cost_price = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, blank=True, null=True)
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES,
@@ -318,8 +326,14 @@ class ProductVariantTranslation(models.Model):
 
 
 class Attribute(models.Model):
-    slug = models.SlugField(max_length=50, unique=True)
-    name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=50)
+    name = models.CharField(max_length=50)
+    product_type = models.ForeignKey(
+        ProductType, related_name='product_attributes', blank=True,
+        null=True, on_delete=models.CASCADE)
+    product_variant_type = models.ForeignKey(
+        ProductType, related_name='variant_attributes', blank=True,
+        null=True, on_delete=models.CASCADE)
 
     translated = TranslationProxy()
 
@@ -357,7 +371,7 @@ class AttributeTranslation(models.Model):
 
 class AttributeValue(SortableModel):
     name = models.CharField(max_length=100)
-    value = models.CharField(max_length=100, default='')
+    value = models.CharField(max_length=100, blank=True, default='')
     slug = models.SlugField(max_length=100)
     attribute = models.ForeignKey(
         Attribute, related_name='values', on_delete=models.CASCADE)
@@ -420,8 +434,16 @@ class VariantImage(models.Model):
 
 
 class CollectionQuerySet(models.QuerySet):
+
     def public(self):
         return self.filter(is_published=True)
+
+    def visible_to_user(self, user):
+        has_access_to_all = (
+            user.is_active and user.has_perm('product.manage_products'))
+        if has_access_to_all:
+            return self.all()
+        return self.public()
 
 
 class Collection(SeoModel):

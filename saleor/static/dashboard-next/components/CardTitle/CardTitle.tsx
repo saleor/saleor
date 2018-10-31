@@ -1,8 +1,10 @@
 import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
+import * as classNames from "classnames";
 import * as React from "react";
 
 interface CardTitleProps extends React.StatelessComponent {
+  className?: string;
   title: string | React.ReactNode;
   toolbar?: React.ReactNode;
   onClick?: (event: React.MouseEvent<any>) => void;
@@ -33,9 +35,9 @@ const decorate = withStyles(theme => ({
   }
 }));
 const CardTitle = decorate<CardTitleProps>(
-  ({ classes, children, title, toolbar, onClick, ...props }) => (
+  ({ classes, className, children, title, toolbar, onClick, ...props }) => (
     <>
-      <div className={classes.root} {...props}>
+      <div className={classNames(classes.root, className)} {...props}>
         <Typography
           className={classes.title}
           variant="body1"

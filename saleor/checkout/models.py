@@ -11,7 +11,7 @@ from django_prices.models import MoneyField
 from measurement.measures import Weight
 
 from ..account.models import Address
-from ..core.utils.taxes import ZERO_TAXED_MONEY
+from ..core.utils.taxes import ZERO_TAXED_MONEY, zero_money
 from ..shipping.models import ShippingMethod
 
 CENTS = Decimal('0.01')
@@ -55,8 +55,10 @@ class Cart(models.Model):
         on_delete=models.SET_NULL)
     note = models.TextField(blank=True, default='')
     discount_amount = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=zero_money)
     discount_name = models.CharField(max_length=255, blank=True, null=True)
     translated_discount_name = models.CharField(
         max_length=255, blank=True, null=True)
@@ -135,7 +137,8 @@ class CartLine(models.Model):
             return NotImplemented
 
         return (
-            self.variant == other.variant and self.quantity == other.quantity)
+            self.variant == other.variant and
+            self.quantity == other.quantity)
 
     def __ne__(self, other):
         return not self == other  # pragma: no cover
