@@ -24,7 +24,8 @@ class CategoryPage extends Component {
 
   static propTypes = {
     attributes: PropTypes.array,
-    category: PropTypes.object
+    category: PropTypes.object,
+    products: PropTypes.array
   };
 
   incrementProductsCount = () => {
@@ -70,17 +71,7 @@ class CategoryPage extends Component {
             }
           }
         }
-        products (
-          first: $first
-          sortBy: $sortBy
-          attributes: $attributesFilter
-          price_Gte: $minPrice,
-          price_Lte: $maxPrice,
-        ) {
-          ...ProductListFragmentQuery
-        }
       }
-      ${ProductList.fragments.products}
     `
   };
 
@@ -162,6 +153,7 @@ class CategoryPage extends Component {
     const attributes = this.props.data.attributes;
     const category = this.props.data.category;
     const ancestors = category.ancestors.edges;
+    const products = this.props.data.products;
     const variables = this.props.data.variables;
     const pendingVariables = {};
     const {filtersMenu} = this.state;
@@ -228,7 +220,7 @@ class CategoryPage extends Component {
             <div>
               <ProductList
                 onLoadMore={this.incrementProductsCount}
-                products={category.products}
+                products={products}
                 updating={pendingVariables}
                 loading={this.props.data.loading || this.state.loading}
               />

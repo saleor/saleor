@@ -8,7 +8,7 @@ import SaleImg from '../../../images/sale-bg.svg';
 class ProductPrice extends Component {
   static propTypes = {
     availability: PropTypes.object.isRequired,
-    price: PropTypes.object.isRequired
+    price: PropTypes.object
   };
 
   static fragments = {

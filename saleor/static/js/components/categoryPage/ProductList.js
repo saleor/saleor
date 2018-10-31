@@ -35,7 +35,7 @@ class ProductList extends Component {
   render() {
     const { edges, pageInfo: { hasNextPage } } = this.props.products;
     return (
-      <div className={this.props.loading && 'category-list--loading'}>
+      <div className={this.props.loading ? 'category-list--loading' : ''}>
         <div className="row">
           {edges.length > 0 ? (edges.map((edge, i) => (
             <ProductItem key={i} product={edge.node} />
