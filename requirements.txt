@@ -48,8 +48,8 @@ django-versatileimagefield==1.10
 django-webpack-loader==0.6.0
 django==2.1.2
 docutils==0.14
-elasticsearch-dsl==5.4.0
-elasticsearch==5.5.3
+elasticsearch-dsl==6.0.1
+elasticsearch==6.0.0
 faker==0.9.1
 freezegun==0.3.10
 google-i18n-address==2.3.2
