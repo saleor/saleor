@@ -148,7 +148,7 @@ class ProductTypeForm(forms.ModelForm):
 
         self.check_if_variants_changed(has_variants)
         update_variants_names.delay(
-            self.instance, saved_attributes=variant_attr)
+            self.instance.pk, saved_attributes=variant_attr)
         return data
 
     def check_if_variants_changed(self, has_variants):
