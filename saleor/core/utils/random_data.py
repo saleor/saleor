@@ -65,8 +65,11 @@ IMAGES_MAPPING = {
     64: ['saleordemoproduct_paints_04.png'],
     65: ['saleordemoproduct_paints_05.png'],
     71: ['saleordemoproduct_fd_juice_06.png'],
+    72: ['saleordemoproduct_fd_juice_06.png'],  # FIXME inproper image
     73: ['saleordemoproduct_fd_juice_05.png'],
     74: ['saleordemoproduct_fd_juice_01.png'],
+    75: ['saleordemoproduct_fd_juice_03.png'],  # FIXME inproper image
+    76: ['saleordemoproduct_fd_juice_02.png'],  # FIXME inproper image
     77: ['saleordemoproduct_fd_juice_03.png'],
     78: ['saleordemoproduct_fd_juice_04.png'],
     79: ['saleordemoproduct_fd_juice_02.png'],
@@ -102,6 +105,9 @@ IMAGES_MAPPING = {
     113: [
         'saleordemoproduct_cl_boot06_1.png',
         'saleordemoproduct_cl_boot06_2.png'],
+    114: [
+        'saleordemoproduct_cl_boot06_1.png',
+        'saleordemoproduct_cl_boot06_2.png'],  # FIXME incorrect image
     115: ['saleordemoproduct_cl_bogo01_1.png'],
     116: ['saleordemoproduct_cl_bogo02_1.png'],
     117: ['saleordemoproduct_cl_bogo03_1.png'],
@@ -152,6 +158,9 @@ def create_attributes_values(values_data):
 def create_products(products_data, placeholder_dir):
     for product in products_data:
         pk = product['pk']
+        # We are skipping products without images
+        if pk not in IMAGES_MAPPING:
+            continue
         defaults = product['fields']
         defaults['weight'] = get_weight(defaults['weight'])
         defaults['category_id'] = defaults.pop('category')
@@ -169,7 +178,11 @@ def create_product_variants(variants_data):
         pk = variant['pk']
         defaults = variant['fields']
         defaults['weight'] = get_weight(defaults['weight'])
-        defaults['product_id'] = defaults.pop('product')
+        product_id = defaults.pop('product')
+        # We have not created products without images
+        if product_id not in IMAGES_MAPPING:
+            continue
+        defaults['product_id'] = product_id
         defaults['attributes'] = json.loads(defaults['attributes'])
         ProductVariant.objects.update_or_create(pk=pk, defaults=defaults)
 
