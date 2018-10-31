@@ -1,7 +1,6 @@
 import graphene
 from graphql_jwt.decorators import permission_required
 from graphql_jwt.exceptions import PermissionDenied
-from payments import PaymentError, PaymentStatus
 
 from ....account.models import User
 from ....core.utils.taxes import ZERO_TAXED_MONEY
