@@ -14,9 +14,8 @@ Your changes should live under the
 
 .. note::
 
-    After completing those steps your new payment gateway will only be
-    available from the API level. You will also need to integrate it into your
-    Frontend's workflow.
+    After completing those steps you will also need to integrate your payment
+    gateway into your SPA Storefront's workflow.
 
 get_client_token(\*\*connection_params)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -38,7 +37,7 @@ Example
         return client_token
 
 authorize(payment, payment_token, \*\*connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A process of reserving the amount of money against the customer's funding
 source. Money does not change hands until the authorization is captured.
@@ -59,13 +58,13 @@ Example
         txn = Transaction.objects.create(
             payment=payment,
             kind=TransactionKind.AUTH,
-            amount=payment.total,
-            currency=payment.currency,
+            amount=response.amount,
+            currency=response.currency,
             gateway_response=get_payment_gateway_response(response),
             token=response.transaction.id,
+            error=get_error(response),
             is_success=response.is_success)
         return txn, response['error']
-
 
 refund(payment, amount, \*\*connection_params)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -93,9 +92,10 @@ Example
         txn = create_transaction(
             payment=payment,
             kind=TransactionKind.REFUND,
-            amount=amount,
-            currency=payment.currency,
+            amount=response.amount,
+            currency=response.currency,
             token=response.transaction.id,
+            error=get_error(response),
             is_success=response.is_success,
             gateway_response=get_payment_gateway_response(response))
         return txn, response['error']
@@ -126,9 +126,10 @@ Example
         txn = create_transaction(
             payment=payment,
             kind=TransactionKind.CAPTURE,
-            amount=amount,
-            currency=payment.currency,
+            amount=response,
+            currency=response.currency,
             token=response.transaction.id,
+            error=get_error(response),
             is_success=response.is_success,
             gateway_response=get_payment_gateway_response(response))
         return txn, response['error']
@@ -158,8 +159,39 @@ Example
         txn = create_transaction(
             payment=payment,
             kind=TransactionKind.VOID,
-            amount=payment.total,
-            currency=payment.currency,
+            amount=response.amount,
+            currency=response.currency,
+            error=get_error(response),
+            gateway_response=get_payment_gateway_response(response),
+            token=response.transaction.id,
+            is_success=response.is_success)
+        return txn, response['error']
+
+charge(payment, payment_token, amount, \*\*connection_params)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Authorization and capture in a single step.
+
+Example
+"""""""
+
+.. code-block:: python
+
+    def charge(
+            payment: Payment,
+            payment_token: str,
+            amount: Decimal,
+            **connection_params: Dict) -> Tuple[Transaction, str]:
+
+        # Handle connecting to the gateway and sending the charge request here
+        response = gateway.charge(token=payment_token, amount=amount)
+
+        txn = create_transaction(
+            payment=payment,
+            kind=TransactionKind.CHARGE,
+            amount=response.amount,
+            currency=response.currency,
+            error=get_error(response),
             gateway_response=get_payment_gateway_response(response),
             token=response.transaction.id,
             is_success=response.is_success)
@@ -167,29 +199,92 @@ Example
 
 Parameters
 ^^^^^^^^^^
-+-----------------------+-----------+------------------------------------------------------------------------------------------------+
-| name                  | type      | description                                                                                    |
-+-----------------------+-----------+------------------------------------------------------------------------------------------------+
-| ``payment``           | ``Payment`` | Payment instance, for which the transaction will be created.                                   |
-+-----------------------+-----------+------------------------------------------------------------------------------------------------+
-| ``transaction_token`` | ``str``     | Unique transaction's token that will be used on the purpose of completing the payment process. |
-+-----------------------+-----------+------------------------------------------------------------------------------------------------+
-| ``connection_params`` | ``dict``    | List of parameters used for connecting to the payment's gateway.                               |
-+-----------------------+-----------+------------------------------------------------------------------------------------------------+
-| ``amount``            | ``Decimal`` | Amount of Money to be refunded/captured.                                                       |
-+-----------------------+-----------+------------------------------------------------------------------------------------------------+
+
++-----------------------+-------------+------------------------------------------------------------------------------------+
+| name                  | type        | description                                                                        |
++-----------------------+-------------+------------------------------------------------------------------------------------+
+| ``payment``           | ``Payment`` | Payment instance, for which the transaction will be created.                       |
++-----------------------+-------------+------------------------------------------------------------------------------------+
+| ``client_token``      | ``str``     | Unique client's token that will be used as his indentifier in the payment process. |
++-----------------------+-------------+------------------------------------------------------------------------------------+
+| ``connection_params`` | ``dict``    | List of parameters used for connecting to the payment's gateway.                   |
++-----------------------+-------------+------------------------------------------------------------------------------------+
+| ``amount``            | ``Decimal`` | Amount of Money to be refunded/captured.                                           |
++-----------------------+-------------+------------------------------------------------------------------------------------+
 
 Returns
 ^^^^^^^
-+-----------------------+---------------+-----------------------------------------------------------------------------------------------------------+
-| name                  | type          | description                                                                                               |
-+-----------------------+---------------+-----------------------------------------------------------------------------------------------------------+
-| ``txn``               | ``Transaction`` | Transaction created during the payment process, with ``is_success`` set to ``True`` if no error occurred. |
-+-----------------------+---------------+-----------------------------------------------------------------------------------------------------------+
-| ``error``             | ``str``         | Error message to be displayed in the UI, empty if no error occurred.                                      |
-+-----------------------+---------------+-----------------------------------------------------------------------------------------------------------+
-| ``transaction_token`` | ``str``         | Unique transaction's token that will be used on the purpose of completing the payment process.            |
-+-----------------------+---------------+-----------------------------------------------------------------------------------------------------------+
+
++------------------+-----------------+-----------------------------------------------------------------------------------------------------------+
+| name             | type            | description                                                                                               |
++------------------+-----------------+-----------------------------------------------------------------------------------------------------------+
+| ``txn``          | ``Transaction`` | Transaction created during the payment process, with ``is_success`` set to ``True`` if no error occurred. |
++------------------+-----------------+-----------------------------------------------------------------------------------------------------------+
+| ``error``        | ``str``         | Error message to be displayed in the UI, empty if no error occurred.                                      |
++------------------+-----------------+-----------------------------------------------------------------------------------------------------------+
+| ``client_token`` | ``str``         | Unique client's token that will be used as his indentifier in the payment process.                        |
++------------------+-----------------+-----------------------------------------------------------------------------------------------------------+
+
+Handling errors
+---------------
+
+Gateway-specific errors should be parsed to Saleor's universal format.
+More on this can be found in :ref:`payments`.
+
+Adding payment method to the old checkout (optional)
+----------------------------------------------------
+
+If you are not using SPA Storefront, there are some additional steps you need
+to perform in order to enable the payment method in your checkout flow.
+
+Add PaymentForm
+^^^^^^^^^^^^^^^
+
+Payment on the storefront will be handled via payment form, it should
+implement all the steps necessary for the payment to succeed.
+All payment forms should inherit from ``PaymentForm``.
+
+Your changes should live under
+``saleor.payment.gateways.<gateway name>.forms.py``
+
+Example
+"""""""
+
+.. code-block:: python
+
+    class BraintreePaymentForm(PaymentForm):
+        amount = forms.DecimalField()
+        payment_method_nonce = forms.CharField()
+
+        def process_payment(self):
+            payment_token = self.cleaned_data['payment_method_nonce']
+            self.payment.token = payment_token
+            self.payment.save(update_fields=['token'])
+            amount = self.cleaned_data['amount']
+            self.payment.charge(payment_token, amount)
+
+Implement get_form_class()
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Should return the form that will be used for the checkout process.
+
+.. note::
+    Should be added as a part of the provider's methods.
+
+Example
+"""""""
+
+    .. code-block:: python
+
+        def get_form_class():
+            return BraintreePaymentForm
+
+Add template
+^^^^^^^^^^^^
+
+Add a new template to handle the payment process with your payment form.
+Your changes should live under
+``saleor.templates.order.payment.<gateway name>.html``
 
 Adding new payment gateway to the settings
 ------------------------------------------
@@ -234,12 +329,6 @@ Enabling new payment gateway
 
 Last but not least, if you want to enable your payment gateway in the checkout
 process, add it's name to the ``CHECKOUT_PAYMENT_GATEWAYS`` setting.
-
-Handling errors
----------------
-
-Gateway-specific errors should be parsed to Saleor's universal format.
-More on this can be found at
 
 Tips
 ----

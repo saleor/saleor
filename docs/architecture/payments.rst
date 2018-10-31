@@ -1,3 +1,5 @@
+.. _payments:
+
 Payments
 ========
 
@@ -18,7 +20,6 @@ For how-to guide on adding new payments into your Saleor project please check :r
 
     All payment backends default to using sandbox mode.
     This is very useful for development but make sure you use production mode when deploying to a production server.
-
 
 Authorization and Capture
 -------------------------
@@ -43,7 +44,6 @@ Refunds
 
 You can issue partial or full refunds for all captured payments.
 When editing an order and removing items, Saleor will also offer to automatically issue a partial refund.
-
 
 Saleor uses the concept of Payments and Transactions to fulfill the payment process.
 
@@ -92,3 +92,32 @@ There are 5 possible transaction kinds:
 +---------+-------------------+----------------------------------------------------------------------------------------------------------------------------+
 | refund  | REFUND            | Full or partial return of captured funds to the customer.                                                                  |
 +---------+-------------------+----------------------------------------------------------------------------------------------------------------------------+
+
+Transaction errors
+------------------
+
+Saleor unifies error codes across all gateways.
+
++---------------------+---------------------+----------------------------------------------------+
+| Code                | Graphql API value   | Description                                        |
++---------------------+---------------------+----------------------------------------------------+
+| incorrect_number    | INCORRECT_NUMBER    | Incorrect card number                              |
++---------------------+---------------------+----------------------------------------------------+
+| invalid_number      | INVALID_NUMBER      | Invalid card number                                |
++---------------------+---------------------+----------------------------------------------------+
+| incorrect_cvv       | INCORRECT_CVV       | Incorrect CVV (or CVC)                             |
++---------------------+---------------------+----------------------------------------------------+
+| invalid_cvv         | INVALID_CVV         | Invalid CVV (or CVC)                               |
++---------------------+---------------------+----------------------------------------------------+
+| incorrect_zip       | INCORRECT_ZIP       | Incorrect postal code                              |
++---------------------+---------------------+----------------------------------------------------+
+| incorrect_address   | INCORRECT_ADDRESS   | Incorrect address (excluding postal code)          |
++---------------------+---------------------+----------------------------------------------------+
+| invalid_expiry_date | INVALID_EXPIRY_DATE | Incorrect card's expiration date                   |
++---------------------+---------------------+----------------------------------------------------+
+| expired             | EXPIRED             | Expired payment's method token                     |
++---------------------+---------------------+----------------------------------------------------+
+| declined            | DECLINED            | Transaction was declined by the gateway            |
++---------------------+---------------------+----------------------------------------------------+
+| processing_error    | PROCESSING_ERROR    | Default error used for all cases not covered above |
++---------------------+---------------------+----------------------------------------------------+
