@@ -127,6 +127,8 @@ class Home extends Component {
       }
     };
 
+    console.log(this.state.tabIndex);
+
     return (
         <div id="home" className="container">
           <Helmet>
@@ -315,24 +317,18 @@ class Home extends Component {
             <div className="section-container">
               <Tabs selectedIndex={this.state.tabIndex} onSelect={tabIndex => this.setState({ tabIndex })}>
                 <div className="grid head">
-                  <div className="col-xs-12 col-sm-12 col-md-5 col-lg-5 col-xlg-7">
+                  <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xlg-12">
                     <h2 className={`tab-${this.state.tabIndex}`}>Saleor in action</h2>
                   </div>
-                  <div className="col-xs-12 col-sm-12 col-md-7 col-lg-7 col-xlg-5">
+                  <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xlg-12">
                     <TabList className="tabs grid">
                       <Tab className="col-xs-6 col-sm-6 col-md-6">
-                        <div className="trapezoidButton">
-                          <span className="trapezoid trapezoid-one"></span>
-                          <span className="trapezoid trapezoid-two"></span>
-                          <span className="text">Case studies</span>
-                        </div>
+                        <span className="text">Case studies</span>
+                        <div className={`border-skew tab-${this.state.tabIndex}`}></div>
                       </Tab>
                       <Tab className="col-xs-6 col-sm-6 col-md-6">
-                        <div className="trapezoidButton">
-                          <span className="trapezoid trapezoid-one"></span>
-                          <span className="trapezoid trapezoid-two"></span>
-                          <span className="text">Implementations</span>
-                        </div>
+                        <span className="text">Implementations</span>
+                        <div className={`border-skew tab-${this.state.tabIndex}`}></div>
                       </Tab>
                     </TabList>
                   </div>
@@ -340,11 +336,11 @@ class Home extends Component {
                 <TabPanel className="case-study">
                   <div className="grid">
                     <div className="col-xs-12 col-sm-12 col-md-6">
-                      <ReactSVG className="pg-logo" path="images/pg-logo.svg" />
                       <img src={pgShowCase} srcSet={`${pgShowCase} 1x, ${pgShowCaseX2} 2x, ${pgShowCaseX3} 3x`} alt="Pretty Green showcase" />
                     </div>
                     <div className="col-xs-12 col-sm-12 col-md-6">
                       <div className="pg-quote">
+                        <ReactSVG className="pg-logo" path="images/pg-logo.svg" />
                         <p>“The response time of the website has improved dramatically. We’re down below the 1-second mark whereas previously we were 3.5-4 seconds on average. We've also been able to maintain that response time during extreme&nbsp;high-traffic.”</p>
                         <div className="author">
                           <img src={timKalic} alt="Tim Kalic" />
@@ -357,17 +353,36 @@ class Home extends Component {
                 </TabPanel>
                 <TabPanel className="implementation">
                   <div className="grid">
-                    <div className="col-xs-12 col-sm-12 col-md-6">
-                      <img src={roomLab} srcSet={`${roomLab} 1x, ${roomLabX2} 2x, ${roomLabX3} 3x`} alt="RoomLab" />
-                      <div className="text-center">
-                        <a className="btn btn-secondary" href="https://roomlab.co.uk" target="_blank" rel="noopener"><span>Visit website</span></a>
+                    <div className="col-xs-12 col-sm-12 col-md-6 item roomLab">
+                      <div class="imageLayer">
+                        <div class="hoverLayer">
+                          <a href="https://roomlab.co.uk" target="_blank" rel="noopener">Visit website</a>
+                        </div>
+                      </div>
+                      <div className="grid">
+                        <div className="col-xs-6 col-sm-6 col-md-12">
+                          <ReactSVG className="logo" path="images/roomlab-logo.svg" />
+                        </div>
+                        <div className="col-xs-6 col-sm-6 col-md-12 link">
+                          <a href="https://roomlab.co.uk" target="_blank" rel="noopener">Visit website</a>
+                        </div>
                       </div>
                     </div>
-                    <div className="col-xs-12 col-sm-12 col-md-6">
-                      <img src={patchGarden} srcSet={`${patchGarden} 1x, ${patchGardenX2} 2x, ${patchGardenX3} 3x`} alt="RoomLab" alt="Patch Garden" />
-                      <div className="text-center">
-                      <a className="btn btn-secondary" href="https://patch.garden/" target="_blank" rel="noopener"><span>Visit website</span></a>
+                    <div className="col-xs-12 col-sm-12 col-md-6 item patchGarden">
+                      <div class="imageLayer">
+                        <div class="hoverLayer">
+                          <a href="https://patch.garden/" target="_blank" rel="noopener"><span>Visit website</span></a>
+                        </div>
                       </div>
+                      <div className="grid">
+                        <div className="col-xs-6 col-sm-6 col-md-12">
+                          <ReactSVG className="logo" path="images/patchgreen-logo.svg" />
+                        </div>
+                        <div className="col-xs-6 col-sm-6 col-md-12 link">
+                          <a href="https://patch.garden/" target="_blank" rel="noopener"><span>Visit website</span></a>
+                        </div>
+                      </div>
+                      
                     </div>
                   </div>
                 </TabPanel>
