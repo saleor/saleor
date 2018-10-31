@@ -1,11 +1,11 @@
 ![saleor](https://user-images.githubusercontent.com/5421321/47790330-2b956f00-dd17-11e8-8993-8f08c1923f76.jpg)
 
 <div align="center">
-  <strong>Ecommerce for the PWA era</strong>
+  <strong>E-commerce for the PWA era</strong>
 </div>
 
 <div align="center">
-  A modular, high performance ecommerce storefront built with GraphQL, Django and ReactJS.
+  A modular, high performance e-commerce storefront built with GraphQL, Django, and ReactJS.
 </div>
 
 <br>
