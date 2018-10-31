@@ -43,5 +43,5 @@ export const ProductListCard: React.StatelessComponent<
     </Card>
   </Container>
 );
-
+ProductListCard.displayName = "ProductListCard";
 export default ProductListCard;

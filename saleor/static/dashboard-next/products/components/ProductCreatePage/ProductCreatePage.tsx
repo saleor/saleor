@@ -209,4 +209,5 @@ export const ProductCreatePage = decorate<ProductCreatePageProps>(
     );
   }
 );
+ProductCreatePage.displayName = "ProductCreatePage";
 export default ProductCreatePage;

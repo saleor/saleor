@@ -125,4 +125,5 @@ const ProductVariantAttributes = decorate<ProductVariantAttributesProps>(
     );
   }
 );
+ProductVariantAttributes.displayName = "ProductVariantAttributes";
 export default ProductVariantAttributes;
