@@ -98,4 +98,5 @@ const ProductVariantNavigation = decorate<ProductVariantNavigationProps>(
     </Card>
   )
 );
+ProductVariantNavigation.displayName = "ProductVariantNavigation";
 export default ProductVariantNavigation;

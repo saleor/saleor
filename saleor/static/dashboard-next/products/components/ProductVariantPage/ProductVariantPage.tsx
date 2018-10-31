@@ -250,4 +250,5 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
     );
   }
 );
+ProductVariantPage.displayName = "ProductVariantPage";
 export default ProductVariantPage;

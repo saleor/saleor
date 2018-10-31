@@ -224,4 +224,5 @@ const ProductImages = decorate<ProductImagesProps>(
     </Card>
   )
 );
+ProductImages.displayName = "ProductImages";
 export default ProductImages;

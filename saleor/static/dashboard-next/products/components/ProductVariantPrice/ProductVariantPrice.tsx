@@ -76,4 +76,5 @@ const ProductVariantPrice = decorate<ProductVariantPriceProps>(
     </Card>
   )
 );
+ProductVariantPrice.displayName = "ProductVariantPrice";
 export default ProductVariantPrice;

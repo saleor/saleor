@@ -52,4 +52,5 @@ export const AttributesForm: React.StatelessComponent<
     </CardContent>
   </Card>
 );
+AttributesForm.displayName = "AttributesForm";
 export default AttributesForm;
