@@ -60,12 +60,16 @@
         & .news {
           position: relative;
           top: calc(var(--spacer) * -4);
-          opacity: 0.6;
+          opacity: 1;
+          & strong {
+            font-weight: 500;
+          }
           @media (max-width: 768px) {
             top: calc(var(--spacer) * -6);
           }
           & .label {
             display: inline-block;
+            opacity: 0.6;
             border: solid 1px var(--primaryColor);
             transform: skew(45deg);
             text-align: center;
