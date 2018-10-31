@@ -76,4 +76,5 @@ const OrderPaymentDialog: React.StatelessComponent<OrderPaymentDialogProps> = ({
     </Form>
   </Dialog>
 );
+OrderPaymentDialog.displayName = "OrderPaymentDialog";
 export default OrderPaymentDialog;

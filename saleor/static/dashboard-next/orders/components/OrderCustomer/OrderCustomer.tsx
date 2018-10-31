@@ -276,4 +276,5 @@ const OrderCustomer = decorate<OrderCustomerProps>(
     );
   }
 );
+OrderCustomer.displayName = "OrderCustomer";
 export default OrderCustomer;

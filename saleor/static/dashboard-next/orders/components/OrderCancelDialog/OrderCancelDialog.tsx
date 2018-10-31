@@ -81,4 +81,5 @@ const OrderCancelDialog = decorate<OrderCancelDialogProps>(
     </Dialog>
   )
 );
+OrderCancelDialog.displayName = "OrderCancelDialog";
 export default OrderCancelDialog;

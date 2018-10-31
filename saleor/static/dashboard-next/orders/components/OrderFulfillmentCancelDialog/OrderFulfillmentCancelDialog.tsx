@@ -71,4 +71,5 @@ const OrderFulfillmentCancelDialog = decorate<
     </Form>
   </Dialog>
 ));
+OrderFulfillmentCancelDialog.displayName = "OrderFulfillmentCancelDialog";
 export default OrderFulfillmentCancelDialog;

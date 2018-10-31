@@ -389,4 +389,5 @@ class OrderDetailsPageComponent extends React.Component<
 const OrderDetailsPage = decorate<OrderDetailsPageProps>(
   OrderDetailsPageComponent
 );
+OrderDetailsPage.displayName = "OrderDetailsPage";
 export default OrderDetailsPage;
