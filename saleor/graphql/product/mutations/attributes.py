@@ -141,6 +141,9 @@ class AttributeCreate(AttributeMixin, ModelMutation):
     @classmethod
     @permission_required('product.manage_products')
     def mutate(cls, root, info, id, type, input):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         errors = []
         product_type = cls.get_node_or_error(
             info, id, errors, 'id', ProductType)
@@ -206,6 +209,9 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
     @classmethod
     @permission_required('product.manage_products')
     def mutate(cls, root, info, id, input):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         errors = []
         instance = cls.get_node_or_error(info, id, errors, 'id', Attribute)
 

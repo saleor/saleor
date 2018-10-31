@@ -1,5 +1,6 @@
 import graphene
 from django.db import transaction
+from graphql_jwt.exceptions import PermissionDenied
 
 from ...account.models import Address
 from ...checkout import models
@@ -145,6 +146,39 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
                 add_variant_to_cart(instance, variant, quantity)
+
+    @classmethod
+    def mutate(cls, root, info, **data):
+        # DEMO: mutate is overridden here on purpose, to not raise
+        # PermissionDenied (which happens for every other ModelMutation on
+        # demo).
+
+        if not cls.user_is_allowed(info.context.user, data):
+            raise PermissionDenied()
+
+        id = data.get('id')
+        input = data.get('input')
+
+        # Initialize the errors list.
+        errors = []
+
+        # Initialize model instance based on presence of `id` attribute.
+        if id:
+            instance = cls.get_node_or_error(
+                info, id, errors, 'id', Checkout)
+        else:
+            instance = cls._meta.model()
+        if errors:
+            return cls(errors=errors)
+
+        cleaned_input = cls.clean_input(info, instance, input, errors)
+        instance = cls.construct_instance(instance, cleaned_input)
+        cls.clean_instance(instance, errors)
+        if errors:
+            return cls(errors=errors)
+        cls.save(info, instance, cleaned_input)
+        cls._save_m2m(info, instance, cleaned_input)
+        return cls.success_response(instance)
 
 
 class CheckoutLinesAdd(BaseMutation):

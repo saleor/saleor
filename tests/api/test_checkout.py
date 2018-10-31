@@ -5,6 +5,7 @@ import graphene
 import pytest
 from tests.api.utils import get_graphql_content
 
+from saleor.core.demo_obfuscators import obfuscate_address
 from saleor.checkout.models import Cart
 from saleor.order.models import Order
 from saleor.payment import TransactionKind
@@ -404,7 +405,7 @@ def test_checkout_complete(
     order_line = order.lines.first()
     assert checkout_line.quantity == order_line.quantity
     assert checkout_line.variant == order_line.variant
-    assert order.shipping_address == address
+    assert order.shipping_address == obfuscate_address(address)
     assert order.shipping_method == checkout.shipping_method
     assert order.payments.exists()
     order_payment = order.payments.first()

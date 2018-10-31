@@ -59,6 +59,9 @@ class CategoryCreate(ModelMutation):
 
     @classmethod
     def mutate(cls, root, info, **data):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         parent_id = data.pop('parent_id', None)
         data['input']['parent_id'] = parent_id
         return super().mutate(root, info, **data)

@@ -145,6 +145,9 @@ class AuthorizationKeyAdd(BaseMutation):
     @classmethod
     @permission_required('site.manage_settings')
     def mutate(cls, root, info, key_type, input):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         errors = []
         if site_models.AuthorizationKey.objects.filter(name=key_type).exists():
             cls.add_error(
@@ -177,6 +180,9 @@ class AuthorizationKeyDelete(BaseMutation):
     @classmethod
     @permission_required('site.manage_settings')
     def mutate(cls, root, info, key_type):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         errors = []
         try:
             site_settings = info.context.site.settings
