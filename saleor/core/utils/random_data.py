@@ -56,7 +56,7 @@ COLLECTIONS_SCHEMA = [
         'image_name': 'summer.jpg'},
     {
         'name': 'Winter sale',
-        'image_name': 'clothing.png'}]
+        'image_name': 'clothing.jpg'}]
 
 IMAGES_MAPPING = {
     61: ['saleordemoproduct_paints_01.png'],
@@ -117,9 +117,9 @@ IMAGES_MAPPING = {
 
 
 CATEGORY_IMAGES = {
-    7: 'DEMO-04.png',
-    8: 'groceries.png',
-    9: 'cos.png'
+    7: 'DEMO-04.jpg',
+    8: 'groceries.jpg',
+    9: 'cos.jpg'
 }
 
 
