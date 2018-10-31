@@ -639,13 +639,9 @@ def create_collections_by_schema(placeholder_dir, schema=COLLECTIONS_SCHEMA):
 
 def create_page():
     content = """
-    <h2 align="center">AN OPENSOURCE STOREFRONT PLATFORM FOR PERFECTIONISTS</h2>
-    <h3 align="center">WRITTEN IN PYTHON, BEST SERVED AS A BESPOKE, HIGH-PERFORMANCE E-COMMERCE SOLUTION</h3>
-    <p><br></p>
-    <p><img src="http://getsaleor.com/images/main-pic.svg"></p>
-    <p style="text-align: center;">
-        <a href="https://github.com/mirumee/saleor/">Get Saleor</a> today!
-    </p>
+    <h2>E-commerce for the PWA era</h2>
+    <h3>A modular, high performance e-commerce storefront built with GraphQL, Django, and ReactJS.</h3>
+    <p>Saleor is a rapidly-growing open source e-commerce platform that has served high-volume companies from branches like publishing and apparel since 2012. Based on Python and Django, the latest major update introduces a modular front end with a GraphQL API and storefront and dashboard written in React to make Saleor a full-functionality open source e-commerce.</p>
     """
     page_data = {'content': content, 'title': 'About', 'is_visible': True}
     page, dummy = Page.objects.get_or_create(slug='about', **page_data)
