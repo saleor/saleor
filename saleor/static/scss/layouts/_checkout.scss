@@ -29,14 +29,13 @@
     svg {
       vertical-align: baseline;
       margin-right: $global-margin;
+      padding-bottom: 2px;
       @include media-breakpoint-down(sm) {
-        max-height: 25px;
+        max-height: 34px;
         width: auto;
         vertical-align: text-bottom;
         margin-right: 0;
-      }
-      path {
-        fill: $body-color;
+        padding-bottom: 5px;
       }
     }
     h1 {
