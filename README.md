@@ -96,6 +96,10 @@ Or launch the demo on a free Heroku instance.
 Login credentials: `admin@example.com`/`admin`
 
 
+## PWA Storefront
+The PWA, single-page storefront is available in a separate repository: [see it here](https://github.com/mirumee/saleor-storefront)!
+
+
 ## Contributing
 We love your contributions and do our best to provide you with mentorship and support. If you are looking for an issue to tackle, take a look at issues labelled [`Help Wanted`](https://github.com/mirumee/saleor/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22).
 
