@@ -120,4 +120,5 @@ export const HomeProductList = decorate<HomeProductListProps>(
   )
 );
 
+HomeProductList.displayName = "HomeProductList";
 export default HomeProductList;
