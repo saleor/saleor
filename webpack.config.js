@@ -134,7 +134,7 @@ module.exports = (env, argv) => {
       }),
       new HtmlWebpackPlugin({
         template: `${sourceDir}pages/privacy-policy.ejs`,
-        filename: `${distDir}privacy-policy/index.html`,
+        filename: `${distDir}privacy-policy-terms-and-conditions/index.html`,
         googleTagManager: 'GTM-KL4NB3Z',
         domainURL: devMode ? devUrl : prodUrl
       }),

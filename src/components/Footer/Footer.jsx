@@ -12,7 +12,7 @@ const Footer = () => (
           <Link to="/" aria-label="Saleor Logo"><ReactSVG className="saleor-logo" path="images/saleor-logo.svg" /></Link>
           <div className="craftedBy">
             <span>crafted by</span>
-            <ReactSVG className="mirumee-logo" path="images/logo-mirumee.svg" />
+            <a href="https://mirumee.com" target="_blank"><ReactSVG className="mirumee-logo" path="images/logo-mirumee.svg" /></a>
           </div>
         </div>
         <div className="content">
@@ -47,7 +47,7 @@ const Footer = () => (
                 <div className="col-xs-6 col-sm-4 col-md-3 col-lg-2 col-xlg-1 menu-item">
                   <ul>
                     <li><h4>About</h4></li>
-                    <li><Link to="/privacy-policy&terms-and-conditions">Privacy policy</Link></li>
+                    <li><Link to="/privacy-policy-terms-and-conditions">Privacy policy</Link></li>
                     {/* <li><a href="">Terms of service</a></li> */}
                   </ul>
                 </div>
