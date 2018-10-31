@@ -106,5 +106,5 @@ export const PageList = decorate<PageListProps>(
     </Card>
   )
 );
-
+PageList.displayName = "PageList";
 export default PageList;

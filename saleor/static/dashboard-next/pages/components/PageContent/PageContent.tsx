@@ -66,4 +66,5 @@ const PageContent = decorate<PageContentProps>(
     </Card>
   )
 );
+PageContent.displayName = "PageContent";
 export default PageContent;
