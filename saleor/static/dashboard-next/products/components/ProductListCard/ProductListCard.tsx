@@ -11,7 +11,13 @@ import i18n from "../../../i18n";
 import { PageListProps } from "../../../types";
 import ProductListFilter from "../ProductListFilter";
 
+export interface Filter {
+  label: string;
+  onClick: () => void;
+}
 interface ProductListCardProps extends PageListProps {
+  currentTab: number;
+  filtersList: Filter[];
   products: CategoryDetails_category_products_edges_node[];
 }
 
@@ -24,7 +30,9 @@ export const ProductListCard: React.StatelessComponent<
   onAdd,
   onNextPage,
   onPreviousPage,
-  onRowClick
+  onRowClick,
+  filtersList,
+  currentTab
 }) => (
   <Container width="md">
     <PageHeader title={i18n.t("Products")}>
@@ -33,7 +41,7 @@ export const ProductListCard: React.StatelessComponent<
       </Button>
     </PageHeader>
     <Card>
-      <ProductListFilter />
+      <ProductListFilter currentTab={currentTab} filtersList={filtersList} />
       <ProductList
         products={products}
         disabled={disabled}
