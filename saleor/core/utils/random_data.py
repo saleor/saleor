@@ -1,8 +1,10 @@
 import itertools
+import json
 import os
 import random
 import unicodedata
 import uuid
+from collections import defaultdict
 from datetime import date
 from decimal import Decimal
 from unittest.mock import patch
@@ -20,8 +22,10 @@ from prices import Money
 from ...account.models import Address, User
 from ...account.utils import store_user_address
 from ...checkout import AddressType
+from ...core.weight import zero_weight
 from ...core.utils.taxes import get_tax_rate_by_name, get_taxes_for_country
 from ...core.utils.text import strip_html_and_truncate
+from ...core.utils.json_serializer import object_hook
 from ...dashboard.menu.utils import update_menu
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
@@ -46,76 +50,6 @@ PRODUCTS_LIST_DIR = 'products-list/'
 
 GROCERIES_CATEGORY = {'name': 'Groceries', 'image_name': 'groceries.jpg'}
 
-DEFAULT_SCHEMA = {
-    'T-Shirt': {
-        'category': {
-            'name': 'Apparel',
-            'image_name': 'apparel.jpg'},
-        'product_attributes': {
-            'Color': ['Blue', 'White'],
-            'Collar': ['Round', 'V-Neck', 'Polo'],
-            'Brand': ['Saleor']},
-        'variant_attributes': {
-            'Size': ['XS', 'S', 'M', 'L', 'XL', 'XXL']},
-        'images_dir': 't-shirts/',
-        'is_shipping_required': True},
-    'Mugs': {
-        'category': {
-            'name': 'Accessories',
-            'image_name': 'accessories.jpg'},
-        'product_attributes': {
-            'Brand': ['Saleor']},
-        'variant_attributes': {},
-        'images_dir': 'mugs/',
-        'is_shipping_required': True},
-    'Coffee': {
-        'category': {
-            'name': 'Coffees',
-            'image_name': 'coffees.jpg',
-            'parent': GROCERIES_CATEGORY},
-        'product_attributes': {
-            'Coffee Genre': ['Arabica', 'Robusta'],
-            'Brand': ['Saleor']},
-        'variant_attributes': {
-            'Box Size': ['100g', '250g', '500g', '1kg']},
-        'different_variant_prices': True,
-        'images_dir': 'coffee/',
-        'is_shipping_required': True},
-    'Candy': {
-        'category': {
-            'name': 'Candies',
-            'image_name': 'candies.jpg',
-            'parent': GROCERIES_CATEGORY},
-        'product_attributes': {
-            'Flavor': ['Sour', 'Sweet'],
-            'Brand': ['Saleor']},
-        'variant_attributes': {
-            'Candy Box Size': ['100g', '250g', '500g']},
-        'images_dir': 'candy/',
-        'is_shipping_required': True},
-    'E-books': {
-        'category': {
-            'name': 'Books',
-            'image_name': 'books.jpg'},
-        'product_attributes': {
-            'Author': ['John Doe', 'Milionare Pirate'],
-            'Publisher': ['Mirumee Press', 'Saleor Publishing'],
-            'Language': ['English', 'Pirate']},
-        'variant_attributes': {},
-        'images_dir': 'books/',
-        'is_shipping_required': False},
-    'Books': {
-        'category': {
-            'name': 'Books',
-            'image_name': 'books.jpg'},
-        'product_attributes': {
-            'Author': ['John Doe', 'Milionare Pirate'],
-            'Publisher': ['Mirumee Press', 'Saleor Publishing'],
-            'Language': ['English', 'Pirate']},
-        'variant_attributes': {
-            'Cover': ['Soft', 'Hard']},
-        'images_dir': 'books/',
-        'is_shipping_required': True}}
 COLLECTIONS_SCHEMA = [
     {
         'name': 'Summer collection',
@@ -124,122 +58,139 @@ COLLECTIONS_SCHEMA = [
         'name': 'Winter sale',
         'image_name': 'sale.jpg'}]
 
-
-def create_attributes_and_values(attribute_data):
-    attributes = []
-    for attribute_name, attribute_values in attribute_data.items():
-        attribute = create_attribute(
-            slug=slugify(attribute_name), name=attribute_name)
-        for value in attribute_values:
-            create_attribute_value(attribute, name=value)
-        attributes.append(attribute)
-    return attributes
-
-
-def create_product_type_with_attributes(name, schema):
-    product_attributes_schema = schema.get('product_attributes', {})
-    variant_attributes_schema = schema.get('variant_attributes', {})
-    is_shipping_required = schema.get('is_shipping_required', True)
-    product_type = get_or_create_product_type(
-        name=name, is_shipping_required=is_shipping_required,
-        weight=fake.weight())
-    product_attributes = create_attributes_and_values(
-        product_attributes_schema)
-    variant_attributes = create_attributes_and_values(
-        variant_attributes_schema)
-    product_type.product_attributes.add(*product_attributes)
-    product_type.variant_attributes.add(*variant_attributes)
-    return product_type
-
-
-def create_product_types_by_schema(root_schema):
-    results = []
-    for product_type_name, schema in root_schema.items():
-        product_type = create_product_type_with_attributes(
-            product_type_name, schema)
-        results.append((product_type, schema))
-    return results
-
-
-def set_product_attributes(product, product_type):
-    attr_dict = {}
-    for attribute in product_type.product_attributes.all():
-        value = random.choice(attribute.values.all())
-        attr_dict[str(attribute.pk)] = str(value.pk)
-    product.attributes = attr_dict
-    product.save(update_fields=['attributes'])
-
-
-def get_variant_combinations(product):
-    # Returns all possible variant combinations
-    # For example: product type has two variant attributes: Size, Color
-    # Size has available values: [S, M], Color has values [Red, Green]
-    # All combinations will be generated (S, Red), (S, Green), (M, Red),
-    # (M, Green)
-    # Output is list of dicts, where key is Attribute id and value is
-    # AttributeValue id. Casted to string.
-    variant_attr_map = {
-        attr: attr.values.all()
-        for attr in product.product_type.variant_attributes.all()}
-    all_combinations = itertools.product(*variant_attr_map.values())
-    return [
-        {str(attr_value.attribute.pk): str(attr_value.pk)
-         for attr_value in combination}
-        for combination in all_combinations]
+IMAGES_MAPPING = {
+   61: ['saleordemoproduct_paints_01.png'],
+   62: ['saleordemoproduct_paints_02.png'],
+   63: ['saleordemoproduct_paints_03.png'],
+   64: ['saleordemoproduct_paints_04.png'],
+   65: ['saleordemoproduct_paints_05.png'],
+   71: ['saleordemoproduct_fd_juice_06.png'],
+   73: ['saleordemoproduct_fd_juice_05.png'],
+   74: ['saleordemoproduct_fd_juice_01.png'],
+   77: ['saleordemoproduct_fd_juice_03.png'],
+   78: ['saleordemoproduct_fd_juice_04.png'],
+   79: ['saleordemoproduct_fd_juice_02.png'],
+   81: ['saleordemoproduct_wine-red.png'],
+   82: ['saleordemoproduct_wine-white.png'],
+   83: ['saleordemoproduct_beer-02_1.png', 'saleordemoproduct_beer-02_2.png'],
+   84: ['saleordemoproduct_beer-01_1.png', 'saleordemoproduct_beer-01_2.png'],
+   85: ['saleordemoproduct_cuschion01.png'],
+   86: ['saleordemoproduct_cuschion02.png'],
+   87: [
+       'saleordemoproduct_sneakers_01_1.png',
+       'saleordemoproduct_sneakers_01_2.png',
+       'saleordemoproduct_sneakers_01_3.png',
+       'saleordemoproduct_sneakers_01_4.png'],
+   88: [
+       'saleordemoproduct_sneakers_02_1.png',
+       'saleordemoproduct_sneakers_02_2.png',
+       'saleordemoproduct_sneakers_02_3.png',
+       'saleordemoproduct_sneakers_02_4.png'],
+    89: [
+        'saleordemoproduct_cl_boot07_1.png',
+        'saleordemoproduct_cl_boot07_2.png'],
+    107: ['saleordemoproduct_cl_polo01.png'],
+    108: ['saleordemoproduct_cl_polo02.png'],
+    109: ['saleordemoproduct_cl_polo03-woman.png'],
+    110: ['saleordemoproduct_cl_polo04-woman.png'],
+    111: [
+        'saleordemoproduct_cl_boot01_1.png',
+        'saleordemoproduct_cl_boot01_2.png',
+        'saleordemoproduct_cl_boot01_3.png'],
+    112: [
+        'saleordemoproduct_cl_boot03_1.png',
+        'saleordemoproduct_cl_boot03_2.png'],
+    113: [
+        'saleordemoproduct_cl_boot06_1.png',
+        'saleordemoproduct_cl_boot06_2.png'],
+    115: ['saleordemoproduct_cl_bogo01_1.png'],
+    116: ['saleordemoproduct_cl_bogo02_1.png'],
+    117: ['saleordemoproduct_cl_bogo03_1.png'],
+    118: [
+        'saleordemoproduct_cl_bogo04_1.png',
+        'saleordemoproduct_cl_bogo04_2.png']}
 
 
-def get_price_override(schema, combinations_num, current_price):
-    prices = []
-    if schema.get('different_variant_prices'):
-        prices = sorted(
-            [current_price + fake.money() for _ in range(combinations_num)],
-            reverse=True)
-    return prices
+def get_weight(weight):
+    if not weight:
+        return zero_weight()
+    value, unit = weight.split()
+    return Weight(**{unit: value})
+
+def create_product_types(product_type_data):
+    for product_type in product_type_data:
+        pk = product_type['pk']
+        defaults = product_type['fields']
+        defaults['weight'] = get_weight(defaults['weight'])
+        ProductType.objects.update_or_create(pk=pk, defaults=defaults)
 
 
-def create_products_by_type(
-        product_type, schema, placeholder_dir, how_many=10, create_images=True,
-        stdout=None):
-    category = get_or_create_category(schema['category'], placeholder_dir)
-
-    for dummy in range(how_many):
-        product = create_product(
-            product_type=product_type, category=category)
-        set_product_attributes(product, product_type)
-        if create_images:
-            type_placeholders = os.path.join(
-                placeholder_dir, schema['images_dir'])
-            create_product_images(
-                product, random.randrange(1, 5), type_placeholders)
-        variant_combinations = get_variant_combinations(product)
-
-        prices = get_price_override(
-            schema, len(variant_combinations), product.price)
-        variants_with_prices = itertools.zip_longest(
-            variant_combinations, prices)
-
-        for i, variant_price in enumerate(variants_with_prices, start=1337):
-            attr_combination, price = variant_price
-            sku = '%s-%s' % (product.pk, i)
-            create_variant(
-                product, attributes=attr_combination, sku=sku,
-                price_override=price)
-
-        if not variant_combinations:
-            # Create min one variant for products without variant level attrs
-            sku = '%s-%s' % (product.pk, fake.random_int(1000, 100000))
-            create_variant(product, sku=sku)
-        if stdout is not None:
-            stdout.write('Product: %s (%s), %s variant(s)' % (
-                product, product_type.name, len(variant_combinations) or 1))
+def create_categories(categories_data):
+    for category in categories_data:
+        pk = category['pk']
+        Category.objects.update_or_create(pk=pk, defaults=category['fields'])
 
 
-def create_products_by_schema(placeholder_dir, how_many, create_images,
-                              stdout=None, schema=DEFAULT_SCHEMA):
-    for product_type, type_schema in create_product_types_by_schema(schema):
-        create_products_by_type(
-            product_type, type_schema, placeholder_dir,
-            how_many=how_many, create_images=create_images, stdout=stdout)
+def create_attributes(attributes_data):
+    for attribute in attributes_data:
+        pk = attribute['pk']
+        defaults = attribute['fields']
+        defaults['product_type_id'] = defaults.pop('product_type')
+        defaults['product_variant_type_id'] = defaults.pop(
+            'product_variant_type')
+        Attribute.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def create_attributes_values(values_data):
+    for value in values_data:
+        pk = value['pk']
+        defaults = value['fields']
+        defaults['attribute_id'] = defaults.pop('attribute')
+        AttributeValue.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def create_products(products_data, placeholder_dir):
+    for product in products_data:
+        pk = product['pk']
+        defaults = product['fields']
+        defaults['weight'] = get_weight(defaults['weight'])
+        defaults['category_id'] = defaults.pop('category')
+        defaults['product_type_id'] = defaults.pop('product_type')
+        defaults['attributes'] = json.loads(defaults['attributes'])
+        product, _ = Product.objects.update_or_create(pk=pk, defaults=defaults)
+
+        images = IMAGES_MAPPING.get(pk, [])
+        for image_name in images:
+            create_product_image(product, placeholder_dir, image_name)
+
+
+def create_product_variants(variants_data):
+    for variant in variants_data:
+        pk = variant['pk']
+        defaults = variant['fields']
+        defaults['weight'] = get_weight(defaults['weight'])
+        defaults['product_id'] = defaults.pop('product')
+        defaults['attributes'] = json.loads(defaults['attributes'])
+        ProductVariant.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def create_products_by_schema(placeholder_dir, create_images, stdout=None):
+    with open('static/db.json') as f:
+        db_items = json.load(f, object_hook=object_hook)
+    types = defaultdict(list)
+    # Sort db objects by its model
+    for item in db_items:
+        model = item.pop('model')
+        types[model].append(item)
+
+    create_product_types(product_type_data=types['product.producttype'])
+    create_categories(categories_data=types['product.category'])
+    create_attributes(attributes_data=types['product.attribute'])
+    create_attributes_values(values_data=types['product.attributevalue'])
+    create_products(
+        products_data=types['product.product'],
+        placeholder_dir=placeholder_dir)
+    create_product_variants(variants_data=types['product.productvariant'])
 
 
 class SaleorProvider(BaseProvider):
@@ -278,10 +229,6 @@ def get_or_create_category(category_schema, placeholder_dir):
         name=category_name, parent_id=parent_id, defaults=defaults)[0]
 
 
-def get_or_create_product_type(name, **kwargs):
-    return ProductType.objects.get_or_create(name=name, defaults=kwargs)[0]
-
-
 def get_or_create_collection(name, placeholder_dir, image_name):
     background_image = get_image(placeholder_dir, image_name)
     defaults = {
@@ -290,69 +237,16 @@ def get_or_create_collection(name, placeholder_dir, image_name):
     return Collection.objects.get_or_create(name=name, defaults=defaults)[0]
 
 
-def create_product(**kwargs):
-    description = fake.paragraphs(5)
-    defaults = {
-        'name': fake.company(),
-        'price': fake.money(),
-        'description': '\n\n'.join(description),
-        'seo_description': strip_html_and_truncate(description[0], 300),
-        'weight': fake.weight() if random.randint(0, 1) else None}
-    defaults.update(kwargs)
-    return Product.objects.create(**defaults)
-
-
-def create_variant(product, **kwargs):
-    defaults = {
-        'product': product,
-        'quantity': fake.random_int(1, 50),
-        'weight': fake.weight() if random.randint(0, 1) else None}
-    defaults.update(kwargs)
-    variant = ProductVariant(**defaults)
-    if 'cost_price' not in kwargs:
-        variant.cost_price = (variant.base_price * Decimal(
-            fake.random_int(10, 99) / 100)).quantize()
-    if variant.attributes:
-        attributes = variant.product.product_type.variant_attributes.all()
-        variant.name = get_name_from_attributes(variant, attributes)
-    variant.save()
-    return variant
-
-
-def create_product_image(product, placeholder_dir):
+def create_product_image(product, placeholder_dir, image_name):
     placeholder_root = os.path.join(settings.PROJECT_ROOT, placeholder_dir)
-    image_name = random.choice(os.listdir(placeholder_root))
     image = get_image(placeholder_dir, image_name)
+    # We don't want to create duplicated product images
+    if product.images.count() >= len(IMAGES_MAPPING.get(product.pk, [])):
+        return
     product_image = ProductImage(product=product, image=image)
     product_image.save()
     create_product_thumbnails.delay(product_image.pk)
     return product_image
-
-
-def create_attribute(**kwargs):
-    slug = fake.word()
-    defaults = {
-        'slug': slug,
-        'name': slug.title()}
-    defaults.update(kwargs)
-    attribute = Attribute.objects.get_or_create(**defaults)[0]
-    return attribute
-
-
-def create_attribute_value(attribute, **kwargs):
-    name = fake.word()
-    defaults = {
-        'attribute': attribute,
-        'name': name}
-    defaults.update(kwargs)
-    defaults['slug'] = slugify(defaults['name'])
-    attribute_value = AttributeValue.objects.get_or_create(**defaults)[0]
-    return attribute_value
-
-
-def create_product_images(product, how_many, placeholder_dir):
-    for dummy in range(how_many):
-        create_product_image(product, placeholder_dir)
 
 
 def create_address():
@@ -412,7 +306,7 @@ def create_payment(mock_email_confirmation, order):
 
 
 def create_order_line(order, discounts, taxes):
-    product = Product.objects.all().order_by('?')[0]
+    product = Product.objects.filter(variants__isnull=False).order_by('?')[0]
     variant = product.variants.all()[0]
     quantity = random.randrange(1, 5)
     variant.quantity += quantity
