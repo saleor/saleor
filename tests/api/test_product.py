@@ -11,7 +11,8 @@ from tests.utils import create_image, create_pdf_file_with_image_ext
 from saleor.graphql.core.types import ReportingPeriod
 from saleor.graphql.product.types import StockAvailability
 from saleor.product.models import (
-    Category, Collection, Product, ProductImage, ProductType, ProductVariant)
+    Attribute, Category, Collection, Product, ProductImage, ProductType,
+    ProductVariant)
 from saleor.product.tasks import update_variants_names
 
 from .utils import assert_no_permission, get_multipart_request_body
@@ -1285,17 +1286,18 @@ def test_product_type_update_changes_variant_name(
         query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     variant_attributes = set(variant_attributes)
+    variant_attributes_ids = [attr.pk for attr in variant_attributes]
     mock_update_variants_names.assert_called_once_with(
-        product_type, variant_attributes)
+        product_type.pk, variant_attributes_ids)
 
 
 @patch('saleor.product.tasks._update_variants_names')
 def test_product_update_variants_names(mock__update_variants_names,
                                        product_type):
     variant_attributes = [product_type.variant_attributes.first()]
-    update_variants_names(product_type.pk, variant_attributes)
-    mock__update_variants_names.assert_called_once_with(
-        product_type, variant_attributes)
+    variant_attr_ids = [attr.pk for attr in variant_attributes]
+    update_variants_names(product_type.pk, variant_attr_ids)
+    mock__update_variants_names.call_count == 1
 
 
 def test_product_variants_by_ids(user_api_client, variant):
