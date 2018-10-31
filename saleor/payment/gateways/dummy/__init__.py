@@ -83,3 +83,14 @@ def refund(payment: Payment, amount: Decimal):
         token=str(uuid.uuid4()),
         is_success=success)
     return txn, error
+
+
+def charge(
+        payment: Payment, payment_token: str, amount: Decimal,
+        **connection_params):
+    """Performs Authorize and Capture transactions in a single run."""
+    txn, error = authorize(payment, payment_token)
+    if error:
+        return txn, error
+    capture_txn, capture_error = capture(payment, amount)
+    return capture_txn, capture_error

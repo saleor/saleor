@@ -5,7 +5,6 @@ import dj_database_url
 import dj_email_url
 import django_cache_url
 from django.contrib.messages import constants as messages
-from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext_lazy as _, pgettext_lazy
 from django_prices.templatetags.prices_i18n import get_currency_fraction
 
@@ -564,16 +563,3 @@ PAYMENT_GATEWAYS = {
         }
     }
 }
-if not DEBUG:
-    GATEWAY_PATH = '%(module)s/__init__.py'
-    for gateway, data in PAYMENT_GATEWAYS.items():
-        if gateway not in CHECKOUT_PAYMENT_GATEWAYS:
-            continue
-        if 'module' not in data or 'connection_params' not in data:
-            raise ImproperlyConfigured('Payment gateway misconfigured.')
-        module_path = {'module': data['module'].replace('.', '/')}
-        payment_gateway_file_exists = os.path.isfile(
-            GATEWAY_PATH % {'module': module_path})
-        if not payment_gateway_file_exists:
-            raise ImproperlyConfigured(
-                'No configuration files for %s payment gateway.' % gateway)
