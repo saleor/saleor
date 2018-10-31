@@ -8,11 +8,20 @@
         position: absolute;
         top: 5%;
         left: 14%;
+        & svg {
+          max-height: 860px;
+          @media (max-width: 1680px) {
+            max-height: 750px;
+          }
+          @media (max-width: 1440px) {
+            max-height: 630px;
+          }
+        }
         @media (min-width: 2500px) {
-          top: 0;
+          top: 5%;
         }
         @media (max-width: 1024px) {
-          top: 0;
+          top: 5%;
           left: 0;
         }
         @media (max-width: 768px) {
@@ -139,6 +148,9 @@
         bottom: calc(var(--spacer) * 7);
         @media (min-width: 2500px) {
           bottom: calc(var(--spacer) * 20);
+        }
+         @media (max-width: 1680px) {
+          bottom: calc(var(--spacer) * 4);
         }
         @media (max-width: 1440px) {
           bottom: calc(var(--spacer) * 5);

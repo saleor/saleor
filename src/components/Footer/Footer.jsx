@@ -10,7 +10,10 @@ const Footer = () => (
       <div className="container">
         <div className="logo">
           <Link to="/" aria-label="Saleor Logo"><ReactSVG className="saleor-logo" path="images/saleor-logo.svg" /></Link>
-          <ReactSVG className="mirumee-logo" path="images/logo-mirumee.svg" />
+          <div className="craftedBy">
+            <span>crafted by</span>
+            <ReactSVG className="mirumee-logo" path="images/logo-mirumee.svg" />
+          </div>
         </div>
         <div className="content">
           <div className="grid">
