@@ -5,7 +5,6 @@ from urllib.parse import urljoin
 
 import pytest
 
-from django.conf import settings
 from django.db.models import Case, F, When
 from django.shortcuts import reverse
 from django.templatetags.static import static
@@ -238,21 +237,18 @@ def test_create_thumbnails(product_with_image, settings):
 
 
 @patch('storages.backends.s3boto3.S3Boto3Storage')
-@patch.object(settings, 'AWS_MEDIA_BUCKET_NAME', 'media-bucket')
-@patch.object(settings, 'AWS_MEDIA_CUSTOM_DOMAIN', 'media-bucket.example.org')
-def test_storages_set_s3_bucket_domain(*_patches):
-    assert settings.AWS_MEDIA_BUCKET_NAME == 'media-bucket'
-    assert settings.AWS_MEDIA_CUSTOM_DOMAIN == 'media-bucket.example.org'
+def test_storages_set_s3_bucket_domain(storage, settings):
+    settings.AWS_MEDIA_BUCKET_NAME = 'media-bucket'
+    settings.AWS_MEDIA_CUSTOM_DOMAIN = 'media-bucket.example.org'
     storage = S3MediaStorage()
     assert storage.bucket_name == 'media-bucket'
     assert storage.custom_domain == 'media-bucket.example.org'
 
 
 @patch('storages.backends.s3boto3.S3Boto3Storage')
-@patch.object(settings, 'AWS_MEDIA_BUCKET_NAME', 'media-bucket')
-def test_storages_not_setting_s3_bucket_domain(*_patches):
-    assert settings.AWS_MEDIA_BUCKET_NAME == 'media-bucket'
-    assert settings.AWS_MEDIA_CUSTOM_DOMAIN is None
+def test_storages_not_setting_s3_bucket_domain(storage, settings):
+    settings.AWS_MEDIA_BUCKET_NAME = 'media-bucket'
+    settings.AWS_MEDIA_CUSTOM_DOMAIN = None
     storage = S3MediaStorage()
     assert storage.bucket_name == 'media-bucket'
     assert storage.custom_domain is None
@@ -303,7 +299,7 @@ def test_convert_weight():
     assert convert_weight(weight, WeightUnits.GRAM) == expected_result
 
 
-def test_build_absolute_uri(site_settings):
+def test_build_absolute_uri(site_settings, settings):
     # Case when we are using external service for storing static files,
     # eg. Amazon s3
     url = 'https://example.com/static/images/image.jpg'
