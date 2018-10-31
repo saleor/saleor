@@ -2,7 +2,6 @@ import json
 from decimal import Decimal
 
 import pytest
-from django.conf import settings
 from django.urls import reverse
 from prices import Money
 from tests.utils import get_form_errors, get_redirect_location
@@ -39,7 +38,7 @@ def test_ajax_order_shipping_methods_list(
 
 
 def test_ajax_order_shipping_methods_list_different_country(
-        admin_client, order, shipping_zone):
+        admin_client, order, settings, shipping_zone):
     order.shipping_address = order.billing_address.get_copy()
     order.save()
     method = shipping_zone.shipping_methods.get()
@@ -617,7 +616,7 @@ def test_view_create_from_draft_order_not_draft_order(
 
 
 def test_view_create_from_draft_order_shipping_zone_not_valid(
-        admin_client, draft_order, shipping_zone):
+        admin_client, draft_order, settings, shipping_zone):
     method = shipping_zone.shipping_methods.create(
         name='DHL', price=Money(10, settings.DEFAULT_CURRENCY))
     shipping_zone.countries = ['DE']
@@ -779,7 +778,7 @@ def test_view_order_shipping_edit(
 
 
 def test_view_order_shipping_edit_not_draft_order(
-        admin_client, order_with_lines, shipping_zone):
+        admin_client, order_with_lines, settings, shipping_zone):
     method = shipping_zone.shipping_methods.create(
         price=Money(5, settings.DEFAULT_CURRENCY), name='DHL')
     url = reverse(
@@ -929,7 +928,7 @@ def test_remove_customer_from_order_do_not_remove_modified_addresses(
     assert order.shipping_address == old_shipping_address
 
 
-def test_view_order_voucher_edit(admin_client, draft_order, voucher):
+def test_view_order_voucher_edit(admin_client, draft_order, settings, voucher):
     total_before = draft_order.total
     url = reverse(
         'dashboard:order-voucher-edit', kwargs={'order_pk': draft_order.pk})
@@ -948,7 +947,7 @@ def test_view_order_voucher_edit(admin_client, draft_order, voucher):
     assert draft_order.total == total_before - discount_amount
 
 
-def test_view_order_voucher_remove(admin_client, draft_order, voucher):
+def test_view_order_voucher_remove(admin_client, draft_order, settings, voucher):
     increase_voucher_usage(voucher)
     draft_order.voucher = voucher
     discount_amount = Money(voucher.discount_value, settings.DEFAULT_CURRENCY)
