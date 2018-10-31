@@ -82,5 +82,4 @@ class Form<T extends {} = {}> extends React.Component<FormProps<T>, T> {
     );
   }
 }
-
 export default Form;

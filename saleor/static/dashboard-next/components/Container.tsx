@@ -24,4 +24,5 @@ export const Container = decorate<ContainerProps>(
     <div className={classNames(classes[width], className)} {...props} />
   )
 );
+Container.displayName = "Container";
 export default Container;

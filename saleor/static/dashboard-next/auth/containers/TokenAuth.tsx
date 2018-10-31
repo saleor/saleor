@@ -23,5 +23,5 @@ const TokenAuthProvider: React.StatelessComponent<TokenAuthProviderProps> = ({
     }
   </TypedTokenAuthMutation>
 );
-
+TokenAuthProvider.displayName = "TokenAuthProvider";
 export default TokenAuthProvider;

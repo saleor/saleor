@@ -53,4 +53,5 @@ const PointOfInterestField = decorate<PointOfInterestFieldProps>(
     );
   }
 );
+PointOfInterestField.displayName = "PointOfInterestField";
 export default PointOfInterestField;

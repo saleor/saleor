@@ -24,5 +24,5 @@ const TokenVerifyProvider: React.StatelessComponent<
     }
   </TypedVerifyTokenMutation>
 );
-
+TokenVerifyProvider.displayName = "TokenVerifyProvider";
 export default TokenVerifyProvider;

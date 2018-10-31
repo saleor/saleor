@@ -61,5 +61,5 @@ const CategoryDeleteDialog = decorate<CategoryDeleteDialogProps>(props => {
     </Dialog>
   );
 });
-
+CategoryDeleteDialog.displayName = "CategoryDeleteDialog";
 export default CategoryDeleteDialog;

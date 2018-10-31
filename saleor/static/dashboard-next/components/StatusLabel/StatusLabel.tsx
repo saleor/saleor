@@ -67,4 +67,5 @@ const StatusLabel = decorate<StatusLabelProps>(
     </div>
   )
 );
+StatusLabel.displayName = "StatusLabel";
 export default StatusLabel;

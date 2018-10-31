@@ -39,4 +39,5 @@ export const RichTextEditor: React.StatelessComponent<RichTextEditorProps> = ({
   </FormControl>
 );
 
+RichTextEditor.displayName = "RichTextEditor";
 export default RichTextEditor;
