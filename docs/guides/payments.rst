@@ -167,6 +167,36 @@ Example
             is_success=response.is_success)
         return txn, response['error']
 
+charge(payment, payment_token, amount, \*\*connection_params)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Authorization and capture in a single step.
+
+Example
+"""""""
+
+.. code-block:: python
+
+    def charge(
+            payment: Payment,
+            payment_token: str,
+            amount: Decimal,
+            **connection_params: Dict) -> Tuple[Transaction, str]:
+
+        # Handle connecting to the gateway and sending the charge request here
+        response = gateway.charge(token=payment_token, amount=amount)
+
+        txn = create_transaction(
+            payment=payment,
+            kind=TransactionKind.CHARGE,
+            amount=response.amount,
+            currency=response.currency,
+            error=get_error(response),
+            gateway_response=get_payment_gateway_response(response),
+            token=response.transaction.id,
+            is_success=response.is_success)
+        return txn, response['error']
+
 Parameters
 ^^^^^^^^^^
 
