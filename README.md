@@ -1,4 +1,4 @@
-![saleor](https://user-images.githubusercontent.com/5421321/47790330-2b956f00-dd17-11e8-8993-8f08c1923f76.jpg)
+![github_saleor_readmew_header_01](https://user-images.githubusercontent.com/5421321/47800694-19bec680-dd2d-11e8-8625-2ed7c690bc13.jpg)
 
 <div align="center">
   <strong>E-commerce for the PWA era</strong>
@@ -48,7 +48,6 @@
 
 Saleor is a rapidly-growing open source e-commerce platform that has served high-volume companies from branches like publishing and apparel since 2012. Based on Python and Django, the latest major update introduces a modular front end with a GraphQL API and storefront and dashboard written in React to make Saleor a full-functionality open source e-commerce.
 
-
 ## Features
 - __PWA__: End users can shop offline for better sales and shopping experiences
 - __GraphQL API__: Access all data from any web or mobile client using the latest technology
@@ -65,6 +64,9 @@ Saleor is a rapidly-growing open source e-commerce platform that has served high
 
 Saleor is free and always will be.
 Help us out… If you love free stuff and great software, give us a star!
+
+![1 copy 2x](https://user-images.githubusercontent.com/5421321/47798207-30aeea00-dd28-11e8-9398-3d8426836a83.png)
+![group 2 2x](https://user-images.githubusercontent.com/5421321/47799917-8afd7a00-dd2b-11e8-88c7-63588e25bcea.png)
 
 
 ## Installation
