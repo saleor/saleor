@@ -71,6 +71,7 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
                             onAllProducts={() => undefined}
                             onToFulfill={() => undefined}
                             onToCapture={() => undefined}
+                            onCustomFilter={() => undefined}
                           />
                         )}
                       </Paginator>

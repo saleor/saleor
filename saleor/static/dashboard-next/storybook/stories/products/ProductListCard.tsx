@@ -3,10 +3,9 @@ import * as React from "react";
 
 import * as placeholderImage from "../../../../images/placeholder255x255.png";
 import { category as categoryFixture } from "../../../categories/fixtures";
+import { Filter } from "../../../components/TableFilter";
 import { pageListProps } from "../../../fixtures";
-import ProductListCard, {
-  Filter
-} from "../../../products/components/ProductListCard";
+import ProductListCard from "../../../products/components/ProductListCard";
 import Decorator from "../../Decorator";
 
 const products = categoryFixture(placeholderImage).products.edges.map(
@@ -39,6 +38,7 @@ storiesOf("Views / Products / Product list", module)
       onAllProducts={() => undefined}
       onAvailable={() => undefined}
       onOfStock={() => undefined}
+      onCustomFilter={() => undefined}
     />
   ))
   .add("with custom filters", () => (
@@ -50,6 +50,7 @@ storiesOf("Views / Products / Product list", module)
       onAllProducts={() => undefined}
       onAvailable={() => undefined}
       onOfStock={() => undefined}
+      onCustomFilter={() => undefined}
     />
   ))
   .add("loading", () => (
@@ -61,6 +62,7 @@ storiesOf("Views / Products / Product list", module)
       onAllProducts={() => undefined}
       onAvailable={() => undefined}
       onOfStock={() => undefined}
+      onCustomFilter={() => undefined}
     />
   ))
   .add("no data", () => (
@@ -72,5 +74,6 @@ storiesOf("Views / Products / Product list", module)
       onAllProducts={() => undefined}
       onAvailable={() => undefined}
       onOfStock={() => undefined}
+      onCustomFilter={() => undefined}
     />
   ));
