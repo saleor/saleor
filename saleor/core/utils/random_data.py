@@ -167,7 +167,7 @@ def create_attributes_values(values_data):
         AttributeValue.objects.update_or_create(pk=pk, defaults=defaults)
 
 
-def create_products(products_data, placeholder_dir):
+def create_products(products_data, placeholder_dir, create_images):
     for product in products_data:
         pk = product['pk']
         # We are skipping products without images
@@ -180,9 +180,10 @@ def create_products(products_data, placeholder_dir):
         defaults['attributes'] = json.loads(defaults['attributes'])
         product, _ = Product.objects.update_or_create(pk=pk, defaults=defaults)
 
-        images = IMAGES_MAPPING.get(pk, [])
-        for image_name in images:
-            create_product_image(product, placeholder_dir, image_name)
+        if create_images:
+            images = IMAGES_MAPPING.get(pk, [])
+            for image_name in images:
+                create_product_image(product, placeholder_dir, image_name)
 
 
 def create_product_variants(variants_data):
@@ -216,7 +217,7 @@ def create_products_by_schema(placeholder_dir, create_images, stdout=None):
     create_attributes_values(values_data=types['product.attributevalue'])
     create_products(
         products_data=types['product.product'],
-        placeholder_dir=placeholder_dir)
+        placeholder_dir=placeholder_dir, create_images=create_images)
     create_product_variants(variants_data=types['product.productvariant'])
 
 
@@ -568,7 +569,7 @@ def generate_menu_items(menu: Menu, category: Category, parent_menu_item):
 
 
 def generate_menu_tree(menu):
-    categories = Category.tree.get_queryset()
+    categories = Category.tree.get_queryset().filter(products__isnull=False)
     for category in categories:
         if not category.parent_id:
             for msg in generate_menu_items(menu, category, None):
@@ -579,32 +580,33 @@ def create_menus():
     # Create navbar menu with category links
     top_menu, _ = Menu.objects.get_or_create(
         name=settings.DEFAULT_MENUS['top_menu_name'])
-    if not top_menu.items.exists():
-        yield 'Created navbar menu'
-        for msg in generate_menu_tree(top_menu):
-            yield msg
+    top_menu.items.all().delete()
+    yield 'Created navbar menu'
+    for msg in generate_menu_tree(top_menu):
+        yield msg
 
     # Create footer menu with collections and pages
     bottom_menu, _ = Menu.objects.get_or_create(
         name=settings.DEFAULT_MENUS['bottom_menu_name'])
-    if not bottom_menu.items.exists():
-        collection = Collection.objects.order_by('?')[0]
-        item, _ = bottom_menu.items.get_or_create(
-            name='Collections',
-            collection=collection)
+    bottom_menu.items.all().delete()
+    collection = Collection.objects.filter(
+        products__isnull=False).order_by('?')[0]
+    item, _ = bottom_menu.items.get_or_create(
+        name='Collections',
+        collection=collection)
 
-        for collection in Collection.objects.filter(
-                background_image__isnull=False):
-            bottom_menu.items.get_or_create(
-                name=collection.name,
-                collection=collection,
-                parent=item)
-
-        page = Page.objects.order_by('?')[0]
+    for collection in Collection.objects.filter(
+            products__isnull=False, background_image__isnull=False):
         bottom_menu.items.get_or_create(
-            name=page.title,
-            page=page)
-        yield 'Created footer menu'
+            name=collection.name,
+            collection=collection,
+            parent=item)
+
+    page = Page.objects.order_by('?')[0]
+    bottom_menu.items.get_or_create(
+        name=page.title,
+        page=page)
+    yield 'Created footer menu'
     update_menu(top_menu)
     update_menu(bottom_menu)
     site = Site.objects.get_current()
