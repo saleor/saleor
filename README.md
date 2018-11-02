@@ -70,7 +70,7 @@ Saleor is a rapidly-growing open source e-commerce platform that has served high
 - __Analytics__: Server-side Google Analytics to report e-commerce metrics without affecting privacy
 
 Saleor is free and always will be.
-Help us out… If you love free stuff and great software, give us a star!
+Help us out… If you love free stuff and great software, give us a star! 🌟
 
 ![1 copy 2x](https://user-images.githubusercontent.com/5421321/47798207-30aeea00-dd28-11e8-9398-3d8426836a83.png)
 ![group 2 2x](https://user-images.githubusercontent.com/5421321/47799917-8afd7a00-dd2b-11e8-88c7-63588e25bcea.png)
