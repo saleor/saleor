@@ -7,14 +7,11 @@ import { CategoryDetails_category_products_edges_node } from "../../../categorie
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import ProductList from "../../../components/ProductList";
+import { Filter } from "../../../components/TableFilter";
 import i18n from "../../../i18n";
 import { PageListProps } from "../../../types";
 import ProductListFilter from "../ProductListFilter";
 
-export interface Filter {
-  label: string;
-  onClick: () => void;
-}
 interface ProductListCardProps extends PageListProps {
   currentTab: number;
   filtersList: Filter[];
@@ -22,6 +19,7 @@ interface ProductListCardProps extends PageListProps {
   onAllProducts: () => void;
   onAvailable: () => void;
   onOfStock: () => void;
+  onCustomFilter: () => void;
 }
 
 export const ProductListCard: React.StatelessComponent<
@@ -38,7 +36,8 @@ export const ProductListCard: React.StatelessComponent<
   currentTab,
   onAllProducts,
   onAvailable,
-  onOfStock
+  onOfStock,
+  onCustomFilter
 }) => (
   <Container width="md">
     <PageHeader title={i18n.t("Products")}>
@@ -50,9 +49,10 @@ export const ProductListCard: React.StatelessComponent<
       <ProductListFilter
         currentTab={currentTab}
         filtersList={filtersList}
-        onAllProducts={onAllProducts}
         onAvailable={onAvailable}
+        onAllProducts={onAllProducts}
         onOfStock={onOfStock}
+        onCustomFilter={onCustomFilter}
       />
       <ProductList
         products={products}

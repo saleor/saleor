@@ -60,8 +60,9 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                     onRowClick={id => () =>
                       navigate(productUrl(encodeURIComponent(id)))}
                     onAllProducts={() => undefined}
-                    onToFulfill={() => undefined}
-                    onToCapture={() => undefined}
+                    onCustomFilter={() => undefined}
+                    onAvailable={() => undefined}
+                    onOfStock={() => undefined}
                   />
                 )}
               </Paginator>

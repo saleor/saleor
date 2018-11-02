@@ -5,8 +5,8 @@ import * as React from "react";
 
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
+import { Filter } from "../../../components/TableFilter";
 import i18n from "../../../i18n";
-import { Filter } from "../../../products/components/ProductListCard";
 import { PageListProps } from "../../../types";
 import { OrderList_orders_edges_node } from "../../types/OrderList";
 import OrderList from "../OrderList";
@@ -19,6 +19,7 @@ interface OrderListPageProps extends PageListProps {
   onAllProducts: () => void;
   onToFulfill: () => void;
   onToCapture: () => void;
+  onCustomFilter: () => void;
 }
 
 const OrderListPage: React.StatelessComponent<OrderListPageProps> = ({
@@ -33,7 +34,8 @@ const OrderListPage: React.StatelessComponent<OrderListPageProps> = ({
   filtersList,
   onAllProducts,
   onToFulfill,
-  onToCapture
+  onToCapture,
+  onCustomFilter
 }) => (
   <Container width="md">
     <PageHeader title={i18n.t("Orders")}>
@@ -53,6 +55,7 @@ const OrderListPage: React.StatelessComponent<OrderListPageProps> = ({
         onAllProducts={onAllProducts}
         onToFulfill={onToFulfill}
         onToCapture={onToCapture}
+        onCustomFilter={onCustomFilter}
       />
       <OrderList
         disabled={disabled}

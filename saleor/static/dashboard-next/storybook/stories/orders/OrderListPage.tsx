@@ -1,10 +1,10 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
+import { Filter } from "../../../components/TableFilter/";
 import { pageListProps } from "../../../fixtures";
 import OrderListPage from "../../../orders/components/OrderListPage";
 import { orders } from "../../../orders/fixtures";
-import { Filter } from "../../../products/components/ProductListCard";
 import Decorator from "../../Decorator";
 
 const filtersList: Filter[] = [
@@ -33,6 +33,7 @@ storiesOf("Views / Orders / Order list", module)
       currentTab={0}
       onToFulfill={() => undefined}
       onToCapture={() => undefined}
+      onCustomFilter={() => undefined}
     />
   ))
   .add("with custom filters", () => (
@@ -44,6 +45,7 @@ storiesOf("Views / Orders / Order list", module)
       onAllProducts={() => undefined}
       onToFulfill={() => undefined}
       onToCapture={() => undefined}
+      onCustomFilter={() => undefined}
     />
   ))
   .add("loading", () => (
@@ -55,6 +57,7 @@ storiesOf("Views / Orders / Order list", module)
       onAllProducts={() => undefined}
       onToFulfill={() => undefined}
       onToCapture={() => undefined}
+      onCustomFilter={() => undefined}
     />
   ))
   .add("when no data", () => (
@@ -66,5 +69,6 @@ storiesOf("Views / Orders / Order list", module)
       onAllProducts={() => undefined}
       onToFulfill={() => undefined}
       onToCapture={() => undefined}
+      onCustomFilter={() => undefined}
     />
   ));
