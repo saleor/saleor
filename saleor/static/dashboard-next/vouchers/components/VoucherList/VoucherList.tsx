@@ -11,7 +11,7 @@ import * as React from "react";
 import { createVoucherName, VoucherType } from "../..";
 import { ListProps } from "../../..";
 import DateFormatter from "../../../components/DateFormatter";
-import Money from "../../../components/Money";
+import Money, { MoneyProp } from "../../../components/Money";
 import Percent from "../../../components/Percent";
 import Skeleton from "../../../components/Skeleton";
 import TablePagination from "../../../components/TablePagination";
@@ -28,7 +28,7 @@ interface VoucherListProps extends ListProps {
     endDate: string | null;
     discountValueType: "PERCENTAGE" | "FIXED" | string;
     discountValue: number;
-    limit: { amount: number; currency: string } | null;
+    limit: MoneyProp | null;
     product: {
       name: string;
     } | null;
@@ -144,8 +144,10 @@ const VoucherList = decorate<VoucherListProps>(
                       />
                     ) : (
                       <Money
-                        amount={voucher.discountValue}
-                        currency={currency}
+                        moneyDetalis={{
+                          amount: voucher.discountValue,
+                          currency
+                        }}
                         typographyProps={{ className: classes.tableCellFont }}
                       />
                     )
@@ -157,8 +159,7 @@ const VoucherList = decorate<VoucherListProps>(
                   {voucher ? (
                     voucher.limit !== null ? (
                       <Money
-                        amount={voucher.limit.amount}
-                        currency={voucher.limit.currency}
+                        moneyDetalis={voucher.limit}
                         typographyProps={{ className: classes.tableCellFont }}
                       />
                     ) : (
