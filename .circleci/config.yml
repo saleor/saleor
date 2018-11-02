@@ -28,7 +28,7 @@ jobs:
           name: Run tests
           command: |
             docker run -d --name db -e POSTGRES_USER=saleor -e POSTGRES_PASSWORD=saleor postgres:9.6-alpine
-            docker run --network container:db --rm -e DATABASE_URL -e SECRET_KEY mirumee/saleor:latest pytest
+            docker run --network container:db --rm -e DATABASE_URL -e DJANGO_SETTINGS_MODULE -e SECRET_KEY mirumee/saleor:latest pytest
           environment:
             DATABASE_URL: postgres://saleor:saleor@localhost:5432/saleor
             SECRET_KEY: irrelevant
