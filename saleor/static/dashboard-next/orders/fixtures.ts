@@ -1014,6 +1014,7 @@ export const order = (placeholder: string): OrderDetails_order => ({
 });
 export const draftOrder = (placeholder: string) => ({
   __typename: "Order" as "Order",
+  actions: [OrderAction.CAPTURE],
   availableShippingMethods: null,
   billingAddress: null,
   created: "2018-09-20T23:23:39.811428+00:00",
