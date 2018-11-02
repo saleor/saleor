@@ -31,11 +31,13 @@
 
 
 .demo-alert {
+    margin: 0;
+    border: 0;
+    border-radius: 0;
     background-color: var(--background-color);
     background-image: linear-gradient(-150deg,rgba(254,62,62,.3),rgba(125,185,232,0) 10%,rgba(125,185,232,0)),url(/images/background.4d59bcb….svg);
     color: #130d44;
     background-color: #130d44;
-    margin-top: 15px;
     padding: 1.5em;
     font-size: medium;
     text-align: center;
