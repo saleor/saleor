@@ -3,21 +3,23 @@ import * as React from "react";
 
 import { LocaleConsumer } from "../Locale";
 
-interface MoneyProps {
+export interface MoneyProp {
   amount: number;
   currency: string;
+}
+interface MoneyProps {
+  moneyDetalis: MoneyProp;
   typographyProps?: TypographyProps;
 }
 
 export const Money: React.StatelessComponent<MoneyProps> = ({
-  amount,
-  currency,
+  moneyDetalis,
   typographyProps
 }) => (
   <LocaleConsumer>
     {locale => {
-      const money = amount.toLocaleString(locale, {
-        currency,
+      const money = moneyDetalis.amount.toLocaleString(locale, {
+        currency: moneyDetalis.currency,
         style: "currency"
       });
       if (typographyProps) {
