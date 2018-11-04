@@ -18,7 +18,7 @@ You will need to install Docker and `docker-compose <https://docs.docker.com/com
 
 .. note::
 
-   Our configuration uses a ``docker-compose.override.yml`` that exposes PostgreSQL, Redis and Elasticsearch ports. If you don't want to expose the ports you can tell Docker Compose to do not include the additional configurations (ports) in the ``docker-compose.override.yml`` file by specifying ``docker-compose.yml`` with the ``-f`` option, as in ``docker-compose -f docker-compose.yml up -d``.
+   Our configuration uses a ``docker-compose.override.yml`` that exposes PostgreSQL, Redis and Elasticsearch ports. If you don't want to expose the ports you can tell Docker Compose to not include the additional configurations (ports) in the ``docker-compose.override.yml`` file by specifying ``docker-compose.yml`` with the ``-f`` option, as in ``docker-compose -f docker-compose.yml up -d``.
 
 
 Usage
