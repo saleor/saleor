@@ -19,8 +19,8 @@ const styles = createStyles({
   tableRow: {
     cursor: "pointer"
   },
-  textRight: {
-    textAlign: "right"
+  textCenter: {
+    textAlign: "center"
   },
   wideCell: {
     width: "60%"
@@ -47,10 +47,13 @@ const CustomerList = withStyles(styles, { name: "CustomerList" })(
       <Table>
         <TableHead>
           <TableRow>
+            <TableCell>
+              {i18n.t("Customer Name", { context: "table header" })}
+            </TableCell>
             <TableCell className={classes.wideCell}>
               {i18n.t("Customer e-mail", { context: "table header" })}
             </TableCell>
-            <TableCell className={classes.textRight}>
+            <TableCell className={classes.textCenter}>
               {i18n.t("Orders", { context: "table header" })}
             </TableCell>
           </TableRow>
@@ -80,9 +83,15 @@ const CustomerList = withStyles(styles, { name: "CustomerList" })(
                 <TableCell
                   onClick={customer ? onRowClick(customer.id) : undefined}
                 >
+                  {maybe<React.ReactNode>(
+                    () => `${customer.firstName} ${customer.lastName}`,
+                    <Skeleton />
+                  )}
+                </TableCell>
+                <TableCell>
                   {maybe<React.ReactNode>(() => customer.email, <Skeleton />)}
                 </TableCell>
-                <TableCell className={classes.textRight}>
+                <TableCell className={classes.textCenter}>
                   {maybe<React.ReactNode>(
                     () => customer.orders.totalCount,
                     <Skeleton />
@@ -92,7 +101,7 @@ const CustomerList = withStyles(styles, { name: "CustomerList" })(
             ),
             () => (
               <TableRow>
-                <TableCell colSpan={2}>
+                <TableCell colSpan={3}>
                   {i18n.t("No customers found")}
                 </TableCell>
               </TableRow>
