@@ -50,10 +50,10 @@ export const permissions = [
 export const staffMembers: StaffList_staffUsers_edges_node[] = [
   {
     email: "admin@example.com",
-    firstName: "Jacob",
+    firstName: "Chris",
     id: "VXNlcjoyMQ==",
     isActive: true,
-    lastName: "Smith"
+    lastName: "Cooper"
   },
   {
     email: "admin@example.com",
