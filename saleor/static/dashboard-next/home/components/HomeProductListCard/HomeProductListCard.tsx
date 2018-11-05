@@ -98,10 +98,7 @@ export const HomeProductList = decorate<HomeProductListProps>(
                   <Typography align={"right"}>
                     {maybe(
                       () => (
-                        <Money
-                          amount={variant.revenue.gross.amount}
-                          currency={variant.revenue.gross.currency}
-                        />
+                        <Money moneyDetalis={variant.revenue.gross} />
                       ),
                       <Skeleton />
                     )}
