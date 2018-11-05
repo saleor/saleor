@@ -1,11 +1,10 @@
-import { PermissionEnum } from '../types/globalTypes';
+import { PermissionEnum } from "../types/globalTypes";
 import { StaffList_staffUsers_edges_node } from "./types/StaffList";
 import { StaffMemberDetails_user } from "./types/StaffMemberDetails";
 
-
 export const permissions = [
   {
-    code:  PermissionEnum.IMPERSONATE_USERS,
+    code: PermissionEnum.IMPERSONATE_USERS,
     name: "Impersonate customers."
   },
   {
@@ -51,63 +50,87 @@ export const permissions = [
 export const staffMembers: StaffList_staffUsers_edges_node[] = [
   {
     email: "admin@example.com",
+    firstName: "Jacob",
     id: "VXNlcjoyMQ==",
-    isActive: true
+    isActive: true,
+    lastName: "Smith"
   },
   {
     email: "admin@example.com",
+    firstName: "Jacob",
     id: "VXNlcjoyMQ==",
-    isActive: false
+    isActive: false,
+    lastName: "Smith"
   },
   {
     email: "admin@example.com",
+    firstName: "Jacob",
     id: "VXNlcjoyMQ==",
-    isActive: true
+    isActive: true,
+    lastName: "Smith"
   },
   {
     email: "admin@example.com",
+    firstName: "Jacob",
     id: "VXNlcjoyMQ==",
-    isActive: true
+    isActive: true,
+    lastName: "Smith"
   },
   {
     email: "admin@example.com",
+    firstName: "Jacob",
     id: "VXNlcjoyMQ==",
-    isActive: true
+    isActive: true,
+    lastName: "Smith"
   },
   {
     email: "admin@example.com",
+    firstName: "Jacob",
     id: "VXNlcjoyMQ==",
-    isActive: true
+    isActive: true,
+    lastName: "Smith"
   },
   {
     email: "admin@example.com",
+    firstName: "Jacob",
     id: "VXNlcjoyMQ==",
-    isActive: false
+    isActive: false,
+    lastName: "Smith"
   },
   {
     email: "admin@example.com",
+    firstName: "Jacob",
     id: "VXNlcjoyMQ==",
-    isActive: true
+    isActive: true,
+    lastName: "Smith"
   },
   {
     email: "admin@example.com",
+    firstName: "Jacob",
     id: "VXNlcjoyMQ==",
-    isActive: true
+    isActive: true,
+    lastName: "Smith"
   },
   {
     email: "admin@example.com",
+    firstName: "Jacob",
     id: "VXNlcjoyMQ==",
-    isActive: false
+    isActive: false,
+    lastName: "Smith"
   },
   {
     email: "admin@example.com",
+    firstName: "Jacob",
     id: "VXNlcjoyMQ==",
-    isActive: false
+    isActive: false,
+    lastName: "Smith"
   },
   {
     email: "admin@example.com",
+    firstName: "Jacob",
     id: "VXNlcjoyMQ==",
-    isActive: true
+    isActive: true,
+    lastName: "Smith"
   }
 ].map(staffMember => ({ __typename: "User" as "User", ...staffMember }));
 export const staffMember: StaffMemberDetails_user = {
