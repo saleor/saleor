@@ -152,15 +152,17 @@ def test_non_staff_user_can_only_see_his_user_data(user_api_client,
         }
     }
     """
-    ID = graphene.Node.to_global_id('User', staff_user.id)
-    variables = {'id': ID}
+    id = graphene.Node.to_global_id('User', staff_user.id)
+    variables = {'id': id}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['user']
     assert data is None
+
+    # Ensure user can see own data
     user = user_api_client.user
-    ID = graphene.Node.to_global_id('User', user.id)
-    variables = {'id': ID}
+    id = graphene.Node.to_global_id('User', user.id)
+    variables = {'id': id}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['user']
