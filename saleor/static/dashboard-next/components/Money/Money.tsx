@@ -10,11 +10,13 @@ export interface MoneyProp {
 interface MoneyProps {
   moneyDetalis: MoneyProp;
   typographyProps?: TypographyProps;
+  inline?;
 }
 
 export const Money: React.StatelessComponent<MoneyProps> = ({
   moneyDetalis,
-  typographyProps
+  typographyProps,
+  inline
 }) => (
   <LocaleConsumer>
     {locale => {
@@ -24,6 +26,9 @@ export const Money: React.StatelessComponent<MoneyProps> = ({
       });
       if (typographyProps) {
         return <Typography {...typographyProps}>{money}</Typography>;
+      }
+      if (inline) {
+        return <span>{money}</span>;
       }
       return <>{money}</>;
     }}
