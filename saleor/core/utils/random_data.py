@@ -1,4 +1,3 @@
-import itertools
 import json
 import os
 import random
@@ -6,13 +5,11 @@ import unicodedata
 import uuid
 from collections import defaultdict
 from datetime import date
-from decimal import Decimal
 from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.files import File
-from django.template.defaultfilters import slugify
 from django_countries.fields import Country
 from faker import Factory
 from faker.providers import BaseProvider
@@ -24,7 +21,6 @@ from ...account.utils import store_user_address
 from ...checkout import AddressType
 from ...core.utils.json_serializer import object_hook
 from ...core.utils.taxes import get_tax_rate_by_name, get_taxes_for_country
-from ...core.utils.text import strip_html_and_truncate
 from ...core.weight import zero_weight
 from ...dashboard.menu.utils import update_menu
 from ...discount import DiscountValueType, VoucherType
@@ -33,14 +29,12 @@ from ...menu.models import Menu
 from ...order.models import Fulfillment, Order
 from ...order.utils import update_order_status
 from ...page.models import Page
-from ...payment import ChargeStatus, TransactionKind
 from ...payment.models import Payment
 from ...payment.utils import get_billing_data
 from ...product.models import (
     Attribute, AttributeValue, Category, Collection, Product, ProductImage,
     ProductType, ProductVariant)
 from ...product.thumbnails import create_product_thumbnails
-from ...product.utils.attributes import get_name_from_attributes
 from ...shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
 from ...shipping.utils import get_taxed_shipping_price
 
@@ -89,8 +83,9 @@ IMAGES_MAPPING = {
         'saleordemoproduct_sneakers_02_2.png',
         'saleordemoproduct_sneakers_02_3.png',
         'saleordemoproduct_sneakers_02_4.png'],
-    89:
-    ['saleordemoproduct_cl_boot07_1.png', 'saleordemoproduct_cl_boot07_2.png'],
+    89: [
+        'saleordemoproduct_cl_boot07_1.png',
+        'saleordemoproduct_cl_boot07_2.png'],
     107: ['saleordemoproduct_cl_polo01.png'],
     108: ['saleordemoproduct_cl_polo02.png'],
     109: ['saleordemoproduct_cl_polo03-woman.png'],
@@ -543,13 +538,9 @@ def create_collections_by_schema(placeholder_dir, schema=COLLECTIONS_SCHEMA):
 
 def create_page():
     content = """
-    <h2 align="center">AN OPENSOURCE STOREFRONT PLATFORM FOR PERFECTIONISTS</h2>
-    <h3 align="center">WRITTEN IN PYTHON, BEST SERVED AS A BESPOKE, HIGH-PERFORMANCE E-COMMERCE SOLUTION</h3>
-    <p><br></p>
-    <p><img src="http://getsaleor.com/images/main-pic.svg"></p>
-    <p style="text-align: center;">
-        <a href="https://github.com/mirumee/saleor/">Get Saleor</a> today!
-    </p>
+    <h2>E-commerce for the PWA era</h2>
+    <h3>A modular, high performance e-commerce storefront built with GraphQL, Django, and ReactJS.</h3>
+    <p>Saleor is a rapidly-growing open source e-commerce platform that has served high-volume companies from branches like publishing and apparel since 2012. Based on Python and Django, the latest major update introduces a modular front end with a GraphQL API and storefront and dashboard written in React to make Saleor a full-functionality open source e-commerce.</p>
     """
     page_data = {'content': content, 'title': 'About', 'is_visible': True}
     page, dummy = Page.objects.get_or_create(slug='about', **page_data)
