@@ -1,7 +1,7 @@
 # A quick and conveniant way to use this Makefile is by creating a
 # make shell alias like the following:
 #
-# alias saleor='make -f Makefile.dev.example'
+# alias saleor='make -f dev-example.Makefile'
 #
 # then use it as you would make:
 #

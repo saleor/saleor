@@ -4,7 +4,7 @@ services:
   web:
     build:
       context: .
-      dockerfile: ./Dockerfile.dev
+      dockerfile: ./dev.Dockerfile
       args:
         STATIC_URL: '/static/'
         HOST_UID:
@@ -50,7 +50,7 @@ services:
   celery:
     build:
       context: .
-      dockerfile: ./Dockerfile.dev
+      dockerfile: ./dev.Dockerfile
       args:
         STATIC_URL: '/static/'
         HOST_UID:
