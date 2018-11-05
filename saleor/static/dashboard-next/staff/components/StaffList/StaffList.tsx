@@ -1,5 +1,10 @@
 import Card from "@material-ui/core/Card";
-import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -13,21 +18,38 @@ import * as React from "react";
 import Skeleton from "../../../components/Skeleton";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
-import { renderCollection } from "../../../misc";
+import { maybe, renderCollection } from "../../../misc";
 import { ListProps } from "../../../types";
 import { StaffList_staffUsers_edges_node } from "../../types/StaffList";
 
-const styles = createStyles({
-  statusText: {
-    color: "#9E9D9D"
-  },
-  tableRow: {
-    cursor: "pointer" as "pointer"
-  },
-  wideColumn: {
-    width: "80%"
-  }
-});
+const styles = (theme: Theme) =>
+  createStyles({
+    avatar: {
+      alignItems: "center",
+      backgroundColor: theme.palette.primary.main,
+      borderRadius: "100%",
+      display: "grid",
+      float: "left",
+      height: 37,
+      justifyContent: "center",
+      marginRight: theme.spacing.unit * 1 + "px",
+      width: 37
+    },
+    avatarText: {
+      color: "#ffffff",
+      fontSize: 18,
+      pointerEvents: "none"
+    },
+    statusText: {
+      color: "#9E9D9D"
+    },
+    tableRow: {
+      cursor: "pointer"
+    },
+    wideColumn: {
+      width: "80%"
+    }
+  });
 
 interface StaffListProps extends ListProps, WithStyles<typeof styles> {
   staffMembers: StaffList_staffUsers_edges_node[];
@@ -87,6 +109,14 @@ const StaffList = withStyles(styles, { name: "StaffList" })(
                   staffMember.firstName &&
                   staffMember.lastName !== undefined ? (
                     <>
+                      <div className={classes.avatar}>
+                        <Typography className={classes.avatarText}>
+                          {maybe(
+                            () =>
+                              `${staffMember.firstName[0].toUpperCase()}${staffMember.lastName[0].toUpperCase()}`
+                          ) || ""}
+                        </Typography>
+                      </div>
                       <Typography>
                         {`${staffMember.firstName} ${staffMember.lastName}`}
                       </Typography>
