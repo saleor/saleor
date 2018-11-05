@@ -6,11 +6,11 @@ import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
+import Typography from "@material-ui/core/Typography";
 import * as classNames from "classnames";
 import * as React from "react";
 
 import Skeleton from "../../../components/Skeleton";
-import StatusLabel from "../../../components/StatusLabel";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
@@ -18,8 +18,14 @@ import { ListProps } from "../../../types";
 import { StaffList_staffUsers_edges_node } from "../../types/StaffList";
 
 const styles = createStyles({
+  statusText: {
+    color: "#9E9D9D"
+  },
   tableRow: {
-    cursor: "pointer"
+    cursor: "pointer" as "pointer"
+  },
+  wideColumn: {
+    width: "80%"
   }
 });
 
@@ -41,8 +47,12 @@ const StaffList = withStyles(styles, { name: "StaffList" })(
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>{i18n.t("E-mail", { context: "object" })}</TableCell>
-            <TableCell>{i18n.t("Status", { context: "object" })}</TableCell>
+            <TableCell className={classes.wideColumn}>
+              {i18n.t("Name", { context: "object" })}
+            </TableCell>
+            <TableCell>
+              {i18n.t("Email Address", { context: "object" })}
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableFooter>
@@ -73,24 +83,31 @@ const StaffList = withStyles(styles, { name: "StaffList" })(
                 key={staffMember ? staffMember.id : "skeleton"}
               >
                 <TableCell>
+                  {staffMember &&
+                  staffMember.firstName &&
+                  staffMember.lastName !== undefined ? (
+                    <>
+                      <Typography>
+                        {`${staffMember.firstName} ${staffMember.lastName}`}
+                      </Typography>
+                      <Typography
+                        variant={"caption"}
+                        className={classes.statusText}
+                      >
+                        {staffMember.isActive
+                          ? i18n.t("Active", { context: "status" })
+                          : i18n.t("Inactive", { context: "status" })}
+                      </Typography>
+                    </>
+                  ) : (
+                    <Skeleton style={{ width: "10em" }} />
+                  )}
+                </TableCell>
+                <TableCell>
                   {staffMember ? (
                     <span onClick={onRowClick(staffMember.id)}>
                       {staffMember.email}
                     </span>
-                  ) : (
-                    <Skeleton />
-                  )}
-                </TableCell>
-                <TableCell>
-                  {staffMember && staffMember.isActive !== undefined ? (
-                    <StatusLabel
-                      label={
-                        staffMember.isActive
-                          ? i18n.t("Active", { context: "status" })
-                          : i18n.t("Inactive", { context: "status" })
-                      }
-                      status={staffMember.isActive ? "success" : "error"}
-                    />
                   ) : (
                     <Skeleton />
                   )}
