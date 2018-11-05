@@ -16,6 +16,8 @@ USER_SEARCH_FIELDS = (
 
 def resolve_user(info, id):
     logged_user = info.context.user
+    if id == "":
+        return logged_user
     user = graphene.Node.get_node_from_global_id(info, id, User)
     if logged_user.has_perm('account.manage_users') or user == logged_user:
         return user

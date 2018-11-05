@@ -169,6 +169,21 @@ def test_non_staff_user_can_only_see_his_user_data(user_api_client,
     assert data['email'] == user.email
 
 
+def test_user_query_with_empty_id(user_api_client):
+    query = """
+    query User($id: ID!) {
+        user(id: $id) {
+            email
+        }
+    }
+    """
+    variables = {'id': ""}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['user']
+    assert data['email'] == user_api_client.user.email
+
+
 def test_query_customers(
         staff_api_client, user_api_client, permission_manage_users):
     query = """
