@@ -20,6 +20,7 @@ from prices import Money
 from ...account.models import Address, User
 from ...account.utils import store_user_address
 from ...checkout import AddressType
+from ...core.demo_obfuscators import obfuscate_order
 from ...core.utils.json_serializer import object_hook
 from ...core.utils.taxes import get_tax_rate_by_name, get_taxes_for_country
 from ...core.weight import zero_weight
@@ -367,6 +368,7 @@ def create_fake_order(discounts, taxes):
         'shipping_price': shipping_price})
 
     order = Order.objects.create(**order_data)
+    obfuscate_order(order)
 
     lines = create_order_lines(order, discounts, taxes, random.randrange(1, 5))
 
