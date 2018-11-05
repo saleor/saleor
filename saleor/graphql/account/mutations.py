@@ -62,11 +62,15 @@ class UserInput(graphene.InputObjectType):
     note = graphene.String(description='A note about the user.')
 
 
-class CustomerInput(UserInput):
+class UserAddressInput(graphene.InputObjectType):
     default_billing_address = AddressInput(
         description='Billing address of the customer.')
     default_shipping_address = AddressInput(
         description='Shipping address of the customer.')
+
+
+class CustomerInput(UserInput, UserAddressInput):
+    pass
 
 
 class UserCreateInput(CustomerInput):
@@ -146,6 +150,25 @@ class CustomerUpdate(CustomerCreate):
         description = 'Updates an existing customer.'
         exclude = ['password']
         model = models.User
+
+
+class LoggedCustomerUpdate(CustomerCreate):
+    class Arguments:
+        id = graphene.ID(
+            description='ID of a customer to update.', required=True)
+        input = UserAddressInput(
+            description='Fields required to update logged in customer.',
+            required=True)
+
+    class Meta:
+        description = 'Updates an existing logged in customer.'
+        exclude = ['password']
+        model = models.User
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        id = graphene.Node.to_global_id('User', user.id)
+        return user.has_perm('account.manage_users') or id == input['id']
 
 
 class UserDelete(ModelDeleteMutation):

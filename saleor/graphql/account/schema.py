@@ -6,7 +6,8 @@ from ..descriptions import DESCRIPTIONS
 from .mutations import (
     AddressCreate, AddressDelete, AddressUpdate, CustomerCreate,
     CustomerDelete, CustomerPasswordReset, CustomerRegister, CustomerUpdate,
-    PasswordReset, SetPassword, StaffCreate, StaffDelete, StaffUpdate)
+    LoggedCustomerUpdate, PasswordReset, SetPassword, StaffCreate, StaffDelete,
+    StaffUpdate)
 from .resolvers import (
     resolve_address_validator, resolve_customers, resolve_staff_users,
     resolve_user)
@@ -52,6 +53,8 @@ class AccountMutations(graphene.ObjectType):
     customer_password_reset = CustomerPasswordReset.Field()
     customer_register = CustomerRegister.Field()
     customer_update = CustomerUpdate.Field()
+
+    logged_customer_update = LoggedCustomerUpdate.Field()
 
     staff_create = StaffCreate.Field()
     staff_delete = StaffDelete.Field()
