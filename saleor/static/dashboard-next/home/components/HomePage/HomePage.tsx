@@ -87,7 +87,7 @@ const HomePage = decorate<HomePageProps>(
             >
               {maybe(
                 () => (
-                  <Money amount={sales.amount} currency={sales.currency} />
+                  <Money moneyDetalis={sales} />
                 ),
                 <Skeleton style={{ width: "5em" }} />
               )}
