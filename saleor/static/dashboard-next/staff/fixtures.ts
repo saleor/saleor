@@ -136,8 +136,10 @@ export const staffMembers: StaffList_staffUsers_edges_node[] = [
 export const staffMember: StaffMemberDetails_user = {
   __typename: "User",
   email: "admin@example.com",
+  firstName: "Jacob",
   id: "VXNlcjoyMQ==",
   isActive: true,
+  lastName: "Smith",
   permissions: [
     {
       code: PermissionEnum.IMPERSONATE_USERS,

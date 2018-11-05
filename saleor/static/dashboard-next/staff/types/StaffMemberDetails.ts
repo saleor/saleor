@@ -19,6 +19,8 @@ export interface StaffMemberDetails_user {
   email: string;
   isActive: boolean;
   permissions: (StaffMemberDetails_user_permissions | null)[] | null;
+  firstName: string;
+  lastName: string;
 }
 
 export interface StaffMemberDetails_shop_permissions {
