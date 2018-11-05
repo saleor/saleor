@@ -32,12 +32,15 @@ const styles = (theme: Theme) =>
       pointerEvents: "none"
     },
     prop: {
-      marginBottom: theme.spacing.unit * 0
+      marginBottom: theme.spacing.unit * 2 + "px"
     },
     propGrid: {
       display: "grid",
       gridColumnGap: theme.spacing.unit * 2 + "px",
-      gridTemplateColumns: "1fr 1fr"
+      gridTemplateColumns: "1fr 1fr",
+      [theme.breakpoints.down("xs")]: {
+        gridTemplateColumns: "1fr"
+      }
     },
     root: {
       display: "grid",
@@ -60,22 +63,38 @@ const StaffProperties = withStyles(styles, { name: "StaffProperties" })(
           <div>
             <div className={classes.avatar}>
               <Typography className={classes.avatarText}>
-                {maybe(() => staffMember.email.slice(0, 2).toUpperCase()) || ""}
+                {maybe(
+                  () =>
+                    `${staffMember.firstName[0].toUpperCase()}${staffMember.lastName[0].toUpperCase()}`
+                ) || ""}
               </Typography>
             </div>
           </div>
           <div>
             <div className={classes.propGrid}>
-              <div>
-                <div className={classes.prop}>
-                  <Typography variant="body2">{i18n.t("E-mail")}</Typography>
-                  {maybe(() => staffMember.email) === undefined ? (
-                    <Skeleton />
-                  ) : (
-                    <Typography>{staffMember.email}</Typography>
-                  )}
-                </div>
-                <div />
+              <div className={classes.prop}>
+                <Typography variant="body2">{i18n.t("First Name")}</Typography>
+                {maybe(() => staffMember.firstName) === undefined ? (
+                  <Skeleton />
+                ) : (
+                  <Typography>{staffMember.firstName}</Typography>
+                )}
+              </div>
+              <div className={classes.prop}>
+                <Typography variant="body2">{i18n.t("Last Name")}</Typography>
+                {maybe(() => staffMember.lastName) === undefined ? (
+                  <Skeleton />
+                ) : (
+                  <Typography>{staffMember.lastName}</Typography>
+                )}
+              </div>
+              <div className={classes.prop}>
+                <Typography variant="body2">{i18n.t("E-mail")}</Typography>
+                {maybe(() => staffMember.email) === undefined ? (
+                  <Skeleton />
+                ) : (
+                  <Typography>{staffMember.email}</Typography>
+                )}
               </div>
             </div>
           </div>
