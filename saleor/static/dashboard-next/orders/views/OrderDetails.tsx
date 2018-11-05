@@ -146,14 +146,11 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                           });
                           navigate(orderListUrl);
                         };
-                        const handleOrderRelease = () => {
+                        const handleOrderVoid = () => {
                           pushMessage({
-                            text: i18n.t(
-                              "Order payment successfully released",
-                              {
-                                context: "notification"
-                              }
-                            )
+                            text: i18n.t("Order payment successfully voided", {
+                              context: "notification"
+                            })
                           });
                         };
                         const handleNoteAdd = (data: OrderAddNote) => {
@@ -348,7 +345,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             }
                             onNoteAdd={handleNoteAdd}
                             onOrderCancel={handleOrderCancel}
-                            onOrderRelease={handleOrderRelease}
+                            onOrderVoid={handleOrderVoid}
                             onPaymentCapture={handlePaymentCapture}
                             onPaymentRefund={handlePaymentRefund}
                             onUpdate={handleUpdate}
@@ -374,7 +371,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                               orderLineUpdate,
                               orderPaymentCapture,
                               orderPaymentRefund,
-                              orderRelease,
+                              orderVoid,
                               orderShippingMethodUpdate,
                               orderUpdate,
                               orderFulfillmentCancel,
@@ -456,9 +453,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       id
                                     })
                                   }
-                                  onPaymentRelease={() =>
-                                    orderRelease.mutate({ id })
-                                  }
+                                  onPaymentVoid={() => orderVoid.mutate({ id })}
                                   onPaymentRefund={variables =>
                                     orderPaymentRefund.mutate({
                                       ...variables,

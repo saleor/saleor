@@ -1,9 +1,12 @@
+from textwrap import dedent
+
 import graphene
 from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
 
 from ....product import models
+from ....product.tasks import update_variants_names
 from ....product.utils.attributes import get_name_from_attributes
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import Decimal, SeoInput
@@ -12,13 +15,12 @@ from ...core.utils import clean_seo_fields
 from ...file_upload.types import Upload
 from ...shipping.types import WeightScalar
 from ..types import Category, Collection, Product, ProductImage, ProductVariant
-from ..utils import attributes_to_hstore, update_variants_names
+from ..utils import attributes_to_hstore
 
 
 class CategoryInput(graphene.InputObjectType):
     description = graphene.String(description='Category description')
     name = graphene.String(description='Category name')
-
     slug = graphene.String(description='Category slug')
     seo = SeoInput(description='Search engine optimization fields.')
     background_image = Upload(description='Background image file.')
@@ -29,9 +31,9 @@ class CategoryCreate(ModelMutation):
         input = CategoryInput(
             required=True, description='Fields required to create a category.')
         parent_id = graphene.ID(
-            description='''
+            description=dedent('''
                 ID of the parent category. If empty, category will be top level
-                category.''', name='parent')
+                category.'''), name='parent')
 
     class Meta:
         description = 'Creates a new category.'
@@ -326,9 +328,9 @@ class ProductVariantInput(graphene.InputObjectType):
     quantity = graphene.Int(
         description='The total quantity of this variant available for sale.')
     track_inventory = graphene.Boolean(
-        description="""Determines if the inventory of this variant should
+        description=dedent("""Determines if the inventory of this variant should
         be tracked. If false, the quantity won't change when customers
-        buy this item.""")
+        buy this item."""))
     weight = WeightScalar(
         description='Weight of the Product Variant.', required=False)
 
@@ -433,22 +435,22 @@ class ProductVariantDelete(ModelDeleteMutation):
 class ProductTypeInput(graphene.InputObjectType):
     name = graphene.String(description='Name of the product type.')
     has_variants = graphene.Boolean(
-        description="""Determines if product of this type has multiple
+        description=dedent("""Determines if product of this type has multiple
         variants. This option mainly simplifies product management
         in the dashboard. There is always at least one variant created under
-        the hood.""")
+        the hood."""))
     product_attributes = graphene.List(
         graphene.ID,
         description='List of attributes shared among all product variants.',
         name='productAttributes')
     variant_attributes = graphene.List(
         graphene.ID,
-        description="""List of attributes used to distinguish between
-        different variants of a product.""",
+        description=dedent("""List of attributes used to distinguish between
+        different variants of a product."""),
         name='variantAttributes')
     is_shipping_required = graphene.Boolean(
-        description="""Determines if shipping is required for products
-        of this variant.""")
+        description=dedent("""Determines if shipping is required for products
+        of this variant."""))
     weight = WeightScalar(description='Weight of the ProductType items.')
     tax_rate = TaxRateType(description='A type of goods.')
 
@@ -493,7 +495,8 @@ class ProductTypeUpdate(ProductTypeCreate):
         variant_attr = cleaned_input.get('variant_attributes')
         if variant_attr:
             variant_attr = set(variant_attr)
-            update_variants_names(instance, variant_attr)
+            variant_attr_ids = [attr.pk for attr in variant_attr]
+            update_variants_names.delay(instance.pk, variant_attr_ids)
         super().save(info, instance, cleaned_input)
 
 
@@ -530,10 +533,10 @@ class ProductImageCreate(BaseMutation):
             description='Fields required to create a product image.')
 
     class Meta:
-        description = '''Create a product image. This mutation must be sent
-        as a `multipart` request. More detailed specs of the upload format can
-        be found here:
-        https://github.com/jaydenseric/graphql-multipart-request-spec'''
+        description = dedent('''Create a product image. This mutation must be
+        sent as a `multipart` request. More detailed specs of the upload format
+        can be found here:
+        https://github.com/jaydenseric/graphql-multipart-request-spec''')
 
     @classmethod
     @permission_required('product.manage_products')

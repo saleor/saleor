@@ -39,7 +39,7 @@ import OrderPayment from "../OrderPayment/OrderPayment";
 import OrderPaymentDialog, {
   FormData as OrderPaymentFormData
 } from "../OrderPaymentDialog";
-import OrderPaymentReleaseDialog from "../OrderPaymentReleaseDialog";
+import OrderPaymentVoidDialog from "../OrderPaymentVoidDialog";
 import OrderUnfulfilledItems from "../OrderUnfulfilledItems/OrderUnfulfilledItems";
 
 export interface OrderDetailsPageProps {
@@ -65,7 +65,7 @@ export interface OrderDetailsPageProps {
   onPaymentCapture(data: OrderPaymentFormData);
   onPaymentPaid();
   onPaymentRefund(data: OrderPaymentFormData);
-  onPaymentRelease();
+  onPaymentVoid();
   onShippingAddressEdit(data: AddressTypeInput);
   onOrderCancel(data: OrderCancelFormData);
   onNoteAdd(data: HistoryFormData);
@@ -77,7 +77,7 @@ interface OrderDetailsPageState {
   openedPaymentCaptureDialog: boolean;
   openedPaymentPaidDialog: boolean;
   openedPaymentRefundDialog: boolean;
-  openedPaymentReleaseDialog: boolean;
+  openedPaymentVoidDialog: boolean;
   openedShippingAddressEditDialog: boolean;
 }
 
@@ -109,7 +109,7 @@ class OrderDetailsPageComponent extends React.Component<
     openedPaymentCaptureDialog: false,
     openedPaymentPaidDialog: false,
     openedPaymentRefundDialog: false,
-    openedPaymentReleaseDialog: false,
+    openedPaymentVoidDialog: false,
     openedShippingAddressEditDialog: false
   };
 
@@ -117,9 +117,9 @@ class OrderDetailsPageComponent extends React.Component<
     this.setState(prevState => ({
       openedFulfillmentDialog: !prevState.openedFulfillmentDialog
     }));
-  togglePaymentReleaseDialog = () =>
+  togglePaymentVoidDialog = () =>
     this.setState(prevState => ({
-      openedPaymentReleaseDialog: !prevState.openedPaymentReleaseDialog
+      openedPaymentVoidDialog: !prevState.openedPaymentVoidDialog
     }));
   togglePaymentCaptureDialog = () =>
     this.setState(prevState => ({
@@ -162,7 +162,7 @@ class OrderDetailsPageComponent extends React.Component<
       onPaymentCapture,
       onPaymentPaid,
       onPaymentRefund,
-      onPaymentRelease,
+      onPaymentVoid,
       onShippingAddressEdit
     } = this.props;
     const {
@@ -172,7 +172,7 @@ class OrderDetailsPageComponent extends React.Component<
       openedPaymentCaptureDialog,
       openedPaymentPaidDialog,
       openedPaymentRefundDialog,
-      openedPaymentReleaseDialog,
+      openedPaymentVoidDialog,
       openedShippingAddressEditDialog
     } = this.state;
     const canCancel = maybe(() => order.status) !== OrderStatus.CANCELED;
@@ -279,7 +279,7 @@ class OrderDetailsPageComponent extends React.Component<
                 onCapture={this.togglePaymentCaptureDialog}
                 onMarkAsPaid={this.togglePaymentPaidDialog}
                 onRefund={this.togglePaymentRefundDialog}
-                onRelease={this.togglePaymentReleaseDialog}
+                onVoid={this.togglePaymentVoidDialog}
               />
               <OrderHistory
                 history={maybe(() => order.events)}
@@ -365,10 +365,10 @@ class OrderDetailsPageComponent extends React.Component<
           onClose={this.toggleOrderCancelDialog}
           onSubmit={onOrderCancel}
         />
-        <OrderPaymentReleaseDialog
-          open={openedPaymentReleaseDialog}
-          onClose={this.togglePaymentReleaseDialog}
-          onConfirm={onPaymentRelease}
+        <OrderPaymentVoidDialog
+          open={openedPaymentVoidDialog}
+          onClose={this.togglePaymentVoidDialog}
+          onConfirm={onPaymentVoid}
         />
         <ActionDialog
           open={openedPaymentPaidDialog}

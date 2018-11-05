@@ -1,11 +1,11 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
 
-from ...order import models, OrderStatus, OrderEvents
+from ...order import OrderEvents, OrderStatus, models
 from ...order.utils import sum_order_totals
-from ..utils import filter_by_query_param, filter_by_period
+from ...shipping import models as shipping_models
+from ..utils import filter_by_period, filter_by_query_param
 from .types import Order, OrderStatusFilter
-
 
 ORDER_SEARCH_FIELDS = (
     'id', 'discount_name', 'token', 'user_email', 'user__email')
@@ -46,6 +46,18 @@ def resolve_order(info, id):
     if user.has_perm('order.manage_orders') or order.user == user:
         return order
     return None
+
+
+def resolve_shipping_methods(obj, info, price):
+    if not obj.is_shipping_required():
+        return None
+    if not obj.shipping_address:
+        return None
+
+    qs = shipping_models.ShippingMethod.objects
+    return qs.applicable_shipping_methods(
+        price=price, weight=obj.get_total_weight(),
+        country_code=obj.shipping_address.country.code)
 
 
 def resolve_homepage_events(info):

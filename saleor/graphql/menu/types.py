@@ -1,3 +1,5 @@
+from textwrap import dedent
+
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.db.models import Prefetch
@@ -23,8 +25,8 @@ class Menu(CountableDjangoObjectType):
         prefetch_related=prefetch_menus)
 
     class Meta:
-        description = """Represents a single menu - an object that is used
-        to help navigate through the store."""
+        description = dedent("""Represents a single menu - an object that is used
+        to help navigate through the store.""")
         interfaces = [relay.Node]
         exclude_fields = ['json_content']
         model = models.Menu
@@ -41,8 +43,8 @@ class MenuItem(CountableDjangoObjectType):
     url = graphene.String(description='URL to the menu item.')
 
     class Meta:
-        description = """Represents a single item of the related menu.
-        Can store categories, collection or pages."""
+        description = dedent("""Represents a single item of the related menu.
+        Can store categories, collection or pages.""")
         interfaces = [relay.Node]
         exclude_fields = ['sort_order', 'lft', 'rght', 'tree_id']
         model = models.MenuItem

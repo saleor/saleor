@@ -11,11 +11,19 @@ from ..seo.models import SeoModel, SeoModelTranslation
 
 
 class PageQuerySet(models.QuerySet):
+
     def public(self):
         today = datetime.date.today()
         return self.filter(
             Q(is_visible=True),
             Q(available_on__lte=today) | Q(available_on__isnull=True))
+
+    def visible_to_user(self, user):
+        has_access_to_all = (
+            user.is_active and user.has_perm('page.manage_pages'))
+        if has_access_to_all:
+            return self.all()
+        return self.public()
 
 
 class Page(SeoModel):

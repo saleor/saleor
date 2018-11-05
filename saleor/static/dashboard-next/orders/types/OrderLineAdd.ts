@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderLineCreateInput, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderLineCreateInput, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderLineAdd
@@ -244,7 +244,7 @@ export interface OrderLineAdd_draftOrderLineCreate_order {
   fulfillments: (OrderLineAdd_draftOrderLineCreate_order_fulfillments | null)[];
   lines: (OrderLineAdd_draftOrderLineCreate_order_lines | null)[];
   number: string | null;
-  paymentStatus: PaymentStatusEnum | null;
+  paymentStatus: PaymentChargeStatusEnum | null;
   shippingAddress: OrderLineAdd_draftOrderLineCreate_order_shippingAddress | null;
   shippingMethod: OrderLineAdd_draftOrderLineCreate_order_shippingMethod | null;
   shippingMethodName: string | null;
@@ -252,6 +252,7 @@ export interface OrderLineAdd_draftOrderLineCreate_order {
   status: OrderStatus;
   subtotal: OrderLineAdd_draftOrderLineCreate_order_subtotal | null;
   total: OrderLineAdd_draftOrderLineCreate_order_total | null;
+  actions: (OrderAction | null)[];
   totalAuthorized: OrderLineAdd_draftOrderLineCreate_order_totalAuthorized | null;
   totalCaptured: OrderLineAdd_draftOrderLineCreate_order_totalCaptured | null;
   user: OrderLineAdd_draftOrderLineCreate_order_user | null;

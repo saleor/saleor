@@ -34,8 +34,8 @@ urlpatterns = [
 
     url(r'^(?P<order_pk>\d+)/payment/(?P<payment_pk>\d+)/capture/$',
         views.capture_payment, name='capture-payment'),
-    url(r'^(?P<order_pk>\d+)/payment/(?P<payment_pk>\d+)/release/$',
-        views.release_payment, name='release-payment'),
+    url(r'^(?P<order_pk>\d+)/payment/(?P<payment_pk>\d+)/void/$',
+        views.void_payment, name='void-payment'),
     url(r'^(?P<order_pk>\d+)/payment/(?P<payment_pk>\d+)/refund/$',
         views.refund_payment, name='refund-payment'),
 

@@ -13,7 +13,6 @@ from django.utils.encoding import smart_text
 from django_countries import countries
 from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
-from payments import FraudStatus, PaymentStatus
 from PIL import Image
 from prices import Money
 from saleor.account.backends import BaseBackend
@@ -29,6 +28,8 @@ from saleor.order import OrderStatus, OrderEvents
 from saleor.order.models import Order, OrderEvent
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
+from saleor.payment import ChargeStatus, TransactionKind
+from saleor.payment.models import Payment
 from saleor.product.models import (
     Attribute, AttributeTranslation, AttributeValue, Category, Collection,
     Product, ProductImage, ProductTranslation, ProductType, ProductVariant)
@@ -96,6 +97,20 @@ def address(db):  # pylint: disable=W0613
         postal_code='53-601',
         country='PL',
         phone='+48713988102')
+
+@pytest.fixture
+def graphql_address_data():
+    return {
+        'firstName': 'John Saleor',
+        'lastName': 'Doe Mirumee',
+        'companyName': 'Mirumee Software',
+        'streetAddress1': 'Tęczowa 7',
+        'streetAddress2': '',
+        'postalCode': '53-601',
+        'country': 'PL',
+        'city': 'Wrocław',
+        'countryArea': '',
+        'phone': '+48321321888'}
 
 
 @pytest.fixture
@@ -191,8 +206,7 @@ def shipping_method(shipping_zone):
 
 @pytest.fixture
 def color_attribute(db):  # pylint: disable=W0613
-    attribute = Attribute.objects.create(
-        slug='color', name='Color')
+    attribute = Attribute.objects.create(slug='color', name='Color')
     AttributeValue.objects.create(
         attribute=attribute, name='Red', slug='red')
     AttributeValue.objects.create(
@@ -454,62 +468,59 @@ def draft_order(order_with_lines):
 
 
 @pytest.fixture()
-def payment_waiting(order_with_lines):
-    return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.WAITING,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines.total_gross.amount)
+def payment_txn_preauth(order_with_lines, payment_dummy):
+    order = order_with_lines
+    payment = payment_dummy
+    payment.order = order
+    payment.save()
+
+    payment.transactions.create(
+        amount=payment.total,
+        kind=TransactionKind.AUTH,
+        gateway_response={},
+        is_success=True)
+    return payment
 
 
 @pytest.fixture()
-def payment_preauth(order_with_lines):
-    return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.PREAUTH,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines.total.gross.amount,
-        tax=order_with_lines.total.tax.amount)
+def payment_txn_captured(order_with_lines, payment_dummy):
+    order = order_with_lines
+    payment = payment_dummy
+    payment.order = order
+    payment.charge_status = ChargeStatus.CHARGED
+    payment.captured_amount = payment.total
+    payment.save()
+
+    payment.transactions.create(
+        amount=payment.total,
+        kind=TransactionKind.CAPTURE,
+        gateway_response={},
+        is_success=True)
+    return payment
 
 
 @pytest.fixture()
-def payment_confirmed(order_with_lines):
-    order_amount = order_with_lines.total_gross.amount
-    return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.CONFIRMED,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_amount, captured_amount=order_amount,
-        tax=order_with_lines.total.tax.amount)
+def payment_txn_refunded(order_with_lines, payment_dummy):
+    order = order_with_lines
+    payment = payment_dummy
+    payment.order = order
+    payment.charge_status = ChargeStatus.FULLY_REFUNDED
+    payment.is_active = False
+    payment.save()
+
+    payment.transactions.create(
+        amount=payment.total,
+        kind=TransactionKind.REFUND,
+        gateway_response={},
+        is_success=True)
+    return payment
 
 
 @pytest.fixture()
-def payment_rejected(order_with_lines):
-    return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.REJECTED,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines.total_gross.amount)
-
-
-@pytest.fixture()
-def payment_refunded(order_with_lines):
-    return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.REFUNDED,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines.total_gross.amount)
-
-
-@pytest.fixture()
-def payment_error(order_with_lines):
-    return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.ERROR,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines.total_gross.amount)
-
-
-@pytest.fixture()
-def payment_input(order_with_lines):
-    return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.INPUT,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines.total_gross.amount)
+def payment_not_authorized(payment_dummy):
+    payment_dummy.is_active = False
+    payment_dummy.save()
+    return payment_dummy
 
 
 @pytest.fixture()
@@ -714,3 +725,28 @@ def product_translation_fr(product):
     return ProductTranslation.objects.create(
         language_code='fr', product=product, name='French name',
         description='French description')
+
+
+@pytest.fixture
+def payment_dummy(db, settings, order_with_lines):
+    return Payment.objects.create(
+        gateway=settings.DUMMY,
+        order=order_with_lines,
+        is_active=True,
+        cc_first_digits='4111',
+        cc_last_digits='1111',
+        cc_brand='VISA',
+        cc_exp_month=12,
+        cc_exp_year=2027,
+        total=order_with_lines.total.gross.amount,
+        currency=order_with_lines.total.gross.currency,
+        billing_first_name=order_with_lines.billing_address.first_name,
+        billing_last_name=order_with_lines.billing_address.last_name,
+        billing_company_name=order_with_lines.billing_address.company_name,
+        billing_address_1=order_with_lines.billing_address.street_address_1,
+        billing_address_2=order_with_lines.billing_address.street_address_2,
+        billing_city=order_with_lines.billing_address.city,
+        billing_postal_code=order_with_lines.billing_address.postal_code,
+        billing_country_code=order_with_lines.billing_address.country.code,
+        billing_country_area=order_with_lines.billing_address.country_area,
+        billing_email=order_with_lines.user_email)

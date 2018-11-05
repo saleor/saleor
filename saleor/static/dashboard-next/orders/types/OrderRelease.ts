@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderRelease
@@ -238,7 +238,7 @@ export interface OrderRelease_orderRelease_order {
   fulfillments: (OrderRelease_orderRelease_order_fulfillments | null)[];
   lines: (OrderRelease_orderRelease_order_lines | null)[];
   number: string | null;
-  paymentStatus: PaymentStatusEnum | null;
+  paymentStatus: PaymentChargeStatusEnum | null;
   shippingAddress: OrderRelease_orderRelease_order_shippingAddress | null;
   shippingMethod: OrderRelease_orderRelease_order_shippingMethod | null;
   shippingMethodName: string | null;

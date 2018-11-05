@@ -1,4 +1,5 @@
 import decimal
+from textwrap import dedent
 
 import graphene
 import graphene_django_optimizer as gql_optimizer
@@ -20,10 +21,10 @@ class ShippingMethod(CountableDjangoObjectType):
     type = ShippingMethodTypeEnum(description='Type of the shipping method.')
 
     class Meta:
-        description = """
+        description = dedent("""
             Shipping method are the methods you'll use to get
             customer's orders to them.
-            They are directly exposed to the customers."""
+            They are directly exposed to the customers.""")
         model = models.ShippingMethod
         interfaces = [relay.Node]
         exclude_fields = ['shipping_zone', 'orders']
@@ -44,10 +45,10 @@ class ShippingZone(CountableDjangoObjectType):
         model_field='shipping_methods')
 
     class Meta:
-        description = """
+        description = dedent("""
             Represents a shipping zone in the shop. Zones are the concept
             used only for grouping shipping methods in the dashboard,
-            and are never exposed to the customers directly."""
+            and are never exposed to the customers directly.""")
         model = models.ShippingZone
         interfaces = [relay.Node]
 

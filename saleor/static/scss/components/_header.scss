@@ -176,6 +176,10 @@
     padding: $global-padding * 2 0;
     display: flex;
     align-items: center;
+    @include media-breakpoint-up(sm) {
+      margin-left: -27px;
+      margin-right: 27px;
+    }
     .menu-icon-mobile {
       position: relative;
       display: inline-block;
@@ -193,9 +197,6 @@
       @media (max-width: 370px) {
         top: 0;
       }
-    }
-    svg path {
-      fill: $body-color;
     }
   }
   &__search {

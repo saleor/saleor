@@ -125,7 +125,7 @@ export interface ProductVariant_product {
 export interface ProductVariant {
   __typename: "ProductVariant";
   id: string;
-  attributes: (ProductVariant_attributes | null)[] | null;
+  attributes: ProductVariant_attributes[];
   costPrice: ProductVariant_costPrice | null;
   images: ProductVariant_images | null;
   name: string;

@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderRefund
@@ -244,7 +244,7 @@ export interface OrderRefund_orderRefund_order {
   fulfillments: (OrderRefund_orderRefund_order_fulfillments | null)[];
   lines: (OrderRefund_orderRefund_order_lines | null)[];
   number: string | null;
-  paymentStatus: PaymentStatusEnum | null;
+  paymentStatus: PaymentChargeStatusEnum | null;
   shippingAddress: OrderRefund_orderRefund_order_shippingAddress | null;
   shippingMethod: OrderRefund_orderRefund_order_shippingMethod | null;
   shippingMethodName: string | null;
@@ -252,6 +252,7 @@ export interface OrderRefund_orderRefund_order {
   status: OrderStatus;
   subtotal: OrderRefund_orderRefund_order_subtotal | null;
   total: OrderRefund_orderRefund_order_total | null;
+  actions: (OrderAction | null)[];
   totalAuthorized: OrderRefund_orderRefund_order_totalAuthorized | null;
   totalCaptured: OrderRefund_orderRefund_order_totalCaptured | null;
   user: OrderRefund_orderRefund_order_user | null;
