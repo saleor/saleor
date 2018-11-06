@@ -1,20 +1,11 @@
 from textwrap import dedent
 
 import graphene
-import graphql_jwt
 from graphql_jwt.decorators import login_required, permission_required
-import graphene_django_optimizer as gql_optimizer
-from graphene_django.fields import DjangoConnectionField
 
-from .account.mutations import (
-    CustomerCreate, CustomerDelete, CustomerUpdate, CustomerPasswordReset,
-    CustomerRegister, PasswordReset, SetPassword, StaffCreate, StaffDelete,
-    StaffUpdate, AddressCreate, AddressUpdate, AddressDelete)
-from .account.types import AddressValidationData, AddressValidationInput, User
-from .account.resolvers import (
-    resolve_address_validator, resolve_customers, resolve_staff_users)
+from .account.schema import AccountMutations, AccountQueries
+from .core.schema import CoreMutations
 from .core.types import TaxedMoney, ReportingPeriod
-from .core.mutations import CreateToken, VerifyToken
 from .core.fields import PrefetchingConnectionField
 from .menu.resolvers import resolve_menu, resolve_menus, resolve_menu_items
 from .menu.types import Menu, MenuItem
@@ -49,21 +40,14 @@ from .payment.types import Payment, PaymentGatewayEnum
 from .payment.resolvers import (
     resolve_payments, resolve_payment_client_token)
 from .payment.mutations import (
-    CheckoutPaymentCreate, PaymentCapture, PaymentRefund,
+    PaymentCapture, PaymentRefund,
     PaymentVoid)
 from .shipping.resolvers import resolve_shipping_zones
 from .shipping.types import ShippingZone
 from .shipping.mutations import (
     ShippingZoneCreate, ShippingZoneDelete, ShippingZoneUpdate,
     ShippingPriceCreate, ShippingPriceDelete, ShippingPriceUpdate)
-from .checkout.types import CheckoutLine, Checkout
-from .checkout.mutations import (
-    CheckoutCreate, CheckoutLinesAdd, CheckoutLinesUpdate, CheckoutLineDelete,
-    CheckoutCustomerAttach, CheckoutCustomerDetach,
-    CheckoutShippingAddressUpdate, CheckoutEmailUpdate, CheckoutComplete,
-    CheckoutShippingMethodUpdate, CheckoutBillingAddressUpdate)
-from .checkout.resolvers import (
-    resolve_checkouts, resolve_checkout_lines, resolve_checkout)
+from .checkout.schema import CheckoutMutations, CheckoutQueries
 
 from .shop.mutations import (
     AuthorizationKeyAdd, AuthorizationKeyDelete, HomepageCollectionUpdate,
@@ -71,21 +55,7 @@ from .shop.mutations import (
 from .shop.types import Shop
 
 
-class Query(ProductQueries):
-    address_validator = graphene.Field(
-        AddressValidationData,
-        input=graphene.Argument(AddressValidationInput, required=True))
-    checkout = graphene.Field(
-        Checkout, description='Single checkout.',
-        token=graphene.Argument(graphene.UUID))
-    # FIXME we could optimize the below field
-    checkouts = DjangoConnectionField(
-        Checkout, description='List of checkouts.')
-    checkout_lines = PrefetchingConnectionField(
-        CheckoutLine, description='List of checkout lines')
-    checkout_line = graphene.Field(
-        CheckoutLine, id=graphene.Argument(graphene.ID),
-        description='Single checkout line.')
+class Query(ProductQueries, AccountQueries, CheckoutQueries):
     menu = graphene.Field(
         Menu, id=graphene.Argument(graphene.ID),
         name=graphene.Argument(graphene.String, description="Menu name."),
@@ -149,43 +119,7 @@ class Query(ProductQueries):
         description='Lookup a shipping zone by ID.')
     shipping_zones = PrefetchingConnectionField(
         ShippingZone, description='List of the shop\'s shipping zones.')
-    user = graphene.Field(
-        User, id=graphene.Argument(graphene.ID, required=True),
-        description='Lookup an user by ID.')
-    customers = PrefetchingConnectionField(
-        User, description='List of the shop\'s users.',
-        query=graphene.String(
-            description=DESCRIPTIONS['user']))
-    staff_users = PrefetchingConnectionField(
-        User, description='List of the shop\'s staff users.',
-        query=graphene.String(description=DESCRIPTIONS['user']))
     node = graphene.Node.Field()
-
-    def resolve_checkout(self, info, token):
-        return resolve_checkout(info, token)
-
-    def resolve_checkout_line(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, CheckoutLine)
-
-    @permission_required('order.manage_orders')
-    def resolve_checkout_lines(self, info, query=None, **kwargs):
-        return resolve_checkout_lines(info, query)
-
-    @permission_required('order.manage_orders')
-    def resolve_checkouts(self, info, query=None, **kwargs):
-        resolve_checkouts(info, query)
-
-    @permission_required('account.manage_users')
-    def resolve_user(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, User)
-
-    @permission_required('account.manage_users')
-    def resolve_customers(self, info, query=None, **kwargs):
-        return resolve_customers(info, query=query)
-
-    @permission_required('account.manage_staff')
-    def resolve_staff_users(self, info, query=None, **kwargs):
-        return resolve_staff_users(info, query=query)
 
     def resolve_menu(self, info, id=None, name=None):
         return resolve_menu(info, id, name)
@@ -263,49 +197,13 @@ class Query(ProductQueries):
     def resolve_shipping_zones(self, info, **kwargs):
         return resolve_shipping_zones(info)
 
-    def resolve_address_validator(self, info, input):
-        return resolve_address_validator(info, input)
 
-
-class Mutations(ProductMutations):
+class Mutations(ProductMutations, AccountMutations, CheckoutMutations,
+                CoreMutations):
     authorization_key_add = AuthorizationKeyAdd.Field()
     authorization_key_delete = AuthorizationKeyDelete.Field()
 
     assign_navigation = AssignNavigation.Field()
-
-    token_create = CreateToken.Field()
-    token_refresh = graphql_jwt.Refresh.Field()
-    token_verify = VerifyToken.Field()
-
-    set_password = SetPassword.Field()
-    password_reset = PasswordReset.Field()
-
-    customer_create = CustomerCreate.Field()
-    customer_update = CustomerUpdate.Field()
-    customer_delete = CustomerDelete.Field()
-    customer_password_reset = CustomerPasswordReset.Field()
-    customer_register = CustomerRegister.Field()
-
-    staff_create = StaffCreate.Field()
-    staff_update = StaffUpdate.Field()
-    staff_delete = StaffDelete.Field()
-
-    address_create = AddressCreate.Field()
-    address_update = AddressUpdate.Field()
-    address_delete = AddressDelete.Field()
-
-    checkout_create = CheckoutCreate.Field()
-    checkout_lines_add = CheckoutLinesAdd.Field()
-    checkout_lines_update = CheckoutLinesUpdate.Field()
-    checkout_line_delete = CheckoutLineDelete.Field()
-    checkout_customer_attach = CheckoutCustomerAttach.Field()
-    checkout_customer_detach = CheckoutCustomerDetach.Field()
-    checkout_billing_address_update = CheckoutBillingAddressUpdate.Field()
-    checkout_shipping_address_update = CheckoutShippingAddressUpdate.Field()
-    checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field()
-    checkout_email_update = CheckoutEmailUpdate.Field()
-    checkout_payment_create = CheckoutPaymentCreate.Field()
-    checkout_complete = CheckoutComplete.Field()
 
     menu_create = MenuCreate.Field()
     menu_delete = MenuDelete.Field()
