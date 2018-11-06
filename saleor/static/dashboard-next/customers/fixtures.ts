@@ -946,6 +946,8 @@ export const customerList: ListCustomers_customers_edges_node[] = [
 export const customer: CustomerDetails_user = {
   __typename: "User",
   dateJoined: "2017-05-07T09:37:30.124154+00:00",
+  firstName: "Tom",
+
   defaultBillingAddress: {
     __typename: "Address",
     city: "Port Danielshire",
@@ -988,6 +990,7 @@ export const customer: CustomerDetails_user = {
   id: "VXNlcjoy",
   isActive: true,
   lastLogin: "2018-05-07T09:37:30.124154+00:00",
+  lastName: "Cooper",
   lastPlacedOrder: {
     __typename: "OrderCountableConnection",
     edges: [

@@ -99,6 +99,8 @@ export interface CustomerDetails_user_lastPlacedOrder {
 
 export interface CustomerDetails_user {
   __typename: "User";
+  firstName: string;
+  lastName: string;
   id: string;
   email: string;
   dateJoined: any;
