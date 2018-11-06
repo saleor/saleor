@@ -1,4 +1,3 @@
-import itertools
 import json
 import os
 import random
@@ -6,14 +5,13 @@ import unicodedata
 import uuid
 from collections import defaultdict
 from datetime import date
-from decimal import Decimal
 from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.files import File
-from django.template.defaultfilters import slugify
 from django_countries.fields import Country
+from django.shortcuts import reverse
 from faker import Factory
 from faker.providers import BaseProvider
 from measurement.measures import Weight
@@ -22,9 +20,9 @@ from prices import Money
 from ...account.models import Address, User
 from ...account.utils import store_user_address
 from ...checkout import AddressType
+from ...core.demo_obfuscators import obfuscate_order
 from ...core.utils.json_serializer import object_hook
 from ...core.utils.taxes import get_tax_rate_by_name, get_taxes_for_country
-from ...core.utils.text import strip_html_and_truncate
 from ...core.weight import zero_weight
 from ...dashboard.menu.utils import update_menu
 from ...discount import DiscountValueType, VoucherType
@@ -33,14 +31,12 @@ from ...menu.models import Menu
 from ...order.models import Fulfillment, Order
 from ...order.utils import update_order_status
 from ...page.models import Page
-from ...payment import ChargeStatus, TransactionKind
 from ...payment.models import Payment
 from ...payment.utils import get_billing_data
 from ...product.models import (
     Attribute, AttributeValue, Category, Collection, Product, ProductImage,
     ProductType, ProductVariant)
 from ...product.thumbnails import create_product_thumbnails
-from ...product.utils.attributes import get_name_from_attributes
 from ...shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
 from ...shipping.utils import get_taxed_shipping_price
 
@@ -372,6 +368,7 @@ def create_fake_order(discounts, taxes):
         'shipping_price': shipping_price})
 
     order = Order.objects.create(**order_data)
+    obfuscate_order(order)
 
     lines = create_order_lines(order, discounts, taxes, random.randrange(1, 5))
 
@@ -600,6 +597,11 @@ def create_menus():
         bottom_menu.items.get_or_create(
             name=page.title,
             page=page)
+
+        # DEMO: add link to GraphQL API in the footer menu
+        bottom_menu.items.get_or_create(
+            name='GraphQL API', defaults={'url': reverse('api')})
+
         yield 'Created footer menu'
     update_menu(top_menu)
     update_menu(bottom_menu)
