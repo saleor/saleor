@@ -1,28 +1,46 @@
+import logging
 import uuid
 from decimal import Decimal
 from typing import Dict, Tuple
 
+from django.utils.translation import pgettext_lazy
+
 import razorpay
+from razorpay import errors
 
 from ... import TransactionKind
-from ...utils import create_transaction
 from ...models import Payment, Transaction
-
+from ...utils import create_transaction
 from .forms import RazorPaymentForm
 
+# Define the existing error messages as lazy `pgettext`.
+ERROR_MSG_ORDER_NOT_CHARGED = pgettext_lazy(
+    'Razorpay payment error', 'Order was not charged.')
+ERROR_MSG_INVALID_REQUEST = pgettext_lazy(
+    'Razorpay payment error', 'The payment data was invalid.')
+ERROR_MSG_SERVER_ERROR = pgettext_lazy(
+    'Razorpay payment error', 'The order couldn\'t be proceeded.')
 
-E_ORDER_NOT_CHARGED = 'Order was not charged.'
+# Define what are the razorpay exceptions,
+# as the razorpay provider doesn't define a base exception as of now.
+RAZORPAY_EXCEPTIONS = (
+    errors.BadRequestError, errors.GatewayError, errors.ServerError)
+
+# Get the logger for this file, it will allow us to log
+# error responses from razorpay.
+logger = logging.getLogger(__name__)
 
 
 def _generate_transaction(
-        payment, kind: str, amount=None,
-        *, id='', is_success=True, **data):
-
-    if isinstance(amount, int):
-        amount = Decimal(amount) / 100
-    elif amount is None:
-        amount = payment.total
-
+        payment: Payment,
+        kind: str,
+        amount: Decimal,
+        *,
+        id='',
+        is_success=True,
+        **data) -> Transaction:
+    """Creates a transaction from a Razorpay's success payload
+    or from passed data."""
     transaction = create_transaction(
         payment=payment,
         kind=kind,
@@ -31,20 +49,49 @@ def _generate_transaction(
         gateway_response=data,
         token=id,
         is_success=is_success)
-
     return transaction
 
 
+def get_error_message_from_razorpay_error(exc: BaseException):
+    """Convert a error razorpay error to a user friendly error message
+    and log the exception to stderr."""
+    logger.exception(exc)
+    if isinstance(exc, errors.BadRequestError):
+        return ERROR_MSG_INVALID_REQUEST
+    else:
+        return ERROR_MSG_SERVER_ERROR
+
+
+def get_error_response(amount: Decimal):
+    """Create a place holder response for invalid/ failed requests
+    for generated a failed transaction object."""
+    return {'is_success': False, 'amount': amount}
+
+
+def get_amount_for_razorpay(amount: Decimal) -> int:
+    """Convert a decimal amount to int, by multiplying the value by 100."""
+    return int(amount * 100)
+
+
+def clean_razorpay_response(response: dict):
+    """As the Razorpay response payload contains the final amount
+    as an integer, we converts it to a decimal object (by dividing by 100)."""
+    response['amount'] = Decimal(response['amount']) / 100
+
+
 def get_form_class():
+    """Return the associated razorpay payment form."""
     return RazorPaymentForm
 
 
-def get_client(public_key, secret_key, **_):
+def get_client(public_key: str, secret_key: str, **_):
+    """Create a Razorpay client from set-up application keys."""
     razorpay_client = razorpay.Client(auth=(public_key, secret_key))
     return razorpay_client
 
 
 def get_client_token(**_):
+    """Generate a random client token."""
     return str(uuid.uuid4())
 
 
@@ -53,37 +100,53 @@ def charge(
         payment_token: str,
         amount: Decimal,
         **connection_params: Dict) -> Tuple[Transaction, str]:
-
-    int_amount = int(amount) * 100
+    """Charge a authorized payment using the razorpay client.
+    If an error from razorpay occurs,
+    we flag the transaction as failed and return
+    a short user friendly description of the error
+    after logging the error to stderr."""
+    error = ''
     razorpay_client = get_client(**connection_params)
-    response = razorpay_client.payment.capture(payment_token, int_amount)
+    razorpay_amount = get_amount_for_razorpay(amount)
+
+    try:
+        response = razorpay_client.payment.capture(
+            payment_token, razorpay_amount)
+        clean_razorpay_response(response)
+    except RAZORPAY_EXCEPTIONS as exc:
+        error = get_error_message_from_razorpay_error(exc)
+        response = get_error_response(amount)
 
     transaction = _generate_transaction(
         payment=payment, kind=TransactionKind.CHARGE, **response)
-    return transaction, ''
+    return transaction, error
 
 
-def refund(payment, amount: Decimal, **connection_params):
+def refund(payment: Payment, amount: Decimal, **connection_params):
+    """Refund a payment using the razorpay client.
+
+    It first retrieve a `charge` transaction to retrieve the
+    payment id to refund. And return an error with a failed transaction
+    if the there is no such transaction, or if an error
+    from razorpay occurs during the refund."""
     error = ''
     capture_txn = payment.transactions.filter(
         kind=TransactionKind.CHARGE, is_success=True).first()
 
     if capture_txn is not None:
-        int_amount = int(amount * 100)
         razorpay_client = get_client(**connection_params)
-        response = razorpay_client.payment.refund(
-            capture_txn.token, int_amount)
+        razorpay_amount = get_amount_for_razorpay(amount)
+        try:
+            response = razorpay_client.payment.refund(
+                capture_txn.token, razorpay_amount)
+            clean_razorpay_response(response)
+        except RAZORPAY_EXCEPTIONS as exc:
+            error = get_error_message_from_razorpay_error(exc)
+            response = get_error_response(amount)
     else:
-        response = {'is_success': False}
-        error = E_ORDER_NOT_CHARGED
+        error = ERROR_MSG_ORDER_NOT_CHARGED
+        response = get_error_response(amount)
 
     transaction = _generate_transaction(
         payment=payment, kind=TransactionKind.REFUND, **response)
     return transaction, error
-
-
-def void(payment, **params):
-    transaction = _generate_transaction(
-        payment=payment, kind=TransactionKind.VOID,
-        id=get_client_token(**params))
-    return transaction, ''
