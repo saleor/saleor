@@ -165,6 +165,7 @@ def test_charge_invalid_request(
     # Ensure the transaction is correctly set
     assert txn.payment == payment_dummy
     assert txn.kind == TransactionKind.CHARGE
+    assert txn.token == payment_token
 
 
 @pytest.mark.integration
