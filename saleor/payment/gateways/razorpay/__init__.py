@@ -62,7 +62,7 @@ def get_error_message_from_razorpay_error(exc: BaseException):
         return ERROR_MSG_SERVER_ERROR
 
 
-def get_error_response(amount: Decimal):
+def get_error_response(amount: Decimal) -> dict:
     """Create a place holder response for invalid/ failed requests
     for generated a failed transaction object."""
     return {'is_success': False, 'amount': amount}
@@ -116,6 +116,7 @@ def charge(
     except RAZORPAY_EXCEPTIONS as exc:
         error = get_error_message_from_razorpay_error(exc)
         response = get_error_response(amount)
+        response['id'] = payment_token
 
     transaction = _generate_transaction(
         payment=payment, kind=TransactionKind.CHARGE, **response)
