@@ -58,7 +58,7 @@ const CustomerCreateDetails = withStyles(styles, {
             name="firstName"
             label={i18n.t("First Name")}
             helperText={errors.firstName}
-            type="firstName"
+            type="text"
             value={data.email}
             onChange={onChange}
           />
@@ -69,7 +69,7 @@ const CustomerCreateDetails = withStyles(styles, {
             name="lastName"
             label={i18n.t("Last Name")}
             helperText={errors.lastName}
-            type="lastName"
+            type="text"
             value={data.lastName}
             onChange={onChange}
           />

@@ -21,6 +21,8 @@ import CustomerOrders from "../CustomerOrders/CustomerOrders";
 import CustomerStats from "../CustomerStats/CustomerStats";
 
 export interface CustomerDetailsPageFormData {
+  firstName: string;
+  lastName: string;
   email: string;
   isActive: boolean;
   note: string;
@@ -66,7 +68,9 @@ const CustomerDetailsPage = withStyles(styles, { name: "CustomerDetailsPage" })(
       errors={errors}
       initial={{
         email: maybe(() => customer.email),
+        firstName: maybe(() => customer.firstName),
         isActive: maybe(() => customer.isActive, false),
+        lastName: maybe(() => customer.lastName),
         note: maybe(() => customer.note)
       }}
       onSubmit={onSubmit}
@@ -74,7 +78,10 @@ const CustomerDetailsPage = withStyles(styles, { name: "CustomerDetailsPage" })(
     >
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container width="md">
-          <PageHeader onBack={onBack} title={maybe(() => customer.email)} />
+          <PageHeader
+            onBack={onBack}
+            title={maybe(() => `${customer.firstName} ${customer.lastName}`)}
+          />
           <div className={classes.root}>
             <div>
               <CustomerDetails
