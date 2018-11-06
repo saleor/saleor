@@ -1,0 +1,18 @@
+# Official docker compose image.
+image:
+  name: docker/compose:1.22.0 # update tag to whatever version you want to use.
+  entrypoint: ["/bin/sh", "-c"]
+
+services:
+  - docker:dind
+
+before_script:
+  - docker version
+  - docker-compose version
+
+build:
+  stage: build
+  script:
+    - docker-compose down
+    - docker-compose build
+    - docker-compose up tester-image
