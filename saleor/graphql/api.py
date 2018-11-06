@@ -1,18 +1,13 @@
-from textwrap import dedent
-
 import graphene
-from graphql_jwt.decorators import login_required, permission_required
+from graphql_jwt.decorators import permission_required
 
 from .account.schema import AccountMutations, AccountQueries
 from .core.schema import CoreMutations
 from .core.fields import PrefetchingConnectionField
 from .menu.schema import MenuMutations, MenuQueries
-from .descriptions import DESCRIPTIONS
 from .discount.schema import DiscountMutations, DiscountQueries
 from .order.schema import OrderMutations, OrderQueries
-from .page.mutations import PageCreate, PageDelete, PageUpdate
-from .page.resolvers import resolve_page, resolve_pages
-from .page.types import Page
+from .page.schema import PageMutations, PageQueries
 from .product.schema import ProductMutations, ProductQueries
 from .payment.types import Payment, PaymentGatewayEnum
 from .payment.resolvers import (
@@ -34,15 +29,7 @@ from .shop.types import Shop
 
 
 class Query(ProductQueries, AccountQueries, CheckoutQueries, DiscountQueries,
-            MenuQueries, OrderQueries):
-
-    page = graphene.Field(
-        Page, id=graphene.Argument(graphene.ID), slug=graphene.String(),
-        description='Lookup a page by ID or by slug.')
-    pages = PrefetchingConnectionField(
-        Page, query=graphene.String(
-            description=DESCRIPTIONS['page']),
-        description='List of the shop\'s pages.')
+            MenuQueries, OrderQueries, PageQueries):
     payment = graphene.Field(Payment, id=graphene.Argument(graphene.ID))
     payment_client_token = graphene.Field(
         graphene.String, args={'gateway': PaymentGatewayEnum()})
@@ -55,12 +42,6 @@ class Query(ProductQueries, AccountQueries, CheckoutQueries, DiscountQueries,
     shipping_zones = PrefetchingConnectionField(
         ShippingZone, description='List of the shop\'s shipping zones.')
     node = graphene.Node.Field()
-
-    def resolve_page(self, info, id=None, slug=None):
-        return resolve_page(info, id, slug)
-
-    def resolve_pages(self, info, query=None, **kwargs):
-        return resolve_pages(info, query=query)
 
     def resolve_payment(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, Payment)
@@ -86,13 +67,9 @@ class Query(ProductQueries, AccountQueries, CheckoutQueries, DiscountQueries,
 
 class Mutations(ProductMutations, AccountMutations, CheckoutMutations,
                 CoreMutations, DiscountMutations, MenuMutations,
-                OrderMutations):
+                OrderMutations, PageMutations):
     authorization_key_add = AuthorizationKeyAdd.Field()
     authorization_key_delete = AuthorizationKeyDelete.Field()
-
-    page_create = PageCreate.Field()
-    page_delete = PageDelete.Field()
-    page_update = PageUpdate.Field()
 
     payment_capture = PaymentCapture.Field()
     payment_refund = PaymentRefund.Field()
