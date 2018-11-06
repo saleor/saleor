@@ -7,12 +7,7 @@ from .account.schema import AccountMutations, AccountQueries
 from .core.schema import CoreMutations
 from .core.types import TaxedMoney, ReportingPeriod
 from .core.fields import PrefetchingConnectionField
-from .menu.resolvers import resolve_menu, resolve_menus, resolve_menu_items
-from .menu.types import Menu, MenuItem
-# FIXME: sorting import by putting below line at the beginning breaks app
-from .menu.mutations import (
-    AssignNavigation, MenuCreate, MenuDelete, MenuUpdate, MenuItemCreate,
-    MenuItemDelete, MenuItemUpdate)
+from .menu.schema import MenuMutations, MenuQueries
 from .descriptions import DESCRIPTIONS
 from .discount.schema import DiscountMutations, DiscountQueries
 from .order.mutations.draft_orders import (
@@ -51,20 +46,8 @@ from .shop.mutations import (
 from .shop.types import Shop
 
 
-class Query(ProductQueries, AccountQueries, CheckoutQueries, DiscountQueries):
-    menu = graphene.Field(
-        Menu, id=graphene.Argument(graphene.ID),
-        name=graphene.Argument(graphene.String, description="Menu name."),
-        description='Lookup a menu by ID or name.')
-    menus = PrefetchingConnectionField(
-        Menu, query=graphene.String(description=DESCRIPTIONS['menu']),
-        description="List of the shop\'s menus.")
-    menu_item = graphene.Field(
-        MenuItem, id=graphene.Argument(graphene.ID, required=True),
-        description='Lookup a menu item by ID.')
-    menu_items = PrefetchingConnectionField(
-        MenuItem, query=graphene.String(description=DESCRIPTIONS['menu_item']),
-        description='List of the shop\'s menu items.')
+class Query(ProductQueries, AccountQueries, CheckoutQueries, DiscountQueries,
+            MenuQueries):
     order = graphene.Field(
         Order, description='Lookup an order by ID.',
         id=graphene.Argument(graphene.ID, required=True))
@@ -104,18 +87,6 @@ class Query(ProductQueries, AccountQueries, CheckoutQueries, DiscountQueries):
     shipping_zones = PrefetchingConnectionField(
         ShippingZone, description='List of the shop\'s shipping zones.')
     node = graphene.Node.Field()
-
-    def resolve_menu(self, info, id=None, name=None):
-        return resolve_menu(info, id, name)
-
-    def resolve_menus(self, info, query=None, **kwargs):
-        return resolve_menus(info, query)
-
-    def resolve_menu_item(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, MenuItem)
-
-    def resolve_menu_items(self, info, query=None, **kwargs):
-        return resolve_menu_items(info, query)
 
     def resolve_page(self, info, id=None, slug=None):
         return resolve_page(info, id, slug)
@@ -167,19 +138,9 @@ class Query(ProductQueries, AccountQueries, CheckoutQueries, DiscountQueries):
 
 
 class Mutations(ProductMutations, AccountMutations, CheckoutMutations,
-                CoreMutations, DiscountMutations):
+                CoreMutations, DiscountMutations, MenuMutations):
     authorization_key_add = AuthorizationKeyAdd.Field()
     authorization_key_delete = AuthorizationKeyDelete.Field()
-
-    assign_navigation = AssignNavigation.Field()
-
-    menu_create = MenuCreate.Field()
-    menu_delete = MenuDelete.Field()
-    menu_update = MenuUpdate.Field()
-
-    menu_item_create = MenuItemCreate.Field()
-    menu_item_delete = MenuItemDelete.Field()
-    menu_item_update = MenuItemUpdate.Field()
 
     draft_order_create = DraftOrderCreate.Field()
     draft_order_complete = DraftOrderComplete.Field()
