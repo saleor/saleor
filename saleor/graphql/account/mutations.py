@@ -170,6 +170,13 @@ class LoggedCustomerUpdate(CustomerCreate):
         id = graphene.Node.to_global_id('User', user.id)
         return user.has_perm('account.manage_users') or id == input['id']
 
+    @classmethod
+    def mutate(cls, root, info, **data):
+        if data['id'] == '':
+            user = info.context.user
+            data['id'] = graphene.Node.to_global_id('User', user.id)
+        return super().mutate(root, info, **data)
+
 
 class UserDelete(ModelDeleteMutation):
     class Meta:

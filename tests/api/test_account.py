@@ -563,6 +563,69 @@ def test_user_without_premission_can_only_update_own_data(staff_api_client,
     assert_no_permission(response)
 
 
+def test_logged_customer_update_with_empty_id(user_api_client, address):
+    query = """
+    mutation UpdateCustomer($id: ID!, $billing: AddressInput,
+                            $shipping: AddressInput) {
+        loggedCustomerUpdate(id: $id,
+          input: {
+            defaultBillingAddress: $billing,
+            defaultShippingAddress: $shipping,
+        }) {
+            errors {
+                field
+                message
+            }
+            user {
+                id
+                email
+                defaultBillingAddress {
+                    id
+                }
+                defaultShippingAddress {
+                    id
+                }
+            }
+        }
+    }
+    """
+
+    # this test requires addresses to be set and checks whether new address
+    # instances weren't created, but the existing ones got updated
+    user = user_api_client.user
+    assert user.default_billing_address
+    assert user.default_shipping_address
+    billing_address_pk = user.default_billing_address.pk
+    shipping_address_pk = user.default_shipping_address.pk
+
+    address_data = convert_dict_keys_to_camel_case(address.as_data())
+
+    new_street_address = 'Updated street address'
+    address_data['streetAddress1'] = new_street_address
+
+    variables = {
+        'id': '', 'billing': address_data,
+        'shipping': address_data}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    User = get_user_model()
+    customer = User.objects.get(email=user.email)
+
+    customer_billing_address = customer.default_billing_address
+    customer_shipping_address = customer.default_shipping_address
+
+    # check that existing instances are updated
+    assert customer_billing_address.pk == billing_address_pk
+    assert customer_shipping_address.pk == shipping_address_pk
+
+    assert customer_billing_address.street_address_1 == new_street_address
+    assert customer_shipping_address.street_address_1 == new_street_address
+
+    data = content['data']['loggedCustomerUpdate']
+    assert data['errors'] == []
+
+
 def test_customer_delete(staff_api_client, customer_user, permission_manage_users):
     query = """
     mutation CustomerDelete($id: ID!) {
