@@ -14,11 +14,7 @@ from .menu.mutations import (
     AssignNavigation, MenuCreate, MenuDelete, MenuUpdate, MenuItemCreate,
     MenuItemDelete, MenuItemUpdate)
 from .descriptions import DESCRIPTIONS
-from .discount.mutations import (
-    SaleCreate, SaleDelete, SaleUpdate, VoucherCreate, VoucherDelete,
-    VoucherUpdate)
-from .discount.resolvers import resolve_sales, resolve_vouchers
-from .discount.types import Sale, Voucher
+from .discount.schema import DiscountMutations, DiscountQueries
 from .order.mutations.draft_orders import (
     DraftOrderComplete, DraftOrderCreate, DraftOrderDelete,
     DraftOrderLineCreate, DraftOrderLineDelete, DraftOrderLineUpdate,
@@ -55,7 +51,7 @@ from .shop.mutations import (
 from .shop.types import Shop
 
 
-class Query(ProductQueries, AccountQueries, CheckoutQueries):
+class Query(ProductQueries, AccountQueries, CheckoutQueries, DiscountQueries):
     menu = graphene.Field(
         Menu, id=graphene.Argument(graphene.ID),
         name=graphene.Argument(graphene.String, description="Menu name."),
@@ -101,19 +97,7 @@ class Query(ProductQueries, AccountQueries, CheckoutQueries):
         graphene.String, args={'gateway': PaymentGatewayEnum()})
     payments = PrefetchingConnectionField(
         Payment, description='List of payments')
-    sale = graphene.Field(
-        Sale, id=graphene.Argument(graphene.ID, required=True),
-        description='Lookup a sale by ID.')
-    sales = PrefetchingConnectionField(
-        Sale, query=graphene.String(description=DESCRIPTIONS['sale']),
-        description="List of the shop\'s sales.")
     shop = graphene.Field(Shop, description='Represents a shop resources.')
-    voucher = graphene.Field(
-        Voucher, id=graphene.Argument(graphene.ID, required=True),
-        description='Lookup a voucher by ID.')
-    vouchers = PrefetchingConnectionField(
-        Voucher, query=graphene.String(description=DESCRIPTIONS['product']),
-        description="List of the shop\'s vouchers.")
     shipping_zone = graphene.Field(
         ShippingZone, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup a shipping zone by ID.')
@@ -173,22 +157,6 @@ class Query(ProductQueries, AccountQueries, CheckoutQueries):
     def resolve_shop(self, info):
         return Shop()
 
-    @permission_required('discount.manage_discounts')
-    def resolve_sale(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, Sale)
-
-    @permission_required('discount.manage_discounts')
-    def resolve_sales(self, info, query=None, **kwargs):
-        return resolve_sales(info, query)
-
-    @permission_required('discount.manage_discounts')
-    def resolve_voucher(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, Voucher)
-
-    @permission_required('discount.manage_discounts')
-    def resolve_vouchers(self, info, query=None, **kwargs):
-        return resolve_vouchers(info, query)
-
     @permission_required('shipping.manage_shipping')
     def resolve_shipping_zone(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ShippingZone)
@@ -199,7 +167,7 @@ class Query(ProductQueries, AccountQueries, CheckoutQueries):
 
 
 class Mutations(ProductMutations, AccountMutations, CheckoutMutations,
-                CoreMutations):
+                CoreMutations, DiscountMutations):
     authorization_key_add = AuthorizationKeyAdd.Field()
     authorization_key_delete = AuthorizationKeyDelete.Field()
 
@@ -240,17 +208,9 @@ class Mutations(ProductMutations, AccountMutations, CheckoutMutations,
     payment_refund = PaymentRefund.Field()
     payment_void = PaymentVoid.Field()
 
-    sale_create = SaleCreate.Field()
-    sale_delete = SaleDelete.Field()
-    sale_update = SaleUpdate.Field()
-
     shop_domain_update = ShopDomainUpdate.Field()
     shop_settings_update = ShopSettingsUpdate.Field()
     homepage_collection_update = HomepageCollectionUpdate.Field()
-
-    voucher_create = VoucherCreate.Field()
-    voucher_delete = VoucherDelete.Field()
-    voucher_update = VoucherUpdate.Field()
 
     shipping_zone_create = ShippingZoneCreate.Field()
     shipping_zone_delete = ShippingZoneDelete.Field()
