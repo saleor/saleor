@@ -5,6 +5,7 @@ from django.utils.html import format_html
 from django.utils.translation import pgettext_lazy
 
 from ...forms import PaymentForm
+from ...models import Payment
 
 CHECKOUT_SCRIPT_URL = 'https://checkout.razorpay.com/v1/checkout.js'
 
@@ -16,12 +17,15 @@ SECONDARY_TITLE = pgettext_lazy(
 
 class RazorPayCheckoutWidget(HiddenInput):
     def __init__(
-            self,
-            *, payment,
-            public_key, prefill, store_name, store_image,
-            **kwargs):
-        override_attrs = kwargs.get('attrs', None)
-        base_attrs = kwargs['attrs'] = {
+            self, *,
+            payment: Payment,
+            public_key: str,
+            prefill: bool,
+            store_name: str,
+            store_image: str,
+            **additional_parameters):
+        override_attrs = additional_parameters.get('attrs', None)
+        base_attrs = additional_parameters['attrs'] = {
             'src': CHECKOUT_SCRIPT_URL,
             'data-key': public_key,
             'data-buttontext': PRIMARY_BTN_TEXT,
@@ -29,8 +33,7 @@ class RazorPayCheckoutWidget(HiddenInput):
             'data-name': store_name,
             'data-description': SECONDARY_TITLE,
             'data-amount': int(payment.total * 100),
-            'data-currency': payment.currency
-        }
+            'data-currency': payment.currency}
 
         if prefill:
             customer_name = '%s %s' % (
@@ -38,14 +41,13 @@ class RazorPayCheckoutWidget(HiddenInput):
                 payment.billing_first_name)
             base_attrs.update({
                 'data-prefill.name': customer_name,
-                'data-prefill.email': payment.billing_email
-            })
+                'data-prefill.email': payment.billing_email})
 
         if override_attrs:
             base_attrs.update(override_attrs)
         super().__init__(attrs=base_attrs)
 
-    def render(self, *args, **kwargs):
+    def render(self, **kwargs):
         attrs = kwargs.setdefault('attrs', {})
         attrs.update(self.attrs)
         return format_html('<script{0}></script>', flatatt(attrs))
@@ -64,6 +66,6 @@ class RazorPaymentForm(PaymentForm):
 
     def process_payment(self):
         data = super(RazorPaymentForm, self).clean()
-        transaction_id = data['razorpay_payment_id']
-        self.payment.charge(transaction_id)
+        payment_token = data['razorpay_payment_id']
+        self.payment.charge(payment_token)
         return self.payment
