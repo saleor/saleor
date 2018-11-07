@@ -712,7 +712,7 @@ type LanguageDisplay {
   language: String!
 }
 
-type LoggedCustomerUpdate {
+type LoggedUserUpdate {
   errors: [Error]
   user: User
 }
@@ -871,7 +871,7 @@ type Mutations {
   setPassword(id: ID!, input: SetPasswordInput!): SetPassword
   passwordReset(email: String!): PasswordReset
   customerCreate(input: UserCreateInput!): CustomerCreate
-  loggedCustomerUpdate(input: UserAddressInput!): LoggedCustomerUpdate
+  loggedUserUpdate(input: UserAddressInput!): LoggedUserUpdate
   customerUpdate(id: ID!, input: CustomerInput!): CustomerUpdate
   customerDelete(id: ID!): CustomerDelete
   customerPasswordReset(input: CustomerPasswordResetInput!): CustomerPasswordReset

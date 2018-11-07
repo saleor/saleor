@@ -143,7 +143,7 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
     assert address['phone'] == user_address.phone.as_e164
 
 
-def test_non_staff_user_can_see_his_user_data(user_api_client):
+def test_customer_can_see_his_user_data(user_api_client):
     query = """
     query User($id: ID!) {
         user(id: $id) {
@@ -160,8 +160,8 @@ def test_non_staff_user_can_see_his_user_data(user_api_client):
     assert data['email'] == user.email
 
 
-def test_non_staff_user_can_not_see_other_users_data(user_api_client,
-                                                     staff_user):
+def test_customer_can_not_see_other_users_data(user_api_client,
+                                               staff_user):
     query = """
     query User($id: ID!) {
         user(id: $id) {
@@ -464,7 +464,7 @@ def test_logged_customer_update(user_api_client, address):
     query = """
     mutation UpdateLoggedCustomer($billing: AddressInput,
                                   $shipping: AddressInput) {
-        loggedCustomerUpdate(
+        loggedUserUpdate(
           input: {
             defaultBillingAddress: $billing,
             defaultShippingAddress: $shipping,
@@ -491,35 +491,27 @@ def test_logged_customer_update(user_api_client, address):
     user = user_api_client.user
     assert user.default_billing_address
     assert user.default_shipping_address
-    billing_address_pk = user.default_billing_address.pk
-    shipping_address_pk = user.default_shipping_address.pk
 
     address_data = convert_dict_keys_to_camel_case(address.as_data())
-
     new_street_address = 'Updated street address'
     address_data['streetAddress1'] = new_street_address
-
     variables = {
         'billing': address_data,
         'shipping': address_data}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-
-    User = get_user_model()
-    customer = User.objects.get(email=user.email)
-
-    customer_billing_address = customer.default_billing_address
-    customer_shipping_address = customer.default_shipping_address
+    data = content['data']['loggedUserUpdate']
+    assert not data['errors']
 
     # check that existing instances are updated
-    assert customer_billing_address.pk == billing_address_pk
-    assert customer_shipping_address.pk == shipping_address_pk
+    billing_address_pk = user.default_billing_address.pk
+    shipping_address_pk = user.default_shipping_address.pk
+    user = User.objects.get(email=user.email)
+    assert user.default_billing_address.pk == billing_address_pk
+    assert user.default_shipping_address.pk == shipping_address_pk
 
-    assert customer_billing_address.street_address_1 == new_street_address
-    assert customer_shipping_address.street_address_1 == new_street_address
-
-    data = content['data']['loggedCustomerUpdate']
-    assert data['errors'] == []
+    assert user.default_billing_address.street_address_1 == new_street_address
+    assert user.default_shipping_address.street_address_1 == new_street_address
 
 
 def test_customer_delete(staff_api_client, customer_user, permission_manage_users):
