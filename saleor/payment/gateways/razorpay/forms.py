@@ -6,6 +6,7 @@ from django.utils.translation import pgettext_lazy
 
 from ...forms import PaymentForm
 from ...models import Payment
+from .utils import get_amount_for_razorpay
 
 CHECKOUT_SCRIPT_URL = 'https://checkout.razorpay.com/v1/checkout.js'
 
@@ -32,7 +33,7 @@ class RazorPayCheckoutWidget(HiddenInput):
             'data-image': store_image,
             'data-name': store_name,
             'data-description': SECONDARY_TITLE,
-            'data-amount': int(payment.total * 100),
+            'data-amount': get_amount_for_razorpay(payment.total),
             'data-currency': payment.currency}
 
         if prefill:
