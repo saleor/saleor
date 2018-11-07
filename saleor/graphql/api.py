@@ -13,15 +13,15 @@ from .shipping.schema import ShippingMutations, ShippingQueries
 from .shop.schema import ShopMutations, ShopQueries
 
 
-class Query(ProductQueries, AccountQueries, CheckoutQueries, DiscountQueries,
-            MenuQueries, OrderQueries, PageQueries, PaymentQueries,
+class Query(AccountQueries, CheckoutQueries, DiscountQueries, MenuQueries,
+            OrderQueries, PageQueries, PaymentQueries, ProductQueries,
             ShippingQueries, ShopQueries):
     node = graphene.Node.Field()
 
 
-class Mutations(ProductMutations, AccountMutations, CheckoutMutations,
-                CoreMutations, DiscountMutations, MenuMutations,
-                OrderMutations, PageMutations, PaymentMutations,
+class Mutations(AccountMutations, CheckoutMutations, CoreMutations,
+                DiscountMutations, MenuMutations, OrderMutations,
+                PageMutations, PaymentMutations, ProductMutations,
                 ShippingMutations, ShopMutations):
     pass
 
