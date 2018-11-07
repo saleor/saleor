@@ -152,14 +152,14 @@ class CustomerUpdate(CustomerCreate):
         model = models.User
 
 
-class LoggedCustomerUpdate(CustomerCreate):
+class LoggedUserUpdate(CustomerCreate):
     class Arguments:
         input = UserAddressInput(
             description='Fields required to update logged in customer.',
             required=True)
 
     class Meta:
-        description = 'Updates an existing logged in customer.'
+        description = 'Updates data of the logged in user.'
         exclude = ['password']
         model = models.User
 
