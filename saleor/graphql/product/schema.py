@@ -89,11 +89,11 @@ class ProductQueries(graphene.ObjectType):
     def resolve_attributes(self, info, in_category=None, query=None, **kwargs):
         return resolve_attributes(info, in_category, query)
 
-    def resolve_category(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, Category)
-
     def resolve_categories(self, info, level=None, query=None, **kwargs):
         return resolve_categories(info, level=level, query=query)
+
+    def resolve_category(self, info, id):
+        return graphene.Node.get_node_from_global_id(info, id, Category)
 
     def resolve_collection(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, Collection)
@@ -137,24 +137,24 @@ class ProductMutations(graphene.ObjectType):
     category_delete = CategoryDelete.Field()
     category_update = CategoryUpdate.Field()
 
-    collection_create = CollectionCreate.Field()
-    collection_update = CollectionUpdate.Field()
-    collection_delete = CollectionDelete.Field()
     collection_add_products = CollectionAddProducts.Field()
+    collection_create = CollectionCreate.Field()
+    collection_delete = CollectionDelete.Field()
     collection_remove_products = CollectionRemoveProducts.Field()
+    collection_update = CollectionUpdate.Field()
 
     product_create = ProductCreate.Field()
     product_delete = ProductDelete.Field()
     product_update = ProductUpdate.Field()
 
     product_image_create = ProductImageCreate.Field()
-    product_image_reorder = ProductImageReorder.Field()
     product_image_delete = ProductImageDelete.Field()
+    product_image_reorder = ProductImageReorder.Field()
     product_image_update = ProductImageUpdate.Field()
 
     product_type_create = ProductTypeCreate.Field()
-    product_type_update = ProductTypeUpdate.Field()
     product_type_delete = ProductTypeDelete.Field()
+    product_type_update = ProductTypeUpdate.Field()
 
     product_variant_create = ProductVariantCreate.Field()
     product_variant_delete = ProductVariantDelete.Field()
