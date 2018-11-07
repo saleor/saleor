@@ -143,7 +143,7 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
     assert address['phone'] == user_address.phone.as_e164
 
 
-def test_customer_can_see_his_user_data(user_api_client):
+def test_customer_can_see_his_own_data(user_api_client):
     query = """
     query User($id: ID!) {
         user(id: $id) {
