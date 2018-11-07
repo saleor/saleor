@@ -154,8 +154,6 @@ class CustomerUpdate(CustomerCreate):
 
 class LoggedCustomerUpdate(CustomerCreate):
     class Arguments:
-        id = graphene.ID(
-            description='ID of a customer to update.', required=True)
         input = UserAddressInput(
             description='Fields required to update logged in customer.',
             required=True)
@@ -172,9 +170,8 @@ class LoggedCustomerUpdate(CustomerCreate):
 
     @classmethod
     def mutate(cls, root, info, **data):
-        if data['id'] == '':
-            user = info.context.user
-            data['id'] = graphene.Node.to_global_id('User', user.id)
+        user = info.context.user
+        data['id'] = graphene.Node.to_global_id('User', user.id)
         return super().mutate(root, info, **data)
 
 

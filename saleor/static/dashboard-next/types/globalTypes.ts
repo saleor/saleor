@@ -181,11 +181,11 @@ export interface CollectionInput {
 }
 
 export interface CustomerInput {
+  defaultBillingAddress?: AddressInput | null;
+  defaultShippingAddress?: AddressInput | null;
   email?: string | null;
   isActive?: boolean | null;
   note?: string | null;
-  defaultBillingAddress?: AddressInput | null;
-  defaultShippingAddress?: AddressInput | null;
 }
 
 export interface DraftOrderInput {
@@ -286,11 +286,11 @@ export interface StaffInput {
 }
 
 export interface UserCreateInput {
+  defaultBillingAddress?: AddressInput | null;
+  defaultShippingAddress?: AddressInput | null;
   email?: string | null;
   isActive?: boolean | null;
   note?: string | null;
-  defaultBillingAddress?: AddressInput | null;
-  defaultShippingAddress?: AddressInput | null;
   sendPasswordEmail?: boolean | null;
 }
 
