@@ -97,7 +97,9 @@ Login credentials: `admin@example.com`/`admin`
 
 
 ## PWA Storefront
-The PWA, single-page storefront is available in a separate repository: [see it here](https://github.com/mirumee/saleor-storefront)!
+The PWA, single-page storefront lives in a [separate repository](https://github.com/mirumee/saleor-storefront).
+
+[View PWA Storefront](https://pwa.getsaleor.com/)
 
 
 ## Contributing
