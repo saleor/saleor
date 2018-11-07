@@ -155,7 +155,7 @@ class CustomerUpdate(CustomerCreate):
 class LoggedUserUpdate(CustomerCreate):
     class Arguments:
         input = UserAddressInput(
-            description='Fields required to update logged in customer.',
+            description='Fields required to update logged in user.',
             required=True)
 
     class Meta:
@@ -165,8 +165,7 @@ class LoggedUserUpdate(CustomerCreate):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        id = graphene.Node.to_global_id('User', user.id)
-        return user.has_perm('account.manage_users') or id == input['id']
+        return user.is_authenticated
 
     @classmethod
     def mutate(cls, root, info, **data):
