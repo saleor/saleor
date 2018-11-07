@@ -26,10 +26,10 @@ class ShippingQueries(graphene.ObjectType):
 
 
 class ShippingMutations(graphene.ObjectType):
-    shipping_zone_create = ShippingZoneCreate.Field()
-    shipping_zone_delete = ShippingZoneDelete.Field()
-    shipping_zone_update = ShippingZoneUpdate.Field()
-
     shipping_price_create = ShippingPriceCreate.Field()
     shipping_price_delete = ShippingPriceDelete.Field()
     shipping_price_update = ShippingPriceUpdate.Field()
+
+    shipping_zone_create = ShippingZoneCreate.Field()
+    shipping_zone_delete = ShippingZoneDelete.Field()
+    shipping_zone_update = ShippingZoneUpdate.Field()
