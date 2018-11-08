@@ -8,5 +8,6 @@ def get_error_response(amount: Decimal, **additional_kwargs) -> dict:
 
 
 def get_amount_for_razorpay(amount: Decimal) -> int:
-    """Convert a decimal amount to int, by multiplying the value by 100."""
+    """Convert an amount of Indian rupees to paisa (needed by the razorpay)
+    by multiplying the value by 100."""
     return int(amount * 100)

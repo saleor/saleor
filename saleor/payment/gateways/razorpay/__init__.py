@@ -3,26 +3,15 @@ import uuid
 from decimal import Decimal
 from typing import Dict, Tuple
 
-from django.utils.translation import pgettext_lazy
-
 import razorpay
-from razorpay import errors
+import razorpay.errors
 
+from . import errors
 from ... import TransactionKind
 from ...models import Payment, Transaction
 from ...utils import create_transaction
 from .forms import RazorPaymentForm
 from .utils import get_amount_for_razorpay, get_error_response
-
-# Define the existing error messages as lazy `pgettext`.
-ERROR_MSG_ORDER_NOT_CHARGED = pgettext_lazy(
-    'Razorpay payment error', 'Order was not charged.')
-ERROR_MSG_INVALID_REQUEST = pgettext_lazy(
-    'Razorpay payment error', 'The payment data was invalid.')
-ERROR_MSG_SERVER_ERROR = pgettext_lazy(
-    'Razorpay payment error', 'The order couldn\'t be proceeded.')
-ERROR_UNSUPPORTED_CURRENCY = pgettext_lazy(
-    'Razorpay payment error', 'The %(currency)s currency is not supported.')
 
 # The list of currencies supported by razorpay
 SUPPORTED_CURRENCIES = 'INR',
@@ -30,7 +19,9 @@ SUPPORTED_CURRENCIES = 'INR',
 # Define what are the razorpay exceptions,
 # as the razorpay provider doesn't define a base exception as of now.
 RAZORPAY_EXCEPTIONS = (
-    errors.BadRequestError, errors.GatewayError, errors.ServerError)
+    razorpay.errors.BadRequestError,
+    razorpay.errors.GatewayError,
+    razorpay.errors.ServerError)
 
 # Get the logger for this file, it will allow us to log
 # error responses from razorpay.
@@ -61,7 +52,7 @@ def _generate_transaction(
 def check_payment_supported(payment: Payment):
     """Checks that a given payment is supported"""
     if payment.currency not in SUPPORTED_CURRENCIES:
-        return ERROR_UNSUPPORTED_CURRENCY % {
+        return errors.UNSUPPORTED_CURRENCY % {
             'currency': payment.currency}
 
 
@@ -69,15 +60,15 @@ def get_error_message_from_razorpay_error(exc: BaseException):
     """Convert a error razorpay error to a user friendly error message
     and log the exception to stderr."""
     logger.exception(exc)
-    if isinstance(exc, errors.BadRequestError):
-        return ERROR_MSG_INVALID_REQUEST
+    if isinstance(exc, razorpay.errors.BadRequestError):
+        return errors.INVALID_REQUEST
     else:
-        return ERROR_MSG_SERVER_ERROR
+        return errors.SERVER_ERROR
 
 
 def clean_razorpay_response(response: dict):
     """As the Razorpay response payload contains the final amount
-    as an integer, we converts it to a decimal object (by dividing by 100)."""
+    in Indian rupees, we convert the amount to paisa (by dividing by 100)."""
     response['amount'] = Decimal(response['amount']) / 100
 
 
@@ -158,7 +149,7 @@ def refund(payment: Payment, amount: Decimal, **connection_params):
             error = get_error_message_from_razorpay_error(exc)
             response = get_error_response(amount)
     else:
-        error = ERROR_MSG_ORDER_NOT_CHARGED
+        error = errors.ORDER_NOT_CHARGED
         response = get_error_response(amount)
 
     transaction = _generate_transaction(

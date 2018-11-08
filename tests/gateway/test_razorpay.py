@@ -6,10 +6,9 @@ import pytest
 from razorpay.errors import BadRequestError, ServerError
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.gateways.razorpay import (
-    ERROR_MSG_INVALID_REQUEST, ERROR_MSG_ORDER_NOT_CHARGED,
-    ERROR_MSG_SERVER_ERROR, ERROR_UNSUPPORTED_CURRENCY, charge,
-    clean_razorpay_response, get_amount_for_razorpay, get_client,
-    get_client_token, get_form_class, logger, refund)
+    charge, clean_razorpay_response, errors, get_amount_for_razorpay,
+    get_client, get_client_token, get_form_class, logger, refund,
+    check_payment_supported)
 from saleor.payment.gateways.razorpay.forms import (
     RazorPayCheckoutWidget, RazorPaymentForm)
 
@@ -90,6 +89,17 @@ def test_checkout_form(razorpay_payment, gateway_params):
         mocked_charge.assert_called_once_with('123')
 
 
+def test_check_payment_supported(razorpay_payment):
+    found_error = check_payment_supported(razorpay_payment)
+    assert not found_error
+
+
+def test_check_payment_supported_non_supported(razorpay_payment):
+    razorpay_payment.currency = 'USD'
+    found_error = check_payment_supported(razorpay_payment)
+    assert found_error
+
+
 def test_get_amount_for_razorpay():
     assert get_amount_for_razorpay(Decimal('61.33')) == 6133
 
@@ -160,7 +170,7 @@ def test_charge_unsupported_currency(razorpay_payment, gateway_params):
         TRANSACTION_AMOUNT, **gateway_params)
 
     # Ensure a error was returned
-    assert error == ERROR_UNSUPPORTED_CURRENCY % {'currency': 'USD'}
+    assert error == errors.UNSUPPORTED_CURRENCY % {'currency': 'USD'}
     assert not txn.is_success
 
     # Ensure the transaction is correctly set
@@ -190,7 +200,7 @@ def test_charge_invalid_request(
         TRANSACTION_AMOUNT, **gateway_params)
 
     # Ensure an error was returned
-    assert error == ERROR_MSG_INVALID_REQUEST
+    assert error == errors.INVALID_REQUEST
     assert not txn.is_success
 
     # Ensure the transaction is correctly set
@@ -241,7 +251,7 @@ def test_refund_unsupported_currency(
         razorpay_payment, TRANSACTION_AMOUNT, **gateway_params)
 
     # Ensure a error was returned
-    assert error == ERROR_UNSUPPORTED_CURRENCY % {'currency': 'USD'}
+    assert error == errors.UNSUPPORTED_CURRENCY % {'currency': 'USD'}
     assert not txn.is_success
 
     # Ensure the transaction is correctly set
@@ -266,7 +276,7 @@ def test_refund_not_paid(
         razorpay_payment, TRANSACTION_AMOUNT, **gateway_params)
 
     # Ensure a error was returned
-    assert error == ERROR_MSG_ORDER_NOT_CHARGED
+    assert error == errors.ORDER_NOT_CHARGED
     assert not txn.is_success
 
     # Ensure the transaction is correctly set
@@ -293,7 +303,7 @@ def test_refund_invalid_data(
         charged_payment, TRANSACTION_AMOUNT, **gateway_params)
 
     # Ensure a error was returned
-    assert error == ERROR_MSG_SERVER_ERROR
+    assert error == errors.SERVER_ERROR
     assert not txn.is_success
 
     # Ensure the transaction is correctly set
