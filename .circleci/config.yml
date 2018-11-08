@@ -16,8 +16,6 @@ jobs:
               export SALEOR_VERSION=$(git describe --tags)
             fi
             sed -i.bak "s#'dev'#'$SALEOR_VERSION'#" saleor/__init__.py
-
-
       - run:
           name: Build application Docker image
           command: |
@@ -39,7 +37,6 @@ jobs:
             docker tag mirumee/saleor:latest mirumee/saleor:$CIRCLE_SHA1
             docker push mirumee/saleor:$CIRCLE_SHA1
             docker push mirumee/saleor:latest
-
       - run:
           name: Deploy saleor-demo
           command: |
@@ -50,7 +47,6 @@ jobs:
                 -d build_parameters[CIRCLE_JOB]=deploy \
                 https://circleci.com/api/v1.1/project/github/mirumee/saleor-demo/tree/master
             fi
-
       - run:
           name: Deploy saleor master
           command: |
