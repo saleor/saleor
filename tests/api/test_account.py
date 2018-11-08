@@ -2,16 +2,16 @@ import json
 import re
 from unittest.mock import Mock, patch
 
-import pytest
-
 import graphene
+import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import reverse
+from tests.api.utils import get_graphql_content
+
 from saleor.account.models import Address, User
 from saleor.graphql.account.mutations import (
     CustomerDelete, SetPassword, StaffDelete, StaffUpdate, UserDelete)
-from tests.api.utils import get_graphql_content
 
 from .utils import assert_no_permission, convert_dict_keys_to_camel_case
 
@@ -143,18 +143,20 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
     assert address['phone'] == user_address.phone.as_e164
 
 
-def test_customer_can_see_his_own_data(user_api_client):
-    query = """
+USER_QUERY = """
     query User($id: ID!) {
         user(id: $id) {
             email
         }
     }
-    """
+"""
+
+
+def test_customer_can_see_his_own_data(user_api_client):
     user = user_api_client.user
     id = graphene.Node.to_global_id('User', user.id)
     variables = {'id': id}
-    response = user_api_client.post_graphql(query, variables)
+    response = user_api_client.post_graphql(USER_QUERY, variables)
     content = get_graphql_content(response)
     data = content['data']['user']
     assert data['email'] == user.email
@@ -162,34 +164,27 @@ def test_customer_can_see_his_own_data(user_api_client):
 
 def test_customer_can_not_see_other_users_data(user_api_client,
                                                staff_user):
-    query = """
-    query User($id: ID!) {
-        user(id: $id) {
-            email
-        }
-    }
-    """
     id = graphene.Node.to_global_id('User', staff_user.id)
     variables = {'id': id}
-    response = user_api_client.post_graphql(query, variables)
+    response = user_api_client.post_graphql(USER_QUERY, variables)
     content = get_graphql_content(response)
     data = content['data']['user']
     assert data is None
 
 
 def test_user_query_with_empty_id(user_api_client):
-    query = """
-    query User($id: ID!) {
-        user(id: $id) {
-            email
-        }
-    }
-    """
     variables = {'id': ''}
-    response = user_api_client.post_graphql(query, variables)
+    response = user_api_client.post_graphql(USER_QUERY, variables)
     content = get_graphql_content(response)
     data = content['data']['user']
     assert data['email'] == user_api_client.user.email
+
+
+def test_user_query_anonymous_user(api_client):
+    variables = {'id': ''}
+    response = api_client.post_graphql(
+        USER_QUERY, variables)
+    assert_no_permission(response)
 
 
 def test_query_customers(
@@ -253,14 +248,6 @@ def test_who_can_see_user(
         staff_user, customer_user, staff_api_client, user_api_client,
         permission_manage_users):
     query = """
-    query User($id: ID!) {
-        user(id: $id) {
-            email
-        }
-    }
-    """
-
-    query_2 = """
     query Users {
         customers {
             totalCount
@@ -271,22 +258,22 @@ def test_who_can_see_user(
     # Random person (even staff) can't see users data without permissions
     ID = graphene.Node.to_global_id('User', customer_user.id)
     variables = {'id': ID}
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(USER_QUERY, variables)
     data = get_graphql_content(response)
     content = get_graphql_content(response)
     data = content['data']['user']
     assert data is None
 
-    response = staff_api_client.post_graphql(query_2)
+    response = staff_api_client.post_graphql(query)
     assert_no_permission(response)
 
     # Add permission and ensure staff can see user(s)
     staff_user.user_permissions.add(permission_manage_users)
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(USER_QUERY, variables)
     content = get_graphql_content(response)
     assert content['data']['user']['email'] == customer_user.email
 
-    response = staff_api_client.post_graphql(query_2)
+    response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     assert content['data']['customers']['totalCount'] == 1
 
@@ -460,8 +447,7 @@ def test_customer_update(
     assert not data['user']['isActive']
 
 
-def test_logged_customer_update(user_api_client, address):
-    query = """
+UPDATE_LOGGED_CUSTOMER_QUERY = """
     mutation UpdateLoggedCustomer($billing: AddressInput,
                                   $shipping: AddressInput) {
         loggedUserUpdate(
@@ -484,21 +470,23 @@ def test_logged_customer_update(user_api_client, address):
             }
         }
     }
-    """
+"""
 
+
+def test_logged_customer_update(user_api_client, graphql_address_data):
     # this test requires addresses to be set and checks whether new address
     # instances weren't created, but the existing ones got updated
     user = user_api_client.user
+    new_first_name = graphql_address_data['firstName']
     assert user.default_billing_address
     assert user.default_shipping_address
-
-    address_data = convert_dict_keys_to_camel_case(address.as_data())
-    new_street_address = 'Updated street address'
-    address_data['streetAddress1'] = new_street_address
+    assert user.default_billing_address.first_name != new_first_name
+    assert user.default_shipping_address.first_name != new_first_name
     variables = {
-        'billing': address_data,
-        'shipping': address_data}
-    response = user_api_client.post_graphql(query, variables)
+        'billing': graphql_address_data,
+        'shipping': graphql_address_data}
+    response = user_api_client.post_graphql(
+        UPDATE_LOGGED_CUSTOMER_QUERY, variables)
     content = get_graphql_content(response)
     data = content['data']['loggedUserUpdate']
     assert not data['errors']
@@ -510,8 +498,14 @@ def test_logged_customer_update(user_api_client, address):
     assert user.default_billing_address.pk == billing_address_pk
     assert user.default_shipping_address.pk == shipping_address_pk
 
-    assert user.default_billing_address.street_address_1 == new_street_address
-    assert user.default_shipping_address.street_address_1 == new_street_address
+    assert user.default_billing_address.first_name == new_first_name
+    assert user.default_shipping_address.first_name == new_first_name
+
+
+def test_logged_customer_update_anonymus_user(api_client):
+    response = api_client.post_graphql(
+        UPDATE_LOGGED_CUSTOMER_QUERY, {})
+    assert_no_permission(response)
 
 
 def test_customer_delete(staff_api_client, customer_user, permission_manage_users):
@@ -953,4 +947,3 @@ def test_customer_reset_password(
     content = get_graphql_content(response)
     assert send_password_reset_mock.called
     assert send_password_reset_mock.mock_calls[0][1][1] == customer_user.email
-
