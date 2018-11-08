@@ -21,7 +21,6 @@ script:
   - tox
 env:
   global:
-    - DJANGO_SETTINGS_MODULE=tests.settings
     - DATABASE_URL='postgres://postgres@localhost:5432/saleor'
   matrix:
   - DJANGO="1.11"
