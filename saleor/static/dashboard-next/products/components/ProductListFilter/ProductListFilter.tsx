@@ -30,19 +30,17 @@ const ProductListFilter: React.StatelessComponent<ProductListFilterProps> = ({
       <FilterTab label={i18n.t("All Products")} onClick={onAllProducts} />
       <FilterTab label={i18n.t("Availiable")} onClick={onAvailable} />
       <FilterTab label={i18n.t("Out Of Stock")} onClick={onOfStock} />
-      {(currentTab === 0 || undefined) &&
-        filtersList &&
-        filtersList.length > 0 && (
-          <FilterTab
-            onClick={onCustomFilter}
-            value={0}
-            label={i18n.t("Custom Filter")}
-          />
-        )}
+      {currentTab === 0 && filtersList && filtersList.length > 0 && (
+        <FilterTab
+          onClick={onCustomFilter}
+          value={0}
+          label={i18n.t("Custom Filter")}
+        />
+      )}
     </FilterTabs>
-    {(currentTab === 0 || undefined) &&
-      filtersList &&
-      filtersList.length > 0 && <FilterChip filtersList={filtersList} />}
+    {currentTab === 0 && filtersList && filtersList.length > 0 && (
+      <FilterChip filtersList={filtersList} />
+    )}
   </>
 );
 ProductListFilter.displayName = "ProductListFilter";
