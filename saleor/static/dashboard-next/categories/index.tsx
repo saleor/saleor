@@ -2,7 +2,9 @@ import { parse as parseQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 import { CategoryCreateView } from "./views/CategoryCreate";
-import CategoryDetailsView from "./views/CategoryDetails";
+import CategoryDetailsView, {
+  CategoryDetailsQueryParams
+} from "./views/CategoryDetails";
 import CategoryList from "./views/CategoryList";
 
 interface CategoryDetailsRouteParams {
@@ -12,7 +14,7 @@ const CategoryDetails: React.StatelessComponent<
   RouteComponentProps<CategoryDetailsRouteParams>
 > = ({ location, match }) => {
   const qs = parseQs(location.search.substr(1));
-  const params = {
+  const params: CategoryDetailsQueryParams = {
     after: qs.after,
     before: qs.before
   };

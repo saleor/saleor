@@ -1,18 +1,21 @@
 import * as React from "react";
 
 import Navigator from "../../components/Navigator";
-import { createPaginationData, createPaginationState, maybe } from "../../misc";
+import { createPaginationState, Paginator } from "../../components/Paginator";
+import { maybe } from "../../misc";
 import CustomerListPage from "../components/CustomerListPage";
 import { TypedCustomerListQuery } from "../queries";
-import { customerAddUrl, customerListUrl, customerUrl } from "../urls";
+import { customerAddUrl, customerUrl } from "../urls";
 
 const PAGINATE_BY = 20;
 
+export type CustomerListQueryParams = Partial<{
+  after: string;
+  before: string;
+}>;
+
 interface CustomerListProps {
-  params: {
-    after?: string;
-    before?: string;
-  };
+  params: CustomerListQueryParams;
 }
 
 export const CustomerList: React.StatelessComponent<CustomerListProps> = ({
@@ -23,33 +26,28 @@ export const CustomerList: React.StatelessComponent<CustomerListProps> = ({
       const paginationState = createPaginationState(PAGINATE_BY, params);
       return (
         <TypedCustomerListQuery variables={paginationState}>
-          {({ data, loading }) => {
-            const {
-              loadNextPage,
-              loadPreviousPage,
-              pageInfo
-            } = createPaginationData(
-              navigate,
-              paginationState,
-              customerListUrl,
-              maybe(() => data.customers.pageInfo),
-              loading
-            );
-            return (
-              <CustomerListPage
-                customers={maybe(() =>
-                  data.customers.edges.map(edge => edge.node)
-                )}
-                disabled={loading}
-                pageInfo={pageInfo}
-                onAdd={() => navigate(customerAddUrl)}
-                onNextPage={loadNextPage}
-                onPreviousPage={loadPreviousPage}
-                onRowClick={id => () =>
-                  navigate(customerUrl(encodeURIComponent(id)))}
-              />
-            );
-          }}
+          {({ data, loading }) => (
+            <Paginator
+              pageInfo={maybe(() => data.customers.pageInfo)}
+              paginationState={paginationState}
+              queryString={params}
+            >
+              {({ loadNextPage, loadPreviousPage, pageInfo }) => (
+                <CustomerListPage
+                  customers={maybe(() =>
+                    data.customers.edges.map(edge => edge.node)
+                  )}
+                  disabled={loading}
+                  pageInfo={pageInfo}
+                  onAdd={() => navigate(customerAddUrl)}
+                  onNextPage={loadNextPage}
+                  onPreviousPage={loadPreviousPage}
+                  onRowClick={id => () =>
+                    navigate(customerUrl(encodeURIComponent(id)))}
+                />
+              )}
+            </Paginator>
+          )}
         </TypedCustomerListQuery>
       );
     }}

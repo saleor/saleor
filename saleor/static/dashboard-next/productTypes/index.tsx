@@ -3,7 +3,9 @@ import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import ProductTypeCreate from "./views/ProductTypeCreate";
-import ProductTypeListComponent from "./views/ProductTypeList";
+import ProductTypeListComponent, {
+  ProductTypeListQueryParams
+} from "./views/ProductTypeList";
 import ProductTypeUpdateComponent from "./views/ProductTypeUpdate";
 
 export const productTypeAddUrl = "/productTypes/add/";
@@ -14,7 +16,7 @@ const ProductTypeList: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params = {
+  const params: ProductTypeListQueryParams = {
     after: qs.after,
     before: qs.before
   };

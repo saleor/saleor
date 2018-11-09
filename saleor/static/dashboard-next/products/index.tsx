@@ -4,7 +4,9 @@ import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import ProductCreate from "./views/ProductCreate";
 import ProductImageComponent from "./views/ProductImage";
-import ProductListComponent from "./views/ProductList";
+import ProductListComponent, {
+  ProductListQueryParams
+} from "./views/ProductList";
 import ProductUpdateComponent from "./views/ProductUpdate";
 import ProductVariantComponent from "./views/ProductVariant";
 import ProductVariantCreateComponent from "./views/ProductVariantCreate";
@@ -13,7 +15,7 @@ const ProductList: React.StatelessComponent<RouteComponentProps<any>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params = {
+  const params: ProductListQueryParams = {
     after: qs.after,
     before: qs.before
   };
