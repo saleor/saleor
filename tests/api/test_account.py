@@ -28,7 +28,7 @@ def test_create_token_mutation(admin_client, staff_user):
         }
     }
     """
-    variables = json.dumps({'email': staff_user.email, 'password': 'password'})
+    variables = {'email': staff_user.email, 'password': 'password'}
     response = admin_client.post(
         reverse('api'), json.dumps({'query': query, 'variables': variables}),
         content_type='application/json')
@@ -37,8 +37,7 @@ def test_create_token_mutation(admin_client, staff_user):
     assert token_data['token']
     assert not token_data['errors']
 
-    incorrect_variables = json.dumps(
-        {'email': staff_user.email, 'password': 'incorrect'})
+    incorrect_variables = {'email': staff_user.email, 'password': 'incorrect'}
     response = admin_client.post(
         reverse('api'),
         json.dumps({'query': query, 'variables': incorrect_variables}),

@@ -27,7 +27,7 @@ non_translatable_urlpatterns = [
     url(r'^dashboard/',
         include((dashboard_urls, 'dashboard'), namespace='dashboard')),
     url(r'^graphql/', csrf_exempt(FileUploadGraphQLView.as_view(
-        schema=schema, graphiql=settings.DEBUG)), name='api'),
+        schema=schema)), name='api'),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
     url(r'^i18n/$', set_language, name='set_language'),
