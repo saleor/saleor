@@ -7,7 +7,6 @@ import CardSpacer from "../../../components/CardSpacer";
 import Container from "../../../components/Container";
 import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
-import { maybe } from "../../../misc";
 import {
   Home_activities_edges_node,
   Home_productTopToday_edges_node,
@@ -85,10 +84,9 @@ const HomePage = decorate<HomePageProps>(
               title={"Sales"}
               icon={<AttachMoney fontSize={"inherit"} />}
             >
-              {maybe(
-                () => (
-                  <Money moneyDetalis={sales} />
-                ),
+              {sales ? (
+                <Money money={sales} />
+              ) : (
                 <Skeleton style={{ width: "5em" }} />
               )}
             </HomeAnalyticsCard>

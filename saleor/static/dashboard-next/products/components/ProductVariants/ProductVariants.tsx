@@ -131,9 +131,9 @@ export const ProductVariants = decorate<ProductVariantsProps>(
                   <TableCell className={classes.textRight}>
                     {variant ? (
                       variant.priceOverride ? (
-                        <Money moneyDetalis={variant.priceOverride} />
+                        <Money money={variant.priceOverride} />
                       ) : fallbackPrice ? (
-                        <Money moneyDetalis={fallbackPrice} />
+                        <Money money={fallbackPrice} />
                       ) : (
                         <Skeleton />
                       )
