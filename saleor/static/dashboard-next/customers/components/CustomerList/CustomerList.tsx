@@ -61,7 +61,7 @@ const CustomerList = withStyles(styles, { name: "CustomerList" })(
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={2}
+              colSpan={3}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
               hasPreviousPage={
