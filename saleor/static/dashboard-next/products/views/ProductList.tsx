@@ -35,6 +35,8 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
             if (error) {
               return <ErrorMessageCard message="Something went wrong" />;
             }
+
+            const currentTab = "all";
             return (
               <Paginator
                 pageInfo={maybe(() => data.products.pageInfo)}
@@ -43,7 +45,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
               >
                 {({ loadNextPage, loadPreviousPage, pageInfo }) => (
                   <ProductListCard
-                    currentTab={0}
+                    currentTab={currentTab}
                     filtersList={[]}
                     onAdd={() => navigate(productAddUrl)}
                     disabled={loading}

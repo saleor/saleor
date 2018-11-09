@@ -10,10 +10,10 @@ import ProductList from "../../../components/ProductList";
 import { Filter } from "../../../components/TableFilter";
 import i18n from "../../../i18n";
 import { PageListProps } from "../../../types";
-import ProductListFilter from "../ProductListFilter";
+import ProductListFilter, { ProductListFilterTabs } from "../ProductListFilter";
 
 interface ProductListCardProps extends PageListProps {
-  currentTab: number;
+  currentTab: ProductListFilterTabs;
   filtersList: Filter[];
   products: CategoryDetails_category_products_edges_node[];
   onAllProducts: () => void;

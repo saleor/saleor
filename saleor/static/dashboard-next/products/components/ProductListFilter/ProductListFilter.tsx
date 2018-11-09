@@ -8,8 +8,14 @@ import {
 } from "../../../components/TableFilter";
 import i18n from "../../../i18n";
 
+export type ProductListFilterTabs =
+  | "all"
+  | "available"
+  | "outOfStock"
+  | "custom";
+
 interface ProductListFilterProps {
-  currentTab: number;
+  currentTab: ProductListFilterTabs;
   filtersList: Filter[];
   onAllProducts: () => void;
   onAvailable: () => void;
@@ -26,11 +32,15 @@ const ProductListFilter: React.StatelessComponent<ProductListFilterProps> = ({
   onCustomFilter
 }) => (
   <>
-    <FilterTabs currentTab={currentTab}>
+    <FilterTabs
+      currentTab={["all", "available", "outOfStock", "custom"].indexOf(
+        currentTab
+      )}
+    >
       <FilterTab label={i18n.t("All Products")} onClick={onAllProducts} />
-      <FilterTab label={i18n.t("Availiable")} onClick={onAvailable} />
+      <FilterTab label={i18n.t("Available")} onClick={onAvailable} />
       <FilterTab label={i18n.t("Out Of Stock")} onClick={onOfStock} />
-      {currentTab === 0 && filtersList && filtersList.length > 0 && (
+      {currentTab === "custom" && filtersList && filtersList.length > 0 && (
         <FilterTab
           onClick={onCustomFilter}
           value={0}
@@ -38,7 +48,7 @@ const ProductListFilter: React.StatelessComponent<ProductListFilterProps> = ({
         />
       )}
     </FilterTabs>
-    {currentTab === 0 && filtersList && filtersList.length > 0 && (
+    {currentTab === "custom" && filtersList && filtersList.length > 0 && (
       <FilterChip filtersList={filtersList} />
     )}
   </>
