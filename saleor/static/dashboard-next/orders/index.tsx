@@ -6,13 +6,13 @@ import i18n from "../i18n";
 import { maybe } from "../misc";
 import { OrderStatus, PaymentChargeStatusEnum } from "../types/globalTypes";
 import OrderDetailsComponent from "./views/OrderDetails";
-import OrderListComponent from "./views/OrderList";
+import OrderListComponent, { OrderListQueryParams } from "./views/OrderList";
 
 const OrderList: React.StatelessComponent<RouteComponentProps<any>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params = {
+  const params: OrderListQueryParams = {
     after: qs.after,
     before: qs.before
   };
@@ -59,10 +59,6 @@ export const transformPaymentStatus = (status: string) => {
     default:
       return { localized: i18n.t("Unpaid"), status: "error" };
   }
-  return {
-    localized: status,
-    status
-  };
 };
 
 export const transformOrderStatus = (status: string) => {

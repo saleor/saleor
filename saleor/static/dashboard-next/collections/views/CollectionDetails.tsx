@@ -5,8 +5,9 @@ import { Route } from "react-router-dom";
 import ActionDialog from "../../components/ActionDialog";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
+import { createPaginationState, Paginator } from "../../components/Paginator";
 import i18n from "../../i18n";
-import { createPaginationData, createPaginationState, maybe } from "../../misc";
+import { maybe } from "../../misc";
 import { productUrl } from "../../products";
 import CollectionAssignProductDialog from "../components/CollectionAssignProductDialog/CollectionAssignProductDialog";
 import CollectionDetailsPage, {
@@ -27,12 +28,14 @@ import {
   collectionUrl
 } from "../urls";
 
+export type CollectionDetailsQueryParams = Partial<{
+  after: string;
+  before: string;
+}>;
+
 interface CollectionDetailsProps {
   id: string;
-  params: {
-    after?: string;
-    before?: string;
-  };
+  params: CollectionDetailsQueryParams;
 }
 
 const PAGINATE_BY = 20;
@@ -52,18 +55,6 @@ export const CollectionDetails: React.StatelessComponent<
                   variables={{ id, ...paginationState }}
                 >
                   {({ data, loading }) => {
-                    const {
-                      loadNextPage,
-                      loadPreviousPage,
-                      pageInfo
-                    } = createPaginationData(
-                      navigate,
-                      paginationState,
-                      collectionUrl(encodeURIComponent(id)),
-                      maybe(() => data.collection.products.pageInfo),
-                      loading
-                    );
-
                     const handleCollectionUpdate = (data: CollectionUpdate) => {
                       if (
                         data.collectionUpdate.errors === null ||
@@ -164,64 +155,82 @@ export const CollectionDetails: React.StatelessComponent<
                           };
                           return (
                             <>
-                              <CollectionDetailsPage
-                                onAdd={() =>
-                                  navigate(
-                                    collectionAddProductUrl(
-                                      encodeURIComponent(id)
-                                    ),
-                                    false,
-                                    true
-                                  )
-                                }
-                                onBack={() => navigate(collectionListUrl)}
-                                disabled={loading}
-                                collection={maybe(() => data.collection)}
-                                isFeatured={maybe(
-                                  () =>
-                                    data.shop.homepageCollection.id ===
-                                    data.collection.id,
-                                  false
+                              <Paginator
+                                pageInfo={maybe(
+                                  () => data.collection.products.pageInfo
                                 )}
-                                onCollectionRemove={() =>
-                                  navigate(
-                                    collectionRemoveUrl(encodeURIComponent(id)),
-                                    false,
-                                    true
-                                  )
-                                }
-                                onImageDelete={() =>
-                                  navigate(
-                                    collectionImageRemoveUrl(
-                                      encodeURIComponent(id)
-                                    ),
-                                    false,
-                                    true
-                                  )
-                                }
-                                onImageUpload={event =>
-                                  updateCollection.mutate({
-                                    id,
-                                    input: {
-                                      backgroundImage: event.target.files[0]
+                                paginationState={paginationState}
+                                queryString={params}
+                              >
+                                {({
+                                  loadNextPage,
+                                  loadPreviousPage,
+                                  pageInfo
+                                }) => (
+                                  <CollectionDetailsPage
+                                    onAdd={() =>
+                                      navigate(
+                                        collectionAddProductUrl(
+                                          encodeURIComponent(id)
+                                        ),
+                                        false,
+                                        true
+                                      )
                                     }
-                                  })
-                                }
-                                onSubmit={handleSubmit}
-                                onNextPage={loadNextPage}
-                                onPreviousPage={loadPreviousPage}
-                                pageInfo={pageInfo}
-                                onProductUnassign={(productId, event) => {
-                                  event.stopPropagation();
-                                  unassignProduct.mutate({
-                                    collectionId: id,
-                                    productId,
-                                    ...paginationState
-                                  });
-                                }}
-                                onRowClick={id => () =>
-                                  navigate(productUrl(encodeURIComponent(id)))}
-                              />
+                                    onBack={() => navigate(collectionListUrl)}
+                                    disabled={loading}
+                                    collection={maybe(() => data.collection)}
+                                    isFeatured={maybe(
+                                      () =>
+                                        data.shop.homepageCollection.id ===
+                                        data.collection.id,
+                                      false
+                                    )}
+                                    onCollectionRemove={() =>
+                                      navigate(
+                                        collectionRemoveUrl(
+                                          encodeURIComponent(id)
+                                        ),
+                                        false,
+                                        true
+                                      )
+                                    }
+                                    onImageDelete={() =>
+                                      navigate(
+                                        collectionImageRemoveUrl(
+                                          encodeURIComponent(id)
+                                        ),
+                                        false,
+                                        true
+                                      )
+                                    }
+                                    onImageUpload={event =>
+                                      updateCollection.mutate({
+                                        id,
+                                        input: {
+                                          backgroundImage: event.target.files[0]
+                                        }
+                                      })
+                                    }
+                                    onSubmit={handleSubmit}
+                                    onNextPage={loadNextPage}
+                                    onPreviousPage={loadPreviousPage}
+                                    pageInfo={pageInfo}
+                                    onProductUnassign={(productId, event) => {
+                                      event.stopPropagation();
+                                      unassignProduct.mutate({
+                                        collectionId: id,
+                                        productId,
+                                        ...paginationState
+                                      });
+                                    }}
+                                    onRowClick={id => () =>
+                                      navigate(
+                                        productUrl(encodeURIComponent(id))
+                                      )}
+                                  />
+                                )}
+                              </Paginator>
                               <Route
                                 path={collectionAddProductUrl(
                                   encodeURIComponent(id)
@@ -241,8 +250,8 @@ export const CollectionDetails: React.StatelessComponent<
                                     onSubmit={product =>
                                       assignProduct.mutate({
                                         collectionId: id,
-                                        productId: product.product.value,
-                                        first: PAGINATE_BY
+                                        first: PAGINATE_BY,
+                                        productId: product.product.value
                                       })
                                     }
                                     products={maybe(() =>

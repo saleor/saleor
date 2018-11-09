@@ -4,14 +4,18 @@ import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import { collectionAddUrl, collectionListUrl, collectionUrl } from "./urls";
 import CollectionCreate from "./views/CollectionCreate";
-import CollectionDetailsView from "./views/CollectionDetails";
-import CollectionListView from "./views/CollectionList";
+import CollectionDetailsView, {
+  CollectionDetailsQueryParams
+} from "./views/CollectionDetails";
+import CollectionListView, {
+  CollectionListQueryParams
+} from "./views/CollectionList";
 
 const CollectionList: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params = {
+  const params: CollectionListQueryParams = {
     after: qs.after,
     before: qs.before
   };
@@ -25,7 +29,7 @@ const CollectionDetails: React.StatelessComponent<
   RouteComponentProps<CollectionDetailsRouteProps>
 > = ({ location, match }) => {
   const qs = parseQs(location.search.substr(1));
-  const params = {
+  const params: CollectionDetailsQueryParams = {
     after: qs.after,
     before: qs.before
   };
