@@ -49,7 +49,7 @@ class ApiClient(Client):
         """
         data = {'query': query}
         if variables is not None:
-            data['variables'] = json.dumps(variables)
+            data['variables'] = variables
         if data:
             data = json.dumps(data)
         kwargs['content_type'] = 'application/json'
