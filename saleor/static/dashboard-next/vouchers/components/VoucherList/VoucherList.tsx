@@ -11,7 +11,7 @@ import * as React from "react";
 import { createVoucherName, VoucherType } from "../..";
 import { ListProps } from "../../..";
 import DateFormatter from "../../../components/DateFormatter";
-import Money, { MoneyProp } from "../../../components/Money";
+import Money from "../../../components/Money";
 import Percent from "../../../components/Percent";
 import Skeleton from "../../../components/Skeleton";
 import TablePagination from "../../../components/TablePagination";
@@ -28,7 +28,10 @@ interface VoucherListProps extends ListProps {
     endDate: string | null;
     discountValueType: "PERCENTAGE" | "FIXED" | string;
     discountValue: number;
-    limit: MoneyProp | null;
+    limit: {
+      amount: number;
+      currency: string;
+    } | null;
     product: {
       name: string;
     } | null;
@@ -39,9 +42,9 @@ interface VoucherListProps extends ListProps {
 }
 
 const decorate = withStyles(theme => ({
-  link: { color: theme.palette.secondary.main, cursor: "pointer" as "pointer" },
-  tableCellFont: {
-    fontSize: "0.8125rem"
+  link: {
+    color: theme.palette.secondary.main,
+    cursor: "pointer" as "pointer"
   },
   textRight: { textAlign: "right" as "right" }
 }));
@@ -138,17 +141,13 @@ const VoucherList = decorate<VoucherListProps>(
                   voucher.discountValueType &&
                   voucher.discountValue ? (
                     voucher.discountValueType === "PERCENTAGE" ? (
-                      <Percent
-                        amount={voucher.discountValue}
-                        typographyProps={{ className: classes.tableCellFont }}
-                      />
+                      <Percent amount={voucher.discountValue} />
                     ) : (
                       <Money
-                        moneyDetalis={{
+                        money={{
                           amount: voucher.discountValue,
                           currency
                         }}
-                        typographyProps={{ className: classes.tableCellFont }}
                       />
                     )
                   ) : (
@@ -158,10 +157,7 @@ const VoucherList = decorate<VoucherListProps>(
                 <TableCell className={classes.textRight}>
                   {voucher ? (
                     voucher.limit !== null ? (
-                      <Money
-                        moneyDetalis={voucher.limit}
-                        typographyProps={{ className: classes.tableCellFont }}
-                      />
+                      <Money money={voucher.limit} />
                     ) : (
                       "-"
                     )

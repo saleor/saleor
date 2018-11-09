@@ -109,7 +109,7 @@ const CustomerOrders = decorate<CustomerOrdersProps>(
                   </TableCell>
                   <TableCell className={classes.textRight} padding="dense">
                     {maybe(() => order.total.gross) ? (
-                      <Money moneyDetalis={order.total.gross} />
+                      <Money money={order.total.gross} />
                     ) : (
                       <Skeleton />
                     )}

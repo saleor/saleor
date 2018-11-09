@@ -146,7 +146,7 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
                 </TableCell>
                 <TableCell className={classes.textRight}>
                   {maybe(() => line.orderLine.unitPrice.gross) ? (
-                    <Money moneyDetalis={line.orderLine.unitPrice.gross} />
+                    <Money money={line.orderLine.unitPrice.gross} />
                   ) : (
                     <Skeleton />
                   )}
@@ -156,7 +156,7 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
                     () => line.quantity * line.orderLine.unitPrice.gross.amount
                   ) ? (
                     <Money
-                      moneyDetalis={{
+                      money={{
                         amount:
                           line.quantity * line.orderLine.unitPrice.gross.amount,
                         currency: line.orderLine.unitPrice.gross.currency

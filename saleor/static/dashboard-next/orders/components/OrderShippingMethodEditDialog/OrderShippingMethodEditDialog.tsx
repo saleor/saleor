@@ -55,7 +55,7 @@ const OrderShippingMethodEditDialog = decorate<
             <span className={classes.shippingMethodName}>{s.name}</span>
             &nbsp;
             <span>
-              <Money moneyDetalis={s.price} />
+              <Money money={s.price} />
             </span>
           </div>
         ),
