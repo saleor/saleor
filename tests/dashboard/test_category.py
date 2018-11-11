@@ -1,7 +1,8 @@
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from django.urls import reverse
 from saleor.product.models import Category
+from tests.utils import create_image
 
 
 def test_category_list(admin_client, category):
@@ -10,13 +11,39 @@ def test_category_list(admin_client, category):
     assert response.status_code == 200
 
 
-def test_category_add(admin_client):
+def test_category_add(monkeypatch, admin_client):
+    mock_create_thumbnails = Mock(return_value=None)
+    monkeypatch.setattr(
+        ('saleor.dashboard.category.forms.'
+         'create_category_background_image_thumbnails.delay'),
+        mock_create_thumbnails)
+
     assert Category.objects.count() == 0
     url = reverse('dashboard:category-add')
     data = {'name': 'Cars', 'description': 'Fastest cars'}
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
     assert Category.objects.count() == 1
+    assert mock_create_thumbnails.call_count == 0
+
+
+def test_category_add_with_background_image(monkeypatch, admin_client):
+    mock_create_thumbnails = Mock(return_value=None)
+    monkeypatch.setattr(
+        ('saleor.dashboard.category.forms.'
+         'create_category_background_image_thumbnails.delay'),
+        mock_create_thumbnails)
+
+    url = reverse('dashboard:category-add')
+    image, image_name = create_image()
+    data = {
+        'name': 'Cars',
+        'description': 'Super fast!',
+        'background_image': image}
+    response = admin_client.post(url, data, follow=True)
+    assert response.status_code == 200
+
+    mock_create_thumbnails.assert_called_once_with(Category.objects.last().pk)
 
 
 def test_category_add_not_valid(admin_client):
@@ -42,7 +69,13 @@ def test_category_add_subcategory(admin_client, category):
     assert subcategories[0].name == 'Cars'
 
 
-def test_category_edit(admin_client, category):
+def test_category_edit(monkeypatch, admin_client, category):
+    mock_create_thumbnails = Mock(return_value=None)
+    monkeypatch.setattr(
+        ('saleor.dashboard.category.forms.'
+         'create_category_background_image_thumbnails.delay'),
+        mock_create_thumbnails)
+
     assert Category.objects.count() == 1
     url = reverse('dashboard:category-edit',
                   kwargs={'root_pk': category.pk})
@@ -51,6 +84,29 @@ def test_category_edit(admin_client, category):
     assert response.status_code == 200
     assert Category.objects.count() == 1
     assert Category.objects.all()[0].name == 'Cars'
+    assert mock_create_thumbnails.call_count == 0
+
+
+def test_category_edit_with_background_image(
+        monkeypatch, admin_client, category):
+    mock_create_thumbnails = Mock(return_value=None)
+    monkeypatch.setattr(
+        ('saleor.dashboard.category.forms.'
+         'create_category_background_image_thumbnails.delay'),
+        mock_create_thumbnails)
+
+    url = reverse('dashboard:category-edit', kwargs={'root_pk': category.pk})
+    image, image_name = create_image()
+    data = {
+        'name': 'Cars',
+        'description': 'Super fast!',
+        'background_image': image}
+    response = admin_client.post(url, data, follow=True)
+    assert response.status_code == 200
+
+    category.refresh_from_db()
+    assert category.background_image
+    mock_create_thumbnails.assert_called_once_with(category.pk)
 
 
 def test_category_details(admin_client, category):
