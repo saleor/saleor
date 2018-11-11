@@ -143,14 +143,12 @@ def test_category_create_mutation_without_background_image(
          'create_category_background_image_thumbnails.delay'),
         mock_create_thumbnails)
 
-    category_name = 'Test category'
-    category_slug = slugify(category_name)
-    category_description = 'Test description'
-
     # test creating root category
+    category_name = 'Test category'
     variables = {
-        'name': category_name, 'description': category_description,
-        'slug': category_slug}
+        'name': category_name,
+        'description': 'Test description',
+        'slug': slugify(category_name)}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
@@ -251,21 +249,13 @@ def test_category_update_mutation_without_background_image(
          'create_category_background_image_thumbnails.delay'),
         mock_create_thumbnails)
 
-    # create child category and test that the update mutation won't change
-    # it's parent
-    child_category = category.children.create(name='child')
-
     category_name = 'Updated name'
-    category_slug = slugify(category_name)
-    category_description = 'Updated description'
-
-    category_id = graphene.Node.to_global_id('Category', child_category.pk)
-
-    # test creating root category
     variables = {
-        'id': category_id,
-        'name': category_name, 'description': category_description,
-        'slug': category_slug}
+        'id': graphene.Node.to_global_id(
+            'Category', category.children.create(name='child').pk),
+        'name': category_name,
+        'description': 'Updated description',
+        'slug': slugify(category_name)}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
 
