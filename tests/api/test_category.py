@@ -9,6 +9,33 @@ from tests.utils import create_image
 from tests.api.utils import get_graphql_content, get_multipart_request_body
 
 
+FETCH_CATEGORY_QUERY = """
+query fetchCategory($id: ID!){
+    category(id: $id) {
+        name
+        backgroundImage {
+           url(size: 120)
+        }
+    }
+}
+"""
+
+LEVELED_CATEGORIES_QUERY = """
+query leveled_categories($level: Int) {
+    categories(level: $level) {
+        edges {
+            node {
+                name
+                parent {
+                    name
+                }
+            }
+        }
+    }
+}
+"""
+
+
 def test_category_query(user_api_client, product):
     category = Category.objects.first()
     query = """
@@ -319,20 +346,7 @@ def test_category_delete_mutation(
 
 
 def test_category_level(user_api_client, category):
-    query = """
-    query leveled_categories($level: Int) {
-        categories(level: $level) {
-            edges {
-                node {
-                    name
-                    parent {
-                        name
-                    }
-                }
-            }
-        }
-    }
-    """
+    query = LEVELED_CATEGORIES_QUERY
     child = Category.objects.create(
         name='child', slug='chi-ld', parent=category)
     variables = {'level': 0}
@@ -342,20 +356,6 @@ def test_category_level(user_api_client, category):
     assert category_data['name'] == category.name
     assert category_data['parent'] is None
 
-    query = """
-    query leveled_categories($level: Int) {
-        categories(level: $level) {
-            edges {
-                node {
-                    name
-                    parent {
-                        name
-                    }
-                }
-            }
-        }
-    }
-    """
     variables = {'level': 1}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -370,17 +370,8 @@ def test_category_image_query(user_api_client, non_default_category):
     category.background_image = image_file
     category.save()
     category_id = graphene.Node.to_global_id('Category', category.pk)
-    query = """
-        query fetchCategory($id: ID!){
-            category(id: $id) {
-                backgroundImage {
-                   url(size: 120)
-                }
-            }
-        }
-    """
     variables = {'id': category_id}
-    response = user_api_client.post_graphql(query, variables)
+    response = user_api_client.post_graphql(FETCH_CATEGORY_QUERY, variables)
     content = get_graphql_content(response)
     data = content['data']['category']
     thumbnail_url = category.background_image.thumbnail['120x120'].url
@@ -391,18 +382,8 @@ def test_category_image_query_without_associated_file(
         user_api_client, non_default_category):
     category = non_default_category
     category_id = graphene.Node.to_global_id('Category', category.pk)
-    query = """
-        query fetchCategory($id: ID!){
-            category(id: $id) {
-                name
-                backgroundImage {
-                   url
-                }
-            }
-        }
-    """
     variables = {'id': category_id}
-    response = user_api_client.post_graphql(query, variables)
+    response = user_api_client.post_graphql(FETCH_CATEGORY_QUERY, variables)
     content = get_graphql_content(response)
     data = content['data']['category']
     assert data['name'] == category.name

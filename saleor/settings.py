@@ -402,7 +402,7 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
         ('product_list', 'thumbnail__255x255'),
         ('product_list_2x', 'thumbnail__510x510')],
     'background_images': [
-        ('background_image', 'thumbnail__960x320')]}
+        ('header_image', 'thumbnail__960x320')]}
 
 VERSATILEIMAGEFIELD_SETTINGS = {
     # Images should be pre-generated on Production environment
