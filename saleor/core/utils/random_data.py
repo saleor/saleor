@@ -34,7 +34,9 @@ from ...payment.utils import get_billing_data
 from ...product.models import (
     Attribute, AttributeValue, Category, Collection, Product, ProductImage,
     ProductType, ProductVariant)
-from ...product.thumbnails import create_product_thumbnails
+from ...product.thumbnails import (
+    create_category_background_image_thumbnails,
+    create_collection_background_image_thumbnails, create_product_thumbnails)
 from ...shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
 from ...shipping.utils import get_taxed_shipping_price
 
@@ -142,6 +144,7 @@ def create_categories(categories_data, placeholder_dir):
         background_image = get_image(placeholder_dir, image_name)
         defaults['background_image'] = background_image
         Category.objects.update_or_create(pk=pk, defaults=defaults)
+        create_category_background_image_thumbnails.delay(pk)
 
 
 def create_attributes(attributes_data):
@@ -528,6 +531,7 @@ def create_fake_collection(placeholder_dir, collection_data):
         image_name=collection_data['image_name'])
     products = Product.objects.order_by('?')[:4]
     collection.products.add(*products)
+    create_collection_background_image_thumbnails.delay(collection.pk)
     return collection
 
 
