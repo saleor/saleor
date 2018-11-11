@@ -55,8 +55,7 @@ class Command(BaseCommand):
         create_images = not options['withoutimages']
         for msg in create_shipping_zones():
             self.stdout.write(msg)
-        create_products_by_schema(
-            self.placeholders_dir, create_images, stdout=self.stdout)
+        create_products_by_schema(self.placeholders_dir, create_images)
         self.stdout.write('Created products')
         for msg in create_product_sales(5):
             self.stdout.write(msg)
