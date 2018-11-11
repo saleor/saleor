@@ -9,33 +9,6 @@ from tests.utils import create_image
 from tests.api.utils import get_graphql_content, get_multipart_request_body
 
 
-FETCH_CATEGORY_QUERY = """
-query fetchCategory($id: ID!){
-    category(id: $id) {
-        name
-        backgroundImage {
-           url(size: 120)
-        }
-    }
-}
-"""
-
-LEVELED_CATEGORIES_QUERY = """
-query leveled_categories($level: Int) {
-    categories(level: $level) {
-        edges {
-            node {
-                name
-                parent {
-                    name
-                }
-            }
-        }
-    }
-}
-"""
-
-
 def test_category_query(user_api_client, product):
     category = Category.objects.first()
     query = """
@@ -156,16 +129,6 @@ def test_category_create_mutation_without_background_image(
                 },
                 parent: $parentId
             ) {
-                category {
-                    id
-                    name
-                    slug
-                    description
-                    parent {
-                        name
-                        id
-                    }
-                }
                 errors {
                     field
                     message
@@ -274,14 +237,6 @@ def test_category_update_mutation_without_background_image(
                     slug: $slug
                 }
             ) {
-                category {
-                    id
-                    name
-                    description
-                    parent {
-                        id
-                    }
-                }
                 errors {
                     field
                     message
@@ -345,6 +300,22 @@ def test_category_delete_mutation(
         category.refresh_from_db()
 
 
+LEVELED_CATEGORIES_QUERY = """
+query leveled_categories($level: Int) {
+    categories(level: $level) {
+        edges {
+            node {
+                name
+                parent {
+                    name
+                }
+            }
+        }
+    }
+}
+"""
+
+
 def test_category_level(user_api_client, category):
     query = LEVELED_CATEGORIES_QUERY
     child = Category.objects.create(
@@ -362,6 +333,18 @@ def test_category_level(user_api_client, category):
     category_data = content['data']['categories']['edges'][0]['node']
     assert category_data['name'] == child.name
     assert category_data['parent']['name'] == category.name
+
+
+FETCH_CATEGORY_QUERY = """
+query fetchCategory($id: ID!){
+    category(id: $id) {
+        name
+        backgroundImage {
+           url(size: 120)
+        }
+    }
+}
+"""
 
 
 def test_category_image_query(user_api_client, non_default_category):
