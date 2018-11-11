@@ -2,10 +2,12 @@ import json
 from unittest import mock
 
 from django.urls import reverse
+from unittest.mock import Mock
+
 from saleor.dashboard.collection.forms import CollectionForm
 from saleor.product.models import Collection
 
-from ..utils import get_redirect_location
+from ..utils import get_redirect_location, create_image
 
 
 def test_list_view(admin_client, collection):
@@ -58,7 +60,13 @@ def test_collection_form_with_products(product):
     assert collection.products.count() == 1
 
 
-def test_collection_create_view(admin_client):
+def test_collection_create_view(monkeypatch, admin_client):
+    mock_create_thumbnails = Mock(return_value=None)
+    monkeypatch.setattr(
+        ('saleor.dashboard.collection.forms.'
+         'create_collection_background_image_thumbnails.delay'),
+        mock_create_thumbnails)
+
     response = admin_client.get(reverse('dashboard:collection-add'))
     assert response.status_code == 200
 
@@ -68,9 +76,38 @@ def test_collection_create_view(admin_client):
 
     redirected_url = get_redirect_location(response)
     assert redirected_url == reverse('dashboard:collection-list')
+    assert mock_create_thumbnails.call_count == 0
 
 
-def test_collection_update_view(admin_client, collection, product):
+def test_collection_create_with_background_image(
+        monkeypatch, admin_client):
+    mock_create_thumbnails = Mock(return_value=None)
+    monkeypatch.setattr(
+        ('saleor.dashboard.collection.forms.'
+         'create_collection_background_image_thumbnails.delay'),
+        mock_create_thumbnails)
+
+    image, image_name = create_image()
+
+    data = {
+        'name': 'Name',
+        'background_image': image}
+    url = reverse('dashboard:collection-add')
+
+    response = admin_client.post(url, data)
+    assert response.status_code == 302
+    mock_create_thumbnails.assert_called_once_with(
+        Collection.objects.last().pk)
+
+
+def test_collection_update_view(
+        monkeypatch, admin_client, collection, product):
+    mock_create_thumbnails = Mock(return_value=None)
+    monkeypatch.setattr(
+        ('saleor.dashboard.collection.forms.'
+         'create_collection_background_image_thumbnails.delay'),
+        mock_create_thumbnails)
+
     url = reverse('dashboard:collection-update', kwargs={'pk': collection.id})
     response = admin_client.get(url)
     assert response.status_code == 200
@@ -83,6 +120,32 @@ def test_collection_update_view(admin_client, collection, product):
     collection.refresh_from_db()
     assert not current_name == collection.name
     assert list(collection.products.all()) == [product]
+
+    assert mock_create_thumbnails.call_count == 0
+
+
+def test_collection_update_background_image(
+        monkeypatch, admin_client, collection, product):
+    mock_create_category_thumbnails = Mock(return_value=None)
+    monkeypatch.setattr(
+        ('saleor.dashboard.collection.forms.'
+         'create_collection_background_image_thumbnails.delay'),
+        mock_create_category_thumbnails)
+
+    url = reverse('dashboard:collection-update', kwargs={'pk': collection.id})
+    image, image_name = create_image()
+
+    data = {
+        'name': 'New name',
+        'background_image': image}
+    response = admin_client.post(url, data)
+    assert response.status_code == 302
+
+    collection.refresh_from_db()
+    assert collection.background_image
+    assert image_name in collection.background_image.name
+
+    mock_create_category_thumbnails.assert_called_once_with(collection.pk)
 
 
 @mock.patch('saleor.dashboard.collection.views.get_menus_that_needs_update')
