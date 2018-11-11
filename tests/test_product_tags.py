@@ -31,9 +31,9 @@ def test_get_thumbnail_no_instance(monkeypatch):
 
 @patch(
     'saleor.product.templatetags.product_images.AVAILABLE_SIZES',
-    {
+    {'products': (
         'thumbnail__800x800', 'crop__100x100', 'crop__1000x1000',
-        'crop__2000x2000'})
+        'crop__2000x2000')})
 @override_settings(
     VERSATILEIMAGEFIELD_SETTINGS={'create_images_on_demand': False})
 def test_get_thumbnail_to_larger():
@@ -46,7 +46,8 @@ def test_get_thumbnail_to_larger():
 
 @patch(
     'saleor.product.templatetags.product_images.AVAILABLE_SIZES',
-    {'crop__10x10', 'crop__100x100', 'crop__1000x1000', 'crop__2000x2000'})
+    {'products': (
+        'crop__10x10', 'crop__100x100', 'crop__1000x1000', 'crop__2000x2000')})
 @override_settings(
     VERSATILEIMAGEFIELD_SETTINGS={'create_images_on_demand': False})
 def test_get_thumbnail_to_smaller():
@@ -59,7 +60,7 @@ def test_get_thumbnail_to_smaller():
 
 @patch(
     'saleor.product.templatetags.product_images.AVAILABLE_SIZES',
-    {'thumbnail__800x800'})
+    {'products': ('thumbnail__800x800', )})
 @override_settings(
     VERSATILEIMAGEFIELD_SETTINGS={'create_images_on_demand': False},
     PLACEHOLDER_IMAGES={1080: 'images/placeholder1080x1080.png'})

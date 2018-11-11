@@ -15,9 +15,7 @@ def get_available_sizes():
     rendition_sizes = {}
     keys = settings.VERSATILEIMAGEFIELD_RENDITION_KEY_SETS
     for dummy_size_group, sizes in keys.items():
-        group_sizes = rendition_sizes.setdefault(dummy_size_group, set())
-        for dummy_size_name, size in sizes:
-            group_sizes.add(size)
+        rendition_sizes[dummy_size_group] = tuple(sizes)
     return rendition_sizes
 
 
