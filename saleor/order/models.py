@@ -218,6 +218,15 @@ class Order(models.Model):
             OrderStatus.DRAFT, OrderStatus.CANCELED}
         return payment.can_capture() and order_status_ok
 
+    def can_charge(self, payment=None):
+        if not payment:
+            payment = self.get_last_payment()
+        if not payment:
+            return False
+        order_status_ok = self.status not in {
+            OrderStatus.DRAFT, OrderStatus.CANCELED}
+        return payment.can_charge() and order_status_ok
+
     def can_void(self, payment=None):
         if not payment:
             payment = self.get_last_payment()
