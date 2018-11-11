@@ -26,7 +26,8 @@
   <meta name="description" content="{{ seo_description }}">
 
   {% if object.background_image %}
-    <meta property="og:image" content="{{ object.background_image }}">
+    <meta property="og:image"
+          content="{% get_thumbnail object.background_image size='1080x440' method="thumbnail" rendition_key_set="background_images" %}">
   {% else %}
     <meta property="og:image" content="{% static "images/block1.png" %}">
   {% endif %}
@@ -115,7 +116,7 @@
 {% block topcontent %}
   {% if object.background_image %}
     <div class="row" id="product-list-image"
-         style="background-image: url({% get_thumbnail object.background_image size='960x320' method="thumbnail" rendition_key_set="background_images" %})"></div>
+         style="background-image: url({% get_thumbnail object.background_image size='1080x440' method="thumbnail" rendition_key_set="background_images" %})"></div>
   {% endif %}
 {% endblock topcontent %}
 
