@@ -309,6 +309,18 @@ def test_remove_products_from_collection(
         'products']['totalCount'] == no_products_before - len(product_ids)
 
 
+FETCH_COLLECTION_QUERY = """
+    query fetchCollection($id: ID!){
+        collection(id: $id) {
+            name
+            backgroundImage {
+               url
+            }
+        }
+    }
+"""
+
+
 def test_collection_image_query(user_api_client, collection):
     query = """
         query fetchCollection($id: ID!){
