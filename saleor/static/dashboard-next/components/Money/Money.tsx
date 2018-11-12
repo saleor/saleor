@@ -1,29 +1,22 @@
-import Typography, { TypographyProps } from "@material-ui/core/Typography";
 import * as React from "react";
 
 import { LocaleConsumer } from "../Locale";
 
-interface MoneyProps {
+export interface Money {
   amount: number;
   currency: string;
-  typographyProps?: TypographyProps;
+}
+export interface MoneyProps {
+  money: Money;
 }
 
-export const Money: React.StatelessComponent<MoneyProps> = ({
-  amount,
-  currency,
-  typographyProps
-}) => (
+export const Money: React.StatelessComponent<MoneyProps> = ({ money }) => (
   <LocaleConsumer>
     {locale => {
-      const money = amount.toLocaleString(locale, {
-        currency,
+      return money.amount.toLocaleString(locale, {
+        currency: money.currency,
         style: "currency"
       });
-      if (typographyProps) {
-        return <Typography {...typographyProps}>{money}</Typography>;
-      }
-      return <>{money}</>;
     }}
   </LocaleConsumer>
 );

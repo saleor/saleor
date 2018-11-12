@@ -76,8 +76,8 @@ export const HomeProductList = decorate<HomeProductListProps>(
                         {maybe(() =>
                           variant.attributes
                             .map(attribute => attribute.value)
-                            .sort(
-                              (a, b) => (a.sortOrder > b.sortOrder ? 1 : -1)
+                            .sort((a, b) =>
+                              a.sortOrder > b.sortOrder ? 1 : -1
                             )
                             .map(attribute => attribute.name)
                             .join(" / ")
@@ -98,10 +98,7 @@ export const HomeProductList = decorate<HomeProductListProps>(
                   <Typography align={"right"}>
                     {maybe(
                       () => (
-                        <Money
-                          amount={variant.revenue.gross.amount}
-                          currency={variant.revenue.gross.currency}
-                        />
+                        <Money money={variant.revenue.gross} />
                       ),
                       <Skeleton />
                     )}

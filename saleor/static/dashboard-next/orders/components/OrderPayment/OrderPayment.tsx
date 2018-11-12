@@ -81,7 +81,7 @@ const OrderPayment = decorate<OrderPaymentProps>(
                   {maybe(() => order.subtotal.gross) === undefined ? (
                     <Skeleton />
                   ) : (
-                    <Money {...order.subtotal.gross} />
+                    <Money money={order.subtotal.gross} />
                   )}
                 </td>
               </tr>
@@ -100,7 +100,7 @@ const OrderPayment = decorate<OrderPaymentProps>(
                   {maybe(() => order.total.tax) === undefined ? (
                     <Skeleton />
                   ) : (
-                    <Money {...order.total.tax} />
+                    <Money money={order.total.tax} />
                   )}
                 </td>
               </tr>
@@ -120,7 +120,7 @@ const OrderPayment = decorate<OrderPaymentProps>(
                   {maybe(() => order.shippingPrice.gross) === undefined ? (
                     <Skeleton />
                   ) : (
-                    <Money {...order.shippingPrice.gross} />
+                    <Money money={order.shippingPrice.gross} />
                   )}
                 </td>
               </tr>
@@ -131,7 +131,7 @@ const OrderPayment = decorate<OrderPaymentProps>(
                   {maybe(() => order.total.gross) === undefined ? (
                     <Skeleton />
                   ) : (
-                    <Money {...order.total.gross} />
+                    <Money money={order.total.gross} />
                   )}
                 </td>
               </tr>
