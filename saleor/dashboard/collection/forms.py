@@ -23,17 +23,21 @@ class CollectionForm(forms.ModelForm):
         labels = {
             'name': pgettext_lazy('Item name', 'Name'),
             'background_image': pgettext_lazy(
-                'Products selection',
+                'Background Image of collection',
                 'Background Image'),
             'is_published': pgettext_lazy(
                 'Collection published toggle',
-                'Published')}
+                'Published'),
+            'description': pgettext_lazy(
+                'Description of collection',
+                'Description')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance.pk:
             self.fields['products'].set_initial(self.instance.products.all())
-        self.fields['seo_description'] = SeoDescriptionField()
+        self.fields['seo_description'] = SeoDescriptionField(
+            extra_attrs={'data-bind': self['description'].auto_id})
         self.fields['seo_title'] = SeoTitleField(
             extra_attrs={'data-bind': self['name'].auto_id})
 
