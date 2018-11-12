@@ -25,10 +25,10 @@ def warm_model_background_images(model: models.Model):
 
 
 def warm_background_images(*_):
-    print('Failed to generate thumbnails for Categories', file=stderr)
+    print('Generating thumbnails for Categories', file=stderr)
     warm_model_background_images(Category)
 
-    print('Failed to generate thumbnails for Collections', file=stderr)
+    print('Generating thumbnails for Collections', file=stderr)
     warm_model_background_images(Collection)
 
 
