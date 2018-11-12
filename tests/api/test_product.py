@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import graphene
 import pytest
@@ -11,8 +11,8 @@ from tests.utils import create_image, create_pdf_file_with_image_ext
 from saleor.graphql.core.types import ReportingPeriod
 from saleor.graphql.product.types import StockAvailability
 from saleor.product.models import (
-    Attribute, Category, Collection, Product, ProductImage, ProductType,
-    ProductVariant)
+    Category, Collection, Product, ProductImage,
+    ProductType, ProductVariant)
 from saleor.product.tasks import update_variants_names
 
 from .utils import assert_no_permission, get_multipart_request_body
@@ -798,7 +798,7 @@ def test_product_type_delete_mutation(
 
 
 def test_product_image_create_mutation(
-        staff_api_client, product, permission_manage_products):
+        monkeypatch, staff_api_client, product, permission_manage_products):
     query = """
     mutation createProductImage($image: Upload!, $product: ID!) {
         productImageCreate(input: {image: $image, product: $product}) {
@@ -808,6 +808,13 @@ def test_product_image_create_mutation(
         }
     }
     """
+
+    mock_create_thumbnails = Mock(return_value=None)
+    monkeypatch.setattr(
+        ('saleor.graphql.product.mutations.products.'
+         'create_product_thumbnails.delay'),
+        mock_create_thumbnails)
+
     image_file, image_name = create_image()
     variables = {
         'product': graphene.Node.to_global_id('Product', product.id),
@@ -815,9 +822,13 @@ def test_product_image_create_mutation(
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products])
-    content = get_graphql_content(response)
+    get_graphql_content(response)
     product.refresh_from_db()
-    assert product.images.first().image.file
+    product_image = product.images.last()
+    assert product_image.image.file
+
+    # The image creation should have triggered a warm-up
+    mock_create_thumbnails.assert_called_once_with(product_image.pk)
 
 
 def test_invalid_product_image_create_mutation(
@@ -853,6 +864,7 @@ def test_invalid_product_image_create_mutation(
 
 
 def test_product_image_update_mutation(
+        monkeypatch,
         staff_api_client, product_with_image, permission_manage_products):
     query = """
     mutation updateProductImage($imageId: ID!, $alt: String) {
@@ -863,6 +875,13 @@ def test_product_image_update_mutation(
         }
     }
     """
+
+    mock_create_thumbnails = Mock(return_value=None)
+    monkeypatch.setattr(
+        ('saleor.graphql.product.mutations.products.'
+         'create_product_thumbnails.delay'),
+        mock_create_thumbnails)
+
     image_obj = product_with_image.images.first()
     alt = 'damage alt'
     variables = {
@@ -872,6 +891,10 @@ def test_product_image_update_mutation(
         query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     assert content['data']['productImageUpdate']['image']['alt'] == alt
+
+    # We did not update the image field,
+    # the image should not have triggered a warm-up
+    assert mock_create_thumbnails.call_count == 0
 
 
 def test_product_image_delete(
