@@ -7,6 +7,7 @@ from graphql_jwt.decorators import permission_required
 
 from ....product import models
 from ....product.tasks import update_variants_names
+from ....product.thumbnails import create_product_thumbnails
 from ....product.utils.attributes import get_name_from_attributes
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import Decimal, SeoInput
@@ -551,6 +552,7 @@ class ProductImageCreate(BaseMutation):
         if not errors:
             image = product.images.create(
                 image=image_data, alt=input.get('alt', ''))
+            create_product_thumbnails.delay(image.pk)
         return ProductImageCreate(product=product, image=image, errors=errors)
 
 
