@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxLengthValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
 from django.urls import reverse
@@ -454,6 +454,7 @@ class Collection(SeoModel):
     background_image = VersatileImageField(
         upload_to='collection-backgrounds', blank=True, null=True)
     is_published = models.BooleanField(default=False)
+    description = models.TextField(blank=True, null=True)
 
     objects = CollectionQuerySet.as_manager()
     translated = TranslationProxy()
@@ -476,6 +477,7 @@ class CollectionTranslation(SeoModelTranslation):
         Collection, related_name='translations',
         on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
+    description = models.TextField(blank=True, null=True)
 
     class Meta:
         unique_together = (('language_code', 'collection'),)
