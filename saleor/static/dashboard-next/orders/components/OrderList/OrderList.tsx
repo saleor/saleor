@@ -152,10 +152,7 @@ export const OrderList = decorate<OrderListProps>(
                   </TableCell>
                   <TableCell className={classes.textRight} padding="dense">
                     {maybe(() => order.total.gross) ? (
-                      <Money
-                        amount={order.total.gross.amount}
-                        currency={order.total.gross.currency}
-                      />
+                      <Money money={order.total.gross} />
                     ) : (
                       <Skeleton />
                     )}

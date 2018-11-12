@@ -120,10 +120,7 @@ const OrderDraftDetailsProducts = decorate<OrderDraftDetailsProductsProps>(
               </TableCell>
               <TableCell className={classes.textRight}>
                 {maybe(() => line.unitPrice.net) ? (
-                  <Money
-                    amount={line.unitPrice.net.amount}
-                    currency={line.unitPrice.net.currency}
-                  />
+                  <Money money={line.unitPrice.net} />
                 ) : (
                   <Skeleton />
                 )}
@@ -131,8 +128,10 @@ const OrderDraftDetailsProducts = decorate<OrderDraftDetailsProductsProps>(
               <TableCell className={classes.textRight}>
                 {maybe(() => line.unitPrice.net && line.quantity) ? (
                   <Money
-                    amount={line.unitPrice.net.amount * line.quantity}
-                    currency={line.unitPrice.net.currency}
+                    money={{
+                      amount: line.unitPrice.net.amount * line.quantity,
+                      currency: line.unitPrice.net.currency
+                    }}
                   />
                 ) : (
                   <Skeleton />

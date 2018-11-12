@@ -119,10 +119,7 @@ export const ProductList = decorate<ProductListProps>(
                 product.price &&
                 product.price.amount !== undefined &&
                 product.price.currency !== undefined ? (
-                  <Money
-                    amount={product.price.amount}
-                    currency={product.price.currency}
-                  />
+                  <Money money={product.price} />
                 ) : (
                   <Skeleton />
                 )}

@@ -28,7 +28,10 @@ interface VoucherListProps extends ListProps {
     endDate: string | null;
     discountValueType: "PERCENTAGE" | "FIXED" | string;
     discountValue: number;
-    limit: { amount: number; currency: string } | null;
+    limit: {
+      amount: number;
+      currency: string;
+    } | null;
     product: {
       name: string;
     } | null;
@@ -39,9 +42,9 @@ interface VoucherListProps extends ListProps {
 }
 
 const decorate = withStyles(theme => ({
-  link: { color: theme.palette.secondary.main, cursor: "pointer" as "pointer" },
-  tableCellFont: {
-    fontSize: "0.8125rem"
+  link: {
+    color: theme.palette.secondary.main,
+    cursor: "pointer" as "pointer"
   },
   textRight: { textAlign: "right" as "right" }
 }));
@@ -138,15 +141,13 @@ const VoucherList = decorate<VoucherListProps>(
                   voucher.discountValueType &&
                   voucher.discountValue ? (
                     voucher.discountValueType === "PERCENTAGE" ? (
-                      <Percent
-                        amount={voucher.discountValue}
-                        typographyProps={{ className: classes.tableCellFont }}
-                      />
+                      <Percent amount={voucher.discountValue} />
                     ) : (
                       <Money
-                        amount={voucher.discountValue}
-                        currency={currency}
-                        typographyProps={{ className: classes.tableCellFont }}
+                        money={{
+                          amount: voucher.discountValue,
+                          currency
+                        }}
                       />
                     )
                   ) : (
@@ -156,11 +157,7 @@ const VoucherList = decorate<VoucherListProps>(
                 <TableCell className={classes.textRight}>
                   {voucher ? (
                     voucher.limit !== null ? (
-                      <Money
-                        amount={voucher.limit.amount}
-                        currency={voucher.limit.currency}
-                        typographyProps={{ className: classes.tableCellFont }}
-                      />
+                      <Money money={voucher.limit} />
                     ) : (
                       "-"
                     )

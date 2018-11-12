@@ -32,7 +32,7 @@ const OrderDraftDetailsSummary = decorate<OrderDraftDetailsSummaryProps>(
             <>
               <td>{i18n.t("Subtotal")}</td>
               <td className={classes.textRight}>
-                <Money {...order.subtotal.gross} />
+                <Money money={order.subtotal.gross} />
               </td>
             </>
           ) : (
@@ -53,7 +53,7 @@ const OrderDraftDetailsSummary = decorate<OrderDraftDetailsSummaryProps>(
               </td>
               <td className={classes.textRight}>
                 {maybe(() => order.shippingPrice) ? (
-                  <Money {...order.shippingPrice.gross} />
+                  <Money money={order.shippingPrice.gross} />
                 ) : (
                   "---"
                 )}
@@ -70,7 +70,7 @@ const OrderDraftDetailsSummary = decorate<OrderDraftDetailsSummaryProps>(
             <>
               <td>{i18n.t("Taxes (VAT included)")}</td>
               <td className={classes.textRight}>
-                <Money {...order.total.tax} />
+                <Money money={order.total.tax} />
               </td>
             </>
           ) : (
@@ -84,7 +84,7 @@ const OrderDraftDetailsSummary = decorate<OrderDraftDetailsSummaryProps>(
             <>
               <td>{i18n.t("Total")}</td>
               <td className={classes.textRight}>
-                <Money {...order.total.gross} />
+                <Money money={order.total.gross} />
               </td>
             </>
           ) : (
