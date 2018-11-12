@@ -1,21 +1,20 @@
 import * as React from "react";
 
-import {
-  productTypeAddUrl,
-  productTypeDetailsUrl,
-  productTypeListUrl
-} from "..";
+import { productTypeAddUrl, productTypeDetailsUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
-import { createPaginationData, createPaginationState, maybe } from "../../misc";
+import { createPaginationState, Paginator } from "../../components/Paginator";
+import { maybe } from "../../misc";
 import ProductTypeListPage from "../components/ProductTypeListPage";
 import { TypedProductTypeListQuery } from "../queries";
 
+export type ProductTypeListQueryParams = Partial<{
+  after: string;
+  before: string;
+}>;
+
 interface ProductTypeListProps {
-  params: {
-    after?: string;
-    before?: string;
-  };
+  params: ProductTypeListQueryParams;
 }
 
 const PAGINATE_BY = 20;
@@ -32,31 +31,26 @@ export const ProductTypeList: React.StatelessComponent<
             if (error) {
               return <ErrorMessageCard message="Something went wrong" />;
             }
-            const {
-              loadNextPage,
-              loadPreviousPage,
-              pageInfo
-            } = createPaginationData(
-              navigate,
-              paginationState,
-              productTypeListUrl,
-              data && data.productTypes
-                ? data.productTypes.pageInfo
-                : undefined,
-              loading
-            );
             return (
-              <ProductTypeListPage
-                disabled={loading}
-                productTypes={maybe(() =>
-                  data.productTypes.edges.map(edge => edge.node)
+              <Paginator
+                pageInfo={maybe(() => data.productTypes.pageInfo)}
+                paginationState={paginationState}
+                queryString={params}
+              >
+                {({ loadNextPage, loadPreviousPage, pageInfo }) => (
+                  <ProductTypeListPage
+                    disabled={loading}
+                    productTypes={maybe(() =>
+                      data.productTypes.edges.map(edge => edge.node)
+                    )}
+                    pageInfo={pageInfo}
+                    onAdd={() => navigate(productTypeAddUrl)}
+                    onNextPage={loadNextPage}
+                    onPreviousPage={loadPreviousPage}
+                    onRowClick={id => () => navigate(productTypeDetailsUrl(id))}
+                  />
                 )}
-                pageInfo={pageInfo}
-                onAdd={() => navigate(productTypeAddUrl)}
-                onNextPage={loadNextPage}
-                onPreviousPage={loadPreviousPage}
-                onRowClick={id => () => navigate(productTypeDetailsUrl(id))}
-              />
+              </Paginator>
             );
           }}
         </TypedProductTypeListQuery>

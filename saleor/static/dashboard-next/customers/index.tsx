@@ -5,13 +5,15 @@ import { Route, RouteComponentProps, Switch } from "react-router-dom";
 import { customerAddUrl, customerListUrl, customerUrl } from "./urls";
 import CustomerCreateView from "./views/CustomerCreate";
 import CustomerDetailsViewComponent from "./views/CustomerDetails";
-import CustomerListViewComponent from "./views/CustomerList";
+import CustomerListViewComponent, {
+  CustomerListQueryParams
+} from "./views/CustomerList";
 
 const CustomerListView: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params = {
+  const params: CustomerListQueryParams = {
     after: qs.after,
     before: qs.before
   };

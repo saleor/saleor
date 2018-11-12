@@ -4,13 +4,13 @@ import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import PageCreate from "./views/PageCreate";
 import PageDetailsComponent from "./views/PageDetails";
-import PageListComponent from "./views/PageList";
+import PageListComponent, { PageListQueryParams } from "./views/PageList";
 
 const PageList: React.StatelessComponent<RouteComponentProps<any>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params = {
+  const params: PageListQueryParams = {
     after: qs.after,
     before: qs.before
   };

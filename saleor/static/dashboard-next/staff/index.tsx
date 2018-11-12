@@ -3,13 +3,13 @@ import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import StaffDetailsComponent from "./views/StaffDetails";
-import StaffListComponent from "./views/StaffList";
+import StaffListComponent, { StaffListQueryParams } from "./views/StaffList";
 
 const StaffList: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params = {
+  const params: StaffListQueryParams = {
     after: qs.after,
     before: qs.before
   };

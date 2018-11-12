@@ -1,26 +1,29 @@
 import * as React from "react";
 
-import { staffListUrl, staffMemberDetailsUrl } from "..";
+import { staffMemberDetailsUrl } from "..";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
+import { createPaginationState, Paginator } from "../../components/Paginator";
 import i18n from "../../i18n";
-import { createPaginationData, createPaginationState, maybe } from "../../misc";
+import { maybe } from "../../misc";
 import { FormData as AddStaffMemberForm } from "../components/StaffAddMemberDialog";
 import StaffListPage from "../components/StaffListPage";
 import { TypedStaffMemberAddMutation } from "../mutations";
 import { TypedStaffListQuery } from "../queries";
 import { StaffMemberAdd } from "../types/StaffMemberAdd";
 
-interface OrderListProps {
-  params: {
-    after?: string;
-    before?: string;
-  };
+export type StaffListQueryParams = Partial<{
+  after: string;
+  before: string;
+}>;
+
+interface StaffListProps {
+  params: StaffListQueryParams;
 }
 
 const PAGINATE_BY = 20;
 
-export const StaffList: React.StatelessComponent<OrderListProps> = ({
+export const StaffList: React.StatelessComponent<StaffListProps> = ({
   params
 }) => (
   <Navigator>
@@ -31,17 +34,6 @@ export const StaffList: React.StatelessComponent<OrderListProps> = ({
           return (
             <TypedStaffListQuery variables={paginationState}>
               {({ data, loading }) => {
-                const {
-                  loadNextPage,
-                  loadPreviousPage,
-                  pageInfo
-                } = createPaginationData(
-                  navigate,
-                  paginationState,
-                  staffListUrl,
-                  maybe(() => data.staffUsers.pageInfo),
-                  loading
-                );
                 const handleStaffMemberAddSuccess = (data: StaffMemberAdd) => {
                   if (!maybe(() => data.staffCreate.errors.length)) {
                     pushMessage({
@@ -74,24 +66,33 @@ export const StaffList: React.StatelessComponent<OrderListProps> = ({
                           }
                         });
                       return (
-                        <StaffListPage
-                          disabled={loading || addStaffMemberData.loading}
-                          errors={maybe(
-                            () => addStaffMemberData.data.staffCreate.errors,
-                            []
+                        <Paginator
+                          pageInfo={maybe(() => data.staffUsers.pageInfo)}
+                          paginationState={paginationState}
+                          queryString={params}
+                        >
+                          {({ loadNextPage, loadPreviousPage, pageInfo }) => (
+                            <StaffListPage
+                              disabled={loading || addStaffMemberData.loading}
+                              errors={maybe(
+                                () =>
+                                  addStaffMemberData.data.staffCreate.errors,
+                                []
+                              )}
+                              pageInfo={pageInfo}
+                              staffMembers={maybe(() =>
+                                data.staffUsers.edges.map(edge => edge.node)
+                              )}
+                              onAdd={handleStaffMemberAdd}
+                              onNextPage={loadNextPage}
+                              onPreviousPage={loadPreviousPage}
+                              onRowClick={id => () =>
+                                navigate(
+                                  staffMemberDetailsUrl(encodeURIComponent(id))
+                                )}
+                            />
                           )}
-                          pageInfo={pageInfo}
-                          staffMembers={maybe(() =>
-                            data.staffUsers.edges.map(edge => edge.node)
-                          )}
-                          onAdd={handleStaffMemberAdd}
-                          onNextPage={loadNextPage}
-                          onPreviousPage={loadPreviousPage}
-                          onRowClick={id => () =>
-                            navigate(
-                              staffMemberDetailsUrl(encodeURIComponent(id))
-                            )}
-                        />
+                        </Paginator>
                       );
                     }}
                   </TypedStaffMemberAddMutation>

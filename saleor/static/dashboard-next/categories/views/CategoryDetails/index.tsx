@@ -6,12 +6,12 @@ import { categoryAddUrl, categoryListUrl, categoryUrl } from "../..";
 import ActionDialog from "../../../components/ActionDialog";
 import Messages from "../../../components/messages";
 import Navigator from "../../../components/Navigator";
-import i18n from "../../../i18n";
 import {
-  createPaginationData,
   createPaginationState,
-  maybe
-} from "../../../misc";
+  Paginator
+} from "../../../components/Paginator";
+import i18n from "../../../i18n";
+import { maybe } from "../../../misc";
 import { productAddUrl, productUrl } from "../../../products";
 import { CategoryUpdatePage } from "../../components/CategoryUpdatePage/CategoryUpdatePage";
 import {
@@ -23,12 +23,12 @@ import { CategoryDelete } from "../../types/CategoryDelete";
 import { CategoryUpdate } from "../../types/CategoryUpdate";
 import { categoryDeleteUrl } from "./urls";
 
-export interface QueryParams {
-  after?: string;
-  before?: string;
-}
+export type CategoryDetailsQueryParams = Partial<{
+  after: string;
+  before: string;
+}>;
 export interface CategoryDetailsProps {
-  params: QueryParams;
+  params: CategoryDetailsQueryParams;
   id: string;
 }
 
@@ -80,121 +80,132 @@ export const CategoryDetails: React.StatelessComponent<
                       <TypedCategoryDetailsQuery
                         variables={{ ...paginationState, id }}
                       >
-                        {({ data, loading }) => {
-                          const paginationData = createPaginationData(
-                            navigate,
-                            paginationState,
-                            categoryUrl(id),
-                            maybe(() => data.category.products.pageInfo),
-                            loading
-                          );
-                          return (
-                            <>
-                              <CategoryUpdatePage
-                                category={maybe(() => data.category)}
-                                disabled={loading}
-                                errors={maybe(
-                                  () => updateResult.data.categoryUpdate.errors
-                                )}
-                                placeholderImage={""}
-                                onAddCategory={() =>
-                                  navigate(
-                                    categoryAddUrl(encodeURIComponent(id))
-                                  )
-                                }
-                                onAddProduct={() => navigate(productAddUrl)}
-                                onBack={() =>
-                                  navigate(
-                                    categoryUrl(
-                                      maybe(() =>
-                                        encodeURIComponent(
-                                          data.category.parent.id
+                        {({ data, loading }) => (
+                          <>
+                            <Paginator
+                              pageInfo={maybe(
+                                () => data.category.products.pageInfo
+                              )}
+                              paginationState={paginationState}
+                              queryString={params}
+                            >
+                              {({
+                                loadNextPage,
+                                loadPreviousPage,
+                                pageInfo
+                              }) => (
+                                <CategoryUpdatePage
+                                  category={maybe(() => data.category)}
+                                  disabled={loading}
+                                  errors={maybe(
+                                    () =>
+                                      updateResult.data.categoryUpdate.errors
+                                  )}
+                                  placeholderImage={""}
+                                  onAddCategory={() =>
+                                    navigate(
+                                      categoryAddUrl(encodeURIComponent(id))
+                                    )
+                                  }
+                                  onAddProduct={() => navigate(productAddUrl)}
+                                  onBack={() =>
+                                    navigate(
+                                      categoryUrl(
+                                        maybe(() =>
+                                          encodeURIComponent(
+                                            data.category.parent.id
+                                          )
                                         )
                                       )
                                     )
-                                  )
-                                }
-                                onCategoryClick={id => () =>
-                                  navigate(categoryUrl(encodeURIComponent(id)))}
-                                onDelete={() =>
-                                  navigate(
-                                    categoryDeleteUrl(encodeURIComponent(id))
-                                  )
-                                }
-                                onImageDelete={() => undefined}
-                                onImageUpload={() => undefined}
-                                onNextPage={paginationData.loadNextPage}
-                                onPreviousPage={paginationData.loadPreviousPage}
-                                pageInfo={paginationData.pageInfo}
-                                onProductClick={id => () =>
-                                  navigate(productUrl(encodeURIComponent(id)))}
-                                onSubmit={formData =>
-                                  updateCategory({
-                                    variables: {
-                                      id,
-                                      input: {
-                                        description: formData.description,
-                                        name: formData.name,
-                                        seo: {
-                                          description: formData.seoDescription,
-                                          title: formData.seoTitle
+                                  }
+                                  onCategoryClick={id => () =>
+                                    navigate(
+                                      categoryUrl(encodeURIComponent(id))
+                                    )}
+                                  onDelete={() =>
+                                    navigate(
+                                      categoryDeleteUrl(encodeURIComponent(id))
+                                    )
+                                  }
+                                  onImageDelete={() => undefined}
+                                  onImageUpload={() => undefined}
+                                  onNextPage={loadNextPage}
+                                  onPreviousPage={loadPreviousPage}
+                                  pageInfo={pageInfo}
+                                  onProductClick={id => () =>
+                                    navigate(
+                                      productUrl(encodeURIComponent(id))
+                                    )}
+                                  onSubmit={formData =>
+                                    updateCategory({
+                                      variables: {
+                                        id,
+                                        input: {
+                                          description: formData.description,
+                                          name: formData.name,
+                                          seo: {
+                                            description:
+                                              formData.seoDescription,
+                                            title: formData.seoTitle
+                                          }
                                         }
                                       }
-                                    }
-                                  })
-                                }
-                                products={maybe(() =>
-                                  data.category.products.edges.map(
-                                    edge => edge.node
-                                  )
-                                )}
-                                saveButtonBarState={
-                                  loading ? "loading" : "default"
-                                }
-                                subcategories={maybe(() =>
-                                  data.category.children.edges.map(
-                                    edge => edge.node
-                                  )
-                                )}
-                              />
-                              <Route
-                                path={categoryDeleteUrl(encodeURIComponent(id))}
-                                render={({ match }) => (
-                                  <ActionDialog
-                                    onClose={() =>
-                                      navigate(
-                                        categoryUrl(encodeURIComponent(id)),
-                                        true
+                                    })
+                                  }
+                                  products={maybe(() =>
+                                    data.category.products.edges.map(
+                                      edge => edge.node
+                                    )
+                                  )}
+                                  saveButtonBarState={
+                                    loading ? "loading" : "default"
+                                  }
+                                  subcategories={maybe(() =>
+                                    data.category.children.edges.map(
+                                      edge => edge.node
+                                    )
+                                  )}
+                                />
+                              )}
+                            </Paginator>
+                            <Route
+                              path={categoryDeleteUrl(encodeURIComponent(id))}
+                              render={({ match }) => (
+                                <ActionDialog
+                                  onClose={() =>
+                                    navigate(
+                                      categoryUrl(encodeURIComponent(id)),
+                                      true
+                                    )
+                                  }
+                                  onConfirm={() =>
+                                    deleteCategory({ variables: { id } })
+                                  }
+                                  open={!!match}
+                                  title={i18n.t("Delete category", {
+                                    context: "modal title"
+                                  })}
+                                  variant="delete"
+                                >
+                                  <DialogContentText
+                                    dangerouslySetInnerHTML={{
+                                      __html: i18n.t(
+                                        "Are you sure you want to remove <strong>{{ categoryName }}</strong>?",
+                                        {
+                                          categoryName: maybe(
+                                            () => data.category.name
+                                          ),
+                                          context: "modal message"
+                                        }
                                       )
-                                    }
-                                    onConfirm={() =>
-                                      deleteCategory({ variables: { id } })
-                                    }
-                                    open={!!match}
-                                    title={i18n.t("Delete category", {
-                                      context: "modal title"
-                                    })}
-                                    variant="delete"
-                                  >
-                                    <DialogContentText
-                                      dangerouslySetInnerHTML={{
-                                        __html: i18n.t(
-                                          "Are you sure you want to remove <strong>{{ categoryName }}</strong>?",
-                                          {
-                                            categoryName: maybe(
-                                              () => data.category.name
-                                            ),
-                                            context: "modal message"
-                                          }
-                                        )
-                                      }}
-                                    />
-                                  </ActionDialog>
-                                )}
-                              />
-                            </>
-                          );
-                        }}
+                                    }}
+                                  />
+                                </ActionDialog>
+                              )}
+                            />
+                          </>
+                        )}
                       </TypedCategoryDetailsQuery>
                     );
                   }}
