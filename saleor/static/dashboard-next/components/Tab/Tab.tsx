@@ -45,4 +45,5 @@ export const Tab = decorate<TabProps>(
   )
 );
 
+Tab.displayName = "Tab";
 export default Tab;

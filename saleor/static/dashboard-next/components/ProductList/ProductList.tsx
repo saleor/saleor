@@ -137,4 +137,5 @@ export const ProductList = decorate<ProductListProps>(
   )
 );
 
+ProductList.displayName = "ProductList";
 export default ProductList;

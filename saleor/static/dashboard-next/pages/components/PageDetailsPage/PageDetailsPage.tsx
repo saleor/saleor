@@ -118,4 +118,5 @@ const PageDetailsPage = decorate<PageDetailsPageProps>(
     </PageForm>
   )
 );
+PageDetailsPage.displayName = "PageDetailsPage";
 export default PageDetailsPage;

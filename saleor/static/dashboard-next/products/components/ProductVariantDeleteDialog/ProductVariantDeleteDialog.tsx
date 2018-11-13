@@ -60,5 +60,5 @@ const ProductVariantDeleteDialog = decorate<ProductVariantDeleteDialogProps>(
     );
   }
 );
-
+ProductVariantDeleteDialog.displayName = "ProductVariantDeleteDialog";
 export default ProductVariantDeleteDialog;

@@ -69,4 +69,5 @@ export const NavigatorLink: React.StatelessComponent<NavigatorLinkProps> = ({
   </Navigator>
 );
 
+Navigator.displayName = "Navigator";
 export default Navigator;

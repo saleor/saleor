@@ -171,4 +171,5 @@ export const OrderList = decorate<OrderListProps>(
     );
   }
 );
+OrderList.displayName = "OrderList";
 export default OrderList;

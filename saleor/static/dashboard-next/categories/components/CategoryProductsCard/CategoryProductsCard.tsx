@@ -45,4 +45,5 @@ export const CategoryProductsCard: React.StatelessComponent<
   </Card>
 );
 
+CategoryProductsCard.displayName = "CategoryProductsCard";
 export default CategoryProductsCard;

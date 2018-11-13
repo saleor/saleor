@@ -23,5 +23,5 @@ const LoginView: React.StatelessComponent<LoginViewProps> = ({ loading }) => (
     }}
   </UserContext.Consumer>
 );
-
+LoginView.displayName = "LoginView";
 export default LoginView;

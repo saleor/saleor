@@ -348,4 +348,5 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
     );
   }
 );
+ProductUpdate.displayName = "ProductUpdate";
 export default ProductUpdate;

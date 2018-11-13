@@ -194,4 +194,5 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
     );
   }
 );
+CategoryUpdatePage.displayName = "CategoryUpdatePage";
 export default CategoryUpdatePage;
