@@ -2,6 +2,7 @@ import { parse as parseQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
+import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
 import { maybe } from "../misc";
 import { OrderStatus, PaymentChargeStatusEnum } from "../types/globalTypes";
@@ -26,10 +27,13 @@ const OrderDetails: React.StatelessComponent<RouteComponentProps<any>> = ({
 };
 
 const Component = ({ match }) => (
-  <Switch>
-    <Route exact path={match.url} component={OrderList} />
-    <Route exact path={`${match.url}/:id/`} component={OrderDetails} />
-  </Switch>
+  <>
+    <WindowTitle title={i18n.t("Orders")} />
+    <Switch>
+      <Route exact path={match.url} component={OrderList} />
+      <Route exact path={`${match.url}/:id/`} component={OrderDetails} />
+    </Switch>
+  </>
 );
 
 export interface AddressType {
