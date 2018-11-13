@@ -2,6 +2,7 @@ import * as React from "react";
 import Navigator from "../components/Navigator";
 
 import { UserContext } from "../auth";
+import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
 import AccountCircle from "../icons/AccountCircle";
 import Folder from "../icons/Folder";
@@ -71,11 +72,14 @@ export const ConfigurationSection: React.StatelessComponent = () => (
     {({ user }) => (
       <Navigator>
         {navigate => (
-          <ConfigurationPage
-            menu={configurationMenu}
-            user={user}
-            onSectionClick={navigate}
-          />
+          <>
+            <WindowTitle title={i18n.t("Configuration")} />
+            <ConfigurationPage
+              menu={configurationMenu}
+              user={user}
+              onSectionClick={navigate}
+            />
+          </>
         )}
       </Navigator>
     )}
