@@ -21,7 +21,7 @@ import CollectionSection from "./collections";
 import { DateProvider } from "./components/DateFormatter";
 import { LocaleProvider } from "./components/Locale";
 import { MessageManager } from "./components/messages";
-import { ShopProvider } from "./components/Shop/Shop";
+import { ShopProvider } from "./components/Shop";
 import ConfigurationSection, { configurationMenu } from "./configuration";
 import { CustomerSection } from "./customers";
 import HomePage from "./home";
