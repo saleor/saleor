@@ -11,8 +11,7 @@ from tests.utils import create_image, create_pdf_file_with_image_ext
 from saleor.graphql.core.types import ReportingPeriod
 from saleor.graphql.product.types import StockAvailability
 from saleor.product.models import (
-    Category, Collection, Product, ProductImage,
-    ProductType, ProductVariant)
+    Category, Product, ProductImage, ProductType, ProductVariant)
 from saleor.product.tasks import update_variants_names
 
 from .utils import assert_no_permission, get_multipart_request_body
@@ -160,7 +159,7 @@ def test_query_product_image_by_id(user_api_client, product_with_image):
         'productId': graphene.Node.to_global_id('Product', product_with_image.pk),
         'imageId': graphene.Node.to_global_id('ProductImage', image.pk)}
     response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
+    get_graphql_content(response)
 
 
 def test_product_with_collections(
@@ -321,7 +320,7 @@ def test_sort_products(user_api_client, product):
     asc_price_query = query % {'sort_by': 'price'}
     response = user_api_client.post_graphql(asc_price_query)
     content = get_graphql_content(response)
-    product_data = content['data']['products']['edges'][0]['node']
+    content['data']['products']['edges'][0]['node']
     price_0 = content['data']['products']['edges'][0]['node']['price']['amount']
     price_1 = content['data']['products']['edges'][1]['node']['price']['amount']
     assert price_0 < price_1
@@ -398,9 +397,9 @@ def test_create_product(
         'Category', category.pk)
     product_description = 'test description'
     product_name = 'test name'
-    product_isPublished = True
-    product_chargeTaxes = True
-    product_taxRate = 'STANDARD'
+    product_is_published = True
+    product_charge_taxes = True
+    product_tax_rate = 'STANDARD'
     product_price = 22.33
 
     # Default attribute defined in product_type fixture
@@ -419,9 +418,9 @@ def test_create_product(
         'categoryId': category_id,
         'name': product_name,
         'description': product_description,
-        'isPublished': product_isPublished,
-        'chargeTaxes': product_chargeTaxes,
-        'taxRate': product_taxRate,
+        'isPublished': product_is_published,
+        'chargeTaxes': product_charge_taxes,
+        'taxRate': product_tax_rate,
         'price': product_price,
         'attributes': [
             {'slug': color_attr_slug, 'value': color_value_slug},
@@ -434,9 +433,9 @@ def test_create_product(
     assert data['errors'] == []
     assert data['product']['name'] == product_name
     assert data['product']['description'] == product_description
-    assert data['product']['isPublished'] == product_isPublished
-    assert data['product']['chargeTaxes'] == product_chargeTaxes
-    assert data['product']['taxRate'] == product_taxRate.lower()
+    assert data['product']['isPublished'] == product_is_published
+    assert data['product']['chargeTaxes'] == product_charge_taxes
+    assert data['product']['taxRate'] == product_tax_rate.lower()
     assert data['product']['productType']['name'] == product_type.name
     assert data['product']['category']['name'] == category.name
     values = (
@@ -946,7 +945,7 @@ def test_reorder_images(
         'product_id': product_id, 'images_ids': [image_1_id, image_0_id]}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
-    content = get_graphql_content(response)
+    get_graphql_content(response)
 
     # Check if order has been changed
     product.refresh_from_db()
@@ -955,212 +954,6 @@ def test_reorder_images(
     reordered_image_1 = reordered_images[1]
     assert image_0.id == reordered_image_1.id
     assert image_1.id == reordered_image_0.id
-
-
-def test_collections_query(
-        user_api_client, staff_api_client, collection, draft_collection,
-        permission_manage_products):
-    query = """
-        query Collections {
-            collections(first: 2) {
-                edges {
-                    node {
-                        isPublished
-                        name
-                        slug
-                        products {
-                            totalCount
-                        }
-                    }
-                }
-            }
-        }
-    """
-
-    # query public collections only as regular user
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    edges = content['data']['collections']['edges']
-    assert len(edges) == 1
-    collection_data = edges[0]['node']
-    assert collection_data['isPublished']
-    assert collection_data['name'] == collection.name
-    assert collection_data['slug'] == collection.slug
-    assert collection_data['products']['totalCount'] == collection.products.count()
-
-    # query all collections only as a staff user with proper permissions
-    staff_api_client.user.user_permissions.add(permission_manage_products)
-    response = staff_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    edges = content['data']['collections']['edges']
-    assert len(edges) == 2
-
-
-def test_create_collection(
-        staff_api_client, product_list, permission_manage_products):
-    query = """
-        mutation createCollection(
-            $name: String!, $slug: String!, $products: [ID], $backgroundImage: Upload!, $isPublished: Boolean!) {
-            collectionCreate(
-                input: {name: $name, slug: $slug, products: $products, backgroundImage: $backgroundImage, isPublished: $isPublished}) {
-                collection {
-                    name
-                    slug
-                    products {
-                        totalCount
-                    }
-                }
-            }
-        }
-    """
-    product_ids = [
-        to_global_id('Product', product.pk) for product in product_list]
-    image_file, image_name = create_image()
-    name = 'test-name'
-    slug = 'test-slug'
-    variables = {
-        'name': name, 'slug': slug, 'products': product_ids,
-        'backgroundImage': image_name, 'isPublished': True}
-    body = get_multipart_request_body(query, variables, image_file, image_name)
-    response = staff_api_client.post_multipart(
-        body, permissions=[permission_manage_products])
-    content = get_graphql_content(response)
-    data = content['data']['collectionCreate']['collection']
-    assert data['name'] == name
-    assert data['slug'] == slug
-    assert data['products']['totalCount'] == len(product_ids)
-    collection = Collection.objects.get(slug=slug)
-    assert collection.background_image.file
-
-
-def test_update_collection(
-        staff_api_client, collection, permission_manage_products):
-    query = """
-        mutation updateCollection(
-            $name: String!, $slug: String!, $id: ID!, $isPublished: Boolean!) {
-            collectionUpdate(
-                id: $id, input: {name: $name, slug: $slug, isPublished: $isPublished}) {
-                collection {
-                    name
-                    slug
-                }
-            }
-        }
-    """
-    collection_id = to_global_id('Collection', collection.id)
-    name = 'new-name'
-    slug = 'new-slug'
-    variables = {
-        'name': name, 'slug': slug, 'id': collection_id, 'isPublished': True}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
-    content = get_graphql_content(response)
-    data = content['data']['collectionUpdate']['collection']
-    assert data['name'] == name
-    assert data['slug'] == slug
-
-
-def test_delete_collection(
-        staff_api_client, collection, permission_manage_products):
-    query = """
-        mutation deleteCollection($id: ID!) {
-            collectionDelete(id: $id) {
-                collection {
-                    name
-                }
-            }
-        }
-    """
-    collection_id = to_global_id('Collection', collection.id)
-    variables = {'id': collection_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
-    content = get_graphql_content(response)
-    data = content['data']['collectionDelete']['collection']
-    assert data['name'] == collection.name
-    with pytest.raises(collection._meta.model.DoesNotExist):
-        collection.refresh_from_db()
-
-
-def test_auto_create_slug_on_collection(
-        staff_api_client, product_list, permission_manage_products):
-    query = """
-        mutation createCollection(
-            $name: String!, $isPublished: Boolean!) {
-            collectionCreate(
-                input: {name: $name, isPublished: $isPublished}) {
-                collection {
-                    name
-                    slug
-                }
-            }
-        }
-    """
-    name = 'test name123'
-    variables = {'name': name, 'isPublished': True}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
-    content = get_graphql_content(response)
-    data = content['data']['collectionCreate']['collection']
-    assert data['name'] == name
-    assert data['slug'] == slugify(name)
-
-
-def test_add_products_to_collection(
-        staff_api_client, collection, product_list,
-        permission_manage_products):
-    query = """
-        mutation collectionAddProducts(
-            $id: ID!, $products: [ID]!) {
-            collectionAddProducts(collectionId: $id, products: $products) {
-                collection {
-                    products {
-                        totalCount
-                    }
-                }
-            }
-        }
-    """
-    collection_id = to_global_id('Collection', collection.id)
-    product_ids = [
-        to_global_id('Product', product.pk) for product in product_list]
-    no_products_before = collection.products.count()
-    variables = {'id': collection_id, 'products': product_ids}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
-    content = get_graphql_content(response)
-    data = content['data']['collectionAddProducts']['collection']
-    assert data[
-        'products']['totalCount'] == no_products_before + len(product_ids)
-
-
-def test_remove_products_from_collection(
-        staff_api_client, collection, product_list,
-        permission_manage_products):
-    query = """
-        mutation collectionRemoveProducts(
-            $id: ID!, $products: [ID]!) {
-            collectionRemoveProducts(collectionId: $id, products: $products) {
-                collection {
-                    products {
-                        totalCount
-                    }
-                }
-            }
-        }
-    """
-    collection.products.add(*product_list)
-    collection_id = to_global_id('Collection', collection.id)
-    product_ids = [
-        to_global_id('Product', product.pk) for product in product_list]
-    no_products_before = collection.products.count()
-    variables = {'id': collection_id, 'products': product_ids}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
-    content = get_graphql_content(response)
-    data = content['data']['collectionRemoveProducts']['collection']
-    assert data[
-        'products']['totalCount'] == no_products_before - len(product_ids)
 
 
 ASSIGN_VARIANT_QUERY = """
@@ -1190,7 +983,7 @@ def test_assign_variant_image(
         'imageId': to_global_id('ProductImage', image.pk)}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
-    content = get_graphql_content(response)
+    get_graphql_content(response)
     variant.refresh_from_db()
     assert variant.images.first() == image
 
@@ -1361,94 +1154,6 @@ def test_product_variants_no_ids_list(user_api_client, variant):
     content = get_graphql_content(response)
     data = content['data']['productVariants']
     assert len(data['edges']) == ProductVariant.objects.count()
-
-
-def test_category_image_query(user_api_client, non_default_category):
-    category = non_default_category
-    image_file, image_name = create_image()
-    category.background_image = image_file
-    category.save()
-    category_id = graphene.Node.to_global_id('Category', category.pk)
-    query = """
-        query fetchCategory($id: ID!){
-            category(id: $id) {
-                backgroundImage {
-                   url(size: 120)
-                }
-            }
-        }
-    """
-    variables = {'id': category_id}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content['data']['category']
-    thumbnail_url = category.background_image.thumbnail['120x120'].url
-    assert thumbnail_url in data['backgroundImage']['url']
-
-
-def test_category_image_query_without_associated_file(
-        user_api_client, non_default_category):
-    category = non_default_category
-    category_id = graphene.Node.to_global_id('Category', category.pk)
-    query = """
-        query fetchCategory($id: ID!){
-            category(id: $id) {
-                name
-                backgroundImage {
-                   url
-                }
-            }
-        }
-    """
-    variables = {'id': category_id}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content['data']['category']
-    assert data['name'] == category.name
-    assert data['backgroundImage'] is None
-
-
-def test_collection_image_query(user_api_client, collection):
-    image_file, image_name = create_image()
-    collection.background_image = image_file
-    collection.save()
-    collection_id = graphene.Node.to_global_id('Collection', collection.pk)
-    query = """
-        query fetchCollection($id: ID!){
-            collection(id: $id) {
-                backgroundImage {
-                   url(size: 120)
-                }
-            }
-        }
-    """
-    variables = {'id': collection_id}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content['data']['collection']
-    thumbnail_url = collection.background_image.thumbnail['120x120'].url
-    assert thumbnail_url in data['backgroundImage']['url']
-
-
-def test_collection_image_query_without_associated_file(
-        user_api_client, collection):
-    collection_id = graphene.Node.to_global_id('Collection', collection.pk)
-    query = """
-        query fetchCollection($id: ID!){
-            collection(id: $id) {
-                name
-                backgroundImage {
-                   url
-                }
-            }
-        }
-    """
-    variables = {'id': collection_id}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content['data']['collection']
-    assert data['name'] == collection.name
-    assert data['backgroundImage'] is None
 
 
 @pytest.mark.parametrize('product_price, variant_override, api_variant_price', [

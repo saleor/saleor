@@ -5,6 +5,7 @@ from django.utils.translation import pgettext_lazy
 from text_unidecode import unidecode
 
 from ...product.models import Collection, Product
+from ...product.thumbnails import create_collection_background_image_thumbnails
 from ...site.models import SiteSettings
 from ..forms import AjaxSelect2MultipleChoiceField
 from ..seo.fields import SeoDescriptionField, SeoTitleField
@@ -38,7 +39,12 @@ class CollectionForm(forms.ModelForm):
 
     def save(self, commit=True):
         self.instance.slug = slugify(unidecode(self.instance.name))
-        return super().save(commit=commit)
+        instance = super().save(commit=commit)
+
+        if instance.pk and 'background_image' in self.changed_data:
+            create_collection_background_image_thumbnails.delay(instance.pk)
+
+        return instance
 
 
 class AssignHomepageCollectionForm(forms.ModelForm):
