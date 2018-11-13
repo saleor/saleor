@@ -2,6 +2,8 @@ import { parse as parseQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
+import { WindowTitle } from "../components/WindowTitle";
+import i18n from "../i18n";
 import { customerAddUrl, customerListUrl, customerUrl } from "./urls";
 import CustomerCreateView from "./views/CustomerCreate";
 import CustomerDetailsViewComponent from "./views/CustomerDetails";
@@ -30,9 +32,12 @@ const CustomerDetailsView: React.StatelessComponent<
 );
 
 export const CustomerSection: React.StatelessComponent<{}> = () => (
-  <Switch>
-    <Route exact path={customerListUrl} component={CustomerListView} />
-    <Route exact path={customerAddUrl} component={CustomerCreateView} />
-    <Route path={customerUrl(":id")} component={CustomerDetailsView} />
-  </Switch>
+  <>
+    <WindowTitle title={i18n.t("Customers")} />
+    <Switch>
+      <Route exact path={customerListUrl} component={CustomerListView} />
+      <Route exact path={customerAddUrl} component={CustomerCreateView} />
+      <Route path={customerUrl(":id")} component={CustomerDetailsView} />
+    </Switch>
+  </>
 );
