@@ -338,58 +338,58 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                           }
                         };
                         return (
-                          <>
-                            <WindowTitle
-                              title={maybe(() => "#" + data.order.number)}
-                            />
-                            <OrderOperations
-                              order={id}
-                              onError={undefined}
-                              onOrderFulfillmentCreate={
-                                handleOrderFulfillmentCreate
-                              }
-                              onNoteAdd={handleNoteAdd}
-                              onOrderCancel={handleOrderCancel}
-                              onOrderVoid={handleOrderVoid}
-                              onPaymentCapture={handlePaymentCapture}
-                              onPaymentRefund={handlePaymentRefund}
-                              onUpdate={handleUpdate}
-                              onDraftUpdate={handleDraftUpdate}
-                              onShippingMethodUpdate={
-                                handleShippingMethodUpdate
-                              }
-                              onOrderLineDelete={handleLineDelete}
-                              onOrderLineAdd={handleLineAdd}
-                              onOrderLineUpdate={handleLineUpdate}
-                              onOrderFulfillmentCancel={handleFulfillmentCancel}
-                              onOrderFulfillmentUpdate={handleFulfillmentUpdate}
-                              onDraftFinalize={handleDraftFinalize}
-                              onDraftCancel={handleOrderDraftCancel}
-                              onOrderMarkAsPaid={handleMarkAsPaid}
-                            >
-                              {({
-                                errors,
-                                orderAddNote,
-                                orderCancel,
-                                orderCreateFulfillment,
-                                orderDraftUpdate,
-                                orderLineAdd,
-                                orderLineDelete,
-                                orderLineUpdate,
-                                orderPaymentCapture,
-                                orderPaymentRefund,
-                                orderVoid,
-                                orderShippingMethodUpdate,
-                                orderUpdate,
-                                orderFulfillmentCancel,
-                                orderFulfillmentUpdateTracking,
-                                orderDraftCancel,
-                                orderDraftFinalize,
-                                orderPaymentMarkAsPaid
-                              }) =>
-                                maybe(
-                                  () => order.status !== OrderStatus.DRAFT
-                                ) ? (
+                          <OrderOperations
+                            order={id}
+                            onError={undefined}
+                            onOrderFulfillmentCreate={
+                              handleOrderFulfillmentCreate
+                            }
+                            onNoteAdd={handleNoteAdd}
+                            onOrderCancel={handleOrderCancel}
+                            onOrderVoid={handleOrderVoid}
+                            onPaymentCapture={handlePaymentCapture}
+                            onPaymentRefund={handlePaymentRefund}
+                            onUpdate={handleUpdate}
+                            onDraftUpdate={handleDraftUpdate}
+                            onShippingMethodUpdate={handleShippingMethodUpdate}
+                            onOrderLineDelete={handleLineDelete}
+                            onOrderLineAdd={handleLineAdd}
+                            onOrderLineUpdate={handleLineUpdate}
+                            onOrderFulfillmentCancel={handleFulfillmentCancel}
+                            onOrderFulfillmentUpdate={handleFulfillmentUpdate}
+                            onDraftFinalize={handleDraftFinalize}
+                            onDraftCancel={handleOrderDraftCancel}
+                            onOrderMarkAsPaid={handleMarkAsPaid}
+                          >
+                            {({
+                              errors,
+                              orderAddNote,
+                              orderCancel,
+                              orderCreateFulfillment,
+                              orderDraftUpdate,
+                              orderLineAdd,
+                              orderLineDelete,
+                              orderLineUpdate,
+                              orderPaymentCapture,
+                              orderPaymentRefund,
+                              orderVoid,
+                              orderShippingMethodUpdate,
+                              orderUpdate,
+                              orderFulfillmentCancel,
+                              orderFulfillmentUpdateTracking,
+                              orderDraftCancel,
+                              orderDraftFinalize,
+                              orderPaymentMarkAsPaid
+                            }) =>
+                              maybe(
+                                () => order.status !== OrderStatus.DRAFT
+                              ) ? (
+                                <>
+                                  <WindowTitle
+                                    title={maybe(
+                                      () => "Order #" + data.order.number
+                                    )}
+                                  />
                                   <OrderDetailsPage
                                     errors={errors}
                                     onNoteAdd={variables =>
@@ -494,7 +494,14 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       orderPaymentMarkAsPaid.mutate({ id })
                                     }
                                   />
-                                ) : (
+                                </>
+                              ) : (
+                                <>
+                                  <WindowTitle
+                                    title={maybe(
+                                      () => "Draft order #" + data.order.number
+                                    )}
+                                  />
                                   <OrderDraftPage
                                     disabled={loading}
                                     errors={errors}
@@ -606,10 +613,10 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       })
                                     }
                                   />
-                                )
-                              }
-                            </OrderOperations>
-                          </>
+                                </>
+                              )
+                            }
+                          </OrderOperations>
                         );
                       }}
                     </OrderVariantSearchProvider>
