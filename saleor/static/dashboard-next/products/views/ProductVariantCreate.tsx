@@ -4,6 +4,7 @@ import { productUrl, productVariantEditUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
+import Shop from "../../components/Shop";
 import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import { decimal, maybe } from "../../misc";
@@ -33,100 +34,109 @@ interface FormData {
 export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
   productId
 }) => (
-  <Navigator>
-    {navigate => (
-      <Messages>
-        {pushMessage => (
-          <TypedProductVariantCreateQuery
-            query={productVariantCreateQuery}
-            variables={{ id: productId }}
-          >
-            {({ data, error, loading: productLoading }) => {
-              if (error) {
-                return (
-                  <ErrorMessageCard message={i18n.t("Something went wrong")} />
-                );
-              }
+  <Shop>
+    {shop => (
+      <Navigator>
+        {navigate => (
+          <Messages>
+            {pushMessage => (
+              <TypedProductVariantCreateQuery
+                query={productVariantCreateQuery}
+                variables={{ id: productId }}
+              >
+                {({ data, error, loading: productLoading }) => {
+                  if (error) {
+                    return (
+                      <ErrorMessageCard
+                        message={i18n.t("Something went wrong")}
+                      />
+                    );
+                  }
 
-              const handleCreateSuccess = (data: VariantCreate) => {
-                if (
-                  data.productVariantCreate.errors &&
-                  data.productVariantCreate.errors.length === 0
-                ) {
-                  pushMessage({ text: i18n.t("Product created") });
-                  navigate(
-                    productVariantEditUrl(
-                      encodeURIComponent(productId),
-                      encodeURIComponent(
-                        data.productVariantCreate.productVariant.id
-                      )
-                    )
-                  );
-                }
-              };
-
-              return (
-                <TypedVariantCreateMutation onCompleted={handleCreateSuccess}>
-                  {(variantCreate, variantCreateResult) => {
-                    if (variantCreateResult.error) {
-                      return (
-                        <ErrorMessageCard
-                          message={i18n.t("Something went wrong")}
-                        />
-                      );
-                    }
-
-                    const handleBack = () =>
-                      navigate(productUrl(encodeURIComponent(productId)));
-                    const handleSubmit = (formData: FormData) =>
-                      variantCreate({
-                        variables: {
-                          attributes: formData.attributes,
-                          costPrice: decimal(formData.costPrice),
-                          priceOverride: decimal(formData.priceOverride),
-                          product: productId,
-                          quantity: formData.quantity || null,
-                          sku: formData.sku,
-                          trackInventory: true
-                        }
-                      });
-                    const handleVariantClick = (id: string) =>
+                  const handleCreateSuccess = (data: VariantCreate) => {
+                    if (
+                      data.productVariantCreate.errors &&
+                      data.productVariantCreate.errors.length === 0
+                    ) {
+                      pushMessage({ text: i18n.t("Product created") });
                       navigate(
                         productVariantEditUrl(
                           encodeURIComponent(productId),
-                          encodeURIComponent(id)
+                          encodeURIComponent(
+                            data.productVariantCreate.productVariant.id
+                          )
                         )
                       );
+                    }
+                  };
 
-                    const loading =
-                      productLoading || variantCreateResult.loading;
-                    return (
-                      <>
-                        <WindowTitle title={i18n.t("Create variant")} />
-                        <ProductVariantCreatePage
-                          errors={maybe(
-                            () =>
-                              variantCreateResult.data.productVariantCreate
-                                .errors,
-                            []
-                          )}
-                          header={i18n.t("Add Variant")}
-                          loading={loading}
-                          product={maybe(() => data.product)}
-                          onBack={handleBack}
-                          onSubmit={handleSubmit}
-                          onVariantClick={handleVariantClick}
-                        />
-                      </>
-                    );
-                  }}
-                </TypedVariantCreateMutation>
-              );
-            }}
-          </TypedProductVariantCreateQuery>
+                  return (
+                    <TypedVariantCreateMutation
+                      onCompleted={handleCreateSuccess}
+                    >
+                      {(variantCreate, variantCreateResult) => {
+                        if (variantCreateResult.error) {
+                          return (
+                            <ErrorMessageCard
+                              message={i18n.t("Something went wrong")}
+                            />
+                          );
+                        }
+
+                        const handleBack = () =>
+                          navigate(productUrl(encodeURIComponent(productId)));
+                        const handleSubmit = (formData: FormData) =>
+                          variantCreate({
+                            variables: {
+                              attributes: formData.attributes,
+                              costPrice: decimal(formData.costPrice),
+                              priceOverride: decimal(formData.priceOverride),
+                              product: productId,
+                              quantity: formData.quantity || null,
+                              sku: formData.sku,
+                              trackInventory: true
+                            }
+                          });
+                        const handleVariantClick = (id: string) =>
+                          navigate(
+                            productVariantEditUrl(
+                              encodeURIComponent(productId),
+                              encodeURIComponent(id)
+                            )
+                          );
+
+                        const loading =
+                          productLoading || variantCreateResult.loading;
+                        return (
+                          <>
+                            <WindowTitle title={i18n.t("Create variant")} />
+                            <ProductVariantCreatePage
+                              currencySymbol={maybe(() => shop.defaultCurrency)}
+                              errors={maybe(
+                                () =>
+                                  variantCreateResult.data.productVariantCreate
+                                    .errors,
+                                []
+                              )}
+                              header={i18n.t("Add Variant")}
+                              loading={loading}
+                              product={maybe(() => data.product)}
+                              onBack={handleBack}
+                              onSubmit={handleSubmit}
+                              onVariantClick={handleVariantClick}
+                            />
+                          </>
+                        );
+                      }}
+                    </TypedVariantCreateMutation>
+                  );
+                }}
+              </TypedProductVariantCreateQuery>
+            )}
+          </Messages>
         )}
-      </Messages>
+      </Navigator>
     )}
-  </Navigator>
+  </Shop>
 );
 export default ProductVariant;
