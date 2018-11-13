@@ -7,7 +7,7 @@ interactions:
       connection: [keep-alive]
       content-type: [application/json]
     method: GET
-    uri: http://search:9200/storefront/product_document/_search
+    uri: http://search:9200/storefront/doc/_search
   response:
     body: {string: '{"took":2,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":0,"max_score":null,"hits":[]}}'}
     headers:
@@ -22,9 +22,9 @@ interactions:
       connection: [keep-alive]
       content-type: [application/json]
     method: GET
-    uri: http://search:9200/users/user_document/_search
+    uri: http://search:9200/users/doc/_search
   response:
-    body: {string: '{"took":23,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":1,"max_score":2.730029,"hits":[{"_index":"users","_type":"user_document","_id":"22","_score":2.730029,"_source":{}}]}}'}
+    body: {string: '{"took":23,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":1,"max_score":2.730029,"hits":[{"_index":"users","_type":"doc","_id":"22","_score":2.730029,"_source":{}}]}}'}
     headers:
       content-length: ['211']
       content-type: [application/json; charset=UTF-8]
@@ -36,7 +36,7 @@ interactions:
       connection: [keep-alive]
       content-type: [application/json]
     method: GET
-    uri: http://search:9200/orders/order_document/_search
+    uri: http://search:9200/orders/doc/_search
   response:
     body: {string: '{"took":1,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":0,"max_score":null,"hits":[]}}'}
     headers:
