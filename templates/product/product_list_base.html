@@ -2,6 +2,7 @@
 {% load bootstrap_pagination from bootstrap4 %}
 {% load build_absolute_uri from urls %}
 {% load get_object_properties from attributes %}
+{% load get_thumbnail from product_images %}
 {% load i18n %}
 {% load shop %}
 {% load static %}
@@ -25,7 +26,8 @@
   <meta name="description" content="{{ seo_description }}">
 
   {% if object.background_image %}
-    <meta property="og:image" content="{{ object.background_image }}">
+    <meta property="og:image"
+          content="{% get_thumbnail object.background_image size='1080x440' method="thumbnail" rendition_key_set="background_images" %}">
   {% else %}
     <meta property="og:image" content="{% static "images/block1.png" %}">
   {% endif %}
@@ -113,7 +115,8 @@
 
 {% block topcontent %}
   {% if object.background_image %}
-    <div class="row" id="product-list-image" style="background-image: url('{{ object.background_image.url }}')"></div>
+    <div class="row" id="product-list-image"
+         style="background-image: url({% get_thumbnail object.background_image size='1080x440' method="thumbnail" rendition_key_set="background_images" %})"></div>
   {% endif %}
 {% endblock topcontent %}
 
