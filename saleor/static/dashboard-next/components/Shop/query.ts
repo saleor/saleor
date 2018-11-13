@@ -1,5 +1,4 @@
 import gql from "graphql-tag";
-import * as React from "react";
 
 import { TypedQuery } from "../../queries";
 import { ShopInfo } from "./types/ShopInfo";

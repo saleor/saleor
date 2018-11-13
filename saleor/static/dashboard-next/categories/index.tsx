@@ -1,6 +1,8 @@
 import { parse as parseQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
+import { WindowTitle } from "../components/WindowTitle";
+import i18n from "../i18n";
 import { CategoryCreateView } from "./views/CategoryCreate";
 import CategoryDetailsView, {
   CategoryDetailsQueryParams
@@ -42,12 +44,15 @@ const CategoryCreate: React.StatelessComponent<
 };
 
 const Component = ({ match }) => (
-  <Switch>
-    <Route exact path={match.url} component={CategoryList} />
-    <Route exact path={`${match.url}/add/`} component={CategoryCreate} />
-    <Route exact path={`${match.url}/:id/add/`} component={CategoryCreate} />
-    <Route path={`${match.url}/:id/`} component={CategoryDetails} />
-  </Switch>
+  <>
+    <WindowTitle title={i18n.t("Categories")} />
+    <Switch>
+      <Route exact path={match.url} component={CategoryList} />
+      <Route exact path={`${match.url}/add/`} component={CategoryCreate} />
+      <Route exact path={`${match.url}/:id/add/`} component={CategoryCreate} />
+      <Route path={`${match.url}/:id/`} component={CategoryDetails} />
+    </Switch>
+  </>
 );
 
 export const categoryListUrl = "/categories/";
