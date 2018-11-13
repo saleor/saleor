@@ -21,6 +21,7 @@ import CollectionSection from "./collections";
 import { DateProvider } from "./components/DateFormatter";
 import { LocaleProvider } from "./components/Locale";
 import { MessageManager } from "./components/messages";
+import { ShopProvider } from "./components/Shop/Shop";
 import ConfigurationSection, { configurationMenu } from "./configuration";
 import { CustomerSection } from "./customers";
 import HomePage from "./home";
@@ -92,83 +93,85 @@ render(
         <DateProvider>
           <LocaleProvider>
             <MessageManager>
-              <CssBaseline />
-              <AuthProvider>
-                {({
-                  hasToken,
-                  isAuthenticated,
-                  tokenAuthLoading,
-                  tokenVerifyLoading,
-                  user
-                }) => {
-                  return isAuthenticated &&
-                    !tokenAuthLoading &&
-                    !tokenVerifyLoading ? (
-                    <Switch>
-                      <SectionRoute exact path="/" component={HomePage} />
-                      <SectionRoute
-                        permissions={[PermissionEnum.MANAGE_PRODUCTS]}
-                        path="/categories"
-                        component={CategorySection}
-                      />
-                      <SectionRoute
-                        permissions={[PermissionEnum.MANAGE_PRODUCTS]}
-                        path="/collections"
-                        component={CollectionSection}
-                      />
-                      <SectionRoute
-                        permissions={[PermissionEnum.MANAGE_USERS]}
-                        path="/customers"
-                        component={CustomerSection}
-                      />
-                      <SectionRoute
-                        permissions={[PermissionEnum.MANAGE_PAGES]}
-                        path="/pages"
-                        component={PageSection}
-                      />
-                      <SectionRoute
-                        permissions={[PermissionEnum.MANAGE_ORDERS]}
-                        path="/orders"
-                        component={OrdersSection}
-                      />
-                      <SectionRoute
-                        permissions={[PermissionEnum.MANAGE_PRODUCTS]}
-                        path="/products"
-                        component={ProductSection}
-                      />
-                      <SectionRoute
-                        permissions={[PermissionEnum.MANAGE_PRODUCTS]}
-                        path="/productTypes"
-                        component={ProductTypesSection}
-                      />
-                      <SectionRoute
-                        permissions={[PermissionEnum.MANAGE_STAFF]}
-                        path="/staff"
-                        component={StaffSection}
-                      />
-                      <SectionRoute
-                        permissions={[PermissionEnum.MANAGE_SETTINGS]}
-                        path="/siteSettings"
-                        component={SiteSettingsSection}
-                      />
-                      {configurationMenu.filter(menuItem =>
-                        hasPermission(menuItem.permission, user)
-                      ).length > 0 && (
+              <ShopProvider>
+                <CssBaseline />
+                <AuthProvider>
+                  {({
+                    hasToken,
+                    isAuthenticated,
+                    tokenAuthLoading,
+                    tokenVerifyLoading,
+                    user
+                  }) => {
+                    return isAuthenticated &&
+                      !tokenAuthLoading &&
+                      !tokenVerifyLoading ? (
+                      <Switch>
+                        <SectionRoute exact path="/" component={HomePage} />
                         <SectionRoute
-                          exact
-                          path="/configuration"
-                          component={ConfigurationSection}
+                          permissions={[PermissionEnum.MANAGE_PRODUCTS]}
+                          path="/categories"
+                          component={CategorySection}
                         />
-                      )}
-                      <Route component={NotFound} />
-                    </Switch>
-                  ) : hasToken && tokenVerifyLoading ? (
-                    <LoginLoading />
-                  ) : (
-                    <Auth loading={tokenAuthLoading} />
-                  );
-                }}
-              </AuthProvider>
+                        <SectionRoute
+                          permissions={[PermissionEnum.MANAGE_PRODUCTS]}
+                          path="/collections"
+                          component={CollectionSection}
+                        />
+                        <SectionRoute
+                          permissions={[PermissionEnum.MANAGE_USERS]}
+                          path="/customers"
+                          component={CustomerSection}
+                        />
+                        <SectionRoute
+                          permissions={[PermissionEnum.MANAGE_PAGES]}
+                          path="/pages"
+                          component={PageSection}
+                        />
+                        <SectionRoute
+                          permissions={[PermissionEnum.MANAGE_ORDERS]}
+                          path="/orders"
+                          component={OrdersSection}
+                        />
+                        <SectionRoute
+                          permissions={[PermissionEnum.MANAGE_PRODUCTS]}
+                          path="/products"
+                          component={ProductSection}
+                        />
+                        <SectionRoute
+                          permissions={[PermissionEnum.MANAGE_PRODUCTS]}
+                          path="/productTypes"
+                          component={ProductTypesSection}
+                        />
+                        <SectionRoute
+                          permissions={[PermissionEnum.MANAGE_STAFF]}
+                          path="/staff"
+                          component={StaffSection}
+                        />
+                        <SectionRoute
+                          permissions={[PermissionEnum.MANAGE_SETTINGS]}
+                          path="/siteSettings"
+                          component={SiteSettingsSection}
+                        />
+                        {configurationMenu.filter(menuItem =>
+                          hasPermission(menuItem.permission, user)
+                        ).length > 0 && (
+                          <SectionRoute
+                            exact
+                            path="/configuration"
+                            component={ConfigurationSection}
+                          />
+                        )}
+                        <Route component={NotFound} />
+                      </Switch>
+                    ) : hasToken && tokenVerifyLoading ? (
+                      <LoginLoading />
+                    ) : (
+                      <Auth loading={tokenAuthLoading} />
+                    );
+                  }}
+                </AuthProvider>
+              </ShopProvider>
             </MessageManager>
           </LocaleProvider>
         </DateProvider>
