@@ -22,10 +22,11 @@ import { DateProvider } from "./components/DateFormatter";
 import { LocaleProvider } from "./components/Locale";
 import { MessageManager } from "./components/messages";
 import { ShopProvider } from "./components/Shop";
+import { WindowTitle } from "./components/WindowTitle";
 import ConfigurationSection, { configurationMenu } from "./configuration";
 import { CustomerSection } from "./customers";
 import HomePage from "./home";
-import "./i18n";
+import i18n from "./i18n";
 import { NotFound } from "./NotFound";
 import OrdersSection from "./orders";
 import PageSection from "./pages";
@@ -95,6 +96,7 @@ render(
             <MessageManager>
               <ShopProvider>
                 <CssBaseline />
+                <WindowTitle title={i18n.t("Dashboard")} />
                 <AuthProvider>
                   {({
                     hasToken,
