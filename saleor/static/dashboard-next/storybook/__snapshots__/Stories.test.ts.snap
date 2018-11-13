@@ -38882,15 +38882,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                         type="number"
                         value=""
                       />
-                      <div
-                        class="MuiInputAdornment-root-id MuiInputAdornment-positionEnd-id Component-currencySymbol-id"
-                      >
-                        <p
-                          class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
-                        >
-                          USD
-                        </p>
-                      </div>
+                      <span />
                     </div>
                     <p
                       class="MuiFormHelperText-root-id"
@@ -38920,15 +38912,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                         type="number"
                         value=""
                       />
-                      <div
-                        class="MuiInputAdornment-root-id MuiInputAdornment-positionEnd-id Component-currencySymbol-id"
-                      >
-                        <p
-                          class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
-                        >
-                          USD
-                        </p>
-                      </div>
+                      <span />
                     </div>
                     <p
                       class="MuiFormHelperText-root-id"
@@ -39249,15 +39233,7 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
                         type="number"
                         value=""
                       />
-                      <div
-                        class="MuiInputAdornment-root-id MuiInputAdornment-positionEnd-id Component-currencySymbol-id"
-                      >
-                        <p
-                          class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
-                        >
-                          USD
-                        </p>
-                      </div>
+                      <span />
                     </div>
                     <p
                       class="MuiFormHelperText-root-id"
@@ -39288,15 +39264,7 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
                         type="number"
                         value=""
                       />
-                      <div
-                        class="MuiInputAdornment-root-id MuiInputAdornment-positionEnd-id Component-currencySymbol-id"
-                      >
-                        <p
-                          class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
-                        >
-                          USD
-                        </p>
-                      </div>
+                      <span />
                     </div>
                     <p
                       class="MuiFormHelperText-root-id"
@@ -39668,15 +39636,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                         type="number"
                         value=""
                       />
-                      <div
-                        class="MuiInputAdornment-root-id MuiInputAdornment-positionEnd-id Component-currencySymbol-id"
-                      >
-                        <p
-                          class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
-                        >
-                          USD
-                        </p>
-                      </div>
+                      <span />
                     </div>
                     <p
                       class="MuiFormHelperText-root-id MuiFormHelperText-error-id"
@@ -39706,15 +39666,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                         type="number"
                         value=""
                       />
-                      <div
-                        class="MuiInputAdornment-root-id MuiInputAdornment-positionEnd-id Component-currencySymbol-id"
-                      >
-                        <p
-                          class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
-                        >
-                          USD
-                        </p>
-                      </div>
+                      <span />
                     </div>
                     <p
                       class="MuiFormHelperText-root-id MuiFormHelperText-error-id"
