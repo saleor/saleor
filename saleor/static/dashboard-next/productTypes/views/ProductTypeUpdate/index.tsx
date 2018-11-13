@@ -4,6 +4,7 @@ import { Route } from "react-router-dom";
 import { productTypeDetailsUrl, productTypeListUrl } from "../../";
 import Messages from "../../../components/messages";
 import Navigator from "../../../components/Navigator";
+import { WindowTitle } from "../../../components/WindowTitle";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { AttributeTypeEnum } from "../../../types/globalTypes";
@@ -226,6 +227,9 @@ export const ProductTypeUpdate: React.StatelessComponent<
                         const loading = mutationLoading || dataLoading;
                         return (
                           <>
+                            <WindowTitle
+                              title={maybe(() => data.productType.name)}
+                            />
                             <ProductTypeDetailsPage
                               defaultWeightUnit={maybe(
                                 () => data.shop.defaultWeightUnit

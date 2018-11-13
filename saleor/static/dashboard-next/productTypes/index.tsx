@@ -2,6 +2,8 @@ import { parse as parseQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
+import { WindowTitle } from "../components/WindowTitle";
+import i18n from "../i18n";
 import ProductTypeCreate from "./views/ProductTypeCreate";
 import ProductTypeListComponent, {
   ProductTypeListQueryParams
@@ -35,11 +37,14 @@ const ProductTypeUpdate: React.StatelessComponent<
 export const ProductTypeRouter: React.StatelessComponent<
   RouteComponentProps<any>
 > = ({ match }) => (
-  <Switch>
-    <Route exact path={match.url} component={ProductTypeList} />
-    <Route exact path={match.url + "/add/"} component={ProductTypeCreate} />
-    <Route path={match.url + "/:id/"} component={ProductTypeUpdate} />
-  </Switch>
+  <>
+    <WindowTitle title={i18n.t("Product types")} />
+    <Switch>
+      <Route exact path={match.url} component={ProductTypeList} />
+      <Route exact path={match.url + "/add/"} component={ProductTypeCreate} />
+      <Route path={match.url + "/:id/"} component={ProductTypeUpdate} />
+    </Switch>
+  </>
 );
 ProductTypeRouter.displayName = "ProductTypeRouter";
 export default ProductTypeRouter;

@@ -4,7 +4,9 @@ import { Redirect } from "react-router";
 import { pageListUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import { NavigatorLink } from "../../components/Navigator";
+import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
+import { maybe } from "../../misc";
 import PageDetailsPage from "../components/PageDetailsPage";
 import { TypedPageDeleteMutation, TypedPageUpdateMutation } from "../mutations";
 import { pageDetailsQuery, TypedPageDetailsQuery } from "../queries";
@@ -88,28 +90,35 @@ export class PageUpdateForm extends React.Component<
                       return (
                         <NavigatorLink to={pageListUrl}>
                           {handleCancel => (
-                            <PageDetailsPage
-                              onBack={handleCancel}
-                              page={loading ? undefined : detailsResult.page}
-                              onSubmit={data =>
-                                updatePage({
-                                  variables: { id, ...data }
-                                })
-                              }
-                              errors={
-                                updateResult
-                                  ? updateResult.pageUpdate.errors
-                                  : []
-                              }
-                              title={
-                                detailsResult && detailsResult.page
-                                  ? detailsResult.page.title
-                                  : undefined
-                              }
-                              disabled={
-                                loading || deleteInProgress || updateInProgress
-                              }
-                            />
+                            <>
+                              <WindowTitle
+                                title={maybe(() => detailsResult.page.title)}
+                              />
+                              <PageDetailsPage
+                                onBack={handleCancel}
+                                page={loading ? undefined : detailsResult.page}
+                                onSubmit={data =>
+                                  updatePage({
+                                    variables: { id, ...data }
+                                  })
+                                }
+                                errors={
+                                  updateResult
+                                    ? updateResult.pageUpdate.errors
+                                    : []
+                                }
+                                title={
+                                  detailsResult && detailsResult.page
+                                    ? detailsResult.page.title
+                                    : undefined
+                                }
+                                disabled={
+                                  loading ||
+                                  deleteInProgress ||
+                                  updateInProgress
+                                }
+                              />
+                            </>
                           )}
                         </NavigatorLink>
                       );

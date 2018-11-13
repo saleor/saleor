@@ -2,6 +2,8 @@ import { parse as parseQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
+import { WindowTitle } from "../components/WindowTitle";
+import i18n from "../i18n";
 import { collectionAddUrl, collectionListUrl, collectionUrl } from "./urls";
 import CollectionCreate from "./views/CollectionCreate";
 import CollectionDetailsView, {
@@ -42,10 +44,13 @@ const CollectionDetails: React.StatelessComponent<
 };
 
 const Component = () => (
-  <Switch>
-    <Route exact path={collectionListUrl} component={CollectionList} />
-    <Route exact path={collectionAddUrl} component={CollectionCreate} />
-    <Route path={collectionUrl(":id")} component={CollectionDetails} />
-  </Switch>
+  <>
+    <WindowTitle title={i18n.t("Collections")} />
+    <Switch>
+      <Route exact path={collectionListUrl} component={CollectionList} />
+      <Route exact path={collectionAddUrl} component={CollectionCreate} />
+      <Route path={collectionUrl(":id")} component={CollectionDetails} />
+    </Switch>
+  </>
 );
 export default Component;

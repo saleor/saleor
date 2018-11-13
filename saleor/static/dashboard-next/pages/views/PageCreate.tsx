@@ -3,6 +3,7 @@ import { Redirect } from "react-router";
 
 import { pageListUrl } from "..";
 import { NavigatorLink } from "../../components/Navigator";
+import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import PageDetailsPage from "../../pages/components/PageDetailsPage";
 import { TypedPageCreateMutation } from "../mutations";
@@ -16,23 +17,26 @@ export const PageCreateForm: React.StatelessComponent = () => (
       return (
         <NavigatorLink to={pageListUrl}>
           {handleCancel => (
-            <PageDetailsPage
-              disabled={loading}
-              page={{
-                availableOn: "",
-                content: "",
-                isVisible: false,
-                slug: "",
-                title: ""
-              }}
-              onBack={handleCancel}
-              onSubmit={data =>
-                createPage({
-                  variables: data
-                })
-              }
-              title={i18n.t("Add page", { context: "title" })}
-            />
+            <>
+              <WindowTitle title={i18n.t("Create page")} />
+              <PageDetailsPage
+                disabled={loading}
+                page={{
+                  availableOn: "",
+                  content: "",
+                  isVisible: false,
+                  slug: "",
+                  title: ""
+                }}
+                onBack={handleCancel}
+                onSubmit={data =>
+                  createPage({
+                    variables: data
+                  })
+                }
+                title={i18n.t("Add page", { context: "title" })}
+              />
+            </>
           )}
         </NavigatorLink>
       );
