@@ -2,6 +2,8 @@ import { parse as parseQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
+import { WindowTitle } from "../components/WindowTitle";
+import i18n from "../i18n";
 import StaffDetailsComponent from "./views/StaffDetails";
 import StaffListComponent, { StaffListQueryParams } from "./views/StaffList";
 
@@ -26,10 +28,13 @@ const StaffDetails: React.StatelessComponent<
 );
 
 const Component = ({ match }) => (
-  <Switch>
-    <Route exact path={match.url} component={StaffList} />
-    <Route exact path={`${match.url}/:id/`} component={StaffDetails} />
-  </Switch>
+  <>
+    <WindowTitle title={i18n.t("Staff")} />
+    <Switch>
+      <Route exact path={match.url} component={StaffList} />
+      <Route exact path={`${match.url}/:id/`} component={StaffDetails} />
+    </Switch>
+  </>
 );
 
 export const staffListUrl = "/staff/";
