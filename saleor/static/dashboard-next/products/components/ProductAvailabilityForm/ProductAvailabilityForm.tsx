@@ -78,4 +78,5 @@ export const ProductAvailabilityForm = decorate<ProductAvailabilityFormProps>(
     </Card>
   )
 );
+ProductAvailabilityForm.displayName = "ProductAvailabilityForm";
 export default ProductAvailabilityForm;

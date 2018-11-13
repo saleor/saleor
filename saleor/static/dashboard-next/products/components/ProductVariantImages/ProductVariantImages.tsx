@@ -85,4 +85,5 @@ export const ProductVariantImages = decorate<ProductVariantImagesProps>(
     </Card>
   )
 );
+ProductVariantImages.displayName = "ProductVariantImages";
 export default ProductVariantImages;

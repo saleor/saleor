@@ -43,4 +43,5 @@ const OrderListPage: React.StatelessComponent<OrderListPageProps> = ({
     />
   </Container>
 );
+OrderListPage.displayName = "OrderListPage";
 export default OrderListPage;

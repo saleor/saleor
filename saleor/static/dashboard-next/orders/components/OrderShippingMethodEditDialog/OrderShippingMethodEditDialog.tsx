@@ -95,4 +95,5 @@ const OrderShippingMethodEditDialog = decorate<
     </Dialog>
   );
 });
+OrderShippingMethodEditDialog.displayName = "OrderShippingMethodEditDialog";
 export default OrderShippingMethodEditDialog;

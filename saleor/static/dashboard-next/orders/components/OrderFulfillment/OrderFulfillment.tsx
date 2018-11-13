@@ -191,4 +191,5 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
     );
   }
 );
+OrderFulfillment.displayName = "OrderFulfillment";
 export default OrderFulfillment;

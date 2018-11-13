@@ -105,4 +105,5 @@ export const EditableTableCell = decorate<EditableTableCellProps>(
     </TableCell>
   )
 );
+EditableTableCell.displayName = "EditableTableCell";
 export default EditableTableCell;

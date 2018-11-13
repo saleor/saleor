@@ -100,4 +100,5 @@ export const CategoryCreateSubcategories = decorate<
     </Toggle>
   );
 });
+CategoryCreateSubcategories.displayName = "CategoryCreateSubcategories";
 export default CategoryCreateSubcategories;

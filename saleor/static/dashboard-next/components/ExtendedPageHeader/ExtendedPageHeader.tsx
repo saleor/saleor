@@ -57,5 +57,5 @@ const ExtendedPageHeader = decorate<ExtendedPageHeaderProps>(
     </div>
   )
 );
-
+ExtendedPageHeader.displayName = "ExtendedPageHeader";
 export default ExtendedPageHeader;

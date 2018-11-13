@@ -52,4 +52,5 @@ const OrderFulfillmentTrackingDialog: React.StatelessComponent<
     </Form>
   </Dialog>
 );
+OrderFulfillmentTrackingDialog.displayName = "OrderFulfillmentTrackingDialog";
 export default OrderFulfillmentTrackingDialog;

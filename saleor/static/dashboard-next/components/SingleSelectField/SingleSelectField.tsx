@@ -82,5 +82,5 @@ export const SingleSelectField = decorate<SingleSelectFieldProps>(
     );
   }
 );
-
+SingleSelectField.displayName = "SingleSelectField";
 export default SingleSelectField;

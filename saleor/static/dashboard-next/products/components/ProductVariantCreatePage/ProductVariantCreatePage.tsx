@@ -147,4 +147,5 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
     );
   }
 );
+ProductVariantCreatePage.displayName = "ProductVariantCreatePage";
 export default ProductVariantCreatePage;

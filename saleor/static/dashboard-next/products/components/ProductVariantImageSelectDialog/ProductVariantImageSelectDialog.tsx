@@ -85,4 +85,5 @@ const ProductVariantImageSelectDialog = decorate<
     </DialogActions>
   </Dialog>
 ));
+ProductVariantImageSelectDialog.displayName = "ProductVariantImageSelectDialog";
 export default ProductVariantImageSelectDialog;

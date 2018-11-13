@@ -66,4 +66,5 @@ export const ProductDetailsForm = decorate<ProductDetailsFormProps>(
     </Card>
   )
 );
+ProductDetailsForm.displayName = "ProductDetailsForm";
 export default ProductDetailsForm;

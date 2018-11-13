@@ -77,4 +77,5 @@ const ProductVariantStock = decorate<ProductVariantStockProps>(
     </Card>
   )
 );
+ProductVariantStock.displayName = "ProductVariantStock";
 export default ProductVariantStock;

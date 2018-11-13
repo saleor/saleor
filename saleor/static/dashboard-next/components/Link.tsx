@@ -46,4 +46,5 @@ const Link = decorate<LinkProps>(
     </Typography>
   )
 );
+Link.displayName = "Link";
 export default Link;

@@ -46,4 +46,5 @@ const PageListPage: React.StatelessComponent<PageListPageProps> = ({
     />
   </Container>
 );
+PageListPage.displayName = "PageListPage";
 export default PageListPage;
