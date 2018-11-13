@@ -3,6 +3,7 @@ import * as React from "react";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
+import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import { decimal } from "../../misc";
 import ProductCreatePage from "../components/ProductCreatePage";
@@ -10,7 +11,6 @@ import { productListUrl, productUrl } from "../index";
 import { TypedProductCreateMutation } from "../mutations";
 import { productCreateQuery, TypedProductCreateQuery } from "../queries";
 import { ProductCreate } from "../types/ProductCreate";
-import { WindowTitle } from "../../components/WindowTitle";
 
 interface ProductUpdateProps {
   id: string;
