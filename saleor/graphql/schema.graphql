@@ -504,11 +504,11 @@ type CustomerDelete {
 }
 
 input CustomerInput {
+  defaultBillingAddress: AddressInput
+  defaultShippingAddress: AddressInput
   email: String
   isActive: Boolean
   note: String
-  defaultBillingAddress: AddressInput
-  defaultShippingAddress: AddressInput
 }
 
 type CustomerPasswordReset {
@@ -712,6 +712,11 @@ type LanguageDisplay {
   language: String!
 }
 
+type LoggedUserUpdate {
+  errors: [Error]
+  user: User
+}
+
 type Margin {
   start: Int
   stop: Int
@@ -861,11 +866,12 @@ type Mutations {
   authorizationKeyDelete(keyType: AuthorizationKeyType!): AuthorizationKeyDelete
   assignNavigation(menu: ID, navigationType: NavigationType!): AssignNavigation
   tokenCreate(email: String!, password: String!): CreateToken
-  tokenRefresh(token: String): Refresh
-  tokenVerify(token: String): VerifyToken
+  tokenRefresh(token: String!): Refresh
+  tokenVerify(token: String!): VerifyToken
   setPassword(id: ID!, input: SetPasswordInput!): SetPassword
   passwordReset(email: String!): PasswordReset
   customerCreate(input: UserCreateInput!): CustomerCreate
+  loggedUserUpdate(input: UserAddressInput!): LoggedUserUpdate
   customerUpdate(id: ID!, input: CustomerInput!): CustomerUpdate
   customerDelete(id: ID!): CustomerDelete
   customerPasswordReset(input: CustomerPasswordResetInput!): CustomerPasswordReset
@@ -1955,6 +1961,11 @@ type User implements Node {
   permissions: [PermissionDisplay]
 }
 
+input UserAddressInput {
+  defaultBillingAddress: AddressInput
+  defaultShippingAddress: AddressInput
+}
+
 type UserCountableConnection {
   pageInfo: PageInfo!
   edges: [UserCountableEdge!]!
@@ -1967,11 +1978,11 @@ type UserCountableEdge {
 }
 
 input UserCreateInput {
+  defaultBillingAddress: AddressInput
+  defaultShippingAddress: AddressInput
   email: String
   isActive: Boolean
   note: String
-  defaultBillingAddress: AddressInput
-  defaultShippingAddress: AddressInput
   sendPasswordEmail: Boolean
 }
 

@@ -1,7 +1,7 @@
 import json
 
 import pytest
-
+from django.contrib.auth.models import AnonymousUser
 from django.shortcuts import reverse
 from django.test.client import MULTIPART_CONTENT, Client
 from graphql_jwt.shortcuts import get_token
@@ -17,12 +17,14 @@ class ApiClient(Client):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user')
         self.user = user
-        self.token = get_token(user)
+        if not user.is_anonymous:
+            self.token = get_token(user)
         super().__init__(*args, **kwargs)
 
     def _base_environ(self, **request):
         environ = super()._base_environ(**request)
-        environ.update({'HTTP_AUTHORIZATION': 'JWT %s' % self.token})
+        if not self.user.is_anonymous:
+            environ.update({'HTTP_AUTHORIZATION': 'JWT %s' % self.token})
         return environ
 
     def post(self, data=None, **kwargs):
@@ -82,3 +84,8 @@ def staff_api_client(staff_user):
 @pytest.fixture
 def user_api_client(customer_user):
     return ApiClient(user=customer_user)
+
+
+@pytest.fixture
+def api_client():
+    return ApiClient(user=AnonymousUser())
