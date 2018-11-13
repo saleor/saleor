@@ -5,6 +5,7 @@ import { Route } from "react-router-dom";
 import ActionDialog from "../../components/ActionDialog";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
+import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
 import { orderUrl } from "../../orders";
@@ -67,6 +68,9 @@ export const CustomerDetailsView: React.StatelessComponent<
                     <TypedCustomerDetailsQuery variables={{ id }}>
                       {customerDetails => (
                         <>
+                          <WindowTitle
+                            title={maybe(() => customerDetails.data.user.email)}
+                          />
                           <CustomerDetailsPage
                             customer={customerDetails.data.user}
                             disabled={

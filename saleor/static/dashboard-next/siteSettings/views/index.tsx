@@ -3,6 +3,7 @@ import * as React from "react";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import Toggle from "../../components/Toggle";
+import { WindowTitle } from "../../components/WindowTitle";
 import { configurationMenuUrl } from "../../configuration";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
@@ -133,6 +134,9 @@ export const SiteSettings: React.StatelessComponent<{}> = () => (
                                   });
                                 return (
                                   <>
+                                    <WindowTitle
+                                      title={i18n.t("Site settings")}
+                                    />
                                     <SiteSettingsPage
                                       disabled={loading}
                                       errors={errors}

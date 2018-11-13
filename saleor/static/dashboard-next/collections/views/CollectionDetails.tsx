@@ -6,6 +6,7 @@ import ActionDialog from "../../components/ActionDialog";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import { createPaginationState, Paginator } from "../../components/Paginator";
+import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
 import { productUrl } from "../../products";
@@ -155,6 +156,9 @@ export const CollectionDetails: React.StatelessComponent<
                           };
                           return (
                             <>
+                              <WindowTitle
+                                title={maybe(() => data.collection.name)}
+                              />
                               <Paginator
                                 pageInfo={maybe(
                                   () => data.collection.products.pageInfo

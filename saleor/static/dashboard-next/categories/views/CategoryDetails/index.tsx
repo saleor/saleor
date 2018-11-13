@@ -10,6 +10,7 @@ import {
   createPaginationState,
   Paginator
 } from "../../../components/Paginator";
+import { WindowTitle } from "../../../components/WindowTitle";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { productAddUrl, productUrl } from "../../../products";
@@ -82,6 +83,9 @@ export const CategoryDetails: React.StatelessComponent<
                       >
                         {({ data, loading }) => (
                           <>
+                            <WindowTitle
+                              title={maybe(() => data.category.name)}
+                            />
                             <Paginator
                               pageInfo={maybe(
                                 () => data.category.products.pageInfo
