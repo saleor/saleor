@@ -4,6 +4,7 @@ import { productUrl, productVariantEditUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
+import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import { decimal, maybe } from "../../misc";
 import ProductVariantCreatePage from "../components/ProductVariantCreatePage";
@@ -100,20 +101,23 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                     const loading =
                       productLoading || variantCreateResult.loading;
                     return (
-                      <ProductVariantCreatePage
-                        errors={maybe(
-                          () =>
-                            variantCreateResult.data.productVariantCreate
-                              .errors,
-                          []
-                        )}
-                        header={i18n.t("Add Variant")}
-                        loading={loading}
-                        product={maybe(() => data.product)}
-                        onBack={handleBack}
-                        onSubmit={handleSubmit}
-                        onVariantClick={handleVariantClick}
-                      />
+                      <>
+                        <WindowTitle title={i18n.t("Create variant")} />
+                        <ProductVariantCreatePage
+                          errors={maybe(
+                            () =>
+                              variantCreateResult.data.productVariantCreate
+                                .errors,
+                            []
+                          )}
+                          header={i18n.t("Add Variant")}
+                          loading={loading}
+                          product={maybe(() => data.product)}
+                          onBack={handleBack}
+                          onSubmit={handleSubmit}
+                          onVariantClick={handleVariantClick}
+                        />
+                      </>
                     );
                   }}
                 </TypedVariantCreateMutation>

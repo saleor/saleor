@@ -2,6 +2,8 @@ import { parse as parseQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
+import { WindowTitle } from "../components/WindowTitle";
+import i18n from "../i18n";
 import ProductCreate from "./views/ProductCreate";
 import ProductImageComponent from "./views/ProductImage";
 import ProductListComponent, {
@@ -61,26 +63,29 @@ const ProductVariantCreate: React.StatelessComponent<
 };
 
 const Component = ({ match }) => (
-  <Switch>
-    <Route exact path={match.url} component={ProductList} />
-    <Route exact path={`${match.url}/add/`} component={ProductCreate} />
-    <Route exact path={`${match.url}/:id/`} component={ProductUpdate} />
-    <Route
-      exact
-      path={`${match.url}/:id/variant/add/`}
-      component={ProductVariantCreate}
-    />
-    <Route
-      exact
-      path={`${match.url}/:productId/variant/:variantId/`}
-      component={ProductVariant}
-    />
-    <Route
-      exact
-      path={`${match.url}/:productId/image/:imageId/`}
-      component={ProductImage}
-    />
-  </Switch>
+  <>
+    <WindowTitle title={i18n.t("Products")} />
+    <Switch>
+      <Route exact path={match.url} component={ProductList} />
+      <Route exact path={`${match.url}/add/`} component={ProductCreate} />
+      <Route exact path={`${match.url}/:id/`} component={ProductUpdate} />
+      <Route
+        exact
+        path={`${match.url}/:id/variant/add/`}
+        component={ProductVariantCreate}
+      />
+      <Route
+        exact
+        path={`${match.url}/:productId/variant/:variantId/`}
+        component={ProductVariant}
+      />
+      <Route
+        exact
+        path={`${match.url}/:productId/image/:imageId/`}
+        component={ProductImage}
+      />
+    </Switch>
+  </>
 );
 
 export const productUrl = (id: string) => {

@@ -10,6 +10,7 @@ import { productListUrl, productUrl } from "../index";
 import { TypedProductCreateMutation } from "../mutations";
 import { productCreateQuery, TypedProductCreateQuery } from "../queries";
 import { ProductCreate } from "../types/ProductCreate";
+import { WindowTitle } from "../../components/WindowTitle";
 
 interface ProductUpdateProps {
   id: string;
@@ -79,37 +80,44 @@ export const ProductUpdate: React.StatelessComponent<
 
                         const disabled = loading || productCreateDataLoading;
                         return (
-                          <ProductCreatePage
-                            // FIXME: this should be fetched from API
-                            currency="USD"
-                            categories={
-                              data && data.categories
-                                ? data.categories.edges.map(edge => edge.node)
-                                : undefined
-                            }
-                            collections={
-                              data && data.collections
-                                ? data.collections.edges.map(edge => edge.node)
-                                : undefined
-                            }
-                            disabled={disabled}
-                            errors={
-                              productCreateData &&
-                              productCreateData.productCreate &&
-                              productCreateData.productCreate.errors
-                                ? productCreateData.productCreate.errors
-                                : []
-                            }
-                            header={i18n.t("New Product")}
-                            productTypes={
-                              data && data.productTypes
-                                ? data.productTypes.edges.map(edge => edge.node)
-                                : undefined
-                            }
-                            onAttributesEdit={handleAttributesEdit}
-                            onBack={handleBack}
-                            onSubmit={handleSubmit}
-                          />
+                          <>
+                            <WindowTitle title={i18n.t("Create product")} />
+                            <ProductCreatePage
+                              // FIXME: this should be fetched from API
+                              currency="USD"
+                              categories={
+                                data && data.categories
+                                  ? data.categories.edges.map(edge => edge.node)
+                                  : undefined
+                              }
+                              collections={
+                                data && data.collections
+                                  ? data.collections.edges.map(
+                                      edge => edge.node
+                                    )
+                                  : undefined
+                              }
+                              disabled={disabled}
+                              errors={
+                                productCreateData &&
+                                productCreateData.productCreate &&
+                                productCreateData.productCreate.errors
+                                  ? productCreateData.productCreate.errors
+                                  : []
+                              }
+                              header={i18n.t("New Product")}
+                              productTypes={
+                                data && data.productTypes
+                                  ? data.productTypes.edges.map(
+                                      edge => edge.node
+                                    )
+                                  : undefined
+                              }
+                              onAttributesEdit={handleAttributesEdit}
+                              onBack={handleBack}
+                              onSubmit={handleSubmit}
+                            />
+                          </>
                         );
                       }}
                     </TypedProductCreateMutation>
