@@ -49,7 +49,7 @@ const home = gql`
         }
       }
     }
-    activities: homepageEvents {
+    activities: homepageEvents(last: 10) {
       edges {
         node {
           amount
