@@ -73,7 +73,7 @@ const LoginCard = decorate<LoginCardProps>(
   ({ classes, error, disableLoginButton, onSubmit }) => {
     return (
       <Form
-        initial={{ email: "", password: "", rememberMe: false }}
+        initial={{ email: "admin@example.com", password: "admin", rememberMe: false }}
         onSubmit={onSubmit}
       >
         {({ change: handleChange, data, submit: handleSubmit }) => (
