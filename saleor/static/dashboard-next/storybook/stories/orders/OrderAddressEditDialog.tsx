@@ -1,7 +1,7 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import { transformAddressToForm } from "../../../orders";
+import { transformAddressToForm } from "../../../misc";
 import OrderAddressEditDialog from "../../../orders/components/OrderAddressEditDialog";
 import { countries, order as orderFixture } from "../../../orders/fixtures";
 import Decorator from "../../Decorator";
