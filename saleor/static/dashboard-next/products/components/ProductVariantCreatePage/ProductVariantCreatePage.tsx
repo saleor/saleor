@@ -28,6 +28,7 @@ interface FormData {
   sku?: string;
 }
 interface ProductVariantCreatePageProps {
+  currencySymbol: string;
   errors: UserError[];
   header: string;
   loading: boolean;
@@ -53,6 +54,7 @@ const decorate = withStyles(theme => ({
 const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
   ({
     classes,
+    currencySymbol,
     errors: formErrors,
     loading,
     header,
@@ -114,8 +116,7 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
                     <ProductVariantPrice
                       errors={errors}
                       priceOverride={data.priceOverride}
-                      // FIXME: currency symbol should be fetched from API
-                      currencySymbol="USD"
+                      currencySymbol={currencySymbol}
                       costPrice={data.costPrice}
                       loading={loading}
                       onChange={change}

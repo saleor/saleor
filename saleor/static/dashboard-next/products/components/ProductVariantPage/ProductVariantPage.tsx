@@ -192,6 +192,8 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                               currencySymbol={
                                 variant && variant.priceOverride
                                   ? variant.priceOverride.currency
+                                  : variant && variant.costPrice
+                                  ? variant.costPrice.currency
                                   : ""
                               }
                               costPrice={data.costPrice}
