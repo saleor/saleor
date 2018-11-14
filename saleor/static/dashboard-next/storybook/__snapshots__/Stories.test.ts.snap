@@ -5849,8 +5849,8 @@ exports[`Storyshots Views / Authentication / Log in default 1`] = `
           class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
         >
           <label
-            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-            data-shrink="false"
+            class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+            data-shrink="true"
           >
             Email
           </label>
@@ -5864,7 +5864,7 @@ exports[`Storyshots Views / Authentication / Log in default 1`] = `
               class="MuiInput-input-id"
               name="email"
               type="text"
-              value=""
+              value="admin@example.com"
             />
           </div>
         </div>
@@ -5875,8 +5875,8 @@ exports[`Storyshots Views / Authentication / Log in default 1`] = `
           class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
         >
           <label
-            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-            data-shrink="false"
+            class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+            data-shrink="true"
           >
             Password
           </label>
@@ -5889,7 +5889,7 @@ exports[`Storyshots Views / Authentication / Log in default 1`] = `
               class="MuiInput-input-id MuiInput-inputType-id"
               name="password"
               type="password"
-              value=""
+              value="admin"
             />
           </div>
         </div>
@@ -5979,8 +5979,8 @@ exports[`Storyshots Views / Authentication / Log in error 1`] = `
           class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
         >
           <label
-            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-            data-shrink="false"
+            class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+            data-shrink="true"
           >
             Email
           </label>
@@ -5994,7 +5994,7 @@ exports[`Storyshots Views / Authentication / Log in error 1`] = `
               class="MuiInput-input-id"
               name="email"
               type="text"
-              value=""
+              value="admin@example.com"
             />
           </div>
         </div>
@@ -6005,8 +6005,8 @@ exports[`Storyshots Views / Authentication / Log in error 1`] = `
           class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
         >
           <label
-            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-            data-shrink="false"
+            class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+            data-shrink="true"
           >
             Password
           </label>
@@ -6019,7 +6019,7 @@ exports[`Storyshots Views / Authentication / Log in error 1`] = `
               class="MuiInput-input-id MuiInput-inputType-id"
               name="password"
               type="password"
-              value=""
+              value="admin"
             />
           </div>
         </div>
@@ -6098,8 +6098,8 @@ exports[`Storyshots Views / Authentication / Log in loading 1`] = `
           class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
         >
           <label
-            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-            data-shrink="false"
+            class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+            data-shrink="true"
           >
             Email
           </label>
@@ -6113,7 +6113,7 @@ exports[`Storyshots Views / Authentication / Log in loading 1`] = `
               class="MuiInput-input-id"
               name="email"
               type="text"
-              value=""
+              value="admin@example.com"
             />
           </div>
         </div>
@@ -6124,8 +6124,8 @@ exports[`Storyshots Views / Authentication / Log in loading 1`] = `
           class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
         >
           <label
-            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-            data-shrink="false"
+            class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+            data-shrink="true"
           >
             Password
           </label>
@@ -6138,7 +6138,7 @@ exports[`Storyshots Views / Authentication / Log in loading 1`] = `
               class="MuiInput-input-id MuiInput-inputType-id"
               name="password"
               type="password"
-              value=""
+              value="admin"
             />
           </div>
         </div>
