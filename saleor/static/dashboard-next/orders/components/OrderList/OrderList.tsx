@@ -8,7 +8,6 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import { transformOrderStatus, transformPaymentStatus } from "../..";
 import { ListProps } from "../../..";
 import DateFormatter from "../../../components/DateFormatter";
 import Money from "../../../components/Money";
@@ -16,7 +15,12 @@ import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
-import { maybe, renderCollection } from "../../../misc";
+import {
+  maybe,
+  renderCollection,
+  transformOrderStatus,
+  transformPaymentStatus
+} from "../../../misc";
 import { OrderList_orders_edges_node } from "../../types/OrderList";
 
 interface OrderListProps extends ListProps {

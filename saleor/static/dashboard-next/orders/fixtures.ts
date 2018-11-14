@@ -1,3 +1,4 @@
+import { transformOrderStatus, transformPaymentStatus } from "../misc";
 import {
   FulfillmentStatus,
   OrderAction,
@@ -5,7 +6,6 @@ import {
   OrderStatus,
   PaymentChargeStatusEnum
 } from "../types/globalTypes";
-import { transformOrderStatus, transformPaymentStatus } from "./";
 import { OrderDetails_order } from "./types/OrderDetails";
 import { OrderList_orders_edges_node } from "./types/OrderList";
 import { UserSearch_customers_edges_node } from "./types/UserSearch";
