@@ -4,7 +4,6 @@ import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import { AttributeType } from "../..";
 import CardTitle from "../../../components/CardTitle";
 import { FormSpacer } from "../../../components/FormSpacer";
 import MultiSelectField from "../../../components/MultiSelectField";
@@ -13,12 +12,13 @@ import SingleSelectField from "../../../components/SingleSelectField";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
+import { ProductCreateData_productTypes_edges_node_productAttributes } from "../../types/ProductCreateData";
 
 interface ProductType {
   hasVariants: boolean;
   id: string;
   name: string;
-  productAttributes: AttributeType[];
+  productAttributes: ProductCreateData_productTypes_edges_node_productAttributes[];
 }
 interface ProductOrganizationProps {
   categories?: Array<{ value: string; label: string }>;
@@ -36,7 +36,7 @@ interface ProductOrganizationProps {
         hasVariants: boolean;
         id: string;
         name: string;
-        productAttributes: AttributeType[];
+        productAttributes: ProductCreateData_productTypes_edges_node_productAttributes[];
       };
     };
   };
@@ -142,11 +142,10 @@ const ProductOrganization = decorate<ProductOrganizationProps>(
         target: {
           ...event.target,
           name: "attributes",
-          value: data.attributes.map(
-            a =>
-              a.slug === event.target.name
-                ? { slug: a.slug, value: event.target.value.value }
-                : a
+          value: data.attributes.map(a =>
+            a.slug === event.target.name
+              ? { slug: a.slug, value: event.target.value.value }
+              : a
           )
         }
       });
@@ -165,8 +164,8 @@ const ProductOrganization = decorate<ProductOrganizationProps>(
               product.productType.name !== undefined
                 ? [{ label: product.productType.name, value: "1" }]
                 : productTypes
-                  ? productTypes.map(pt => ({ label: pt.name, value: pt }))
-                  : []
+                ? productTypes.map(pt => ({ label: pt.name, value: pt }))
+                : []
             }
             value={data.productType}
             onChange={handleProductTypeSelect}
@@ -186,8 +185,8 @@ const ProductOrganization = decorate<ProductOrganizationProps>(
               product.productType.hasVariants !== undefined
                 ? product.productType.hasVariants + ""
                 : data.productType
-                  ? data.productType.value.hasVariants + ""
-                  : false + ""
+                ? data.productType.value.hasVariants + ""
+                : false + ""
             }
             onChange={onChange}
           />

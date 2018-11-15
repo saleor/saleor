@@ -1,7 +1,6 @@
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import { UserError } from "../../..";
 import { CardSpacer } from "../../../components/CardSpacer";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
@@ -10,6 +9,7 @@ import SaveButtonBar, {
   SaveButtonBarState
 } from "../../../components/SaveButtonBar";
 import i18n from "../../../i18n";
+import { UserError } from "../../../types";
 import { AddressTypeInput } from "../../types";
 import { CustomerCreateData_shop_countries } from "../../types/CustomerCreateData";
 import CustomerCreateAddress from "../CustomerCreateAddress/CustomerCreateAddress";

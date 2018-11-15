@@ -7,8 +7,8 @@ import { withStyles } from "@material-ui/core/styles";
 import * as classNames from "classnames";
 import * as React from "react";
 
-import { ProductImageType } from "../..";
 import i18n from "../../../i18n";
+import { ProductImage } from "../../types/ProductImage";
 
 const decorate = withStyles(theme => ({
   image: {
@@ -45,7 +45,7 @@ const decorate = withStyles(theme => ({
 }));
 
 interface ProductVariantImageSelectDialogProps {
-  images?: ProductImageType[];
+  images?: ProductImage[];
   selectedImages?: string[];
   open: boolean;
   onClose();

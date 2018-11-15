@@ -1,4 +1,5 @@
 import { ProductDetails_product } from "./types/ProductDetails";
+import { ProductVariant } from "./types/ProductVariant";
 import { ProductVariantCreateData_product } from "./types/ProductVariantCreateData";
 
 export const product: (
@@ -2233,72 +2234,114 @@ export const products = (placeholderImage: string) => [
     }
   }
 ];
-export const variant = (placeholderImage: string) => ({
+export const variant = (placeholderImage: string): ProductVariant => ({
+  __typename: "ProductVariant",
   attributes: [
     {
+      __typename: "SelectedAttribute",
       attribute: {
+        __typename: "Attribute",
         id: "pta18161",
         name: "Borders",
         slug: "Borders",
-        sortNumber: 0,
         values: [
-          { id: "ptav47282", sortNumber: 0, name: "portals", slug: "portals" },
-          { id: "ptav17253", sortNumber: 1, name: "Baht", slug: "Baht" }
+          {
+            __typename: "AttributeValue",
+            id: "ptav47282",
+            name: "portals",
+            slug: "portals"
+          },
+          {
+            __typename: "AttributeValue",
+            id: "ptav17253",
+            name: "Baht",
+            slug: "Baht"
+          }
         ]
       },
       value: {
+        __typename: "AttributeValue",
         id: "ptav47282",
         name: "portals",
-        slug: "portals",
-        sortNumber: 0
+        slug: "portals"
       }
     },
     {
+      __typename: "SelectedAttribute",
       attribute: {
+        __typename: "Attribute",
         id: "pta22785",
         name: "Legacy",
         slug: "Legacy",
-        sortNumber: 1,
         values: [
-          { id: "ptav31282", sortNumber: 0, name: "payment", slug: "payment" },
           {
+            __typename: "AttributeValue",
+            id: "ptav31282",
+            name: "payment",
+            slug: "payment"
+          },
+          {
+            __typename: "AttributeValue",
             id: "ptav14907",
             name: "Auto Loan Account",
-            slug: "Auto-Loan-Account",
-            sortNumber: 1
+            slug: "Auto-Loan-Account"
           },
-          { id: "ptav27366", sortNumber: 2, name: "Garden", slug: "Garden" },
-          { id: "ptav11873", sortNumber: 3, name: "override", slug: "override" }
+          {
+            __typename: "AttributeValue",
+            id: "ptav27366",
+            name: "Garden",
+            slug: "Garden"
+          },
+          {
+            __typename: "AttributeValue",
+            id: "ptav11873",
+            name: "override",
+            slug: "override"
+          }
         ]
       },
       value: {
+        __typename: "AttributeValue",
         id: "ptav14907",
         name: "Auto Loan Account",
-        slug: "Auto-Loan-Account",
-        sortNumber: 1
+        slug: "Auto-Loan-Account"
       }
     }
   ],
+  costPrice:{
+    __typename:"Money",
+    amount: 12,
+    currency: "USD",
+  },
   id: "var1",
   images: {
+    __typename: "ProductImageCountableConnection",
     edges: [
       {
+        __typename: "ProductImageCountableEdge",
         node: {
+          __typename: "ProductImage",
           id: "img1"
         }
       },
       {
+        __typename: "ProductImageCountableEdge",
         node: {
+          __typename: "ProductImage",
           id: "img2"
         }
       },
       {
+        __typename: "ProductImageCountableEdge",
         node: {
+          __typename: "ProductImage",
           id: "img7"
         }
       },
       {
+        __typename: "ProductImageCountableEdge",
         node: {
+          __typename: "ProductImage",
           id: "img8"
         }
       }
@@ -2306,16 +2349,20 @@ export const variant = (placeholderImage: string) => ({
   },
   name: "Extended Hard",
   priceOverride: {
+    __typename: "Money",
     amount: 100,
-    currency: "USD",
-    localized: "100 USD"
+    currency: "USD"
   },
   product: {
+    __typename: "Product",
     id: "prod1",
     images: {
+      __typename: "ProductImageCountableConnection",
       edges: [
         {
+          __typename: "ProductImageCountableEdge",
           node: {
+            __typename: "ProductImage",
             alt: "Front",
             id: "img1",
             sortOrder: 1,
@@ -2323,7 +2370,9 @@ export const variant = (placeholderImage: string) => ({
           }
         },
         {
+          __typename: "ProductImageCountableEdge",
           node: {
+            __typename: "ProductImage",
             alt: "Back",
             id: "img2",
             sortOrder: 4,
@@ -2331,7 +2380,9 @@ export const variant = (placeholderImage: string) => ({
           }
         },
         {
+          __typename: "ProductImageCountableEdge",
           node: {
+            __typename: "ProductImage",
             alt: "Right side",
             id: "img3",
             sortOrder: 2,
@@ -2339,7 +2390,9 @@ export const variant = (placeholderImage: string) => ({
           }
         },
         {
+          __typename: "ProductImageCountableEdge",
           node: {
+            __typename: "ProductImage",
             alt: "Left side",
             id: "img4",
             sortOrder: 3,
@@ -2347,7 +2400,9 @@ export const variant = (placeholderImage: string) => ({
           }
         },
         {
+          __typename: "ProductImageCountableEdge",
           node: {
+            __typename: "ProductImage",
             alt: "Paper",
             id: "img5",
             sortOrder: 0,
@@ -2355,7 +2410,9 @@ export const variant = (placeholderImage: string) => ({
           }
         },
         {
+          __typename: "ProductImageCountableEdge",
           node: {
+            __typename: "ProductImage",
             alt: "Hard cover",
             id: "img6",
             sortOrder: 1,
@@ -2363,7 +2420,9 @@ export const variant = (placeholderImage: string) => ({
           }
         },
         {
+          __typename: "ProductImageCountableEdge",
           node: {
+            __typename: "ProductImage",
             alt: "Extended version",
             id: "img7",
             sortOrder: 0,
@@ -2371,7 +2430,9 @@ export const variant = (placeholderImage: string) => ({
           }
         },
         {
+          __typename: "ProductImageCountableEdge",
           node: {
+            __typename: "ProductImage",
             alt: "Cut version",
             id: "img8",
             sortOrder: 2,
@@ -2379,7 +2440,9 @@ export const variant = (placeholderImage: string) => ({
           }
         },
         {
+          __typename: "ProductImageCountableEdge",
           node: {
+            __typename: "ProductImage",
             alt: "Soft cover",
             id: "img9",
             sortOrder: 2,
@@ -2391,31 +2454,92 @@ export const variant = (placeholderImage: string) => ({
     name: "Our Awesome Book",
     thumbnailUrl: placeholderImage,
     variants: {
+      __typename: "ProductVariantCountableConnection",
       edges: [
         {
+          __typename: "ProductVariantCountableEdge",
           node: {
+            __typename: "ProductVariant",
             id: "var1",
+            image: {
+              __typename: "ProductImageCountableConnection",
+              edges: [
+                {
+                  __typename: "ProductImageCountableEdge",
+                  node: {
+                    __typename: "ProductImage",
+                    id: "23123",
+                    url: placeholderImage
+                  }
+                }
+              ]
+            },
             name: "Extended Hard",
             sku: "13-1337"
           }
         },
         {
+          __typename: "ProductVariantCountableEdge",
           node: {
+            __typename: "ProductVariant",
             id: "var2",
+            image: {
+              __typename: "ProductImageCountableConnection",
+              edges: [
+                {
+                  __typename: "ProductImageCountableEdge",
+                  node: {
+                    __typename: "ProductImage",
+                    id: "23123",
+                    url: placeholderImage
+                  }
+                }
+              ]
+            },
             name: "Extended Soft",
             sku: "13-1338"
           }
         },
         {
+          __typename: "ProductVariantCountableEdge",
           node: {
+            __typename: "ProductVariant",
             id: "var3",
+            image: {
+              __typename: "ProductImageCountableConnection",
+              edges: [
+                {
+                  __typename: "ProductImageCountableEdge",
+                  node: {
+                    __typename: "ProductImage",
+                    id: "23123",
+                    url: placeholderImage
+                  }
+                }
+              ]
+            },
             name: "Normal Hard",
             sku: "13-1339"
           }
         },
         {
+          __typename: "ProductVariantCountableEdge",
           node: {
+            __typename: "ProductVariant",
             id: "var4",
+            image: {
+              __typename: "ProductImageCountableConnection",
+              edges: [
+                {
+                  __typename: "ProductImageCountableEdge",
+                  node: {
+                    __typename: "ProductImage",
+                    id: "23123",
+                    url: placeholderImage
+                  }
+                }
+              ]
+            },
             name: "Normal Soft",
             sku: "13-1340"
           }
@@ -2427,9 +2551,7 @@ export const variant = (placeholderImage: string) => ({
   quantity: 19,
   quantityAllocated: 12,
   sku: "1230959124123",
-  stock: 49,
-  stockAllocated: 12,
-  stockQuantity: 1
+  
 });
 export const variantImages = (placeholderImage: string) =>
   variant(placeholderImage).images.edges.map(edge => edge.node);
