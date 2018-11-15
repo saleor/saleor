@@ -1,11 +1,11 @@
 import * as React from "react";
 
+import { maybe } from "../../misc";
 import {
   MutationProviderProps,
   MutationProviderRenderProps,
   PartialMutationProviderOutput
 } from "../../types";
-import { maybe } from "../../misc";
 import { OrderAddNote, OrderAddNoteVariables } from "../types/OrderAddNote";
 import { OrderCancel, OrderCancelVariables } from "../types/OrderCancel";
 import { OrderCapture, OrderCaptureVariables } from "../types/OrderCapture";
