@@ -2,7 +2,7 @@ import * as React from "react";
 
 import {
   Filter,
-  FilterChip,
+  FilterChips,
   FilterTab,
   FilterTabs
 } from "../../../components/TableFilter";
@@ -45,7 +45,7 @@ const OrderListFilter: React.StatelessComponent<OrderListFilterProps> = ({
       )}
     </FilterTabs>
     {currentTab === "custom" && filtersList && filtersList.length > 0 && (
-      <FilterChip filtersList={filtersList} />
+      <FilterChips filtersList={filtersList} />
     )}
   </>
 );
