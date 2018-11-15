@@ -1,7 +1,6 @@
 import graphene
 from django.db import transaction
 
-from ...account.models import Address
 from ...checkout import models
 from ...checkout.utils import (
     add_variant_to_cart, change_billing_address_in_cart,
@@ -66,7 +65,6 @@ def check_lines_quantity(variants, quantities):
     """
     # FIXME Add tests
     errors = []
-
     for variant, quantity in zip(variants, quantities):
         try:
             variant.check_quantity(quantity)
@@ -165,10 +163,13 @@ class CheckoutLinesAdd(BaseMutation):
 
     @classmethod
     def mutate(cls, root, info, checkout_id, lines, replace=False):
-        checkout = graphene.Node.get_node_from_global_id(
-            info, checkout_id, Checkout)
-        variants, quantities = None, None
         errors = []
+        checkout = cls.get_node_or_error(
+            info, checkout_id, errors, 'checkout_id', only_type=Checkout)
+        if not checkout:
+            return CheckoutLinesAdd(errors=errors)
+
+        variants, quantities = None, None
         if lines:
             variant_ids = [line.get('variant_id') for line in lines]
             variants = cls.get_nodes_or_error(
@@ -184,15 +185,14 @@ class CheckoutLinesAdd(BaseMutation):
             for variant, quantity in zip(variants, quantities):
                 add_variant_to_cart(
                     checkout, variant, quantity, replace=replace)
+
         # FIXME test if below function is called
         clean_shipping_method(
-            checkout=checkout,
-            method=checkout.shipping_method,
-            errors=errors,
+            checkout=checkout, method=checkout.shipping_method, errors=errors,
             discounts=info.context.discounts,
             taxes=get_taxes_for_address(checkout.shipping_address))
         if errors:
-            CheckoutLinesAdd(errors=errors)
+            return CheckoutLinesAdd(errors=errors)
 
         return CheckoutLinesAdd(checkout=checkout, errors=errors)
 
@@ -232,13 +232,11 @@ class CheckoutLineDelete(BaseMutation):
 
         # FIXME test if below function is called
         clean_shipping_method(
-            checkout=checkout,
-            method=checkout.shipping_method,
-            errors=errors,
+            checkout=checkout, method=checkout.shipping_method, errors=errors,
             discounts=info.context.discounts,
             taxes=get_taxes_for_address(checkout.shipping_address))
         if errors:
-            CheckoutLineDelete(errors=errors)
+            return CheckoutLineDelete(errors=errors)
 
         return CheckoutLineDelete(checkout=checkout, errors=errors)
 
@@ -280,17 +278,18 @@ class CheckoutCustomerDetach(BaseMutation):
     @classmethod
     def mutate(cls, root, info, checkout_id):
         errors = []
-        checkout = graphene.Node.get_node_from_global_id(
-            info, checkout_id, Checkout)
+        checkout = cls.get_node_or_error(
+            info, checkout_id, errors, 'checkout_id', only_type=Checkout)
+        if not checkout:
+            return cls(errors=errors)
         if not checkout.user:
             cls.add_error(
-                errors,
-                field=None,
+                errors, field=None,
                 message='There\'s no customer assigned to this Checkout.')
             return CheckoutCustomerDetach(errors=errors)
-        if checkout:
-            checkout.user = None
-            checkout.save(update_fields=['user'])
+
+        checkout.user = None
+        checkout.save(update_fields=['user'])
         return CheckoutCustomerDetach(checkout=checkout)
 
 
@@ -443,8 +442,7 @@ class CheckoutComplete(BaseMutation):
             order = create_order(
                 cart=checkout,
                 tracking_code=analytics.get_client_id(info.context),
-                discounts=info.context.discounts,
-                taxes=taxes)
+                discounts=info.context.discounts, taxes=taxes)
         except InsufficientStock:
             order = None
             cls.add_error(
@@ -462,6 +460,7 @@ class CheckoutComplete(BaseMutation):
             msg = str(exc)
             cls.add_error(field=None, message=msg, errors=errors)
             return CheckoutComplete(order=order, errors=errors)
+
         # capture payment
         try:
             gateway_capture(payment, payment.total)

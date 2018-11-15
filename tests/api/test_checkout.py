@@ -88,9 +88,7 @@ def test_checkout_lines_add(user_api_client, cart_with_item, variant):
 
     variables = {
         'checkoutId': checkout_id,
-        'lines': [{
-            'variantId': variant_id,
-            'quantity': 1}]}
+        'lines': [{'variantId': variant_id, 'quantity': 1}]}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['checkoutLinesAdd']
@@ -144,6 +142,12 @@ def test_checkout_lines_update(user_api_client, cart_with_item):
     line = cart.lines.first()
     assert line.variant == variant
     assert line.quantity == 1
+
+    # test invalid checkout_id results in error
+    variables = {'checkoutId': 'test', 'lines': []}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content['data']['checkoutLinesUpdate']['errors'][0]['field'] == 'checkoutId'
 
 
 def test_checkout_line_delete(user_api_client, cart_with_item):
