@@ -1,5 +1,5 @@
 export { default } from "./FilterTabs";
-export { Filter } from "./FilterChip";
+export { Filter } from "./FilterChips";
 export * from "./FilterTabs";
 export * from "./FilterTab";
-export * from "./FilterChip";
+export * from "./FilterChips";

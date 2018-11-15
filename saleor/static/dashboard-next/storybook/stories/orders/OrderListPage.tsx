@@ -30,7 +30,7 @@ storiesOf("Views / Orders / Order list", module)
       {...pageListProps.default}
       filtersList={[]}
       onAllProducts={() => undefined}
-      currentTab={0}
+      currentTab="all"
       onToFulfill={() => undefined}
       onToCapture={() => undefined}
       onCustomFilter={() => undefined}
@@ -41,7 +41,7 @@ storiesOf("Views / Orders / Order list", module)
       orders={orders}
       {...pageListProps.loading}
       filtersList={filtersList}
-      currentTab={0}
+      currentTab="custom"
       onAllProducts={() => undefined}
       onToFulfill={() => undefined}
       onToCapture={() => undefined}
@@ -65,7 +65,7 @@ storiesOf("Views / Orders / Order list", module)
       orders={[]}
       {...pageListProps.default}
       filtersList={[]}
-      currentTab={0}
+      currentTab="all"
       onAllProducts={() => undefined}
       onToFulfill={() => undefined}
       onToCapture={() => undefined}

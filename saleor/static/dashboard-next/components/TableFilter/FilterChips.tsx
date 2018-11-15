@@ -17,22 +17,6 @@ interface FilterChipProps {
 }
 
 const decorate = withStyles({
-  addFilterText: {
-    fontWeight: 600 as 600,
-    marginRight: "12px"
-  },
-  filterButton: {
-    alignItems: "center",
-    backgroundColor: "rgba(90, 179, 120, .25)",
-    borderRadius: "19px",
-    cursor: "pointer",
-    display: "flex",
-    height: "38px",
-    justifyContent: "space-around",
-    margin: "10px 0 0 12px",
-    minWidth: "160px",
-    padding: "0 8px 0 16px"
-  },
   addFilterButtonPrimary: {
     "&:hover": {
       backgroundColor: "rgba(90, 179, 120, .25)"
@@ -48,6 +32,22 @@ const decorate = withStyles({
     backgroundColor: "#ffffff",
     border: "2px dashed #03A9F4",
     width: "135px"
+  },
+  addFilterText: {
+    fontWeight: 600 as 600,
+    marginRight: "12px"
+  },
+  filterButton: {
+    alignItems: "center",
+    backgroundColor: "rgba(90, 179, 120, .25)",
+    borderRadius: "19px",
+    cursor: "pointer",
+    display: "flex",
+    height: "38px",
+    justifyContent: "space-around",
+    margin: "10px 0 0 12px",
+    minWidth: "160px",
+    padding: "0 8px 0 16px"
   },
   filterContainer: {
     borderBottom: "1px solid #e8e8e8",
@@ -67,11 +67,15 @@ const decorate = withStyles({
   }
 });
 
-export const FilterChip = decorate<FilterChipProps>(
+export const FilterChips = decorate<FilterChipProps>(
   ({ classes, filtersList }) => (
     <div className={classes.filterContainer}>
       {filtersList.map(filter => (
-        <div className={classes.filterButton} onClick={filter.onClick}>
+        <div
+          className={classes.filterButton}
+          onClick={filter.onClick}
+          key={filter.label}
+        >
           <Typography className={classes.filterText}>{filter.label}</Typography>
           <ClearIcon className={classes.filterIcon} />
         </div>
@@ -93,4 +97,4 @@ export const FilterChip = decorate<FilterChipProps>(
   )
 );
 
-export default FilterChip;
+export default FilterChips;
