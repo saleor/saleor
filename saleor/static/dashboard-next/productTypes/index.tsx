@@ -10,10 +10,6 @@ import ProductTypeListComponent, {
 } from "./views/ProductTypeList";
 import ProductTypeUpdateComponent from "./views/ProductTypeUpdate";
 
-export const productTypeAddUrl = "/productTypes/add/";
-export const productTypeDetailsUrl = (id: string) => `/productTypes/${id}/`;
-export const productTypeListUrl = "/productTypes";
-
 const ProductTypeList: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {

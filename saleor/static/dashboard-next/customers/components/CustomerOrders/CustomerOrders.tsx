@@ -14,8 +14,7 @@ import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import i18n from "../../../i18n";
-import { maybe, renderCollection } from "../../../misc";
-import { transformPaymentStatus } from "../../../orders";
+import { maybe, renderCollection, transformPaymentStatus } from "../../../misc";
 import { CustomerDetails_user_orders_edges_node } from "../../types/CustomerDetails";
 
 export interface CustomerOrdersProps {

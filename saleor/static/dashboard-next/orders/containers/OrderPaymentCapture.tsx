@@ -6,7 +6,7 @@ import { OrderCapture, OrderCaptureVariables } from "../types/OrderCapture";
 import {
   PartialMutationProviderProps,
   PartialMutationProviderRenderProps
-} from "../..";
+} from "../../types";
 
 interface OrderPaymentCaptureProviderProps
   extends PartialMutationProviderProps<OrderCapture> {

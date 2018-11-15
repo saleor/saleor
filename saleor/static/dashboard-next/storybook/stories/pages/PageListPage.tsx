@@ -9,5 +9,7 @@ import { Decorator } from "../../Decorator";
 storiesOf("Views / Pages / Page list", module)
   .addDecorator(Decorator)
   .add("default", () => <PageList pages={pages} {...pageListProps.default} />)
-  .add("loading", () => <PageList {...pageListProps.loading} />)
+  .add("loading", () => (
+    <PageList pages={undefined} {...pageListProps.loading} />
+  ))
   .add("no data", () => <PageList pages={[]} {...pageListProps.default} />);

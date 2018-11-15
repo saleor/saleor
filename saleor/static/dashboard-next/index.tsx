@@ -1,21 +1,22 @@
 import CssBaseline from "@material-ui/core/CssBaseline";
 import MuiThemeProvider from "@material-ui/core/styles/MuiThemeProvider";
 import { defaultDataIdFromObject, InMemoryCache } from "apollo-cache-inmemory";
-import { ApolloClient, ApolloError } from "apollo-client";
+import { ApolloClient } from "apollo-client";
 import { setContext } from "apollo-link-context";
 import { ErrorResponse, onError } from "apollo-link-error";
 import { createUploadLink } from "apollo-upload-client";
 import * as React from "react";
-import { ApolloProvider, MutationFn } from "react-apollo";
+import { ApolloProvider } from "react-apollo";
 import { render } from "react-dom";
 import { BrowserRouter, Route, Switch } from "react-router-dom";
 import * as Cookies from "universal-cookie";
 
-import Auth, { getAuthToken, removeAuthToken } from "./auth";
+import { getAuthToken, removeAuthToken } from "./auth";
 import AuthProvider from "./auth/AuthProvider";
 import LoginLoading from "./auth/components/LoginLoading/LoginLoading";
 import SectionRoute from "./auth/components/SectionRoute";
 import { hasPermission } from "./auth/misc";
+import Login from "./auth/views/Login";
 import CategorySection from "./categories";
 import CollectionSection from "./collections";
 import { DateProvider } from "./components/DateFormatter";
@@ -169,7 +170,7 @@ render(
                     ) : hasToken && tokenVerifyLoading ? (
                       <LoginLoading />
                     ) : (
-                      <Auth loading={tokenAuthLoading} />
+                      <Login loading={tokenAuthLoading} />
                     );
                   }}
                 </AuthProvider>
@@ -182,56 +183,3 @@ render(
   </ApolloProvider>,
   document.querySelector("#dashboard-app")
 );
-
-export interface ListProps {
-  disabled: boolean;
-  pageInfo?: {
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-  };
-  onNextPage: () => void;
-  onPreviousPage: () => void;
-  onRowClick: (id: string) => () => void;
-}
-export interface PageListProps extends ListProps {
-  onAdd: () => void;
-}
-
-export interface UserError {
-  field: string;
-  message: string;
-}
-
-// These interfaces are used in atomic mutation providers, which then are
-// combined into one compound mutation provider
-export interface PartialMutationProviderProps<T extends {} = {}> {
-  onSuccess?: (data: T) => void;
-  onError?: (error: ApolloError) => void;
-}
-export interface PartialMutationProviderOutput<
-  TData extends {} = {},
-  TVariables extends {} = {}
-> {
-  data: TData;
-  loading: boolean;
-  mutate: (variables: TVariables) => void;
-}
-export type PartialMutationProviderRenderProps<
-  TData extends {} = {},
-  TVariables extends {} = {}
-> = (
-  props: {
-    called?: boolean;
-    data: TData;
-    loading: boolean;
-    error?: ApolloError;
-    mutate: MutationFn<TData, TVariables>;
-  }
-) => React.ReactElement<any>;
-
-export interface MutationProviderProps {
-  onError?: (error: ApolloError) => void;
-}
-export type MutationProviderRenderProps<T> = (
-  props: T & { errors?: UserError[] }
-) => React.ReactElement<any>;

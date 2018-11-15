@@ -8,7 +8,7 @@ import Navigator from "../../components/Navigator";
 import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import { decimal, maybe } from "../../misc";
-import { productTypeDetailsUrl } from "../../productTypes";
+import { productTypeDetailsUrl } from "../../productTypes/urls";
 import ProductUpdatePage from "../components/ProductUpdatePage";
 import ProductUpdateOperations from "../containers/ProductUpdateOperations";
 import {

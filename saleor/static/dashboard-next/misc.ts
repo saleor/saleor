@@ -1,5 +1,11 @@
+import { AddressType } from "./customers/types";
 import i18n from "./i18n";
-import { AuthorizationKeyType, TaxRateType } from "./types/globalTypes";
+import {
+  AuthorizationKeyType,
+  OrderStatus,
+  PaymentChargeStatusEnum,
+  TaxRateType
+} from "./types/globalTypes";
 
 export function renderCollection<T>(
   collection: T[],
@@ -25,6 +31,50 @@ export function decimal(value: string) {
 
 export const removeDoubleSlashes = (url: string) =>
   url.replace(/([^:]\/)\/+/g, "$1");
+
+export const transformPaymentStatus = (status: string) => {
+  switch (status) {
+    case PaymentChargeStatusEnum.CHARGED:
+      return { localized: i18n.t("Paid"), status: "success" };
+    case PaymentChargeStatusEnum.FULLY_REFUNDED:
+      return { localized: i18n.t("Refunded"), status: "success" };
+    default:
+      return { localized: i18n.t("Unpaid"), status: "error" };
+  }
+};
+
+export const transformOrderStatus = (status: string) => {
+  switch (status) {
+    case OrderStatus.FULFILLED:
+      return { localized: i18n.t("Fulfilled"), status: "success" };
+    case OrderStatus.PARTIALLY_FULFILLED:
+      return { localized: i18n.t("Partially fulfilled"), status: "neutral" };
+    case OrderStatus.UNFULFILLED:
+      return { localized: i18n.t("Unfulfilled"), status: "error" };
+    case OrderStatus.CANCELED:
+      return { localized: i18n.t("Cancelled"), status: "error" };
+    case OrderStatus.DRAFT:
+      return { localized: i18n.t("Draft"), status: "error" };
+  }
+  return {
+    localized: status,
+    status: "error"
+  };
+};
+
+export const transformAddressToForm = (data: AddressType) => ({
+  city: maybe(() => data.city, ""),
+  cityArea: maybe(() => data.cityArea, ""),
+  companyName: maybe(() => data.companyName, ""),
+  country: maybe(() => data.country.code, ""),
+  countryArea: maybe(() => data.countryArea, ""),
+  firstName: maybe(() => data.firstName, ""),
+  lastName: maybe(() => data.lastName, ""),
+  phone: maybe(() => data.phone, ""),
+  postalCode: maybe(() => data.postalCode, ""),
+  streetAddress1: maybe(() => data.streetAddress1, ""),
+  streetAddress2: maybe(() => data.streetAddress2, "")
+});
 
 export const translatedTaxRates = () => ({
   [TaxRateType.ACCOMMODATION]: i18n.t("Accommodation"),

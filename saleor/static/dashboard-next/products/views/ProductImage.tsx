@@ -18,7 +18,6 @@ interface ProductImageProps {
 
 export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
   imageId,
-
   productId
 }) => (
   <Messages>

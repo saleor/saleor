@@ -1,5 +1,5 @@
-import { productTypeDetailsUrl } from "../..";
 import { AttributeTypeEnum } from "../../../types/globalTypes";
+import { productTypeDetailsUrl } from "../../urls";
 
 export const addAttributeUrl = (
   productTypeId: string,

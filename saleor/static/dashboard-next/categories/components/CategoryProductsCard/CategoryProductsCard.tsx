@@ -2,10 +2,10 @@ import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import * as React from "react";
 
-import { PageListProps } from "../../..";
 import CardTitle from "../../../components/CardTitle";
 import ProductList from "../../../components/ProductList";
 import i18n from "../../../i18n";
+import { PageListProps } from "../../../types";
 import { CategoryDetails_category_products_edges_node } from "../../types/CategoryDetails";
 
 interface CategoryProductsCardProps extends PageListProps {
