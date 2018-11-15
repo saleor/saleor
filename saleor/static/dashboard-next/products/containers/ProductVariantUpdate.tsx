@@ -3,7 +3,7 @@ import * as React from "react";
 import {
   PartialMutationProviderProps,
   PartialMutationProviderRenderProps
-} from "../..";
+} from "../../types";
 import { TypedVariantUpdateMutation } from "../mutations";
 import { VariantUpdate, VariantUpdateVariables } from "../types/VariantUpdate";
 

@@ -6,7 +6,7 @@ import { OrderAddNote, OrderAddNoteVariables } from "../types/OrderAddNote";
 import {
   PartialMutationProviderProps,
   PartialMutationProviderRenderProps
-} from "../..";
+} from "../../types";
 
 interface OrderNoteAddProviderProps
   extends PartialMutationProviderProps<OrderAddNote> {

@@ -1,12 +1,12 @@
 import * as React from "react";
 
-import { productTypeAddUrl, productTypeDetailsUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
 import { createPaginationState, Paginator } from "../../components/Paginator";
 import { maybe } from "../../misc";
 import ProductTypeListPage from "../components/ProductTypeListPage";
 import { TypedProductTypeListQuery } from "../queries";
+import { productTypeAddUrl, productTypeDetailsUrl } from "../urls";
 
 export type ProductTypeListQueryParams = Partial<{
   after: string;

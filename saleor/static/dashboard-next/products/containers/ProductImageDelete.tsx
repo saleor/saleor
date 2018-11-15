@@ -9,7 +9,7 @@ import {
 import {
   PartialMutationProviderProps,
   PartialMutationProviderRenderProps
-} from "../..";
+} from "../../types";
 
 interface ProductImagesDeleteProviderProps
   extends PartialMutationProviderProps<ProductImageDelete> {
