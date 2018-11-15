@@ -3,7 +3,6 @@ import { withStyles, WithStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import { UserError } from "../../..";
 import ActionDialog from "../../../components/ActionDialog";
 import { CardMenu } from "../../../components/CardMenu/CardMenu";
 import { Container } from "../../../components/Container";
@@ -15,6 +14,7 @@ import Skeleton from "../../../components/Skeleton";
 import { AddressTypeInput } from "../../../customers/types";
 import i18n from "../../../i18n";
 import { maybe, transformAddressToForm } from "../../../misc";
+import { UserError } from "../../../types";
 import { DraftOrderInput } from "../../../types/globalTypes";
 import { OrderDetails_order } from "../../types/OrderDetails";
 import { UserSearch_customers_edges_node } from "../../types/UserSearch";

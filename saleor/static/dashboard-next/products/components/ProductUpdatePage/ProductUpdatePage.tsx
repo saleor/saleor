@@ -2,8 +2,6 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import { AttributeType, AttributeValueType, MoneyType } from "../../";
-import { UserError } from "../../../";
 import ActionDialog from "../../../components/ActionDialog";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
@@ -14,7 +12,12 @@ import SaveButtonBar, {
 import SeoForm from "../../../components/SeoForm";
 import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
-import { ProductDetails_product_images_edges_node } from "../../types/ProductDetails";
+import { UserError } from "../../../types";
+import {
+  ProductDetails_product,
+  ProductDetails_product_images_edges_node,
+  ProductDetails_product_variants_edges_node_priceOverride
+} from "../../types/ProductDetails";
 import ProductAvailabilityForm from "../ProductAvailabilityForm";
 import ProductDetailsForm from "../ProductDetailsForm";
 import ProductImages from "../ProductImages";
@@ -43,48 +46,12 @@ interface ProductUpdateProps {
     id: string;
     sku: string;
     name: string;
-    priceOverride?: MoneyType;
+    priceOverride?: ProductDetails_product_variants_edges_node_priceOverride;
     stockQuantity: number;
     margin: number;
   }>;
   images?: ProductDetails_product_images_edges_node[];
-  product?: {
-    id: string;
-    name: string;
-    description: string;
-    seoTitle?: string;
-    seoDescription?: string;
-    isFeatured?: boolean;
-    chargeTaxes?: boolean;
-    productType: {
-      id: string;
-      name: string;
-      hasVariants: boolean;
-    };
-    category: {
-      id: string;
-      name: string;
-    };
-    price: MoneyType;
-    availableOn?: string;
-    isPublished: boolean;
-    attributes: Array<{
-      attribute: AttributeType;
-      value: AttributeValueType;
-    }>;
-    availability: {
-      available: boolean;
-    };
-    purchaseCost: {
-      start: MoneyType;
-      stop: MoneyType;
-    };
-    margin: {
-      start: number;
-      stop: number;
-    };
-    url: string;
-  };
+  product?: ProductDetails_product;
   header: string;
   saveButtonBarState?: SaveButtonBarState;
   onVariantShow: (id: string) => () => void;
@@ -169,7 +136,6 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
             ? productCollections.map(node => node.id)
             : [],
           description: product.description,
-          featured: product.isFeatured,
           name: product.name,
           price: product.price ? product.price.amount.toString() : undefined,
           productType:
@@ -190,14 +156,14 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
             product.productType && product.productType.hasVariants
               ? undefined
               : variants && variants[0]
-                ? variants[0].sku
-                : undefined,
+              ? variants[0].sku
+              : undefined,
           stockQuantity:
             product.productType && product.productType.hasVariants
               ? undefined
               : variants && variants[0]
-                ? variants[0].stockQuantity
-                : undefined
+              ? variants[0].stockQuantity
+              : undefined
         }
       : {
           availableOn: "",

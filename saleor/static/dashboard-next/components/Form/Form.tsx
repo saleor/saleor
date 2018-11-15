@@ -1,5 +1,5 @@
 import * as React from "react";
-import { UserError } from "../../";
+import { UserError } from "../../types";
 
 export interface FormProps<T extends {}> {
   children:
