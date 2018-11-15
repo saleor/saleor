@@ -44,7 +44,10 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
       return (
         <TypedProductListQuery
           query={productListQuery}
-          variables={{ ...paginationState, stockAvailability: params.status }}
+          variables={{
+            ...paginationState,
+            stockAvailability: params.status
+          }}
           fetchPolicy="network-only"
         >
           {({ data, loading, error }) => {
