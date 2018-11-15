@@ -1,4 +1,4 @@
-import { parse as parseQs } from "qs";
+import { parse as parseQs, stringify as stringifyQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
@@ -35,7 +35,14 @@ const Component = ({ match }) => (
   </>
 );
 
-export const orderListUrl = "/orders/";
+export const orderListUrl = (params?: OrderListQueryParams): string => {
+  const orderList = "/orders/";
+  if (params === undefined) {
+    return orderList;
+  } else {
+    return orderList + "?" + stringifyQs(params);
+  }
+};
 
 export const orderUrl = (id: string) => {
   return `/orders/${id}/`;
