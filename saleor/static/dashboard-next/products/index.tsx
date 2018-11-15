@@ -19,7 +19,8 @@ const ProductList: React.StatelessComponent<RouteComponentProps<any>> = ({
   const qs = parseQs(location.search.substr(1));
   const params: ProductListQueryParams = {
     after: qs.after,
-    before: qs.before
+    before: qs.before,
+    status: qs.status
   };
   return <ProductListComponent params={params} />;
 };

@@ -214,8 +214,20 @@ export const TypedProductListQuery = Query as React.ComponentType<
 
 export const productListQuery = gql`
   ${fragmentMoney}
-  query ProductList($first: Int, $after: String, $last: Int, $before: String) {
-    products(before: $before, after: $after, first: $first, last: $last) {
+  query ProductList(
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
+    $stockAvailability: StockAvailability
+  ) {
+    products(
+      before: $before
+      after: $after
+      first: $first
+      last: $last
+      stockAvailability: $stockAvailability
+    ) {
       edges {
         node {
           id
