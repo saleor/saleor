@@ -1,7 +1,6 @@
 import * as React from "react";
 import Navigator from "../../components/Navigator";
 
-import { productTypeDetailsUrl, productTypeListUrl } from "..";
 import Messages from "../../components/messages";
 import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
@@ -12,6 +11,7 @@ import ProductTypeCreatePage, {
 import { TypedProductTypeCreateMutation } from "../mutations";
 import { TypedProductTypeCreateDataQuery } from "../queries";
 import { ProductTypeCreate as ProductTypeCreateMutation } from "../types/ProductTypeCreate";
+import { productTypeDetailsUrl, productTypeListUrl } from "../urls";
 
 export const ProductTypeCreate: React.StatelessComponent = () => (
   <Messages>

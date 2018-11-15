@@ -9,7 +9,7 @@ import {
 import {
   PartialMutationProviderProps,
   PartialMutationProviderRenderProps
-} from "../..";
+} from "../../types";
 
 interface OrderDraftFinalizeMutationProviderProps
   extends PartialMutationProviderProps<OrderDraftFinalize> {

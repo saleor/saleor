@@ -1,6 +1,5 @@
 import * as React from "react";
 
-import { staffMemberDetailsUrl } from "..";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import { createPaginationState, Paginator } from "../../components/Paginator";
@@ -11,6 +10,7 @@ import StaffListPage from "../components/StaffListPage";
 import { TypedStaffMemberAddMutation } from "../mutations";
 import { TypedStaffListQuery } from "../queries";
 import { StaffMemberAdd } from "../types/StaffMemberAdd";
+import { staffMemberDetailsUrl } from "../urls";
 
 export type StaffListQueryParams = Partial<{
   after: string;

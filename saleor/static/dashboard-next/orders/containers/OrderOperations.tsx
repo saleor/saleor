@@ -4,7 +4,7 @@ import {
   MutationProviderProps,
   MutationProviderRenderProps,
   PartialMutationProviderOutput
-} from "../..";
+} from "../../types";
 import { maybe } from "../../misc";
 import { OrderAddNote, OrderAddNoteVariables } from "../types/OrderAddNote";
 import { OrderCancel, OrderCancelVariables } from "../types/OrderCancel";

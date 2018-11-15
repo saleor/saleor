@@ -6,7 +6,7 @@ import {
   PartialMutationProviderOutput,
   PartialMutationProviderProps,
   PartialMutationProviderRenderProps
-} from "../..";
+} from "../../types";
 import {
   TypedProductDeleteMutation,
   TypedProductImageCreateMutation,
