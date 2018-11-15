@@ -34639,8 +34639,116 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
                   </span>
                 </span>
               </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      Custom Filter
+                    </span>
+                  </span>
+                </span>
+              </button>
             </div>
           </div>
+        </div>
+      </div>
+      <div
+        class="Component-filterContainer-id"
+      >
+        <div
+          class="Component-filterButton-id"
+        >
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id Component-filterText-id"
+          >
+            Gardner-Schultz
+          </p>
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-id Component-filterIcon-id"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+              />
+            </g>
+          </svg>
+        </div>
+        <div
+          class="Component-filterButton-id"
+        >
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id Component-filterText-id"
+          >
+            Davis, Brown and Ray
+          </p>
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-id Component-filterIcon-id"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+              />
+            </g>
+          </svg>
+        </div>
+        <div
+          class="Component-filterButton-id"
+        >
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id Component-filterText-id"
+          >
+            Franklin Inc
+          </p>
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-id Component-filterIcon-id"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+              />
+            </g>
+          </svg>
+        </div>
+        <div
+          class="Component-filterButton-id Component-addFilterButtonPrimary-id"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-id MuiSvgIcon-colorPrimary-id"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+            </g>
+          </svg>
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id Component-addFilterText-id"
+          >
+            Add Filter
+          </p>
         </div>
       </div>
       <table
