@@ -10,11 +10,11 @@ import i18n from "../../../i18n";
 import { PageListProps } from "../../../types";
 import { OrderList_orders_edges_node } from "../../types/OrderList";
 import OrderList from "../OrderList";
-import OrderListFilter from "../OrderListFilter";
+import OrderListFilter, { OrderListFilterTabs } from "../OrderListFilter";
 
 interface OrderListPageProps extends PageListProps {
   orders: OrderList_orders_edges_node[];
-  currentTab: number;
+  currentTab: OrderListFilterTabs;
   filtersList: Filter[];
   onAllProducts: () => void;
   onToFulfill: () => void;

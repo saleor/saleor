@@ -13,7 +13,8 @@ const OrderList: React.StatelessComponent<RouteComponentProps<any>> = ({
   const qs = parseQs(location.search.substr(1));
   const params: OrderListQueryParams = {
     after: qs.after,
-    before: qs.before
+    before: qs.before,
+    status: qs.status
   };
   return <OrderListComponent params={params} />;
 };

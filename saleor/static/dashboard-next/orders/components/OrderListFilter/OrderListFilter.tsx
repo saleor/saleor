@@ -8,8 +8,10 @@ import {
 } from "../../../components/TableFilter";
 import i18n from "../../../i18n";
 
+export type OrderListFilterTabs = "all" | "toFulfill" | "toCapture" | "custom";
+
 interface OrderListFilterProps {
-  currentTab: number;
+  currentTab: OrderListFilterTabs;
   filtersList: Filter[];
   onAllProducts: () => void;
   onToFulfill: () => void;
@@ -26,23 +28,25 @@ const OrderListFilter: React.StatelessComponent<OrderListFilterProps> = ({
   onCustomFilter
 }) => (
   <>
-    <FilterTabs currentTab={currentTab}>
-      <FilterTab label={i18n.t("All Products")} onClick={onAllProducts} />
+    <FilterTabs
+      currentTab={["all", "toFulfill", "toCapture", "custom"].indexOf(
+        currentTab
+      )}
+    >
+      <FilterTab label={i18n.t("All Orders")} onClick={onAllProducts} />
       <FilterTab label={i18n.t("Ready to fulfill")} onClick={onToFulfill} />
       <FilterTab label={i18n.t("Ready to capture")} onClick={onToCapture} />
-      {(currentTab === 0 || undefined) &&
-        filtersList &&
-        filtersList.length > 0 && (
-          <FilterTab
-            onClick={onCustomFilter}
-            value={0}
-            label={i18n.t("Custom Filter")}
-          />
-        )}
+      {currentTab === "custom" && filtersList && filtersList.length > 0 && (
+        <FilterTab
+          onClick={onCustomFilter}
+          value={0}
+          label={i18n.t("Custom Filter")}
+        />
+      )}
     </FilterTabs>
-    {(currentTab === 0 || undefined) &&
-      filtersList &&
-      filtersList.length > 0 && <FilterChip filtersList={filtersList} />}
+    {currentTab === "custom" && filtersList && filtersList.length > 0 && (
+      <FilterChip filtersList={filtersList} />
+    )}
   </>
 );
 OrderListFilter.displayName = "OrderListFilter";
