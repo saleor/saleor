@@ -12,13 +12,13 @@ import Typography from "@material-ui/core/Typography";
 import * as classNames from "classnames";
 import * as React from "react";
 
-import { MoneyType } from "../..";
 import CardTitle from "../../../components/CardTitle";
 import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
+import { ProductVariant_costPrice } from "../../types/ProductVariant";
 
 interface ProductVariantsProps {
   disabled?: boolean;
@@ -26,11 +26,11 @@ interface ProductVariantsProps {
     id: string;
     sku: string;
     name: string;
-    priceOverride?: MoneyType;
+    priceOverride?: ProductVariant_costPrice;
     stockQuantity: number;
     margin: number;
   }>;
-  fallbackPrice?: MoneyType;
+  fallbackPrice?: ProductVariant_costPrice;
   onAttributesEdit: () => void;
   onRowClick: (id: string) => () => void;
   onVariantAdd?();

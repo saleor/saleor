@@ -7,11 +7,11 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import { ListProps } from "../..";
 import { CategoryDetails_category_products_edges_node } from "../../categories/types/CategoryDetails";
 import TableCellAvatar from "../../components/TableCellAvatar";
 import i18n from "../../i18n";
 import { renderCollection } from "../../misc";
+import { ListProps } from "../../types";
 import Money from "../Money";
 import Skeleton from "../Skeleton";
 import StatusLabel from "../StatusLabel";

@@ -3,7 +3,6 @@ import CardContent from "@material-ui/core/CardContent";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import { UserError } from "../../..";
 import { CardSpacer } from "../../../components/CardSpacer";
 import CardTitle from "../../../components/CardTitle";
 import { Container } from "../../../components/Container";
@@ -13,6 +12,7 @@ import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
 import i18n from "../../../i18n";
+import { UserError } from "../../../types";
 import CollectionDetails from "../CollectionDetails/CollectionDetails";
 import { CollectionImage } from "../CollectionImage/CollectionImage";
 

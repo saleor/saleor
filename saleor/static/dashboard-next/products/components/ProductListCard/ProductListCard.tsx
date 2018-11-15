@@ -3,12 +3,12 @@ import Card from "@material-ui/core/Card";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
-import { PageListProps } from "../../..";
 import { CategoryDetails_category_products_edges_node } from "../../../categories/types/CategoryDetails";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import ProductList from "../../../components/ProductList";
 import i18n from "../../../i18n";
+import { PageListProps } from "../../../types";
 
 interface ProductListCardProps extends PageListProps {
   products: CategoryDetails_category_products_edges_node[];

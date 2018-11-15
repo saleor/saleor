@@ -11,9 +11,9 @@ import Monetization from "../icons/Monetization";
 import Navigation from "../icons/Navigation";
 import Pages from "../icons/Pages";
 import StoreMall from "../icons/StoreMall";
-import { productTypeListUrl } from "../productTypes";
-import { siteSettingsUrl } from "../siteSettings";
-import { staffListUrl } from "../staff";
+import { productTypeListUrl } from "../productTypes/urls";
+import { siteSettingsUrl } from "../siteSettings/urls";
+import { staffListUrl } from "../staff/urls";
 import { PermissionEnum } from "../types/globalTypes";
 import ConfigurationPage, { MenuItem } from "./ConfigurationPage";
 

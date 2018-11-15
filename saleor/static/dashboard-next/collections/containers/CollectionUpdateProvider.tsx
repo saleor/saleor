@@ -9,7 +9,7 @@ import {
 import {
   PartialMutationProviderProps,
   PartialMutationProviderRenderProps
-} from "../..";
+} from "../../types";
 
 interface CollectionUpdateProviderProps
   extends PartialMutationProviderProps<CollectionUpdate> {

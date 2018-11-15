@@ -1,6 +1,5 @@
 import * as React from "react";
 
-import { staffListUrl } from "..";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import { WindowTitle } from "../../components/WindowTitle";
@@ -14,6 +13,7 @@ import {
 import { TypedStaffMemberDetailsQuery } from "../queries";
 import { StaffMemberDelete } from "../types/StaffMemberDelete";
 import { StaffMemberUpdate } from "../types/StaffMemberUpdate";
+import { staffListUrl } from "../urls";
 
 interface OrderListProps {
   id: string;

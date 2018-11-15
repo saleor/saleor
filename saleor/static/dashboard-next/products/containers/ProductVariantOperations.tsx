@@ -4,7 +4,7 @@ import {
   MutationProviderProps,
   MutationProviderRenderProps,
   PartialMutationProviderOutput
-} from "../..";
+} from "../../types";
 import { VariantDelete } from "../types/VariantDelete";
 import {
   VariantImageAssign,

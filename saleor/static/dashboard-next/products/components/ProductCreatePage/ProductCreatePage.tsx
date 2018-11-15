@@ -1,8 +1,6 @@
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import { AttributeType } from "../../";
-import { UserError } from "../../../";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
@@ -11,6 +9,8 @@ import SaveButtonBar, {
 } from "../../../components/SaveButtonBar/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
 import i18n from "../../../i18n";
+import { UserError } from "../../../types";
+import { ProductCreateData_productTypes_edges_node_productAttributes } from "../../types/ProductCreateData";
 import ProductAvailabilityForm from "../ProductAvailabilityForm";
 import ProductDetailsForm from "../ProductDetailsForm";
 import ProductOrganization from "../ProductOrganization";
@@ -35,7 +35,7 @@ interface FormData {
       hasVariants: boolean;
       id: string;
       name: string;
-      productAttributes: AttributeType[];
+      productAttributes: ProductCreateData_productTypes_edges_node_productAttributes[];
     };
   };
   seoDescription: string;
@@ -59,7 +59,7 @@ interface ProductCreatePageProps {
     id: string;
     name: string;
     hasVariants: boolean;
-    productAttributes: AttributeType[];
+    productAttributes: ProductCreateData_productTypes_edges_node_productAttributes[];
   }>;
   header: string;
   saveButtonBarState?: SaveButtonBarState;
@@ -118,7 +118,7 @@ export const ProductCreatePage = decorate<ProductCreatePageProps>(
           hasVariants: false,
           id: "",
           name: "",
-          productAttributes: [] as AttributeType[]
+          productAttributes: [] as ProductCreateData_productTypes_edges_node_productAttributes[]
         }
       },
       seoDescription: "",

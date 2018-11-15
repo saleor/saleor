@@ -38882,7 +38882,15 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                         type="number"
                         value=""
                       />
-                      <span />
+                      <div
+                        class="MuiInputAdornment-root-id MuiInputAdornment-positionEnd-id Component-currencySymbol-id"
+                      >
+                        <p
+                          class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
+                        >
+                          USD
+                        </p>
+                      </div>
                     </div>
                     <p
                       class="MuiFormHelperText-root-id"
@@ -38912,7 +38920,15 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                         type="number"
                         value=""
                       />
-                      <span />
+                      <div
+                        class="MuiInputAdornment-root-id MuiInputAdornment-positionEnd-id Component-currencySymbol-id"
+                      >
+                        <p
+                          class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
+                        >
+                          USD
+                        </p>
+                      </div>
                     </div>
                     <p
                       class="MuiFormHelperText-root-id"
@@ -39233,7 +39249,15 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
                         type="number"
                         value=""
                       />
-                      <span />
+                      <div
+                        class="MuiInputAdornment-root-id MuiInputAdornment-positionEnd-id Component-currencySymbol-id"
+                      >
+                        <p
+                          class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
+                        >
+                          USD
+                        </p>
+                      </div>
                     </div>
                     <p
                       class="MuiFormHelperText-root-id"
@@ -39264,7 +39288,15 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
                         type="number"
                         value=""
                       />
-                      <span />
+                      <div
+                        class="MuiInputAdornment-root-id MuiInputAdornment-positionEnd-id Component-currencySymbol-id"
+                      >
+                        <p
+                          class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
+                        >
+                          USD
+                        </p>
+                      </div>
                     </div>
                     <p
                       class="MuiFormHelperText-root-id"
@@ -39636,7 +39668,15 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                         type="number"
                         value=""
                       />
-                      <span />
+                      <div
+                        class="MuiInputAdornment-root-id MuiInputAdornment-positionEnd-id Component-currencySymbol-id"
+                      >
+                        <p
+                          class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
+                        >
+                          USD
+                        </p>
+                      </div>
                     </div>
                     <p
                       class="MuiFormHelperText-root-id MuiFormHelperText-error-id"
@@ -39666,7 +39706,15 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                         type="number"
                         value=""
                       />
-                      <span />
+                      <div
+                        class="MuiInputAdornment-root-id MuiInputAdornment-positionEnd-id Component-currencySymbol-id"
+                      >
+                        <p
+                          class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
+                        >
+                          USD
+                        </p>
+                      </div>
                     </div>
                     <p
                       class="MuiFormHelperText-root-id MuiFormHelperText-error-id"
@@ -45162,20 +45210,12 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                     class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id Component-tabActive-id"
                   >
                     <div
-                      class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
+                      class="MuiAvatar-root-id Component-avatar-id"
                     >
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id"
-                        focusable="false"
-                        viewBox="0 0 24 24"
-                      >
-                        <g>
-                          <path
-                            d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
-                          />
-                        </g>
-                      </svg>
+                      <img
+                        class="MuiAvatar-img-id"
+                        src="placeholder60x60.png"
+                      />
                     </div>
                   </td>
                   <td
@@ -45191,20 +45231,12 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                     class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                   >
                     <div
-                      class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
+                      class="MuiAvatar-root-id Component-avatar-id"
                     >
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id"
-                        focusable="false"
-                        viewBox="0 0 24 24"
-                      >
-                        <g>
-                          <path
-                            d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
-                          />
-                        </g>
-                      </svg>
+                      <img
+                        class="MuiAvatar-img-id"
+                        src="placeholder60x60.png"
+                      />
                     </div>
                   </td>
                   <td
@@ -45220,20 +45252,12 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                     class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                   >
                     <div
-                      class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
+                      class="MuiAvatar-root-id Component-avatar-id"
                     >
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id"
-                        focusable="false"
-                        viewBox="0 0 24 24"
-                      >
-                        <g>
-                          <path
-                            d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
-                          />
-                        </g>
-                      </svg>
+                      <img
+                        class="MuiAvatar-img-id"
+                        src="placeholder60x60.png"
+                      />
                     </div>
                   </td>
                   <td
@@ -45249,20 +45273,12 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                     class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                   >
                     <div
-                      class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
+                      class="MuiAvatar-root-id Component-avatar-id"
                     >
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id"
-                        focusable="false"
-                        viewBox="0 0 24 24"
-                      >
-                        <g>
-                          <path
-                            d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
-                          />
-                        </g>
-                      </svg>
+                      <img
+                        class="MuiAvatar-img-id"
+                        src="placeholder60x60.png"
+                      />
                     </div>
                   </td>
                   <td
@@ -45541,8 +45557,8 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                     class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                   >
                     <label
-                      class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                      data-shrink="false"
+                      class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                      data-shrink="true"
                       for="costPrice"
                     >
                       Cost price override
@@ -45555,7 +45571,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                         class="MuiInput-input-id MuiInput-inputType-id"
                         name="costPrice"
                         type="number"
-                        value=""
+                        value="12"
                       />
                       <div
                         class="MuiInputAdornment-root-id MuiInputAdornment-positionEnd-id Component-currencySymbol-id"
@@ -45568,7 +45584,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                       </div>
                     </div>
                     <p
-                      class="MuiFormHelperText-root-id"
+                      class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
                     >
                       Optional
                     </p>

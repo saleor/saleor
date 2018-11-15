@@ -1,7 +1,6 @@
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import { UserError } from "../../../";
 import { CardSpacer } from "../../../components/CardSpacer";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
@@ -13,6 +12,7 @@ import SeoForm from "../../../components/SeoForm";
 import Tabs, { Tab } from "../../../components/Tab";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
+import { UserError } from "../../../types";
 import CategoryDetailsForm from "../../components/CategoryDetailsForm";
 import CategoryList from "../../components/CategoryList";
 import {

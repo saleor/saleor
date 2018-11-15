@@ -9,12 +9,12 @@ import TableRow from "@material-ui/core/TableRow";
 import * as classNames from "classnames";
 import * as React from "react";
 
-import { ListProps } from "../../..";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
+import { ListProps } from "../../../types";
 import { StaffList_staffUsers_edges_node } from "../../types/StaffList";
 
 interface StaffListProps extends ListProps {

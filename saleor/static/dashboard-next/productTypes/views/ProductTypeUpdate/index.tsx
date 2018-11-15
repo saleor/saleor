@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Route } from "react-router-dom";
 
-import { productTypeDetailsUrl, productTypeListUrl } from "../../";
 import Messages from "../../../components/messages";
 import Navigator from "../../../components/Navigator";
 import { WindowTitle } from "../../../components/WindowTitle";
@@ -21,6 +20,7 @@ import { AttributeDelete } from "../../types/AttributeDelete";
 import { AttributeUpdate } from "../../types/AttributeUpdate";
 import { ProductTypeDelete } from "../../types/ProductTypeDelete";
 import { ProductTypeUpdate as ProductTypeUpdateMutation } from "../../types/ProductTypeUpdate";
+import { productTypeDetailsUrl, productTypeListUrl } from "../../urls";
 import { ProductTypeUpdateErrors } from "./errors";
 import { addAttributeUrl, editAttributeUrl } from "./urls";
 

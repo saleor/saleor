@@ -3,15 +3,15 @@ import CardContent from "@material-ui/core/CardContent";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import { AttributeType } from "../..";
 import CardTitle from "../../../components/CardTitle";
 import { FormSpacer } from "../../../components/FormSpacer";
 import SingleAutocompleteSelectField from "../../../components/SingleAutocompleteSelectField";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
+import { ProductVariant_attributes_attribute } from "../../types/ProductVariant";
 
 interface ProductVariantAttributesProps {
-  attributes?: AttributeType[];
+  attributes?: ProductVariant_attributes_attribute[];
   data: {
     attributes?: Array<{
       slug: string;
@@ -94,11 +94,10 @@ const ProductVariantAttributes = decorate<ProductVariantAttributesProps>(
                   target: {
                     ...event.target,
                     name: "attributes",
-                    value: data.attributes.map(
-                      a =>
-                        a.slug === event.target.name
-                          ? { slug: a.slug, value: event.target.value.value }
-                          : a
+                    value: data.attributes.map(a =>
+                      a.slug === event.target.name
+                        ? { slug: a.slug, value: event.target.value.value }
+                        : a
                     )
                   }
                 });
