@@ -1,4 +1,4 @@
-import { parse as parseQs } from "qs";
+import { parse as parseQs, stringify as stringifyQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
@@ -104,7 +104,14 @@ export const productVariantEditUrl = (productId: string, variantId: string) => {
 export const productImageUrl = (productId: string, imageId: string) =>
   `/products/${productId}/image/${imageId}/`;
 
-export const productListUrl = "/products/";
+export const productListUrl = (params?: ProductListQueryParams): string => {
+  const productList = "/products/";
+  if (params === undefined) {
+    return productList;
+  } else {
+    return productList + "?" + stringifyQs(params);
+  }
+};
 export const productAddUrl = "/products/add/";
 
 export interface AttributeType {
