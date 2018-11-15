@@ -62,6 +62,11 @@ export enum OrderStatus {
   UNFULFILLED = "UNFULFILLED",
 }
 
+export enum OrderStatusFilter {
+  READY_TO_CAPTURE = "READY_TO_CAPTURE",
+  READY_TO_FULFILL = "READY_TO_FULFILL",
+}
+
 export enum PaymentChargeStatusEnum {
   CHARGED = "CHARGED",
   FULLY_REFUNDED = "FULLY_REFUNDED",
