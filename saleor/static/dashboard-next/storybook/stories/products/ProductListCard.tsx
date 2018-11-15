@@ -32,7 +32,7 @@ storiesOf("Views / Products / Product list", module)
   .add("default", () => (
     <ProductListCard
       filtersList={[]}
-      currentTab={0}
+      currentTab="all"
       products={products}
       {...pageListProps.default}
       onAllProducts={() => undefined}
@@ -46,7 +46,7 @@ storiesOf("Views / Products / Product list", module)
       products={products}
       {...pageListProps.default}
       filtersList={filtersList}
-      currentTab={0}
+      currentTab="custom"
       onAllProducts={() => undefined}
       onAvailable={() => undefined}
       onOfStock={() => undefined}
@@ -70,7 +70,7 @@ storiesOf("Views / Products / Product list", module)
       products={[]}
       {...pageListProps.default}
       filtersList={[]}
-      currentTab={0}
+      currentTab="all"
       onAllProducts={() => undefined}
       onAvailable={() => undefined}
       onOfStock={() => undefined}

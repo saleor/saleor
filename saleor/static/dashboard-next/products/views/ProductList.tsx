@@ -1,3 +1,4 @@
+import { stringify as stringifyQs } from "qs";
 import * as React from "react";
 
 import { productAddUrl, productUrl } from "..";
@@ -5,13 +6,20 @@ import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
 import { createPaginationState, Paginator } from "../../components/Paginator";
 import { maybe } from "../../misc";
+import { StockAvailability } from "../../types/globalTypes";
 import ProductListCard from "../components/ProductListCard";
+import { getTabName } from "../misc";
 import { productListQuery, TypedProductListQuery } from "../queries";
 
-export type ProductListQueryParams = Partial<{
-  after: string;
-  before: string;
-}>;
+export interface ProductListFilters {
+  status: StockAvailability;
+}
+export type ProductListQueryParams = Partial<
+  {
+    after: string;
+    before: string;
+  } & ProductListFilters
+>;
 
 interface ProductListProps {
   params: ProductListQueryParams;
@@ -24,11 +32,19 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
 }) => (
   <Navigator>
     {navigate => {
+      const changeFilters = (newParams: ProductListQueryParams) =>
+        navigate(
+          "?" +
+            stringifyQs({
+              ...params,
+              ...newParams
+            })
+        );
       const paginationState = createPaginationState(PAGINATE_BY, params);
       return (
         <TypedProductListQuery
           query={productListQuery}
-          variables={paginationState}
+          variables={{ ...paginationState, stockAvailability: params.status }}
           fetchPolicy="network-only"
         >
           {({ data, loading, error }) => {
@@ -36,7 +52,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
               return <ErrorMessageCard message="Something went wrong" />;
             }
 
-            const currentTab = "all";
+            const currentTab = getTabName(params);
             return (
               <Paginator
                 pageInfo={maybe(() => data.products.pageInfo)}
@@ -61,10 +77,22 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                     pageInfo={pageInfo}
                     onRowClick={id => () =>
                       navigate(productUrl(encodeURIComponent(id)))}
-                    onAllProducts={() => undefined}
+                    onAllProducts={() =>
+                      changeFilters({
+                        status: undefined
+                      })
+                    }
                     onCustomFilter={() => undefined}
-                    onAvailable={() => undefined}
-                    onOfStock={() => undefined}
+                    onAvailable={() =>
+                      changeFilters({
+                        status: StockAvailability.IN_STOCK
+                      })
+                    }
+                    onOfStock={() =>
+                      changeFilters({
+                        status: StockAvailability.OUT_OF_STOCK
+                      })
+                    }
                   />
                 )}
               </Paginator>
