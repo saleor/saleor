@@ -4,6 +4,7 @@ import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
+import { orderListUrl, orderUrl } from "./urls";
 import OrderDetailsComponent from "./views/OrderDetails";
 import OrderListComponent, { OrderListQueryParams } from "./views/OrderList";
 
@@ -25,12 +26,12 @@ const OrderDetails: React.StatelessComponent<RouteComponentProps<any>> = ({
   return <OrderDetailsComponent id={decodeURIComponent(match.params.id)} />;
 };
 
-const Component = ({ match }) => (
+const Component = () => (
   <>
     <WindowTitle title={i18n.t("Orders")} />
     <Switch>
-      <Route exact path={match.url} component={OrderList} />
-      <Route exact path={`${match.url}/:id/`} component={OrderDetails} />
+      <Route exact path={orderListUrl()} component={OrderList} />
+      <Route exact path={orderUrl(":id")} component={OrderDetails} />
     </Switch>
   </>
 );
