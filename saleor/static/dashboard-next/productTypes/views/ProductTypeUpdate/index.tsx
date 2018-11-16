@@ -20,7 +20,7 @@ import { AttributeDelete } from "../../types/AttributeDelete";
 import { AttributeUpdate } from "../../types/AttributeUpdate";
 import { ProductTypeDelete } from "../../types/ProductTypeDelete";
 import { ProductTypeUpdate as ProductTypeUpdateMutation } from "../../types/ProductTypeUpdate";
-import { productTypeDetailsUrl, productTypeListUrl } from "../../urls";
+import { productTypeListUrl, productTypeUrl } from "../../urls";
 import { ProductTypeUpdateErrors } from "./errors";
 import { addAttributeUrl, editAttributeUrl } from "./urls";
 
@@ -40,10 +40,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
               <TypedProductTypeDetailsQuery variables={{ id }}>
                 {({ data, loading: dataLoading }) => {
                   const closeModal = () => {
-                    navigate(
-                      productTypeDetailsUrl(encodeURIComponent(id)),
-                      true
-                    );
+                    navigate(productTypeUrl(encodeURIComponent(id)), true);
                     setErrors.addAttributeErrors([]);
                     setErrors.editAttributeErrors([]);
                   };

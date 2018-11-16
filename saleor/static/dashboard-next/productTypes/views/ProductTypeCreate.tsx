@@ -11,7 +11,7 @@ import ProductTypeCreatePage, {
 import { TypedProductTypeCreateMutation } from "../mutations";
 import { TypedProductTypeCreateDataQuery } from "../queries";
 import { ProductTypeCreate as ProductTypeCreateMutation } from "../types/ProductTypeCreate";
-import { productTypeDetailsUrl, productTypeListUrl } from "../urls";
+import { productTypeListUrl, productTypeUrl } from "../urls";
 
 export const ProductTypeCreate: React.StatelessComponent = () => (
   <Messages>
@@ -26,9 +26,7 @@ export const ProductTypeCreate: React.StatelessComponent = () => (
                 text: i18n.t("Successfully created product type")
               });
               navigate(
-                productTypeDetailsUrl(
-                  updateData.productTypeCreate.productType.id
-                )
+                productTypeUrl(updateData.productTypeCreate.productType.id)
               );
             }
           };

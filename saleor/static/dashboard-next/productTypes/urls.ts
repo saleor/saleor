@@ -1,3 +1,6 @@
-export const productTypeAddUrl = "/productTypes/add/";
-export const productTypeDetailsUrl = (id: string) => `/productTypes/${id}/`;
-export const productTypeListUrl = "/productTypes";
+import * as urlJoin from "url-join";
+
+const productTypeSection = "/productTypes/";
+export const productTypeListUrl = productTypeSection;
+export const productTypeAddUrl = urlJoin(productTypeSection, "add");
+export const productTypeUrl = (id: string) => urlJoin(productTypeSection, id);
