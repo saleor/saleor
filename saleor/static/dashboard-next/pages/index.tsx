@@ -35,15 +35,4 @@ const Component = ({ match }) => (
   </>
 );
 
-export function pageEditUrl(id: string) {
-  return `/pages/${id}/`;
-}
-
-export function pageStorefrontUrl(slug: string) {
-  return `/page/${slug}/`;
-}
-
-export const pageListUrl = "/pages/";
-export const pageAddUrl = "/pages/add/";
-
 export default Component;
