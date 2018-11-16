@@ -14,7 +14,7 @@ interface ActionDialogProps {
   title: string;
   variant?: string;
   onClose?();
-  onConfirm?(event: React.FormEvent<any>);
+  onConfirm();
 }
 
 const decorate = withStyles(theme => ({

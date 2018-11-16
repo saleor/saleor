@@ -4,7 +4,7 @@ import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
-import { staffListUrl, staffMemberDetailsUrl } from "./urls";
+import { staffListUrl, staffMemberAddUrl, staffMemberDetailsUrl } from "./urls";
 import StaffDetailsComponent from "./views/StaffDetails";
 import StaffListComponent, { StaffListQueryParams } from "./views/StaffList";
 
@@ -33,11 +33,8 @@ const Component = () => (
     <WindowTitle title={i18n.t("Staff")} />
     <Switch>
       <Route exact path={staffListUrl} component={StaffList} />
-      <Route
-        exact
-        path={staffMemberDetailsUrl(":id")}
-        component={StaffDetails}
-      />
+      <Route exact path={staffMemberAddUrl} component={StaffList} />
+      <Route path={staffMemberDetailsUrl(":id")} component={StaffDetails} />
     </Switch>
   </>
 );
