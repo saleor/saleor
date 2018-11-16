@@ -9,12 +9,30 @@ from tests.api.utils import get_graphql_content
 from tests.utils import create_image, create_pdf_file_with_image_ext
 
 from saleor.graphql.core.types import ReportingPeriod
-from saleor.graphql.product.types import StockAvailability
+from saleor.graphql.product.types import (
+    StockAvailability, resolve_attribute_list)
 from saleor.product.models import (
-    Category, Product, ProductImage, ProductType, ProductVariant)
+    Attribute, AttributeValue, Category, Product, ProductImage, ProductType,
+    ProductVariant)
 from saleor.product.tasks import update_variants_names
 
 from .utils import assert_no_permission, get_multipart_request_body
+
+
+def test_resolve_attribute_list(color_attribute):
+    value = color_attribute.values.first()
+    attributes_hstore = {str(color_attribute.pk): str(value.pk)}
+    res = resolve_attribute_list(attributes_hstore, Attribute.objects.all())
+    assert len(res) == 1
+    assert res[0].attribute.name == color_attribute.name
+    assert res[0].value.name == value.name
+
+    # test passing invalid hstore should resolve to empty list
+    attr_pk = str(Attribute.objects.order_by('pk').last().pk + 1)
+    val_pk = str(AttributeValue.objects.order_by('pk').last().pk + 1)
+    attributes_hstore = {attr_pk: val_pk}
+    res = resolve_attribute_list(attributes_hstore, Attribute.objects.all())
+    assert res == []
 
 
 def test_fetch_all_products(user_api_client, product):

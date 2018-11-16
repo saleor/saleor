@@ -88,8 +88,8 @@ export interface ProductUpdate_productUpdate_product_attributes_value {
 
 export interface ProductUpdate_productUpdate_product_attributes {
   __typename: "SelectedAttribute";
-  attribute: ProductUpdate_productUpdate_product_attributes_attribute | null;
-  value: ProductUpdate_productUpdate_product_attributes_value | null;
+  attribute: ProductUpdate_productUpdate_product_attributes_attribute;
+  value: ProductUpdate_productUpdate_product_attributes_value;
 }
 
 export interface ProductUpdate_productUpdate_product_availability_priceRange_start_net {
@@ -192,7 +192,7 @@ export interface ProductUpdate_productUpdate_product {
   isPublished: boolean;
   chargeTaxes: boolean;
   availableOn: any | null;
-  attributes: (ProductUpdate_productUpdate_product_attributes | null)[] | null;
+  attributes: ProductUpdate_productUpdate_product_attributes[];
   availability: ProductUpdate_productUpdate_product_availability | null;
   images: ProductUpdate_productUpdate_product_images | null;
   variants: ProductUpdate_productUpdate_product_variants | null;
