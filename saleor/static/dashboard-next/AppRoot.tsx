@@ -36,7 +36,7 @@ import Home from "./icons/Home";
 import Shop from "./icons/Shop";
 import Truck from "./icons/Truck";
 import { removeDoubleSlashes } from "./misc";
-import { orderListUrl } from "./orders";
+import { orderListUrl } from "./orders/urls";
 import { productListUrl } from "./products";
 import { PermissionEnum } from "./types/globalTypes";
 
