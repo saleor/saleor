@@ -4,7 +4,7 @@ import { UserContext } from "../../auth";
 import Navigator from "../../components/Navigator";
 import { maybe } from "../../misc";
 import { orderListUrl } from "../../orders/urls";
-import { productListUrl, productVariantEditUrl } from "../../products";
+import { productListUrl, productVariantEditUrl } from "../../products/urls";
 import { OrderStatusFilter, StockAvailability } from "../../types/globalTypes";
 import HomePage from "../components/HomePage";
 import { HomePageQuery } from "../queries";

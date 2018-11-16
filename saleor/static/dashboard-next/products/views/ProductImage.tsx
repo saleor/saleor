@@ -1,6 +1,5 @@
 import * as React from "react";
 
-import { productImageUrl, productUrl } from "..";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import ProductImagePage from "../components/ProductImagePage";
@@ -10,6 +9,7 @@ import {
 } from "../mutations";
 import { productImageQuery, TypedProductImageQuery } from "../queries";
 import { ProductImageUpdate } from "../types/ProductImageUpdate";
+import { productImageUrl, productUrl } from "../urls";
 
 interface ProductImageProps {
   imageId: string;

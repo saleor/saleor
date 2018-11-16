@@ -1,7 +1,6 @@
 import { stringify as stringifyQs } from "qs";
 import * as React from "react";
 
-import { productAddUrl, productUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
 import { createPaginationState, Paginator } from "../../components/Paginator";
@@ -10,6 +9,7 @@ import { StockAvailability } from "../../types/globalTypes";
 import ProductListCard from "../components/ProductListCard";
 import { getTabName } from "../misc";
 import { productListQuery, TypedProductListQuery } from "../queries";
+import { productAddUrl, productUrl } from "../urls";
 
 export interface ProductListFilters {
   status: StockAvailability;

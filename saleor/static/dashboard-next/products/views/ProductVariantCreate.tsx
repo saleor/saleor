@@ -1,6 +1,5 @@
 import * as React from "react";
 
-import { productUrl, productVariantEditUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
@@ -15,6 +14,7 @@ import {
   TypedProductVariantCreateQuery
 } from "../queries";
 import { VariantCreate } from "../types/VariantCreate";
+import { productUrl, productVariantEditUrl } from "../urls";
 
 interface ProductUpdateProps {
   productId: string;
