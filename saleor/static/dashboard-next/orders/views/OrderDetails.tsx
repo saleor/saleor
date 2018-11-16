@@ -145,7 +145,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                               context: "notification"
                             })
                           });
-                          navigate(orderListUrl);
+                          navigate(orderListUrl());
                         };
                         const handleOrderVoid = () => {
                           pushMessage({
@@ -398,7 +398,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                         order: id
                                       })
                                     }
-                                    onBack={() => navigate(orderListUrl)}
+                                    onBack={() => navigate(orderListUrl())}
                                     order={order}
                                     countries={maybe(
                                       () => data.shop.countries,
@@ -565,7 +565,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                         }
                                       })
                                     }
-                                    onBack={() => navigate(orderListUrl)}
+                                    onBack={() => navigate(orderListUrl())}
                                     order={order}
                                     countries={maybe(
                                       () => data.shop.countries,

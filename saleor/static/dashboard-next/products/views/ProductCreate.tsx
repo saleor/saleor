@@ -28,7 +28,7 @@ export const ProductUpdate: React.StatelessComponent<
             <Navigator>
               {navigate => {
                 const handleAttributesEdit = undefined;
-                const handleBack = () => navigate(productListUrl);
+                const handleBack = () => navigate(productListUrl());
 
                 return (
                   <TypedProductCreateQuery query={productCreateQuery}>

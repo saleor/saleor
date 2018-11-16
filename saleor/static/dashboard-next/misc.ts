@@ -122,3 +122,13 @@ export function maybe<T>(exp: () => T, d?: T) {
     return d;
   }
 }
+
+export function only<T>(obj: T, key: keyof T): boolean {
+  return Object.keys(obj).every(objKey =>
+    objKey === key ? obj[key] !== undefined : obj[key] === undefined
+  );
+}
+
+export function empty(obj: object): boolean {
+  return Object.keys(obj).every(key => obj[key] === undefined);
+}
