@@ -4,6 +4,7 @@ import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
+import { pageAddUrl, pageListUrl, pageUrl } from "./urls";
 import PageCreate from "./views/PageCreate";
 import PageDetailsComponent from "./views/PageDetails";
 import PageListComponent, { PageListQueryParams } from "./views/PageList";
@@ -24,13 +25,13 @@ const PageDetails: React.StatelessComponent<RouteComponentProps<any>> = ({
   return <PageDetailsComponent id={match.params.id} />;
 };
 
-const Component = ({ match }) => (
+const Component = () => (
   <>
     <WindowTitle title={i18n.t("Pages")} />
     <Switch>
-      <Route exact path={match.url} component={PageList} />
-      <Route exact path={`${match.url}/add/`} component={PageCreate} />
-      <Route exact path={`${match.url}/:id/`} component={PageDetails} />
+      <Route exact path={pageListUrl} component={PageList} />
+      <Route exact path={pageAddUrl} component={PageCreate} />
+      <Route exact path={pageUrl(":id")} component={PageDetails} />
     </Switch>
   </>
 );
