@@ -6,7 +6,7 @@ import { createPaginationState, Paginator } from "../../components/Paginator";
 import { maybe } from "../../misc";
 import ProductTypeListPage from "../components/ProductTypeListPage";
 import { TypedProductTypeListQuery } from "../queries";
-import { productTypeAddUrl, productTypeDetailsUrl } from "../urls";
+import { productTypeAddUrl, productTypeUrl } from "../urls";
 
 export type ProductTypeListQueryParams = Partial<{
   after: string;
@@ -47,7 +47,7 @@ export const ProductTypeList: React.StatelessComponent<
                     onAdd={() => navigate(productTypeAddUrl)}
                     onNextPage={loadNextPage}
                     onPreviousPage={loadPreviousPage}
-                    onRowClick={id => () => navigate(productTypeDetailsUrl(id))}
+                    onRowClick={id => () => navigate(productTypeUrl(id))}
                   />
                 )}
               </Paginator>
