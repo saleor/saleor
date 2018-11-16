@@ -23,7 +23,7 @@ import { appMountPoint } from ".";
 import * as saleorLogo from "../images/logo.svg";
 import { UserContext } from "./auth";
 import { User } from "./auth/types/User";
-import { categoryListUrl } from "./categories";
+import { categoryListUrl } from "./categories/urls";
 import { collectionListUrl } from "./collections/urls";
 import MenuToggle from "./components/MenuToggle";
 import Navigator from "./components/Navigator";

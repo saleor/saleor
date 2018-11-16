@@ -1,10 +1,10 @@
 import * as React from "react";
 
-import { categoryAddUrl, categoryUrl } from "..";
 import Navigator from "../../components/Navigator";
 import { maybe } from "../../misc";
 import { CategoryListPage } from "../components/CategoryListPage/CategoryListPage";
 import { TypedRootCategoriesQuery } from "../queries";
+import { categoryAddUrl, categoryUrl } from "../urls";
 
 export const CategoryList: React.StatelessComponent = () => (
   <Navigator>

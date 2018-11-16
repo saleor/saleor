@@ -2,7 +2,6 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 import { Route } from "react-router-dom";
 
-import { categoryAddUrl, categoryListUrl, categoryUrl } from "../..";
 import ActionDialog from "../../../components/ActionDialog";
 import Messages from "../../../components/messages";
 import Navigator from "../../../components/Navigator";
@@ -22,6 +21,7 @@ import {
 import { TypedCategoryDetailsQuery } from "../../queries";
 import { CategoryDelete } from "../../types/CategoryDelete";
 import { CategoryUpdate } from "../../types/CategoryUpdate";
+import { categoryAddUrl, categoryListUrl, categoryUrl } from "../../urls";
 import { categoryDeleteUrl } from "./urls";
 
 export type CategoryDetailsQueryParams = Partial<{
