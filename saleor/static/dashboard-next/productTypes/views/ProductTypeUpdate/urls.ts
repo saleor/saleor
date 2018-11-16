@@ -1,12 +1,14 @@
+import * as urlJoin from "url-join";
+
 import { AttributeTypeEnum } from "../../../types/globalTypes";
-import { productTypeDetailsUrl } from "../../urls";
+import { productTypeUrl } from "../../urls";
 
 export const addAttributeUrl = (
   productTypeId: string,
   type: AttributeTypeEnum
 ) =>
   type === AttributeTypeEnum.PRODUCT
-    ? productTypeDetailsUrl(productTypeId) + "attribute/product/add"
-    : productTypeDetailsUrl(productTypeId) + "attribute/variant/add";
+    ? urlJoin(productTypeUrl(productTypeId), "attribute/product/add")
+    : urlJoin(productTypeUrl(productTypeId), "attribute/variant/add");
 export const editAttributeUrl = (productTypeId: string, attributeId: string) =>
-  productTypeDetailsUrl(productTypeId) + "attribute/" + attributeId;
+  urlJoin(productTypeUrl(productTypeId), "attribute", attributeId);

@@ -8,16 +8,16 @@ import Navigator from "../../components/Navigator";
 import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import { decimal, maybe } from "../../misc";
-import { productTypeDetailsUrl } from "../../productTypes/urls";
+import { productTypeUrl } from "../../productTypes/urls";
 import ProductUpdatePage from "../components/ProductUpdatePage";
 import ProductUpdateOperations from "../containers/ProductUpdateOperations";
+import { productDetailsQuery, TypedProductDetailsQuery } from "../queries";
 import {
   productImageUrl,
   productListUrl,
   productVariantAddUrl,
   productVariantEditUrl
-} from "../index";
-import { productDetailsQuery, TypedProductDetailsQuery } from "../queries";
+} from "../urls";
 
 interface ProductUpdateProps {
   id: string;
@@ -157,7 +157,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               }
                               onAttributesEdit={() =>
                                 navigate(
-                                  productTypeDetailsUrl(
+                                  productTypeUrl(
                                     encodeURIComponent(
                                       data.product.productType.id
                                     )

@@ -1,7 +1,6 @@
 import { stringify as stringifyQs } from "qs";
 import * as React from "react";
 
-import { orderUrl } from "..";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import { createPaginationState, Paginator } from "../../components/Paginator";
@@ -13,6 +12,7 @@ import { getTabName } from "../misc";
 import { TypedOrderDraftCreateMutation } from "../mutations";
 import { TypedOrderListQuery } from "../queries";
 import { OrderDraftCreate } from "../types/OrderDraftCreate";
+import { orderUrl } from "../urls";
 
 export interface OrderListFilters {
   status: OrderStatusFilter;

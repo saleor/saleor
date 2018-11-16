@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Redirect } from "react-router";
 
-import { pageListUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import { NavigatorLink } from "../../components/Navigator";
 import { WindowTitle } from "../../components/WindowTitle";
@@ -10,6 +9,7 @@ import { maybe } from "../../misc";
 import PageDetailsPage from "../components/PageDetailsPage";
 import { TypedPageDeleteMutation, TypedPageUpdateMutation } from "../mutations";
 import { pageDetailsQuery, TypedPageDetailsQuery } from "../queries";
+import { pageListUrl } from "../urls";
 
 interface PageUpdateFormProps {
   id: string;

@@ -1,9 +1,12 @@
-export const collectionListUrl = "/collections/";
-export const collectionUrl = (id: string) => "/collections/" + id + "/";
-export const collectionAddUrl = "/collections/add/";
+import * as urlJoin from "url-join";
+
+const collectionSectionUrl = "/collections/";
+export const collectionListUrl = collectionSectionUrl;
+export const collectionUrl = (id: string) => urlJoin(collectionSectionUrl, id);
+export const collectionAddUrl = urlJoin(collectionSectionUrl, "add");
 export const collectionRemoveUrl = (id: string) =>
-  collectionUrl(id) + "remove/";
+  urlJoin(collectionUrl(id), "remove");
 export const collectionImageRemoveUrl = (id: string) =>
-  collectionUrl(id) + "removeImage/";
+  urlJoin(collectionUrl(id), "removeImage");
 export const collectionAddProductUrl = (id: string) =>
-  collectionUrl(id) + "add/";
+  urlJoin(collectionUrl(id), "add");
