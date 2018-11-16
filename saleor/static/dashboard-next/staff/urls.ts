@@ -1,4 +1,5 @@
-export const staffListUrl = "/staff/";
-export const staffMemberDetailsUrl = (id: string) => {
-  return `/staff/${id}/`;
-};
+import * as urlJoin from "url-join";
+
+const staffSection = "/staff/";
+export const staffListUrl = staffSection;
+export const staffMemberDetailsUrl = (id: string) => urlJoin(staffSection, id);
