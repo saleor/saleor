@@ -1,6 +1,5 @@
 import * as React from "react";
 
-import { orderListUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
@@ -29,6 +28,7 @@ import { OrderMarkAsPaid } from "../types/OrderMarkAsPaid";
 import { OrderRefund } from "../types/OrderRefund";
 import { OrderShippingMethodUpdate } from "../types/OrderShippingMethodUpdate";
 import { OrderUpdate } from "../types/OrderUpdate";
+import { orderListUrl } from "../urls";
 
 interface OrderDetailsProps {
   id: string;

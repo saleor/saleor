@@ -3,7 +3,7 @@ import * as React from "react";
 import { UserContext } from "../../auth";
 import Navigator from "../../components/Navigator";
 import { maybe } from "../../misc";
-import { orderListUrl } from "../../orders";
+import { orderListUrl } from "../../orders/urls";
 import { productListUrl, productVariantEditUrl } from "../../products";
 import { OrderStatusFilter, StockAvailability } from "../../types/globalTypes";
 import HomePage from "../components/HomePage";
