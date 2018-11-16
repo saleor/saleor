@@ -86,8 +86,8 @@ export interface ProductImageCreate_productImageCreate_product_attributes_value 
 
 export interface ProductImageCreate_productImageCreate_product_attributes {
   __typename: "SelectedAttribute";
-  attribute: ProductImageCreate_productImageCreate_product_attributes_attribute | null;
-  value: ProductImageCreate_productImageCreate_product_attributes_value | null;
+  attribute: ProductImageCreate_productImageCreate_product_attributes_attribute;
+  value: ProductImageCreate_productImageCreate_product_attributes_value;
 }
 
 export interface ProductImageCreate_productImageCreate_product_availability_priceRange_start_net {
@@ -190,7 +190,7 @@ export interface ProductImageCreate_productImageCreate_product {
   isPublished: boolean;
   chargeTaxes: boolean;
   availableOn: any | null;
-  attributes: (ProductImageCreate_productImageCreate_product_attributes | null)[] | null;
+  attributes: ProductImageCreate_productImageCreate_product_attributes[];
   availability: ProductImageCreate_productImageCreate_product_availability | null;
   images: ProductImageCreate_productImageCreate_product_images | null;
   variants: ProductImageCreate_productImageCreate_product_variants | null;

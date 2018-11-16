@@ -35,8 +35,8 @@ export interface VariantImageAssign_variantImageAssign_productVariant_attributes
 
 export interface VariantImageAssign_variantImageAssign_productVariant_attributes {
   __typename: "SelectedAttribute";
-  attribute: VariantImageAssign_variantImageAssign_productVariant_attributes_attribute | null;
-  value: VariantImageAssign_variantImageAssign_productVariant_attributes_value | null;
+  attribute: VariantImageAssign_variantImageAssign_productVariant_attributes_attribute;
+  value: VariantImageAssign_variantImageAssign_productVariant_attributes_value;
 }
 
 export interface VariantImageAssign_variantImageAssign_productVariant_costPrice {
