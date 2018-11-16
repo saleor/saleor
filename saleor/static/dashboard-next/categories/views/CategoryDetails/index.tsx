@@ -114,12 +114,14 @@ export const CategoryDetails: React.StatelessComponent<
                                   onAddProduct={() => navigate(productAddUrl)}
                                   onBack={() =>
                                     navigate(
-                                      categoryUrl(
-                                        maybe(() =>
-                                          encodeURIComponent(
-                                            data.category.parent.id
-                                          )
-                                        )
+                                      maybe(
+                                        () =>
+                                          categoryUrl(
+                                            encodeURIComponent(
+                                              data.category.parent.id
+                                            )
+                                          ),
+                                        categoryListUrl
                                       )
                                     )
                                   }
