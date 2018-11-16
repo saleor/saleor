@@ -90,7 +90,7 @@ const Component = () => (
       />
       <Route
         exact
-        path={productImageUrl(":productId", "imageId")}
+        path={productImageUrl(":productId", ":imageId")}
         component={ProductImage}
       />
     </Switch>
