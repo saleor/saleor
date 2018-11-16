@@ -2,7 +2,6 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 import { Route } from "react-router-dom";
 
-import { categoryAddUrl, categoryListUrl, categoryUrl } from "../..";
 import ActionDialog from "../../../components/ActionDialog";
 import Messages from "../../../components/messages";
 import Navigator from "../../../components/Navigator";
@@ -13,7 +12,7 @@ import {
 import { WindowTitle } from "../../../components/WindowTitle";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { productAddUrl, productUrl } from "../../../products";
+import { productAddUrl, productUrl } from "../../../products/urls";
 import { CategoryUpdatePage } from "../../components/CategoryUpdatePage/CategoryUpdatePage";
 import {
   TypedCategoryDeleteMutation,
@@ -22,6 +21,7 @@ import {
 import { TypedCategoryDetailsQuery } from "../../queries";
 import { CategoryDelete } from "../../types/CategoryDelete";
 import { CategoryUpdate } from "../../types/CategoryUpdate";
+import { categoryAddUrl, categoryListUrl, categoryUrl } from "../../urls";
 import { categoryDeleteUrl } from "./urls";
 
 export type CategoryDetailsQueryParams = Partial<{
@@ -114,12 +114,14 @@ export const CategoryDetails: React.StatelessComponent<
                                   onAddProduct={() => navigate(productAddUrl)}
                                   onBack={() =>
                                     navigate(
-                                      categoryUrl(
-                                        maybe(() =>
-                                          encodeURIComponent(
-                                            data.category.parent.id
-                                          )
-                                        )
+                                      maybe(
+                                        () =>
+                                          categoryUrl(
+                                            encodeURIComponent(
+                                              data.category.parent.id
+                                            )
+                                          ),
+                                        categoryListUrl
                                       )
                                     )
                                   }

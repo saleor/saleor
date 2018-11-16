@@ -1,13 +1,12 @@
 import * as React from "react";
 
-import { orderListUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
-import { productUrl } from "../../products";
+import { productUrl } from "../../products/urls";
 import { OrderStatus } from "../../types/globalTypes";
 import OrderDetailsPage from "../components/OrderDetailsPage";
 import OrderDraftPage from "../components/OrderDraftPage";
@@ -29,6 +28,7 @@ import { OrderMarkAsPaid } from "../types/OrderMarkAsPaid";
 import { OrderRefund } from "../types/OrderRefund";
 import { OrderShippingMethodUpdate } from "../types/OrderShippingMethodUpdate";
 import { OrderUpdate } from "../types/OrderUpdate";
+import { orderListUrl } from "../urls";
 
 interface OrderDetailsProps {
   id: string;

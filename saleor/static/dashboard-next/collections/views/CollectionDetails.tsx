@@ -9,7 +9,7 @@ import { createPaginationState, Paginator } from "../../components/Paginator";
 import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
-import { productUrl } from "../../products";
+import { productUrl } from "../../products/urls";
 import CollectionAssignProductDialog from "../components/CollectionAssignProductDialog/CollectionAssignProductDialog";
 import CollectionDetailsPage, {
   CollectionDetailsPageFormData

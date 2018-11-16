@@ -1,12 +1,12 @@
 import * as React from "react";
 import { Redirect } from "react-router";
 
-import { pageListUrl } from "..";
 import { NavigatorLink } from "../../components/Navigator";
 import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import PageDetailsPage from "../../pages/components/PageDetailsPage";
 import { TypedPageCreateMutation } from "../mutations";
+import { pageListUrl } from "../urls";
 
 export const PageCreateForm: React.StatelessComponent = () => (
   <TypedPageCreateMutation>

@@ -1,6 +1,5 @@
 import * as React from "react";
 
-import { productUrl, productVariantEditUrl } from "..";
 import * as placeholderImg from "../../../images/placeholder255x255.png";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
@@ -12,6 +11,7 @@ import ProductVariantPage from "../components/ProductVariantPage";
 import ProductVariantOperations from "../containers/ProductVariantOperations";
 import { productVariantQuery, TypedProductVariantQuery } from "../queries";
 import { VariantUpdate } from "../types/VariantUpdate";
+import { productUrl, productVariantEditUrl } from "../urls";
 
 interface ProductUpdateProps {
   variantId: string;

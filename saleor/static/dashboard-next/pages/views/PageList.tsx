@@ -6,8 +6,8 @@ import { createPaginationState, Paginator } from "../../components/Paginator";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
 import PageListPage from "../components/PageListPage/PageListPage";
-import { pageAddUrl, pageEditUrl } from "../index";
 import { pageListQuery, TypedPageListQuery } from "../queries";
+import { pageAddUrl, pageUrl } from "../urls";
 
 export type PageListQueryParams = Partial<{ after: string; before: string }>;
 
@@ -23,7 +23,7 @@ export const PageList: React.StatelessComponent<PageListProps> = ({
   <Navigator>
     {navigate => {
       const paginationState = createPaginationState(PAGINATE_BY, params);
-      const handleEditClick = (id: string) => () => navigate(pageEditUrl(id));
+      const handleEditClick = (id: string) => () => navigate(pageUrl(id));
       return (
         <TypedPageListQuery
           query={pageListQuery}

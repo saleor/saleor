@@ -3,6 +3,7 @@ import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
+import { categoryAddUrl, categoryListUrl, categoryUrl } from "./urls";
 import { CategoryCreateView } from "./views/CategoryCreate";
 import CategoryDetailsView, {
   CategoryDetailsQueryParams
@@ -43,29 +44,16 @@ const CategoryCreate: React.StatelessComponent<
   );
 };
 
-const Component = ({ match }) => (
+const Component = () => (
   <>
     <WindowTitle title={i18n.t("Categories")} />
     <Switch>
-      <Route exact path={match.url} component={CategoryList} />
-      <Route exact path={`${match.url}/add/`} component={CategoryCreate} />
-      <Route exact path={`${match.url}/:id/add/`} component={CategoryCreate} />
-      <Route path={`${match.url}/:id/`} component={CategoryDetails} />
+      <Route exact path={categoryListUrl} component={CategoryList} />
+      <Route exact path={categoryAddUrl()} component={CategoryCreate} />
+      <Route exact path={categoryAddUrl(":id")} component={CategoryCreate} />
+      <Route path={categoryUrl(":id")} component={CategoryDetails} />
     </Switch>
   </>
 );
 
-export const categoryListUrl = "/categories/";
-export const categoryAddUrl = (parentId?: string) => {
-  if (parentId) {
-    return `/categories/${parentId}/add/`;
-  }
-  return `/categories/add/`;
-};
-export const categoryUrl = (id?: string) => {
-  if (id) {
-    return `/categories/${id}/`;
-  }
-  return "/categories/";
-};
 export default Component;
