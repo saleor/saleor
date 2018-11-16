@@ -25,6 +25,7 @@
     "@types/storybook__addon-storyshots": "^3.4.3",
     "@types/storybook__react": "^3.0.8",
     "@types/string-similarity": "^1.2.0",
+    "@types/url-join": "^0.8.2",
     "apollo": "^1.9.2",
     "apollo-cache-inmemory": "^1.1.12",
     "apollo-client": "^2.2.8",
@@ -77,7 +78,8 @@
     "string-similarity": "^1.2.0",
     "svg-injector-2": "^2.0.35",
     "typescript": "^3.0.1",
-    "universal-cookie": "^2.1.2"
+    "universal-cookie": "^2.1.2",
+    "url-join": "^4.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.44",
