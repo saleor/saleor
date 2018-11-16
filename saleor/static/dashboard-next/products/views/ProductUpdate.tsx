@@ -11,13 +11,13 @@ import { decimal, maybe } from "../../misc";
 import { productTypeDetailsUrl } from "../../productTypes/urls";
 import ProductUpdatePage from "../components/ProductUpdatePage";
 import ProductUpdateOperations from "../containers/ProductUpdateOperations";
+import { productDetailsQuery, TypedProductDetailsQuery } from "../queries";
 import {
   productImageUrl,
   productListUrl,
   productVariantAddUrl,
   productVariantEditUrl
-} from "../index";
-import { productDetailsQuery, TypedProductDetailsQuery } from "../queries";
+} from "../urls";
 
 interface ProductUpdateProps {
   id: string;

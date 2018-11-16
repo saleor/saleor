@@ -1,9 +1,17 @@
-import { parse as parseQs, stringify as stringifyQs } from "qs";
+import { parse as parseQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
+import {
+  productAddUrl,
+  productImageUrl,
+  productListUrl,
+  productUrl,
+  productVariantAddUrl,
+  productVariantEditUrl
+} from "./urls";
 import ProductCreate from "./views/ProductCreate";
 import ProductImageComponent from "./views/ProductImage";
 import ProductListComponent, {
@@ -63,55 +71,30 @@ const ProductVariantCreate: React.StatelessComponent<
   );
 };
 
-const Component = ({ match }) => (
+const Component = () => (
   <>
     <WindowTitle title={i18n.t("Products")} />
     <Switch>
-      <Route exact path={match.url} component={ProductList} />
-      <Route exact path={`${match.url}/add/`} component={ProductCreate} />
-      <Route exact path={`${match.url}/:id/`} component={ProductUpdate} />
+      <Route exact path={productListUrl()} component={ProductList} />
+      <Route exact path={productAddUrl} component={ProductCreate} />
+      <Route exact path={productUrl(":id")} component={ProductUpdate} />
       <Route
         exact
-        path={`${match.url}/:id/variant/add/`}
+        path={productVariantAddUrl(":id")}
         component={ProductVariantCreate}
       />
       <Route
         exact
-        path={`${match.url}/:productId/variant/:variantId/`}
+        path={productVariantEditUrl(":productId", "variantId")}
         component={ProductVariant}
       />
       <Route
         exact
-        path={`${match.url}/:productId/image/:imageId/`}
+        path={productImageUrl(":productId", "imageId")}
         component={ProductImage}
       />
     </Switch>
   </>
 );
-
-export const productUrl = (id: string) => {
-  return `/products/${id}/`;
-};
-
-export const productVariantAddUrl = (productId: string) => {
-  return `/products/${productId}/variant/add/`;
-};
-
-export const productVariantEditUrl = (productId: string, variantId: string) => {
-  return `/products/${productId}/variant/${variantId}/`;
-};
-
-export const productImageUrl = (productId: string, imageId: string) =>
-  `/products/${productId}/image/${imageId}/`;
-
-export const productListUrl = (params?: ProductListQueryParams): string => {
-  const productList = "/products/";
-  if (params === undefined) {
-    return productList;
-  } else {
-    return productList + "?" + stringifyQs(params);
-  }
-};
-export const productAddUrl = "/products/add/";
 
 export default Component;

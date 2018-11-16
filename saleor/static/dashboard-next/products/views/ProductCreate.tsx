@@ -1,6 +1,5 @@
 import * as React from "react";
 
-import { productListUrl, productUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
@@ -12,6 +11,7 @@ import ProductCreatePage from "../components/ProductCreatePage";
 import { TypedProductCreateMutation } from "../mutations";
 import { productCreateQuery, TypedProductCreateQuery } from "../queries";
 import { ProductCreate } from "../types/ProductCreate";
+import { productListUrl, productUrl } from "../urls";
 
 interface ProductUpdateProps {
   id: string;

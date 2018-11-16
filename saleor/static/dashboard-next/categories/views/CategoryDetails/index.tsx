@@ -12,7 +12,7 @@ import {
 import { WindowTitle } from "../../../components/WindowTitle";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { productAddUrl, productUrl } from "../../../products";
+import { productAddUrl, productUrl } from "../../../products/urls";
 import { CategoryUpdatePage } from "../../components/CategoryUpdatePage/CategoryUpdatePage";
 import {
   TypedCategoryDeleteMutation,
