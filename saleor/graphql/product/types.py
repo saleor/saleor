@@ -119,10 +119,11 @@ class Margin(graphene.ObjectType):
 
 class SelectedAttribute(graphene.ObjectType):
     attribute = graphene.Field(
-        Attribute, default_value=None, description=AttributeDescriptions.NAME)
+        Attribute, default_value=None, description=AttributeDescriptions.NAME,
+        required=True)
     value = graphene.Field(
-        AttributeValue,
-        default_value=None, description='Value of an attribute.')
+        AttributeValue, default_value=None,
+        description='Value of an attribute.', required=True)
 
     class Meta:
         description = 'Represents a custom attribute.'
@@ -234,7 +235,7 @@ class Product(CountableDjangoObjectType):
         description=dedent("""The product's base price (without any discounts
         applied)."""))
     attributes = graphene.List(
-        SelectedAttribute,
+        graphene.NonNull(SelectedAttribute), required=True,
         description='List of attributes assigned to this product.')
     purchase_cost = graphene.Field(MoneyRange)
     margin = graphene.Field(Margin)
