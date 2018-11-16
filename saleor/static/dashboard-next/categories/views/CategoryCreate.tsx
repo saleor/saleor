@@ -1,6 +1,5 @@
 import * as React from "react";
 
-import { categoryUrl } from "../";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import { WindowTitle } from "../../components/WindowTitle";
@@ -9,6 +8,7 @@ import { maybe } from "../../misc";
 import CategoryCreatePage from "../components/CategoryCreatePage";
 import { TypedCategoryCreateMutation } from "../mutations";
 import { CategoryCreate } from "../types/CategoryCreate";
+import { categoryUrl } from "../urls";
 
 interface CategoryCreateViewProps {
   parentId: string;
