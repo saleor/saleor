@@ -14,10 +14,10 @@ const home = gql`
     ordersToday: orders(created: TODAY) {
       totalCount
     }
-    ordersToFulfill: orders(status: READY_TO_FULFILL, created: TODAY) {
+    ordersToFulfill: orders(status: READY_TO_FULFILL) {
       totalCount
     }
-    ordersToCapture: orders(status: READY_TO_CAPTURE, created: TODAY) {
+    ordersToCapture: orders(status: READY_TO_CAPTURE) {
       totalCount
     }
     productsOutOfStock: products(stockAvailability: OUT_OF_STOCK) {

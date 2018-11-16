@@ -44,7 +44,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
 
                   const handleDelete = () => {
                     pushMessage({ text: i18n.t("Product removed") });
-                    navigate(productListUrl);
+                    navigate(productListUrl());
                   };
                   const handleUpdate = () =>
                     pushMessage({ text: i18n.t("Saved changes") });
@@ -165,7 +165,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                                 )
                               }
                               onBack={() => {
-                                navigate(productListUrl);
+                                navigate(productListUrl());
                               }}
                               onDelete={() => deleteProduct.mutate({ id })}
                               onProductShow={() => {

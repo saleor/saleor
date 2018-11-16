@@ -5,6 +5,7 @@ import Navigator from "../../components/Navigator";
 import { maybe } from "../../misc";
 import { orderListUrl } from "../../orders";
 import { productListUrl, productVariantEditUrl } from "../../products";
+import { OrderStatusFilter, StockAvailability } from "../../types/globalTypes";
 import HomePage from "../components/HomePage";
 import { HomePageQuery } from "../queries";
 
@@ -32,9 +33,27 @@ const HomeSection = () => (
                     )
                   )
                 }
-                onOrdersToCaptureClick={() => navigate(orderListUrl)} // TODO: #3172
-                onOrdersToFulfillClick={() => navigate(orderListUrl)} // TODO: #3172
-                onProductsOutOfStockClick={() => navigate(productListUrl)} // TODO: #3184
+                onOrdersToCaptureClick={() =>
+                  navigate(
+                    orderListUrl({
+                      status: OrderStatusFilter.READY_TO_CAPTURE
+                    })
+                  )
+                }
+                onOrdersToFulfillClick={() =>
+                  navigate(
+                    orderListUrl({
+                      status: OrderStatusFilter.READY_TO_FULFILL
+                    })
+                  )
+                }
+                onProductsOutOfStockClick={() =>
+                  navigate(
+                    productListUrl({
+                      status: StockAvailability.OUT_OF_STOCK
+                    })
+                  )
+                }
                 ordersToCapture={maybe(() => data.ordersToCapture.totalCount)}
                 ordersToFulfill={maybe(() => data.ordersToFulfill.totalCount)}
                 productsOutOfStock={maybe(

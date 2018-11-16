@@ -7,11 +7,19 @@ import { CategoryDetails_category_products_edges_node } from "../../../categorie
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import ProductList from "../../../components/ProductList";
+import { Filter } from "../../../components/TableFilter";
 import i18n from "../../../i18n";
 import { PageListProps } from "../../../types";
+import ProductListFilter, { ProductListFilterTabs } from "../ProductListFilter";
 
 interface ProductListCardProps extends PageListProps {
+  currentTab: ProductListFilterTabs;
+  filtersList: Filter[];
   products: CategoryDetails_category_products_edges_node[];
+  onAllProducts: () => void;
+  onAvailable: () => void;
+  onOfStock: () => void;
+  onCustomFilter: () => void;
 }
 
 export const ProductListCard: React.StatelessComponent<
@@ -23,7 +31,13 @@ export const ProductListCard: React.StatelessComponent<
   onAdd,
   onNextPage,
   onPreviousPage,
-  onRowClick
+  onRowClick,
+  filtersList,
+  currentTab,
+  onAllProducts,
+  onAvailable,
+  onOfStock,
+  onCustomFilter
 }) => (
   <Container width="md">
     <PageHeader title={i18n.t("Products")}>
@@ -32,6 +46,14 @@ export const ProductListCard: React.StatelessComponent<
       </Button>
     </PageHeader>
     <Card>
+      <ProductListFilter
+        currentTab={currentTab}
+        filtersList={filtersList}
+        onAvailable={onAvailable}
+        onAllProducts={onAllProducts}
+        onOfStock={onOfStock}
+        onCustomFilter={onCustomFilter}
+      />
       <ProductList
         products={products}
         disabled={disabled}
