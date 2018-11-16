@@ -80,8 +80,8 @@ export interface Product_attributes_value {
 
 export interface Product_attributes {
   __typename: "SelectedAttribute";
-  attribute: Product_attributes_attribute | null;
-  value: Product_attributes_value | null;
+  attribute: Product_attributes_attribute;
+  value: Product_attributes_value;
 }
 
 export interface Product_availability_priceRange_start_net {
@@ -184,7 +184,7 @@ export interface Product {
   isPublished: boolean;
   chargeTaxes: boolean;
   availableOn: any | null;
-  attributes: (Product_attributes | null)[] | null;
+  attributes: Product_attributes[];
   availability: Product_availability | null;
   images: Product_images | null;
   variants: Product_variants | null;

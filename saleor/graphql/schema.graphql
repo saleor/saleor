@@ -1322,7 +1322,7 @@ type Product implements Node {
   price: Money
   availableOn: Date
   isPublished: Boolean!
-  attributes: [SelectedAttribute]
+  attributes: [SelectedAttribute!]!
   updatedAt: DateTime
   chargeTaxes: Boolean!
   taxRate: String!
@@ -1684,8 +1684,8 @@ type SaleUpdate {
 }
 
 type SelectedAttribute {
-  attribute: Attribute
-  value: AttributeValue
+  attribute: Attribute!
+  value: AttributeValue!
 }
 
 input SeoInput {
