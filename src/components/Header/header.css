@@ -77,7 +77,7 @@ header {
     font-weight: var(--font-weight-light);
     width: 100%;
     & .content {
-      padding: calc(var(--spacer) / 2) 3rem;
+      padding: calc(var(--spacer)) 3rem;
       background-color: #0C0733;
       color: #ffffff;
       display: flex;
