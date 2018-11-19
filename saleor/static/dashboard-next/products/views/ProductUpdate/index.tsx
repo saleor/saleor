@@ -1,23 +1,28 @@
+import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
+import { Route } from "react-router-dom";
 import { arrayMove } from "react-sortable-hoc";
 
-import * as placeholderImg from "../../../images/placeholder255x255.png";
-import ErrorMessageCard from "../../components/ErrorMessageCard";
-import Messages from "../../components/messages";
-import Navigator from "../../components/Navigator";
-import { WindowTitle } from "../../components/WindowTitle";
-import i18n from "../../i18n";
-import { decimal, maybe } from "../../misc";
-import { productTypeUrl } from "../../productTypes/urls";
-import ProductUpdatePage from "../components/ProductUpdatePage";
-import ProductUpdateOperations from "../containers/ProductUpdateOperations";
-import { productDetailsQuery, TypedProductDetailsQuery } from "../queries";
+import * as placeholderImg from "../../../../images/placeholder255x255.png";
+import ActionDialog from "../../../components/ActionDialog";
+import ErrorMessageCard from "../../../components/ErrorMessageCard";
+import Messages from "../../../components/messages";
+import Navigator from "../../../components/Navigator";
+import { WindowTitle } from "../../../components/WindowTitle";
+import i18n from "../../../i18n";
+import { decimal, maybe } from "../../../misc";
+import { productTypeUrl } from "../../../productTypes/urls";
+import ProductUpdatePage from "../../components/ProductUpdatePage";
+import ProductUpdateOperations from "../../containers/ProductUpdateOperations";
+import { productDetailsQuery, TypedProductDetailsQuery } from "../../queries";
 import {
   productImageUrl,
   productListUrl,
+  productUrl,
   productVariantAddUrl,
   productVariantEditUrl
-} from "../urls";
+} from "../../urls";
+import { productRemoveUrl } from "./urls";
 
 interface ProductUpdateProps {
   id: string;
@@ -167,7 +172,11 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               onBack={() => {
                                 navigate(productListUrl());
                               }}
-                              onDelete={() => deleteProduct.mutate({ id })}
+                              onDelete={() =>
+                                navigate(
+                                  productRemoveUrl(encodeURIComponent(id))
+                                )
+                              }
                               onProductShow={() => {
                                 if (product) {
                                   window.open(product.url);
@@ -203,6 +212,33 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               }}
                               onImageEdit={handleImageEdit}
                               onImageDelete={handleImageDelete}
+                            />
+                            <Route
+                              path={productRemoveUrl(":id")}
+                              render={({ match }) => (
+                                <ActionDialog
+                                  open={!!match}
+                                  onClose={() =>
+                                    navigate(productUrl(encodeURIComponent(id)))
+                                  }
+                                  onConfirm={() => deleteProduct.mutate({ id })}
+                                  variant="delete"
+                                  title={i18n.t("Remove product")}
+                                >
+                                  <DialogContentText
+                                    dangerouslySetInnerHTML={{
+                                      __html: i18n.t(
+                                        "Are you sure you want to remove <strong>{{ name }}</strong>?",
+                                        {
+                                          name: product
+                                            ? product.name
+                                            : undefined
+                                        }
+                                      )
+                                    }}
+                                  />
+                                </ActionDialog>
+                              )}
                             />
                           </>
                         );
