@@ -21,6 +21,7 @@ class Header extends Component {
       this.state = {
         mobileMenu: false,
         visibleNewsBar: cookies.get('newsbar') ? false : true,
+        visiblePrivacyPolicyBar: cookies.get('privacypolicybar') ? false : true,
         sticky: false,
         scrollDirection: 'bottom',
         lastScrollPos: null
@@ -40,6 +41,13 @@ class Header extends Component {
     const maxAge = 14 * (24 * 3600);
     cookies.set('newsbar', 1, { path: '/', maxAge: maxAge });
     this.setState({ visibleNewsBar: false });
+  }
+
+  closePrivacyPolicyBar = () => {
+    const { cookies } = this.props;
+    const maxAge = 30 * (24 * 3600);
+    cookies.set('privacypolicybar', 1, { path: '/', maxAge: maxAge });
+    this.setState({ visiblePrivacyPolicyBar: false });
   }
 
   componentDidMount() {
@@ -103,13 +111,13 @@ class Header extends Component {
             </nav>
           </div>
         </div>
-        {this.state.visibleNewsBar ?
+        {this.state.visiblePrivacyPolicyBar ?
           <div className="notification">
             <div className="content">
-              <img className="cookieImg" src={cookieImg} />
+              <img className="cookieImg" src={cookieImg} onClick={this.closePrivacyPolicyBar} />
               <p>By accepting our usage of third-party software such as HotJar, you help us to deliver a better website experience to all our users. To see our full privacy policy, <a href="https://getsaleor.com/privacy-policy-terms-and-conditions/" target="_blank">click here.</a></p>
               <h5>ACCEPT</h5>
-              <img className="cookieAcceptImg" src={cookieAcceptImg} />
+              <img className="cookieAcceptImg" src={cookieAcceptImg} onClick={this.closePrivacyPolicyBar} />
             </div>
           </div> : null}
       </header>
