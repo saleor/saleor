@@ -30,6 +30,8 @@ const PrivacyPolicy = () => (
 		<section className="analytics section-container">
 			<h3 className="title">Analytics</h3>
 			<p className="description text-light">This website includes Google Analytics software that collects anonymized information about visitors to help us provide better services. <a href="">See how Google uses your&nbsp;data.</a></p>
+			<p>We use Hotjar in order to better understand our users’ needs and to optimize this service and experience. Hotjar is a technology service that helps us better understand our users experience (e.g. how much time they spend on which pages, which links they choose to click, what users do and don’t like, etc.) and this enables us to build and maintain our service with user feedback. Hotjar uses cookies and other technologies to collect data on our users’ behavior and their devices (in particular device's IP address (captured and stored only in anonymized form), device screen size, device type (unique device identifiers), browser information, geographic location (country only), preferred language used to display our website). Hotjar stores this information in a pseudonymized user profile. Neither Hotjar nor we will ever use this information to identify individual users or to match it with further data on an individual user. For further details, please see Hotjar’s privacy policy by clicking on this <a href="https://www.hotjar.com/legal/policies/privacy" target="_blank">link.</a></p>
+			<p>You can opt-out to the creation of a user profile, Hotjar’s storing of data about your usage of our site and Hotjar’s use of tracking cookies on other websites by following this opt-out <a href="https://www.hotjar.com/legal/compliance/opt-out" target="_blank">link.</a></p>
 		</section>
 		<section className="your-rights section-container">
 			<h3 className="title">Your Rights</h3>
@@ -41,8 +43,8 @@ const PrivacyPolicy = () => (
 				<li><span>the right to restriction of&nbsp;processing:</span></li>
 				<li><span>the right to object to&nbsp;processing.</span></li>
 			</ul>
-      <p className="description text-light">Please consult the <a href="">GDPR text in your language</a> to better understand your&nbsp;rights.</p>
-      <p className="description text-light">We ask that you direct all questions and requests related to your personal data to <a href="mailto:privacy@mirumee.com">privacy@mirumee.com</a> or that you send them to the postal address of the company listed&nbsp;above </p>
+			<p className="description text-light">Please consult the <a href="">GDPR text in your language</a> to better understand your&nbsp;rights.</p>
+			<p className="description text-light">We ask that you direct all questions and requests related to your personal data to <a href="mailto:privacy@mirumee.com">privacy@mirumee.com</a> or that you send them to the postal address of the company listed&nbsp;above </p>
 		</section>
 		<section className="your-rights section-container">
 			<h3>Definitions</h3>
