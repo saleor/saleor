@@ -3,9 +3,9 @@ import os
 import random
 import unicodedata
 import uuid
-from textwrap import dedent
 from collections import defaultdict
 from datetime import date
+from textwrap import dedent
 from unittest.mock import patch
 
 from django.conf import settings
