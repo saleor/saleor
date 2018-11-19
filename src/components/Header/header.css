@@ -98,6 +98,7 @@ header {
       & .cookieAcceptImg {
         width: 24px;
         height: 24px;
+        cursor: pointer;
         order: 3;
         @media (max-width: 450px) {
           order: 1;
@@ -107,6 +108,7 @@ header {
         color: var(--primaryColor);
         order: 2;
         margin-right: 1rem;
+        cursor: pointer;
         @media (max-width: 450px) {
           order: 3;
         }
