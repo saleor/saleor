@@ -115,8 +115,8 @@ class Header extends Component {
           <div className="notification">
             <div className="content">
               <img className="cookieImg" src={cookieImg} onClick={this.closePrivacyPolicyBar} />
-              <p>By accepting our usage of third-party software such as HotJar, you help us to deliver a better website experience to all our users. To see our full privacy policy, <a href="https://getsaleor.com/privacy-policy-terms-and-conditions/" target="_blank">click here.</a></p>
-              <h5>ACCEPT</h5>
+              <p className="privacyPolicyText">By accepting our usage of third-party software such as HotJar, you help us to deliver a better website experience to all our users. To see our full privacy policy, <a href="https://getsaleor.com/privacy-policy-terms-and-conditions/" target="_blank">click here.</a></p>
+              <h5 className="acceptButton">ACCEPT</h5>
               <img className="cookieAcceptImg" src={cookieAcceptImg} onClick={this.closePrivacyPolicyBar} />
             </div>
           </div> : null}

@@ -104,19 +104,21 @@ header {
           order: 1;
         }
       }
-      & h5 {
+      & .acceptButton {
         color: var(--primaryColor);
         order: 2;
         margin-right: 1rem;
         cursor: pointer;
+       text-decoration: underline;
         @media (max-width: 450px) {
           order: 3;
         }
       }
-      & p {
+      & .privacyPolicyText {
         font-size: 14px;
         margin: 0rem 2rem;
         order: 1;
+        flex: 1;
         @media (max-width: 450px) {
           margin: .5rem 0rem;
           order: 2;
