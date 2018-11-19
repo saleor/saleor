@@ -23,13 +23,13 @@ class CollectionForm(forms.ModelForm):
         labels = {
             'name': pgettext_lazy('Item name', 'Name'),
             'background_image': pgettext_lazy(
-                'Background Image of collection',
-                'Background Image'),
+                'Background image of a collection',
+                'Background image'),
             'is_published': pgettext_lazy(
                 'Collection published toggle',
                 'Published'),
             'description': pgettext_lazy(
-                'Description of collection',
+                'Description field of a collection',
                 'Description')}
 
     def __init__(self, *args, **kwargs):
