@@ -3,6 +3,7 @@ import os
 import random
 import unicodedata
 import uuid
+from textwrap import dedent
 from collections import defaultdict
 from datetime import date
 from unittest.mock import patch
@@ -50,11 +51,16 @@ COLLECTIONS_SCHEMA = [
     {
         'name': 'Summer collection',
         'image_name': 'summer.jpg',
-        'description': 'Description of a summer collection.'},
+        'description': dedent('''The Saleor Summer Collection features a range
+            of products that feel the heat of the market. A demo store for all
+            seasons. Saleor captures the open source, e-commerce sun.''')},
     {
         'name': 'Winter sale',
         'image_name': 'clothing.jpg',
-        'description': 'Description of a winter sale.'}]
+        'description': dedent('''The Saleor Winter Sale is snowed under with
+            seasonal offers. Unreal products at unreal prices. Literally,
+            they are not real products, but the Saleor demo store is a
+            genuine e-commerce leader.''')}]
 
 IMAGES_MAPPING = {
     61: ['saleordemoproduct_paints_01.png'],

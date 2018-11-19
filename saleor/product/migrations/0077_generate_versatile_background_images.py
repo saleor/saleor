@@ -4,8 +4,6 @@ from sys import stderr
 from django.db import migrations, models
 from versatileimagefield.image_warmer import VersatileImageFieldWarmer
 
-from saleor.product.models import Category, Collection
-
 
 def log_failed_images(failed_to_create):
     if failed_to_create:
