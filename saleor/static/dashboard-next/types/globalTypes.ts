@@ -177,6 +177,7 @@ export interface CollectionCreateInput {
   isPublished?: boolean | null;
   name?: string | null;
   slug?: string | null;
+  description?: string | null;
   backgroundImage?: any | null;
   seo?: SeoInput | null;
   products?: (string | null)[] | null;
@@ -186,6 +187,7 @@ export interface CollectionInput {
   isPublished?: boolean | null;
   name?: string | null;
   slug?: string | null;
+  description?: string | null;
   backgroundImage?: any | null;
   seo?: SeoInput | null;
 }
