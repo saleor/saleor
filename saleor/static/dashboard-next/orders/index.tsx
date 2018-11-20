@@ -31,7 +31,7 @@ const Component = () => (
     <WindowTitle title={i18n.t("Orders")} />
     <Switch>
       <Route exact path={orderListUrl()} component={OrderList} />
-      <Route exact path={orderUrl(":id")} component={OrderDetails} />
+      <Route path={orderUrl(":id")} component={OrderDetails} />
     </Switch>
   </>
 );
