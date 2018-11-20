@@ -5,3 +5,4 @@ from .common import (
 from .money import (
     Money, MoneyRange, ReducedRate, TaxedMoney, TaxedMoneyRange, TaxRateType,
     VAT)
+from .upload import Upload
