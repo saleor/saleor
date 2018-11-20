@@ -74,10 +74,24 @@ class OrderEvent(CountableDjangoObjectType):
         return self.order_id
 
 
+class FulfillmentLine(CountableDjangoObjectType):
+    order_line = graphene.Field(lambda: OrderLine)
+
+    class Meta:
+        description = 'Represents line of the fulfillment.'
+        interfaces = [relay.Node]
+        model = models.FulfillmentLine
+        exclude_fields = ['fulfillment']
+
+    @gql_optimizer.resolver_hints(prefetch_related='order_line')
+    def resolve_order_line(self, info):
+        return self.order_line
+
+
 class Fulfillment(CountableDjangoObjectType):
-    lines = gql_optimizer.field(
-        PrefetchingConnectionField(lambda: FulfillmentLine),
-        model_field='lines')
+    lines = graphene.List(
+        FulfillmentLine,
+        description='List of fulfillment lines for the fulfillment')
     status_display = graphene.String(
         description='User-friendly fulfillment status.')
 
@@ -92,20 +106,6 @@ class Fulfillment(CountableDjangoObjectType):
 
     def resolve_status_display(self, info):
         return self.get_status_display()
-
-
-class FulfillmentLine(CountableDjangoObjectType):
-    order_line = graphene.Field(lambda: OrderLine)
-
-    class Meta:
-        description = 'Represents line of the fulfillment.'
-        interfaces = [relay.Node]
-        model = models.FulfillmentLine
-        exclude_fields = ['fulfillment']
-
-    @gql_optimizer.resolver_hints(prefetch_related='order_line')
-    def resolve_order_line(self, info):
-        return self.order_line
 
 
 class OrderLine(CountableDjangoObjectType):
