@@ -21,7 +21,7 @@ import { OrderRefund } from "../../types/OrderRefund";
 import { OrderShippingMethodUpdate } from "../../types/OrderShippingMethodUpdate";
 import { OrderUpdate } from "../../types/OrderUpdate";
 import { OrderVoid } from "../../types/OrderVoid";
-import { orderListUrl } from "../../urls";
+import { orderListUrl, orderUrl } from "../../urls";
 
 interface OrderDetailsMessages {
   children: (
@@ -101,6 +101,11 @@ export const OrderDetailsMessages: React.StatelessComponent<
                   context: "notification"
                 })
               });
+              navigate(
+                orderUrl(
+                  encodeURIComponent(data.orderFulfillmentCreate.order.id)
+                )
+              );
             } else {
               pushMessage({
                 text: i18n.t("Could not fulfill items", {
@@ -168,6 +173,7 @@ export const OrderDetailsMessages: React.StatelessComponent<
                   context: "notification"
                 })
               });
+              navigate(orderUrl(encodeURIComponent(data.orderUpdate.order.id)));
             }
           };
           const handleDraftUpdate = (data: OrderDraftUpdate) => {
@@ -177,6 +183,9 @@ export const OrderDetailsMessages: React.StatelessComponent<
                   context: "notification"
                 })
               });
+              navigate(
+                orderUrl(encodeURIComponent(data.draftOrderUpdate.order.id))
+              );
             }
           };
           const handleShippingMethodUpdate = (
@@ -250,6 +259,11 @@ export const OrderDetailsMessages: React.StatelessComponent<
                   context: "notification"
                 })
               });
+              navigate(
+                orderUrl(
+                  encodeURIComponent(data.orderFulfillmentCancel.order.id)
+                )
+              );
             } else {
               pushMessage({
                 text: i18n.t("Could not cancel fulfillment", {
@@ -269,6 +283,13 @@ export const OrderDetailsMessages: React.StatelessComponent<
                   context: "notification"
                 })
               });
+              navigate(
+                orderUrl(
+                  encodeURIComponent(
+                    data.orderFulfillmentUpdateTracking.order.id
+                  )
+                )
+              );
             } else {
               pushMessage({
                 text: i18n.t("Could not update fulfillment", {
