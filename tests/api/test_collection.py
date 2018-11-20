@@ -20,6 +20,7 @@ def test_collections_query(
                         isPublished
                         name
                         slug
+                        description
                         products {
                             totalCount
                         }
@@ -38,6 +39,7 @@ def test_collections_query(
     assert collection_data['isPublished']
     assert collection_data['name'] == collection.name
     assert collection_data['slug'] == collection.slug
+    assert collection_data['description'] == collection.description
     assert collection_data['products']['totalCount'] == collection.products.count()
 
     # query all collections only as a staff user with proper permissions
@@ -52,12 +54,13 @@ def test_create_collection(
         monkeypatch, staff_api_client, product_list, permission_manage_products):
     query = """
         mutation createCollection(
-            $name: String!, $slug: String!, $products: [ID], $backgroundImage: Upload!, $isPublished: Boolean!) {
+            $name: String!, $slug: String!, $description: String, $products: [ID], $backgroundImage: Upload!, $isPublished: Boolean!) {
             collectionCreate(
-                input: {name: $name, slug: $slug, products: $products, backgroundImage: $backgroundImage, isPublished: $isPublished}) {
+                input: {name: $name, slug: $slug, description: $description, products: $products, backgroundImage: $backgroundImage, isPublished: $isPublished}) {
                 collection {
                     name
                     slug
+                    description
                     products {
                         totalCount
                     }
@@ -77,9 +80,11 @@ def test_create_collection(
     image_file, image_name = create_image()
     name = 'test-name'
     slug = 'test-slug'
+    description = 'test-description'
     variables = {
-        'name': name, 'slug': slug, 'products': product_ids,
-        'backgroundImage': image_name, 'isPublished': True}
+        'name': name, 'slug': slug, 'description': description,
+        'products': product_ids, 'backgroundImage': image_name,
+        'isPublished': True}
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products])
@@ -87,6 +92,7 @@ def test_create_collection(
     data = content['data']['collectionCreate']['collection']
     assert data['name'] == name
     assert data['slug'] == slug
+    assert data['description'] == description
     assert data['products']['totalCount'] == len(product_ids)
     collection = Collection.objects.get(slug=slug)
     assert collection.background_image.file
@@ -126,12 +132,13 @@ def test_update_collection(
         monkeypatch, staff_api_client, collection, permission_manage_products):
     query = """
         mutation updateCollection(
-            $name: String!, $slug: String!, $id: ID!, $isPublished: Boolean!) {
+            $name: String!, $slug: String!, $description: String, $id: ID!, $isPublished: Boolean!) {
             collectionUpdate(
-                id: $id, input: {name: $name, slug: $slug, isPublished: $isPublished}) {
+                id: $id, input: {name: $name, slug: $slug, description: $description, isPublished: $isPublished}) {
                 collection {
                     name
                     slug
+                    description
                 }
             }
         }
@@ -145,8 +152,9 @@ def test_update_collection(
 
     name = 'new-name'
     slug = 'new-slug'
+    description = 'new-description'
     variables = {
-        'name': name, 'slug': slug,
+        'name': name, 'slug': slug, 'description': description,
         'id': to_global_id('Collection', collection.id), 'isPublished': True}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
