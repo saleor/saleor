@@ -419,7 +419,7 @@ type Collection implements Node {
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   backgroundImage: Image
   isPublished: Boolean!
-  description: String
+  description: String!
 }
 
 type CollectionAddProducts {

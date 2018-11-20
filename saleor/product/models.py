@@ -453,7 +453,7 @@ class Collection(SeoModel):
     background_image = VersatileImageField(
         upload_to='collection-backgrounds', blank=True, null=True)
     is_published = models.BooleanField(default=False)
-    description = models.TextField(blank=True, null=True)
+    description = models.TextField(blank=True)
 
     objects = CollectionQuerySet.as_manager()
     translated = TranslationProxy()
@@ -476,7 +476,7 @@ class CollectionTranslation(SeoModelTranslation):
         Collection, related_name='translations',
         on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
-    description = models.TextField(blank=True, null=True)
+    description = models.TextField(blank=True)
 
     class Meta:
         unique_together = (('language_code', 'collection'),)
