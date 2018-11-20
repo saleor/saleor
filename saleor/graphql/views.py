@@ -11,9 +11,13 @@ from graphql.error import GraphQLError, format_error as format_graphql_error
 from graphql.execution import ExecutionResult
 
 
-class FileUploadGraphQLView(View):
-    # This class was inspired by the `FileUploadGraphQLView` class from
-    # https://github.com/lmcgartland/graphene-file-upload
+class GraphQLView(View):
+    # This class is our implementation of `graphene_django.views.GraphQLView`,
+    # which was extended to support the following features:
+    # - Playground as default API explorer (https://github.com/prisma/graphql-playground)
+    # - file upload (see `FileUploadGraphQLView`) from https://github.com/lmcgartland/graphene-file-upload
+    # - query batching
+
     schema = None
     executor = None
     backend = None
@@ -21,11 +25,7 @@ class FileUploadGraphQLView(View):
     root_value = None
 
     def __init__(
-            self,
-            schema=None,
-            executor=None,
-            middleware=None,
-            root_value=None,
+            self, schema=None, executor=None, middleware=None, root_value=None,
             backend=None):
         if schema is None:
             schema = graphene_settings.SCHEMA
@@ -74,9 +74,7 @@ class FileUploadGraphQLView(View):
                               default=200)
         else:
             result, status_code = self.get_response(request, data)
-        return JsonResponse(
-            data=result,
-            status=status_code)
+        return JsonResponse(data=result, status=status_code, safe=False)
 
     def get_response(self, request: HttpRequest, data: dict):
         query, variables, operation_name = self.get_graphql_params(
