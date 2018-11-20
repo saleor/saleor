@@ -109,6 +109,7 @@ class CollectionInput(graphene.InputObjectType):
         description='Informs whether a collection is published.')
     name = graphene.String(description='Name of the collection.')
     slug = graphene.String(description='Slug of the collection.')
+    description = graphene.String(description='Description of the collection.')
     background_image = Upload(description='Background image file.')
     seo = SeoInput(description='Search engine optimization fields.')
 

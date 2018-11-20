@@ -419,6 +419,7 @@ type Collection implements Node {
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   backgroundImage: Image
   isPublished: Boolean!
+  description: String!
 }
 
 type CollectionAddProducts {
@@ -446,6 +447,7 @@ input CollectionCreateInput {
   isPublished: Boolean
   name: String
   slug: String
+  description: String
   backgroundImage: Upload
   seo: SeoInput
   products: [ID]
@@ -460,6 +462,7 @@ input CollectionInput {
   isPublished: Boolean
   name: String
   slug: String
+  description: String
   backgroundImage: Upload
   seo: SeoInput
 }

@@ -4,8 +4,6 @@ from sys import stderr
 from django.db import migrations, models
 from versatileimagefield.image_warmer import VersatileImageFieldWarmer
 
-from saleor.product.models import Category, Collection
-
 
 def log_failed_images(failed_to_create):
     if failed_to_create:
@@ -24,10 +22,12 @@ def warm_model_background_images(model: models.Model):
     log_failed_images(failed_to_create)
 
 
-def warm_background_images(*_):
+def warm_background_images(apps, *_):
+    Category = apps.get_model('product', 'Category')
     print('Generating thumbnails for Categories', file=stderr)
     warm_model_background_images(Category)
 
+    Collection = apps.get_model('product', 'Collection')
     print('Generating thumbnails for Collections', file=stderr)
     warm_model_background_images(Collection)
 

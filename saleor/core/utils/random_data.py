@@ -5,6 +5,7 @@ import unicodedata
 import uuid
 from collections import defaultdict
 from datetime import date
+from textwrap import dedent
 from unittest.mock import patch
 
 from django.conf import settings
@@ -49,10 +50,17 @@ GROCERIES_CATEGORY = {'name': 'Groceries', 'image_name': 'groceries.jpg'}
 COLLECTIONS_SCHEMA = [
     {
         'name': 'Summer collection',
-        'image_name': 'summer.jpg'},
+        'image_name': 'summer.jpg',
+        'description': dedent('''The Saleor Summer Collection features a range
+            of products that feel the heat of the market. A demo store for all
+            seasons. Saleor captures the open source, e-commerce sun.''')},
     {
         'name': 'Winter sale',
-        'image_name': 'clothing.jpg'}]
+        'image_name': 'clothing.jpg',
+        'description': dedent('''The Saleor Winter Sale is snowed under with
+            seasonal offers. Unreal products at unreal prices. Literally,
+            they are not real products, but the Saleor demo store is a
+            genuine e-commerce leader.''')}]
 
 IMAGES_MAPPING = {
     61: ['saleordemoproduct_paints_01.png'],
@@ -239,11 +247,12 @@ def get_email(first_name, last_name):
         _first.lower().decode('utf-8'), _last.lower().decode('utf-8'))
 
 
-def get_or_create_collection(name, placeholder_dir, image_name):
+def get_or_create_collection(name, placeholder_dir, image_name, description):
     background_image = get_image(placeholder_dir, image_name)
     defaults = {
         'slug': fake.slug(name),
-        'background_image': background_image}
+        'background_image': background_image,
+        'description': description}
     return Collection.objects.get_or_create(name=name, defaults=defaults)[0]
 
 
@@ -528,7 +537,8 @@ def create_fake_collection(placeholder_dir, collection_data):
     image_dir = get_product_list_images_dir(placeholder_dir)
     collection = get_or_create_collection(
         name=collection_data['name'], placeholder_dir=image_dir,
-        image_name=collection_data['image_name'])
+        image_name=collection_data['image_name'],
+        description=collection_data['description'])
     products = Product.objects.order_by('?')[:4]
     collection.products.add(*products)
     create_collection_background_image_thumbnails.delay(collection.pk)
