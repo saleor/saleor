@@ -1,17 +1,17 @@
 import * as React from "react";
 import { Route } from "react-router-dom";
 
-import ActionDialog from "../../../components/ActionDialog";
 import ErrorMessageCard from "../../../components/ErrorMessageCard";
 import Navigator from "../../../components/Navigator";
 import { WindowTitle } from "../../../components/WindowTitle";
-import i18n from "../../../i18n";
 import { maybe, transformAddressToForm } from "../../../misc";
 import { productUrl } from "../../../products/urls";
 import { OrderStatus } from "../../../types/globalTypes";
 import OrderAddressEditDialog from "../../components/OrderAddressEditDialog";
 import OrderCancelDialog from "../../components/OrderCancelDialog";
 import OrderDetailsPage from "../../components/OrderDetailsPage";
+import OrderDraftCancelDialog from "../../components/OrderDraftCancelDialog/OrderDraftCancelDialog";
+import OrderDraftFinalizeDialog from "../../components/OrderDraftFinalizeDialog";
 import OrderDraftPage from "../../components/OrderDraftPage";
 import OrderFulfillmentCancelDialog from "../../components/OrderFulfillmentCancelDialog";
 import OrderFulfillmentDialog from "../../components/OrderFulfillmentDialog";
@@ -19,6 +19,8 @@ import OrderFulfillmentTrackingDialog from "../../components/OrderFulfillmentTra
 import OrderMarkAsPaidDialog from "../../components/OrderMarkAsPaidDialog/OrderMarkAsPaidDialog";
 import OrderPaymentDialog from "../../components/OrderPaymentDialog";
 import OrderPaymentVoidDialog from "../../components/OrderPaymentVoidDialog";
+import OrderProductAddDialog from "../../components/OrderProductAddDialog";
+import OrderShippingMethodEditDialog from "../../components/OrderShippingMethodEditDialog";
 import OrderOperations from "../../containers/OrderOperations";
 import { OrderVariantSearchProvider } from "../../containers/OrderVariantSearch";
 import { UserSearchProvider } from "../../containers/UserSearch";
@@ -28,6 +30,9 @@ import { OrderDetailsMessages } from "./OrderDetailsMessages";
 import {
   orderBillingAddressEditUrl,
   orderCancelUrl,
+  orderDraftFinalizeUrl,
+  orderDraftLineAddUrl,
+  orderDraftShippingMethodUrl,
   orderFulfillmentCancelUrl,
   orderFulfillmentEditTrackingUrl,
   orderFulfillUrl,
@@ -59,10 +64,16 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
             <UserSearchProvider>
               {users => (
                 <OrderVariantSearchProvider>
-                  {({ variants: { search, searchOpts } }) => (
+                  {({
+                    variants: {
+                      search: variantSearch,
+                      searchOpts: variantSearchOpts
+                    }
+                  }) => (
                     <OrderDetailsMessages>
                       {orderMessages => (
                         <OrderOperations
+                          //#region
                           order={id}
                           onError={undefined}
                           onOrderFulfillmentCreate={
@@ -96,6 +107,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                           onOrderMarkAsPaid={
                             orderMessages.handleOrderMarkAsPaid
                           }
+                          //#endregion
                         >
                           {({
                             errors,
@@ -122,6 +134,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                 () => order.status !== OrderStatus.DRAFT
                               ) ? (
                                 <>
+                                  //#region
                                   <WindowTitle
                                     title={maybe(
                                       () => "Order #" + data.order.number
@@ -367,64 +380,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       />
                                     )}
                                   />
-                                  <Route
-                                    path={orderShippingAddressEditUrl(":id")}
-                                    render={({ match }) => (
-                                      <OrderAddressEditDialog
-                                        address={transformAddressToForm(
-                                          maybe(() => order.shippingAddress)
-                                        )}
-                                        countries={maybe(
-                                          () => data.shop.countries,
-                                          []
-                                        ).map(country => ({
-                                          code: country.code,
-                                          label: country.country
-                                        }))}
-                                        errors={errors}
-                                        open={!!match}
-                                        variant="shipping"
-                                        onClose={onModalClose}
-                                        onConfirm={variables =>
-                                          orderUpdate.mutate({
-                                            id,
-                                            input: {
-                                              shippingAddress: variables
-                                            }
-                                          })
-                                        }
-                                      />
-                                    )}
-                                  />
-                                  <Route
-                                    path={orderBillingAddressEditUrl(":id")}
-                                    render={({ match }) => (
-                                      <OrderAddressEditDialog
-                                        address={transformAddressToForm(
-                                          maybe(() => order.billingAddress)
-                                        )}
-                                        countries={maybe(
-                                          () => data.shop.countries,
-                                          []
-                                        ).map(country => ({
-                                          code: country.code,
-                                          label: country.country
-                                        }))}
-                                        errors={errors}
-                                        open={!!match}
-                                        variant="billing"
-                                        onClose={onModalClose}
-                                        onConfirm={variables =>
-                                          orderUpdate.mutate({
-                                            id,
-                                            input: {
-                                              billingAddress: variables
-                                            }
-                                          })
-                                        }
-                                      />
-                                    )}
-                                  />
+                                  //#endregion
                                 </>
                               ) : (
                                 <>
@@ -442,9 +398,9 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                         order: id
                                       })
                                     }
-                                    fetchVariants={search}
+                                    fetchVariants={variantSearch}
                                     variants={maybe(() =>
-                                      searchOpts.data.products.edges
+                                      variantSearchOpts.data.products.edges
                                         .map(edge => edge.node)
                                         .map(product => ({
                                           ...product,
@@ -472,7 +428,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                         ),
                                       []
                                     )}
-                                    variantsLoading={searchOpts.loading}
+                                    variantsLoading={variantSearchOpts.loading}
                                     fetchUsers={users.search}
                                     usersLoading={users.searchOpts.loading}
                                     onCustomerEdit={data =>
@@ -482,19 +438,16 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       })
                                     }
                                     onDraftFinalize={() =>
-                                      orderDraftFinalize.mutate({ id })
+                                      navigate(
+                                        orderDraftFinalizeUrl(encodedId),
+                                        true
+                                      )
                                     }
                                     onDraftRemove={() =>
-                                      orderDraftCancel.mutate({ id })
+                                      navigate(orderCancelUrl(encodedId))
                                     }
-                                    onOrderLineAdd={variables =>
-                                      orderLineAdd.mutate({
-                                        id,
-                                        input: {
-                                          quantity: variables.quantity,
-                                          variantId: variables.variant.value
-                                        }
-                                      })
+                                    onOrderLineAdd={() =>
+                                      navigate(orderDraftLineAddUrl(encodedId))
                                     }
                                     onBack={() => navigate(orderListUrl())}
                                     order={order}
@@ -509,30 +462,20 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       navigate(
                                         productUrl(encodeURIComponent(id))
                                       )}
-                                    onBillingAddressEdit={variables =>
-                                      orderUpdate.mutate({
-                                        id,
-                                        input: {
-                                          billingAddress: variables
-                                        }
-                                      })
+                                    onBillingAddressEdit={() =>
+                                      navigate(
+                                        orderBillingAddressEditUrl(encodedId)
+                                      )
                                     }
-                                    onShippingAddressEdit={variables =>
-                                      orderUpdate.mutate({
-                                        id,
-                                        input: {
-                                          shippingAddress: variables
-                                        }
-                                      })
+                                    onShippingAddressEdit={() =>
+                                      navigate(
+                                        orderShippingAddressEditUrl(encodedId)
+                                      )
                                     }
-                                    onShippingMethodEdit={variables =>
-                                      orderShippingMethodUpdate.mutate({
-                                        id,
-                                        input: {
-                                          shippingMethod:
-                                            variables.shippingMethod
-                                        }
-                                      })
+                                    onShippingMethodEdit={() =>
+                                      navigate(
+                                        orderDraftShippingMethodUrl(encodedId)
+                                      )
                                     }
                                     onOrderLineRemove={id =>
                                       orderLineDelete.mutate({ id })
@@ -546,6 +489,157 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                   />
                                 </>
                               )}
+                              <Route
+                                path={orderShippingAddressEditUrl(":id")}
+                                render={({ match }) => (
+                                  <OrderAddressEditDialog
+                                    address={transformAddressToForm(
+                                      maybe(() => order.shippingAddress)
+                                    )}
+                                    countries={maybe(
+                                      () => data.shop.countries,
+                                      []
+                                    ).map(country => ({
+                                      code: country.code,
+                                      label: country.country
+                                    }))}
+                                    errors={errors}
+                                    open={!!match}
+                                    variant="shipping"
+                                    onClose={onModalClose}
+                                    onConfirm={variables =>
+                                      orderUpdate.mutate({
+                                        id,
+                                        input: {
+                                          shippingAddress: variables
+                                        }
+                                      })
+                                    }
+                                  />
+                                )}
+                              />
+                              <Route
+                                path={orderBillingAddressEditUrl(":id")}
+                                render={({ match }) => (
+                                  <OrderAddressEditDialog
+                                    address={transformAddressToForm(
+                                      maybe(() => order.billingAddress)
+                                    )}
+                                    countries={maybe(
+                                      () => data.shop.countries,
+                                      []
+                                    ).map(country => ({
+                                      code: country.code,
+                                      label: country.country
+                                    }))}
+                                    errors={errors}
+                                    open={!!match}
+                                    variant="billing"
+                                    onClose={onModalClose}
+                                    onConfirm={variables =>
+                                      orderUpdate.mutate({
+                                        id,
+                                        input: {
+                                          billingAddress: variables
+                                        }
+                                      })
+                                    }
+                                  />
+                                )}
+                              />
+                              <Route
+                                path={orderDraftFinalizeUrl(":id")}
+                                render={({ match }) => (
+                                  <OrderDraftFinalizeDialog
+                                    onClose={onModalClose}
+                                    onConfirm={() =>
+                                      orderDraftFinalize.mutate({ id })
+                                    }
+                                    open={!!match}
+                                    orderNumber={maybe(() => order.number)}
+                                  />
+                                )}
+                              />
+                              <Route
+                                path={orderCancelUrl(":id")}
+                                render={({ match }) => (
+                                  <OrderDraftCancelDialog
+                                    onClose={onModalClose}
+                                    onConfirm={() =>
+                                      orderDraftCancel.mutate({ id })
+                                    }
+                                    open={!!match}
+                                    orderNumber={maybe(() => order.number)}
+                                  />
+                                )}
+                              />
+                              <Route
+                                path={orderDraftShippingMethodUrl(":id")}
+                                render={({ match }) => (
+                                  <OrderShippingMethodEditDialog
+                                    open={!!match}
+                                    shippingMethod={maybe(
+                                      () => order.shippingMethod.id,
+                                      ""
+                                    )}
+                                    shippingMethods={maybe(
+                                      () => order.availableShippingMethods
+                                    )}
+                                    onClose={onModalClose}
+                                    onSubmit={variables =>
+                                      orderShippingMethodUpdate.mutate({
+                                        id,
+                                        input: {
+                                          shippingMethod:
+                                            variables.shippingMethod
+                                        }
+                                      })
+                                    }
+                                  />
+                                )}
+                              />
+                              <Route
+                                path={orderDraftLineAddUrl(":id")}
+                                render={({ match }) => (
+                                  <OrderProductAddDialog
+                                    loading={variantSearchOpts.loading}
+                                    open={!!match}
+                                    variants={maybe(() =>
+                                      variantSearchOpts.data.products.edges
+                                        .map(edge => edge.node)
+                                        .map(product => ({
+                                          ...product,
+                                          variants: product.variants.edges.map(
+                                            edge => edge.node
+                                          )
+                                        }))
+                                        .map(product =>
+                                          product.variants.map(variant => ({
+                                            ...variant,
+                                            name: `${product.name}(${
+                                              variant.name
+                                            })`
+                                          }))
+                                        )
+                                        .reduce(
+                                          (prev, curr) => prev.concat(curr),
+                                          []
+                                        )
+                                    )}
+                                    fetchVariants={variantSearch}
+                                    onClose={onModalClose}
+                                    onSubmit={variables =>
+                                      orderLineAdd.mutate({
+                                        id,
+                                        input: {
+                                          quantity: variables.quantity,
+                                          variantId: variables.variant.value
+                                        }
+                                      })
+                                    }
+                                  />
+                                )}
+                              />
                             </>
                           )}
                         </OrderOperations>

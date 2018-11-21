@@ -1,24 +1,19 @@
-import DialogContentText from "@material-ui/core/DialogContentText";
 import { withStyles, WithStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import ActionDialog from "../../../components/ActionDialog";
 import { CardMenu } from "../../../components/CardMenu/CardMenu";
 import { Container } from "../../../components/Container";
 import DateFormatter from "../../../components/DateFormatter";
-import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
 import Skeleton from "../../../components/Skeleton";
-import { AddressTypeInput } from "../../../customers/types";
 import i18n from "../../../i18n";
-import { maybe, transformAddressToForm } from "../../../misc";
+import { maybe } from "../../../misc";
 import { UserError } from "../../../types";
 import { DraftOrderInput } from "../../../types/globalTypes";
 import { OrderDetails_order } from "../../types/OrderDetails";
 import { UserSearch_customers_edges_node } from "../../types/UserSearch";
-import OrderAddressEditDialog from "../OrderAddressEditDialog";
 import OrderCustomer from "../OrderCustomer";
 import OrderDraftDetails from "../OrderDraftDetails/OrderDraftDetails";
 import { FormData as OrderDraftDetailsProductsFormData } from "../OrderDraftDetailsProducts";
@@ -50,20 +45,20 @@ export interface OrderDraftPageProps {
   fetchVariants: (value: string) => void;
   fetchUsers: (query: string) => void;
   onBack: () => void;
-  onBillingAddressEdit: (data: AddressTypeInput) => void;
+  onBillingAddressEdit: () => void;
   onCustomerEdit: (data: DraftOrderInput) => void;
   onDraftFinalize: () => void;
   onDraftRemove: () => void;
   onNoteAdd: (data: HistoryFormData) => void;
-  onOrderLineAdd: (data: ProductAddFormData) => void;
+  onOrderLineAdd: () => void;
   onOrderLineChange: (
     id: string,
     data: OrderDraftDetailsProductsFormData
   ) => void;
   onOrderLineRemove: (id: string) => void;
   onProductClick: (id: string) => void;
-  onShippingAddressEdit: (data: AddressTypeInput) => void;
-  onShippingMethodEdit: (data: ShippingMethodForm) => void;
+  onShippingAddressEdit: () => void;
+  onShippingMethodEdit: () => void;
 }
 interface OrderDraftPageState {
   openedBillingAddressEditDialog: boolean;
@@ -116,14 +111,6 @@ class OrderDraftPageComponent extends React.Component<
     this.setState(prevState => ({
       openedOrderLineAddDialog: !prevState.openedOrderLineAddDialog
     }));
-  toggleShippingAddressEditDialog = () =>
-    this.setState(prevState => ({
-      openedShippingAddressEditDialog: !prevState.openedShippingAddressEditDialog
-    }));
-  toggleBillingAddressEditDialog = () =>
-    this.setState(prevState => ({
-      openedBillingAddressEditDialog: !prevState.openedBillingAddressEditDialog
-    }));
   toggleShippingMethodEditDialog = () =>
     this.setState(prevState => ({
       openedShippingMethodEditDialog: !prevState.openedShippingMethodEditDialog
@@ -174,7 +161,7 @@ class OrderDraftPageComponent extends React.Component<
             menuItems={[
               {
                 label: i18n.t("Cancel order", { context: "button" }),
-                onSelect: this.toggleDraftRemoveDialog
+                onSelect: onDraftRemove
               }
             ]}
           />
@@ -192,67 +179,11 @@ class OrderDraftPageComponent extends React.Component<
           <div>
             <OrderDraftDetails
               order={order}
-              onOrderLineAdd={this.toggleOrderLineAddDialog}
+              onOrderLineAdd={onOrderLineAdd}
               onOrderLineChange={onOrderLineChange}
               onOrderLineRemove={onOrderLineRemove}
-              onShippingMethodEdit={this.toggleShippingMethodEditDialog}
+              onShippingMethodEdit={onShippingMethodEdit}
             />
-            <OrderProductAddDialog
-              loading={variantsLoading}
-              open={openedOrderLineAddDialog}
-              variants={variants}
-              fetchVariants={fetchVariants}
-              onClose={this.toggleOrderLineAddDialog}
-              onSubmit={onOrderLineAdd}
-            />
-            <OrderShippingMethodEditDialog
-              open={openedShippingMethodEditDialog}
-              shippingMethod={maybe(() => order.shippingMethod.id, "")}
-              shippingMethods={maybe(() => order.availableShippingMethods)}
-              onClose={this.toggleShippingMethodEditDialog}
-              onSubmit={onShippingMethodEdit}
-            />
-            <ActionDialog
-              onClose={this.toggleDraftRemoveDialog}
-              onConfirm={onDraftRemove}
-              open={openedDraftRemoveDialog}
-              title={i18n.t("Remove draft order", {
-                context: "modal title"
-              })}
-              variant="delete"
-            >
-              <DialogContentText
-                dangerouslySetInnerHTML={{
-                  __html: i18n.t(
-                    "Are you sure you want to remove draft <strong>#{{ number }}</strong>",
-                    {
-                      context: "modal",
-                      number: maybe(() => order.number)
-                    }
-                  )
-                }}
-              />
-            </ActionDialog>
-            <ActionDialog
-              onClose={this.toggleDraftFinalizeDialog}
-              onConfirm={onDraftFinalize}
-              open={openedDraftFinalizeDialog}
-              title={i18n.t("Finalize draft order", {
-                context: "modal title"
-              })}
-            >
-              <DialogContentText
-                dangerouslySetInnerHTML={{
-                  __html: i18n.t(
-                    "Are you sure you want to finalize draft <strong>#{{ number }}</strong>",
-                    {
-                      context: "modal",
-                      number: maybe(() => order.number)
-                    }
-                  )
-                }}
-              />
-            </ActionDialog>
             <OrderHistory
               history={maybe(() => order.events)}
               onNoteAdd={onNoteAdd}
@@ -266,58 +197,16 @@ class OrderDraftPageComponent extends React.Component<
               users={users}
               loading={usersLoading}
               fetchUsers={fetchUsers}
-              onBillingAddressEdit={this.toggleBillingAddressEditDialog}
+              onBillingAddressEdit={onBillingAddressEdit}
               onCustomerEdit={onCustomerEdit}
-              onShippingAddressEdit={this.toggleShippingAddressEditDialog}
+              onShippingAddressEdit={onShippingAddressEdit}
             />
-            {order && (
-              <>
-                <Form
-                  initial={transformAddressToForm(
-                    maybe(() => order.shippingAddress)
-                  )}
-                  errors={errors}
-                  onSubmit={onShippingAddressEdit}
-                >
-                  {({ change, data, errors: formErrors, submit }) => (
-                    <OrderAddressEditDialog
-                      countries={countries}
-                      data={data}
-                      errors={formErrors}
-                      open={openedShippingAddressEditDialog}
-                      variant="shipping"
-                      onChange={change}
-                      onClose={this.toggleShippingAddressEditDialog}
-                      onConfirm={submit}
-                    />
-                  )}
-                </Form>
-                <Form
-                  initial={transformAddressToForm(order.billingAddress)}
-                  errors={errors}
-                  onSubmit={onBillingAddressEdit}
-                >
-                  {({ change, data, errors: formErrors, submit }) => (
-                    <OrderAddressEditDialog
-                      countries={countries}
-                      data={data}
-                      errors={formErrors}
-                      open={openedBillingAddressEditDialog}
-                      variant="billing"
-                      onChange={change}
-                      onClose={this.toggleBillingAddressEditDialog}
-                      onConfirm={submit}
-                    />
-                  )}
-                </Form>
-              </>
-            )}
           </div>
         </div>
         <SaveButtonBar
           disabled={disabled || maybe(() => order.lines.length === 0)}
           onCancel={onBack}
-          onSave={this.toggleDraftFinalizeDialog}
+          onSave={onDraftFinalize}
           labels={{ save: i18n.t("Finalize", { context: "button" }) }}
         />
       </Container>

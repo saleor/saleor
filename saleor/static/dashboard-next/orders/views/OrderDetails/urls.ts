@@ -24,3 +24,10 @@ export const orderBillingAddressEditUrl = (id: string) =>
   urlJoin(orderUrl(id), "editAddress", "billing");
 export const orderShippingAddressEditUrl = (id: string) =>
   urlJoin(orderUrl(id), "editAddress", "shipping");
+
+export const orderDraftFinalizeUrl = (id: string) =>
+  urlJoin(orderUrl(id), "finalize");
+export const orderDraftShippingMethodUrl = (id: string) =>
+  urlJoin(orderUrl(id), "shipping");
+export const orderDraftLineAddUrl = (id: string) =>
+  urlJoin(orderUrl(id), "addLine");
