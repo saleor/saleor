@@ -73,7 +73,6 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                     <OrderDetailsMessages>
                       {orderMessages => (
                         <OrderOperations
-                          //#region
                           order={id}
                           onError={undefined}
                           onOrderFulfillmentCreate={
@@ -107,7 +106,6 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                           onOrderMarkAsPaid={
                             orderMessages.handleOrderMarkAsPaid
                           }
-                          //#endregion
                         >
                           {({
                             errors,
@@ -134,7 +132,6 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                 () => order.status !== OrderStatus.DRAFT
                               ) ? (
                                 <>
-                                  //#region
                                   <WindowTitle
                                     title={maybe(
                                       () => "Order #" + data.order.number
@@ -380,7 +377,6 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       />
                                     )}
                                   />
-                                  //#endregion
                                 </>
                               ) : (
                                 <>
