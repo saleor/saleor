@@ -126,7 +126,7 @@ const OrderDetailsPage = decorate<OrderDetailsPageProps>(
             {renderCollection(
               maybe(() => order.fulfillments),
               (fulfillment, fulfillmentIndex) => (
-                <React.Fragment key={fulfillment.id}>
+                <React.Fragment key={maybe(() => fulfillment.id, "loading")}>
                   {!(unfulfilled.length === 0 && fulfillmentIndex === 0) && (
                     <CardSpacer />
                   )}
