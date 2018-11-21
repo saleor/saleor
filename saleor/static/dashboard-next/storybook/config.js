@@ -79,12 +79,15 @@ function loadStories() {
   require("./stories/orders/OrderCustomer");
   require("./stories/orders/OrderCustomerEditDialog");
   require("./stories/orders/OrderDetailsPage");
+  require("./stories/orders/OrderDraftCancelDialog");
+  require("./stories/orders/OrderDraftFinalizeDialog");
   require("./stories/orders/OrderDraftPage");
   require("./stories/orders/OrderFulfillmentCancelDialog");
   require("./stories/orders/OrderFulfillmentDialog");
   require("./stories/orders/OrderFulfillmentTrackingDialog");
   require("./stories/orders/OrderHistory");
   require("./stories/orders/OrderListPage");
+  require("./stories/orders/OrderMarkAsPaidDialog");
   require("./stories/orders/OrderPaymentDialog");
   require("./stories/orders/OrderPaymentVoidDialog");
   require("./stories/orders/OrderProductAddDialog");

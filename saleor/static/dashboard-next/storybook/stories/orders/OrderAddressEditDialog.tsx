@@ -12,21 +12,23 @@ storiesOf("Orders / OrderAddressEditDialog", module)
   .addDecorator(Decorator)
   .add("shipping address", () => (
     <OrderAddressEditDialog
-      errors={{}}
+      address={transformAddressToForm(order.shippingAddress)}
+      countries={countries}
+      errors={[]}
+      onClose={() => undefined}
+      onConfirm={() => undefined}
       open={true}
       variant="shipping"
-      data={transformAddressToForm(order.shippingAddress)}
-      onChange={undefined}
-      countries={countries}
     />
   ))
   .add("billing address", () => (
     <OrderAddressEditDialog
-      errors={{}}
+      address={transformAddressToForm(order.billingAddress)}
+      countries={countries}
+      errors={[]}
+      onClose={() => undefined}
+      onConfirm={() => undefined}
       open={true}
       variant="billing"
-      data={transformAddressToForm(order.billingAddress)}
-      onChange={undefined}
-      countries={countries}
     />
   ));

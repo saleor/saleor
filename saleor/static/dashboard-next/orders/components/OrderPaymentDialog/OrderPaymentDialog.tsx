@@ -52,6 +52,9 @@ const OrderPaymentDialog: React.StatelessComponent<OrderPaymentDialogProps> = ({
               label={i18n.t("Amount")}
               name="amount"
               onChange={change}
+              inputProps={{
+                step: "0.01"
+              }}
               type="number"
               value={data.amount}
             />
