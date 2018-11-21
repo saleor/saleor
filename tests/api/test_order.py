@@ -79,6 +79,9 @@ def test_order_query(
                     fulfillments {
                         fulfillmentOrder
                     }
+                    payments{
+                        id
+                    }
                     subtotal {
                         net {
                             amount
@@ -123,6 +126,7 @@ def test_order_query(
     fulfillment = order.fulfillments.first().fulfillment_order
     fulfillment_order = order_data['fulfillments'][0]['fulfillmentOrder']
     assert fulfillment_order == fulfillment
+    assert len(order_data['payments']) == order.payments.count()
 
     expected_methods = ShippingMethod.objects.applicable_shipping_methods(
         price=order.get_subtotal().gross.amount,

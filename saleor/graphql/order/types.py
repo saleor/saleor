@@ -7,7 +7,7 @@ from ...product.templatetags.product_images import get_thumbnail
 from ..account.types import User
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
-from ..payment.types import OrderAction, PaymentChargeStatusEnum
+from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
 from ..shipping.types import ShippingMethod
 
 OrderEventsEnum = graphene.Enum.from_enum(OrderEvents)
@@ -88,9 +88,11 @@ class FulfillmentLine(CountableDjangoObjectType):
 
 
 class Fulfillment(CountableDjangoObjectType):
-    lines = graphene.List(
-        FulfillmentLine,
-        description='List of fulfillment lines for the fulfillment')
+    lines = gql_optimizer.field(
+        graphene.List(
+            FulfillmentLine,
+            description='List of fulfillment lines for the fulfillment'),
+        model_field='lines')
     status_display = graphene.String(
         description='User-friendly fulfillment status.')
 
@@ -161,6 +163,10 @@ class Order(CountableDjangoObjectType):
         description='Internal payment status.')
     payment_status_display = graphene.String(
         description='User-friendly payment status.')
+    payments = gql_optimizer.field(
+        graphene.List(
+            Payment, description='List of payments for the order'),
+        model_field='payments')
     total = graphene.Field(
         TaxedMoney, description='Total amount of the order.')
     shipping_price = graphene.Field(
@@ -269,6 +275,10 @@ class Order(CountableDjangoObjectType):
     @gql_optimizer.resolver_hints(prefetch_related='payments')
     def resolve_payment_status_display(self, info):
         return self.get_last_payment_status_display()
+
+    @staticmethod
+    def resolve_payments(self, info):
+        return self.payments.all()
 
     @staticmethod
     def resolve_status_display(self, info):
