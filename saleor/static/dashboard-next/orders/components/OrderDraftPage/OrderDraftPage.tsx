@@ -1,4 +1,4 @@
-import { withStyles, WithStyles } from "@material-ui/core/styles";
+import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
@@ -18,12 +18,6 @@ import OrderCustomer from "../OrderCustomer";
 import OrderDraftDetails from "../OrderDraftDetails/OrderDraftDetails";
 import { FormData as OrderDraftDetailsProductsFormData } from "../OrderDraftDetailsProducts";
 import OrderHistory, { FormData as HistoryFormData } from "../OrderHistory";
-import OrderProductAddDialog, {
-  FormData as ProductAddFormData
-} from "../OrderProductAddDialog";
-import OrderShippingMethodEditDialog, {
-  FormData as ShippingMethodForm
-} from "../OrderShippingMethodEditDialog";
 
 export interface OrderDraftPageProps {
   disabled: boolean;
@@ -60,14 +54,6 @@ export interface OrderDraftPageProps {
   onShippingAddressEdit: () => void;
   onShippingMethodEdit: () => void;
 }
-interface OrderDraftPageState {
-  openedBillingAddressEditDialog: boolean;
-  openedDraftRemoveDialog: boolean;
-  openedDraftFinalizeDialog: boolean;
-  openedOrderLineAddDialog: boolean;
-  openedShippingAddressEditDialog: boolean;
-  openedShippingMethodEditDialog: boolean;
-}
 
 const decorate = withStyles(theme => ({
   date: {
@@ -86,132 +72,86 @@ const decorate = withStyles(theme => ({
     gridTemplateColumns: "9fr 4fr"
   }
 }));
-class OrderDraftPageComponent extends React.Component<
-  OrderDraftPageProps & WithStyles<"date" | "header" | "menu" | "root">,
-  OrderDraftPageState
-> {
-  state = {
-    openedBillingAddressEditDialog: false,
-    openedDraftFinalizeDialog: false,
-    openedDraftRemoveDialog: false,
-    openedOrderLineAddDialog: false,
-    openedShippingAddressEditDialog: false,
-    openedShippingMethodEditDialog: false
-  };
-
-  toggleDraftRemoveDialog = () =>
-    this.setState(prevState => ({
-      openedDraftRemoveDialog: !prevState.openedDraftRemoveDialog
-    }));
-  toggleDraftFinalizeDialog = () =>
-    this.setState(prevState => ({
-      openedDraftFinalizeDialog: !prevState.openedDraftFinalizeDialog
-    }));
-  toggleOrderLineAddDialog = () =>
-    this.setState(prevState => ({
-      openedOrderLineAddDialog: !prevState.openedOrderLineAddDialog
-    }));
-  toggleShippingMethodEditDialog = () =>
-    this.setState(prevState => ({
-      openedShippingMethodEditDialog: !prevState.openedShippingMethodEditDialog
-    }));
-
-  render() {
-    const {
-      classes,
-      countries,
-      disabled,
-      errors,
-      order,
-      users,
-      usersLoading,
-      variants,
-      variantsLoading,
-      fetchUsers,
-      fetchVariants,
-      onBack,
-      onBillingAddressEdit,
-      onCustomerEdit,
-      onDraftRemove,
-      onDraftFinalize,
-      onNoteAdd,
-      onOrderLineAdd,
-      onOrderLineChange,
-      onOrderLineRemove,
-      onShippingAddressEdit,
-      onShippingMethodEdit
-    } = this.props;
-    const {
-      openedBillingAddressEditDialog,
-      openedDraftFinalizeDialog,
-      openedDraftRemoveDialog,
-      openedOrderLineAddDialog,
-      openedShippingAddressEditDialog,
-      openedShippingMethodEditDialog
-    } = this.state;
-    return (
-      <Container width="md">
-        <PageHeader
-          className={classes.header}
-          title={maybe(() => order.number) ? "#" + order.number : undefined}
-          onBack={onBack}
-        >
-          <CardMenu
-            className={classes.menu}
-            menuItems={[
-              {
-                label: i18n.t("Cancel order", { context: "button" }),
-                onSelect: onDraftRemove
-              }
-            ]}
-          />
-        </PageHeader>
-        <div className={classes.date}>
-          {order && order.created ? (
-            <Typography variant="caption">
-              <DateFormatter date={order.created} />
-            </Typography>
-          ) : (
-            <Skeleton style={{ width: "10em" }} />
-          )}
-        </div>
-        <div className={classes.root}>
-          <div>
-            <OrderDraftDetails
-              order={order}
-              onOrderLineAdd={onOrderLineAdd}
-              onOrderLineChange={onOrderLineChange}
-              onOrderLineRemove={onOrderLineRemove}
-              onShippingMethodEdit={onShippingMethodEdit}
-            />
-            <OrderHistory
-              history={maybe(() => order.events)}
-              onNoteAdd={onNoteAdd}
-            />
-          </div>
-          <div>
-            <OrderCustomer
-              canEditAddresses={true}
-              canEditCustomer={true}
-              order={order}
-              users={users}
-              loading={usersLoading}
-              fetchUsers={fetchUsers}
-              onBillingAddressEdit={onBillingAddressEdit}
-              onCustomerEdit={onCustomerEdit}
-              onShippingAddressEdit={onShippingAddressEdit}
-            />
-          </div>
-        </div>
-        <SaveButtonBar
-          disabled={disabled || maybe(() => order.lines.length === 0)}
-          onCancel={onBack}
-          onSave={onDraftFinalize}
-          labels={{ save: i18n.t("Finalize", { context: "button" }) }}
+const OrderDetailsPage = decorate<OrderDraftPageProps>(
+  ({
+    classes,
+    disabled,
+    fetchUsers,
+    onBack,
+    onBillingAddressEdit,
+    onCustomerEdit,
+    onDraftFinalize,
+    onDraftRemove,
+    onNoteAdd,
+    onOrderLineAdd,
+    onOrderLineChange,
+    onOrderLineRemove,
+    onShippingAddressEdit,
+    onShippingMethodEdit,
+    order,
+    users,
+    usersLoading
+  }) => (
+    <Container width="md">
+      <PageHeader
+        className={classes.header}
+        title={maybe(() => order.number) ? "#" + order.number : undefined}
+        onBack={onBack}
+      >
+        <CardMenu
+          className={classes.menu}
+          menuItems={[
+            {
+              label: i18n.t("Cancel order", { context: "button" }),
+              onSelect: onDraftRemove
+            }
+          ]}
         />
-      </Container>
-    );
-  }
-}
-const OrderDetailsPage = decorate<OrderDraftPageProps>(OrderDraftPageComponent);
+      </PageHeader>
+      <div className={classes.date}>
+        {order && order.created ? (
+          <Typography variant="caption">
+            <DateFormatter date={order.created} />
+          </Typography>
+        ) : (
+          <Skeleton style={{ width: "10em" }} />
+        )}
+      </div>
+      <div className={classes.root}>
+        <div>
+          <OrderDraftDetails
+            order={order}
+            onOrderLineAdd={onOrderLineAdd}
+            onOrderLineChange={onOrderLineChange}
+            onOrderLineRemove={onOrderLineRemove}
+            onShippingMethodEdit={onShippingMethodEdit}
+          />
+          <OrderHistory
+            history={maybe(() => order.events)}
+            onNoteAdd={onNoteAdd}
+          />
+        </div>
+        <div>
+          <OrderCustomer
+            canEditAddresses={true}
+            canEditCustomer={true}
+            order={order}
+            users={users}
+            loading={usersLoading}
+            fetchUsers={fetchUsers}
+            onBillingAddressEdit={onBillingAddressEdit}
+            onCustomerEdit={onCustomerEdit}
+            onShippingAddressEdit={onShippingAddressEdit}
+          />
+        </div>
+      </div>
+      <SaveButtonBar
+        disabled={disabled || maybe(() => order.lines.length === 0)}
+        onCancel={onBack}
+        onSave={onDraftFinalize}
+        labels={{ save: i18n.t("Finalize", { context: "button" }) }}
+      />
+    </Container>
+  )
+);
 export default OrderDetailsPage;

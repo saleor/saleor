@@ -1,4 +1,4 @@
-import { withStyles, WithStyles } from "@material-ui/core/styles";
+import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
@@ -44,15 +44,6 @@ export interface OrderDetailsPageProps {
   onOrderCancel();
   onNoteAdd(data: HistoryFormData);
 }
-interface OrderDetailsPageState {
-  openedBillingAddressEditDialog: boolean;
-  openedFulfillmentDialog: boolean;
-  openedPaymentCaptureDialog: boolean;
-  openedPaymentPaidDialog: boolean;
-  openedPaymentRefundDialog: boolean;
-  openedPaymentVoidDialog: boolean;
-  openedShippingAddressEditDialog: boolean;
-}
 
 const decorate = withStyles(theme => ({
   date: {
@@ -71,83 +62,30 @@ const decorate = withStyles(theme => ({
     gridTemplateColumns: "9fr 4fr"
   }
 }));
-class OrderDetailsPageComponent extends React.Component<
-  OrderDetailsPageProps & WithStyles<"date" | "header" | "menu" | "root">,
-  OrderDetailsPageState
-> {
-  state = {
-    openedBillingAddressEditDialog: false,
-    openedFulfillmentDialog: false,
-    openedPaymentCaptureDialog: false,
-    openedPaymentPaidDialog: false,
-    openedPaymentRefundDialog: false,
-    openedPaymentVoidDialog: false,
-    openedShippingAddressEditDialog: false
-  };
-
-  toggleFulfillmentDialog = () =>
-    this.setState(prevState => ({
-      openedFulfillmentDialog: !prevState.openedFulfillmentDialog
-    }));
-  togglePaymentVoidDialog = () =>
-    this.setState(prevState => ({
-      openedPaymentVoidDialog: !prevState.openedPaymentVoidDialog
-    }));
-  togglePaymentCaptureDialog = () =>
-    this.setState(prevState => ({
-      openedPaymentCaptureDialog: !prevState.openedPaymentCaptureDialog
-    }));
-  togglePaymentRefundDialog = () =>
-    this.setState(prevState => ({
-      openedPaymentRefundDialog: !prevState.openedPaymentRefundDialog
-    }));
-  toggleShippingAddressEditDialog = () =>
-    this.setState(prevState => ({
-      openedShippingAddressEditDialog: !prevState.openedShippingAddressEditDialog
-    }));
-  toggleBillingAddressEditDialog = () =>
-    this.setState(prevState => ({
-      openedBillingAddressEditDialog: !prevState.openedBillingAddressEditDialog
-    }));
-  togglePaymentPaidDialog = () =>
-    this.setState(prevState => ({
-      openedPaymentPaidDialog: !prevState.openedPaymentPaidDialog
-    }));
-
-  render() {
-    const {
-      classes,
-      countries,
-      errors,
-      order,
-      onBack,
-      onBillingAddressEdit,
-      onFulfillmentCancel,
-      onFulfillmentTrackingNumberUpdate,
-      onNoteAdd,
-      onOrderCancel,
-      onOrderFulfill,
-      onPaymentCapture,
-      onPaymentPaid,
-      onPaymentRefund,
-      onPaymentVoid,
-      onShippingAddressEdit
-    } = this.props;
-    const {
-      openedBillingAddressEditDialog,
-      openedFulfillmentDialog,
-      openedPaymentCaptureDialog,
-      openedPaymentPaidDialog,
-      openedPaymentRefundDialog,
-      openedPaymentVoidDialog,
-      openedShippingAddressEditDialog
-    } = this.state;
+const OrderDetailsPage = decorate<OrderDetailsPageProps>(
+  ({
+    classes,
+    order,
+    onOrderCancel,
+    onBack,
+    onBillingAddressEdit,
+    onFulfillmentCancel,
+    onFulfillmentTrackingNumberUpdate,
+    onNoteAdd,
+    onOrderFulfill,
+    onPaymentCapture,
+    onPaymentPaid,
+    onPaymentRefund,
+    onPaymentVoid,
+    onShippingAddressEdit
+  }) => {
     const canCancel = maybe(() => order.status) !== OrderStatus.CANCELED;
     const canEditAddresses = maybe(() => order.status) !== OrderStatus.CANCELED;
     const canFulfill = maybe(() => order.status) !== OrderStatus.CANCELED;
     const unfulfilled = maybe(() => order.lines, []).filter(
       line => line.quantityFulfilled < line.quantity
     );
+
     return (
       <Container width="md">
         <PageHeader
@@ -231,9 +169,6 @@ class OrderDetailsPageComponent extends React.Component<
       </Container>
     );
   }
-}
-const OrderDetailsPage = decorate<OrderDetailsPageProps>(
-  OrderDetailsPageComponent
 );
 OrderDetailsPage.displayName = "OrderDetailsPage";
 export default OrderDetailsPage;
