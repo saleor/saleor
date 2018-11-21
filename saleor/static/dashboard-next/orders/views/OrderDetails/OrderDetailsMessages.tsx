@@ -213,6 +213,10 @@ export const OrderDetailsMessages: React.StatelessComponent<
                 })
               });
             }
+            navigate(
+              orderUrl(encodeURIComponent(data.orderUpdateShipping.order.id)),
+              true
+            );
           };
           const handleOrderLineDelete = (data: OrderLineDelete) => {
             if (!maybe(() => data.draftOrderLineDelete.errors.length)) {
@@ -236,6 +240,12 @@ export const OrderDetailsMessages: React.StatelessComponent<
                   context: "notification"
                 })
               });
+              navigate(
+                orderUrl(
+                  encodeURIComponent(data.draftOrderLineCreate.order.id)
+                ),
+                true
+              );
             } else {
               pushMessage({
                 text: i18n.t("Could not create order line", {
@@ -316,6 +326,10 @@ export const OrderDetailsMessages: React.StatelessComponent<
                   context: "notification"
                 })
               });
+              navigate(
+                orderUrl(encodeURIComponent(data.draftOrderComplete.order.id)),
+                true
+              );
             } else {
               pushMessage({
                 text: i18n.t("Could not finalize draft", {
