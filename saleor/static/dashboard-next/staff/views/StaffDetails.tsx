@@ -1,5 +1,8 @@
+import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
+import { Route } from "react-router-dom";
 
+import ActionDialog from "../../components/ActionDialog";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import { WindowTitle } from "../../components/WindowTitle";
@@ -13,7 +16,11 @@ import {
 import { TypedStaffMemberDetailsQuery } from "../queries";
 import { StaffMemberDelete } from "../types/StaffMemberDelete";
 import { StaffMemberUpdate } from "../types/StaffMemberUpdate";
-import { staffListUrl } from "../urls";
+import {
+  staffListUrl,
+  staffMemberDetailsUrl,
+  staffMemberRemoveUrl
+} from "../urls";
 
 interface OrderListProps {
   id: string;
@@ -58,7 +65,7 @@ export const StaffDetails: React.StatelessComponent<OrderListProps> = ({
                           <StaffDetailsPage
                             disabled={loading}
                             onBack={() => navigate(staffListUrl)}
-                            onDelete={deleteStaffMember}
+                            onDelete={() => navigate(staffMemberRemoveUrl(id))}
                             onSubmit={variables =>
                               updateStaffMember({
                                 variables: {
@@ -72,6 +79,29 @@ export const StaffDetails: React.StatelessComponent<OrderListProps> = ({
                             }
                             permissions={maybe(() => data.shop.permissions)}
                             staffMember={maybe(() => data.user)}
+                          />
+                          <Route
+                            path={staffMemberRemoveUrl(id)}
+                            render={({ match }) => (
+                              <ActionDialog
+                                open={!!match}
+                                title={i18n.t("Remove staff user")}
+                                variant="delete"
+                                onClose={() =>
+                                  navigate(staffMemberDetailsUrl(id))
+                                }
+                                onConfirm={deleteStaffMember}
+                              >
+                                <DialogContentText
+                                  dangerouslySetInnerHTML={{
+                                    __html: i18n.t(
+                                      "Are you sure you want to remove <strong>{{ email }}</strong> from staff members?",
+                                      { email: maybe(() => data.user.email) }
+                                    )
+                                  }}
+                                />
+                              </ActionDialog>
+                            )}
                           />
                         </>
                       )}

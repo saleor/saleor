@@ -1,14 +1,10 @@
-import DialogContentText from "@material-ui/core/DialogContentText";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import ActionDialog from "../../../components/ActionDialog";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
-import Toggle from "../../../components/Toggle";
-import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import {
   StaffMemberDetails_shop_permissions,
@@ -70,70 +66,48 @@ const StaffDetailsPage = decorate<StaffDetailsPageProps>(
       )
     };
     return (
-      <Toggle>
-        {(openedDeleteDialog, { toggle: toggleDeleteDialog }) => (
-          <>
-            <Form
-              initial={initialForm}
-              onSubmit={onSubmit}
-              key={JSON.stringify({ staffMember, permissions })}
-            >
-              {({ data, change, submit }) => (
-                <Container width="md">
-                  <PageHeader
-                    title={maybe(() => staffMember.email)}
-                    onBack={onBack}
+      <Form
+        initial={initialForm}
+        onSubmit={onSubmit}
+        key={JSON.stringify({ staffMember, permissions })}
+      >
+        {({ data, change, submit }) => (
+          <Container width="md">
+            <PageHeader
+              title={maybe(() => staffMember.email)}
+              onBack={onBack}
+            />
+            <div className={classes.root}>
+              <div>
+                <StaffProperties
+                  className={classes.card}
+                  staffMember={staffMember}
+                />
+              </div>
+              <div>
+                <div className={classes.card}>
+                  <StaffPermissions
+                    data={data}
+                    disabled={disabled}
+                    permissions={permissions}
+                    onChange={change}
                   />
-                  <div className={classes.root}>
-                    <div>
-                      <StaffProperties
-                        className={classes.card}
-                        staffMember={staffMember}
-                      />
-                    </div>
-                    <div>
-                      <div className={classes.card}>
-                        <StaffPermissions
-                          data={data}
-                          disabled={disabled}
-                          permissions={permissions}
-                          onChange={change}
-                        />
-                      </div>
-                      <StaffStatus
-                        data={data}
-                        disabled={disabled}
-                        onChange={change}
-                      />
-                    </div>
-                  </div>
-                  <SaveButtonBar
-                    onCancel={onBack}
-                    onSave={submit}
-                    onDelete={toggleDeleteDialog}
-                  />
-                </Container>
-              )}
-            </Form>
-            <ActionDialog
-              open={openedDeleteDialog}
-              title={i18n.t("Remove staff user")}
-              variant="delete"
-              onClose={toggleDeleteDialog}
-              onConfirm={onDelete}
-            >
-              <DialogContentText
-                dangerouslySetInnerHTML={{
-                  __html: i18n.t(
-                    "Are you sure you want to remove <strong>{{ email }}</strong> from staff members?",
-                    { email: maybe(() => staffMember.email) }
-                  )
-                }}
-              />
-            </ActionDialog>
-          </>
+                </div>
+                <StaffStatus
+                  data={data}
+                  disabled={disabled}
+                  onChange={change}
+                />
+              </div>
+            </div>
+            <SaveButtonBar
+              onCancel={onBack}
+              onSave={submit}
+              onDelete={onDelete}
+            />
+          </Container>
         )}
-      </Toggle>
+      </Form>
     );
   }
 );

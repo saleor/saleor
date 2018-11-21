@@ -38,14 +38,16 @@ const OrderCancelDialog = decorate<OrderCancelDialogProps>(
     <Dialog open={open}>
       <Form
         initial={{
-          restock: true,
+          restock: true
         }}
         onSubmit={onSubmit}
       >
         {({ data, change }) => {
           return (
             <>
-              <DialogTitle>{i18n.t("Cancel order", { context: "title" })}</DialogTitle>
+              <DialogTitle>
+                {i18n.t("Cancel order", { context: "title" })}
+              </DialogTitle>
               <DialogContent>
                 <DialogContentText
                   dangerouslySetInnerHTML={{
@@ -57,7 +59,7 @@ const OrderCancelDialog = decorate<OrderCancelDialogProps>(
                 />
                 <ControlledCheckbox
                   checked={data.restock}
-                  label={i18n.t("Restock")}
+                  label={i18n.t("Release all stock allocated to this order")}
                   name="restock"
                   onChange={change}
                 />

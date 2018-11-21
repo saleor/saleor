@@ -1,17 +1,20 @@
 import * as React from "react";
+import { Route } from "react-router-dom";
 
-import * as placeholderImg from "../../../images/placeholder255x255.png";
-import ErrorMessageCard from "../../components/ErrorMessageCard";
-import Messages from "../../components/messages";
-import Navigator from "../../components/Navigator";
-import { WindowTitle } from "../../components/WindowTitle";
-import i18n from "../../i18n";
-import { decimal, maybe } from "../../misc";
-import ProductVariantPage from "../components/ProductVariantPage";
-import ProductVariantOperations from "../containers/ProductVariantOperations";
-import { productVariantQuery, TypedProductVariantQuery } from "../queries";
-import { VariantUpdate } from "../types/VariantUpdate";
-import { productUrl, productVariantEditUrl } from "../urls";
+import * as placeholderImg from "../../../../images/placeholder255x255.png";
+import ErrorMessageCard from "../../../components/ErrorMessageCard";
+import Messages from "../../../components/messages";
+import Navigator from "../../../components/Navigator";
+import { WindowTitle } from "../../../components/WindowTitle";
+import i18n from "../../../i18n";
+import { decimal, maybe } from "../../../misc";
+import ProductVariantDeleteDialog from "../../components/ProductVariantDeleteDialog";
+import ProductVariantPage from "../../components/ProductVariantPage";
+import ProductVariantOperations from "../../containers/ProductVariantOperations";
+import { productVariantQuery, TypedProductVariantQuery } from "../../queries";
+import { VariantUpdate } from "../../types/VariantUpdate";
+import { productUrl, productVariantEditUrl } from "../../urls";
+import { productVariantRemoveUrl } from "./urls";
 
 interface ProductUpdateProps {
   variantId: string;
@@ -119,7 +122,14 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                             variant ? variant.name || variant.sku : undefined
                           }
                           onBack={handleBack}
-                          onDelete={() => deleteVariant.mutate(variantId)}
+                          onDelete={() =>
+                            navigate(
+                              productVariantRemoveUrl(
+                                encodeURIComponent(productId),
+                                encodeURIComponent(variantId)
+                              )
+                            )
+                          }
                           onImageSelect={handleImageSelect}
                           onSubmit={(data: FormData) => {
                             if (variant) {
@@ -144,6 +154,27 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                               )
                             );
                           }}
+                        />
+                        <Route
+                          path={productVariantRemoveUrl(
+                            ":productId",
+                            ":variantId"
+                          )}
+                          render={({ match }) => (
+                            <ProductVariantDeleteDialog
+                              onClose={() =>
+                                navigate(
+                                  productVariantEditUrl(
+                                    encodeURIComponent(productId),
+                                    encodeURIComponent(variantId)
+                                  )
+                                )
+                              }
+                              onConfirm={() => deleteVariant.mutate(variantId)}
+                              open={!!match}
+                              name={maybe(() => data.productVariant.name)}
+                            />
+                          )}
                         />
                       </>
                     );
