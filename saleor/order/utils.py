@@ -258,8 +258,8 @@ def validate_shipping_method(order):
 def clear_shipping_attributes(order):
     order.shipping_method = None
     order.shipping_method_name = None
-    order.shipping_price_net = Money(0, settings.DEFAULT_CURRENCY)
-    order.shipping_price_gross = Money(0, settings.DEFAULT_CURRENCY)
+    order.shipping_price = TaxedMoney(Money(0, settings.DEFAULT_CURRENCY),
+                                      Money(0, settings.DEFAULT_CURRENCY))
     order.save(
         update_fields=[
             'shipping_method', 'shipping_method_name',
