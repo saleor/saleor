@@ -54,6 +54,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
           }
           const order = maybe(() => data.order);
           const encodedId = encodeURIComponent(id);
+          const onModalClose = () => navigate(orderUrl(encodedId), true);
           return (
             <UserSearchProvider>
               {users => (
@@ -197,9 +198,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       <OrderCancelDialog
                                         number={maybe(() => order.number)}
                                         open={!!match}
-                                        onClose={() =>
-                                          navigate(orderUrl(encodedId))
-                                        }
+                                        onClose={onModalClose}
                                         onSubmit={variables =>
                                           orderCancel.mutate({
                                             id,
@@ -213,9 +212,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                     path={orderMarkAsPaidUrl(":id")}
                                     render={({ match }) => (
                                       <OrderMarkAsPaidDialog
-                                        onClose={() =>
-                                          navigate(orderUrl(encodedId))
-                                        }
+                                        onClose={onModalClose}
                                         onConfirm={() =>
                                           orderPaymentMarkAsPaid.mutate({ id })
                                         }
@@ -228,9 +225,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                     render={({ match }) => (
                                       <OrderPaymentVoidDialog
                                         open={!!match}
-                                        onClose={() =>
-                                          navigate(orderUrl(encodedId))
-                                        }
+                                        onClose={onModalClose}
                                         onConfirm={() =>
                                           orderVoid.mutate({ id })
                                         }
@@ -246,9 +241,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                         )}
                                         open={!!match}
                                         variant="capture"
-                                        onClose={() =>
-                                          navigate(orderUrl(encodedId))
-                                        }
+                                        onClose={onModalClose}
                                         onSubmit={variables =>
                                           orderPaymentCapture.mutate({
                                             ...variables,
@@ -267,9 +260,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                         )}
                                         open={!!match}
                                         variant="refund"
-                                        onClose={() =>
-                                          navigate(orderUrl(encodedId))
-                                        }
+                                        onClose={onModalClose}
                                         onSubmit={variables =>
                                           orderPaymentRefund.mutate({
                                             ...variables,
@@ -292,9 +283,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                             line.quantityFulfilled <
                                             line.quantity
                                         )}
-                                        onClose={() =>
-                                          navigate(orderUrl(encodedId))
-                                        }
+                                        onClose={onModalClose}
                                         onSubmit={variables =>
                                           orderCreateFulfillment.mutate({
                                             input: {
@@ -339,9 +328,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                             input: variables
                                           })
                                         }
-                                        onClose={() =>
-                                          navigate(orderUrl(encodedId))
-                                        }
+                                        onClose={onModalClose}
                                       />
                                     )}
                                   />
@@ -376,9 +363,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                             }
                                           )
                                         }
-                                        onClose={() =>
-                                          navigate(orderUrl(encodedId))
-                                        }
+                                        onClose={onModalClose}
                                       />
                                     )}
                                   />
@@ -399,9 +384,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                         errors={errors}
                                         open={!!match}
                                         variant="shipping"
-                                        onClose={() =>
-                                          navigate(orderUrl(encodedId))
-                                        }
+                                        onClose={onModalClose}
                                         onConfirm={variables =>
                                           orderUpdate.mutate({
                                             id,
@@ -430,9 +413,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                         errors={errors}
                                         open={!!match}
                                         variant="billing"
-                                        onClose={() =>
-                                          navigate(orderUrl(encodedId))
-                                        }
+                                        onClose={onModalClose}
                                         onConfirm={variables =>
                                           orderUpdate.mutate({
                                             id,
