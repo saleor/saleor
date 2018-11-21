@@ -1,10 +1,12 @@
 import graphene
+import graphene_django_optimizer as gql_optimizer
 
 from ...checkout import models
 from ...core.utils.taxes import get_taxes_for_address
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import TaxedMoney
 from ..order.resolvers import resolve_shipping_methods
+from ..payment.types import Payment
 from ..shipping.types import ShippingMethod
 
 
@@ -32,33 +34,40 @@ class CheckoutLine(CountableDjangoObjectType):
 
 
 class Checkout(CountableDjangoObjectType):
-    total_price = graphene.Field(
-        TaxedMoney,
-        description=(
-            'The sum of the the checkout line prices, with all the taxes,'
-            'shipping costs, and discounts included.'))
-    subtotal_price = graphene.Field(
-        TaxedMoney,
-        description=(
-            'The price of the checkout before shipping, with taxes included.'))
-    shipping_price = graphene.Field(
-        TaxedMoney,
-        description='The price of the shipping, with all the taxes included.')
-    lines = graphene.List(
-        CheckoutLine, description=(
-            'A list of checkout lines, each containing information about '
-            'an item in the checkout.'))
     available_shipping_methods = graphene.List(
         ShippingMethod, required=False,
         description='Shipping methods that can be used with this order.')
     is_shipping_required = graphene.Boolean(
         description='Returns True, if checkout requires shipping.')
+    lines = graphene.List(
+        CheckoutLine, description=(
+            'A list of checkout lines, each containing information about '
+            'an item in the checkout.'))
+    payments = gql_optimizer.field(
+        graphene.List(
+            Payment, description='List of payments for the checkout'),
+        model_field='payments')
+    shipping_price = graphene.Field(
+        TaxedMoney,
+        description='The price of the shipping, with all the taxes included.')
+    subtotal_price = graphene.Field(
+        TaxedMoney,
+        description=(
+            'The price of the checkout before shipping, with taxes included.'))
+    total_price = graphene.Field(
+        TaxedMoney,
+        description=(
+            'The sum of the the checkout line prices, with all the taxes,'
+            'shipping costs, and discounts included.'))
 
     class Meta:
         description = 'Checkout object'
         model = models.Cart
         interfaces = [graphene.relay.Node]
         filter_fields = ['token']
+
+    def resolve_payments(self, info):
+        return self.payments.all()
 
     def resolve_total_price(self, info):
         taxes = get_taxes_for_address(self.shipping_address)
