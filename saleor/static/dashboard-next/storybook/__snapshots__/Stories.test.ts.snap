@@ -5343,8 +5343,6 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
 
 exports[`Storyshots Orders / OrderMarkAsPaidDialog default 1`] = `<div />`;
 
-exports[`Storyshots Orders / OrderMarkAsPaidDialog other 1`] = `<div />`;
-
 exports[`Storyshots Orders / OrderPaymentDialog capture payment 1`] = `<div />`;
 
 exports[`Storyshots Orders / OrderPaymentDialog refund payment 1`] = `<div />`;
@@ -19160,7 +19158,7 @@ exports[`Storyshots Views / Orders / Order details cancelled 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -19197,7 +19195,7 @@ exports[`Storyshots Views / Orders / Order details cancelled 1`] = `
       />
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -19211,7 +19209,7 @@ exports[`Storyshots Views / Orders / Order details cancelled 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -19879,8 +19877,6 @@ exports[`Storyshots Views / Orders / Order details cancelled 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -19893,7 +19889,7 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -19929,7 +19925,7 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -19962,7 +19958,7 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -19976,7 +19972,7 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -20857,8 +20853,6 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -20871,7 +20865,7 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -20907,7 +20901,7 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -20940,7 +20934,7 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -20954,7 +20948,7 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -21835,8 +21829,6 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -22351,7 +22343,7 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -22387,7 +22379,7 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -22420,7 +22412,7 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -22434,7 +22426,7 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -23315,8 +23307,6 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -23329,7 +23319,7 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -23365,7 +23355,7 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -23398,7 +23388,7 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -23412,7 +23402,7 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -24293,8 +24283,6 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
             />
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -24307,7 +24295,7 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -24343,7 +24331,7 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -24376,7 +24364,7 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -24390,7 +24378,7 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -25271,8 +25259,6 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -25285,7 +25271,7 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -25321,7 +25307,7 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -25354,7 +25340,7 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -25368,7 +25354,7 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -26249,8 +26235,6 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -26263,7 +26247,7 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -26299,7 +26283,7 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -26332,7 +26316,7 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -26346,7 +26330,7 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -27227,8 +27211,6 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -27241,7 +27223,7 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -27277,7 +27259,7 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -27310,7 +27292,7 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -27324,7 +27306,7 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -28205,8 +28187,6 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -28219,7 +28199,7 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -28255,7 +28235,7 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -28288,7 +28268,7 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -28302,7 +28282,7 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -29183,8 +29163,6 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -29197,7 +29175,7 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -29233,7 +29211,7 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -29266,7 +29244,7 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -29280,7 +29258,7 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -30161,8 +30139,6 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -30175,7 +30151,7 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -30211,7 +30187,7 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -30244,7 +30220,7 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -30258,7 +30234,7 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -31139,8 +31115,6 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -31153,7 +31127,7 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDraftPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -31189,7 +31163,7 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDraftPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -31222,7 +31196,7 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
       </div>
     </div>
     <div
-      class="OrderDraftPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -31236,7 +31210,7 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
       </span>
     </div>
     <div
-      class="OrderDraftPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -31803,8 +31777,6 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
     <div
@@ -31852,7 +31824,7 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDraftPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -31893,7 +31865,7 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDraftPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -31926,7 +31898,7 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
       </div>
     </div>
     <div
-      class="OrderDraftPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="Skeleton-skeleton-id"
@@ -31936,7 +31908,7 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
       </span>
     </div>
     <div
-      class="OrderDraftPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -32235,8 +32207,9 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
                 class="OrderCustomer-sectionHeaderToolbar-id"
               >
                 <button
-                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-                  tabindex="0"
+                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id"
+                  disabled=""
+                  tabindex="-1"
                   type="button"
                 >
                   <span
@@ -32244,9 +32217,6 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
                   >
                     Edit
                   </span>
-                  <span
-                    class="MuiTouchRipple-root-id"
-                  />
                 </button>
               </div>
             </div>
@@ -32274,8 +32244,9 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
                 class="OrderCustomer-sectionHeaderToolbar-id"
               >
                 <button
-                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-                  tabindex="0"
+                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id"
+                  disabled=""
+                  tabindex="-1"
                   type="button"
                 >
                   <span
@@ -32283,9 +32254,6 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
                   >
                     Edit
                   </span>
-                  <span
-                    class="MuiTouchRipple-root-id"
-                  />
                 </button>
               </div>
             </div>
@@ -32341,7 +32309,7 @@ exports[`Storyshots Views / Orders / Order draft without lines 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDraftPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -32377,7 +32345,7 @@ exports[`Storyshots Views / Orders / Order draft without lines 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDraftPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -32410,7 +32378,7 @@ exports[`Storyshots Views / Orders / Order draft without lines 1`] = `
       </div>
     </div>
     <div
-      class="OrderDraftPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -32424,7 +32392,7 @@ exports[`Storyshots Views / Orders / Order draft without lines 1`] = `
       </span>
     </div>
     <div
-      class="OrderDraftPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -32730,8 +32698,6 @@ exports[`Storyshots Views / Orders / Order draft without lines 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
     <div
@@ -42387,20 +42353,6 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
       <div
         class="Component-root-id"
       >
-        <button
-          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
-          tabindex="0"
-          type="button"
-        >
-          <span
-            class="MuiButton-label-id"
-          >
-            Remove
-          </span>
-          <span
-            class="MuiTouchRipple-root-id"
-          />
-        </button>
         <div
           class="Component-spacer-id"
         />
@@ -43170,20 +43122,6 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
       <div
         class="Component-root-id"
       >
-        <button
-          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
-          tabindex="0"
-          type="button"
-        >
-          <span
-            class="MuiButton-label-id"
-          >
-            Remove
-          </span>
-          <span
-            class="MuiTouchRipple-root-id"
-          />
-        </button>
         <div
           class="Component-spacer-id"
         />
@@ -44159,20 +44097,6 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
       <div
         class="Component-root-id"
       >
-        <button
-          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
-          tabindex="0"
-          type="button"
-        >
-          <span
-            class="MuiButton-label-id"
-          >
-            Remove
-          </span>
-          <span
-            class="MuiTouchRipple-root-id"
-          />
-        </button>
         <div
           class="Component-spacer-id"
         />
@@ -45142,20 +45066,6 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
       <div
         class="Component-root-id"
       >
-        <button
-          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
-          tabindex="0"
-          type="button"
-        >
-          <span
-            class="MuiButton-label-id"
-          >
-            Remove
-          </span>
-          <span
-            class="MuiTouchRipple-root-id"
-          />
-        </button>
         <div
           class="Component-spacer-id"
         />
@@ -48201,20 +48111,6 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
       <div
         class="Component-root-id"
       >
-        <button
-          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
-          tabindex="0"
-          type="button"
-        >
-          <span
-            class="MuiButton-label-id"
-          >
-            Remove
-          </span>
-          <span
-            class="MuiTouchRipple-root-id"
-          />
-        </button>
         <div
           class="Component-spacer-id"
         />
@@ -48621,20 +48517,6 @@ exports[`Storyshots Views / Products / Product variant details when loading data
       <div
         class="Component-root-id"
       >
-        <button
-          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
-          tabindex="0"
-          type="button"
-        >
-          <span
-            class="MuiButton-label-id"
-          >
-            Remove
-          </span>
-          <span
-            class="MuiTouchRipple-root-id"
-          />
-        </button>
         <div
           class="Component-spacer-id"
         />
