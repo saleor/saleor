@@ -104,7 +104,8 @@ export const OrderDetailsMessages: React.StatelessComponent<
               navigate(
                 orderUrl(
                   encodeURIComponent(data.orderFulfillmentCreate.order.id)
-                )
+                ),
+                true
               );
             } else {
               pushMessage({
@@ -129,12 +130,16 @@ export const OrderDetailsMessages: React.StatelessComponent<
               });
             }
           };
-          const handleOrderCancel = () => {
+          const handleOrderCancel = (data: OrderCancel) => {
             pushMessage({
               text: i18n.t("Order successfully cancelled", {
                 context: "notification"
               })
             });
+            navigate(
+              orderUrl(encodeURIComponent(data.orderCancel.order.id)),
+              true
+            );
           };
           const handleDraftCancel = () => {
             pushMessage({
@@ -142,7 +147,7 @@ export const OrderDetailsMessages: React.StatelessComponent<
                 context: "notification"
               })
             });
-            navigate(orderListUrl());
+            navigate(orderListUrl(), true);
           };
           const handleOrderVoid = () => {
             pushMessage({
@@ -173,7 +178,10 @@ export const OrderDetailsMessages: React.StatelessComponent<
                   context: "notification"
                 })
               });
-              navigate(orderUrl(encodeURIComponent(data.orderUpdate.order.id)));
+              navigate(
+                orderUrl(encodeURIComponent(data.orderUpdate.order.id)),
+                true
+              );
             }
           };
           const handleDraftUpdate = (data: OrderDraftUpdate) => {
@@ -184,7 +192,8 @@ export const OrderDetailsMessages: React.StatelessComponent<
                 })
               });
               navigate(
-                orderUrl(encodeURIComponent(data.draftOrderUpdate.order.id))
+                orderUrl(encodeURIComponent(data.draftOrderUpdate.order.id)),
+                true
               );
             }
           };
@@ -262,7 +271,8 @@ export const OrderDetailsMessages: React.StatelessComponent<
               navigate(
                 orderUrl(
                   encodeURIComponent(data.orderFulfillmentCancel.order.id)
-                )
+                ),
+                true
               );
             } else {
               pushMessage({
@@ -288,7 +298,8 @@ export const OrderDetailsMessages: React.StatelessComponent<
                   encodeURIComponent(
                     data.orderFulfillmentUpdateTracking.order.id
                   )
-                )
+                ),
+                true
               );
             } else {
               pushMessage({
