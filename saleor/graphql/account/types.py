@@ -1,4 +1,5 @@
 import graphene
+import graphene_django_optimizer as gql_optimizer
 from django.contrib.auth import get_user_model
 from graphene import relay
 
@@ -41,8 +42,10 @@ class Address(CountableDjangoObjectType):
 class User(CountableDjangoObjectType):
     permissions = graphene.List(
         PermissionDisplay, description='List of user\'s permissions.')
-    addresses = graphene.List(
-        Address, description='List of all user\'s addresses.')
+    addresses = gql_optimizer.field(
+        graphene.List(
+            Address, description='List of all user\'s addresses.'),
+        model_field='addresses')
 
     class Meta:
         exclude_fields = ['password', 'is_superuser', 'OrderEvent_set']
