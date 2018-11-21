@@ -8,7 +8,7 @@ import i18n from "../../i18n";
 import { maybe } from "../../misc";
 import PageDetailsPage from "../components/PageDetailsPage";
 import { TypedPageDeleteMutation, TypedPageUpdateMutation } from "../mutations";
-import { pageDetailsQuery, TypedPageDetailsQuery } from "../queries";
+import { TypedPageDetailsQuery } from "../queries";
 import { pageListUrl } from "../urls";
 
 interface PageUpdateFormProps {
@@ -32,7 +32,7 @@ export class PageUpdateForm extends React.Component<
   render() {
     const { id } = this.props;
     return (
-      <TypedPageDetailsQuery query={pageDetailsQuery} variables={{ id }}>
+      <TypedPageDetailsQuery variables={{ id }}>
         {({ data: detailsResult, error, loading }) => {
           if (error) {
             return (
