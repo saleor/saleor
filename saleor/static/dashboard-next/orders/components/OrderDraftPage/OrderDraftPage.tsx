@@ -72,7 +72,7 @@ const decorate = withStyles(theme => ({
     gridTemplateColumns: "9fr 4fr"
   }
 }));
-const OrderDetailsPage = decorate<OrderDraftPageProps>(
+const OrderDraftPage = decorate<OrderDraftPageProps>(
   ({
     classes,
     disabled,
@@ -154,4 +154,5 @@ const OrderDetailsPage = decorate<OrderDraftPageProps>(
     </Container>
   )
 );
-export default OrderDetailsPage;
+OrderDraftPage.displayName = "OrderDraftPage";
+export default OrderDraftPage;

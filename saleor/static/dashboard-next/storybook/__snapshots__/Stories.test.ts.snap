@@ -5200,6 +5200,10 @@ exports[`Storyshots Orders / OrderCustomer with different addresses 1`] = `
 
 exports[`Storyshots Orders / OrderCustomerEditDialog default 1`] = `<div />`;
 
+exports[`Storyshots Orders / OrderDraftCancelDialog default 1`] = `<div />`;
+
+exports[`Storyshots Orders / OrderDraftFinalizeDialog default 1`] = `<div />`;
+
 exports[`Storyshots Orders / OrderFulfillmentCancelDialog default 1`] = `<div />`;
 
 exports[`Storyshots Orders / OrderFulfillmentDialog default 1`] = `<div />`;
@@ -5336,6 +5340,10 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
   </div>
 </div>
 `;
+
+exports[`Storyshots Orders / OrderMarkAsPaidDialog default 1`] = `<div />`;
+
+exports[`Storyshots Orders / OrderMarkAsPaidDialog other 1`] = `<div />`;
 
 exports[`Storyshots Orders / OrderPaymentDialog capture payment 1`] = `<div />`;
 
