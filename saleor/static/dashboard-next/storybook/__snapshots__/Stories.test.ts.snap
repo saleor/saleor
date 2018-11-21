@@ -21841,7 +21841,7 @@ exports[`Storyshots Views / Orders / Order details loading 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -21882,7 +21882,7 @@ exports[`Storyshots Views / Orders / Order details loading 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -21915,7 +21915,7 @@ exports[`Storyshots Views / Orders / Order details loading 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="Skeleton-skeleton-id"
@@ -21925,7 +21925,7 @@ exports[`Storyshots Views / Orders / Order details loading 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -22270,8 +22270,9 @@ exports[`Storyshots Views / Orders / Order details loading 1`] = `
                 class="OrderCustomer-sectionHeaderToolbar-id"
               >
                 <button
-                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-                  tabindex="0"
+                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id"
+                  disabled=""
+                  tabindex="-1"
                   type="button"
                 >
                   <span
@@ -22279,9 +22280,6 @@ exports[`Storyshots Views / Orders / Order details loading 1`] = `
                   >
                     Edit
                   </span>
-                  <span
-                    class="MuiTouchRipple-root-id"
-                  />
                 </button>
               </div>
             </div>
@@ -22309,8 +22307,9 @@ exports[`Storyshots Views / Orders / Order details loading 1`] = `
                 class="OrderCustomer-sectionHeaderToolbar-id"
               >
                 <button
-                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-                  tabindex="0"
+                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id"
+                  disabled=""
+                  tabindex="-1"
                   type="button"
                 >
                   <span
@@ -22318,9 +22317,6 @@ exports[`Storyshots Views / Orders / Order details loading 1`] = `
                   >
                     Edit
                   </span>
-                  <span
-                    class="MuiTouchRipple-root-id"
-                  />
                 </button>
               </div>
             </div>
