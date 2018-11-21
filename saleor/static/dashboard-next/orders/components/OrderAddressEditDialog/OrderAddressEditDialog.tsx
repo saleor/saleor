@@ -26,43 +26,41 @@ interface OrderAddressEditDialogProps {
 
 const OrderAddressEditDialog: React.StatelessComponent<
   OrderAddressEditDialogProps
-> = ({ address, open, errors, variant, countries, onClose, onConfirm }) => {
-  return (
-    <Dialog open={open}>
-      <Form initial={address} errors={errors} onSubmit={onConfirm}>
-        {({ change, data, errors, submit }) => (
-          <>
-            <DialogTitle>
-              {variant === "billing"
-                ? i18n.t("Edit billing address", { context: "title" })
-                : i18n.t("Edit shipping address", { context: "title" })}
-            </DialogTitle>
-            <DialogContent>
-              <AddressEdit
-                countries={countries}
-                data={data}
-                errors={errors}
-                onChange={change}
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={onClose}>
-                {i18n.t("Cancel", { context: "button" })}
-              </Button>
-              <Button
-                color="primary"
-                variant="raised"
-                onClick={submit}
-                type="submit"
-              >
-                {i18n.t("Confirm", { context: "button" })}
-              </Button>
-            </DialogActions>
-          </>
-        )}
-      </Form>
-    </Dialog>
-  );
-};
+> = ({ address, open, errors, variant, countries, onClose, onConfirm }) => (
+  <Dialog open={open}>
+    <Form initial={address} errors={errors} onSubmit={onConfirm}>
+      {({ change, data, errors, submit }) => (
+        <>
+          <DialogTitle>
+            {variant === "billing"
+              ? i18n.t("Edit billing address", { context: "title" })
+              : i18n.t("Edit shipping address", { context: "title" })}
+          </DialogTitle>
+          <DialogContent>
+            <AddressEdit
+              countries={countries}
+              data={data}
+              errors={errors}
+              onChange={change}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={onClose}>
+              {i18n.t("Cancel", { context: "button" })}
+            </Button>
+            <Button
+              color="primary"
+              variant="raised"
+              onClick={submit}
+              type="submit"
+            >
+              {i18n.t("Confirm", { context: "button" })}
+            </Button>
+          </DialogActions>
+        </>
+      )}
+    </Form>
+  </Dialog>
+);
 OrderAddressEditDialog.displayName = "OrderAddressEditDialog";
 export default OrderAddressEditDialog;
