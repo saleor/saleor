@@ -291,6 +291,7 @@ class DraftOrderLineCreate(BaseMutation):
             line = add_variant_to_order(
                 order, variant, quantity, allow_overselling=True)
             recalculate_order(order)
+            validate_shipping_method(order)
         return DraftOrderLineCreate(
             order=order, order_line=line, errors=errors)
 
@@ -324,6 +325,7 @@ class DraftOrderLineDelete(BaseMutation):
             line.delete()
             line.id = db_id
             recalculate_order(order)
+            validate_shipping_method(order)
         return DraftOrderLineDelete(
             errors=errors, order=order, order_line=line)
 
@@ -364,6 +366,7 @@ class DraftOrderLineUpdate(ModelMutation):
     def save(cls, info, instance, cleaned_input):
         instance.save(update_fields=['quantity'])
         recalculate_order(instance.order)
+        validate_shipping_method(instance.order)
 
     @classmethod
     def success_response(cls, instance):

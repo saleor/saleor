@@ -303,10 +303,6 @@ def test_validate_shipping_method_for_valid_draft_order(draft_order):
 
 
 def test_validate_shipping_method_for_invalid_draft_order_price(draft_order):
-    shipping_method = draft_order.shipping_method
-    shipping_method_name = draft_order.shipping_method_name
-    shipping_price = draft_order.shipping_price
-
     draft_order.shipping_method.maximum_order_price = Money(50, 'USD')
     draft_order.total_gross = Money(100, 'USD')
     draft_order.shipping_method.save()
@@ -314,9 +310,6 @@ def test_validate_shipping_method_for_invalid_draft_order_price(draft_order):
 
     validate_shipping_method(draft_order)
 
-    assert shipping_method != draft_order.shipping_method
-    assert shipping_method_name != draft_order.shipping_method_name
-    assert shipping_price != draft_order.shipping_price
     assert draft_order.shipping_method_name is None
     assert draft_order.shipping_method is None
     assert draft_order.shipping_price == TaxedMoney(
@@ -344,20 +337,12 @@ def test_validate_shipping_method_for_valid_draft_order_weight(
 
 def test_validate_shipping_method_for_invalid_draft_order_weight(
         draft_order_weight_based):
-    shipping_method = draft_order_weight_based.shipping_method
-    shipping_method_name = draft_order_weight_based.shipping_method_name
-    shipping_price = draft_order_weight_based.shipping_price
-
     draft_order_weight_based.shipping_method.\
         maximum_order_weight = Weight(kg=10)
     draft_order_weight_based.shipping_method.save()
 
     validate_shipping_method(draft_order_weight_based)
 
-    assert shipping_method != draft_order_weight_based.shipping_method
-    assert (shipping_method_name !=
-            draft_order_weight_based.shipping_method_name)
-    assert shipping_price != draft_order_weight_based.shipping_price
     assert draft_order_weight_based.shipping_method_name is None
     assert draft_order_weight_based.shipping_method is None
     assert draft_order_weight_based.shipping_price == TaxedMoney(
@@ -374,10 +359,6 @@ def test_validate_shipping_method_for_no_shipping_order_with_shipping_method(
 
     validate_shipping_method(draft_order_no_shipping)
 
-    assert method != draft_order_no_shipping.shipping_method
-    assert (method.name !=
-            draft_order_no_shipping.shipping_method_name)
-    assert method.get_total(vatlayer) != draft_order_no_shipping.shipping_price
     assert draft_order_no_shipping.shipping_method_name is None
     assert draft_order_no_shipping.shipping_method is None
     assert draft_order_no_shipping.shipping_price == TaxedMoney(

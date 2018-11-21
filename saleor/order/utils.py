@@ -3,7 +3,6 @@ from functools import wraps
 from django.conf import settings
 from django.shortcuts import get_object_or_404, redirect
 from prices import Money, TaxedMoney
-
 from saleor.shipping.models import ShippingMethod
 
 from ..account.utils import store_user_address
@@ -259,10 +258,9 @@ def validate_shipping_method(order):
 def clear_shipping_attributes(order):
     order.shipping_method = None
     order.shipping_method_name = None
-    order.shipping_price = TaxedMoney(
-        net=Money(0, settings.DEFAULT_CURRENCY),
-        gross=Money(0, settings.DEFAULT_CURRENCY))
+    order.shipping_price_net = Money(0, settings.DEFAULT_CURRENCY)
+    order.shipping_price_gross = Money(0, settings.DEFAULT_CURRENCY)
     order.save(
         update_fields=[
             'shipping_method', 'shipping_method_name',
-            'shipping_price'])
+            'shipping_price_net', 'shipping_price_gross'])
