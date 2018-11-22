@@ -26,7 +26,7 @@ export const ProductTypeList: React.StatelessComponent<
     {navigate => {
       const paginationState = createPaginationState(PAGINATE_BY, params);
       return (
-        <TypedProductTypeListQuery variables={paginationState}>
+        <TypedProductTypeListQuery displayLoader variables={paginationState}>
           {({ data, loading, error }) => {
             if (error) {
               return <ErrorMessageCard message="Something went wrong" />;

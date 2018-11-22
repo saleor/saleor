@@ -37,7 +37,10 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
         {navigate => (
           <Messages>
             {pushMessage => (
-              <TypedProductVariantCreateQuery variables={{ id: productId }}>
+              <TypedProductVariantCreateQuery
+                displayLoader
+                variables={{ id: productId }}
+              >
                 {({ data, error, loading: productLoading }) => {
                   if (error) {
                     return (

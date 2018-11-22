@@ -25,7 +25,7 @@ export const CustomerList: React.StatelessComponent<CustomerListProps> = ({
     {navigate => {
       const paginationState = createPaginationState(PAGINATE_BY, params);
       return (
-        <TypedCustomerListQuery variables={paginationState}>
+        <TypedCustomerListQuery displayLoader variables={paginationState}>
           {({ data, loading }) => (
             <Paginator
               pageInfo={maybe(() => data.customers.pageInfo)}

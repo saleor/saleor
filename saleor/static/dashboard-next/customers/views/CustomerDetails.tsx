@@ -65,7 +65,7 @@ export const CustomerDetailsView: React.StatelessComponent<
                   onCompleted={handleCustomerUpdateSuccess}
                 >
                   {(updateCustomer, updateCustomerOpts) => (
-                    <TypedCustomerDetailsQuery variables={{ id }}>
+                    <TypedCustomerDetailsQuery displayLoader variables={{ id }}>
                       {customerDetails => (
                         <>
                           <WindowTitle

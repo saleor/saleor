@@ -31,7 +31,7 @@ export const ProductUpdate: React.StatelessComponent<
                 const handleBack = () => navigate(productListUrl());
 
                 return (
-                  <TypedProductCreateQuery>
+                  <TypedProductCreateQuery displayLoader>
                     {({ data, error, loading }) => {
                       const handleSuccess = (data: ProductCreate) => {
                         if (data.productCreate.errors.length === 0) {
