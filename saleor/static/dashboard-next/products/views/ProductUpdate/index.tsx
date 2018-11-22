@@ -37,7 +37,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
         <Navigator>
           {navigate => {
             return (
-              <TypedProductDetailsQuery variables={{ id }}>
+              <TypedProductDetailsQuery displayLoader variables={{ id }}>
                 {({ data, loading, error }) => {
                   if (error) {
                     return <ErrorMessageCard message="Something went wrong" />;

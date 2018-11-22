@@ -39,7 +39,7 @@ export const StaffList: React.StatelessComponent<StaffListProps> = ({
         {pushMessage => {
           const paginationState = createPaginationState(PAGINATE_BY, params);
           return (
-            <TypedStaffListQuery variables={paginationState}>
+            <TypedStaffListQuery displayLoader variables={paginationState}>
               {({ data, loading }) => {
                 const handleStaffMemberAddSuccess = (data: StaffMemberAdd) => {
                   if (!maybe(() => data.staffCreate.errors.length)) {

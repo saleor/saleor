@@ -74,7 +74,7 @@ export const SiteSettings: React.StatelessComponent<{}> = () => (
             }
           };
           return (
-            <TypedSiteSettingsQuery>
+            <TypedSiteSettingsQuery displayLoader>
               {siteSettings => (
                 <TypedAuthorizationKeyAdd onCompleted={handleAddKeySuccess}>
                   {(addAuthorizationKey, addAuthorizationKeyOpts) => (

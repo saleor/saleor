@@ -68,6 +68,7 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
 
                 return (
                   <TypedOrderListQuery
+                    displayLoader
                     variables={{
                       ...paginationState,
                       status: params.status

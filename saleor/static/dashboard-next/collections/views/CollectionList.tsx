@@ -25,7 +25,7 @@ export const CollectionList: React.StatelessComponent<CollectionListProps> = ({
     {navigate => {
       const paginationState = createPaginationState(PAGINATE_BY, params);
       return (
-        <TypedCollectionListQuery variables={paginationState}>
+        <TypedCollectionListQuery displayLoader variables={paginationState}>
           {({ data, loading }) => (
             <Paginator
               pageInfo={maybe(() => data.collections.pageInfo)}
