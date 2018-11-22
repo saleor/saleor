@@ -39,10 +39,12 @@ class Checkout(CountableDjangoObjectType):
         description='Shipping methods that can be used with this order.')
     is_shipping_required = graphene.Boolean(
         description='Returns True, if checkout requires shipping.')
-    lines = graphene.List(
-        CheckoutLine, description=(
-            'A list of checkout lines, each containing information about '
-            'an item in the checkout.'))
+    lines = gql_optimizer.field(
+        graphene.List(
+            CheckoutLine, description=(
+                'A list of checkout lines, each containing information about '
+                'an item in the checkout.')),
+        model_field='lines')
     payments = gql_optimizer.field(
         graphene.List(
             Payment, description='List of payments for the checkout'),
