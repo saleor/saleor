@@ -275,9 +275,18 @@ class Product(CountableDjangoObjectType):
             graphene.ID, description='ID of a product image.'),
         description='Get a single product image by ID')
     variants = gql_optimizer.field(
-        PrefetchingConnectionField(ProductVariant), model_field='variants')
+        graphene.List(
+            ProductVariant, description='List of varinats for the product'),
+        model_field='variants')
     images = gql_optimizer.field(
-        PrefetchingConnectionField(lambda: ProductImage), model_field='images')
+        graphene.List(
+            ProductImage, description='List of images for the product'),
+        model_field='images')
+    collections = gql_optimizer.field(
+        graphene.List(
+            lambda: Collection,
+            description='List of collections for the product'),
+        model_field='collections')
 
     class Meta:
         description = dedent("""Represents an individual item for sale in the
@@ -334,6 +343,9 @@ class Product(CountableDjangoObjectType):
 
     def resolve_variants(self, info, **kwargs):
         return self.variants.all()
+
+    def resolve_collections(self, info):
+        return self.collections.all()
 
 
 def prefetch_products(info, *args, **kwargs):
