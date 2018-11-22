@@ -554,9 +554,6 @@ def test_query_checkouts(
             edges {
                 node {
                     token
-                    payments{
-                        id
-                    }
                 }
             }
         }
@@ -568,7 +565,6 @@ def test_query_checkouts(
     content = get_graphql_content(response)
     received_checkout = content['data']['checkouts']['edges'][0]['node']
     assert str(checkout.token) == received_checkout['token']
-    assert len(received_checkout['payments']) == checkout.payments.count()
 
 
 def test_query_checkout_lines(
