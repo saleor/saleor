@@ -284,6 +284,7 @@ class Product(CountableDjangoObjectType):
         storefront.""")
         interfaces = [relay.Node]
         model = models.Product
+        exclude_fields = ['voucher_set', 'sale_set']
 
     @gql_optimizer.resolver_hints(prefetch_related='images')
     def resolve_thumbnail_url(self, info, *, size=None):
