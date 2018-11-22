@@ -9,7 +9,7 @@ import i18n from "../../i18n";
 import { decimal, maybe } from "../../misc";
 import ProductCreatePage from "../components/ProductCreatePage";
 import { TypedProductCreateMutation } from "../mutations";
-import { productCreateQuery, TypedProductCreateQuery } from "../queries";
+import { TypedProductCreateQuery } from "../queries";
 import { ProductCreate } from "../types/ProductCreate";
 import { productListUrl, productUrl } from "../urls";
 
@@ -31,7 +31,7 @@ export const ProductUpdate: React.StatelessComponent<
                 const handleBack = () => navigate(productListUrl());
 
                 return (
-                  <TypedProductCreateQuery query={productCreateQuery}>
+                  <TypedProductCreateQuery>
                     {({ data, error, loading }) => {
                       const handleSuccess = (data: ProductCreate) => {
                         if (data.productCreate.errors.length === 0) {

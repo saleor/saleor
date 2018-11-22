@@ -14,7 +14,7 @@ import { decimal, maybe } from "../../../misc";
 import { productTypeUrl } from "../../../productTypes/urls";
 import ProductUpdatePage from "../../components/ProductUpdatePage";
 import ProductUpdateOperations from "../../containers/ProductUpdateOperations";
-import { productDetailsQuery, TypedProductDetailsQuery } from "../../queries";
+import { TypedProductDetailsQuery } from "../../queries";
 import {
   productImageUrl,
   productListUrl,
@@ -37,11 +37,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
         <Navigator>
           {navigate => {
             return (
-              <TypedProductDetailsQuery
-                query={productDetailsQuery}
-                variables={{ id }}
-                fetchPolicy="network-only"
-              >
+              <TypedProductDetailsQuery variables={{ id }}>
                 {({ data, loading, error }) => {
                   if (error) {
                     return <ErrorMessageCard message="Something went wrong" />;

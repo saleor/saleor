@@ -1,6 +1,6 @@
 import gql from "graphql-tag";
-import { Query, QueryProps } from "react-apollo";
 
+import { TypedQuery } from "../queries";
 import { ProductCreateData } from "./types/ProductCreateData";
 import {
   ProductDetails,
@@ -208,11 +208,7 @@ export const fragmentVariant = gql`
   }
 `;
 
-export const TypedProductListQuery = Query as React.ComponentType<
-  QueryProps<ProductList, ProductListVariables>
->;
-
-export const productListQuery = gql`
+const productListQuery = gql`
   ${fragmentMoney}
   query ProductList(
     $first: Int
@@ -254,12 +250,12 @@ export const productListQuery = gql`
     }
   }
 `;
+export const TypedProductListQuery = TypedQuery<
+  ProductList,
+  ProductListVariables
+>(productListQuery);
 
-export const TypedProductDetailsQuery = Query as React.ComponentType<
-  QueryProps<ProductDetails, ProductDetailsVariables>
->;
-
-export const productDetailsQuery = gql`
+const productDetailsQuery = gql`
   ${fragmentProduct}
   query ProductDetails($id: ID!) {
     product(id: $id) {
@@ -283,12 +279,12 @@ export const productDetailsQuery = gql`
     }
   }
 `;
+export const TypedProductDetailsQuery = TypedQuery<
+  ProductDetails,
+  ProductDetailsVariables
+>(productDetailsQuery);
 
-export const TypedProductVariantQuery = Query as React.ComponentType<
-  QueryProps<ProductVariantDetails, ProductVariantDetailsVariables>
->;
-
-export const productVariantQuery = gql`
+const productVariantQuery = gql`
   ${fragmentVariant}
   query ProductVariantDetails($id: ID!) {
     productVariant(id: $id) {
@@ -296,11 +292,12 @@ export const productVariantQuery = gql`
     }
   }
 `;
+export const TypedProductVariantQuery = TypedQuery<
+  ProductVariantDetails,
+  ProductVariantDetailsVariables
+>(productVariantQuery);
 
-export const TypedProductCreateQuery = Query as React.ComponentType<
-  QueryProps<ProductCreateData>
->;
-export const productCreateQuery = gql`
+const productCreateQuery = gql`
   query ProductCreateData {
     productTypes {
       edges {
@@ -340,11 +337,11 @@ export const productCreateQuery = gql`
     }
   }
 `;
+export const TypedProductCreateQuery = TypedQuery<ProductCreateData, {}>(
+  productCreateQuery
+);
 
-export const TypedProductVariantCreateQuery = Query as React.ComponentType<
-  QueryProps<ProductVariantCreateData, ProductVariantCreateDataVariables>
->;
-export const productVariantCreateQuery = gql`
+const productVariantCreateQuery = gql`
   query ProductVariantCreateData($id: ID!) {
     product(id: $id) {
       id
@@ -391,11 +388,12 @@ export const productVariantCreateQuery = gql`
     }
   }
 `;
+export const TypedProductVariantCreateQuery = TypedQuery<
+  ProductVariantCreateData,
+  ProductVariantCreateDataVariables
+>(productVariantCreateQuery);
 
-export const TypedProductImageQuery = Query as React.ComponentType<
-  QueryProps<ProductImageById, ProductImageByIdVariables>
->;
-export const productImageQuery = gql`
+const productImageQuery = gql`
   query ProductImageById($productId: ID!, $imageId: ID!) {
     product(id: $productId) {
       id
@@ -421,3 +419,7 @@ export const productImageQuery = gql`
     }
   }
 `;
+export const TypedProductImageQuery = TypedQuery<
+  ProductImageById,
+  ProductImageByIdVariables
+>(productImageQuery);

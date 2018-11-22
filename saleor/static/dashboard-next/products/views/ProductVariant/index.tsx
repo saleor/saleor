@@ -11,7 +11,7 @@ import { decimal, maybe } from "../../../misc";
 import ProductVariantDeleteDialog from "../../components/ProductVariantDeleteDialog";
 import ProductVariantPage from "../../components/ProductVariantPage";
 import ProductVariantOperations from "../../containers/ProductVariantOperations";
-import { productVariantQuery, TypedProductVariantQuery } from "../../queries";
+import { TypedProductVariantQuery } from "../../queries";
 import { VariantUpdate } from "../../types/VariantUpdate";
 import { productUrl, productVariantEditUrl } from "../../urls";
 import { productVariantRemoveUrl } from "./urls";
@@ -41,11 +41,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
     {navigate => (
       <Messages>
         {pushMessage => (
-          <TypedProductVariantQuery
-            query={productVariantQuery}
-            variables={{ id: variantId }}
-            fetchPolicy="network-only"
-          >
+          <TypedProductVariantQuery variables={{ id: variantId }}>
             {({ data, loading, error }) => {
               if (error) {
                 return <ErrorMessageCard message="Something went wrong" />;
