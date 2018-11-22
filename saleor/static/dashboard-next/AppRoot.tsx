@@ -108,7 +108,8 @@ const decorate = withStyles(
       zIndex: 1
     },
     appLoader: {
-      gridColumn: "span 2"
+      gridColumn: "span 2",
+      height: 2
     },
     arrow: {
       marginLeft: theme.spacing.unit * 2,
