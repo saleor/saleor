@@ -41,6 +41,7 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
           };
           return (
             <TypedProductImageQuery
+              displayLoader
               variables={{
                 imageId,
                 productId

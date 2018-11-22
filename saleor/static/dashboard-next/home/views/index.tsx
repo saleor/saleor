@@ -14,7 +14,7 @@ const HomeSection = () => (
     {navigate => (
       <UserContext.Consumer>
         {({ user }) => (
-          <HomePageQuery>
+          <HomePageQuery displayLoader>
             {({ data }) => (
               <HomePage
                 activities={maybe(() =>

@@ -79,6 +79,7 @@ export const CategoryDetails: React.StatelessComponent<
                     );
                     return (
                       <TypedCategoryDetailsQuery
+                        displayLoader
                         variables={{ ...paginationState, id }}
                       >
                         {({ data, loading }) => (

@@ -25,7 +25,7 @@ export const PageList: React.StatelessComponent<PageListProps> = ({
       const paginationState = createPaginationState(PAGINATE_BY, params);
       const handleEditClick = (id: string) => () => navigate(pageUrl(id));
       return (
-        <TypedPageListQuery variables={paginationState}>
+        <TypedPageListQuery displayLoader variables={paginationState}>
           {({ data, loading, error }) => {
             if (error) {
               return (

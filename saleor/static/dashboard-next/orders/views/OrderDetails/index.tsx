@@ -52,7 +52,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
 }) => (
   <Navigator>
     {navigate => (
-      <TypedOrderDetailsQuery variables={{ id }}>
+      <TypedOrderDetailsQuery displayLoader variables={{ id }}>
         {({ data, error, loading }) => {
           if (error) {
             return <ErrorMessageCard message="Something went wrong" />;

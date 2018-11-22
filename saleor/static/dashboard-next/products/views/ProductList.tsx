@@ -43,6 +43,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
       const paginationState = createPaginationState(PAGINATE_BY, params);
       return (
         <TypedProductListQuery
+          displayLoader
           variables={{
             ...paginationState,
             stockAvailability: params.status

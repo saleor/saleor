@@ -49,7 +49,7 @@ export const ProductTypeCreate: React.StatelessComponent = () => (
                     }
                   });
                 return (
-                  <TypedProductTypeCreateDataQuery>
+                  <TypedProductTypeCreateDataQuery displayLoader>
                     {({ data, loading }) => (
                       <>
                         <WindowTitle title={i18n.t("Create product type")} />
