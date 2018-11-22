@@ -1,5 +1,5 @@
 import graphene
-from graphql_jwt.decorators import login_required, permission_required
+from graphql_jwt.decorators import permission_required
 
 from ..core.fields import PrefetchingConnectionField
 from ..descriptions import DESCRIPTIONS
@@ -9,8 +9,7 @@ from .mutations import (
     LoggedUserUpdate, PasswordReset, SetPassword, StaffCreate, StaffDelete,
     StaffUpdate)
 from .resolvers import (
-    resolve_address_validator, resolve_customers, resolve_staff_users,
-    resolve_user)
+    resolve_address_validator, resolve_customers, resolve_staff_users)
 from .types import AddressValidationData, AddressValidationInput, User
 
 
@@ -39,9 +38,9 @@ class AccountQueries(graphene.ObjectType):
     def resolve_staff_users(self, info, query=None, **kwargs):
         return resolve_staff_users(info, query=query)
 
-    @login_required
+    @permission_required('account.manage_users')
     def resolve_user(self, info, id):
-        return resolve_user(info, id)
+        return graphene.Node.get_node_from_global_id(info, id, User)
 
 
 class AccountMutations(graphene.ObjectType):
