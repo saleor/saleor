@@ -14,16 +14,6 @@ USER_SEARCH_FIELDS = (
     'default_shipping_address__country')
 
 
-def resolve_user(info, id):
-    logged_user = info.context.user
-    if not id:
-        return logged_user
-    user = graphene.Node.get_node_from_global_id(info, id, User)
-    if logged_user.has_perm('account.manage_users') or user == logged_user:
-        return user
-    return None
-
-
 def resolve_customers(info, query):
     qs = models.User.objects.filter(
         Q(is_staff=False) | (Q(is_staff=True) & Q(orders__isnull=False)))
