@@ -21,7 +21,7 @@
         <div class="panel-footer">
           {% if availability.available %}
             {% price_range availability.price_range %}
-            {% if availability.discount %}
+            {% if availability.discount != None %}
               {% if availability.price_range_undiscounted.start != availability.price_range.start %}
                 <div class="product-list__sale">
                   <svg data-src="{% static "images/sale-bg.svg" %}" />
