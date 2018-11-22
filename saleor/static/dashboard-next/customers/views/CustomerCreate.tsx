@@ -30,7 +30,7 @@ export const CustomerCreate: React.StatelessComponent<{}> = () => (
             }
           };
           return (
-            <TypedCustomerCreateDataQuery>
+            <TypedCustomerCreateDataQuery displayLoader>
               {({ data, loading }) => (
                 <TypedCreateCustomerMutation
                   onCompleted={handleCreateCustomerSuccess}

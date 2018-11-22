@@ -53,6 +53,7 @@ export const CollectionDetails: React.StatelessComponent<
             <SearchProductsProvider>
               {(searchProducts, searchProductsOpts) => (
                 <TypedCollectionDetailsQuery
+                  displayLoader
                   variables={{ id, ...paginationState }}
                 >
                   {({ data, loading }) => {

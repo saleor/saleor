@@ -41,7 +41,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
     {navigate => (
       <Messages>
         {pushMessage => (
-          <TypedProductVariantQuery variables={{ id: variantId }}>
+          <TypedProductVariantQuery displayLoader variables={{ id: variantId }}>
             {({ data, loading, error }) => {
               if (error) {
                 return <ErrorMessageCard message="Something went wrong" />;

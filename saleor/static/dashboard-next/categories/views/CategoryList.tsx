@@ -9,7 +9,7 @@ import { categoryAddUrl, categoryUrl } from "../urls";
 export const CategoryList: React.StatelessComponent = () => (
   <Navigator>
     {navigate => (
-      <TypedRootCategoriesQuery>
+      <TypedRootCategoriesQuery displayLoader>
         {({ data }) => (
           <CategoryListPage
             categories={maybe(

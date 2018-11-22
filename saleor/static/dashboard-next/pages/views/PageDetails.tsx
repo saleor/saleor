@@ -32,7 +32,7 @@ export class PageUpdateForm extends React.Component<
   render() {
     const { id } = this.props;
     return (
-      <TypedPageDetailsQuery variables={{ id }}>
+      <TypedPageDetailsQuery displayLoader variables={{ id }}>
         {({ data: detailsResult, error, loading }) => {
           if (error) {
             return (
