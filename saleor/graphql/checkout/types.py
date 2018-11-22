@@ -6,7 +6,6 @@ from ...core.utils.taxes import get_taxes_for_address
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import TaxedMoney
 from ..order.resolvers import resolve_shipping_methods
-from ..payment.types import Payment
 from ..shipping.types import ShippingMethod
 
 
@@ -45,10 +44,6 @@ class Checkout(CountableDjangoObjectType):
                 'A list of checkout lines, each containing information about '
                 'an item in the checkout.')),
         model_field='lines')
-    payments = gql_optimizer.field(
-        graphene.List(
-            Payment, description='List of payments for the checkout'),
-        model_field='payments')
     shipping_price = graphene.Field(
         TaxedMoney,
         description='The price of the shipping, with all the taxes included.')
@@ -63,13 +58,11 @@ class Checkout(CountableDjangoObjectType):
             'shipping costs, and discounts included.'))
 
     class Meta:
+        exclude_fields = ['payments']
         description = 'Checkout object'
         model = models.Cart
         interfaces = [graphene.relay.Node]
         filter_fields = ['token']
-
-    def resolve_payments(self, info):
-        return self.payments.all()
 
     def resolve_total_price(self, info):
         taxes = get_taxes_for_address(self.shipping_address)

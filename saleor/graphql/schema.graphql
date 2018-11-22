@@ -284,7 +284,6 @@ type Checkout implements Node {
   translatedDiscountName: String
   voucherCode: String
   lines: [CheckoutLine]
-  payments: [Payment]
   id: ID!
   availableShippingMethods: [ShippingMethod]
   isShippingRequired: Boolean
