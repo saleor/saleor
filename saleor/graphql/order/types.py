@@ -91,7 +91,7 @@ class Fulfillment(CountableDjangoObjectType):
     lines = gql_optimizer.field(
         graphene.List(
             FulfillmentLine,
-            description='List of fulfillment lines for the fulfillment'),
+            description='List of lines for the fulfillment'),
         model_field='lines')
     status_display = graphene.String(
         description='User-friendly fulfillment status.')

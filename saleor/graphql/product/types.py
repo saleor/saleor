@@ -129,6 +129,28 @@ class SelectedAttribute(graphene.ObjectType):
         description = 'Represents a custom attribute.'
 
 
+class ProductImage(CountableDjangoObjectType):
+    url = graphene.String(
+        required=True,
+        description='The URL of the image.',
+        size=graphene.Int(description='Size of the image'))
+
+    class Meta:
+        description = 'Represents a product image.'
+        exclude_fields = [
+            'image', 'product', 'ppoi', 'productvariant_set',
+            'variant_images']
+        interfaces = [relay.Node]
+        model = models.ProductImage
+
+    def resolve_url(self, info, *, size=None):
+        if size:
+            url = get_thumbnail(self.image, size, method='thumbnail')
+        else:
+            url = self.image.url
+        return info.context.build_absolute_uri(url)
+
+
 class ProductVariant(CountableDjangoObjectType):
     stock_quantity = graphene.Int(
         required=True, description='Quantity of a product available for sale.')
@@ -151,6 +173,11 @@ class ProductVariant(CountableDjangoObjectType):
         period of time. Note: this field should be queried using
         `reportProductSales` query as it uses optimizations suitable
         for such calculations.'''))
+    images = gql_optimizer.field(
+        graphene.List(
+            ProductImage,
+            description='List of images for the product variant'),
+        model_field='images')
 
     class Meta:
         description = dedent("""Represents a version of a product such as
@@ -188,6 +215,9 @@ class ProductVariant(CountableDjangoObjectType):
     def resolve_revenue(self, info, period):
         start_date = reporting_period_to_date(period)
         return calculate_revenue_for_variant(self, start_date)
+
+    def resolve_images(self, info):
+        return self.images.all()
 
 
 class ProductAvailability(graphene.ObjectType):
@@ -429,25 +459,3 @@ class Category(CountableDjangoObjectType):
         qs = models.Product.objects.available_products()
         qs = qs.filter(category__in=tree)
         return gql_optimizer.query(qs, info)
-
-
-class ProductImage(CountableDjangoObjectType):
-    url = graphene.String(
-        required=True,
-        description='The URL of the image.',
-        size=graphene.Int(description='Size of the image'))
-
-    class Meta:
-        description = 'Represents a product image.'
-        exclude_fields = [
-            'image', 'product', 'ppoi', 'productvariant_set',
-            'variant_images']
-        interfaces = [relay.Node]
-        model = models.ProductImage
-
-    def resolve_url(self, info, *, size=None):
-        if size:
-            url = get_thumbnail(self.image, size, method='thumbnail')
-        else:
-            url = self.image.url
-        return info.context.build_absolute_uri(url)
