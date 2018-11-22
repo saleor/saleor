@@ -11,7 +11,7 @@ import {
   TypedProductImageDeleteMutation,
   TypedProductImageUpdateMutation
 } from "../../mutations";
-import { productImageQuery, TypedProductImageQuery } from "../../queries";
+import { TypedProductImageQuery } from "../../queries";
 import { ProductImageUpdate } from "../../types/ProductImageUpdate";
 import { productImageUrl, productUrl } from "../../urls";
 import { productImageRemoveUrl } from "./urls";
@@ -41,12 +41,10 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
           };
           return (
             <TypedProductImageQuery
-              query={productImageQuery}
               variables={{
                 imageId,
                 productId
               }}
-              fetchPolicy="cache-and-network"
             >
               {({ data, loading }) => {
                 return (

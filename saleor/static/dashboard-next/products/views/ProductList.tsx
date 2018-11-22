@@ -8,7 +8,7 @@ import { maybe } from "../../misc";
 import { StockAvailability } from "../../types/globalTypes";
 import ProductListCard from "../components/ProductListCard";
 import { getTabName } from "../misc";
-import { productListQuery, TypedProductListQuery } from "../queries";
+import { TypedProductListQuery } from "../queries";
 import { productAddUrl, productUrl } from "../urls";
 
 export interface ProductListFilters {
@@ -43,12 +43,10 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
       const paginationState = createPaginationState(PAGINATE_BY, params);
       return (
         <TypedProductListQuery
-          query={productListQuery}
           variables={{
             ...paginationState,
             stockAvailability: params.status
           }}
-          fetchPolicy="network-only"
         >
           {({ data, loading, error }) => {
             if (error) {
