@@ -2,10 +2,10 @@ import graphene
 import pytest
 
 from .conftest import API_PATH
-from .utils import get_graphql_content
+from .utils import get_graphql_content, _get_graphql_content_from_response
 
 
-def test_batch_queries(category, product, staff_api_client):
+def test_batch_queries(category, product, api_client):
     query_product = """
         query GetProduct($id: ID!) {
             product(id: $id) {
@@ -25,7 +25,7 @@ def test_batch_queries(category, product, staff_api_client):
             'id': graphene.Node.to_global_id('Category', category.pk)}},
         {'query': query_product, 'variables': {
             'id': graphene.Node.to_global_id('Product', product.pk)}}]
-    response = staff_api_client.post(data)
+    response = api_client.post(data)
     batch_content = get_graphql_content(response)
     assert 'errors' not in batch_content
     assert isinstance(batch_content, list)
@@ -55,3 +55,38 @@ def test_graphql_view_not_allowed(method, client):
     func = getattr(client, method)
     response = func(API_PATH)
     assert response.status_code == 405
+
+
+def test_invalid_request_body(client):
+    data = 'invalid-data'
+    response = client.post(API_PATH, data, content_type='application/json')
+    assert response.status_code == 400
+    content = _get_graphql_content_from_response(response)
+    assert 'errors' in content
+
+
+def test_invalid_query(api_client):
+    query = 'query { invalid }'
+    response = api_client.post_graphql(query, check_no_permissions=False)
+    assert response.status_code == 400
+    content = _get_graphql_content_from_response(response)
+    assert 'errors' in content
+
+
+def test_no_query(client):
+    response = client.post(API_PATH, '', content_type='application/json')
+    assert response.status_code == 400
+    content = _get_graphql_content_from_response(response)
+    assert content['errors'][0]['message'] == 'Must provide a query string.'
+
+
+def test_graphql_execution_exception(monkeypatch, api_client):
+    def mocked_execute(*args, **kwargs):
+        raise IOError('Spanish inquisition')
+
+    monkeypatch.setattr(
+        'graphql.backend.core.execute_and_validate', mocked_execute)
+    response = api_client.post_graphql('{ shop { name }}')
+    assert response.status_code == 400
+    content = _get_graphql_content_from_response(response)
+    assert content['errors'][0]['message'] == 'Spanish inquisition'
