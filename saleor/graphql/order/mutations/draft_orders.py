@@ -9,8 +9,8 @@ from ....core.exceptions import InsufficientStock
 from ....core.utils.taxes import ZERO_TAXED_MONEY
 from ....order import OrderEvents, OrderStatus, models
 from ....order.utils import (
-    add_variant_to_order, allocate_stock, recalculate_order,
-    validate_shipping_method)
+    add_variant_to_order, allocate_stock, clear_invalid_shipping_method,
+    recalculate_order)
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -142,7 +142,7 @@ class DraftOrderUpdate(DraftOrderCreate):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
-        validate_shipping_method(instance)
+        clear_invalid_shipping_method(instance)
 
 
 class DraftOrderDelete(ModelDeleteMutation):
@@ -291,7 +291,7 @@ class DraftOrderLineCreate(BaseMutation):
             line = add_variant_to_order(
                 order, variant, quantity, allow_overselling=True)
             recalculate_order(order)
-            validate_shipping_method(order)
+            clear_invalid_shipping_method(order)
         return DraftOrderLineCreate(
             order=order, order_line=line, errors=errors)
 
@@ -325,7 +325,7 @@ class DraftOrderLineDelete(BaseMutation):
             line.delete()
             line.id = db_id
             recalculate_order(order)
-            validate_shipping_method(order)
+            clear_invalid_shipping_method(order)
         return DraftOrderLineDelete(
             errors=errors, order=order, order_line=line)
 
@@ -365,8 +365,9 @@ class DraftOrderLineUpdate(ModelMutation):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         instance.save(update_fields=['quantity'])
-        recalculate_order(instance.order)
-        validate_shipping_method(instance.order)
+        order = instance.order
+        recalculate_order(order)
+        clear_invalid_shipping_method(order)
 
     @classmethod
     def success_response(cls, instance):

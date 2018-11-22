@@ -16,7 +16,7 @@ from saleor.order.models import Order
 from saleor.order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order, recalculate_order,
     restock_fulfillment_lines, restock_order_lines, update_order_prices,
-    update_order_status, validate_shipping_method)
+    update_order_status, clear_invalid_shipping_method)
 from saleor.payment import ChargeStatus
 from saleor.payment.models import Payment
 from tests.utils import get_redirect_location
@@ -289,12 +289,12 @@ def test_restock_fulfillment_lines(fulfilled_order):
     assert stock_2.quantity == stock_2_quantity_before + line_2.quantity
 
 
-def test_validate_shipping_method_for_valid_draft_order(draft_order):
+def test_clear_invalid_shipping_method_with_valid_shipping_method(draft_order):
     shipping_method = draft_order.shipping_method
     shipping_method_name = draft_order.shipping_method_name
     shipping_price = draft_order.shipping_price
 
-    validate_shipping_method(draft_order)
+    clear_invalid_shipping_method(draft_order)
     draft_order.refresh_from_db()
 
     assert shipping_method == draft_order.shipping_method
@@ -302,70 +302,70 @@ def test_validate_shipping_method_for_valid_draft_order(draft_order):
     assert shipping_price == draft_order.shipping_price
 
 
-def test_validate_shipping_method_for_invalid_draft_order_price(draft_order):
+def test_clear_invalid_shipping_method_with_invalid_shipping_method_price(
+        draft_order):
     draft_order.shipping_method.maximum_order_price = Money(50, 'USD')
     draft_order.total_gross = Money(100, 'USD')
     draft_order.shipping_method.save()
     draft_order.save()
 
-    validate_shipping_method(draft_order)
+    clear_invalid_shipping_method(draft_order)
 
+    shipping_price = TaxedMoney(net=Money(0, 'USD'), gross=Money(0, 'USD'))
     assert draft_order.shipping_method_name is None
     assert draft_order.shipping_method is None
-    assert draft_order.shipping_price == TaxedMoney(
-                net=Money(0, 'USD'), gross=Money(0, 'USD'))
+    assert draft_order.shipping_price == shipping_price
 
 
-def test_validate_shipping_method_for_valid_draft_order_weight(
+def test_clear_invalid_shipping_method_with_valid_shipping_method_weight(
         draft_order_weight_based):
     shipping_method = draft_order_weight_based.shipping_method
     shipping_method_name = draft_order_weight_based.shipping_method_name
     shipping_price = draft_order_weight_based.shipping_price
 
-    draft_order_weight_based.shipping_method.\
-        maximum_order_weight = Weight(kg=100)
+    shipping_method.maximum_order_weight = Weight(kg=100)
     draft_order_weight_based.shipping_method.save()
     draft_order_weight_based.save()
 
-    validate_shipping_method(draft_order_weight_based)
+    clear_invalid_shipping_method(draft_order_weight_based)
 
     assert shipping_method == draft_order_weight_based.shipping_method
-    assert (shipping_method_name ==
-            draft_order_weight_based.shipping_method_name)
+    assert (
+        shipping_method_name == draft_order_weight_based.shipping_method_name)
     assert shipping_price == draft_order_weight_based.shipping_price
 
 
-def test_validate_shipping_method_for_invalid_draft_order_weight(
+def test_clear_invalid_shipping_method_with_invalid_shipping_method_weight(
         draft_order_weight_based):
-    draft_order_weight_based.shipping_method.\
-        maximum_order_weight = Weight(kg=10)
+    draft_order = draft_order_weight_based
+    draft_order.shipping_method.maximum_order_weight = Weight(kg=10)
     draft_order_weight_based.shipping_method.save()
 
-    validate_shipping_method(draft_order_weight_based)
+    clear_invalid_shipping_method(draft_order_weight_based)
 
+    shipping_price = TaxedMoney(net=Money(0, 'USD'), gross=Money(0, 'USD'))
     assert draft_order_weight_based.shipping_method_name is None
     assert draft_order_weight_based.shipping_method is None
-    assert draft_order_weight_based.shipping_price == TaxedMoney(
-                net=Money(0, 'USD'), gross=Money(0, 'USD'))
+    assert draft_order_weight_based.shipping_price == shipping_price
 
 
-def test_validate_shipping_method_for_no_shipping_order_with_shipping_method(
-        draft_order_no_shipping, shipping_zone, vatlayer):
+def test_clear_invalid_shipping_method_without_shipping_order(
+        draft_order_without_shipping, shipping_zone, vatlayer):
     method = shipping_zone.shipping_methods.get()
-    draft_order_no_shipping.shipping_method_name = method.name
-    draft_order_no_shipping.shipping_method = method
-    draft_order_no_shipping.shipping_price = method.get_total(vatlayer)
-    draft_order_no_shipping.save()
+    draft_order_without_shipping.shipping_method_name = method.name
+    draft_order_without_shipping.shipping_method = method
+    draft_order_without_shipping.shipping_price = method.get_total(vatlayer)
+    draft_order_without_shipping.save()
 
-    validate_shipping_method(draft_order_no_shipping)
+    clear_invalid_shipping_method(draft_order_without_shipping)
 
-    assert draft_order_no_shipping.shipping_method_name is None
-    assert draft_order_no_shipping.shipping_method is None
-    assert draft_order_no_shipping.shipping_price == TaxedMoney(
-                net=Money(0, 'USD'), gross=Money(0, 'USD'))
+    shipping_price = TaxedMoney(net=Money(0, 'USD'), gross=Money(0, 'USD'))
+    assert draft_order_without_shipping.shipping_method_name is None
+    assert draft_order_without_shipping.shipping_method is None
+    assert draft_order_without_shipping.shipping_price == shipping_price
 
 
-def test_validate_shipping_method_for_draft_order_with_no_shipping_method(
+def test_clear_invalid_shipping_method_without_shipping_method(
         draft_order):
     draft_order.shipping_method = None
     draft_order.shipping_method_name = None
@@ -373,12 +373,12 @@ def test_validate_shipping_method_for_draft_order_with_no_shipping_method(
     draft_order.shipping_price_gross = Money(0, 'USD')
     draft_order.save()
 
-    validate_shipping_method(draft_order)
+    clear_invalid_shipping_method(draft_order)
 
+    shipping_price = TaxedMoney(net=Money(0, 'USD'), gross=Money(0, 'USD'))
     assert draft_order.shipping_method is None
     assert draft_order.shipping_method_name is None
-    assert draft_order.shipping_price == TaxedMoney(
-                net=Money(0, 'USD'), gross=Money(0, 'USD'))
+    assert draft_order.shipping_price == shipping_price
 
 
 def test_cancel_order(fulfilled_order):
