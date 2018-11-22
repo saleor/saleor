@@ -60,7 +60,7 @@ class InteractiveDemo extends React.Component<
 
 storiesOf("Generics / SaveButtonBar", module)
   .addDecorator(Decorator)
-  .add("idle", () => <SaveButtonBar {...callbacks} />)
+  .add("idle", () => <SaveButtonBar {...callbacks} state="default" />)
   .add("loading", () => <SaveButtonBar {...callbacks} state="loading" />)
   .add("success", () => <SaveButtonBar {...callbacks} state="success" />)
   .add("error", () => <SaveButtonBar {...callbacks} state="error" />)

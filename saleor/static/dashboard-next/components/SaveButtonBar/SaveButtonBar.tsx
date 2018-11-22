@@ -3,7 +3,9 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import gray from "@material-ui/core/colors/grey";
 import { withStyles } from "@material-ui/core/styles";
 import CheckIcon from "@material-ui/icons/Check";
+import classNames from "classnames";
 import * as React from "react";
+
 import i18n from "../../i18n";
 
 export type SaveButtonBarState =
@@ -31,14 +33,12 @@ const decorate = withStyles(theme => ({
   },
   buttonProgress: {
     "& svg": {
+      color: theme.palette.common.white,
       margin: 0
     },
-    color: theme.palette.primary.main,
-    marginBottom: -theme.spacing.unit * 1.5,
-    marginLeft: -theme.spacing.unit * 0.5,
-    marginRight: theme.spacing.unit * 0.5,
-    marginTop: -theme.spacing.unit * 1.5,
-    position: "relative" as "relative"
+    opacity: 0,
+    position: "absolute" as "absolute",
+    transition: theme.transitions.duration.standard + "ms"
   },
   cancelButton: {
     marginRight: theme.spacing.unit * 2
@@ -58,10 +58,16 @@ const decorate = withStyles(theme => ({
     color: theme.palette.error.contrastText
   },
   icon: {
-    marginBottom: -theme.spacing.unit * 1.5,
-    marginRight: theme.spacing.unit * 0.5,
-    marginTop: -theme.spacing.unit * 1.5,
-    position: "relative" as "relative"
+    marginLeft: "0 !important",
+    opacity: 0,
+    position: "absolute" as "absolute",
+    transition: theme.transitions.duration.standard + "ms"
+  },
+  label: {
+    transition: theme.transitions.duration.standard + "ms"
+  },
+  labelInvisible: {
+    opacity: 0
   },
   root: {
     borderTop: `1px ${gray[300]} solid`,
@@ -82,6 +88,9 @@ const decorate = withStyles(theme => ({
     },
     backgroundColor: theme.palette.primary.main,
     color: theme.palette.primary.contrastText
+  },
+  visible: {
+    opacity: 1
   }
 }));
 export const SaveButtonBar = decorate<SaveButtonBarProps>(
@@ -95,23 +104,23 @@ export const SaveButtonBar = decorate<SaveButtonBarProps>(
     onSave,
     ...props
   }) => {
-    let buttonClassName;
+    let saveButtonClassName;
     let buttonLabel;
     switch (state) {
       case "success":
-        buttonClassName = classes.success;
-        buttonLabel = i18n.t("Saved");
+        saveButtonClassName = classes.success;
+        buttonLabel = i18n.t("Save");
         break;
       case "error":
-        buttonClassName = classes.error;
+        saveButtonClassName = classes.error;
         buttonLabel = i18n.t("Error");
         break;
       case "loading":
-        buttonClassName = "";
-        buttonLabel = i18n.t("Saving");
+        saveButtonClassName = "";
+        buttonLabel = i18n.t("Save");
         break;
       default:
-        buttonClassName = "";
+        saveButtonClassName = "";
         buttonLabel = labels && labels.save ? labels.save : i18n.t("Save");
         break;
     }
@@ -136,20 +145,34 @@ export const SaveButtonBar = decorate<SaveButtonBarProps>(
         </Button>
         <Button
           variant="contained"
-          onClick={onSave}
+          onClick={state === "loading" ? undefined : onSave}
           color="secondary"
-          disabled={disabled || state === "loading"}
-          className={buttonClassName}
+          disabled={disabled}
+          className={saveButtonClassName}
         >
-          {state === "loading" && (
-            <CircularProgress
-              size={24}
-              color="secondary"
-              className={classes.buttonProgress}
-            />
-          )}
-          {state === "success" && <CheckIcon className={classes.icon} />}
-          {buttonLabel}
+          <CircularProgress
+            size={24}
+            color="inherit"
+            className={classNames({
+              [classes.buttonProgress]: true,
+              [classes.visible]: state === "loading"
+            })}
+          />
+          <CheckIcon
+            className={classNames({
+              [classes.icon]: true,
+              [classes.visible]: state === "success"
+            })}
+          />
+          <span
+            className={classNames({
+              [classes.label]: true,
+              [classes.labelInvisible]:
+                state === "loading" || state === "success"
+            })}
+          >
+            {buttonLabel}
+          </span>
         </Button>
       </div>
     );
