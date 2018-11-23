@@ -18,8 +18,7 @@ export interface ConfirmButtonProps extends ButtonProps {
   transitionState: ConfirmButtonTransitionState;
 }
 interface ConfirmButtonState {
-  transitionState: ConfirmButtonTransitionState;
-  timeout: any | null;
+  displayCompletedActionState: boolean;
 }
 
 const decorate = withStyles(theme => ({
@@ -33,13 +32,13 @@ const decorate = withStyles(theme => ({
   icon: {
     marginLeft: "0 !important",
     position: "absolute" as "absolute",
-    transition: theme.transitions.duration.standard + "ms"
+    transitionDuration: theme.transitions.duration.standard + "ms"
   },
   invisible: {
     opacity: 0
   },
   label: {
-    transition: theme.transitions.duration.standard + "ms"
+    transitionDuration: theme.transitions.duration.standard + "ms"
   },
   progress: {
     "& svg": {
@@ -47,7 +46,7 @@ const decorate = withStyles(theme => ({
       margin: 0
     },
     position: "absolute" as "absolute",
-    transition: theme.transitions.duration.standard + "ms"
+    transitionDuration: theme.transitions.duration.standard + "ms"
   },
   success: {
     "&:hover": {
@@ -65,35 +64,38 @@ const ConfirmButton = decorate<ConfirmButtonProps>(
       >,
     ConfirmButtonState
   > {
+    static getDerivedStateFromProps(
+      nextProps: ConfirmButtonProps
+    ): ConfirmButtonState {
+      if (nextProps.transitionState === "loading") {
+        return {
+          displayCompletedActionState: true
+        };
+      }
+    }
+
     state: ConfirmButtonState = {
-      timeout: null,
-      transitionState: "default"
+      displayCompletedActionState: false
     };
+    timeout = null;
 
     componentDidUpdate(prevProps: ConfirmButtonProps) {
       const { transitionState } = this.props;
       if (prevProps.transitionState !== transitionState) {
-        if (["default", "loading"].includes(transitionState)) {
-          if (transitionState === "loading") {
-            clearTimeout(this.state.timeout);
-          }
-          this.setState({
-            timeout: null,
+        if (
+          (["error", "success"] as ConfirmButtonTransitionState[]).includes(
             transitionState
-          });
-        } else {
-          const setStateToDefault = setTimeout(
+          )
+        ) {
+          this.timeout = setTimeout(
             () =>
               this.setState({
-                timeout: null,
-                transitionState: "default"
+                displayCompletedActionState: false
               }),
             2000
           );
-          this.setState({
-            timeout: setStateToDefault,
-            transitionState
-          });
+        } else if (transitionState === "loading") {
+          clearTimeout(this.timeout);
         }
       }
     }
@@ -103,11 +105,12 @@ const ConfirmButton = decorate<ConfirmButtonProps>(
         children,
         classes,
         className,
-        transitionState: transitionStateProp,
+        disabled,
+        transitionState,
         onClick,
         ...props
       } = this.props;
-      const { transitionState } = this.state;
+      const { displayCompletedActionState } = this.state;
 
       return (
         <Button
@@ -115,10 +118,13 @@ const ConfirmButton = decorate<ConfirmButtonProps>(
           onClick={transitionState === "loading" ? undefined : onClick}
           color="secondary"
           className={classNames({
-            [classes.error]: transitionState === "error",
-            [classes.success]: transitionState === "success",
+            [classes.error]:
+              transitionState === "error" && displayCompletedActionState,
+            [classes.success]:
+              transitionState === "success" && displayCompletedActionState,
             [className]: true
           })}
+          disabled={!displayCompletedActionState && disabled}
           {...props}
         >
           <CircularProgress
@@ -132,17 +138,21 @@ const ConfirmButton = decorate<ConfirmButtonProps>(
           <CheckIcon
             className={classNames({
               [classes.icon]: true,
-              [classes.invisible]: transitionState !== "success"
+              [classes.invisible]: !(
+                transitionState === "success" && displayCompletedActionState
+              )
             })}
           />
           <span
             className={classNames({
               [classes.label]: true,
               [classes.invisible]:
-                transitionState === "loading" || transitionState === "success"
+                (transitionState === "loading" ||
+                  transitionState === "success") &&
+                displayCompletedActionState
             })}
           >
-            {transitionState === "error"
+            {transitionState === "error" && displayCompletedActionState
               ? i18n.t("Error", {
                   context: "button"
                 })
