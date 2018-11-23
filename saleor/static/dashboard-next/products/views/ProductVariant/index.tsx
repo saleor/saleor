@@ -86,9 +86,8 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                       if (variant) {
                         if (
                           variant.images &&
-                          variant.images.edges
-                            .map(edge => edge.node.id)
-                            .indexOf(id) !== -1
+                          variant.images.map(image => image.id).indexOf(id) !==
+                            -1
                         ) {
                           unassignImage.mutate({
                             imageId: id,
