@@ -20,7 +20,6 @@ import {
 } from "../../mutations";
 import { TypedCategoryDetailsQuery } from "../../queries";
 import { CategoryDelete } from "../../types/CategoryDelete";
-import { CategoryUpdate } from "../../types/CategoryUpdate";
 import { categoryAddUrl, categoryListUrl, categoryUrl } from "../../urls";
 import { categoryDeleteUrl } from "./urls";
 
@@ -42,18 +41,6 @@ export const CategoryDetails: React.StatelessComponent<
     {navigate => (
       <Messages>
         {pushMessage => {
-          const onCategoryUpdate = (data: CategoryUpdate) => {
-            if (
-              data.categoryUpdate.errors === null ||
-              data.categoryUpdate.errors.length === 0
-            ) {
-              pushMessage({
-                text: i18n.t("Category updated", {
-                  context: "notification"
-                })
-              });
-            }
-          };
           const onCategoryDelete = (data: CategoryDelete) => {
             if (
               data.categoryDelete.errors === null ||
@@ -71,7 +58,7 @@ export const CategoryDetails: React.StatelessComponent<
           return (
             <TypedCategoryDeleteMutation onCompleted={onCategoryDelete}>
               {(deleteCategory, deleteResult) => (
-                <TypedCategoryUpdateMutation onCompleted={onCategoryUpdate}>
+                <TypedCategoryUpdateMutation>
                   {(updateCategory, updateResult) => {
                     const paginationState = createPaginationState(
                       PAGINATE_BY,
