@@ -151,6 +151,7 @@ export const fragmentVariant = gql`
     }
     images {
       id
+      url
     }
     name
     priceOverride {

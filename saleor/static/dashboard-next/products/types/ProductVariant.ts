@@ -42,6 +42,7 @@ export interface ProductVariant_costPrice {
 export interface ProductVariant_images {
   __typename: "ProductImage";
   id: string;
+  url: string;
 }
 
 export interface ProductVariant_priceOverride {

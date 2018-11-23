@@ -17,12 +17,12 @@ storiesOf("Views / Products / Product edit", module)
       onSubmit={() => undefined}
       product={product}
       header={product.name}
-      collections={product.collections.edges.map(edge => edge.node)}
+      collections={product.collections}
       categories={[product.category]}
       placeholderImage={placeholderImage}
-      images={product.images.edges.map(edge => edge.node)}
-      variants={product.variants.edges.map(edge => edge.node)}
-      productCollections={product.collections.edges.map(edge => edge.node)}
+      images={product.images}
+      variants={product.variants}
+      productCollections={product.collections}
       onAttributesEdit={undefined}
       onDelete={undefined}
       onProductShow={undefined}
@@ -38,12 +38,12 @@ storiesOf("Views / Products / Product edit", module)
       onSubmit={() => undefined}
       product={product}
       header={product.name}
-      collections={product.collections.edges.map(edge => edge.node)}
+      collections={product.collections}
       categories={[product.category]}
       placeholderImage={placeholderImage}
       images={[]}
-      variants={product.variants.edges.map(edge => edge.node)}
-      productCollections={product.collections.edges.map(edge => edge.node)}
+      variants={product.variants}
+      productCollections={product.collections}
       onAttributesEdit={undefined}
       onDelete={undefined}
       onProductShow={undefined}
@@ -64,12 +64,12 @@ storiesOf("Views / Products / Product edit", module)
         } as any
       }
       header={product.name}
-      collections={product.collections.edges.map(edge => edge.node)}
+      collections={product.collections}
       categories={[product.category]}
       placeholderImage={placeholderImage}
-      images={product.images.edges.map(edge => edge.node)}
-      variants={product.variants.edges.map(edge => edge.node)}
-      productCollections={product.collections.edges.map(edge => edge.node)}
+      images={product.images}
+      variants={product.variants}
+      productCollections={product.collections}
       onAttributesEdit={undefined}
       onDelete={undefined}
       onProductShow={undefined}
