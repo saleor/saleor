@@ -12,8 +12,8 @@ import i18n from "../../../i18n";
 import { UserError } from "../../../types";
 import {
   ProductDetails_product,
-  ProductDetails_product_images_edges_node,
-  ProductDetails_product_variants_edges_node_priceOverride
+  ProductDetails_product_images,
+  ProductDetails_product_variants_priceOverride
 } from "../../types/ProductDetails";
 import ProductAvailabilityForm from "../ProductAvailabilityForm";
 import ProductDetailsForm from "../ProductDetailsForm";
@@ -43,11 +43,11 @@ interface ProductUpdateProps {
     id: string;
     sku: string;
     name: string;
-    priceOverride?: ProductDetails_product_variants_edges_node_priceOverride;
+    priceOverride?: ProductDetails_product_variants_priceOverride;
     stockQuantity: number;
     margin: number;
   }>;
-  images?: ProductDetails_product_images_edges_node[];
+  images?: ProductDetails_product_images[];
   product?: ProductDetails_product;
   header: string;
   saveButtonBarState?: SaveButtonBarState;

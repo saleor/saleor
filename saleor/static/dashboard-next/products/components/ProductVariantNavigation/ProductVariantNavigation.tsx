@@ -11,22 +11,15 @@ import CardTitle from "../../../components/CardTitle";
 import Skeleton from "../../../components/Skeleton";
 import TableCellAvatar from "../../../components/TableCellAvatar";
 import i18n from "../../../i18n";
-import { renderCollection } from "../../../misc";
+import { maybe, renderCollection } from "../../../misc";
+import { ProductVariantCreateData_product_variants } from "../../types/ProductVariantCreateData";
+import { ProductVariantDetails_productVariant } from "../../types/ProductVariantDetails";
 
 interface ProductVariantNavigationProps {
   current?: string;
-  variants?: Array<{
-    id: string;
-    name: string;
-    sku: string;
-    image?: {
-      edges?: Array<{
-        node?: {
-          url: string;
-        };
-      }>;
-    };
-  }>;
+  variants:
+    | ProductVariantDetails_productVariant[]
+    | ProductVariantCreateData_product_variants[];
   onRowClick: (variantId: string) => void;
 }
 
@@ -70,17 +63,7 @@ const ProductVariantNavigation = decorate<ProductVariantNavigationProps>(
                   className={classNames({
                     [classes.tabActive]: variant && variant.id === current
                   })}
-                  thumbnail={
-                    variant &&
-                    variant.image &&
-                    variant.image.edges !== undefined
-                      ? variant.image.edges.length > 0
-                        ? variant.image.edges[0] &&
-                          variant.image.edges[0].node &&
-                          variant.image.edges[0].node.url
-                        : null
-                      : undefined
-                  }
+                  thumbnail={maybe(() => variant.images[0].url)}
                 />
                 <TableCell className={classes.textLeft}>
                   {variant ? variant.name || variant.sku : <Skeleton />}

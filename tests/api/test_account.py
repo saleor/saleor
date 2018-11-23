@@ -91,7 +91,7 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
             isStaff
             isActive
             addresses {
-                totalCount
+                id
             }
             orders {
                 totalCount
@@ -125,7 +125,7 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
     assert data['email'] == user.email
     assert data['isStaff'] == user.is_staff
     assert data['isActive'] == user.is_active
-    assert data['addresses']['totalCount'] == user.addresses.count()
+    assert len(data['addresses']) == user.addresses.count()
     assert data['orders']['totalCount'] == user.orders.count()
     address = data['defaultShippingAddress']
     user_address = user.default_shipping_address

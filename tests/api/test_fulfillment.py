@@ -25,7 +25,7 @@ CREATE_FULFILLMENT_QUERY = """
                 status
                 trackingNumber
             lines {
-                totalCount
+                id
             }
         }
     }
@@ -54,7 +54,7 @@ def test_create_fulfillment(
     assert data['fulfillmentOrder'] == 1
     assert data['status'] == FulfillmentStatus.FULFILLED.upper()
     assert data['trackingNumber'] == tracking
-    assert data['lines']['totalCount'] == 1
+    assert len(data['lines']) == 1
 
     event_fulfillment, event_email_sent = order.events.all()
     assert event_fulfillment.type == (

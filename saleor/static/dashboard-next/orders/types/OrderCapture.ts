@@ -53,56 +53,46 @@ export interface OrderCapture_orderCapture_order_events {
   user: OrderCapture_orderCapture_order_events_user | null;
 }
 
-export interface OrderCapture_orderCapture_order_fulfillments_lines_edges_node_orderLine_unitPrice_gross {
+export interface OrderCapture_orderCapture_order_fulfillments_lines_orderLine_unitPrice_gross {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderCapture_orderCapture_order_fulfillments_lines_edges_node_orderLine_unitPrice_net {
+export interface OrderCapture_orderCapture_order_fulfillments_lines_orderLine_unitPrice_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderCapture_orderCapture_order_fulfillments_lines_edges_node_orderLine_unitPrice {
+export interface OrderCapture_orderCapture_order_fulfillments_lines_orderLine_unitPrice {
   __typename: "TaxedMoney";
-  gross: OrderCapture_orderCapture_order_fulfillments_lines_edges_node_orderLine_unitPrice_gross;
-  net: OrderCapture_orderCapture_order_fulfillments_lines_edges_node_orderLine_unitPrice_net;
+  gross: OrderCapture_orderCapture_order_fulfillments_lines_orderLine_unitPrice_gross;
+  net: OrderCapture_orderCapture_order_fulfillments_lines_orderLine_unitPrice_net;
 }
 
-export interface OrderCapture_orderCapture_order_fulfillments_lines_edges_node_orderLine {
+export interface OrderCapture_orderCapture_order_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
   productName: string;
   productSku: string;
   quantity: number;
   quantityFulfilled: number;
-  unitPrice: OrderCapture_orderCapture_order_fulfillments_lines_edges_node_orderLine_unitPrice | null;
+  unitPrice: OrderCapture_orderCapture_order_fulfillments_lines_orderLine_unitPrice | null;
   thumbnailUrl: string | null;
 }
 
-export interface OrderCapture_orderCapture_order_fulfillments_lines_edges_node {
+export interface OrderCapture_orderCapture_order_fulfillments_lines {
   __typename: "FulfillmentLine";
   id: string;
   quantity: number;
-  orderLine: OrderCapture_orderCapture_order_fulfillments_lines_edges_node_orderLine | null;
-}
-
-export interface OrderCapture_orderCapture_order_fulfillments_lines_edges {
-  __typename: "FulfillmentLineCountableEdge";
-  node: OrderCapture_orderCapture_order_fulfillments_lines_edges_node;
-}
-
-export interface OrderCapture_orderCapture_order_fulfillments_lines {
-  __typename: "FulfillmentLineCountableConnection";
-  edges: OrderCapture_orderCapture_order_fulfillments_lines_edges[];
+  orderLine: OrderCapture_orderCapture_order_fulfillments_lines_orderLine | null;
 }
 
 export interface OrderCapture_orderCapture_order_fulfillments {
   __typename: "Fulfillment";
   id: string;
-  lines: OrderCapture_orderCapture_order_fulfillments_lines | null;
+  lines: (OrderCapture_orderCapture_order_fulfillments_lines | null)[] | null;
   fulfillmentOrder: number;
   status: FulfillmentStatus;
   trackingNumber: string;

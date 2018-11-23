@@ -5,7 +5,6 @@ from graphene import relay
 
 from ...account import models
 from ...core.permissions import get_permissions
-from ..core.fields import PrefetchingConnectionField
 from ..core.types.common import (
     CountableDjangoObjectType, CountryDisplay, PermissionDisplay)
 from ..utils import format_permissions_for_display
@@ -44,7 +43,7 @@ class User(CountableDjangoObjectType):
     permissions = graphene.List(
         PermissionDisplay, description='List of user\'s permissions.')
     addresses = gql_optimizer.field(
-        PrefetchingConnectionField(
+        graphene.List(
             Address, description='List of all user\'s addresses.'),
         model_field='addresses')
 

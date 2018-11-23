@@ -398,12 +398,6 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                     variants={maybe(() =>
                                       variantSearchOpts.data.products.edges
                                         .map(edge => edge.node)
-                                        .map(product => ({
-                                          ...product,
-                                          variants: product.variants.edges.map(
-                                            edge => edge.node
-                                          )
-                                        }))
                                         .map(product =>
                                           product.variants.map(variant => ({
                                             ...variant,
@@ -603,12 +597,6 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                     variants={maybe(() =>
                                       variantSearchOpts.data.products.edges
                                         .map(edge => edge.node)
-                                        .map(product => ({
-                                          ...product,
-                                          variants: product.variants.edges.map(
-                                            edge => edge.node
-                                          )
-                                        }))
                                         .map(product =>
                                           product.variants.map(variant => ({
                                             ...variant,

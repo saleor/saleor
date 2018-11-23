@@ -50,12 +50,8 @@ export const fragmentProduct = gql`
       name
     }
     collections {
-      edges {
-        node {
-          id
-          name
-        }
-      }
+      id
+      name
     }
     price {
       ...Money
@@ -107,25 +103,17 @@ export const fragmentProduct = gql`
       }
     }
     images {
-      edges {
-        node {
-          ...ProductImageFragment
-        }
-      }
+      ...ProductImageFragment
     }
     variants {
-      edges {
-        node {
-          id
-          sku
-          name
-          priceOverride {
-            ...Money
-          }
-          stockQuantity
-          margin
-        }
+      id
+      sku
+      name
+      priceOverride {
+        ...Money
       }
+      stockQuantity
+      margin
     }
     productType {
       id
@@ -162,11 +150,8 @@ export const fragmentVariant = gql`
       ...Money
     }
     images {
-      edges {
-        node {
-          id
-        }
-      }
+      id
+      url
     }
     name
     priceOverride {
@@ -175,30 +160,17 @@ export const fragmentVariant = gql`
     product {
       id
       images {
-        edges {
-          node {
-            ...ProductImageFragment
-          }
-        }
+        ...ProductImageFragment
       }
       name
       thumbnailUrl
       variants {
-        totalCount
-        edges {
-          node {
-            id
-            name
-            sku
-            image: images(first: 1) {
-              edges {
-                node {
-                  id
-                  url
-                }
-              }
-            }
-          }
+        id
+        name
+        sku
+        images {
+          id
+          url
         }
       }
     }
@@ -346,13 +318,9 @@ const productVariantCreateQuery = gql`
     product(id: $id) {
       id
       images {
-        edges {
-          node {
-            id
-            sortOrder
-            url
-          }
-        }
+        id
+        sortOrder
+        url
       }
       productType {
         id
@@ -369,20 +337,12 @@ const productVariantCreateQuery = gql`
         }
       }
       variants {
-        edges {
-          node {
-            id
-            name
-            sku
-            image: images(first: 1) {
-              edges {
-                node {
-                  id
-                  url
-                }
-              }
-            }
-          }
+        id
+        name
+        sku
+        images {
+          id
+          url
         }
       }
     }
@@ -403,18 +363,8 @@ const productImageQuery = gql`
         url
       }
       images {
-        edges {
-          node {
-            id
-            url(size: 48)
-          }
-        }
-        pageInfo {
-          hasPreviousPage
-          hasNextPage
-          startCursor
-          endCursor
-        }
+        id
+        url(size: 48)
       }
     }
   }

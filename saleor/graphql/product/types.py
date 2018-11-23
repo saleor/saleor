@@ -151,6 +151,11 @@ class ProductVariant(CountableDjangoObjectType):
         period of time. Note: this field should be queried using
         `reportProductSales` query as it uses optimizations suitable
         for such calculations.'''))
+    images = gql_optimizer.field(
+        graphene.List(
+            lambda: ProductImage,
+            description='List of images for the product variant'),
+        model_field='images')
 
     class Meta:
         description = dedent("""Represents a version of a product such as
@@ -188,6 +193,9 @@ class ProductVariant(CountableDjangoObjectType):
     def resolve_revenue(self, info, period):
         start_date = reporting_period_to_date(period)
         return calculate_revenue_for_variant(self, start_date)
+
+    def resolve_images(self, info):
+        return self.images.all()
 
 
 class ProductAvailability(graphene.ObjectType):
@@ -245,15 +253,26 @@ class Product(CountableDjangoObjectType):
             graphene.ID, description='ID of a product image.'),
         description='Get a single product image by ID')
     variants = gql_optimizer.field(
-        PrefetchingConnectionField(ProductVariant), model_field='variants')
+        graphene.List(
+            ProductVariant, description='List of varinats for the product'),
+        model_field='variants')
     images = gql_optimizer.field(
-        PrefetchingConnectionField(lambda: ProductImage), model_field='images')
+        graphene.List(
+            lambda: ProductImage,
+            description='List of images for the product'),
+        model_field='images')
+    collections = gql_optimizer.field(
+        graphene.List(
+            lambda: Collection,
+            description='List of collections for the product'),
+        model_field='collections')
 
     class Meta:
         description = dedent("""Represents an individual item for sale in the
         storefront.""")
         interfaces = [relay.Node]
         model = models.Product
+        exclude_fields = ['voucher_set', 'sale_set']
 
     @gql_optimizer.resolver_hints(prefetch_related='images')
     def resolve_thumbnail_url(self, info, *, size=None):
@@ -303,6 +322,9 @@ class Product(CountableDjangoObjectType):
 
     def resolve_variants(self, info, **kwargs):
         return self.variants.all()
+
+    def resolve_collections(self, info):
+        return self.collections.all()
 
 
 def prefetch_products(info, *args, **kwargs):

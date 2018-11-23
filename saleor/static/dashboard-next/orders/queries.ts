@@ -81,14 +81,10 @@ export const fragmentOrderDetails = gql`
     fulfillments {
       id
       lines {
-        edges {
-          node {
-            id
-            quantity
-            orderLine {
-              ...OrderLineFragment
-            }
-          }
+        id
+        quantity
+        orderLine {
+          ...OrderLineFragment
         }
       }
       fulfillmentOrder
@@ -234,14 +230,10 @@ export const orderVariantSearchQuery = gql`
           id
           name
           variants {
-            edges {
-              node {
-                id
-                name
-                sku
-                stockQuantity
-              }
-            }
+            id
+            name
+            sku
+            stockQuantity
           }
         }
       }
