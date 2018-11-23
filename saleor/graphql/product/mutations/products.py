@@ -12,10 +12,8 @@ from ....product.thumbnails import (
     create_collection_background_image_thumbnails, create_product_thumbnails)
 from ....product.utils.attributes import get_name_from_attributes
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.types.common import Decimal, SeoInput
-from ...core.types.money import TaxRateType
+from ...core.types import Decimal, SeoInput, TaxRateType, Upload
 from ...core.utils import clean_seo_fields
-from ...file_upload.types import Upload
 from ...shipping.types import WeightScalar
 from ..types import Category, Collection, Product, ProductImage, ProductVariant
 from ..utils import attributes_to_hstore
