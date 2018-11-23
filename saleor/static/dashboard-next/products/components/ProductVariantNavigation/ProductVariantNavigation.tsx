@@ -12,11 +12,14 @@ import Skeleton from "../../../components/Skeleton";
 import TableCellAvatar from "../../../components/TableCellAvatar";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
+import { ProductVariantCreateData_product_variants } from "../../types/ProductVariantCreateData";
 import { ProductVariantDetails_productVariant } from "../../types/ProductVariantDetails";
 
 interface ProductVariantNavigationProps {
   current?: string;
-  variants: ProductVariantDetails_productVariant[];
+  variants:
+    | ProductVariantDetails_productVariant[]
+    | ProductVariantCreateData_product_variants[];
   onRowClick: (variantId: string) => void;
 }
 
