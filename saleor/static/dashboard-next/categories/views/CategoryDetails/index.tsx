@@ -11,7 +11,7 @@ import {
 } from "../../../components/Paginator";
 import { WindowTitle } from "../../../components/WindowTitle";
 import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
+import { getMutationState, maybe } from "../../../misc";
 import { productAddUrl, productUrl } from "../../../products/urls";
 import { CategoryUpdatePage } from "../../components/CategoryUpdatePage/CategoryUpdatePage";
 import {
@@ -70,12 +70,22 @@ export const CategoryDetails: React.StatelessComponent<
 
           return (
             <TypedCategoryDeleteMutation onCompleted={onCategoryDelete}>
-              {deleteCategory => (
+              {(deleteCategory, deleteResult) => (
                 <TypedCategoryUpdateMutation onCompleted={onCategoryUpdate}>
                   {(updateCategory, updateResult) => {
                     const paginationState = createPaginationState(
                       PAGINATE_BY,
                       params
+                    );
+                    const formTransitionState = getMutationState(
+                      updateResult.called,
+                      updateResult.loading,
+                      maybe(() => updateResult.data.categoryUpdate.errors)
+                    );
+                    const removeDialogTransitionState = getMutationState(
+                      deleteResult.called,
+                      deleteResult.loading,
+                      maybe(() => deleteResult.data.categoryDelete.errors)
                     );
                     return (
                       <TypedCategoryDetailsQuery
@@ -165,9 +175,7 @@ export const CategoryDetails: React.StatelessComponent<
                                       edge => edge.node
                                     )
                                   )}
-                                  saveButtonBarState={
-                                    loading ? "loading" : "default"
-                                  }
+                                  saveButtonBarState={formTransitionState}
                                   subcategories={maybe(() =>
                                     data.category.children.edges.map(
                                       edge => edge.node
@@ -180,6 +188,9 @@ export const CategoryDetails: React.StatelessComponent<
                               path={categoryDeleteUrl(encodeURIComponent(id))}
                               render={({ match }) => (
                                 <ActionDialog
+                                  confirmButtonState={
+                                    removeDialogTransitionState
+                                  }
                                   onClose={() =>
                                     navigate(
                                       categoryUrl(encodeURIComponent(id)),
