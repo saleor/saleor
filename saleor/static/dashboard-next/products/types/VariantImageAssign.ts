@@ -48,6 +48,7 @@ export interface VariantImageAssign_variantImageAssign_productVariant_costPrice 
 export interface VariantImageAssign_variantImageAssign_productVariant_images {
   __typename: "ProductImage";
   id: string;
+  url: string;
 }
 
 export interface VariantImageAssign_variantImageAssign_productVariant_priceOverride {

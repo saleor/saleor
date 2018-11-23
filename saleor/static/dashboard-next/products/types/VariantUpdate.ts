@@ -50,6 +50,7 @@ export interface VariantUpdate_productVariantUpdate_productVariant_costPrice {
 export interface VariantUpdate_productVariantUpdate_productVariant_images {
   __typename: "ProductImage";
   id: string;
+  url: string;
 }
 
 export interface VariantUpdate_productVariantUpdate_productVariant_priceOverride {

@@ -818,41 +818,35 @@ export const order = (placeholder: string): OrderDetails_order => ({
       __typename: "Fulfillment",
       fulfillmentOrder: 2,
       id: "RnVsZmlsbG1lbnQ6MjQ=",
-      lines: {
-        __typename: "FulfillmentLineCountableConnection",
-        edges: [
-          {
-            __typename: "FulfillmentLineCountableEdge",
-            node: {
-              __typename: "FulfillmentLine",
-              id: "RnVsZmlsbG1lbnRMaW5lOjM5",
-              orderLine: {
-                __typename: "OrderLine",
-                id: "T3JkZXJMaW5lOjIz",
-                productName: "Williams, Garcia and Walker (XS)",
-                productSku: "5-1337",
-                quantity: 2,
-                quantityFulfilled: 2,
-                thumbnailUrl: placeholder,
-                unitPrice: {
-                  __typename: "TaxedMoney",
-                  gross: {
-                    __typename: "Money",
-                    amount: 79.71,
-                    currency: "USD"
-                  },
-                  net: {
-                    __typename: "Money",
-                    amount: 79.71,
-                    currency: "USD"
-                  }
-                }
+      lines: [
+        {
+          __typename: "FulfillmentLine",
+          id: "RnVsZmlsbG1lbnRMaW5lOjM5",
+          orderLine: {
+            __typename: "OrderLine",
+            id: "T3JkZXJMaW5lOjIz",
+            productName: "Williams, Garcia and Walker (XS)",
+            productSku: "5-1337",
+            quantity: 2,
+            quantityFulfilled: 2,
+            thumbnailUrl: placeholder,
+            unitPrice: {
+              __typename: "TaxedMoney",
+              gross: {
+                __typename: "Money",
+                amount: 79.71,
+                currency: "USD"
               },
-              quantity: 1
+              net: {
+                __typename: "Money",
+                amount: 79.71,
+                currency: "USD"
+              }
             }
-          }
-        ]
-      },
+          },
+          quantity: 1
+        }
+      ],
       status: FulfillmentStatus.FULFILLED,
       trackingNumber: ""
     },
@@ -860,41 +854,35 @@ export const order = (placeholder: string): OrderDetails_order => ({
       __typename: "Fulfillment",
       fulfillmentOrder: 1,
       id: "RnVsZmlsbG1lbnQ6OQ==",
-      lines: {
-        __typename: "FulfillmentLineCountableConnection",
-        edges: [
-          {
-            __typename: "FulfillmentLineCountableEdge",
-            node: {
-              __typename: "FulfillmentLine",
-              id: "RnVsZmlsbG1lbnRMaW5lOjE1",
-              orderLine: {
-                __typename: "OrderLine",
-                id: "T3JkZXJMaW5lOjIz",
-                productName: "Williams, Garcia and Walker (XS)",
-                productSku: "5-1337",
-                quantity: 2,
-                quantityFulfilled: 2,
-                thumbnailUrl: placeholder,
-                unitPrice: {
-                  __typename: "TaxedMoney",
-                  gross: {
-                    __typename: "Money",
-                    amount: 79.71,
-                    currency: "USD"
-                  },
-                  net: {
-                    __typename: "Money",
-                    amount: 79.71,
-                    currency: "USD"
-                  }
-                }
+      lines: [
+        {
+          __typename: "FulfillmentLine",
+          id: "RnVsZmlsbG1lbnRMaW5lOjE1",
+          orderLine: {
+            __typename: "OrderLine",
+            id: "T3JkZXJMaW5lOjIz",
+            productName: "Williams, Garcia and Walker (XS)",
+            productSku: "5-1337",
+            quantity: 2,
+            quantityFulfilled: 2,
+            thumbnailUrl: placeholder,
+            unitPrice: {
+              __typename: "TaxedMoney",
+              gross: {
+                __typename: "Money",
+                amount: 79.71,
+                currency: "USD"
               },
-              quantity: 1
+              net: {
+                __typename: "Money",
+                amount: 79.71,
+                currency: "USD"
+              }
             }
-          }
-        ]
-      },
+          },
+          quantity: 1
+        }
+      ],
       status: FulfillmentStatus.FULFILLED,
       trackingNumber: ""
     }

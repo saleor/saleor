@@ -125,77 +125,53 @@ export const product: (
   availableOn: "2018-08-25T18:45:54.125Z",
   category: { __typename: "Category", id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
   chargeTaxes: true,
-  collections: {
-    __typename: "CollectionCountableConnection",
-    edges: [
-      {
-        __typename: "CollectionCountableEdge",
-        node: {
-          __typename: "Collection",
-          id: "Q29sbGVjdGlvbjoy",
-          name: "Winter sale"
-        }
-      }
-    ]
-  },
+  collections: [
+    {
+      __typename: "Collection",
+      id: "Q29sbGVjdGlvbjoy",
+      name: "Winter sale"
+    }
+  ],
   description:
     "Omnis rerum ea. Fugit dignissimos modi est rerum. Qui corrupti expedita et. Dolorem dolorum illo doloremque. Officia perspiciatis facilis ab maxime voluptatem eligendi ipsam. Quisquam impedit repudiandae eos. Id sit dolores adipisci qui omnis dolores qui. Illo deleniti mollitia perspiciatis.",
   id: "p10171",
-  images: {
-    __typename: "ProductImageCountableConnection",
-    edges: [
-      {
-        __typename: "ProductImageCountableEdge",
-        node: {
-          __typename: "ProductImage",
-          alt: "Id sit dolores adipisci",
-          id: "UHJvZHVjdEltYWdlOjE=",
-          sortOrder: 0,
-          url: placeholderImage
-        }
-      },
-      {
-        __typename: "ProductImageCountableEdge",
-        node: {
-          __typename: "ProductImage",
-          alt: "Id sit dolores adipisci",
-          id: "UHJvZHVjdEltYWdlOaE=",
-          sortOrder: 2,
-          url: placeholderImage
-        }
-      },
-      {
-        __typename: "ProductImageCountableEdge",
-        node: {
-          __typename: "ProductImage",
-          alt: "Id sit dolores adipisci",
-          id: "UPJvZHVjdEltYWdlOjV=",
-          sortOrder: 1,
-          url: placeholderImage
-        }
-      },
-      {
-        __typename: "ProductImageCountableEdge",
-        node: {
-          __typename: "ProductImage",
-          alt: "Id sit dolores adipisci",
-          id: "UHJvZHVjdEltYHdlOjX=",
-          sortOrder: 3,
-          url: placeholderImage
-        }
-      },
-      {
-        __typename: "ProductImageCountableEdge",
-        node: {
-          __typename: "ProductImage",
-          alt: "Id sit dolores adipisci",
-          id: "UHJvZHVjdIlnYWdlOjX=",
-          sortOrder: 4,
-          url: placeholderImage
-        }
-      }
-    ]
-  },
+  images: [
+    {
+      __typename: "ProductImage",
+      alt: "Id sit dolores adipisci",
+      id: "UHJvZHVjdEltYWdlOjE=",
+      sortOrder: 0,
+      url: placeholderImage
+    },
+    {
+      __typename: "ProductImage",
+      alt: "Id sit dolores adipisci",
+      id: "UHJvZHVjdEltYWdlOaE=",
+      sortOrder: 2,
+      url: placeholderImage
+    },
+    {
+      __typename: "ProductImage",
+      alt: "Id sit dolores adipisci",
+      id: "UPJvZHVjdEltYWdlOjV=",
+      sortOrder: 1,
+      url: placeholderImage
+    },
+    {
+      __typename: "ProductImage",
+      alt: "Id sit dolores adipisci",
+      id: "UHJvZHVjdEltYHdlOjX=",
+      sortOrder: 3,
+      url: placeholderImage
+    },
+    {
+      __typename: "ProductImage",
+      alt: "Id sit dolores adipisci",
+      id: "UHJvZHVjdIlnYWdlOjX=",
+      sortOrder: 4,
+      url: placeholderImage
+    }
+  ],
   isFeatured: false,
   isPublished: true,
   margin: { __typename: "Margin", start: 2, stop: 7 },
@@ -259,89 +235,54 @@ export const product: (
   sku: "59661-34207",
   thumbnailUrl: placeholderImage,
   url: "/example-url",
-  variants: {
-    __typename: "ProductVariantCountableConnection",
-    edges: [
-      {
-        __typename: "ProductVariantCountableEdge",
-        node: {
-          __typename: "ProductVariant",
-          id: "pv75934",
-          image: {
-            __typename: "ProductImageCountableConnection",
-            edges: [
-              {
-                __typename: "ProductImageCountableEdge",
-                node: {
-                  __typename: "ProductImage",
-                  id: "pi92837",
-                  url: placeholderImage
-                }
-              }
-            ]
-          },
-          images: {
-            edges: [
-              {
-                node: {
-                  url: placeholderImage
-                }
-              },
-              {
-                node: {
-                  url: placeholderImage
-                }
-              }
-            ]
-          },
-          margin: 2,
-          name: "Cordoba Oro",
-          priceOverride: {
-            __typename: "Money",
-            amount: 678.78,
-            currency: "USD",
-            localized: "678.78 USD"
-          },
-          sku: "87192-94370",
-          stockQuantity: 48
+  variants: [
+    {
+      __typename: "ProductVariant",
+      id: "pv75934",
+      images: [
+        {
+          __typename: "ProductImage",
+          id: "pi92837",
+          url: placeholderImage
+        },
+        {
+          __typename: "ProductImage",
+          id: "pi92838",
+          url: placeholderImage
         }
+      ],
+      margin: 2,
+      name: "Cordoba Oro",
+      priceOverride: {
+        __typename: "Money",
+        amount: 678.78,
+        currency: "USD"
       },
-      {
-        __typename: "ProductVariantCountableEdge",
-        node: {
-          __typename: "ProductVariant",
-          id: "pv68615",
-          image: {
-            __typename: "ProductImageCountableConnection",
-            edges: [
-              {
-                __typename: "ProductImageCountableEdge",
-                node: {
-                  __typename: "ProductImage",
-                  id: "pi81234",
-                  url: placeholderImage
-                }
-              }
-            ]
-          },
-          images: {
-            edges: [
-              {
-                node: {
-                  url: placeholderImage
-                }
-              }
-            ]
-          },
-          margin: 7,
-          name: "silver",
-          priceOverride: null,
-          sku: "69055-15190",
-          stockQuantity: 14
+      sku: "87192-94370",
+      stockQuantity: 48
+    },
+    {
+      __typename: "ProductVariant",
+      id: "pv68615",
+      images: [
+        {
+          __typename: "ProductImage",
+          id: "pi81234",
+          url: placeholderImage
+        },
+        {
+          __typename: "ProductImage",
+          id: "pi1236912",
+          url: placeholderImage
         }
-      }
-    ]
-  }
+      ],
+      margin: 7,
+      name: "silver",
+      priceOverride: null,
+      sku: "69055-15190",
+      stockQuantity: 14
+    }
+  ]
 });
 export const products = (placeholderImage: string) => [
   {
@@ -2308,45 +2249,30 @@ export const variant = (placeholderImage: string): ProductVariant => ({
       }
     }
   ],
-  costPrice:{
-    __typename:"Money",
+  costPrice: {
+    __typename: "Money",
     amount: 12,
-    currency: "USD",
+    currency: "USD"
   },
   id: "var1",
-  images: {
-    __typename: "ProductImageCountableConnection",
-    edges: [
-      {
-        __typename: "ProductImageCountableEdge",
-        node: {
-          __typename: "ProductImage",
-          id: "img1"
-        }
-      },
-      {
-        __typename: "ProductImageCountableEdge",
-        node: {
-          __typename: "ProductImage",
-          id: "img2"
-        }
-      },
-      {
-        __typename: "ProductImageCountableEdge",
-        node: {
-          __typename: "ProductImage",
-          id: "img7"
-        }
-      },
-      {
-        __typename: "ProductImageCountableEdge",
-        node: {
-          __typename: "ProductImage",
-          id: "img8"
-        }
-      }
-    ]
-  },
+  images: [
+    {
+      __typename: "ProductImage",
+      id: "img1"
+    },
+    {
+      __typename: "ProductImage",
+      id: "img2"
+    },
+    {
+      __typename: "ProductImage",
+      id: "img7"
+    },
+    {
+      __typename: "ProductImage",
+      id: "img8"
+    }
+  ],
   name: "Extended Hard",
   priceOverride: {
     __typename: "Money",
@@ -2356,206 +2282,135 @@ export const variant = (placeholderImage: string): ProductVariant => ({
   product: {
     __typename: "Product",
     id: "prod1",
-    images: {
-      __typename: "ProductImageCountableConnection",
-      edges: [
-        {
-          __typename: "ProductImageCountableEdge",
-          node: {
-            __typename: "ProductImage",
-            alt: "Front",
-            id: "img1",
-            sortOrder: 1,
-            url: placeholderImage
-          }
-        },
-        {
-          __typename: "ProductImageCountableEdge",
-          node: {
-            __typename: "ProductImage",
-            alt: "Back",
-            id: "img2",
-            sortOrder: 4,
-            url: placeholderImage
-          }
-        },
-        {
-          __typename: "ProductImageCountableEdge",
-          node: {
-            __typename: "ProductImage",
-            alt: "Right side",
-            id: "img3",
-            sortOrder: 2,
-            url: placeholderImage
-          }
-        },
-        {
-          __typename: "ProductImageCountableEdge",
-          node: {
-            __typename: "ProductImage",
-            alt: "Left side",
-            id: "img4",
-            sortOrder: 3,
-            url: placeholderImage
-          }
-        },
-        {
-          __typename: "ProductImageCountableEdge",
-          node: {
-            __typename: "ProductImage",
-            alt: "Paper",
-            id: "img5",
-            sortOrder: 0,
-            url: placeholderImage
-          }
-        },
-        {
-          __typename: "ProductImageCountableEdge",
-          node: {
-            __typename: "ProductImage",
-            alt: "Hard cover",
-            id: "img6",
-            sortOrder: 1,
-            url: placeholderImage
-          }
-        },
-        {
-          __typename: "ProductImageCountableEdge",
-          node: {
-            __typename: "ProductImage",
-            alt: "Extended version",
-            id: "img7",
-            sortOrder: 0,
-            url: placeholderImage
-          }
-        },
-        {
-          __typename: "ProductImageCountableEdge",
-          node: {
-            __typename: "ProductImage",
-            alt: "Cut version",
-            id: "img8",
-            sortOrder: 2,
-            url: placeholderImage
-          }
-        },
-        {
-          __typename: "ProductImageCountableEdge",
-          node: {
-            __typename: "ProductImage",
-            alt: "Soft cover",
-            id: "img9",
-            sortOrder: 2,
-            url: placeholderImage
-          }
-        }
-      ]
-    },
+    images: [
+      {
+        __typename: "ProductImage",
+        alt: "Front",
+        id: "img1",
+        sortOrder: 1,
+        url: placeholderImage
+      },
+      {
+        __typename: "ProductImage",
+        alt: "Back",
+        id: "img2",
+        sortOrder: 4,
+        url: placeholderImage
+      },
+      {
+        __typename: "ProductImage",
+        alt: "Right side",
+        id: "img3",
+        sortOrder: 2,
+        url: placeholderImage
+      },
+      {
+        __typename: "ProductImage",
+        alt: "Left side",
+        id: "img4",
+        sortOrder: 3,
+        url: placeholderImage
+      },
+      {
+        __typename: "ProductImage",
+        alt: "Paper",
+        id: "img5",
+        sortOrder: 0,
+        url: placeholderImage
+      },
+      {
+        __typename: "ProductImage",
+        alt: "Hard cover",
+        id: "img6",
+        sortOrder: 1,
+        url: placeholderImage
+      },
+      {
+        __typename: "ProductImage",
+        alt: "Extended version",
+        id: "img7",
+        sortOrder: 0,
+        url: placeholderImage
+      },
+      {
+        __typename: "ProductImage",
+        alt: "Cut version",
+        id: "img8",
+        sortOrder: 2,
+        url: placeholderImage
+      },
+      {
+        __typename: "ProductImage",
+        alt: "Soft cover",
+        id: "img9",
+        sortOrder: 2,
+        url: placeholderImage
+      }
+    ],
     name: "Our Awesome Book",
     thumbnailUrl: placeholderImage,
-    variants: {
-      __typename: "ProductVariantCountableConnection",
-      edges: [
-        {
-          __typename: "ProductVariantCountableEdge",
-          node: {
-            __typename: "ProductVariant",
-            id: "var1",
-            image: {
-              __typename: "ProductImageCountableConnection",
-              edges: [
-                {
-                  __typename: "ProductImageCountableEdge",
-                  node: {
-                    __typename: "ProductImage",
-                    id: "23123",
-                    url: placeholderImage
-                  }
-                }
-              ]
-            },
-            name: "Extended Hard",
-            sku: "13-1337"
+    variants: [
+      {
+        __typename: "ProductVariant",
+        id: "var1",
+        images: [
+          {
+            __typename: "ProductImage",
+            id: "23123",
+            url: placeholderImage
           }
-        },
-        {
-          __typename: "ProductVariantCountableEdge",
-          node: {
-            __typename: "ProductVariant",
-            id: "var2",
-            image: {
-              __typename: "ProductImageCountableConnection",
-              edges: [
-                {
-                  __typename: "ProductImageCountableEdge",
-                  node: {
-                    __typename: "ProductImage",
-                    id: "23123",
-                    url: placeholderImage
-                  }
-                }
-              ]
-            },
-            name: "Extended Soft",
-            sku: "13-1338"
+        ],
+        name: "Extended Hard",
+        sku: "13-1337"
+      },
+      {
+        __typename: "ProductVariant",
+        id: "var2",
+        images: [
+          {
+            __typename: "ProductImage",
+            id: "23123",
+            url: placeholderImage
           }
-        },
-        {
-          __typename: "ProductVariantCountableEdge",
-          node: {
-            __typename: "ProductVariant",
-            id: "var3",
-            image: {
-              __typename: "ProductImageCountableConnection",
-              edges: [
-                {
-                  __typename: "ProductImageCountableEdge",
-                  node: {
-                    __typename: "ProductImage",
-                    id: "23123",
-                    url: placeholderImage
-                  }
-                }
-              ]
-            },
-            name: "Normal Hard",
-            sku: "13-1339"
+        ],
+        name: "Extended Soft",
+        sku: "13-1338"
+      },
+      {
+        __typename: "ProductVariant",
+        id: "var3",
+        images: [
+          {
+            __typename: "ProductImage",
+            id: "23123",
+            url: placeholderImage
           }
-        },
-        {
-          __typename: "ProductVariantCountableEdge",
-          node: {
-            __typename: "ProductVariant",
-            id: "var4",
-            image: {
-              __typename: "ProductImageCountableConnection",
-              edges: [
-                {
-                  __typename: "ProductImageCountableEdge",
-                  node: {
-                    __typename: "ProductImage",
-                    id: "23123",
-                    url: placeholderImage
-                  }
-                }
-              ]
-            },
-            name: "Normal Soft",
-            sku: "13-1340"
+        ],
+        name: "Normal Hard",
+        sku: "13-1339"
+      },
+      {
+        __typename: "ProductVariant",
+        id: "var4",
+        images: [
+          {
+            __typename: "ProductImage",
+            id: "23123",
+            url: placeholderImage
           }
-        }
-      ],
-      totalCount: 11
-    }
+        ],
+        name: "Normal Soft",
+        sku: "13-1340"
+      }
+    ]
   },
   quantity: 19,
   quantityAllocated: 12,
-  sku: "1230959124123",
-  
+  sku: "1230959124123"
 });
 export const variantImages = (placeholderImage: string) =>
-  variant(placeholderImage).images.edges.map(edge => edge.node);
+  variant(placeholderImage).images;
 export const variantProductImages = (placeholderImage: string) =>
-  variant(placeholderImage).product.images.edges.map(edge => edge.node);
+  variant(placeholderImage).product.images;
 export const variantSiblings = (placeholderImage: string) =>
-  variant(placeholderImage).product.variants.edges.map(edge => edge.node);
+  variant(placeholderImage).product.variants;
