@@ -14,9 +14,11 @@ from graphql.execution import ExecutionResult
 class GraphQLView(View):
     # This class is our implementation of `graphene_django.views.GraphQLView`,
     # which was extended to support the following features:
-    # - Playground as default API explorer (https://github.com/prisma/graphql-playground)
-    # - file upload (see `FileUploadGraphQLView`) from https://github.com/lmcgartland/graphene-file-upload
+    # - Playground as default the API explorer (see
+    # https://github.com/prisma/graphql-playground)
+    # - file upload (https://github.com/lmcgartland/graphene-file-upload)
     # - query batching
+    # - CORS
 
     schema = None
     executor = None
@@ -27,6 +29,7 @@ class GraphQLView(View):
     def __init__(
             self, schema=None, executor=None, middleware=None, root_value=None,
             backend=None):
+        super().__init__()
         if schema is None:
             schema = graphene_settings.SCHEMA
         if backend is None:
@@ -62,7 +65,7 @@ class GraphQLView(View):
     def handle_query(self, request: HttpRequest, *args, **kwargs):
         try:
             data = self.parse_body(request)
-        except ValueError as e:
+        except ValueError:
             return JsonResponse(
                 data={
                     'errors': [self.format_error('Unable to parse query.')]},
@@ -153,7 +156,7 @@ class GraphQLView(View):
                 # file key is which file it is in the form-data
                 file_instances = files_map[file_key]
                 for file_instance in file_instances:
-                    test = obj_set(operations, file_instance, file_key, False)
+                    obj_set(operations, file_instance, file_key, False)
             query = operations.get('query')
             variables = operations.get('variables')
         return query, variables, operation_name
@@ -165,47 +168,46 @@ class GraphQLView(View):
         return {'message': str(error)}
 
 
-def getKey(key):
+def get_key(key):
     try:
-        intKey = int(key)
-        return intKey
-    except:
+        int_key = int(key)
+    except (TypeError, ValueError):
         return key
+    else:
+        return int_key
 
 
-def getShallowProperty(obj, prop):
-    if type(prop) is int:
+def get_shallow_property(obj, prop):
+    if isinstance(prop, int):
         return obj[prop]
-
     try:
         return obj.get(prop)
-    except:
+    except AttributeError:
         return None
 
 
-def obj_set(obj, path, value, doNotReplace):
-    if type(path) is int:
+def obj_set(obj, path, value, do_not_replace):
+    if isinstance(path, int):
         path = [path]
-    if path is None or len(path) == 0:
+    if not path:
         return obj
     if isinstance(path, str):
-        newPath = list(map(getKey, path.split('.')))
-        return obj_set(obj, newPath, value, doNotReplace)
+        new_path = [get_key(part) for part in path.split('.')]
+        return obj_set(obj, new_path, value, do_not_replace)
 
-    currentPath = path[0]
-    currentValue = getShallowProperty(obj, currentPath)
+    current_path = path[0]
+    current_value = get_shallow_property(obj, current_path)
 
     if len(path) == 1:
-        if currentValue is None or not doNotReplace:
-            obj[currentPath] = value
+        if current_value is None or not do_not_replace:
+            obj[current_path] = value
 
-    if currentValue is None:
+    if current_value is None:
         try:
-            if type(path[1]) == int:
-                obj[currentPath] = []
+            if isinstance(path[1], int):
+                obj[current_path] = []
             else:
-                obj[currentPath] = {}
-        except Exception as e:
+                obj[current_path] = {}
+        except IndexError:
             pass
-
-    return obj_set(obj[currentPath], path[1:], value, doNotReplace)
+    return obj_set(obj[current_path], path[1:], value, do_not_replace)
