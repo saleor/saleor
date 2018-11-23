@@ -1,0 +1,2057 @@
+# Saleor
+# Copyright (C) 2017 Mirumee Software
+# This file is distributed under the same license as the Saleor package.
+# Mirumee Software <hello@mirumee.com>, 2017.
+# 
+# Translators:
+# André Karlsson <andre@sess.se>, 2018
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: master\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-10-05 06:33-0500\n"
+"PO-Revision-Date: 2017-02-09 15:43+0000\n"
+"Last-Translator: André Karlsson <andre@sess.se>, 2018\n"
+"Language-Team: Swedish (https://www.transifex.com/mirumee/teams/34782/sv/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: sv\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: saleor/dashboard/category/filters.py:8
+msgctxt "Category list sorting option"
+msgid "name"
+msgstr "namn"
+
+#: saleor/dashboard/category/filters.py:10
+msgctxt "Category list sorting option"
+msgid "description"
+msgstr "beskrivning"
+
+#: saleor/dashboard/category/filters.py:15
+msgctxt "Category list filter label"
+msgid "Name"
+msgstr "Namn"
+
+#: saleor/dashboard/category/filters.py:18
+msgctxt "Category list sorting filter label"
+msgid "Sort by"
+msgstr "Sortera på"
+
+#: saleor/dashboard/category/filters.py:30
+#, python-format
+msgctxt "Number of matching records in the dashboard categories list"
+msgid "Found %(counter)d matching category"
+msgid_plural "Found %(counter)d matching categories"
+msgstr[0] "Hittade %(counter)d kategori"
+msgstr[1] "Hittade %(counter)d kategorier"
+
+#: saleor/dashboard/category/forms.py:24
+#: saleor/dashboard/collection/forms.py:23
+#: saleor/dashboard/discount/forms.py:95 saleor/dashboard/product/forms.py:86
+#: saleor/dashboard/product/forms.py:232 saleor/dashboard/product/forms.py:440
+#: saleor/dashboard/sites/forms.py:52
+msgctxt "Item name"
+msgid "Name"
+msgstr "Namn"
+
+#: saleor/dashboard/category/forms.py:25 saleor/dashboard/product/forms.py:218
+#: saleor/dashboard/product/forms.py:389 saleor/dashboard/sites/forms.py:29
+msgctxt "Description"
+msgid "Description"
+msgstr "Beskrivning"
+
+#: saleor/dashboard/category/forms.py:28
+msgctxt "Category form"
+msgid "Background Image"
+msgstr "Backgrundsbild"
+
+#: saleor/dashboard/category/views.py:47
+#, python-format
+msgctxt "Dashboard message"
+msgid "Added category %s"
+msgstr "Lagt till kategori %s"
+
+#: saleor/dashboard/category/views.py:72
+#, python-format
+msgctxt "Dashboard message"
+msgid "Updated category %s"
+msgstr "Uppdaterat kategori %s"
+
+#: saleor/dashboard/category/views.py:112
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed category %s"
+msgstr "Tog bort kategorin %s"
+
+#: saleor/dashboard/collection/filters.py:9
+msgctxt "Collection list sorting option"
+msgid "name"
+msgstr "namn"
+
+#: saleor/dashboard/collection/filters.py:12
+#: saleor/dashboard/product/filters.py:22
+msgctxt "Is publish filter choice"
+msgid "Published"
+msgstr "Publicerad"
+
+#: saleor/dashboard/collection/filters.py:13
+#: saleor/dashboard/product/filters.py:23
+msgctxt "Is publish filter choice"
+msgid "Not published"
+msgstr "Opublicerad"
+
+#: saleor/dashboard/collection/filters.py:18
+msgctxt "Collection list name filter label"
+msgid "Name"
+msgstr "Namn"
+
+#: saleor/dashboard/collection/filters.py:21
+msgctxt "Collection list filter label"
+msgid "Is published"
+msgstr "Är publicerad"
+
+#: saleor/dashboard/collection/filters.py:23
+#: saleor/dashboard/customer/filters.py:38
+#: saleor/dashboard/discount/filters.py:58
+#: saleor/dashboard/discount/filters.py:94
+#: saleor/dashboard/order/filters.py:43 saleor/dashboard/order/filters.py:49
+#: saleor/dashboard/product/filters.py:45 saleor/dashboard/taxes/filters.py:25
+msgctxt "Filter empty choice label"
+msgid "All"
+msgstr "Allt"
+
+#: saleor/dashboard/collection/filters.py:26
+msgctxt "Collection list sorting filter label"
+msgid "Sort by"
+msgstr "Sortera på"
+
+#: saleor/dashboard/collection/filters.py:38
+#, python-format
+msgctxt "Number of matching records in the dashboard collections list"
+msgid "Found %(counter)d matching collection"
+msgid_plural "Found %(counter)d matching collections"
+msgstr[0] "Hittade %(counter)d samling"
+msgstr[1] "Hittade %(counter)d samlingar"
+
+#: saleor/dashboard/collection/forms.py:17
+msgctxt "Products selection"
+msgid "Products"
+msgstr "Produkter"
+
+#: saleor/dashboard/collection/forms.py:26
+msgctxt "Products selection"
+msgid "Background Image"
+msgstr "Backgrundsbild"
+
+#: saleor/dashboard/collection/forms.py:29
+msgctxt "Collection published toggle"
+msgid "Published"
+msgstr "Publicerad"
+
+#: saleor/dashboard/collection/views.py:28
+msgctxt "Dashboard message"
+msgid "Updated homepage collection"
+msgstr "Uppdatera sidan samligar"
+
+#: saleor/dashboard/collection/views.py:52
+msgctxt "Collection message"
+msgid "Added collection"
+msgstr "Lagt till samling"
+
+#: saleor/dashboard/collection/views.py:67
+msgctxt "Collection message"
+msgid "Updated collection"
+msgstr "Uppdaterat samling"
+
+#: saleor/dashboard/collection/views.py:88
+msgctxt "Collection message"
+msgid "Deleted collection"
+msgstr "Ta bort samling"
+
+#: saleor/dashboard/customer/filters.py:17
+#: saleor/dashboard/staff/filters.py:17
+msgctxt "Customer list sorting option"
+msgid "email"
+msgstr "e-post"
+
+#: saleor/dashboard/customer/filters.py:19
+#: saleor/dashboard/staff/filters.py:19
+msgctxt "Customer list sorting option"
+msgid "name"
+msgstr "namn"
+
+#: saleor/dashboard/customer/filters.py:21
+#: saleor/dashboard/staff/filters.py:21
+msgctxt "Customer list sorting option"
+msgid "location"
+msgstr "plats"
+
+#: saleor/dashboard/customer/filters.py:24
+msgctxt "Is active filter choice"
+msgid "Active"
+msgstr "Aktiv"
+
+#: saleor/dashboard/customer/filters.py:25
+msgctxt "Is active filter choice"
+msgid "Not active"
+msgstr "Inte aktiv"
+
+#: saleor/dashboard/customer/filters.py:30
+msgctxt "Customer name or email filter"
+msgid "Name or email"
+msgstr "Namn eller e-post"
+
+#: saleor/dashboard/customer/filters.py:33
+msgctxt "Customer list filter label"
+msgid "Location"
+msgstr "Plats"
+
+#: saleor/dashboard/customer/filters.py:36
+msgctxt "Customer list filter label"
+msgid "Is active"
+msgstr "Är aktiv"
+
+#: saleor/dashboard/customer/filters.py:41
+msgctxt "Customer list filter label"
+msgid "Sort by"
+msgstr "Sortera på"
+
+#: saleor/dashboard/customer/filters.py:74
+#, python-format
+msgctxt "Number of matching records in the dashboard customers list"
+msgid "Found %(counter)d matching customer"
+msgid_plural "Found %(counter)d matching customers"
+msgstr[0] "Hittade %(counter)d kund"
+msgstr[1] "Hittade %(counter)d matchande kunder"
+
+#: saleor/dashboard/customer/forms.py:22
+msgctxt "Edit customer details in order form error"
+msgid ""
+"You can't delete your own account via dashboard, please try from the "
+"storefront."
+msgstr ""
+"Du kan inte ta bort ditt eget konto via dashboarden, var god försök från "
+"butiken."
+
+#: saleor/dashboard/customer/forms.py:27
+msgctxt "Edit customer details in order form error"
+msgid "Only superuser can delete his own account."
+msgstr "Endast superanvändare kan ta bort sitt eget konto."
+
+#: saleor/dashboard/customer/forms.py:32
+msgctxt "Edit customer details in order form error"
+msgid "You have insufficient permissions, to edit staff users."
+msgstr "Du har otillräckliga behörigheter för att redigera anställda."
+
+#: saleor/dashboard/customer/forms.py:50
+msgctxt "Customer form: email address field"
+msgid "Email"
+msgstr "E-Post"
+
+#: saleor/dashboard/customer/forms.py:52
+msgctxt "Customer form: is active toggle"
+msgid "User is active"
+msgstr "Använder aktiv"
+
+#: saleor/dashboard/customer/forms.py:54
+msgctxt "Customer form: customer note field"
+msgid "Notes"
+msgstr "Noteringar"
+
+#: saleor/dashboard/customer/forms.py:64
+msgctxt "Customer note"
+msgid "Note"
+msgstr "Notering"
+
+#: saleor/dashboard/customer/forms.py:67
+msgctxt "Allow customers to see note toggle"
+msgid "Customer can see this note"
+msgstr "Kunden kan se denna notering"
+
+#: saleor/dashboard/customer/views.py:63
+#, python-format
+msgctxt "Dashboard message"
+msgid "Added customer %s"
+msgstr "Lagt till kunden %s"
+
+#: saleor/dashboard/customer/views.py:79
+#, python-format
+msgctxt "Dashboard message"
+msgid "Updated customer %s"
+msgstr "Uppdaterat kunden %s"
+
+#: saleor/dashboard/customer/views.py:112
+msgctxt "Dashboard message related to an customer"
+msgid "Added note"
+msgstr "Lagt till notering"
+
+#: saleor/dashboard/customer/views.py:133
+#, python-format
+msgctxt "Dashboard message"
+msgid "%(customer_name)s successfully removed"
+msgstr "%(customer_name)s har tagits bort"
+
+#: saleor/dashboard/discount/filters.py:14
+msgctxt "Sale list sorting option"
+msgid "name"
+msgstr "namn"
+
+#: saleor/dashboard/discount/filters.py:15
+msgctxt "Sale list sorting option"
+msgid "value"
+msgstr "värde"
+
+#: saleor/dashboard/discount/filters.py:16
+msgctxt "Sale list sorting option"
+msgid "start_date"
+msgstr "startdatum"
+
+#: saleor/dashboard/discount/filters.py:17
+msgctxt "Sale list sorting option"
+msgid "end_date"
+msgstr "slutdatum"
+
+#: saleor/dashboard/discount/filters.py:20
+msgctxt "Voucher list sorting option"
+msgid "name"
+msgstr "namn"
+
+#: saleor/dashboard/discount/filters.py:22
+msgctxt "Voucher list sorting option"
+msgid "discount_value"
+msgstr "rabattvärde"
+
+#: saleor/dashboard/discount/filters.py:23
+msgctxt "Voucher list sorting option"
+msgid "countries"
+msgstr "länder"
+
+#: saleor/dashboard/discount/filters.py:24
+msgctxt "Voucher list sorting option"
+msgid "start_date"
+msgstr "startdatum"
+
+#: saleor/dashboard/discount/filters.py:25
+msgctxt "Voucher list sorting option"
+msgid "end_date"
+msgstr "slutdatum"
+
+#: saleor/dashboard/discount/filters.py:26
+msgctxt "Voucher list sorting option"
+msgid "used"
+msgstr "använd"
+
+#: saleor/dashboard/discount/filters.py:28
+msgctxt "Voucher list sorting option"
+msgid "min_amount_spent"
+msgstr "min_summa_spenderat"
+
+#: saleor/dashboard/discount/filters.py:31
+msgctxt "Sale type filter choice"
+msgid "USD"
+msgstr "USD"
+
+#: saleor/dashboard/discount/filters.py:32
+msgctxt "Sale type filter choice"
+msgid "%"
+msgstr "%"
+
+#: saleor/dashboard/discount/filters.py:49
+msgctxt "Sale list filter label"
+msgid "Name"
+msgstr "Namn"
+
+#: saleor/dashboard/discount/filters.py:52
+msgctxt "Sale list filter label"
+msgid "Categories"
+msgstr "Kategorier"
+
+#: saleor/dashboard/discount/filters.py:56
+msgctxt "Sale list filter label"
+msgid "Discount type"
+msgstr "Rabattyp"
+
+#: saleor/dashboard/discount/filters.py:61
+msgctxt "Sale list filter label"
+msgid "Value"
+msgstr "Värde"
+
+#: saleor/dashboard/discount/filters.py:64
+msgctxt "Sale list sorting filter label"
+msgid "Period of validity"
+msgstr "Giltighetsperiod"
+
+#: saleor/dashboard/discount/filters.py:68
+msgctxt "Sale list filter label"
+msgid "Sort by"
+msgstr "Sortera på"
+
+#: saleor/dashboard/discount/filters.py:80
+#, python-format
+msgctxt "Number of matching records in the dashboard sales list"
+msgid "Found %(counter)d matching sale"
+msgid_plural "Found %(counter)d matching sales"
+msgstr[0] "Hittade %(counter)d rea"
+msgstr[1] "Hittade %(counter)d reor"
+
+#: saleor/dashboard/discount/filters.py:87
+msgctxt "Voucher list name filter label"
+msgid "Name"
+msgstr "Namn"
+
+#: saleor/dashboard/discount/filters.py:92
+msgctxt "Sale list is sale type filter label"
+msgid "Discount type"
+msgstr "Rabattyp"
+
+#: saleor/dashboard/discount/filters.py:97
+msgctxt "Sale list filter label"
+msgid "Discount_value"
+msgstr "rabattvärde"
+
+#: saleor/dashboard/discount/filters.py:100
+msgctxt "Voucher list sorting filter label"
+msgid "Period of validity"
+msgstr "Giltighetsperiod"
+
+#: saleor/dashboard/discount/filters.py:105
+msgctxt "Voucher list sorting filter"
+msgid "Minimum amount spent"
+msgstr "Lägsta summa spenderad"
+
+#: saleor/dashboard/discount/filters.py:108
+msgctxt "Voucher list sorting filter label"
+msgid "Sort by"
+msgstr "Sortera på"
+
+#: saleor/dashboard/discount/filters.py:120
+#, python-format
+msgctxt "Number of matching records in the dashboard vouchers list"
+msgid "Found %(counter)d matching voucher"
+msgid_plural "Found %(counter)d matching vouchers"
+msgstr[0] "Hittade %(counter)d rabattkupong"
+msgstr[1] "Hittade %(counter)d rabattkuponger"
+
+#: saleor/dashboard/discount/forms.py:22
+msgctxt "Lowest value for order to be able to use the voucher"
+msgid "Apply only if the purchase value is greater than or equal to"
+msgstr "Applicera endast om köpvärdet är större än eller lika med"
+
+#: saleor/dashboard/discount/forms.py:30
+msgctxt "Discounted products"
+msgid "Discounted products"
+msgstr "Rabatterade produkter"
+
+#: saleor/dashboard/discount/forms.py:38
+msgctxt "Sale name"
+msgid "Name"
+msgstr "Namn"
+
+#: saleor/dashboard/discount/forms.py:41
+msgctxt "Discount type"
+msgid "Fixed or percentage"
+msgstr "Fast eller procent"
+
+#: saleor/dashboard/discount/forms.py:44
+msgctxt "Sale date restrictions"
+msgid "Start date"
+msgstr "Start datum"
+
+#: saleor/dashboard/discount/forms.py:47
+msgctxt "Sale date restrictions"
+msgid "End date"
+msgstr "Slutdatum"
+
+#: saleor/dashboard/discount/forms.py:50
+msgctxt "Percentage or fixed amount value"
+msgid "Value"
+msgstr "Värde"
+
+#: saleor/dashboard/discount/forms.py:53
+msgctxt "Discounted categories"
+msgid "Discounted categories"
+msgstr "Rabatterade kategorier"
+
+#: saleor/dashboard/discount/forms.py:56
+msgctxt "Discounted collections"
+msgid "Discounted collections"
+msgstr "Rabatterade samlingar"
+
+#: saleor/dashboard/discount/forms.py:70
+msgctxt "Sale (discount) error"
+msgid "Sale cannot exceed 100%"
+msgstr "REA kan inte överstiga 100%"
+
+#: saleor/dashboard/discount/forms.py:77
+msgctxt "Sale (discount) error"
+msgid ""
+"A single sale must point to at least one product, collectionand/or category."
+msgstr "En REAmåste peka på minst en produkt, insamling och / eller kategori."
+
+#: saleor/dashboard/discount/forms.py:92
+msgctxt "Discount type"
+msgid "Discount type"
+msgstr "Rabattyp"
+
+#: saleor/dashboard/discount/forms.py:98
+msgctxt "Coupon code"
+msgid "Code"
+msgstr "Kod"
+
+#: saleor/dashboard/discount/forms.py:101
+msgctxt "Usage limit"
+msgid "Usage limit"
+msgstr "Användningsgräns"
+
+#: saleor/dashboard/discount/forms.py:104
+msgctxt "Voucher date restrictions"
+msgid "Start date"
+msgstr "Start datum"
+
+#: saleor/dashboard/discount/forms.py:107
+msgctxt "Voucher date restrictions"
+msgid "End date"
+msgstr "Slutdatum"
+
+#: saleor/dashboard/discount/forms.py:110
+msgctxt "Discount type of the voucher"
+msgid "Discount type"
+msgstr "Rabattyp"
+
+#: saleor/dashboard/discount/forms.py:113
+msgctxt "Discount value of the voucher"
+msgid "Discount value"
+msgstr "Rabattvärde"
+
+#: saleor/dashboard/discount/forms.py:137
+msgctxt "Text above the dropdown of countries"
+msgid "Limit countries that voucher should apply to"
+msgstr "Begränsa länder som rabattkoden gäller för"
+
+#: saleor/dashboard/discount/forms.py:165
+msgctxt "Field label, apply discount value only once per order"
+msgid "Only apply once per order"
+msgstr "Använd endast en gång per order"
+
+#: saleor/dashboard/discount/forms.py:168
+msgctxt "Help text of checkbox for applying discount only once per order"
+msgid ""
+"If unchecked, discount value will be taken off each suitable item in an "
+"order."
+msgstr ""
+"Om inte är markerad, kommer rabattvärdet att tas bort från varje lämpligt "
+"föremål i en order."
+
+#: saleor/dashboard/discount/forms.py:177
+msgctxt "Product"
+msgid "Products"
+msgstr "Produkter"
+
+#: saleor/dashboard/discount/forms.py:191
+msgctxt "Collections"
+msgid "Collections"
+msgstr "Samlingar"
+
+#: saleor/dashboard/discount/forms.py:202
+msgctxt "Categories"
+msgid "Categories"
+msgstr "Kategorier"
+
+#: saleor/dashboard/discount/views.py:56
+msgctxt "Sale (discount) message"
+msgid "Added sale"
+msgstr "Lägg till REA"
+
+#: saleor/dashboard/discount/views.py:70
+msgctxt "Sale (discount) message"
+msgid "Updated sale"
+msgstr "Uppdatera REA"
+
+#: saleor/dashboard/discount/views.py:84
+#, python-format
+msgctxt "Sale (discount) message"
+msgid "Removed sale %s"
+msgstr "Ta bort REA %s"
+
+#: saleor/dashboard/discount/views.py:124
+msgctxt "Voucher message"
+msgid "Added voucher"
+msgstr "Lägg till rabattkupong"
+
+#: saleor/dashboard/discount/views.py:150
+msgctxt "Voucher message"
+msgid "Updated voucher"
+msgstr "Uppdatera rabattkupong"
+
+#: saleor/dashboard/discount/views.py:167
+#, python-format
+msgctxt "Voucher message"
+msgid "Removed voucher %s"
+msgstr "Tog bort rabattkupongen %s"
+
+#: saleor/dashboard/menu/filters.py:9
+msgctxt "Menu list sorting option"
+msgid "Name"
+msgstr "Namn"
+
+#: saleor/dashboard/menu/filters.py:12
+msgctxt "Menu item list sorting option"
+msgid "Name"
+msgstr "Namn"
+
+#: saleor/dashboard/menu/filters.py:17
+msgctxt "Menu list filter label"
+msgid "Menu name"
+msgstr "Menynamn"
+
+#: saleor/dashboard/menu/filters.py:20
+msgctxt "Menu list filter label"
+msgid "Sort by"
+msgstr "Sortera på"
+
+#: saleor/dashboard/menu/filters.py:32
+#, python-format
+msgctxt "Number of matching records in the dashboard menus list"
+msgid "Found %(counter)d matching menu"
+msgid_plural "Found %(counter)d matching menus"
+msgstr[0] "Hittade %(counter)d meny"
+msgstr[1] "Hittade %(counter)d menyer"
+
+#: saleor/dashboard/menu/filters.py:39
+msgctxt "Menu item list filter label"
+msgid "Name"
+msgstr "Namn"
+
+#: saleor/dashboard/menu/filters.py:42
+msgctxt "Menu item list filter label"
+msgid "Points to"
+msgstr "Pekar på"
+
+#: saleor/dashboard/menu/filters.py:45
+msgctxt "Menu item list sorting filter label"
+msgid "Sort by"
+msgstr "Sortera på"
+
+#: saleor/dashboard/menu/filters.py:57
+#, python-format
+msgctxt "Number of matching records in the dashboard menu items list"
+msgid "Found %(counter)d matching menu item"
+msgid_plural "Found %(counter)d matching menu items"
+msgstr[0] "Hittade %(counter)d menyval"
+msgstr[1] "Hittade%(counter)d menyval"
+
+#: saleor/dashboard/menu/forms.py:27
+msgctxt "Menu name"
+msgid "Menu name"
+msgstr "Menynamn"
+
+#: saleor/dashboard/menu/forms.py:47
+msgctxt "Menu item object to link"
+msgid "Link"
+msgstr "Länk"
+
+#: saleor/dashboard/menu/forms.py:53
+msgctxt "Menu item name"
+msgid "Name"
+msgstr "Namn"
+
+#: saleor/dashboard/menu/forms.py:54
+msgctxt "Menu item url"
+msgid "URL"
+msgstr "URL"
+
+#: saleor/dashboard/menu/forms.py:70
+msgctxt "Menu item form error"
+msgid "Maximum nesting level for menu items equals to 2."
+msgstr "Maximal nestningsnivå för menyposter motsvarar 2."
+
+#: saleor/dashboard/menu/forms.py:78
+msgctxt "Menu item form error"
+msgid "A single menu item can't point to both an internal link and URL."
+msgstr "Ett enda menyobjekt kan inte peka på både en intern länk och URL."
+
+#: saleor/dashboard/menu/forms.py:85
+msgctxt "Menu item form error"
+msgid "A single menu item must point to an internal link or URL."
+msgstr "Ett enda menyobjekt måste peka på en intern länk eller URL."
+
+#: saleor/dashboard/menu/utils.py:103
+#, python-format
+msgctxt "Menu item page hidden status"
+msgid ""
+"%(menu_item_name)s is hidden (will become visible on %(available_on_date)s)"
+msgstr ""
+"%(menu_item_name)s är gömd (kommer att bli synlig den %(available_on_date)s)"
+
+#: saleor/dashboard/menu/utils.py:109
+#, python-format
+msgctxt "Menu item published status"
+msgid "%(menu_item_name)s (Not published)"
+msgstr "%(menu_item_name)s(Opublicerad)"
+
+#: saleor/dashboard/menu/views.py:36
+msgctxt "Dashboard message"
+msgid "Updated storefront menus"
+msgstr "Uppdatera butiksmenyer"
+
+#: saleor/dashboard/menu/views.py:53
+#, python-format
+msgctxt "Dashboard message"
+msgid "Added menu %s"
+msgstr "Lagt till meny %s"
+
+#: saleor/dashboard/menu/views.py:67
+#, python-format
+msgctxt "Dashboard message"
+msgid "Updated menu %s"
+msgstr "Uppdaterad meny %s"
+
+#: saleor/dashboard/menu/views.py:97
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed menu %s"
+msgstr "Ta bort meny %s"
+
+#: saleor/dashboard/menu/views.py:121
+#, python-format
+msgctxt "Dashboard message"
+msgid "Added menu item %s"
+msgstr "Lagt till menyval %s"
+
+#: saleor/dashboard/menu/views.py:145
+#, python-format
+msgctxt "Dashboard message"
+msgid "Saved menu item %s"
+msgstr "Sparade menyval %s"
+
+#: saleor/dashboard/menu/views.py:163
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed menu item %s"
+msgstr "Tog bort menyval %s"
+
+#: saleor/dashboard/menu/views.py:249
+msgctxt "Link object type group description"
+msgid "Collection"
+msgstr "Samling"
+
+#: saleor/dashboard/menu/views.py:254
+msgctxt "Link object type group description"
+msgid "Category"
+msgstr "Kategori"
+
+#: saleor/dashboard/menu/views.py:259
+msgctxt "Link object type group description"
+msgid "Page"
+msgstr "Sida"
+
+#: saleor/dashboard/order/filters.py:22
+msgctxt "Order list sorting option"
+msgid "#"
+msgstr "#"
+
+#: saleor/dashboard/order/filters.py:23
+msgctxt "Order list sorting option"
+msgid "payment"
+msgstr "betalning"
+
+#: saleor/dashboard/order/filters.py:24
+msgctxt "Order list sorting option"
+msgid "email"
+msgstr "e-post"
+
+#: saleor/dashboard/order/filters.py:25 saleor/dashboard/order/filters.py:26
+msgctxt "Order list sorting option"
+msgid "created"
+msgstr "skapad"
+
+#: saleor/dashboard/order/filters.py:31
+msgctxt "Order list filter label"
+msgid "ID"
+msgstr "ID"
+
+#: saleor/dashboard/order/filters.py:34
+msgctxt "Order list filter label"
+msgid "Customer name or email"
+msgstr "Kundnamn eller e-post"
+
+#: saleor/dashboard/order/filters.py:37
+msgctxt "Order list filter label"
+msgid "Placed on"
+msgstr "Placed i "
+
+#: saleor/dashboard/order/filters.py:41
+msgctxt "Order list filter label"
+msgid "Order status"
+msgstr "Order status"
+
+#: saleor/dashboard/order/filters.py:46
+msgctxt "Order list filter label"
+msgid "Payment status"
+msgstr "Betalstatus"
+
+#: saleor/dashboard/order/filters.py:52
+msgctxt "Order list filter label"
+msgid "Total"
+msgstr "Total Summa"
+
+#: saleor/dashboard/order/filters.py:55
+msgctxt "Order list filter label"
+msgid "Sort by"
+msgstr "Sortera på"
+
+#: saleor/dashboard/order/filters.py:73
+#, python-format
+msgctxt "Number of matching records in the dashboard orders list"
+msgid "Found %(counter)d matching order"
+msgid_plural "Found %(counter)d matching orders"
+msgstr[0] "Hittade %(counter)d order"
+msgstr[1] "Hittade %(counter)d ordrar"
+
+#: saleor/dashboard/order/forms.py:38
+msgctxt "Send email to customer about order created by staff users"
+msgid "Send email with order confirmation to the customer"
+msgstr "Skicka e-post med orderbekräftelse till kunden"
+
+#: saleor/dashboard/order/forms.py:56
+msgctxt "Create draft order form error"
+msgid "Could not create order without any products"
+msgstr "Kan inte skapa en order utan produkter"
+
+#: saleor/dashboard/order/forms.py:66
+msgctxt "Create draft order form error"
+msgid "Shipping method is not valid for chosen shipping address"
+msgstr "Leveransmetod är till tillgänglig för vald leveransadress"
+
+#: saleor/dashboard/order/forms.py:94
+msgctxt "Update an order with user default addresses"
+msgid "Set billing and shipping address in order to customer defaults"
+msgstr ""
+"Ange fakturerings- och leveransadress för beställningen till kundens "
+"standardval"
+
+#: saleor/dashboard/order/forms.py:102
+msgctxt "Order form: editing customer details - selecting a customer"
+msgid "Customer"
+msgstr "Kund"
+
+#: saleor/dashboard/order/forms.py:110
+msgctxt "Order customer email"
+msgid "Email"
+msgstr "E-Post"
+
+#: saleor/dashboard/order/forms.py:125
+msgctxt "Edit customer details in order form error"
+msgid ""
+"An order can be related either with an email or an existing user account"
+msgstr ""
+"En order kan relateras till antingen en e-post adress eller ett existerande "
+"användarkonto"
+
+#: saleor/dashboard/order/forms.py:153
+msgctxt "Shipping method form field label"
+msgid "Shipping method"
+msgstr "Fraktsätt"
+
+#: saleor/dashboard/order/forms.py:210
+msgctxt "Order discount amount fixed value"
+msgid "Discount amount"
+msgstr "Rabattsumma"
+
+#: saleor/dashboard/order/forms.py:222
+msgctxt "Order voucher"
+msgid "Voucher"
+msgstr "Rabattkupong"
+
+#: saleor/dashboard/order/forms.py:250
+msgctxt "Order note"
+msgid "Note"
+msgstr "Notering"
+
+#: saleor/dashboard/order/forms.py:256
+msgctxt "Payment management form (capture, refund, release)"
+msgid "Amount"
+msgstr "Summa"
+
+#: saleor/dashboard/order/forms.py:272 saleor/dashboard/order/forms.py:328
+#, python-format
+msgctxt "Payment form error"
+msgid "Payment gateway error: %s"
+msgstr "Betalväxel fel: %s"
+
+#: saleor/dashboard/order/forms.py:288
+msgctxt "Payment form error"
+msgid "Only pre-authorized payments can be captured"
+msgstr "Endast automatbetalningar kan användas"
+
+#: saleor/dashboard/order/forms.py:298
+msgctxt "Payment form error"
+msgid "Only confirmed payments can be refunded"
+msgstr "Endast bekräftade betalningar kan återbetalas"
+
+#: saleor/dashboard/order/forms.py:306
+msgctxt "Payment form error"
+msgid "Manual payments can not be refunded"
+msgstr "Manuella betalningar kan inte återbetalas"
+
+#: saleor/dashboard/order/forms.py:323
+msgctxt "Payment form error"
+msgid "Only pre-authorized payments can be released"
+msgstr "Endast automat betalningar kan frigöras"
+
+#: saleor/dashboard/order/forms.py:352
+msgctxt "Mark order as paid form error"
+msgid "Orders with payments can not be manually marked as paid"
+msgstr "Ordrar med betalning kan inte manuellt markeras som betald"
+
+#: saleor/dashboard/order/forms.py:361
+#, python-format
+msgctxt "Payment description"
+msgid "Order %(order)s"
+msgstr "Order %(order)s"
+
+#: saleor/dashboard/order/forms.py:387
+msgctxt "Integer number"
+msgid "Quantity"
+msgstr "Antal"
+
+#: saleor/dashboard/order/forms.py:406
+#, python-format
+msgctxt "Change quantity form error"
+msgid "Only %(remaining)d remaining in stock."
+msgid_plural "Only %(remaining)d remaining in stock."
+msgstr[0] "Endast %(remaining)d kvar i lager."
+msgstr[1] "Endast %(remaining)d kvar i lager"
+
+#: saleor/dashboard/order/forms.py:438
+#, python-format
+msgctxt "Cancel order form action"
+msgid "Restock %(quantity)d item"
+msgid_plural "Restock %(quantity)d items"
+msgstr[0] "Vi har fyllt på %(quantity)d vara"
+msgstr[1] "Vi har fyllt på %(quantity)d varor"
+
+#: saleor/dashboard/order/forms.py:448
+msgctxt "Cancel order form error"
+msgid "This order can't be canceled"
+msgstr "Den order kan inte avbrytas"
+
+#: saleor/dashboard/order/forms.py:468
+#, python-format
+msgctxt "Cancel fulfillment form action"
+msgid "Restock %(quantity)d item"
+msgid_plural "Restock %(quantity)d items"
+msgstr[0] "Vi har fyllt på %(quantity)d vara"
+msgstr[1] "Vi har fyllt på %(quantity)d varor"
+
+#: saleor/dashboard/order/forms.py:478
+msgctxt "Cancel fulfillment form error"
+msgid "This fulfillment can't be canceled"
+msgstr "Denna uppfyllelse kan inte avbrytas"
+
+#: saleor/dashboard/order/forms.py:491
+msgctxt "Send mail to customer"
+msgid "Send notification email to customer"
+msgstr "Skicka notifieringsmail till kunden"
+
+#: saleor/dashboard/order/forms.py:498
+msgctxt "Fulfillment record"
+msgid "Tracking number"
+msgstr "Spårningsnummer"
+
+#: saleor/dashboard/order/forms.py:519
+msgctxt "Remove voucher form error"
+msgid "This order has no voucher"
+msgstr "Denna order har ingen rabattkupong"
+
+#: saleor/dashboard/order/forms.py:532
+msgctxt "Payment status field value"
+msgid "All"
+msgstr "Allt"
+
+#: saleor/dashboard/order/forms.py:549
+msgctxt "Order form: subform to add variant to order form: variant field"
+msgid "Variant"
+msgstr "Variant"
+
+#: saleor/dashboard/order/forms.py:552
+msgctxt "Add variant to order form label"
+msgid "Quantity"
+msgstr "Antal"
+
+#: saleor/dashboard/order/forms.py:573
+#, python-format
+msgctxt "Add item form error"
+msgid "Could not add item. Only %(remaining)d remaining in stock."
+msgstr "Kunde inte lägga till vara. Endast %(remaining)d kvar i lager."
+
+#: saleor/dashboard/order/forms.py:596
+msgctxt "Order form: address subform - phone number input field"
+msgid "Phone number"
+msgstr "Telefonnummer"
+
+#: saleor/dashboard/order/forms.py:605
+msgctxt "Send mail to customer"
+msgid "Send shipment details to your customer now"
+msgstr "Skicka leveransdetaljer till kunden nu."
+
+#: saleor/dashboard/order/forms.py:613
+msgctxt "Order tracking number"
+msgid "Tracking number"
+msgstr "Spårningsnummer"
+
+#: saleor/dashboard/order/forms.py:643
+#, python-format
+msgctxt "Fulfill order line form error"
+msgid "%(quantity)d item remaining to fulfill."
+msgid_plural "%(quantity)d items remaining to fulfill."
+msgstr[0] "%(quantity)dvara kvar innan slutfört "
+msgstr[1] "%(quantity)d varor kvar innan slutfört"
+
+#: saleor/dashboard/order/views.py:67
+msgctxt "Dashboard message related to an order"
+msgid "Draft order created"
+msgstr "Orderförslag skapat"
+
+#: saleor/dashboard/order/views.py:82
+msgctxt "Dashboard message related to an order"
+msgid "Order created from draft order"
+msgstr "Order skapat av förslag"
+
+#: saleor/dashboard/order/views.py:109
+msgctxt "Dashboard message"
+msgid "Draft order successfully removed"
+msgstr "Orderförslag borttaget"
+
+#: saleor/dashboard/order/views.py:170
+msgctxt "Dashboard message related to an order"
+msgid "Added note"
+msgstr "Lagt till notering"
+
+#: saleor/dashboard/order/views.py:193
+#, python-format
+msgctxt "Dashboard message related to a payment"
+msgid "Captured %(amount)s"
+msgstr "Låst %(amount)s"
+
+#: saleor/dashboard/order/views.py:220
+#, python-format
+msgctxt "Dashboard message related to a payment"
+msgid "Refunded %(amount)s"
+msgstr "Återbetalat %(amount)s"
+
+#: saleor/dashboard/order/views.py:242
+msgctxt "Dashboard message"
+msgid "Released payment"
+msgstr "Släppt betalning"
+
+#: saleor/dashboard/order/views.py:267
+#, python-format
+msgctxt "Dashboard message related to an order line"
+msgid ""
+"Changed quantity for variant %(variant)s from %(old_quantity)s to "
+"%(new_quantity)s"
+msgstr ""
+"Ändrade antal för variant %(variant)s, från %(old_quantity)s till "
+"%(new_quantity)s"
+
+#: saleor/dashboard/order/views.py:292
+#, python-format
+msgctxt "Dashboard message related to an order line"
+msgid "Canceled item %s"
+msgstr "Avbröt vara %s"
+
+#: saleor/dashboard/order/views.py:324
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Added %(quantity)d x %(variant)s"
+msgstr "Lagt till %(quantity)dx%(variant)s"
+
+#: saleor/dashboard/order/views.py:329
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Insufficient stock: could not add %(quantity)d x %(variant)s"
+msgstr "Otillräckligt lager: Kunde inte lägga till %(quantity)dx%(variant)s"
+
+#: saleor/dashboard/order/views.py:349
+msgctxt "Dashboard message"
+msgid "Updated shipping address"
+msgstr "Uppdatera leveransadress"
+
+#: saleor/dashboard/order/views.py:355
+msgctxt "Dashboard message"
+msgid "Updated billing address"
+msgstr "Uppdatera fakturaadress"
+
+#: saleor/dashboard/order/views.py:387
+#, python-format
+msgctxt "Dashboard message"
+msgid "%s email assigned to an order"
+msgstr "%s e-post adress associerad till en order"
+
+#: saleor/dashboard/order/views.py:391
+#, python-format
+msgctxt "Dashboard message"
+msgid "%s user assigned to an order"
+msgstr "%s användare associerad till en order"
+
+#: saleor/dashboard/order/views.py:395
+msgctxt "Dashboard message"
+msgid "Guest user assigned to an order"
+msgstr "Gästanvändare associerad till en order"
+
+#: saleor/dashboard/order/views.py:416
+msgctxt "Dashboard message"
+msgid "Customer removed from an order"
+msgstr "Kund borttagen från en order"
+
+#: saleor/dashboard/order/views.py:431
+msgctxt "Dashboard message"
+msgid "Shipping updated"
+msgstr "Leverans uppdaterad"
+
+#: saleor/dashboard/order/views.py:449
+msgctxt "Dashboard message"
+msgid "Shipping removed"
+msgstr "Leverans borttagen"
+
+#: saleor/dashboard/order/views.py:463
+msgctxt "Dashboard message"
+msgid "Discount updated"
+msgstr "Rabatt uppdaterad"
+
+#: saleor/dashboard/order/views.py:482
+msgctxt "Dashboard message"
+msgid "Voucher updated"
+msgstr "Rabattkupong uppdaterad"
+
+#: saleor/dashboard/order/views.py:500
+msgctxt "Dashboard message"
+msgid "Order canceled"
+msgstr "Order avbruten"
+
+#: saleor/dashboard/order/views.py:527
+msgctxt "Dashboard message"
+msgid "Removed voucher from order"
+msgstr "Tog bort rabattkupong från order"
+
+#: saleor/dashboard/order/views.py:563
+msgctxt "Dashboard message"
+msgid "Order manually marked as paid"
+msgstr "Order manuellt markerad som betald"
+
+#: saleor/dashboard/order/views.py:628
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Fulfilled %(quantity_fulfilled)d item"
+msgid_plural "Fulfilled %(quantity_fulfilled)d items"
+msgstr[0] "Bekräftat %(quantity_fulfilled)d vara"
+msgstr[1] "Köpt %(quantity_fulfilled)d varor"
+
+#: saleor/dashboard/order/views.py:646
+msgctxt "Dashboard message related to an order"
+msgid "No items fulfilled"
+msgstr "Inga varor köpta"
+
+#: saleor/dashboard/order/views.py:668
+#, python-format
+msgctxt "Dashboard message"
+msgid "Fulfillment #%(fulfillment)s canceled"
+msgstr "Köp #%(fulfillment)s avbruten"
+
+#: saleor/dashboard/order/views.py:714
+#, python-format
+msgctxt "Dashboard message"
+msgid "Fulfillment #%(fulfillment)s tracking number updated"
+msgstr "Köp #%(fulfillment)s har uppdaterat spårningsnummer"
+
+#: saleor/dashboard/page/filters.py:8
+msgctxt "Page list sorting option"
+msgid "title"
+msgstr "titel"
+
+#: saleor/dashboard/page/filters.py:9
+msgctxt "Page list sorting option"
+msgid "url"
+msgstr "url"
+
+#: saleor/dashboard/page/filters.py:14
+msgctxt "Page list title filter label"
+msgid "Title"
+msgstr "Titel"
+
+#: saleor/dashboard/page/filters.py:17
+msgctxt "Page list url filter label"
+msgid "URL"
+msgstr "URL"
+
+#: saleor/dashboard/page/filters.py:20
+msgctxt "Page list sorting filter label"
+msgid "Sort by"
+msgstr "Sortera på"
+
+#: saleor/dashboard/page/filters.py:32
+#, python-format
+msgctxt "Number of matching records in the dashboard page list"
+msgid "Found %(counter)d matching page"
+msgid_plural "Found %(counter)d matching pages"
+msgstr[0] "Hittade %(counter)d sida"
+msgstr[1] "Hittade %(counter)d sidor"
+
+#: saleor/dashboard/page/forms.py:12
+msgctxt "Page form: page content field"
+msgid "Content"
+msgstr "Innehåll"
+
+#: saleor/dashboard/page/forms.py:21
+msgctxt "Page form: title field"
+msgid "Title"
+msgstr "Titel"
+
+#: saleor/dashboard/page/forms.py:22
+msgctxt "Page form: slug field"
+msgid "Slug"
+msgstr "Slug"
+
+#: saleor/dashboard/page/forms.py:24
+msgctxt "Page form: available on which date field"
+msgid "Available on"
+msgstr "Tillgänglig den"
+
+#: saleor/dashboard/page/forms.py:26
+msgctxt "Page form: visibility status indicator"
+msgid "Is visible"
+msgstr "Är synlig"
+
+#: saleor/dashboard/page/forms.py:30
+msgctxt "Form field help text"
+msgid "Slug is being used to create page URL"
+msgstr "Slug abvänds för att skapa sidoURLer"
+
+#: saleor/dashboard/page/views.py:48
+msgctxt "Dashboard message"
+msgid "Saved page"
+msgstr "Sida sparad"
+
+#: saleor/dashboard/page/views.py:66
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed page %s"
+msgstr "Tog bort sida %s"
+
+#: saleor/dashboard/product/__init__.py:11
+msgctxt "product bulk action"
+msgid "Publish"
+msgstr "Publicera"
+
+#: saleor/dashboard/product/__init__.py:12
+msgctxt "product bulk action"
+msgid "Unpublish"
+msgstr "Avpublicera"
+
+#: saleor/dashboard/product/filters.py:12
+msgctxt "Product list sorting option"
+msgid "name"
+msgstr "namn"
+
+#: saleor/dashboard/product/filters.py:13
+msgctxt "Product type list sorting option"
+msgid "price"
+msgstr "pris"
+
+#: saleor/dashboard/product/filters.py:16
+msgctxt "Product attribute list sorting option"
+msgid "name"
+msgstr "namn"
+
+#: saleor/dashboard/product/filters.py:19
+msgctxt "Product type list sorting option"
+msgid "name"
+msgstr "namn"
+
+#: saleor/dashboard/product/filters.py:28
+msgctxt "Product list filter label"
+msgid "Name"
+msgstr "Namn"
+
+#: saleor/dashboard/product/filters.py:31
+msgctxt "Product list filter label"
+msgid "Category"
+msgstr "Kategori"
+
+#: saleor/dashboard/product/filters.py:35
+msgctxt "Product list filter label"
+msgid "Product type"
+msgstr "Produkttyp"
+
+#: saleor/dashboard/product/filters.py:39
+msgctxt "Product list filter label"
+msgid "Price"
+msgstr "Pris"
+
+#: saleor/dashboard/product/filters.py:43
+msgctxt "Product list filter label"
+msgid "Is published"
+msgstr "Är publicerad"
+
+#: saleor/dashboard/product/filters.py:48
+msgctxt "Product list filter label"
+msgid "Sort by"
+msgstr "Sortera på"
+
+#: saleor/dashboard/product/filters.py:60
+#, python-format
+msgctxt "Number of matching records in the dashboard products list"
+msgid "Found %(counter)d matching product"
+msgid_plural "Found %(counter)d matching products"
+msgstr[0] "Hittade %(counter)d produkt"
+msgstr[1] "Hittade %(counter)d produkter"
+
+#: saleor/dashboard/product/filters.py:67
+msgctxt "Attribute list filter label"
+msgid "Name"
+msgstr "Namn"
+
+#: saleor/dashboard/product/filters.py:70
+msgctxt "Attribute list filter label"
+msgid "Sort by"
+msgstr "Sortera på"
+
+#: saleor/dashboard/product/filters.py:82
+#, python-format
+msgctxt "Number of matching records in the dashboard attributes list"
+msgid "Found %(counter)d matching attribute"
+msgid_plural "Found %(counter)d matching attributes"
+msgstr[0] "Hittade %(counter)d attribut"
+msgstr[1] "Hittade %(counter)d attribut"
+
+#: saleor/dashboard/product/filters.py:89
+msgctxt "Product type list filter label"
+msgid "Name"
+msgstr "Namn"
+
+#: saleor/dashboard/product/filters.py:92
+msgctxt "Product type list filter label"
+msgid "Sort by"
+msgstr "Sortera på"
+
+#: saleor/dashboard/product/filters.py:97
+msgctxt "Product type list filter label"
+msgid "Product attributes"
+msgstr "Produkt attribut"
+
+#: saleor/dashboard/product/filters.py:102
+msgctxt "Product type list filter label"
+msgid "Variant attributes"
+msgstr "Variantattribut"
+
+#: saleor/dashboard/product/filters.py:114
+#, python-format
+msgctxt "Number of matching records in the dashboard product types list"
+msgid "Found %(counter)d matching product type"
+msgid_plural "Found %(counter)d matching product types"
+msgstr[0] "Hittade %(counter)d produkt"
+msgstr[1] "Hittade %(counter)d produkttyper"
+
+#: saleor/dashboard/product/forms.py:38
+msgctxt "Help text in rich-text editor field"
+msgid "Select text to enable text-formatting tools."
+msgstr "Välj text om du vill aktivera textformateringsverktyget."
+
+#: saleor/dashboard/product/forms.py:55
+msgctxt "Product type form label"
+msgid "Product type"
+msgstr "Produkttyp"
+
+#: saleor/dashboard/product/forms.py:72
+msgctxt "Product type tax rate type"
+msgid "Tax rate"
+msgstr "Momssats"
+
+#: saleor/dashboard/product/forms.py:74 saleor/dashboard/product/forms.py:220
+msgctxt "ProductType weight"
+msgid "Weight"
+msgstr "Vikt"
+
+#: saleor/dashboard/product/forms.py:77
+msgctxt "ProductVariant weight help text"
+msgid ""
+"Default weight that will be used for calculating shipping price for products"
+" of that type."
+msgstr ""
+"Standardvikt som kommer att användas för att beräkna fraktpriset för "
+"produkter av den typen."
+
+#: saleor/dashboard/product/forms.py:89
+msgctxt "Enable variants"
+msgid "Enable variants"
+msgstr "Aktivera varianter"
+
+#: saleor/dashboard/product/forms.py:92
+msgctxt "Product type attributes"
+msgid "Attributes specific to each variant"
+msgstr "Attribut specifikt för varje variant"
+
+#: saleor/dashboard/product/forms.py:95
+msgctxt "Product type attributes"
+msgid "Attributes common to all variants"
+msgstr "Attribut för alla varianter"
+
+#: saleor/dashboard/product/forms.py:98
+msgctxt "Shipping toggle"
+msgid "Require shipping"
+msgstr "Kräv frakt"
+
+#: saleor/dashboard/product/forms.py:112
+msgctxt "Product type form error"
+msgid "Product variants are disabled."
+msgstr "Produktvarianter är inte aktiverad"
+
+#: saleor/dashboard/product/forms.py:117
+msgctxt "Product type form error"
+msgid "A single attribute can't belong to both a product and its variant."
+msgstr ""
+"Ett ensamt attribut kan inte tillhöra både en produkt och dess variant."
+
+#: saleor/dashboard/product/forms.py:155
+msgctxt "Product type form error"
+msgid "Some products of this type have more than one variant."
+msgstr "Vissa produkter av denna typ har mer än en variant."
+
+#: saleor/dashboard/product/forms.py:209
+msgctxt "Product tax rate type"
+msgid "Tax rate"
+msgstr "Momssats"
+
+#: saleor/dashboard/product/forms.py:213
+msgctxt "Category"
+msgid "Category"
+msgstr "Kategori"
+
+#: saleor/dashboard/product/forms.py:216
+msgctxt "Add to collection select"
+msgid "Collections"
+msgstr "Samlingar"
+
+#: saleor/dashboard/product/forms.py:223
+msgctxt "Product weight field help text"
+msgid ""
+"Weight will be used to calculate shipping price, if empty, equal to default "
+"value used on the ProductType."
+msgstr ""
+"Vikt kommer att användas för att beräkna fraktpriset, om det är tomt, "
+"används standardvärdet för produkttypen."
+
+#: saleor/dashboard/product/forms.py:233
+#: saleor/dashboard/shipping/forms.py:123
+msgctxt "Currency amount"
+msgid "Price"
+msgstr "Pris"
+
+#: saleor/dashboard/product/forms.py:235
+msgctxt "Availability date"
+msgid "Publish product on"
+msgstr "Publicera produkten den"
+
+#: saleor/dashboard/product/forms.py:237
+msgctxt "Product published toggle"
+msgid "Published"
+msgstr "Publicerad"
+
+#: saleor/dashboard/product/forms.py:239
+msgctxt "Charge taxes on product"
+msgid "Charge taxes on this product"
+msgstr "Lägg på moms för denna produkt"
+
+#: saleor/dashboard/product/forms.py:259
+msgctxt "Currency gross amount"
+msgid "Gross price"
+msgstr "Bruttopris"
+
+#: saleor/dashboard/product/forms.py:262
+msgctxt "Currency net amount"
+msgid "Net price"
+msgstr "Nettopris"
+
+#: saleor/dashboard/product/forms.py:290
+msgctxt "ProductVariant weight"
+msgid "Weight"
+msgstr "Vikt"
+
+#: saleor/dashboard/product/forms.py:293
+msgctxt "ProductVariant weight help text"
+msgid ""
+"Weight will be used to calculate shipping price. If empty, weight from "
+"Product or ProductType will be used."
+msgstr ""
+"Vikten kommer att användas för att beräkna fraktpriset, om det är tomt, "
+"kommer produkten eller produkttypens vikt att användas."
+
+#: saleor/dashboard/product/forms.py:302
+msgctxt "SKU"
+msgid "SKU"
+msgstr "SKU"
+
+#: saleor/dashboard/product/forms.py:304
+msgctxt "Override price"
+msgid "Selling price override"
+msgstr "Åsidosätt försäljningspris"
+
+#: saleor/dashboard/product/forms.py:305
+msgctxt "Integer number"
+msgid "Number in stock"
+msgstr "Antal i lager"
+
+#: saleor/dashboard/product/forms.py:306
+msgctxt "Currency amount"
+msgid "Cost price"
+msgstr "Kostnad"
+
+#: saleor/dashboard/product/forms.py:308
+msgctxt "Track inventory field"
+msgid "Track inventory"
+msgstr "Spåra lager"
+
+#: saleor/dashboard/product/forms.py:312
+msgctxt "product variant handle stock field help text"
+msgid "Automatically track this product's inventory"
+msgstr "Spåra automatiskt produktens lager"
+
+#: saleor/dashboard/product/forms.py:327
+msgctxt "Override price"
+msgid "Selling gross price override"
+msgstr "Åsidosätt bruttopris"
+
+#: saleor/dashboard/product/forms.py:329
+msgctxt "Currency amount"
+msgid "Cost gross price"
+msgstr "Bruttokostnad"
+
+#: saleor/dashboard/product/forms.py:332
+msgctxt "Override price"
+msgid "Selling net price override"
+msgstr "Åsidosätt nettopris"
+
+#: saleor/dashboard/product/forms.py:334
+msgctxt "Currency amount"
+msgid "Cost net price"
+msgstr "Nettokostnad"
+
+#: saleor/dashboard/product/forms.py:387 saleor/dashboard/product/forms.py:492
+msgctxt "Product image"
+msgid "Image"
+msgstr "Bild"
+
+#: saleor/dashboard/product/forms.py:428
+msgctxt "Product display name"
+msgid "Display name"
+msgstr "Visningsnamn"
+
+#: saleor/dashboard/product/forms.py:430
+msgctxt "Product internal name"
+msgid "Internal name"
+msgstr "Internt namn"
+
+#: saleor/dashboard/product/views.py:128
+#, python-format
+msgctxt "Dashboard message"
+msgid "Added product %s"
+msgstr "Produkt %s tillagd"
+
+#: saleor/dashboard/product/views.py:159
+#, python-format
+msgctxt "Dashboard message"
+msgid "Updated product %s"
+msgstr "Produkt %s uppdaterad"
+
+#: saleor/dashboard/product/views.py:174
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed product %s"
+msgstr "Produkt %s borttagen"
+
+#: saleor/dashboard/product/views.py:193
+#, python-format
+msgctxt "Dashboard message"
+msgid "%(count)d product has been updated"
+msgid_plural "%(count)d products have been updated"
+msgstr[0] "%(count)d produkt har uppdaterats "
+msgstr[1] "%(count)d produkter har uppdaterats"
+
+#: saleor/dashboard/product/views.py:247
+#, python-format
+msgctxt "Dashboard message"
+msgid "Added product type %s"
+msgstr "Produkttyp %s tillagd"
+
+#: saleor/dashboard/product/views.py:265
+#, python-format
+msgctxt "Dashboard message"
+msgid "Updated product type %s"
+msgstr "Produkttyp %s uppdaterad"
+
+#: saleor/dashboard/product/views.py:282
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed product type %s"
+msgstr "Produkttyp %s borttagen"
+
+#: saleor/dashboard/product/views.py:330 saleor/dashboard/product/views.py:351
+#, python-format
+msgctxt "Dashboard message"
+msgid "Saved variant %s"
+msgstr "Variant %s sparad"
+
+#: saleor/dashboard/product/views.py:371
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed variant %s"
+msgstr "Variant %s borttagen"
+
+#: saleor/dashboard/product/views.py:452
+#, python-format
+msgctxt "Dashboard message"
+msgid "Added image %s"
+msgstr "Bild %s tillagd"
+
+#: saleor/dashboard/product/views.py:473
+#, python-format
+msgctxt "Dashboard message"
+msgid "Updated image %s"
+msgstr "Bild %s uppdaterad"
+
+#: saleor/dashboard/product/views.py:491
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed image %s"
+msgstr "Bild %s borttagen"
+
+#: saleor/dashboard/product/views.py:568
+msgctxt "Dashboard message"
+msgid "Added attribute"
+msgstr "Attribut tillagt"
+
+#: saleor/dashboard/product/views.py:585
+msgctxt "Dashboard message"
+msgid "Updated attribute"
+msgstr "Attribut uppdaterat"
+
+#: saleor/dashboard/product/views.py:602
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed attribute %s"
+msgstr "Attribut %s borttaget"
+
+#: saleor/dashboard/product/views.py:621
+msgctxt "Dashboard message"
+msgid "Added attribute's value"
+msgstr "Attributvärde tillagt"
+
+#: saleor/dashboard/product/views.py:640
+msgctxt "Dashboard message"
+msgid "Updated attribute's value"
+msgstr "Attributvärde uppdaterat"
+
+#: saleor/dashboard/product/views.py:658
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed attribute's value %s"
+msgstr "Attributvärde %s borttaget"
+
+#: saleor/dashboard/seo/fields.py:9
+msgctxt "Form field help text"
+msgid "If empty, the preview shows what will be autogenerated."
+msgstr ""
+"Om det är tomt visar förhandsvisningen vad som kommer att vara "
+"autogenererat."
+
+#: saleor/dashboard/seo/fields.py:30
+msgctxt "A SEO friendly title"
+msgid "SEO Friendly Title"
+msgstr "SEO vänlig titel"
+
+#: saleor/dashboard/seo/fields.py:50
+msgctxt "A SEO friendly description"
+msgid "SEO Friendly Description"
+msgstr "SEO vänlig beskrivning"
+
+#: saleor/dashboard/shipping/filters.py:10
+msgctxt "Group list sorting option"
+msgid "name"
+msgstr "namn"
+
+#: saleor/dashboard/shipping/filters.py:16
+msgctxt "Shipping zones list filter label"
+msgid "Shipping zone name"
+msgstr "Namn på leveranszon"
+
+#: saleor/dashboard/shipping/filters.py:20
+msgctxt "Shipping zones list filter label"
+msgid "Price range"
+msgstr "Prisspann"
+
+#: saleor/dashboard/shipping/filters.py:23
+msgctxt "Shipping zones filter label"
+msgid "Country"
+msgstr "Land"
+
+#: saleor/dashboard/shipping/filters.py:27
+msgctxt "Product list sorting filter label"
+msgid "Sort by"
+msgstr "Sortera på"
+
+#: saleor/dashboard/shipping/filters.py:40
+#, python-format
+msgctxt "Number of matching records in the dashboard shipping zones list"
+msgid "Found %(counter)d matching shipping zone"
+msgid_plural "Found %(counter)d matching shipping zones"
+msgstr[0] "Hittade %(counter)d leveranszon"
+msgstr[1] "Hittade %(counter)d leveranszoner"
+
+#: saleor/dashboard/shipping/forms.py:35
+msgctxt "Label of the default weight unit picker"
+msgid "Default weight unit"
+msgstr "Standard viktenhet"
+
+#: saleor/dashboard/shipping/forms.py:39
+msgctxt "Default weight unit help text"
+msgid ""
+"Default unit for weights entered from the dashboard.All weights will be "
+"recalculated to the new unit."
+msgstr ""
+"Standardenhet för vikter som matas in från instrumentbrädan. Alla vikter "
+"kommer att beräknas till den nya enheten."
+
+#: saleor/dashboard/shipping/forms.py:49
+msgctxt "Shippment Zone field name"
+msgid "Shipping zone name"
+msgstr "Namn på leveranszon"
+
+#: saleor/dashboard/shipping/forms.py:51
+msgctxt "Shipping Zone field name"
+msgid "Rest of World"
+msgstr "Övriga världen"
+
+#: saleor/dashboard/shipping/forms.py:53
+msgctxt "List of countries to pick from"
+msgid "Countries"
+msgstr "Länder"
+
+#: saleor/dashboard/shipping/forms.py:57
+msgctxt "Countries field help text"
+msgid "Each country might be included in only one shipping zone."
+msgstr "Ett land kan endast inkluderas i en leveranszon."
+
+#: saleor/dashboard/shipping/forms.py:60
+msgctxt "Help text for ShippingZone name"
+msgid "Name is for internal use only, it won't be displayed to your customers"
+msgstr ""
+"Namn är endast för internt bruk, och kommer aldrig att visas för kunderna"
+
+#: saleor/dashboard/shipping/forms.py:64
+msgctxt "Help text for ShippingZone name"
+msgid ""
+"If selected, this zone will include any countries that are not already "
+"listed in your other shipping zones."
+msgstr ""
+"Om vald, kommer den här zonen att innehålla alla länder som inte redan är "
+"listade i dina andra leveranszoner."
+
+#: saleor/dashboard/shipping/forms.py:89
+msgctxt "ShippingZone  with \"default\" option selected already exists"
+msgid "Default ShippingZone already exists."
+msgstr "Standard leveranszon finns redan."
+
+#: saleor/dashboard/shipping/forms.py:102
+#, python-format
+msgctxt "Shipping zone containing duplicated countries form error"
+msgid ""
+"Countries already exists in another shipping zone: %(list_of_countries)s"
+msgstr "Länder redan med i en annan leveranszon: %(list_of_countries)s"
+
+#: saleor/dashboard/shipping/forms.py:111
+msgctxt "ShippingZone field error"
+msgid "This field is required."
+msgstr "Detta fält krävs."
+
+#: saleor/dashboard/shipping/forms.py:122
+msgctxt "Shipping Method name"
+msgid "Name"
+msgstr "Namn"
+
+#: saleor/dashboard/shipping/forms.py:127
+msgctxt "Shipping method name help text"
+msgid "Customers will see this at the checkout."
+msgstr "Kunderna kommer att se detta vid utcheckning."
+
+#: saleor/dashboard/shipping/forms.py:135
+msgctxt "Minimum order price to use this shipping method"
+msgid "Minimum order price"
+msgstr "Minsta orderpris"
+
+#: saleor/dashboard/shipping/forms.py:138
+msgctxt "Maximum order price to use this order"
+msgid "Maximum order price"
+msgstr "Högsta orderpris"
+
+#: saleor/dashboard/shipping/forms.py:148
+msgctxt "Placeholder for maximum order price set to unlimited"
+msgid "No limit"
+msgstr "Ingen gräns"
+
+#: saleor/dashboard/shipping/forms.py:161
+#: saleor/dashboard/shipping/forms.py:198
+msgctxt "Price shipping method form error"
+msgid "Maximum order price should be larger than the minimum order price."
+msgstr "Högsta orderpris bör vara större än lägsta orderpris."
+
+#: saleor/dashboard/shipping/forms.py:170
+msgctxt "Minimum order weight to use this shipping method"
+msgid "Minimum order weight"
+msgstr "Minsta ordervikt"
+
+#: saleor/dashboard/shipping/forms.py:174
+msgctxt "Maximum order weight to use this shipping method"
+msgid "Maximum order weight"
+msgstr "Högsta ordervikt"
+
+#: saleor/dashboard/shipping/forms.py:185
+msgctxt "Placeholder for maximum order weight set to unlimited"
+msgid "No limit"
+msgstr "Ingen gräns"
+
+#: saleor/dashboard/shipping/views.py:28
+msgctxt "Dashboard message"
+msgid "Updated default weight unit"
+msgstr "Standard viktenhet uppdaterad"
+
+#: saleor/dashboard/shipping/views.py:49
+msgctxt "Dashboard message"
+msgid "Added shipping zone"
+msgstr "Leveranszon tillagd"
+
+#: saleor/dashboard/shipping/views.py:63
+msgctxt "Dashboard message"
+msgid "Updated shipping zone"
+msgstr "Leveranszon uppdaterad"
+
+#: saleor/dashboard/shipping/views.py:91
+#, python-format
+msgctxt "Dashboard message"
+msgid "%(shipping_zone_name)s successfully removed"
+msgstr "%(shipping_zone_name)s har tagits bort"
+
+#: saleor/dashboard/shipping/views.py:112
+#, python-format
+msgctxt "Dashboard message"
+msgid "Added shipping method for %(zone_name)s shipping zone"
+msgstr "Leveransmetod för leveranszon %(zone_name)s tillagd"
+
+#: saleor/dashboard/shipping/views.py:136
+#, python-format
+msgctxt "Dashboard message"
+msgid "Updated %(method_name)s shipping method"
+msgstr "Leveransmetod %(method_name)s uppdaterad"
+
+#: saleor/dashboard/shipping/views.py:157
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed %(shipping_method_name)s shipping method"
+msgstr "Leveransmetod %(shipping_method_name)s borttagen"
+
+#: saleor/dashboard/sites/forms.py:14
+msgctxt "Domain name (FQDN)"
+msgid "Domain name"
+msgstr "Domännamn"
+
+#: saleor/dashboard/sites/forms.py:16
+msgctxt "Display name"
+msgid "Display name"
+msgstr "Visningsnamn"
+
+#: saleor/dashboard/sites/forms.py:27
+msgctxt "Header text"
+msgid "Header text"
+msgstr "Rubriktext"
+
+#: saleor/dashboard/sites/forms.py:32
+msgctxt "Inventory tracking by default settings toggle label"
+msgid "Enable inventory tracking for newly created products"
+msgstr "Aktivera lagerspårning för nyligen skapade produkter"
+
+#: saleor/dashboard/sites/forms.py:34
+msgctxt "Default weight unit"
+msgid "Default weight unit"
+msgstr "Standard viktenhet"
+
+#: saleor/dashboard/sites/forms.py:38
+msgctxt "handle stock by default settings field help text"
+msgid ""
+"This will set the default value of stock handling on product and variant "
+"creation"
+msgstr ""
+"Detta ställer in standardvärdet för lagerhantering vid produkt- och "
+"variantskapande"
+
+#: saleor/dashboard/sites/forms.py:48
+msgctxt "Key for chosen authorization method"
+msgid "Key"
+msgstr "Nyckel"
+
+#: saleor/dashboard/sites/forms.py:50
+msgctxt "Password"
+msgid "Password"
+msgstr "Lösenord"
+
+#: saleor/dashboard/sites/views.py:35
+msgctxt "Dashboard message"
+msgid "Updated site settings"
+msgstr "Site inställningar uppdaterad"
+
+#: saleor/dashboard/sites/views.py:64
+#, python-format
+msgctxt "Dashboard message"
+msgid "Added authorization key %s"
+msgstr "Autentiseringsnyckel %s tillagd"
+
+#: saleor/dashboard/sites/views.py:80
+#, python-format
+msgctxt "dashboard message"
+msgid "Updated authorization key %s"
+msgstr "Autentiseringsnyckel %s uppdaterad"
+
+#: saleor/dashboard/sites/views.py:98
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed site authorization key %s"
+msgstr "Autentiseringsnyckel %s borttagen"
+
+#: saleor/dashboard/staff/filters.py:30
+msgctxt "Group list filter label"
+msgid "Permissions"
+msgstr "Rättigheter"
+
+#: saleor/dashboard/staff/filters.py:34
+msgctxt "Staff list filter label"
+msgid "Sort by"
+msgstr "Sortera på"
+
+#: saleor/dashboard/staff/filters.py:46
+#, python-format
+msgctxt "Number of matching records in the dashboard staff members list"
+msgid "Found %(counter)d matching staff member"
+msgid_plural "Found %(counter)d matching staff members"
+msgstr[0] "Hittade %(counter)d anställd"
+msgstr[1] "Hittade %(counter)d anställda"
+
+#: saleor/dashboard/staff/forms.py:14
+msgctxt "Label above the permissions choicefield"
+msgid "Permissions"
+msgstr "Rättigheter"
+
+#: saleor/dashboard/staff/forms.py:21
+msgctxt "Email"
+msgid "Email"
+msgstr "E-Post"
+
+#: saleor/dashboard/staff/forms.py:23
+msgctxt "User active toggle"
+msgid "User is active"
+msgstr "Använder aktiv"
+
+#: saleor/dashboard/staff/views.py:43
+#, python-format
+msgctxt "Dashboard message"
+msgid "Updated staff member %s"
+msgstr "Anställd %s uppdaterad"
+
+#: saleor/dashboard/staff/views.py:63
+#, python-format
+msgctxt "Dashboard message"
+msgid "Added staff member %s"
+msgstr "Anställd %s tillagd"
+
+#: saleor/dashboard/staff/views.py:82
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed staff member %s"
+msgstr "Anställd %s borttagen"
+
+#: saleor/dashboard/taxes/filters.py:11
+msgctxt "Product list sorting option"
+msgid "country_code"
+msgstr "landskod"
+
+#: saleor/dashboard/taxes/filters.py:24
+msgctxt "Taxes list filter label"
+msgid "Country name"
+msgstr "Landsnamn"
+
+#: saleor/dashboard/taxes/filters.py:28
+msgctxt "Taxes list sorting form"
+msgid "Sort by"
+msgstr "Sortera på"
+
+#: saleor/dashboard/taxes/filters.py:45
+#, python-format
+msgctxt "Number of matching records in the dashboard taxes list"
+msgid "Found %(counter)d matching country"
+msgid_plural "Found %(counter)d matching countries"
+msgstr[0] "Hittade %(counter)d land"
+msgstr[1] "Hittade %(counter)d länder"
+
+#: saleor/dashboard/taxes/forms.py:16
+msgctxt "Include taxes in prices"
+msgid "All products prices are entered with tax included"
+msgstr "Alla produkter anges med moms inkluderat"
+
+#: saleor/dashboard/taxes/forms.py:19
+msgctxt "Display gross prices"
+msgid "Show gross prices to customers in the storefront"
+msgstr "Visa bruttopris för kunder i butiken"
+
+#: saleor/dashboard/taxes/forms.py:22
+msgctxt "Charge taxes on shipping rates"
+msgid "Charge taxes on shipping rates"
+msgstr "Lägg på moms för fraktkostnad"
+
+#: saleor/dashboard/taxes/views.py:56
+msgctxt "Dashboard message"
+msgid "Updated taxes settings"
+msgstr "Uppdatera momsinställningar"
+
+#: saleor/dashboard/taxes/views.py:69
+msgctxt "Dashboard message"
+msgid "Tax rates updated successfully"
+msgstr "Momsinställningar uppdaterad"
+
+#: saleor/dashboard/taxes/views.py:75
+msgctxt "Dashboard message"
+msgid ""
+"Could not fetch tax rates. Make sure you have supplied a valid API Access "
+"Key.<br/>Check the server logs for more information about this error."
+msgstr ""
+"Kunde inte hämta skattesatser. Se till att du har angett en giltig API-"
+"åtkomstnyckel. <br/> Kontrollera serverns loggar för mer information om "
+"detta fel."
+
+#: saleor/dashboard/templatetags/chips.py:66
+msgctxt "Possible values of boolean filter"
+msgid "yes,no,all"
+msgstr "ja,nej,allt"
+
+#: saleor/dashboard/templatetags/chips.py:79
+#, python-format
+msgctxt "Label of first value in range filter"
+msgid "From %(value)s"
+msgstr "Från %(value)s"
+
+#: saleor/dashboard/templatetags/chips.py:80
+#, python-format
+msgctxt "Label of second value in range filter"
+msgid "To %(value)s"
+msgstr "Till %(value)s"
