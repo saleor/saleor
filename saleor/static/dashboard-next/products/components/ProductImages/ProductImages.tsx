@@ -13,11 +13,11 @@ import CardTitle from "../../../components/CardTitle";
 import ImageTile from "../../../components/ImageTile";
 import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
-import { ProductDetails_product_images_edges_node } from "../../types/ProductDetails";
+import { ProductDetails_product_images } from "../../types/ProductDetails";
 
 interface ProductImagesProps {
   placeholderImage?: string;
-  images: ProductDetails_product_images_edges_node[];
+  images: ProductDetails_product_images[];
   loading?: boolean;
   onImageDelete: (id: string) => () => void;
   onImageEdit: (id: string) => () => void;

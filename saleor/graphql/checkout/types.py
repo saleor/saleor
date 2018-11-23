@@ -1,4 +1,5 @@
 import graphene
+import graphene_django_optimizer as gql_optimizer
 
 from ...checkout import models
 from ...core.utils.taxes import get_taxes_for_address
@@ -32,29 +33,32 @@ class CheckoutLine(CountableDjangoObjectType):
 
 
 class Checkout(CountableDjangoObjectType):
-    total_price = graphene.Field(
-        TaxedMoney,
-        description=(
-            'The sum of the the checkout line prices, with all the taxes,'
-            'shipping costs, and discounts included.'))
-    subtotal_price = graphene.Field(
-        TaxedMoney,
-        description=(
-            'The price of the checkout before shipping, with taxes included.'))
-    shipping_price = graphene.Field(
-        TaxedMoney,
-        description='The price of the shipping, with all the taxes included.')
-    lines = graphene.List(
-        CheckoutLine, description=(
-            'A list of checkout lines, each containing information about '
-            'an item in the checkout.'))
     available_shipping_methods = graphene.List(
         ShippingMethod, required=False,
         description='Shipping methods that can be used with this order.')
     is_shipping_required = graphene.Boolean(
         description='Returns True, if checkout requires shipping.')
+    lines = gql_optimizer.field(
+        graphene.List(
+            CheckoutLine, description=(
+                'A list of checkout lines, each containing information about '
+                'an item in the checkout.')),
+        model_field='lines')
+    shipping_price = graphene.Field(
+        TaxedMoney,
+        description='The price of the shipping, with all the taxes included.')
+    subtotal_price = graphene.Field(
+        TaxedMoney,
+        description=(
+            'The price of the checkout before shipping, with taxes included.'))
+    total_price = graphene.Field(
+        TaxedMoney,
+        description=(
+            'The sum of the the checkout line prices, with all the taxes,'
+            'shipping costs, and discounts included.'))
 
     class Meta:
+        exclude_fields = ['payments']
         description = 'Checkout object'
         model = models.Cart
         interfaces = [graphene.relay.Node]

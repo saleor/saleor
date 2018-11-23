@@ -11,20 +11,10 @@ export interface Product_category {
   name: string;
 }
 
-export interface Product_collections_edges_node {
+export interface Product_collections {
   __typename: "Collection";
   id: string;
   name: string;
-}
-
-export interface Product_collections_edges {
-  __typename: "CollectionCountableEdge";
-  node: Product_collections_edges_node;
-}
-
-export interface Product_collections {
-  __typename: "CollectionCountableConnection";
-  edges: Product_collections_edges[];
 }
 
 export interface Product_price {
@@ -118,7 +108,7 @@ export interface Product_availability {
   priceRange: Product_availability_priceRange | null;
 }
 
-export interface Product_images_edges_node {
+export interface Product_images {
   __typename: "ProductImage";
   id: string;
   alt: string;
@@ -126,40 +116,20 @@ export interface Product_images_edges_node {
   url: string;
 }
 
-export interface Product_images_edges {
-  __typename: "ProductImageCountableEdge";
-  node: Product_images_edges_node;
-}
-
-export interface Product_images {
-  __typename: "ProductImageCountableConnection";
-  edges: Product_images_edges[];
-}
-
-export interface Product_variants_edges_node_priceOverride {
+export interface Product_variants_priceOverride {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface Product_variants_edges_node {
+export interface Product_variants {
   __typename: "ProductVariant";
   id: string;
   sku: string;
   name: string;
-  priceOverride: Product_variants_edges_node_priceOverride | null;
+  priceOverride: Product_variants_priceOverride | null;
   stockQuantity: number;
   margin: number | null;
-}
-
-export interface Product_variants_edges {
-  __typename: "ProductVariantCountableEdge";
-  node: Product_variants_edges_node;
-}
-
-export interface Product_variants {
-  __typename: "ProductVariantCountableConnection";
-  edges: Product_variants_edges[];
 }
 
 export interface Product_productType {
@@ -177,7 +147,7 @@ export interface Product {
   seoTitle: string | null;
   seoDescription: string | null;
   category: Product_category;
-  collections: Product_collections | null;
+  collections: (Product_collections | null)[] | null;
   price: Product_price | null;
   margin: Product_margin | null;
   purchaseCost: Product_purchaseCost | null;
@@ -186,8 +156,8 @@ export interface Product {
   availableOn: any | null;
   attributes: Product_attributes[];
   availability: Product_availability | null;
-  images: Product_images | null;
-  variants: Product_variants | null;
+  images: (Product_images | null)[] | null;
+  variants: (Product_variants | null)[] | null;
   productType: Product_productType;
   url: string;
 }

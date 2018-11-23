@@ -8,6 +8,7 @@ import SaveButtonBar, {
   SaveButtonBarState
 } from "../../../components/SaveButtonBar";
 import Toggle from "../../../components/Toggle";
+import { maybe } from "../../../misc";
 import { UserError } from "../../../types";
 import { ProductVariant } from "../../types/ProductVariant";
 import ProductVariantAttributes from "../ProductVariantAttributes";
@@ -58,13 +59,11 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
     onSubmit,
     onVariantClick
   }) => {
-    const variantImages = variant
-      ? variant.images.edges.map(edge => edge.node.id)
-      : [];
+    const variantImages = variant ? variant.images.map(image => image.id) : [];
     const productImages = variant
-      ? variant.product.images.edges
-          .map(edge => edge.node)
-          .sort((prev, next) => (prev.sortOrder > next.sortOrder ? 1 : -1))
+      ? variant.product.images.sort((prev, next) =>
+          prev.sortOrder > next.sortOrder ? 1 : -1
+        )
       : undefined;
     const images = productImages
       ? productImages
@@ -107,13 +106,7 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                       <div>
                         <ProductVariantNavigation
                           current={variant ? variant.id : undefined}
-                          variants={
-                            variant
-                              ? variant.product.variants.edges.map(
-                                  edge => edge.node
-                                )
-                              : undefined
-                          }
+                          variants={maybe(() => variant.product.variants)}
                           onRowClick={(variantId: string) => {
                             if (variant) {
                               return onVariantClick(variantId);
@@ -182,11 +175,9 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                   onImageSelect={onImageSelect}
                   open={isImageSelectModalActive}
                   images={productImages}
-                  selectedImages={
-                    variant && variant.images && variant.images.edges
-                      ? variant.images.edges.map(edge => edge.node.id)
-                      : undefined
-                  }
+                  selectedImages={maybe(() =>
+                    variant.images.map(image => image.id)
+                  )}
                 />
               </>
             )}

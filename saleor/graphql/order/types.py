@@ -5,10 +5,9 @@ from graphene import relay
 from ...order import OrderEvents, OrderEventsEmails, models
 from ...product.templatetags.product_images import get_thumbnail
 from ..account.types import User
-from ..core.fields import PrefetchingConnectionField
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
-from ..payment.types import OrderAction, PaymentChargeStatusEnum
+from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
 from ..shipping.types import ShippingMethod
 
 OrderEventsEnum = graphene.Enum.from_enum(OrderEvents)
@@ -74,9 +73,25 @@ class OrderEvent(CountableDjangoObjectType):
         return self.order_id
 
 
+class FulfillmentLine(CountableDjangoObjectType):
+    order_line = graphene.Field(lambda: OrderLine)
+
+    class Meta:
+        description = 'Represents line of the fulfillment.'
+        interfaces = [relay.Node]
+        model = models.FulfillmentLine
+        exclude_fields = ['fulfillment']
+
+    @gql_optimizer.resolver_hints(prefetch_related='order_line')
+    def resolve_order_line(self, info):
+        return self.order_line
+
+
 class Fulfillment(CountableDjangoObjectType):
     lines = gql_optimizer.field(
-        PrefetchingConnectionField(lambda: FulfillmentLine),
+        graphene.List(
+            FulfillmentLine,
+            description='List of lines for the fulfillment'),
         model_field='lines')
     status_display = graphene.String(
         description='User-friendly fulfillment status.')
@@ -92,20 +107,6 @@ class Fulfillment(CountableDjangoObjectType):
 
     def resolve_status_display(self, info):
         return self.get_status_display()
-
-
-class FulfillmentLine(CountableDjangoObjectType):
-    order_line = graphene.Field(lambda: OrderLine)
-
-    class Meta:
-        description = 'Represents line of the fulfillment.'
-        interfaces = [relay.Node]
-        model = models.FulfillmentLine
-        exclude_fields = ['fulfillment']
-
-    @gql_optimizer.resolver_hints(prefetch_related='order_line')
-    def resolve_order_line(self, info):
-        return self.order_line
 
 
 class OrderLine(CountableDjangoObjectType):
@@ -162,6 +163,10 @@ class Order(CountableDjangoObjectType):
         description='Internal payment status.')
     payment_status_display = graphene.String(
         description='User-friendly payment status.')
+    payments = gql_optimizer.field(
+        graphene.List(
+            Payment, description='List of payments for the order'),
+        model_field='payments')
     total = graphene.Field(
         TaxedMoney, description='Total amount of the order.')
     shipping_price = graphene.Field(
@@ -270,6 +275,10 @@ class Order(CountableDjangoObjectType):
     @gql_optimizer.resolver_hints(prefetch_related='payments')
     def resolve_payment_status_display(self, info):
         return self.get_last_payment_status_display()
+
+    @staticmethod
+    def resolve_payments(self, info):
+        return self.payments.all()
 
     @staticmethod
     def resolve_status_display(self, info):

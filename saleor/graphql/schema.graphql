@@ -18,17 +18,6 @@ type Address implements Node {
   phone: String
 }
 
-type AddressCountableConnection {
-  pageInfo: PageInfo!
-  edges: [AddressCountableEdge!]!
-  totalCount: Int
-}
-
-type AddressCountableEdge {
-  node: Address!
-  cursor: String!
-}
-
 type AddressCreate {
   errors: [Error]
   address: Address
@@ -295,13 +284,12 @@ type Checkout implements Node {
   translatedDiscountName: String
   voucherCode: String
   lines: [CheckoutLine]
-  payments(before: String, after: String, first: Int, last: Int, id: ID): PaymentCountableConnection
   id: ID!
-  totalPrice: TaxedMoney
-  subtotalPrice: TaxedMoney
-  shippingPrice: TaxedMoney
   availableShippingMethods: [ShippingMethod]
   isShippingRequired: Boolean
+  shippingPrice: TaxedMoney
+  subtotalPrice: TaxedMoney
+  totalPrice: TaxedMoney
 }
 
 type CheckoutBillingAddressUpdate {
@@ -624,7 +612,7 @@ type Fulfillment implements Node {
   status: FulfillmentStatus!
   trackingNumber: String!
   shippingDate: DateTime!
-  lines(before: String, after: String, first: Int, last: Int): FulfillmentLineCountableConnection
+  lines: [FulfillmentLine]
   statusDisplay: String
 }
 
@@ -654,17 +642,6 @@ type FulfillmentLine implements Node {
   id: ID!
   orderLine: OrderLine
   quantity: Int!
-}
-
-type FulfillmentLineCountableConnection {
-  pageInfo: PageInfo!
-  edges: [FulfillmentLineCountableEdge!]!
-  totalCount: Int
-}
-
-type FulfillmentLineCountableEdge {
-  node: FulfillmentLine!
-  cursor: String!
 }
 
 input FulfillmentLineInput {
@@ -983,7 +960,7 @@ type Order implements Node {
   lines: [OrderLine]!
   fulfillments: [Fulfillment]!
   events: [OrderEvent]
-  payments(before: String, after: String, first: Int, last: Int, id: ID): PaymentCountableConnection
+  payments: [Payment]
   actions: [OrderAction]!
   availableShippingMethods: [ShippingMethod]
   number: String
@@ -1330,11 +1307,9 @@ type Product implements Node {
   chargeTaxes: Boolean!
   taxRate: String!
   weight: Weight
-  voucherSet(before: String, after: String, first: Int, last: Int): VoucherCountableConnection
-  saleSet(before: String, after: String, first: Int, last: Int): SaleCountableConnection
-  variants(before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
-  images(before: String, after: String, first: Int, last: Int): ProductImageCountableConnection
-  collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
+  variants: [ProductVariant]
+  images: [ProductImage]
+  collections: [Collection]
   url: String!
   thumbnailUrl(size: Int): String
   availability: ProductAvailability
@@ -1395,17 +1370,6 @@ type ProductImage implements Node {
   id: ID!
   alt: String!
   url(size: Int): String!
-}
-
-type ProductImageCountableConnection {
-  pageInfo: PageInfo!
-  edges: [ProductImageCountableEdge!]!
-  totalCount: Int
-}
-
-type ProductImageCountableEdge {
-  node: ProductImage!
-  cursor: String!
 }
 
 type ProductImageCreate {
@@ -1517,7 +1481,7 @@ type ProductVariant implements Node {
   priceOverride: Money
   product: Product!
   attributes: [SelectedAttribute!]!
-  images(before: String, after: String, first: Int, last: Int): ProductImageCountableConnection
+  images: [ProductImage]
   trackInventory: Boolean!
   quantity: Int!
   quantityAllocated: Int!
@@ -1951,7 +1915,7 @@ type User implements Node {
   id: ID!
   lastLogin: DateTime
   email: String!
-  addresses(before: String, after: String, first: Int, last: Int): AddressCountableConnection
+  addresses: [Address]
   isStaff: Boolean!
   token: UUID!
   isActive: Boolean!

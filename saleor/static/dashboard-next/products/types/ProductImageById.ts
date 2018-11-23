@@ -12,36 +12,17 @@ export interface ProductImageById_product_mainImage {
   url: string;
 }
 
-export interface ProductImageById_product_images_edges_node {
+export interface ProductImageById_product_images {
   __typename: "ProductImage";
   id: string;
   url: string;
-}
-
-export interface ProductImageById_product_images_edges {
-  __typename: "ProductImageCountableEdge";
-  node: ProductImageById_product_images_edges_node;
-}
-
-export interface ProductImageById_product_images_pageInfo {
-  __typename: "PageInfo";
-  hasPreviousPage: boolean;
-  hasNextPage: boolean;
-  startCursor: string | null;
-  endCursor: string | null;
-}
-
-export interface ProductImageById_product_images {
-  __typename: "ProductImageCountableConnection";
-  edges: ProductImageById_product_images_edges[];
-  pageInfo: ProductImageById_product_images_pageInfo;
 }
 
 export interface ProductImageById_product {
   __typename: "Product";
   id: string;
   mainImage: ProductImageById_product_mainImage | null;
-  images: ProductImageById_product_images | null;
+  images: (ProductImageById_product_images | null)[] | null;
 }
 
 export interface ProductImageById {

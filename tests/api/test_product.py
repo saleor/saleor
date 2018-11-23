@@ -90,19 +90,11 @@ def test_product_query(staff_api_client, product, permission_manage_products):
                         url
                         thumbnailUrl
                         images {
-                            edges {
-                                node {
-                                    url
-                                }
-                            }
+                            url
                         }
                         variants {
-                            edges {
-                                node {
-                                    name
-                                    stockQuantity
-                                    }
-                                }
+                            name
+                            stockQuantity
                         }
                         availability {
                             available,
@@ -185,12 +177,8 @@ def test_product_with_collections(
     query = """
         query getProduct($productID: ID!) {
             product(id: $productID) {
-                collections(first: 1) {
-                    edges {
-                        node {
-                            name
-                        }
-                    }
+                collections {
+                    name
                 }
             }
         }
@@ -204,8 +192,8 @@ def test_product_with_collections(
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['product']
-    assert data['collections']['edges'][0]['node']['name'] == collection.name
-    assert len(data['collections']['edges']) == 1
+    assert data['collections'][0]['name'] == collection.name
+    assert len(data['collections']) == 1
 
 
 def test_filter_product_by_category(user_api_client, product):
@@ -1198,12 +1186,8 @@ def test_product_variant_price(
         query getProductVariants($id: ID!) {
             product(id: $id) {
                 variants {
-                    edges {
-                        node {
-                            price {
-                                amount
-                            }
-                        }
+                    price {
+                        amount
                     }
                 }
             }
@@ -1214,7 +1198,7 @@ def test_product_variant_price(
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['product']
-    variant_price = data['variants']['edges'][0]['node']['price']
+    variant_price = data['variants'][0]['price']
     assert variant_price['amount'] == api_variant_price
 
 
