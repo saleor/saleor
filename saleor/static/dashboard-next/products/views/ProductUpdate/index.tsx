@@ -69,10 +69,6 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                     data && data.categories
                       ? data.categories.edges.map(edge => edge.node)
                       : [];
-                  const images =
-                    data && data.product
-                      ? data.product.images.edges.map(edge => edge.node)
-                      : undefined;
                   return (
                     <ProductUpdateOperations
                       product={product}
@@ -138,24 +134,14 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               disabled={disableFormSave}
                               errors={errors}
                               saveButtonBarState={formSubmitState}
-                              images={images}
-                              header={product ? product.name : undefined}
+                              images={maybe(() => data.product.images)}
+                              header={maybe(() => product.name)}
                               placeholderImage={placeholderImg}
                               product={product}
-                              productCollections={
-                                product && product.collections
-                                  ? product.collections.edges.map(
-                                      edge => edge.node
-                                    )
-                                  : undefined
-                              }
-                              variants={
-                                product && product.variants
-                                  ? product.variants.edges.map(
-                                      edge => edge.node
-                                    )
-                                  : undefined
-                              }
+                              productCollections={maybe(
+                                () => product.collections
+                              )}
+                              variants={maybe(() => product.variants)}
                               onAttributesEdit={() =>
                                 navigate(
                                   productTypeUrl(
@@ -180,7 +166,9 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               }}
                               onImageReorder={({ newIndex, oldIndex }) => {
                                 if (product) {
-                                  let ids = images.map(image => image.id);
+                                  let ids = product.images.map(
+                                    image => image.id
+                                  );
                                   ids = arrayMove(ids, oldIndex, newIndex);
                                   reorderProductImages.mutate({
                                     imagesIds: ids,

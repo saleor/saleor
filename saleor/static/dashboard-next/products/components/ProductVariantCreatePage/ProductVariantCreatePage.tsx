@@ -72,7 +72,7 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
         }))
       ),
       costPrice: "",
-      images: maybe(() => product.images.edges.map(edge => edge.node.id)),
+      images: maybe(() => product.images.map(image => image.id)),
       priceOverride: "",
       quantity: 0,
       sku: ""
@@ -92,11 +92,7 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
                 <div className={classes.root}>
                   <div>
                     <ProductVariantNavigation
-                      variants={
-                        product && product.variants && product.variants.edges
-                          ? product.variants.edges.map(edge => edge.node)
-                          : undefined
-                      }
+                      variants={maybe(() => product.variants)}
                       onRowClick={(variantId: string) => {
                         if (product && product.variants) {
                           return onVariantClick(variantId);

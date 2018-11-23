@@ -81,14 +81,10 @@ export const productImagesReorder = gql`
       product {
         id
         images {
-          edges {
-            node {
-              id
-              alt
-              sortOrder
-              url
-            }
-          }
+          id
+          alt
+          sortOrder
+          url
         }
       }
     }
@@ -283,11 +279,7 @@ export const productImageDeleteMutation = gql`
       product {
         id
         images {
-          edges {
-            node {
-              id
-            }
-          }
+          id
         }
       }
     }

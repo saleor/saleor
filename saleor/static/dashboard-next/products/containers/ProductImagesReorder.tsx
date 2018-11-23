@@ -53,13 +53,7 @@ const ProductImagesReorderProvider: React.StatelessComponent<
               product: {
                 __typename: "Product",
                 id: props.productId,
-                images: {
-                  __typename: "ProductImageCountableConnection",
-                  edges: productImages.map(image => ({
-                    __typename: "ProductImageCountableEdge",
-                    node: image
-                  }))
-                }
+                images: productImages
               }
             }
           };

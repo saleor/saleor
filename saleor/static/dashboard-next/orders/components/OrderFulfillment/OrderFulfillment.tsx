@@ -60,7 +60,7 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
     onOrderFulfillmentCancel,
     onTrackingCodeAdd
   }) => {
-    const lines = maybe(() => fulfillment.lines.edges.map(edge => edge.node));
+    const lines = maybe(() => fulfillment.lines);
     const status = maybe(() => fulfillment.status);
     return (
       <Card>
@@ -179,14 +179,13 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
             )}
           </TableBody>
         </Table>
-        {status === FulfillmentStatus.FULFILLED &&
-          !fulfillment.trackingNumber && (
-            <CardActions>
-              <Button color="secondary" onClick={onTrackingCodeAdd}>
-                {i18n.t("Add tracking")}
-              </Button>
-            </CardActions>
-          )}
+        {status === FulfillmentStatus.FULFILLED && !fulfillment.trackingNumber && (
+          <CardActions>
+            <Button color="secondary" onClick={onTrackingCodeAdd}>
+              {i18n.t("Add tracking")}
+            </Button>
+          </CardActions>
+        )}
       </Card>
     );
   }
