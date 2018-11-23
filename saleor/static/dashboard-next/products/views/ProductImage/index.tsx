@@ -6,6 +6,7 @@ import ActionDialog from "../../../components/ActionDialog";
 import Messages from "../../../components/messages";
 import Navigator from "../../../components/Navigator";
 import i18n from "../../../i18n";
+import { maybe } from "../../../misc";
 import ProductImagePage from "../../components/ProductImagePage";
 import {
   TypedProductImageDeleteMutation,
@@ -81,16 +82,7 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
                               <ProductImagePage
                                 disabled={loading}
                                 image={image || null}
-                                images={
-                                  data &&
-                                  data.product &&
-                                  data.product.images &&
-                                  data.product.images.edges
-                                    ? data.product.images.edges.map(
-                                        edge => edge.node
-                                      )
-                                    : undefined
-                                }
+                                images={maybe(() => data.product.images)}
                                 onBack={handleBack}
                                 onDelete={() =>
                                   navigate(

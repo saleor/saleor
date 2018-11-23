@@ -2258,19 +2258,23 @@ export const variant = (placeholderImage: string): ProductVariant => ({
   images: [
     {
       __typename: "ProductImage",
-      id: "img1"
+      id: "img1",
+      url: placeholderImage
     },
     {
       __typename: "ProductImage",
-      id: "img2"
+      id: "img2",
+      url: placeholderImage
     },
     {
       __typename: "ProductImage",
-      id: "img7"
+      id: "img7",
+      url: placeholderImage
     },
     {
       __typename: "ProductImage",
-      id: "img8"
+      id: "img8",
+      url: placeholderImage
     }
   ],
   name: "Extended Hard",
