@@ -4,7 +4,7 @@ import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
-import { maybe } from "../../misc";
+import { getMutationState, maybe } from "../../misc";
 import CategoryCreatePage from "../components/CategoryCreatePage";
 import { TypedCategoryCreateMutation } from "../mutations";
 import { CategoryCreate } from "../types/CategoryCreate";
@@ -31,33 +31,45 @@ export const CategoryCreateView: React.StatelessComponent<
           };
           return (
             <TypedCategoryCreateMutation onCompleted={handleSuccess}>
-              {(mutate, { data, loading }) => (
-                <>
-                  <WindowTitle title={i18n.t("Create category")} />
-                  <CategoryCreatePage
-                    errors={maybe(() => data.categoryCreate.errors, [])}
-                    disabled={loading}
-                    onBack={() =>
-                      navigate(categoryUrl(encodeURIComponent(parentId)))
-                    }
-                    onSubmit={formData =>
-                      mutate({
-                        variables: {
-                          input: {
-                            description: formData.description,
-                            name: formData.name,
-                            seo: {
-                              description: formData.seoDescription,
-                              title: formData.seoTitle
-                            }
-                          },
-                          parent: parentId
-                        }
-                      })
-                    }
-                  />
-                </>
-              )}
+              {(createCategory, createCategoryResult) => {
+                const formTransitionState = getMutationState(
+                  createCategoryResult.called,
+                  createCategoryResult.loading,
+                  maybe(() => createCategoryResult.data.categoryCreate.errors)
+                );
+
+                return (
+                  <>
+                    <WindowTitle title={i18n.t("Create category")} />
+                    <CategoryCreatePage
+                      saveButtonBarState={formTransitionState}
+                      errors={maybe(
+                        () => createCategoryResult.data.categoryCreate.errors,
+                        []
+                      )}
+                      disabled={createCategoryResult.loading}
+                      onBack={() =>
+                        navigate(categoryUrl(encodeURIComponent(parentId)))
+                      }
+                      onSubmit={formData =>
+                        createCategory({
+                          variables: {
+                            input: {
+                              description: formData.description,
+                              name: formData.name,
+                              seo: {
+                                description: formData.seoDescription,
+                                title: formData.seoTitle
+                              }
+                            },
+                            parent: parentId
+                          }
+                        })
+                      }
+                    />
+                  </>
+                );
+              }}
             </TypedCategoryCreateMutation>
           );
         }}
