@@ -100,6 +100,10 @@ const ConfirmButton = decorate<ConfirmButtonProps>(
       }
     }
 
+    componentWillUnmount() {
+      clearTimeout(this.timeout);
+    }
+
     render() {
       const {
         children,
