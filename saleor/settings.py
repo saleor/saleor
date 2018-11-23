@@ -63,7 +63,7 @@ LANGUAGES = [
     ('de', _('German')),
     ('en', _('English')),
     ('es', _('Spanish')),
-    ('fa-ir', _('Persian (Iran)')),
+    ('fa', _('Persian')),
     ('fr', _('French')),
     ('hu', _('Hungarian')),
     ('it', _('Italian')),
@@ -72,16 +72,15 @@ LANGUAGES = [
     ('nb', _('Norwegian')),
     ('nl', _('Dutch')),
     ('pl', _('Polish')),
-    ('pt-br', _('Portuguese (Brazil)')),
+    ('pt-br', _('Brazilian Portuguese')),
     ('ro', _('Romanian')),
     ('ru', _('Russian')),
-    ('ru-ru', _('Russian (Russia)')),
     ('sk', _('Slovak')),
     ('tr', _('Turkish')),
     ('uk', _('Ukrainian')),
     ('vi', _('Vietnamese')),
-    ('zh-hans', _('Chinese')),
-    ('zh-tw', _('Chinese (Taiwan)'))]
+    ('zh-hans', _('Simplified Chinese')),
+    ('zh-hant', _('Traditional Chinese'))]
 LOCALE_PATHS = [os.path.join(PROJECT_ROOT, 'locale')]
 USE_I18N = True
 USE_L10N = True
