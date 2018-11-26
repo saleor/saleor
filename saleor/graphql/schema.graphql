@@ -1617,6 +1617,7 @@ type Query {
   checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
   addressValidator(input: AddressValidationInput!): AddressValidationData
   customers(query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
+  me: User
   staffUsers(query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
   user(id: ID!): User
   node(id: ID!): Node
