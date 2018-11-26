@@ -256,7 +256,7 @@ def test_who_can_see_user(
 
 
 ME_QUERY = """
-    query Me{
+    query Me {
         me {
             id
             email
@@ -280,7 +280,7 @@ def test_me_query_anonymous_client(api_client):
 def test_me_query_customer_can_not_see_note(
         staff_user, staff_api_client, permission_manage_users):
     query = """
-    query Me{
+    query Me {
         me {
             id
             email
