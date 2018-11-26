@@ -144,11 +144,11 @@ export function getMutationState(
   loading: boolean,
   errorList: UserError[]
 ): ConfirmButtonTransitionState {
-  return loading
-    ? "loading"
-    : called
-    ? hasErrors(errorList)
-      ? "error"
-      : "success"
-    : "default";
+  if (loading) {
+    return "loading";
+  }
+  if (called) {
+    return hasErrors(errorList) ? "error" : "success";
+  }
+  return "default";
 }
