@@ -48,7 +48,7 @@ class User(CountableDjangoObjectType):
         PrefetchingConnectionField(
             Address, description='List of all user\'s addresses.'),
         model_field='addresses')
-    note = graphene.String(description='')
+    note = graphene.String(description='A note about the customer')
 
     class Meta:
         exclude_fields = ['password', 'is_superuser', 'OrderEvent_set']
