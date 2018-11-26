@@ -88,7 +88,7 @@ class GraphQLView(View):
             query, variables, operation_name = self.get_graphql_params(
                 request, data)
         except ValueError as e:
-            return str(e), 400
+            return dict(errors=[self.format_error(e)]), 400
 
         execution_result = self.execute_graphql_request(
             request, query, variables, operation_name)
