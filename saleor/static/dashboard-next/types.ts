@@ -30,6 +30,7 @@ export interface PartialMutationProviderOutput<
   TData extends {} = {},
   TVariables extends {} = {}
 > {
+  called?: boolean;
   data: TData;
   loading: boolean;
   mutate: (variables: TVariables) => void;

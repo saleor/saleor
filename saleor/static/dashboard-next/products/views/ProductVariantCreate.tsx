@@ -6,7 +6,7 @@ import Navigator from "../../components/Navigator";
 import Shop from "../../components/Shop";
 import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
-import { decimal, maybe } from "../../misc";
+import { decimal, getMutationState, maybe } from "../../misc";
 import ProductVariantCreatePage from "../components/ProductVariantCreatePage";
 import { TypedVariantCreateMutation } from "../mutations";
 import { TypedProductVariantCreateQuery } from "../queries";
@@ -52,7 +52,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
 
                   const handleCreateSuccess = (data: VariantCreate) => {
                     if (
-                      data.productVariantCreate.errors &&
+                      data.productVariantCreate.errors === null ||
                       data.productVariantCreate.errors.length === 0
                     ) {
                       pushMessage({ text: i18n.t("Product created") });
@@ -102,8 +102,18 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                             )
                           );
 
-                        const loading =
+                        const disableForm =
                           productLoading || variantCreateResult.loading;
+
+                        const formTransitionstate = getMutationState(
+                          variantCreateResult.called,
+                          variantCreateResult.loading,
+                          maybe(
+                            () =>
+                              variantCreateResult.data.productVariantCreate
+                                .errors
+                          )
+                        );
                         return (
                           <>
                             <WindowTitle title={i18n.t("Create variant")} />
@@ -116,11 +126,12 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                                 []
                               )}
                               header={i18n.t("Add Variant")}
-                              loading={loading}
+                              loading={disableForm}
                               product={maybe(() => data.product)}
                               onBack={handleBack}
                               onSubmit={handleSubmit}
                               onVariantClick={handleVariantClick}
+                              saveButtonBarState={formTransitionstate}
                             />
                           </>
                         );
