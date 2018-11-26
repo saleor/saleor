@@ -7,7 +7,7 @@ import Messages from "../../../components/messages";
 import Navigator from "../../../components/Navigator";
 import { WindowTitle } from "../../../components/WindowTitle";
 import i18n from "../../../i18n";
-import { decimal, maybe, getMutationState } from "../../../misc";
+import { decimal, getMutationState, maybe } from "../../../misc";
 import ProductVariantDeleteDialog from "../../components/ProductVariantDeleteDialog";
 import ProductVariantPage from "../../components/ProductVariantPage";
 import ProductVariantOperations from "../../containers/ProductVariantOperations";
