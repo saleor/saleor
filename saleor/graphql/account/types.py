@@ -2,6 +2,7 @@ import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.contrib.auth import get_user_model
 from graphene import relay
+from graphql_jwt.decorators import permission_required
 
 from ...account import models
 from ...core.permissions import get_permissions
@@ -46,6 +47,7 @@ class User(CountableDjangoObjectType):
         graphene.List(
             Address, description='List of all user\'s addresses.'),
         model_field='addresses')
+    note = graphene.String(description='A note about the customer')
 
     class Meta:
         exclude_fields = ['password', 'is_superuser', 'OrderEvent_set']
@@ -63,6 +65,10 @@ class User(CountableDjangoObjectType):
 
     def resolve_addresses(self, info, **kwargs):
         return self.addresses.all()
+
+    @permission_required('account.manage_users')
+    def resolve_note(self, info):
+        return self.note
 
 
 class AddressValidationInput(graphene.InputObjectType):

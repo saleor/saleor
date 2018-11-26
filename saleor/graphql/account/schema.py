@@ -9,8 +9,7 @@ from .mutations import (
     LoggedUserUpdate, PasswordReset, SetPassword, StaffCreate, StaffDelete,
     StaffUpdate)
 from .resolvers import (
-    resolve_address_validator, resolve_customers, resolve_staff_users,
-    resolve_user)
+    resolve_address_validator, resolve_customers, resolve_staff_users)
 from .types import AddressValidationData, AddressValidationInput, User
 
 
@@ -21,6 +20,8 @@ class AccountQueries(graphene.ObjectType):
     customers = PrefetchingConnectionField(
         User, description='List of the shop\'s customers.',
         query=graphene.String(description=DESCRIPTIONS['user']))
+    me = graphene.Field(
+        User, description='Logged in user data.')
     staff_users = PrefetchingConnectionField(
         User, description='List of the shop\'s staff users.',
         query=graphene.String(description=DESCRIPTIONS['user']))
@@ -35,13 +36,17 @@ class AccountQueries(graphene.ObjectType):
     def resolve_customers(self, info, query=None, **kwargs):
         return resolve_customers(info, query=query)
 
+    @login_required
+    def resolve_me(self, info):
+        return info.context.user
+
     @permission_required('account.manage_staff')
     def resolve_staff_users(self, info, query=None, **kwargs):
         return resolve_staff_users(info, query=query)
 
-    @login_required
+    @permission_required('account.manage_users')
     def resolve_user(self, info, id):
-        return resolve_user(info, id)
+        return graphene.Node.get_node_from_global_id(info, id, User)
 
 
 class AccountMutations(graphene.ObjectType):

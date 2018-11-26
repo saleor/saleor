@@ -1,4 +1,3 @@
-import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.db.models import Q
 from i18naddress import get_validation_rules
@@ -6,22 +5,12 @@ from i18naddress import get_validation_rules
 from ...account import models
 from ...core.utils import get_client_ip, get_country_by_ip
 from ..utils import filter_by_query_param
-from .types import AddressValidationData, ChoiceValue, User
+from .types import AddressValidationData, ChoiceValue
 
 USER_SEARCH_FIELDS = (
     'email', 'default_shipping_address__first_name',
     'default_shipping_address__last_name', 'default_shipping_address__city',
     'default_shipping_address__country')
-
-
-def resolve_user(info, id):
-    logged_user = info.context.user
-    if not id:
-        return logged_user
-    user = graphene.Node.get_node_from_global_id(info, id, User)
-    if logged_user.has_perm('account.manage_users') or user == logged_user:
-        return user
-    return None
 
 
 def resolve_customers(info, query):

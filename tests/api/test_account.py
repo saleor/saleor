@@ -151,32 +151,12 @@ USER_QUERY = """
 """
 
 
-def test_customer_can_see_his_own_data(user_api_client):
-    user = user_api_client.user
-    id = graphene.Node.to_global_id('User', user.id)
-    variables = {'id': id}
-    response = user_api_client.post_graphql(USER_QUERY, variables)
-    content = get_graphql_content(response)
-    data = content['data']['user']
-    assert data['email'] == user.email
-
-
 def test_customer_can_not_see_other_users_data(user_api_client,
                                                staff_user):
     id = graphene.Node.to_global_id('User', staff_user.id)
     variables = {'id': id}
     response = user_api_client.post_graphql(USER_QUERY, variables)
-    content = get_graphql_content(response)
-    data = content['data']['user']
-    assert data is None
-
-
-def test_user_query_with_empty_id(user_api_client):
-    variables = {'id': ''}
-    response = user_api_client.post_graphql(USER_QUERY, variables)
-    content = get_graphql_content(response)
-    data = content['data']['user']
-    assert data['email'] == user_api_client.user.email
+    assert_no_permission(response)
 
 
 def test_user_query_anonymous_user(api_client):
@@ -258,10 +238,7 @@ def test_who_can_see_user(
     ID = graphene.Node.to_global_id('User', customer_user.id)
     variables = {'id': ID}
     response = staff_api_client.post_graphql(USER_QUERY, variables)
-    data = get_graphql_content(response)
-    content = get_graphql_content(response)
-    data = content['data']['user']
-    assert data is None
+    assert_no_permission(response)
 
     response = staff_api_client.post_graphql(query)
     assert_no_permission(response)
@@ -275,6 +252,52 @@ def test_who_can_see_user(
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     assert content['data']['customers']['totalCount'] == 1
+
+
+ME_QUERY = """
+    query Me {
+        me {
+            id
+            email
+        }
+    }
+"""
+
+
+def test_me_query(user_api_client):
+    response = user_api_client.post_graphql(ME_QUERY)
+    content = get_graphql_content(response)
+    data = content['data']['me']
+    assert data['email'] == user_api_client.user.email
+
+
+def test_me_query_anonymous_client(api_client):
+    response = api_client.post_graphql(ME_QUERY)
+    assert_no_permission(response)
+
+
+def test_me_query_customer_can_not_see_note(
+        staff_user, staff_api_client, permission_manage_users):
+    query = """
+    query Me {
+        me {
+            id
+            email
+            note
+        }
+    }
+    """
+    # Random person (even staff) can't see own note without permissions
+    response = staff_api_client.post_graphql(query)
+    assert_no_permission(response)
+
+    # Add permission and ensure staff can see own note
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    data = content['data']['me']
+    assert data['email'] == staff_api_client.user.email
+    assert data['note'] == staff_api_client.user.note
 
 
 def test_customer_register(user_api_client):
