@@ -4,7 +4,7 @@ import { Route } from "react-router-dom";
 import ErrorMessageCard from "../../../components/ErrorMessageCard";
 import Navigator from "../../../components/Navigator";
 import { WindowTitle } from "../../../components/WindowTitle";
-import { maybe, transformAddressToForm, getMutationState } from "../../../misc";
+import { getMutationState, maybe, transformAddressToForm } from "../../../misc";
 import { productUrl } from "../../../products/urls";
 import { OrderStatus } from "../../../types/globalTypes";
 import OrderAddressEditDialog from "../../components/OrderAddressEditDialog";
@@ -621,12 +621,6 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       variants={maybe(() =>
                                         variantSearchOpts.data.products.edges
                                           .map(edge => edge.node)
-                                          .map(product => ({
-                                            ...product,
-                                            variants: product.variants.edges.map(
-                                              edge => edge.node
-                                            )
-                                          }))
                                           .map(product =>
                                             product.variants.map(variant => ({
                                               ...variant,
