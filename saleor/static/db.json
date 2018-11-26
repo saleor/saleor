@@ -90,7 +90,7 @@
     "name": "Wine",
     "has_variants": false,
     "is_shipping_required": true,
-    "tax_rate": "",
+    "tax_rate": "standard",
     "weight": "1.0 kg"
   }
 },
