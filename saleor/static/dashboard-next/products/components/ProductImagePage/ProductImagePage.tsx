@@ -126,4 +126,5 @@ const ProductImagePage = decorate<ProductImagePageProps>(
     </Form>
   )
 );
+ProductImagePage.displayName = "ProductImagePage";
 export default ProductImagePage;

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { UserError } from "../../";
+import { UserError } from "../../types";
 
 export interface FormProps<T extends {}> {
   children:
@@ -82,5 +82,4 @@ class Form<T extends {} = {}> extends React.Component<FormProps<T>, T> {
     );
   }
 }
-
 export default Form;

@@ -47,56 +47,46 @@ export interface OrderDetailsFragment_events {
   user: OrderDetailsFragment_events_user | null;
 }
 
-export interface OrderDetailsFragment_fulfillments_lines_edges_node_orderLine_unitPrice_gross {
+export interface OrderDetailsFragment_fulfillments_lines_orderLine_unitPrice_gross {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderDetailsFragment_fulfillments_lines_edges_node_orderLine_unitPrice_net {
+export interface OrderDetailsFragment_fulfillments_lines_orderLine_unitPrice_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderDetailsFragment_fulfillments_lines_edges_node_orderLine_unitPrice {
+export interface OrderDetailsFragment_fulfillments_lines_orderLine_unitPrice {
   __typename: "TaxedMoney";
-  gross: OrderDetailsFragment_fulfillments_lines_edges_node_orderLine_unitPrice_gross;
-  net: OrderDetailsFragment_fulfillments_lines_edges_node_orderLine_unitPrice_net;
+  gross: OrderDetailsFragment_fulfillments_lines_orderLine_unitPrice_gross;
+  net: OrderDetailsFragment_fulfillments_lines_orderLine_unitPrice_net;
 }
 
-export interface OrderDetailsFragment_fulfillments_lines_edges_node_orderLine {
+export interface OrderDetailsFragment_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
   productName: string;
   productSku: string;
   quantity: number;
   quantityFulfilled: number;
-  unitPrice: OrderDetailsFragment_fulfillments_lines_edges_node_orderLine_unitPrice | null;
+  unitPrice: OrderDetailsFragment_fulfillments_lines_orderLine_unitPrice | null;
   thumbnailUrl: string | null;
 }
 
-export interface OrderDetailsFragment_fulfillments_lines_edges_node {
+export interface OrderDetailsFragment_fulfillments_lines {
   __typename: "FulfillmentLine";
   id: string;
   quantity: number;
-  orderLine: OrderDetailsFragment_fulfillments_lines_edges_node_orderLine | null;
-}
-
-export interface OrderDetailsFragment_fulfillments_lines_edges {
-  __typename: "FulfillmentLineCountableEdge";
-  node: OrderDetailsFragment_fulfillments_lines_edges_node;
-}
-
-export interface OrderDetailsFragment_fulfillments_lines {
-  __typename: "FulfillmentLineCountableConnection";
-  edges: OrderDetailsFragment_fulfillments_lines_edges[];
+  orderLine: OrderDetailsFragment_fulfillments_lines_orderLine | null;
 }
 
 export interface OrderDetailsFragment_fulfillments {
   __typename: "Fulfillment";
   id: string;
-  lines: OrderDetailsFragment_fulfillments_lines | null;
+  lines: (OrderDetailsFragment_fulfillments_lines | null)[] | null;
   fulfillmentOrder: number;
   status: FulfillmentStatus;
   trackingNumber: string;

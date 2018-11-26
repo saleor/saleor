@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { PaymentChargeStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderStatusFilter, PaymentChargeStatusEnum, OrderStatus } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL query operation: OrderList
@@ -80,4 +80,5 @@ export interface OrderListVariables {
   after?: string | null;
   last?: number | null;
   before?: string | null;
+  status?: OrderStatusFilter | null;
 }

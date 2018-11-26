@@ -53,7 +53,7 @@
 
 ## What makes Saleor special?
 
-Saleor is a rapidly-growing open source e-commerce platform that has served high-volume companies from branches like publishing and apparel since 2012. Based on Python and Django, the latest major update introduces a modular front end with a GraphQL API and storefront and dashboard written in React to make Saleor a full-functionality open source e-commerce.
+Saleor is a rapidly-growing open source e-commerce platform that has served high-volume companies from branches like publishing and apparel since 2012. Based on Python and Django, the latest major update introduces a modular front end powered by a GraphQL API and written with React and TypeScript.
 
 ## Features
 - __PWA__: End users can shop offline for better sales and shopping experiences
@@ -63,14 +63,14 @@ Saleor is a rapidly-growing open source e-commerce platform that has served high
 - __Dashboard__: Administrators have total control of users, processes and products
 - __Orders__: A comprehensive system for orders, dispatch and refunds
 - __Cart__: Advanced payment and tax options, with full control over discounts and promotions
-- __Payments__: Flexible API architecture allows integration of any payment method. Comes with Braintree support our of the box.
+- __Payments__: Flexible API architecture allows integration of any payment method. Comes with Braintree support out of the box.
 - __Geo-adaptive__: Automatic localized pricing. Over 20 local languages. Localized checkout experience by country.
 - __SEO__: Packed with features that get stores to a wider audience
 - __Cloud__: Optimized for deployments using Docker
 - __Analytics__: Server-side Google Analytics to report e-commerce metrics without affecting privacy
 
 Saleor is free and always will be.
-Help us out… If you love free stuff and great software, give us a star!
+Help us out… If you love free stuff and great software, give us a star! 🌟
 
 ![1 copy 2x](https://user-images.githubusercontent.com/5421321/47798207-30aeea00-dd28-11e8-9398-3d8426836a83.png)
 ![group 2 2x](https://user-images.githubusercontent.com/5421321/47799917-8afd7a00-dd2b-11e8-88c7-63588e25bcea.png)
@@ -94,6 +94,12 @@ Or launch the demo on a free Heroku instance.
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
 Login credentials: `admin@example.com`/`admin`
+
+
+## PWA Storefront
+The PWA, single-page storefront lives in a [separate repository](https://github.com/mirumee/saleor-storefront).
+
+[View PWA Storefront](https://pwa.getsaleor.com/)
 
 
 ## Contributing

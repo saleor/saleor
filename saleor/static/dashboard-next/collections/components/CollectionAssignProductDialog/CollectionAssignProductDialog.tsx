@@ -88,4 +88,5 @@ const CollectionAssignProductDialog = decorate<
     </Form>
   </Dialog>
 ));
+CollectionAssignProductDialog.displayName = "CollectionAssignProductDialog";
 export default CollectionAssignProductDialog;

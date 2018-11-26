@@ -1,12 +1,13 @@
 import * as React from "react";
 
+import { maybe } from "../../misc";
 import {
   MutationProviderProps,
   MutationProviderRenderProps,
   PartialMutationProviderOutput,
   PartialMutationProviderProps,
   PartialMutationProviderRenderProps
-} from "../..";
+} from "../../types";
 import {
   TypedProductDeleteMutation,
   TypedProductImageCreateMutation,
@@ -150,11 +151,7 @@ const ProductUpdateOperations: React.StatelessComponent<
       {updateProduct => (
         <ProductImagesReorderProvider
           productId={productId}
-          productImages={
-            product && product.images && product.images.edges
-              ? product.images.edges.map(edge => edge.node)
-              : []
-          }
+          productImages={maybe(() => product.images, [])}
           onError={onError}
           onSuccess={onImageReorder}
         >

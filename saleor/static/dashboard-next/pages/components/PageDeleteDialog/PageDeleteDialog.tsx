@@ -64,5 +64,5 @@ const PageDeleteDialog = decorate<PageDeleteDialogProps>(props => {
     </Dialog>
   );
 });
-
+PageDeleteDialog.displayName = "PageDeleteDialog";
 export default PageDeleteDialog;

@@ -61,4 +61,5 @@ const ProductCategoryAndCollectionsForm = decorate<
     </Card>
   )
 );
+ProductCategoryAndCollectionsForm.displayName = "ProductCategoryAndCollectionsForm";
 export default ProductCategoryAndCollectionsForm;

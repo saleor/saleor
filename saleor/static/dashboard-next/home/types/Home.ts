@@ -58,7 +58,7 @@ export interface Home_productTopToday_edges_node_attributes_value {
 
 export interface Home_productTopToday_edges_node_attributes {
   __typename: "SelectedAttribute";
-  value: Home_productTopToday_edges_node_attributes_value | null;
+  value: Home_productTopToday_edges_node_attributes_value;
 }
 
 export interface Home_productTopToday_edges_node_product {

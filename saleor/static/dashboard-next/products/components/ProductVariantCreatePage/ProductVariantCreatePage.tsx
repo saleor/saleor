@@ -1,7 +1,6 @@
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import { UserError } from "../../..";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
@@ -10,6 +9,7 @@ import SaveButtonBar, {
 } from "../../../components/SaveButtonBar";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
+import { UserError } from "../../../types";
 import { ProductVariantCreateData_product } from "../../types/ProductVariantCreateData";
 import ProductVariantAttributes from "../ProductVariantAttributes";
 import ProductVariantNavigation from "../ProductVariantNavigation";
@@ -28,6 +28,7 @@ interface FormData {
   sku?: string;
 }
 interface ProductVariantCreatePageProps {
+  currencySymbol: string;
   errors: UserError[];
   header: string;
   loading: boolean;
@@ -53,6 +54,7 @@ const decorate = withStyles(theme => ({
 const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
   ({
     classes,
+    currencySymbol,
     errors: formErrors,
     loading,
     header,
@@ -70,7 +72,7 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
         }))
       ),
       costPrice: "",
-      images: maybe(() => product.images.edges.map(edge => edge.node.id)),
+      images: maybe(() => product.images.map(image => image.id)),
       priceOverride: "",
       quantity: 0,
       sku: ""
@@ -90,11 +92,7 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
                 <div className={classes.root}>
                   <div>
                     <ProductVariantNavigation
-                      variants={
-                        product && product.variants && product.variants.edges
-                          ? product.variants.edges.map(edge => edge.node)
-                          : undefined
-                      }
+                      variants={maybe(() => product.variants)}
                       onRowClick={(variantId: string) => {
                         if (product && product.variants) {
                           return onVariantClick(variantId);
@@ -114,8 +112,7 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
                     <ProductVariantPrice
                       errors={errors}
                       priceOverride={data.priceOverride}
-                      // FIXME: currency symbol should be fetched from API
-                      currencySymbol="USD"
+                      currencySymbol={currencySymbol}
                       costPrice={data.costPrice}
                       loading={loading}
                       onChange={change}
@@ -147,4 +144,5 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
     );
   }
 );
+ProductVariantCreatePage.displayName = "ProductVariantCreatePage";
 export default ProductVariantCreatePage;

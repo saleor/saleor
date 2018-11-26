@@ -32,4 +32,5 @@ const OrderPaymentVoidDialog: React.StatelessComponent<
     </DialogActions>
   </Dialog>
 );
+OrderPaymentVoidDialog.displayName = "OrderPaymentVoidDialog";
 export default OrderPaymentVoidDialog;

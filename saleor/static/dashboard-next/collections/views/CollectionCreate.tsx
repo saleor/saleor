@@ -2,6 +2,7 @@ import * as React from "react";
 
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
+import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
 import CollectionCreatePage from "../components/CollectionCreatePage/CollectionCreatePage";
@@ -36,28 +37,31 @@ export const CollectionCreate: React.StatelessComponent<{}> = () => (
               onCompleted={handleCollectionCreateSuccess}
             >
               {(createCollection, { data, loading }) => (
-                <CollectionCreatePage
-                  errors={maybe(() => data.collectionCreate.errors, [])}
-                  onBack={() => navigate(collectionListUrl)}
-                  disabled={loading}
-                  onSubmit={formData =>
-                    createCollection({
-                      variables: {
-                        input: {
-                          backgroundImage: formData.backgroundImage.value,
-                          isPublished: formData.isPublished,
-                          name: formData.name,
-                          seo: {
-                            description: formData.seoDescription,
-                            title: formData.seoTitle
-                          },
-                          // FIXME: remove after closing #3142
-                          slug: formData.name.toLowerCase()
+                <>
+                  <WindowTitle title={i18n.t("Create collection")} />
+                  <CollectionCreatePage
+                    errors={maybe(() => data.collectionCreate.errors, [])}
+                    onBack={() => navigate(collectionListUrl)}
+                    disabled={loading}
+                    onSubmit={formData =>
+                      createCollection({
+                        variables: {
+                          input: {
+                            backgroundImage: formData.backgroundImage.value,
+                            isPublished: formData.isPublished,
+                            name: formData.name,
+                            seo: {
+                              description: formData.seoDescription,
+                              title: formData.seoTitle
+                            },
+                            // FIXME: remove after closing #3142
+                            slug: formData.name.toLowerCase()
+                          }
                         }
-                      }
-                    })
-                  }
-                />
+                      })
+                    }
+                  />
+                </>
               )}
             </TypedCollectionCreateMutation>
           );

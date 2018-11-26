@@ -67,4 +67,5 @@ export const CategoryDetailsForm = decorate<CategoryDetailsFormProps>(
     );
   }
 );
+CategoryDetailsForm.displayName = "CategoryDetailsForm";
 export default CategoryDetailsForm;

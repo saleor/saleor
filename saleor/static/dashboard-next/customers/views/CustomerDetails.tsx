@@ -5,9 +5,10 @@ import { Route } from "react-router-dom";
 import ActionDialog from "../../components/ActionDialog";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
+import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
-import { orderUrl } from "../../orders";
+import { orderUrl } from "../../orders/urls";
 import CustomerDetailsPage from "../components/CustomerDetailsPage/CustomerDetailsPage";
 import {
   TypedRemoveCustomerMutation,
@@ -64,9 +65,12 @@ export const CustomerDetailsView: React.StatelessComponent<
                   onCompleted={handleCustomerUpdateSuccess}
                 >
                   {(updateCustomer, updateCustomerOpts) => (
-                    <TypedCustomerDetailsQuery variables={{ id }}>
+                    <TypedCustomerDetailsQuery displayLoader variables={{ id }}>
                       {customerDetails => (
                         <>
+                          <WindowTitle
+                            title={maybe(() => customerDetails.data.user.email)}
+                          />
                           <CustomerDetailsPage
                             customer={customerDetails.data.user}
                             disabled={

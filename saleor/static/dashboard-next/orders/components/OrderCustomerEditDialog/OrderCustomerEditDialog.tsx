@@ -90,4 +90,5 @@ const OrderCustomerEditDialog = decorate<OrderCustomerEditDialogProps>(
     );
   }
 );
+OrderCustomerEditDialog.displayName = "OrderCustomerEditDialog";
 export default OrderCustomerEditDialog;

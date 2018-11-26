@@ -26,5 +26,5 @@ export const ControlledCheckbox: React.StatelessComponent<
     label={label}
   />
 );
-
+ControlledCheckbox.displayName = "ControlledCheckbox";
 export default ControlledCheckbox;

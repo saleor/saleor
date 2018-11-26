@@ -31,11 +31,7 @@ def test_fetch_variant(staff_api_client, product, permission_manage_products):
                 amount
             }
             images {
-                edges {
-                    node {
-                        id
-                    }
-                }
+                id
             }
             name
             priceOverride {

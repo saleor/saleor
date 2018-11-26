@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AnonymousUser
 from django.shortcuts import reverse
+from graphene_django.settings import graphene_settings
 from graphql_jwt.middleware import JSONWebTokenMiddleware
 
 
@@ -11,7 +12,10 @@ def jwt_middleware(get_response):
     and authenticates the user
     with graphql_jwt.middleware.JSONWebTokenMiddleware.
     """
+    # Disable warnings for django-graphene-jwt
+    graphene_settings.MIDDLEWARE.append(JSONWebTokenMiddleware)
     jwt_middleware = JSONWebTokenMiddleware(get_response=get_response)
+    graphene_settings.MIDDLEWARE.remove(JSONWebTokenMiddleware)
 
     def middleware(request):
         if request.path == reverse('api'):

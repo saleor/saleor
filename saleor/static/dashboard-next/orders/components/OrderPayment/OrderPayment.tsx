@@ -5,14 +5,13 @@ import CardContent from "@material-ui/core/CardContent";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import { transformPaymentStatus } from "../..";
 import CardTitle from "../../../components/CardTitle";
 import { Hr } from "../../../components/Hr";
 import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
+import { maybe, transformPaymentStatus } from "../../../misc";
 import { OrderAction, OrderStatus } from "../../../types/globalTypes";
 import { OrderDetails_order } from "../../types/OrderDetails";
 
@@ -39,18 +38,16 @@ const decorate = withStyles(theme => ({
 }));
 const OrderPayment = decorate<OrderPaymentProps>(
   ({ classes, order, onCapture, onMarkAsPaid, onRefund, onVoid }) => {
-    const canCapture = maybe(() => order.actions)
-      ? order.actions.includes(OrderAction.CAPTURE)
-      : false;
-    const canVoid = maybe(() => order.actions)
-      ? order.actions.includes(OrderAction.VOID)
-      : false;
-    const canRefund = maybe(() => order.actions)
-      ? order.actions.includes(OrderAction.REFUND)
-      : false;
-    const canMarkAsPaid = maybe(() => order.actions)
-      ? order.actions.includes(OrderAction.MARK_AS_PAID)
-      : false;
+    const canCapture = maybe(() => order.actions, []).includes(
+      OrderAction.CAPTURE
+    );
+    const canVoid = maybe(() => order.actions, []).includes(OrderAction.VOID);
+    const canRefund = maybe(() => order.actions, []).includes(
+      OrderAction.REFUND
+    );
+    const canMarkAsPaid = maybe(() => order.actions, []).includes(
+      OrderAction.MARK_AS_PAID
+    );
     const payment = transformPaymentStatus(maybe(() => order.paymentStatus));
     return (
       <Card>
@@ -83,7 +80,7 @@ const OrderPayment = decorate<OrderPaymentProps>(
                   {maybe(() => order.subtotal.gross) === undefined ? (
                     <Skeleton />
                   ) : (
-                    <Money {...order.subtotal.gross} />
+                    <Money money={order.subtotal.gross} />
                   )}
                 </td>
               </tr>
@@ -102,7 +99,7 @@ const OrderPayment = decorate<OrderPaymentProps>(
                   {maybe(() => order.total.tax) === undefined ? (
                     <Skeleton />
                   ) : (
-                    <Money {...order.total.tax} />
+                    <Money money={order.total.tax} />
                   )}
                 </td>
               </tr>
@@ -122,7 +119,7 @@ const OrderPayment = decorate<OrderPaymentProps>(
                   {maybe(() => order.shippingPrice.gross) === undefined ? (
                     <Skeleton />
                   ) : (
-                    <Money {...order.shippingPrice.gross} />
+                    <Money money={order.shippingPrice.gross} />
                   )}
                 </td>
               </tr>
@@ -133,7 +130,7 @@ const OrderPayment = decorate<OrderPaymentProps>(
                   {maybe(() => order.total.gross) === undefined ? (
                     <Skeleton />
                   ) : (
-                    <Money {...order.total.gross} />
+                    <Money money={order.total.gross} />
                   )}
                 </td>
               </tr>

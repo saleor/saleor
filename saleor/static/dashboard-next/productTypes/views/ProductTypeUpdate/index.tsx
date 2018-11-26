@@ -1,9 +1,9 @@
 import * as React from "react";
 import { Route } from "react-router-dom";
 
-import { productTypeDetailsUrl, productTypeListUrl } from "../../";
 import Messages from "../../../components/messages";
 import Navigator from "../../../components/Navigator";
+import { WindowTitle } from "../../../components/WindowTitle";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { AttributeTypeEnum } from "../../../types/globalTypes";
@@ -20,6 +20,7 @@ import { AttributeDelete } from "../../types/AttributeDelete";
 import { AttributeUpdate } from "../../types/AttributeUpdate";
 import { ProductTypeDelete } from "../../types/ProductTypeDelete";
 import { ProductTypeUpdate as ProductTypeUpdateMutation } from "../../types/ProductTypeUpdate";
+import { productTypeListUrl, productTypeUrl } from "../../urls";
 import { ProductTypeUpdateErrors } from "./errors";
 import { addAttributeUrl, editAttributeUrl } from "./urls";
 
@@ -36,13 +37,10 @@ export const ProductTypeUpdate: React.StatelessComponent<
         {navigate => (
           <ProductTypeUpdateErrors>
             {({ errors, set: setErrors }) => (
-              <TypedProductTypeDetailsQuery variables={{ id }}>
+              <TypedProductTypeDetailsQuery displayLoader variables={{ id }}>
                 {({ data, loading: dataLoading }) => {
                   const closeModal = () => {
-                    navigate(
-                      productTypeDetailsUrl(encodeURIComponent(id)),
-                      true
-                    );
+                    navigate(productTypeUrl(encodeURIComponent(id)), true);
                     setErrors.addAttributeErrors([]);
                     setErrors.editAttributeErrors([]);
                   };
@@ -226,6 +224,9 @@ export const ProductTypeUpdate: React.StatelessComponent<
                         const loading = mutationLoading || dataLoading;
                         return (
                           <>
+                            <WindowTitle
+                              title={maybe(() => data.productType.name)}
+                            />
                             <ProductTypeDetailsPage
                               defaultWeightUnit={maybe(
                                 () => data.shop.defaultWeightUnit

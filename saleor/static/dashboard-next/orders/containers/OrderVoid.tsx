@@ -6,7 +6,7 @@ import { OrderVoid, OrderVoidVariables } from "../types/OrderVoid";
 import {
   PartialMutationProviderProps,
   PartialMutationProviderRenderProps
-} from "../..";
+} from "../../types";
 
 interface OrderVoidMutationProviderProps
   extends PartialMutationProviderProps<OrderVoid> {

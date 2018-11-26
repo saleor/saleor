@@ -81,14 +81,10 @@ export const fragmentOrderDetails = gql`
     fulfillments {
       id
       lines {
-        edges {
-          node {
-            id
-            quantity
-            orderLine {
-              ...OrderLineFragment
-            }
-          }
+        id
+        quantity
+        orderLine {
+          ...OrderLineFragment
         }
       }
       fulfillmentOrder
@@ -157,8 +153,20 @@ export const fragmentOrderDetails = gql`
 
 export const orderListQuery = gql`
   ${fragmentAddress}
-  query OrderList($first: Int, $after: String, $last: Int, $before: String) {
-    orders(before: $before, after: $after, first: $first, last: $last) {
+  query OrderList(
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
+    $status: OrderStatusFilter
+  ) {
+    orders(
+      before: $before
+      after: $after
+      first: $first
+      last: $last
+      status: $status
+    ) {
       edges {
         node {
           __typename
@@ -222,14 +230,10 @@ export const orderVariantSearchQuery = gql`
           id
           name
           variants {
-            edges {
-              node {
-                id
-                name
-                sku
-                stockQuantity
-              }
-            }
+            id
+            name
+            sku
+            stockQuantity
           }
         }
       }

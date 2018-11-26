@@ -73,5 +73,5 @@ const ImageTile = decorate<ImageTileProps>(
     </div>
   )
 );
-
+ImageTile.displayName = "ImageTile";
 export default ImageTile;

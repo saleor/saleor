@@ -70,4 +70,5 @@ export const TablePaginationActions = decorate<TablePaginationActionsProps>(
   )
 );
 
+TablePaginationActions.displayName = "TablePaginationActions";
 export default TablePaginationActions;
