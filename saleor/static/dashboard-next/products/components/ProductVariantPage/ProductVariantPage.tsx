@@ -1,12 +1,11 @@
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar, {
-  SaveButtonBarState
-} from "../../../components/SaveButtonBar";
+import SaveButtonBar from "../../../components/SaveButtonBar";
 import Toggle from "../../../components/Toggle";
 import { maybe } from "../../../misc";
 import { UserError } from "../../../types";
@@ -21,7 +20,7 @@ import ProductVariantStock from "../ProductVariantStock";
 interface ProductVariantPageProps {
   variant?: ProductVariant;
   errors: UserError[];
-  saveButtonBarState?: SaveButtonBarState;
+  saveButtonBarState: ConfirmButtonTransitionState;
   loading?: boolean;
   placeholderImage?: string;
   header: string;
@@ -158,7 +157,7 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                       </div>
                     </div>
                     <SaveButtonBar
-                      disabled={loading || !onSubmit || !hasChanged}
+                      disabled={loading || !hasChanged}
                       state={saveButtonBarState}
                       onCancel={onBack}
                       onDelete={onDelete}

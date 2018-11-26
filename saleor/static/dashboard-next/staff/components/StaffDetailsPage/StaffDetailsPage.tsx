@@ -1,6 +1,7 @@
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
@@ -23,6 +24,7 @@ interface FormData {
 export interface StaffDetailsPageProps {
   disabled: boolean;
   permissions: StaffMemberDetails_shop_permissions[];
+  saveButtonBarState: ConfirmButtonTransitionState;
   staffMember: StaffMemberDetails_user;
   onBack: () => void;
   onDelete: () => void;
@@ -44,6 +46,7 @@ const StaffDetailsPage = decorate<StaffDetailsPageProps>(
     classes,
     disabled,
     permissions,
+    saveButtonBarState,
     staffMember,
     onBack,
     onDelete,
@@ -71,7 +74,7 @@ const StaffDetailsPage = decorate<StaffDetailsPageProps>(
         onSubmit={onSubmit}
         key={JSON.stringify({ staffMember, permissions })}
       >
-        {({ data, change, submit }) => (
+        {({ data, change, hasChanged, submit }) => (
           <Container width="md">
             <PageHeader
               title={maybe(() => staffMember.email)}
@@ -101,6 +104,8 @@ const StaffDetailsPage = decorate<StaffDetailsPageProps>(
               </div>
             </div>
             <SaveButtonBar
+              disabled={disabled || !hasChanged}
+              state={saveButtonBarState}
               onCancel={onBack}
               onSave={submit}
               onDelete={onDelete}
