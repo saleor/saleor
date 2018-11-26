@@ -255,6 +255,52 @@ def test_who_can_see_user(
     assert content['data']['customers']['totalCount'] == 1
 
 
+ME_QUERY = """
+    query Me{
+        me {
+            id
+            email
+        }
+    }
+"""
+
+
+def test_me_query(user_api_client):
+    response = user_api_client.post_graphql(ME_QUERY)
+    content = get_graphql_content(response)
+    data = content['data']['me']
+    assert data['email'] == user_api_client.user.email
+
+
+def test_me_query_anonymous_client(api_client):
+    response = api_client.post_graphql(ME_QUERY)
+    assert_no_permission(response)
+
+
+def test_me_query_customer_can_not_see_note(
+        staff_user, staff_api_client, permission_manage_users):
+    query = """
+    query Me{
+        me {
+            id
+            email
+            note
+        }
+    }
+    """
+    # Random person (even staff) can't see own note without permissions
+    response = staff_api_client.post_graphql(query)
+    assert_no_permission(response)
+
+    # Add permission and ensure staff can see own note
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    data = content['data']['me']
+    assert data['email'] == staff_api_client.user.email
+    assert data['note'] == staff_api_client.user.note
+
+
 def test_customer_register(user_api_client):
     query = """
         mutation RegisterCustomer($password: String!, $email: String!) {
