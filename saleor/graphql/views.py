@@ -73,6 +73,7 @@ class GraphQLView(View):
                 data={
                     'errors': [self.format_error('Unable to parse query.')]},
                 status=400)
+
         if isinstance(data, list):
             responses = [self.get_response(request, entry) for entry in data]
             result = [response for response, code in responses]
