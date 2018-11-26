@@ -65,13 +65,15 @@ const ConfirmButton = decorate<ConfirmButtonProps>(
     ConfirmButtonState
   > {
     static getDerivedStateFromProps(
-      nextProps: ConfirmButtonProps
+      nextProps: ConfirmButtonProps,
+      prevState: ConfirmButtonState
     ): ConfirmButtonState {
       if (nextProps.transitionState === "loading") {
         return {
           displayCompletedActionState: true
         };
       }
+      return prevState;
     }
 
     state: ConfirmButtonState = {

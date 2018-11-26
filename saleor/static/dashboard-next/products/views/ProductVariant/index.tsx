@@ -7,7 +7,7 @@ import Messages from "../../../components/messages";
 import Navigator from "../../../components/Navigator";
 import { WindowTitle } from "../../../components/WindowTitle";
 import i18n from "../../../i18n";
-import { decimal, maybe } from "../../../misc";
+import { decimal, maybe, getMutationState } from "../../../misc";
 import ProductVariantDeleteDialog from "../../components/ProductVariantDeleteDialog";
 import ProductVariantPage from "../../components/ProductVariantPage";
 import ProductVariantOperations from "../../containers/ProductVariantOperations";
@@ -79,9 +79,13 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                       updateVariant.loading ||
                       assignImage.loading ||
                       unassignImage.loading;
-                    const formSubmitState = disableFormSave
-                      ? "loading"
-                      : "idle";
+                    const formTransitionState = getMutationState(
+                      updateVariant.called,
+                      updateVariant.loading,
+                      maybe(
+                        () => updateVariant.data.productVariantUpdate.errors
+                      )
+                    );
                     const handleImageSelect = (id: string) => () => {
                       if (variant) {
                         if (
@@ -109,7 +113,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                         />
                         <ProductVariantPage
                           errors={errors}
-                          saveButtonBarState={formSubmitState}
+                          saveButtonBarState={formTransitionState}
                           loading={disableFormSave}
                           placeholderImage={placeholderImg}
                           variant={variant}

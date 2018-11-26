@@ -1,12 +1,11 @@
 import * as React from "react";
 
-import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import Shop from "../../components/Shop";
 import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
-import { decimal, maybe } from "../../misc";
+import { decimal, getMutationState, maybe } from "../../misc";
 import ProductCreatePage from "../components/ProductCreatePage";
 import { TypedProductCreateMutation } from "../mutations";
 import { TypedProductCreateQuery } from "../queries";
@@ -32,7 +31,7 @@ export const ProductUpdate: React.StatelessComponent<
 
                 return (
                   <TypedProductCreateQuery displayLoader>
-                    {({ data, error, loading }) => {
+                    {({ data, loading }) => {
                       const handleSuccess = (data: ProductCreate) => {
                         if (data.productCreate.errors.length === 0) {
                           pushMessage({ text: i18n.t("Product created") });
@@ -44,19 +43,12 @@ export const ProductUpdate: React.StatelessComponent<
                         }
                       };
 
-                      if (error) {
-                        return (
-                          <ErrorMessageCard
-                            message={i18n.t("Something went wrong")}
-                          />
-                        );
-                      }
-
                       return (
                         <TypedProductCreateMutation onCompleted={handleSuccess}>
                           {(
                             productCreate,
                             {
+                              called: productCreateCalled,
                               data: productCreateData,
                               loading: productCreateDataLoading
                             }
@@ -83,6 +75,14 @@ export const ProductUpdate: React.StatelessComponent<
 
                             const disabled =
                               loading || productCreateDataLoading;
+
+                            const formTransitionState = getMutationState(
+                              productCreateCalled,
+                              productCreateDataLoading,
+                              maybe(
+                                () => productCreateData.productCreate.errors
+                              )
+                            );
                             return (
                               <>
                                 <WindowTitle title={i18n.t("Create product")} />
@@ -121,6 +121,7 @@ export const ProductUpdate: React.StatelessComponent<
                                   onAttributesEdit={handleAttributesEdit}
                                   onBack={handleBack}
                                   onSubmit={handleSubmit}
+                                  saveButtonBarState={formTransitionState}
                                 />
                               </>
                             );

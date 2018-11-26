@@ -19,8 +19,9 @@ const ProductVariantUpdateProvider: React.StatelessComponent<
   ProductVariantUpdateProviderProps
 > = ({ children, onError, onSuccess }) => (
   <TypedVariantUpdateMutation onCompleted={onSuccess} onError={onError}>
-    {(mutate, { data, error, loading }) => {
+    {(mutate, { called, data, error, loading }) => {
       return children({
+        called,
         data,
         error,
         loading,
