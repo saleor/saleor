@@ -3,6 +3,7 @@ import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import { CardMenu } from "../../../components/CardMenu/CardMenu";
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import { Container } from "../../../components/Container";
 import DateFormatter from "../../../components/DateFormatter";
 import PageHeader from "../../../components/PageHeader";
@@ -28,6 +29,7 @@ export interface OrderDraftPageProps {
     code: string;
     label: string;
   }>;
+  saveButtonBarState: ConfirmButtonTransitionState;
   variants: Array<{
     id: string;
     name: string;
@@ -77,6 +79,7 @@ const OrderDraftPage = decorate<OrderDraftPageProps>(
     classes,
     disabled,
     fetchUsers,
+    saveButtonBarState,
     onBack,
     onBillingAddressEdit,
     onCustomerEdit,
@@ -146,6 +149,7 @@ const OrderDraftPage = decorate<OrderDraftPageProps>(
         </div>
       </div>
       <SaveButtonBar
+        state={saveButtonBarState}
         disabled={disabled || maybe(() => order.lines.length === 0)}
         onCancel={onBack}
         onSave={onDraftFinalize}

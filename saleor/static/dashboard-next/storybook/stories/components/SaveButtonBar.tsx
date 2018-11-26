@@ -1,20 +1,23 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import SaveButtonBar from "../../../components/SaveButtonBar";
 import Decorator from "../../Decorator";
 
-const callbacks = {
+const props = {
+  disabled: false,
   onCancel: undefined,
   onDelete: undefined,
-  onSave: undefined
+  onSave: undefined,
+  state: "default" as ConfirmButtonTransitionState
 };
 
 interface InteractiveDemoProps {
   targetState: "success" | "error" | "string";
 }
 interface InteractiveDemoState {
-  state: "success" | "error" | "loading" | "default";
+  state: ConfirmButtonTransitionState;
 }
 
 class InteractiveDemo extends React.Component<
@@ -41,7 +44,7 @@ class InteractiveDemo extends React.Component<
             this.setState({
               state: this.props.targetState as "success" | "error"
             });
-          }, 2000);
+          }, 3000);
         }
       );
     }
@@ -50,9 +53,10 @@ class InteractiveDemo extends React.Component<
   render() {
     return (
       <SaveButtonBar
+        disabled={false}
         onCancel={() => undefined}
         onSave={this.handleButtonClick}
-        state={this.state.state as any}
+        state={this.state.state}
       />
     );
   }
@@ -60,10 +64,10 @@ class InteractiveDemo extends React.Component<
 
 storiesOf("Generics / SaveButtonBar", module)
   .addDecorator(Decorator)
-  .add("idle", () => <SaveButtonBar {...callbacks} state="default" />)
-  .add("loading", () => <SaveButtonBar {...callbacks} state="loading" />)
-  .add("success", () => <SaveButtonBar {...callbacks} state="success" />)
-  .add("error", () => <SaveButtonBar {...callbacks} state="error" />)
-  .add("disabled", () => <SaveButtonBar {...callbacks} disabled />)
+  .add("idle", () => <SaveButtonBar {...props} state="default" />)
+  .add("loading", () => <SaveButtonBar {...props} state="loading" />)
+  .add("success", () => <SaveButtonBar {...props} state="success" />)
+  .add("error", () => <SaveButtonBar {...props} state="error" />)
+  .add("disabled", () => <SaveButtonBar {...props} disabled />)
   .add("interactive success", () => <InteractiveDemo targetState="success" />)
   .add("interactive error", () => <InteractiveDemo targetState="error" />);

@@ -22,6 +22,7 @@ storiesOf("Views / Products / Create product", module)
       onAttributesEdit={undefined}
       onBack={() => undefined}
       onSubmit={() => undefined}
+      saveButtonBarState="default"
     />
   ))
   .add("When loading", () => (
@@ -36,5 +37,6 @@ storiesOf("Views / Products / Create product", module)
       onAttributesEdit={undefined}
       onBack={() => undefined}
       onSubmit={() => undefined}
+      saveButtonBarState="default"
     />
   ));

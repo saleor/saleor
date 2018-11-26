@@ -13,6 +13,7 @@ const props: StaffDetailsPageProps = {
   onDelete: () => undefined,
   onSubmit: () => undefined,
   permissions,
+  saveButtonBarState: "default",
   staffMember
 };
 

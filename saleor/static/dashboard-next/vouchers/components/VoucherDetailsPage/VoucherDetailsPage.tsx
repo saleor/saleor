@@ -5,12 +5,11 @@ import * as React from "react";
 
 import { createVoucherName, VoucherType } from "../..";
 import ActionDialog from "../../../components/ActionDialog";
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar, {
-  SaveButtonBarState
-} from "../../../components/SaveButtonBar";
+import SaveButtonBar from "../../../components/SaveButtonBar";
 import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
 import VoucherDetails from "../VoucherDetails/VoucherDetails";
@@ -56,7 +55,7 @@ interface VoucherDetailsPageProps {
     label: string;
     code: string;
   }>;
-  saveButtonBarState?: SaveButtonBarState;
+  saveButtonBarState?: ConfirmButtonTransitionState;
   loadingCategories?: boolean;
   loadingProducts?: boolean;
   loadingShipping?: boolean;
