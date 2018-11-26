@@ -26,7 +26,7 @@ handler404 = 'saleor.core.views.handle_404'
 non_translatable_urlpatterns = [
     url(r'^dashboard/',
         include((dashboard_urls, 'dashboard'), namespace='dashboard')),
-    url(r'^graphql/', csrf_exempt(GraphQLView.as_view(
+    url(r'^graphql', csrf_exempt(GraphQLView.as_view(
         schema=schema)), name='api'),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
