@@ -60,7 +60,7 @@ class GraphQLView(View):
         # Add access control headers
         response['Access-Control-Allow-Origin'] = (
             settings.ALLOWED_GRAPHQL_ORIGINS)
-        response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        response['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
         response['Access-Control-Allow-Headers'] = (
             'Origin, Content-Type, Accept, Authorization')
         return response
