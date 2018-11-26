@@ -1,4 +1,3 @@
-import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.db.models import Q
 from i18naddress import get_validation_rules
@@ -6,7 +5,7 @@ from i18naddress import get_validation_rules
 from ...account import models
 from ...core.utils import get_client_ip, get_country_by_ip
 from ..utils import filter_by_query_param
-from .types import AddressValidationData, ChoiceValue, User
+from .types import AddressValidationData, ChoiceValue
 
 USER_SEARCH_FIELDS = (
     'email', 'default_shipping_address__first_name',
