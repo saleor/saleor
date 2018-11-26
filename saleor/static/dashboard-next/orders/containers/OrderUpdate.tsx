@@ -6,7 +6,7 @@ import { OrderUpdate, OrderUpdateVariables } from "../types/OrderUpdate";
 import {
   PartialMutationProviderProps,
   PartialMutationProviderRenderProps
-} from "../..";
+} from "../../types";
 
 interface OrderUpdateProviderProps
   extends PartialMutationProviderProps<OrderUpdate> {

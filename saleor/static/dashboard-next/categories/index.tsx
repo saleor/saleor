@@ -1,8 +1,13 @@
 import { parse as parseQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
+import { WindowTitle } from "../components/WindowTitle";
+import i18n from "../i18n";
+import { categoryAddUrl, categoryListUrl, categoryUrl } from "./urls";
 import { CategoryCreateView } from "./views/CategoryCreate";
-import CategoryDetailsView from "./views/CategoryDetails";
+import CategoryDetailsView, {
+  CategoryDetailsQueryParams
+} from "./views/CategoryDetails";
 import CategoryList from "./views/CategoryList";
 
 interface CategoryDetailsRouteParams {
@@ -12,7 +17,7 @@ const CategoryDetails: React.StatelessComponent<
   RouteComponentProps<CategoryDetailsRouteParams>
 > = ({ location, match }) => {
   const qs = parseQs(location.search.substr(1));
-  const params = {
+  const params: CategoryDetailsQueryParams = {
     after: qs.after,
     before: qs.before
   };
@@ -39,26 +44,16 @@ const CategoryCreate: React.StatelessComponent<
   );
 };
 
-const Component = ({ match }) => (
-  <Switch>
-    <Route exact path={match.url} component={CategoryList} />
-    <Route exact path={`${match.url}/add/`} component={CategoryCreate} />
-    <Route exact path={`${match.url}/:id/add/`} component={CategoryCreate} />
-    <Route path={`${match.url}/:id/`} component={CategoryDetails} />
-  </Switch>
+const Component = () => (
+  <>
+    <WindowTitle title={i18n.t("Categories")} />
+    <Switch>
+      <Route exact path={categoryListUrl} component={CategoryList} />
+      <Route exact path={categoryAddUrl()} component={CategoryCreate} />
+      <Route exact path={categoryAddUrl(":id")} component={CategoryCreate} />
+      <Route path={categoryUrl(":id")} component={CategoryDetails} />
+    </Switch>
+  </>
 );
 
-export const categoryListUrl = "/categories/";
-export const categoryAddUrl = (parentId?: string) => {
-  if (parentId) {
-    return `/categories/${parentId}/add/`;
-  }
-  return `/categories/add/`;
-};
-export const categoryUrl = (id?: string) => {
-  if (id) {
-    return `/categories/${id}/`;
-  }
-  return "/categories/";
-};
 export default Component;

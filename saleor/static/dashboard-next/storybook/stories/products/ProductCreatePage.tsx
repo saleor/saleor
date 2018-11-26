@@ -16,7 +16,7 @@ storiesOf("Views / Products / Create product", module)
       disabled={false}
       errors={[]}
       header="Add product"
-      collections={product.collections.edges.map(edge => edge.node)}
+      collections={product.collections}
       productTypes={productTypes}
       categories={[product.category]}
       onAttributesEdit={undefined}
@@ -30,7 +30,7 @@ storiesOf("Views / Products / Create product", module)
       disabled={true}
       errors={[]}
       header="Add product"
-      collections={product.collections.edges.map(edge => edge.node)}
+      collections={product.collections}
       productTypes={productTypes}
       categories={[product.category]}
       onAttributesEdit={undefined}

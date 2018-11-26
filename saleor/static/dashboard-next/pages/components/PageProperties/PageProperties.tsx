@@ -90,4 +90,5 @@ const PageProperties: React.StatelessComponent<PagePropertiesProps> = ({
     </Card>
   );
 };
+PageProperties.displayName = "PageProperties";
 export default PageProperties;

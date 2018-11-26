@@ -86,4 +86,5 @@ export const TimelineAddNote = decorate<TimelineAddNoteProps>(
     </div>
   )
 );
+Timeline.displayName = "Timeline";
 export default Timeline;

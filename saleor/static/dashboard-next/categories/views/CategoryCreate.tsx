@@ -1,13 +1,14 @@
 import * as React from "react";
 
-import { categoryUrl } from "../";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
+import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
 import CategoryCreatePage from "../components/CategoryCreatePage";
 import { TypedCategoryCreateMutation } from "../mutations";
 import { CategoryCreate } from "../types/CategoryCreate";
+import { categoryUrl } from "../urls";
 
 interface CategoryCreateViewProps {
   parentId: string;
@@ -31,28 +32,31 @@ export const CategoryCreateView: React.StatelessComponent<
           return (
             <TypedCategoryCreateMutation onCompleted={handleSuccess}>
               {(mutate, { data, loading }) => (
-                <CategoryCreatePage
-                  errors={maybe(() => data.categoryCreate.errors, [])}
-                  disabled={loading}
-                  onBack={() =>
-                    navigate(categoryUrl(encodeURIComponent(parentId)))
-                  }
-                  onSubmit={formData =>
-                    mutate({
-                      variables: {
-                        input: {
-                          description: formData.description,
-                          name: formData.name,
-                          seo: {
-                            description: formData.seoDescription,
-                            title: formData.seoTitle
-                          }
-                        },
-                        parent: parentId
-                      }
-                    })
-                  }
-                />
+                <>
+                  <WindowTitle title={i18n.t("Create category")} />
+                  <CategoryCreatePage
+                    errors={maybe(() => data.categoryCreate.errors, [])}
+                    disabled={loading}
+                    onBack={() =>
+                      navigate(categoryUrl(encodeURIComponent(parentId)))
+                    }
+                    onSubmit={formData =>
+                      mutate({
+                        variables: {
+                          input: {
+                            description: formData.description,
+                            name: formData.name,
+                            seo: {
+                              description: formData.seoDescription,
+                              title: formData.seoTitle
+                            }
+                          },
+                          parent: parentId
+                        }
+                      })
+                    }
+                  />
+                </>
               )}
             </TypedCategoryCreateMutation>
           );

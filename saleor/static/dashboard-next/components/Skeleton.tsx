@@ -33,4 +33,5 @@ const Skeleton = decorate<SkeletonProps>(({ classes, style }) => (
   </span>
 ));
 
+Skeleton.displayName = "Skeleton";
 export default Skeleton;

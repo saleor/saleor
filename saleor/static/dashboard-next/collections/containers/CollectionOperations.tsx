@@ -4,7 +4,7 @@ import {
   MutationProviderProps,
   MutationProviderRenderProps,
   PartialMutationProviderOutput
-} from "../..";
+} from "../../types";
 import { TypedUnassignCollectionProductMutation } from "../mutations";
 import {
   AssignHomepageCollection,

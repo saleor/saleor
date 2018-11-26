@@ -169,4 +169,5 @@ export const MultiAutocompleteSelectField = decorate<
     );
   }
 );
+MultiAutocompleteSelectField.displayName = "MultiAutocompleteSelectField";
 export default MultiAutocompleteSelectField;

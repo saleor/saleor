@@ -169,4 +169,5 @@ const OrderHistory = decorate<OrderHistoryProps>(
     </div>
   )
 );
+OrderHistory.displayName = "OrderHistory";
 export default OrderHistory;

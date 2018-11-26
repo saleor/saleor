@@ -1,91 +1,11 @@
-import { stringify } from "qs";
+import { AddressType } from "./customers/types";
 import i18n from "./i18n";
-import { AuthorizationKeyType, TaxRateType } from "./types/globalTypes";
-
-export interface PageInfo {
-  endCursor: string;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-  startCursor: string;
-}
-interface PaginationState {
-  after?: string;
-  before?: string;
-  first?: number;
-  last?: number;
-}
-
-interface QueryString {
-  after?: string;
-  before?: string;
-}
-
-export function createPaginationState(
-  paginateBy: number,
-  queryString: QueryString
-): PaginationState {
-  return queryString && (queryString.before || queryString.after)
-    ? queryString.after
-      ? {
-          after: queryString.after,
-          first: paginateBy
-        }
-      : {
-          before: queryString.before,
-          last: paginateBy
-        }
-    : {
-        first: paginateBy
-      };
-}
-
-export function createPaginationData(
-  navigate: ((url: string, push: boolean) => void),
-  paginationState: PaginationState,
-  url: string,
-  pageInfo: PageInfo,
-  loading
-) {
-  const loadNextPage = () => {
-    if (loading) {
-      return;
-    }
-    return navigate(
-      url +
-        "?" +
-        stringify({
-          after: pageInfo.endCursor
-        }),
-      true
-    );
-  };
-  const loadPreviousPage = () => {
-    if (loading) {
-      return;
-    }
-    return navigate(
-      url +
-        "?" +
-        stringify({
-          before: pageInfo.startCursor
-        }),
-      true
-    );
-  };
-  const newPageInfo = pageInfo
-    ? {
-        ...pageInfo,
-        hasNextPage: !!paginationState.before || pageInfo.hasNextPage,
-        hasPreviousPage: !!paginationState.after || pageInfo.hasPreviousPage
-      }
-    : undefined;
-
-  return {
-    loadNextPage,
-    loadPreviousPage,
-    pageInfo: newPageInfo
-  };
-}
+import {
+  AuthorizationKeyType,
+  OrderStatus,
+  PaymentChargeStatusEnum,
+  TaxRateType
+} from "./types/globalTypes";
 
 export function renderCollection<T>(
   collection: T[],
@@ -111,6 +31,50 @@ export function decimal(value: string) {
 
 export const removeDoubleSlashes = (url: string) =>
   url.replace(/([^:]\/)\/+/g, "$1");
+
+export const transformPaymentStatus = (status: string) => {
+  switch (status) {
+    case PaymentChargeStatusEnum.CHARGED:
+      return { localized: i18n.t("Paid"), status: "success" };
+    case PaymentChargeStatusEnum.FULLY_REFUNDED:
+      return { localized: i18n.t("Refunded"), status: "success" };
+    default:
+      return { localized: i18n.t("Unpaid"), status: "error" };
+  }
+};
+
+export const transformOrderStatus = (status: string) => {
+  switch (status) {
+    case OrderStatus.FULFILLED:
+      return { localized: i18n.t("Fulfilled"), status: "success" };
+    case OrderStatus.PARTIALLY_FULFILLED:
+      return { localized: i18n.t("Partially fulfilled"), status: "neutral" };
+    case OrderStatus.UNFULFILLED:
+      return { localized: i18n.t("Unfulfilled"), status: "error" };
+    case OrderStatus.CANCELED:
+      return { localized: i18n.t("Cancelled"), status: "error" };
+    case OrderStatus.DRAFT:
+      return { localized: i18n.t("Draft"), status: "error" };
+  }
+  return {
+    localized: status,
+    status: "error"
+  };
+};
+
+export const transformAddressToForm = (data: AddressType) => ({
+  city: maybe(() => data.city, ""),
+  cityArea: maybe(() => data.cityArea, ""),
+  companyName: maybe(() => data.companyName, ""),
+  country: maybe(() => data.country.code, ""),
+  countryArea: maybe(() => data.countryArea, ""),
+  firstName: maybe(() => data.firstName, ""),
+  lastName: maybe(() => data.lastName, ""),
+  phone: maybe(() => data.phone, ""),
+  postalCode: maybe(() => data.postalCode, ""),
+  streetAddress1: maybe(() => data.streetAddress1, ""),
+  streetAddress2: maybe(() => data.streetAddress2, "")
+});
 
 export const translatedTaxRates = () => ({
   [TaxRateType.ACCOMMODATION]: i18n.t("Accommodation"),
@@ -157,4 +121,14 @@ export function maybe<T>(exp: () => T, d?: T) {
   } catch {
     return d;
   }
+}
+
+export function only<T>(obj: T, key: keyof T): boolean {
+  return Object.keys(obj).every(objKey =>
+    objKey === key ? obj[key] !== undefined : obj[key] === undefined
+  );
+}
+
+export function empty(obj: object): boolean {
+  return Object.keys(obj).every(key => obj[key] === undefined);
 }

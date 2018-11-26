@@ -60,7 +60,7 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
     onOrderFulfillmentCancel,
     onTrackingCodeAdd
   }) => {
-    const lines = maybe(() => fulfillment.lines.edges.map(edge => edge.node));
+    const lines = maybe(() => fulfillment.lines);
     const status = maybe(() => fulfillment.status);
     return (
       <Card>
@@ -146,10 +146,7 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
                 </TableCell>
                 <TableCell className={classes.textRight}>
                   {maybe(() => line.orderLine.unitPrice.gross) ? (
-                    <Money
-                      amount={line.orderLine.unitPrice.gross.amount}
-                      currency={line.orderLine.unitPrice.gross.currency}
-                    />
+                    <Money money={line.orderLine.unitPrice.gross} />
                   ) : (
                     <Skeleton />
                   )}
@@ -159,10 +156,11 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
                     () => line.quantity * line.orderLine.unitPrice.gross.amount
                   ) ? (
                     <Money
-                      amount={
-                        line.quantity * line.orderLine.unitPrice.gross.amount
-                      }
-                      currency={line.orderLine.unitPrice.gross.currency}
+                      money={{
+                        amount:
+                          line.quantity * line.orderLine.unitPrice.gross.amount,
+                        currency: line.orderLine.unitPrice.gross.currency
+                      }}
                     />
                   ) : (
                     <Skeleton />
@@ -181,16 +179,16 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
             )}
           </TableBody>
         </Table>
-        {status === FulfillmentStatus.FULFILLED &&
-          !fulfillment.trackingNumber && (
-            <CardActions>
-              <Button color="secondary" onClick={onTrackingCodeAdd}>
-                {i18n.t("Add tracking")}
-              </Button>
-            </CardActions>
-          )}
+        {status === FulfillmentStatus.FULFILLED && !fulfillment.trackingNumber && (
+          <CardActions>
+            <Button color="secondary" onClick={onTrackingCodeAdd}>
+              {i18n.t("Add tracking")}
+            </Button>
+          </CardActions>
+        )}
       </Card>
     );
   }
 );
+OrderFulfillment.displayName = "OrderFulfillment";
 export default OrderFulfillment;

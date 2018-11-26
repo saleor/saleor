@@ -8,12 +8,12 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import { ListProps } from "../../..";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
+import { ListProps } from "../../../types";
 
 interface PageListProps extends ListProps {
   pages?: Array<{
@@ -106,5 +106,5 @@ export const PageList = decorate<PageListProps>(
     </Card>
   )
 );
-
+PageList.displayName = "PageList";
 export default PageList;

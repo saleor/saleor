@@ -155,4 +155,5 @@ export const SaveButtonBar = decorate<SaveButtonBarProps>(
     );
   }
 );
+SaveButtonBar.displayName = "SaveButtonBar";
 export default SaveButtonBar;

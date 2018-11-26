@@ -121,5 +121,5 @@ export const CategoryBackground = decorate(
     }
   }
 );
-
+CategoryBackground.displayName = "CategoryBackground";
 export default CategoryBackground;

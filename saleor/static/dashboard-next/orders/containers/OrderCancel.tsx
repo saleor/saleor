@@ -6,7 +6,7 @@ import { OrderCancel, OrderCancelVariables } from "../types/OrderCancel";
 import {
   PartialMutationProviderProps,
   PartialMutationProviderRenderProps
-} from "../..";
+} from "../../types";
 
 interface OrderCancelMutationProviderProps
   extends PartialMutationProviderProps<OrderCancel> {

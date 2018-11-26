@@ -14,4 +14,5 @@ export const FormSpacer = decorate<FormSpacerProps>(({ classes, children }) => (
   <div className={classes.spacer}>{children}</div>
 ));
 
+FormSpacer.displayName = "FormSpacer";
 export default FormSpacer;

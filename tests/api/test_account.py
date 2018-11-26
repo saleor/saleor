@@ -2,16 +2,16 @@ import json
 import re
 from unittest.mock import Mock, patch
 
-import pytest
-
 import graphene
+import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import reverse
+from tests.api.utils import get_graphql_content
+
 from saleor.account.models import Address, User
 from saleor.graphql.account.mutations import (
     CustomerDelete, SetPassword, StaffDelete, StaffUpdate, UserDelete)
-from tests.api.utils import get_graphql_content
 
 from .utils import (
     assert_no_permission, assert_read_only_mode,
@@ -30,7 +30,7 @@ def test_create_token_mutation(admin_client, staff_user):
         }
     }
     """
-    variables = json.dumps({'email': staff_user.email, 'password': 'password'})
+    variables = {'email': staff_user.email, 'password': 'password'}
     response = admin_client.post(
         reverse('api'), json.dumps({'query': query, 'variables': variables}),
         content_type='application/json')
@@ -39,8 +39,7 @@ def test_create_token_mutation(admin_client, staff_user):
     assert token_data['token']
     assert not token_data['errors']
 
-    incorrect_variables = json.dumps(
-        {'email': staff_user.email, 'password': 'incorrect'})
+    incorrect_variables = {'email': staff_user.email, 'password': 'incorrect'}
     response = admin_client.post(
         reverse('api'),
         json.dumps({'query': query, 'variables': incorrect_variables}),
@@ -94,7 +93,7 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
             isStaff
             isActive
             addresses {
-                totalCount
+                id
             }
             orders {
                 totalCount
@@ -121,14 +120,14 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
     """
     ID = graphene.Node.to_global_id('User', customer_user.id)
     variables = {'id': ID}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_users])
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['user']
     assert data['email'] == user.email
     assert data['isStaff'] == user.is_staff
     assert data['isActive'] == user.is_active
-    assert data['addresses']['totalCount'] == user.addresses.count()
+    assert len(data['addresses']) == user.addresses.count()
     assert data['orders']['totalCount'] == user.orders.count()
     address = data['defaultShippingAddress']
     user_address = user.default_shipping_address
@@ -143,6 +142,30 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
     assert address['country']['code'] == user_address.country.code
     assert address['countryArea'] == user_address.country_area
     assert address['phone'] == user_address.phone.as_e164
+
+
+USER_QUERY = """
+    query User($id: ID!) {
+        user(id: $id) {
+            email
+        }
+    }
+"""
+
+
+def test_customer_can_not_see_other_users_data(user_api_client,
+                                               staff_user):
+    id = graphene.Node.to_global_id('User', staff_user.id)
+    variables = {'id': id}
+    response = user_api_client.post_graphql(USER_QUERY, variables)
+    assert_no_permission(response)
+
+
+def test_user_query_anonymous_user(api_client):
+    variables = {'id': ''}
+    response = api_client.post_graphql(
+        USER_QUERY, variables)
+    assert_no_permission(response)
 
 
 def test_query_customers(
@@ -206,14 +229,6 @@ def test_who_can_see_user(
         staff_user, customer_user, staff_api_client, user_api_client,
         permission_manage_users):
     query = """
-    query User($id: ID!) {
-        user(id: $id) {
-            email
-        }
-    }
-    """
-
-    query_2 = """
     query Users {
         customers {
             totalCount
@@ -224,21 +239,67 @@ def test_who_can_see_user(
     # Random person (even staff) can't see users data without permissions
     ID = graphene.Node.to_global_id('User', customer_user.id)
     variables = {'id': ID}
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(USER_QUERY, variables)
     assert_no_permission(response)
 
-    response = staff_api_client.post_graphql(query_2)
+    response = staff_api_client.post_graphql(query)
     assert_no_permission(response)
 
     # Add permission and ensure staff can see user(s)
     staff_user.user_permissions.add(permission_manage_users)
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(USER_QUERY, variables)
     content = get_graphql_content(response)
     assert content['data']['user']['email'] == customer_user.email
 
-    response = staff_api_client.post_graphql(query_2)
+    response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     assert content['data']['customers']['totalCount'] == 1
+
+
+ME_QUERY = """
+    query Me {
+        me {
+            id
+            email
+        }
+    }
+"""
+
+
+def test_me_query(user_api_client):
+    response = user_api_client.post_graphql(ME_QUERY)
+    content = get_graphql_content(response)
+    data = content['data']['me']
+    assert data['email'] == user_api_client.user.email
+
+
+def test_me_query_anonymous_client(api_client):
+    response = api_client.post_graphql(ME_QUERY)
+    assert_no_permission(response)
+
+
+def test_me_query_customer_can_not_see_note(
+        staff_user, staff_api_client, permission_manage_users):
+    query = """
+    query Me {
+        me {
+            id
+            email
+            note
+        }
+    }
+    """
+    # Random person (even staff) can't see own note without permissions
+    response = staff_api_client.post_graphql(query)
+    assert_no_permission(response)
+
+    # Add permission and ensure staff can see own note
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    data = content['data']['me']
+    assert data['email'] == staff_api_client.user.email
+    assert data['note'] == staff_api_client.user.note
 
 
 def test_customer_register(user_api_client):
@@ -356,6 +417,55 @@ def test_customer_update(
     # check unauthorized access
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_users])
+    assert_read_only_mode(response)
+
+
+UPDATE_LOGGED_CUSTOMER_QUERY = """
+    mutation UpdateLoggedCustomer($billing: AddressInput,
+                                  $shipping: AddressInput) {
+        loggedUserUpdate(
+          input: {
+            defaultBillingAddress: $billing,
+            defaultShippingAddress: $shipping,
+        }) {
+            errors {
+                field
+                message
+            }
+            user {
+                email
+                defaultBillingAddress {
+                    id
+                }
+                defaultShippingAddress {
+                    id
+                }
+            }
+        }
+    }
+"""
+
+
+def test_logged_customer_update(user_api_client, graphql_address_data):
+    # this test requires addresses to be set and checks whether new address
+    # instances weren't created, but the existing ones got updated
+    user = user_api_client.user
+    new_first_name = graphql_address_data['firstName']
+    assert user.default_billing_address
+    assert user.default_shipping_address
+    assert user.default_billing_address.first_name != new_first_name
+    assert user.default_shipping_address.first_name != new_first_name
+    variables = {
+        'billing': graphql_address_data,
+        'shipping': graphql_address_data}
+    response = user_api_client.post_graphql(
+        UPDATE_LOGGED_CUSTOMER_QUERY, variables)
+    assert_read_only_mode(response)
+
+
+def test_logged_customer_update_anonymus_user(api_client):
+    response = api_client.post_graphql(
+        UPDATE_LOGGED_CUSTOMER_QUERY, {})
     assert_read_only_mode(response)
 
 

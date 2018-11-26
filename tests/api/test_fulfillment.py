@@ -24,7 +24,7 @@ CREATE_FULFILLMENT_QUERY = """
                 status
                 trackingNumber
             lines {
-                totalCount
+                id
             }
         }
     }

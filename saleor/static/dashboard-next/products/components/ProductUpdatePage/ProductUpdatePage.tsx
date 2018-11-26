@@ -1,10 +1,6 @@
-import DialogContentText from "@material-ui/core/DialogContentText";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import { AttributeType, AttributeValueType, MoneyType } from "../../";
-import { UserError } from "../../../";
-import ActionDialog from "../../../components/ActionDialog";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
@@ -12,9 +8,13 @@ import SaveButtonBar, {
   SaveButtonBarState
 } from "../../../components/SaveButtonBar/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
-import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
-import { ProductDetails_product_images_edges_node } from "../../types/ProductDetails";
+import { UserError } from "../../../types";
+import {
+  ProductDetails_product,
+  ProductDetails_product_images,
+  ProductDetails_product_variants_priceOverride
+} from "../../types/ProductDetails";
 import ProductAvailabilityForm from "../ProductAvailabilityForm";
 import ProductDetailsForm from "../ProductDetailsForm";
 import ProductImages from "../ProductImages";
@@ -43,48 +43,12 @@ interface ProductUpdateProps {
     id: string;
     sku: string;
     name: string;
-    priceOverride?: MoneyType;
+    priceOverride?: ProductDetails_product_variants_priceOverride;
     stockQuantity: number;
     margin: number;
   }>;
-  images?: ProductDetails_product_images_edges_node[];
-  product?: {
-    id: string;
-    name: string;
-    description: string;
-    seoTitle?: string;
-    seoDescription?: string;
-    isFeatured?: boolean;
-    chargeTaxes?: boolean;
-    productType: {
-      id: string;
-      name: string;
-      hasVariants: boolean;
-    };
-    category: {
-      id: string;
-      name: string;
-    };
-    price: MoneyType;
-    availableOn?: string;
-    isPublished: boolean;
-    attributes: Array<{
-      attribute: AttributeType;
-      value: AttributeValueType;
-    }>;
-    availability: {
-      available: boolean;
-    };
-    purchaseCost: {
-      start: MoneyType;
-      stop: MoneyType;
-    };
-    margin: {
-      start: number;
-      stop: number;
-    };
-    url: string;
-  };
+  images?: ProductDetails_product_images[];
+  product?: ProductDetails_product;
   header: string;
   saveButtonBarState?: SaveButtonBarState;
   onVariantShow: (id: string) => () => void;
@@ -147,12 +111,6 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
     onVariantAdd,
     onVariantShow
   }) => {
-    const deleteDialogText = {
-      __html: i18n.t(
-        "Are you sure you want to remove <strong>{{ name }}</strong>?",
-        { name: product ? product.name : undefined }
-      )
-    };
     const initialData = product
       ? {
           attributes: product.attributes
@@ -169,7 +127,6 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
             ? productCollections.map(node => node.id)
             : [],
           description: product.description,
-          featured: product.isFeatured,
           name: product.name,
           price: product.price ? product.price.amount.toString() : undefined,
           productType:
@@ -190,14 +147,14 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
             product.productType && product.productType.hasVariants
               ? undefined
               : variants && variants[0]
-                ? variants[0].sku
-                : undefined,
+              ? variants[0].sku
+              : undefined,
           stockQuantity:
             product.productType && product.productType.hasVariants
               ? undefined
               : variants && variants[0]
-                ? variants[0].stockQuantity
-                : undefined
+              ? variants[0].stockQuantity
+              : undefined
         }
       : {
           availableOn: "",
@@ -229,123 +186,109 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
       product && product.productType && product.productType.hasVariants;
 
     return (
-      <Toggle>
-        {(openedDeleteDialog, { toggle: toggleDeleteDialog }) => (
-          <Form
-            onSubmit={onSubmit}
-            errors={userErrors}
-            initial={initialData}
-            key={product ? JSON.stringify(product) : "loading"}
-          >
-            {({ change, data, errors, hasChanged, submit }) => (
-              <>
-                <Container width="md">
-                  <PageHeader title={header} onBack={onBack} />
-                  <div className={classes.root}>
-                    <div>
-                      <ProductDetailsForm
-                        data={data}
-                        disabled={disabled}
-                        errors={errors}
-                        onChange={change}
-                      />
-                      <div className={classes.cardContainer}>
-                        <ProductImages
-                          images={images}
-                          placeholderImage={placeholderImage}
-                          onImageDelete={onImageDelete}
-                          onImageReorder={onImageReorder}
-                          onImageEdit={onImageEdit}
-                          onImageUpload={onImageUpload}
-                        />
-                      </div>
-                      <div className={classes.cardContainer}>
-                        <ProductPricing
-                          currency={currency}
-                          data={data}
-                          disabled={disabled}
-                          onChange={change}
-                        />
-                      </div>
-                      <div className={classes.cardContainer}>
-                        {hasVariants ? (
-                          <ProductVariants
-                            variants={variants}
-                            fallbackPrice={product ? product.price : undefined}
-                            onAttributesEdit={onAttributesEdit}
-                            onRowClick={onVariantShow}
-                            onVariantAdd={onVariantAdd}
-                          />
-                        ) : (
-                          <ProductStock
-                            data={data}
-                            disabled={disabled}
-                            onChange={change}
-                          />
-                        )}
-                      </div>
-                      <div className={classes.cardContainer}>
-                        <SeoForm
-                          helperText={i18n.t(
-                            "Add search engine title and description to make this product easier to find"
-                          )}
-                          title={data.seoTitle}
-                          titlePlaceholder={data.name}
-                          description={data.seoDescription}
-                          descriptionPlaceholder={data.description}
-                          loading={disabled}
-                          onClick={onSeoClick}
-                          onChange={change}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <ProductOrganization
-                        category={data.category}
-                        categories={categories}
-                        errors={errors}
-                        productCollections={data.collections}
-                        collections={collections}
-                        product={product}
-                        data={data}
-                        disabled={disabled}
-                        onChange={change}
-                      />
-                      <div className={classes.cardContainer}>
-                        <ProductAvailabilityForm
-                          data={data}
-                          errors={errors}
-                          loading={disabled}
-                          onChange={change}
-                        />
-                      </div>
-                    </div>
+      <Form
+        onSubmit={onSubmit}
+        errors={userErrors}
+        initial={initialData}
+        key={product ? JSON.stringify(product) : "loading"}
+      >
+        {({ change, data, errors, hasChanged, submit }) => (
+          <>
+            <Container width="md">
+              <PageHeader title={header} onBack={onBack} />
+              <div className={classes.root}>
+                <div>
+                  <ProductDetailsForm
+                    data={data}
+                    disabled={disabled}
+                    errors={errors}
+                    onChange={change}
+                  />
+                  <div className={classes.cardContainer}>
+                    <ProductImages
+                      images={images}
+                      placeholderImage={placeholderImage}
+                      onImageDelete={onImageDelete}
+                      onImageReorder={onImageReorder}
+                      onImageEdit={onImageEdit}
+                      onImageUpload={onImageUpload}
+                    />
                   </div>
-                  <SaveButtonBar
-                    onCancel={onBack}
-                    onDelete={toggleDeleteDialog}
-                    onSave={submit}
-                    state={saveButtonBarState}
-                    disabled={disabled || !hasChanged}
+                  <div className={classes.cardContainer}>
+                    <ProductPricing
+                      currency={currency}
+                      data={data}
+                      disabled={disabled}
+                      onChange={change}
+                    />
+                  </div>
+                  <div className={classes.cardContainer}>
+                    {hasVariants ? (
+                      <ProductVariants
+                        variants={variants}
+                        fallbackPrice={product ? product.price : undefined}
+                        onAttributesEdit={onAttributesEdit}
+                        onRowClick={onVariantShow}
+                        onVariantAdd={onVariantAdd}
+                      />
+                    ) : (
+                      <ProductStock
+                        data={data}
+                        disabled={disabled}
+                        onChange={change}
+                      />
+                    )}
+                  </div>
+                  <div className={classes.cardContainer}>
+                    <SeoForm
+                      helperText={i18n.t(
+                        "Add search engine title and description to make this product easier to find"
+                      )}
+                      title={data.seoTitle}
+                      titlePlaceholder={data.name}
+                      description={data.seoDescription}
+                      descriptionPlaceholder={data.description}
+                      loading={disabled}
+                      onClick={onSeoClick}
+                      onChange={change}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <ProductOrganization
+                    category={data.category}
+                    categories={categories}
+                    errors={errors}
+                    productCollections={data.collections}
+                    collections={collections}
+                    product={product}
+                    data={data}
+                    disabled={disabled}
+                    onChange={change}
                   />
-                </Container>
-                <ActionDialog
-                  open={openedDeleteDialog}
-                  onClose={toggleDeleteDialog}
-                  onConfirm={onDelete}
-                  variant="delete"
-                  title={i18n.t("Remove product")}
-                >
-                  <DialogContentText
-                    dangerouslySetInnerHTML={deleteDialogText}
-                  />
-                </ActionDialog>
-              </>
-            )}
-          </Form>
+                  <div className={classes.cardContainer}>
+                    <ProductAvailabilityForm
+                      data={data}
+                      errors={errors}
+                      loading={disabled}
+                      onChange={change}
+                    />
+                  </div>
+                </div>
+              </div>
+              <SaveButtonBar
+                onCancel={onBack}
+                onDelete={onDelete}
+                onSave={submit}
+                state={saveButtonBarState}
+                disabled={disabled || !hasChanged}
+              />
+            </Container>
+          </>
         )}
-      </Toggle>
+      </Form>
     );
   }
 );
+ProductUpdate.displayName = "ProductUpdate";
 export default ProductUpdate;

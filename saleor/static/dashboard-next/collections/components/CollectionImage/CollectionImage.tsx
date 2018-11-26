@@ -109,5 +109,5 @@ export const CollectionImage = decorate(
     }
   }
 );
-
+CollectionImage.displayName = "CollectionImage";
 export default CollectionImage;

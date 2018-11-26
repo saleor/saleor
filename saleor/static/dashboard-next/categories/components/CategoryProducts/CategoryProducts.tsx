@@ -122,5 +122,5 @@ export const ProductList = decorate<ProductListProps>(
     </Card>
   )
 );
-
+ProductList.displayName = "CategoryProductList";
 export default ProductList;

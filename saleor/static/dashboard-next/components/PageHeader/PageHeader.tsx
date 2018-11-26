@@ -36,5 +36,5 @@ const PageHeader = decorate<PageHeaderProps>(
     </ExtendedPageHeader>
   )
 );
-
+PageHeader.displayName = "PageHeader";
 export default PageHeader;

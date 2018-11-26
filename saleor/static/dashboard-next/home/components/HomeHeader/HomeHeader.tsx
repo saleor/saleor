@@ -41,4 +41,5 @@ const HomeOrdersCard = decorate<HomeOrdersCardProps>(
     );
   }
 );
+HomeOrdersCard.displayName = "HomeOrdersCard";
 export default HomeOrdersCard;

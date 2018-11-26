@@ -3,7 +3,7 @@ import * as React from "react";
 import {
   PartialMutationProviderProps,
   PartialMutationProviderRenderProps
-} from "../..";
+} from "../../types";
 import { TypedTokenAuthMutation } from "../mutations";
 import { TokenAuth, TokenAuthVariables } from "../types/TokenAuth";
 
@@ -23,5 +23,5 @@ const TokenAuthProvider: React.StatelessComponent<TokenAuthProviderProps> = ({
     }
   </TypedTokenAuthMutation>
 );
-
+TokenAuthProvider.displayName = "TokenAuthProvider";
 export default TokenAuthProvider;

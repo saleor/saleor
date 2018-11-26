@@ -1,12 +1,16 @@
 import * as React from "react";
 
+export interface ToggleFuncs {
+  disable();
+  enable();
+  toggle();
+}
+export type ToggleChildren = (
+  value: boolean,
+  funcs: ToggleFuncs
+) => React.ReactElement<any>;
 interface ToggleProps {
-  children:
-    | ((
-        value: boolean,
-        funcs: { disable(); enable(); toggle() }
-      ) => React.ReactElement<any>)
-    | React.ReactNode;
+  children: ToggleChildren | React.ReactNode;
   initial?: boolean;
 }
 

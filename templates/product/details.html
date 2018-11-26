@@ -130,7 +130,7 @@
         {% else %}
           <h2 class="product__info__price">
             <span>{% price_range availability.price_range %}</span>
-            {% if availability.discount %}
+            {% if availability.on_sale %}
               <small class="product__info__price__undiscounted">
                 {% price availability.price_range_undiscounted %}
               </small>

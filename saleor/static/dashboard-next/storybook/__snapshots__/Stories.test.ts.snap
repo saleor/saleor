@@ -5200,6 +5200,10 @@ exports[`Storyshots Orders / OrderCustomer with different addresses 1`] = `
 
 exports[`Storyshots Orders / OrderCustomerEditDialog default 1`] = `<div />`;
 
+exports[`Storyshots Orders / OrderDraftCancelDialog default 1`] = `<div />`;
+
+exports[`Storyshots Orders / OrderDraftFinalizeDialog default 1`] = `<div />`;
+
 exports[`Storyshots Orders / OrderFulfillmentCancelDialog default 1`] = `<div />`;
 
 exports[`Storyshots Orders / OrderFulfillmentDialog default 1`] = `<div />`;
@@ -5336,6 +5340,8 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
   </div>
 </div>
 `;
+
+exports[`Storyshots Orders / OrderMarkAsPaidDialog default 1`] = `<div />`;
 
 exports[`Storyshots Orders / OrderPaymentDialog capture payment 1`] = `<div />`;
 
@@ -19152,7 +19158,7 @@ exports[`Storyshots Views / Orders / Order details cancelled 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -19189,7 +19195,7 @@ exports[`Storyshots Views / Orders / Order details cancelled 1`] = `
       />
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -19203,7 +19209,7 @@ exports[`Storyshots Views / Orders / Order details cancelled 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -19871,8 +19877,6 @@ exports[`Storyshots Views / Orders / Order details cancelled 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -19885,7 +19889,7 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -19921,7 +19925,7 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -19954,7 +19958,7 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -19968,7 +19972,7 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -20849,8 +20853,6 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -20863,7 +20865,7 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -20899,7 +20901,7 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -20932,7 +20934,7 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -20946,7 +20948,7 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -21827,8 +21829,6 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -21841,7 +21841,7 @@ exports[`Storyshots Views / Orders / Order details loading 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -21882,7 +21882,7 @@ exports[`Storyshots Views / Orders / Order details loading 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -21915,7 +21915,7 @@ exports[`Storyshots Views / Orders / Order details loading 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="Skeleton-skeleton-id"
@@ -21925,7 +21925,7 @@ exports[`Storyshots Views / Orders / Order details loading 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -22270,8 +22270,9 @@ exports[`Storyshots Views / Orders / Order details loading 1`] = `
                 class="OrderCustomer-sectionHeaderToolbar-id"
               >
                 <button
-                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-                  tabindex="0"
+                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id"
+                  disabled=""
+                  tabindex="-1"
                   type="button"
                 >
                   <span
@@ -22279,9 +22280,6 @@ exports[`Storyshots Views / Orders / Order details loading 1`] = `
                   >
                     Edit
                   </span>
-                  <span
-                    class="MuiTouchRipple-root-id"
-                  />
                 </button>
               </div>
             </div>
@@ -22309,8 +22307,9 @@ exports[`Storyshots Views / Orders / Order details loading 1`] = `
                 class="OrderCustomer-sectionHeaderToolbar-id"
               >
                 <button
-                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-                  tabindex="0"
+                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id"
+                  disabled=""
+                  tabindex="-1"
                   type="button"
                 >
                   <span
@@ -22318,9 +22317,6 @@ exports[`Storyshots Views / Orders / Order details loading 1`] = `
                   >
                     Edit
                   </span>
-                  <span
-                    class="MuiTouchRipple-root-id"
-                  />
                 </button>
               </div>
             </div>
@@ -22343,7 +22339,7 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -22379,7 +22375,7 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -22412,7 +22408,7 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -22426,7 +22422,7 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -23307,8 +23303,6 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -23321,7 +23315,7 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -23357,7 +23351,7 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -23390,7 +23384,7 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -23404,7 +23398,7 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -24285,8 +24279,6 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
             />
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -24299,7 +24291,7 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -24335,7 +24327,7 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -24368,7 +24360,7 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -24382,7 +24374,7 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -25263,8 +25255,6 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -25277,7 +25267,7 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -25313,7 +25303,7 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -25346,7 +25336,7 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -25360,7 +25350,7 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -26241,8 +26231,6 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -26255,7 +26243,7 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -26291,7 +26279,7 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -26324,7 +26312,7 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -26338,7 +26326,7 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -27219,8 +27207,6 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -27233,7 +27219,7 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -27269,7 +27255,7 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -27302,7 +27288,7 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -27316,7 +27302,7 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -28197,8 +28183,6 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -28211,7 +28195,7 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -28247,7 +28231,7 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -28280,7 +28264,7 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -28294,7 +28278,7 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -29175,8 +29159,6 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -29189,7 +29171,7 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -29225,7 +29207,7 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -29258,7 +29240,7 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -29272,7 +29254,7 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -30153,8 +30135,6 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -30167,7 +30147,7 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDetailsPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -30203,7 +30183,7 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDetailsPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -30236,7 +30216,7 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
       </div>
     </div>
     <div
-      class="OrderDetailsPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -30250,7 +30230,7 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
       </span>
     </div>
     <div
-      class="OrderDetailsPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -31131,8 +31111,6 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
   </div>
@@ -31145,7 +31123,7 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDraftPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -31181,7 +31159,7 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDraftPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -31214,7 +31192,7 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
       </div>
     </div>
     <div
-      class="OrderDraftPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -31228,7 +31206,7 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
       </span>
     </div>
     <div
-      class="OrderDraftPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -31795,8 +31773,6 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
     <div
@@ -31844,7 +31820,7 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDraftPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -31885,7 +31861,7 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDraftPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -31918,7 +31894,7 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
       </div>
     </div>
     <div
-      class="OrderDraftPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="Skeleton-skeleton-id"
@@ -31928,7 +31904,7 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
       </span>
     </div>
     <div
-      class="OrderDraftPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -32227,8 +32203,9 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
                 class="OrderCustomer-sectionHeaderToolbar-id"
               >
                 <button
-                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-                  tabindex="0"
+                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id"
+                  disabled=""
+                  tabindex="-1"
                   type="button"
                 >
                   <span
@@ -32236,9 +32213,6 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
                   >
                     Edit
                   </span>
-                  <span
-                    class="MuiTouchRipple-root-id"
-                  />
                 </button>
               </div>
             </div>
@@ -32266,8 +32240,9 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
                 class="OrderCustomer-sectionHeaderToolbar-id"
               >
                 <button
-                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-                  tabindex="0"
+                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id"
+                  disabled=""
+                  tabindex="-1"
                   type="button"
                 >
                   <span
@@ -32275,9 +32250,6 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
                   >
                     Edit
                   </span>
-                  <span
-                    class="MuiTouchRipple-root-id"
-                  />
                 </button>
               </div>
             </div>
@@ -32333,7 +32305,7 @@ exports[`Storyshots Views / Orders / Order draft without lines 1`] = `
     class="Component-md-id"
   >
     <div
-      class="Component-root-id OrderDraftPageComponent-header-id"
+      class="Component-root-id Component-header-id"
     >
       <button
         class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
@@ -32369,7 +32341,7 @@ exports[`Storyshots Views / Orders / Order draft without lines 1`] = `
         class="Component-action-id"
       >
         <div
-          class="OrderDraftPageComponent-menu-id"
+          class="Component-menu-id"
         >
           <button
             aria-haspopup="true"
@@ -32402,7 +32374,7 @@ exports[`Storyshots Views / Orders / Order draft without lines 1`] = `
       </div>
     </div>
     <div
-      class="OrderDraftPageComponent-date-id"
+      class="Component-date-id"
     >
       <span
         class="MuiTypography-root-id MuiTypography-caption-id"
@@ -32416,7 +32388,7 @@ exports[`Storyshots Views / Orders / Order draft without lines 1`] = `
       </span>
     </div>
     <div
-      class="OrderDraftPageComponent-root-id"
+      class="Component-root-id"
     >
       <div>
         <div
@@ -32722,8 +32694,6 @@ exports[`Storyshots Views / Orders / Order draft without lines 1`] = `
             </p>
           </div>
         </div>
-        <form />
-        <form />
       </div>
     </div>
     <div
@@ -32810,6 +32780,84 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
     <div
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
+      <div
+        class="MuiTabs-root-id Component-tabsRoot-id"
+      >
+        <div
+          class="MuiTabs-flexContainer-id"
+        >
+          <div
+            class="MuiTabs-scroller-id MuiTabs-fixed-id"
+            role="tablist"
+            style="margin-bottom:0"
+          >
+            <div
+              class="MuiTabs-flexContainer-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      All Orders
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      Ready to fulfill
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      Ready to capture
+                    </span>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
       <table
         class="MuiTable-root-id"
         padding="default"
@@ -33921,6 +33969,84 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
     <div
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
+      <div
+        class="MuiTabs-root-id Component-tabsRoot-id"
+      >
+        <div
+          class="MuiTabs-flexContainer-id"
+        >
+          <div
+            class="MuiTabs-scroller-id MuiTabs-fixed-id"
+            role="tablist"
+            style="margin-bottom:0"
+          >
+            <div
+              class="MuiTabs-flexContainer-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      All Orders
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      Ready to fulfill
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      Ready to capture
+                    </span>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
       <table
         class="MuiTable-root-id"
         padding="default"
@@ -34150,6 +34276,84 @@ exports[`Storyshots Views / Orders / Order list when no data 1`] = `
     <div
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
+      <div
+        class="MuiTabs-root-id Component-tabsRoot-id"
+      >
+        <div
+          class="MuiTabs-flexContainer-id"
+        >
+          <div
+            class="MuiTabs-scroller-id MuiTabs-fixed-id"
+            role="tablist"
+            style="margin-bottom:0"
+          >
+            <div
+              class="MuiTabs-flexContainer-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      All Orders
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      Ready to fulfill
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      Ready to capture
+                    </span>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
       <table
         class="MuiTable-root-id"
         padding="default"
@@ -34277,6 +34481,1301 @@ exports[`Storyshots Views / Orders / Order list when no data 1`] = `
               colspan="6"
             >
               No orders found
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
+<div>
+  <div
+    class="Component-md-id"
+  >
+    <div
+      class="Component-root-id"
+    >
+      <h2
+        class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
+      >
+        Orders
+      </h2>
+      <div
+        class="Component-action-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          disabled=""
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Create order 
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                />
+              </g>
+            </svg>
+          </span>
+        </button>
+      </div>
+    </div>
+    <div
+      class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+    >
+      <div
+        class="MuiTabs-root-id Component-tabsRoot-id"
+      >
+        <div
+          class="MuiTabs-flexContainer-id"
+        >
+          <div
+            class="MuiTabs-scroller-id MuiTabs-fixed-id"
+            role="tablist"
+            style="margin-bottom:0"
+          >
+            <div
+              class="MuiTabs-flexContainer-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      All Orders
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      Ready to fulfill
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      Ready to capture
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      Custom Filter
+                    </span>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="Component-filterContainer-id"
+      >
+        <div
+          class="Component-filterButton-id"
+        >
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id Component-filterText-id"
+          >
+            Gardner-Schultz
+          </p>
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-id Component-filterIcon-id"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+              />
+            </g>
+          </svg>
+        </div>
+        <div
+          class="Component-filterButton-id"
+        >
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id Component-filterText-id"
+          >
+            Davis, Brown and Ray
+          </p>
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-id Component-filterIcon-id"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+              />
+            </g>
+          </svg>
+        </div>
+        <div
+          class="Component-filterButton-id"
+        >
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id Component-filterText-id"
+          >
+            Franklin Inc
+          </p>
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-id Component-filterIcon-id"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+              />
+            </g>
+          </svg>
+        </div>
+        <div
+          class="Component-filterButton-id Component-addFilterButtonPrimary-id"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-id MuiSvgIcon-colorPrimary-id"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+            </g>
+          </svg>
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id Component-addFilterText-id"
+          >
+            Add Filter
+          </p>
+        </div>
+      </div>
+      <table
+        class="MuiTable-root-id"
+        padding="default"
+      >
+        <thead
+          class="MuiTableHead-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-head-id"
+          >
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+              scope="col"
+            >
+              No. of Order
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+              scope="col"
+            >
+              Date
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+              scope="col"
+            >
+              Customer
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+              scope="col"
+            >
+              Payment
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+              scope="col"
+            >
+              Fulfillment status
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+              scope="col"
+            >
+              Total
+            </th>
+          </tr>
+        </thead>
+        <tfoot
+          class="MuiTableFooter-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-footer-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
+              colspan="6"
+            >
+              <div
+                class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
+              >
+                <div
+                  class="TablePagination-spacer-id"
+                />
+                <div
+                  class="TablePaginationActions-root-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                  <button
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
+        <tbody
+          class="MuiTableBody-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #20
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                datetime="1536658650376"
+                title="Tue Sep 11 2018 05:37:30 GMT-0400"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Laura Stone 1 2
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Paid
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Cancelled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $305.17
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #19
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                datetime="1536658650124"
+                title="Tue Sep 11 2018 05:37:30 GMT-0400"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Elizabeth Vaughn
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Paid
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Cancelled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $1,215.89
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #18
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                datetime="1536658650019"
+                title="Tue Sep 11 2018 05:37:30 GMT-0400"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              david.lawson@example.com
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Unpaid
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Draft
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $321.71
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #17
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                datetime="1536658649864"
+                title="Tue Sep 11 2018 05:37:29 GMT-0400"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Aaron Randall
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Unpaid
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Cancelled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $271.95
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #16
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                datetime="1536658649610"
+                title="Tue Sep 11 2018 05:37:29 GMT-0400"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Laura Jensen
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Unpaid
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Cancelled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $335.84
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #15
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                datetime="1536658649336"
+                title="Tue Sep 11 2018 05:37:29 GMT-0400"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Jenna Villa
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Unpaid
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Cancelled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $1,042.15
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #14
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                datetime="1536658649103"
+                title="Tue Sep 11 2018 05:37:29 GMT-0400"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Wesley Davis
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Unpaid
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Cancelled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $213.69
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #13
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                datetime="1536658648921"
+                title="Tue Sep 11 2018 05:37:28 GMT-0400"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Anthony Gonzalez
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Unpaid
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Cancelled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $367.03
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #12
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                datetime="1536658648750"
+                title="Tue Sep 11 2018 05:37:28 GMT-0400"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Denise Freeman
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Unpaid
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Cancelled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $298.76
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #11
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                datetime="1536658648598"
+                title="Tue Sep 11 2018 05:37:28 GMT-0400"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              James Ball
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Paid
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Unfulfilled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $663.69
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #10
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                datetime="1536658648409"
+                title="Tue Sep 11 2018 05:37:28 GMT-0400"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Michael Martinez
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Unpaid
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Cancelled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $280.41
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #9
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                datetime="1536658648185"
+                title="Tue Sep 11 2018 05:37:28 GMT-0400"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Melissa Simon
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Unpaid
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Partially fulfilled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $234.93
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #8
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                datetime="1536658647953"
+                title="Tue Sep 11 2018 05:37:27 GMT-0400"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Justin Mccoy
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Unpaid
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Partially fulfilled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $485.19
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #7
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                datetime="1536658647828"
+                title="Tue Sep 11 2018 05:37:27 GMT-0400"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Anthony Gonzalez
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Paid
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Partially fulfilled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $223.54
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #6
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                datetime="1536658647636"
+                title="Tue Sep 11 2018 05:37:27 GMT-0400"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Bradley Ford
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Unpaid
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Fulfilled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $237.55
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #5
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                datetime="1536658647420"
+                title="Tue Sep 11 2018 05:37:27 GMT-0400"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              David Lawson
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Unpaid
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Partially fulfilled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $453.55
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #4
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                datetime="1536658647230"
+                title="Tue Sep 11 2018 05:37:27 GMT-0400"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Lauren Watson
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Unpaid
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Partially fulfilled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $812.67
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #3
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                datetime="1536658646972"
+                title="Tue Sep 11 2018 05:37:26 GMT-0400"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Mark Lee
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Unpaid
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Partially fulfilled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $481.41
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #2
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                datetime="1536658646751"
+                title="Tue Sep 11 2018 05:37:26 GMT-0400"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Kara Murphy
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Paid
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Partially fulfilled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $569.19
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #1
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                datetime="1536658646314"
+                title="Tue Sep 11 2018 05:37:26 GMT-0400"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Curtis Bailey
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Paid
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Partially fulfilled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $557.00
             </td>
           </tr>
         </tbody>
@@ -40850,20 +42349,6 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
       <div
         class="Component-root-id"
       >
-        <button
-          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
-          tabindex="0"
-          type="button"
-        >
-          <span
-            class="MuiButton-label-id"
-          >
-            Remove
-          </span>
-          <span
-            class="MuiTouchRipple-root-id"
-          />
-        </button>
         <div
           class="Component-spacer-id"
         />
@@ -41633,20 +43118,6 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
       <div
         class="Component-root-id"
       >
-        <button
-          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
-          tabindex="0"
-          type="button"
-        >
-          <span
-            class="MuiButton-label-id"
-          >
-            Remove
-          </span>
-          <span
-            class="MuiTouchRipple-root-id"
-          />
-        </button>
         <div
           class="Component-spacer-id"
         />
@@ -42622,20 +44093,6 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
       <div
         class="Component-root-id"
       >
-        <button
-          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
-          tabindex="0"
-          type="button"
-        >
-          <span
-            class="MuiButton-label-id"
-          >
-            Remove
-          </span>
-          <span
-            class="MuiTouchRipple-root-id"
-          />
-        </button>
         <div
           class="Component-spacer-id"
         />
@@ -43605,20 +45062,6 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
       <div
         class="Component-root-id"
       >
-        <button
-          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
-          tabindex="0"
-          type="button"
-        >
-          <span
-            class="MuiButton-label-id"
-          >
-            Remove
-          </span>
-          <span
-            class="MuiTouchRipple-root-id"
-          />
-        </button>
         <div
           class="Component-spacer-id"
         />
@@ -44216,6 +45659,84 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
     <div
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
+      <div
+        class="MuiTabs-root-id Component-tabsRoot-id"
+      >
+        <div
+          class="MuiTabs-flexContainer-id"
+        >
+          <div
+            class="MuiTabs-scroller-id MuiTabs-fixed-id"
+            role="tablist"
+            style="margin-bottom:0"
+          >
+            <div
+              class="MuiTabs-flexContainer-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      All Products
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      Available
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      Out Of Stock
+                    </span>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
       <table
         class="MuiTable-root-id"
         padding="default"
@@ -44781,6 +46302,84 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
     <div
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
+      <div
+        class="MuiTabs-root-id Component-tabsRoot-id"
+      >
+        <div
+          class="MuiTabs-flexContainer-id"
+        >
+          <div
+            class="MuiTabs-scroller-id MuiTabs-fixed-id"
+            role="tablist"
+            style="margin-bottom:0"
+          >
+            <div
+              class="MuiTabs-flexContainer-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      All Products
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      Available
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      Out Of Stock
+                    </span>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
       <table
         class="MuiTable-root-id"
         padding="default"
@@ -45004,6 +46603,84 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
     <div
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
+      <div
+        class="MuiTabs-root-id Component-tabsRoot-id"
+      >
+        <div
+          class="MuiTabs-flexContainer-id"
+        >
+          <div
+            class="MuiTabs-scroller-id MuiTabs-fixed-id"
+            role="tablist"
+            style="margin-bottom:0"
+          >
+            <div
+              class="MuiTabs-flexContainer-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      All Products
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      Available
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      Out Of Stock
+                    </span>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
       <table
         class="MuiTable-root-id"
         padding="default"
@@ -45128,6 +46805,757 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
 </div>
 `;
 
+exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
+<div>
+  <div
+    class="Component-md-id"
+  >
+    <div
+      class="Component-root-id"
+    >
+      <h2
+        class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
+      >
+        Products
+      </h2>
+      <div
+        class="Component-action-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Add product 
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                />
+              </g>
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+      </div>
+    </div>
+    <div
+      class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+    >
+      <div
+        class="MuiTabs-root-id Component-tabsRoot-id"
+      >
+        <div
+          class="MuiTabs-flexContainer-id"
+        >
+          <div
+            class="MuiTabs-scroller-id MuiTabs-fixed-id"
+            role="tablist"
+            style="margin-bottom:0"
+          >
+            <div
+              class="MuiTabs-flexContainer-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      All Products
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      Available
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      Out Of Stock
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id Component-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id Component-tabLabel-id"
+                    >
+                      Custom Filter
+                    </span>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="Component-filterContainer-id"
+      >
+        <div
+          class="Component-filterButton-id"
+        >
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id Component-filterText-id"
+          >
+            Gardner-Schultz
+          </p>
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-id Component-filterIcon-id"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+              />
+            </g>
+          </svg>
+        </div>
+        <div
+          class="Component-filterButton-id"
+        >
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id Component-filterText-id"
+          >
+            Davis, Brown and Ray
+          </p>
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-id Component-filterIcon-id"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+              />
+            </g>
+          </svg>
+        </div>
+        <div
+          class="Component-filterButton-id"
+        >
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id Component-filterText-id"
+          >
+            Franklin Inc
+          </p>
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-id Component-filterIcon-id"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+              />
+            </g>
+          </svg>
+        </div>
+        <div
+          class="Component-filterButton-id Component-addFilterButtonPrimary-id"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-id MuiSvgIcon-colorPrimary-id"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+            </g>
+          </svg>
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id Component-addFilterText-id"
+          >
+            Add Filter
+          </p>
+        </div>
+      </div>
+      <table
+        class="MuiTable-root-id"
+        padding="default"
+      >
+        <thead
+          class="MuiTableHead-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-head-id"
+          >
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id"
+              scope="col"
+            />
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-textLeft-id"
+              scope="col"
+            >
+              Name
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id"
+              scope="col"
+            >
+              Type
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id"
+              scope="col"
+            >
+              Published
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-textRight-id"
+              scope="col"
+            >
+              Price
+            </th>
+          </tr>
+        </thead>
+        <tfoot
+          class="MuiTableFooter-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-footer-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
+              colspan="5"
+            >
+              <div
+                class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
+              >
+                <div
+                  class="TablePagination-spacer-id"
+                />
+                <div
+                  class="TablePaginationActions-root-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                  <button
+                    class="MuiButtonBase-root-id MuiIconButton-root-id"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                        />
+                      </svg>
+                    </span>
+                    <span
+                      class="MuiTouchRipple-root-id"
+                    />
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
+        <tbody
+          class="MuiTableBody-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+            >
+              <div
+                class="MuiAvatar-root-id Component-avatar-id"
+              >
+                <img
+                  class="MuiAvatar-img-id"
+                  src="placeholder255x255.png"
+                />
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+            >
+              Gardner-Schultz
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Coffee
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              $83.30
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+            >
+              <div
+                class="MuiAvatar-root-id Component-avatar-id"
+              >
+                <img
+                  class="MuiAvatar-img-id"
+                  src="placeholder255x255.png"
+                />
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+            >
+              James, Martinez and Murray
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Coffee
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              $68.27
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+            >
+              <div
+                class="MuiAvatar-root-id Component-avatar-id"
+              >
+                <img
+                  class="MuiAvatar-img-id"
+                  src="placeholder255x255.png"
+                />
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+            >
+              Curtis, Joyce and Turner
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Coffee
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              $21.43
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+            >
+              <div
+                class="MuiAvatar-root-id Component-avatar-id"
+              >
+                <img
+                  class="MuiAvatar-img-id"
+                  src="placeholder255x255.png"
+                />
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+            >
+              Davis, Brown and Ray
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Coffee
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              $62.76
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+            >
+              <div
+                class="MuiAvatar-root-id Component-avatar-id"
+              >
+                <img
+                  class="MuiAvatar-img-id"
+                  src="placeholder255x255.png"
+                />
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+            >
+              Gallegos Ltd
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Coffee
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              $7.13
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+            >
+              <div
+                class="MuiAvatar-root-id Component-avatar-id"
+              >
+                <img
+                  class="MuiAvatar-img-id"
+                  src="placeholder255x255.png"
+                />
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+            >
+              Franklin Inc
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Coffee
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              $48.82
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+            >
+              <div
+                class="MuiAvatar-root-id Component-avatar-id"
+              >
+                <img
+                  class="MuiAvatar-img-id"
+                  src="placeholder255x255.png"
+                />
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+            >
+              Williams-Taylor
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Coffee
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              $27.34
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+            >
+              <div
+                class="MuiAvatar-root-id Component-avatar-id"
+              >
+                <img
+                  class="MuiAvatar-img-id"
+                  src="placeholder255x255.png"
+                />
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+            >
+              Riddle, Evans and Hicks
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Coffee
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              $75.42
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+            >
+              <div
+                class="MuiAvatar-root-id Component-avatar-id"
+              >
+                <img
+                  class="MuiAvatar-img-id"
+                  src="placeholder255x255.png"
+                />
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+            >
+              Hebert-Sherman
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Coffee
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              $86.62
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+            >
+              <div
+                class="MuiAvatar-root-id Component-avatar-id"
+              >
+                <img
+                  class="MuiAvatar-img-id"
+                  src="placeholder255x255.png"
+                />
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+            >
+              Carter and Sons
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Coffee
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              $48.66
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Views / Products / Product variant details when loaded data 1`] = `
 <div>
   <div
@@ -45210,20 +47638,12 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                     class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id Component-tabActive-id"
                   >
                     <div
-                      class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
+                      class="MuiAvatar-root-id Component-avatar-id"
                     >
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id"
-                        focusable="false"
-                        viewBox="0 0 24 24"
-                      >
-                        <g>
-                          <path
-                            d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
-                          />
-                        </g>
-                      </svg>
+                      <img
+                        class="MuiAvatar-img-id"
+                        src="placeholder60x60.png"
+                      />
                     </div>
                   </td>
                   <td
@@ -45239,20 +47659,12 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                     class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                   >
                     <div
-                      class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
+                      class="MuiAvatar-root-id Component-avatar-id"
                     >
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id"
-                        focusable="false"
-                        viewBox="0 0 24 24"
-                      >
-                        <g>
-                          <path
-                            d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
-                          />
-                        </g>
-                      </svg>
+                      <img
+                        class="MuiAvatar-img-id"
+                        src="placeholder60x60.png"
+                      />
                     </div>
                   </td>
                   <td
@@ -45268,20 +47680,12 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                     class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                   >
                     <div
-                      class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
+                      class="MuiAvatar-root-id Component-avatar-id"
                     >
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id"
-                        focusable="false"
-                        viewBox="0 0 24 24"
-                      >
-                        <g>
-                          <path
-                            d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
-                          />
-                        </g>
-                      </svg>
+                      <img
+                        class="MuiAvatar-img-id"
+                        src="placeholder60x60.png"
+                      />
                     </div>
                   </td>
                   <td
@@ -45297,20 +47701,12 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                     class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                   >
                     <div
-                      class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
+                      class="MuiAvatar-root-id Component-avatar-id"
                     >
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id"
-                        focusable="false"
-                        viewBox="0 0 24 24"
-                      >
-                        <g>
-                          <path
-                            d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
-                          />
-                        </g>
-                      </svg>
+                      <img
+                        class="MuiAvatar-img-id"
+                        src="placeholder60x60.png"
+                      />
                     </div>
                   </td>
                   <td
@@ -45589,8 +47985,8 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                     class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                   >
                     <label
-                      class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                      data-shrink="false"
+                      class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                      data-shrink="true"
                       for="costPrice"
                     >
                       Cost price override
@@ -45603,7 +47999,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                         class="MuiInput-input-id MuiInput-inputType-id"
                         name="costPrice"
                         type="number"
-                        value=""
+                        value="12"
                       />
                       <div
                         class="MuiInputAdornment-root-id MuiInputAdornment-positionEnd-id Component-currencySymbol-id"
@@ -45616,7 +48012,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                       </div>
                     </div>
                     <p
-                      class="MuiFormHelperText-root-id"
+                      class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
                     >
                       Optional
                     </p>
@@ -45711,20 +48107,6 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
       <div
         class="Component-root-id"
       >
-        <button
-          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
-          tabindex="0"
-          type="button"
-        >
-          <span
-            class="MuiButton-label-id"
-          >
-            Remove
-          </span>
-          <span
-            class="MuiTouchRipple-root-id"
-          />
-        </button>
         <div
           class="Component-spacer-id"
         />
@@ -46131,20 +48513,6 @@ exports[`Storyshots Views / Products / Product variant details when loading data
       <div
         class="Component-root-id"
       >
-        <button
-          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
-          tabindex="0"
-          type="button"
-        >
-          <span
-            class="MuiButton-label-id"
-          >
-            Remove
-          </span>
-          <span
-            class="MuiTouchRipple-root-id"
-          />
-        </button>
         <div
           class="Component-spacer-id"
         />
@@ -50559,11 +52927,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                $71.00
-              </p>
+              $71.00
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
@@ -50606,20 +52970,12 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                61%
-              </p>
+              61%
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                CHF 20.00
-              </p>
+              CHF 20.00
             </td>
           </tr>
           <tr
@@ -50652,11 +53008,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                89%
-              </p>
+              89%
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
@@ -50694,20 +53046,12 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                75%
-              </p>
+              75%
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                EEK 0.00
-              </p>
+              EEK 0.00
             </td>
           </tr>
           <tr
@@ -50745,11 +53089,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                10%
-              </p>
+              10%
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
@@ -50787,11 +53127,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                39%
-              </p>
+              39%
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
@@ -50829,20 +53165,12 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                41%
-              </p>
+              41%
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                XTS 0.00
-              </p>
+              XTS 0.00
             </td>
           </tr>
           <tr
@@ -50875,11 +53203,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                43%
-              </p>
+              43%
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
@@ -50922,11 +53246,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                $83.00
-              </p>
+              $83.00
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
@@ -50964,20 +53284,12 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                38%
-              </p>
+              38%
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                CFA 70
-              </p>
+              CFA 70
             </td>
           </tr>
           <tr
@@ -51015,20 +53327,12 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                44%
-              </p>
+              44%
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                PKR 70
-              </p>
+              PKR 70
             </td>
           </tr>
           <tr
@@ -51066,11 +53370,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                $52.00
-              </p>
+              $52.00
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
@@ -51113,11 +53413,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                $17.00
-              </p>
+              $17.00
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
@@ -51202,11 +53498,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                22%
-              </p>
+              22%
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
@@ -51249,20 +53541,12 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                $97.00
-              </p>
+              $97.00
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                GTQ 90.00
-              </p>
+              GTQ 90.00
             </td>
           </tr>
         </tbody>
