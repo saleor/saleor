@@ -4,7 +4,7 @@ import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
-import { collectionAddUrl, collectionListUrl, collectionUrl } from "./urls";
+import { collectionAddPath, collectionListPath, collectionPath } from "./urls";
 import CollectionCreate from "./views/CollectionCreate";
 import CollectionDetailsView, {
   CollectionDetailsQueryParams
@@ -47,9 +47,9 @@ const Component = () => (
   <>
     <WindowTitle title={i18n.t("Collections")} />
     <Switch>
-      <Route exact path={collectionListUrl} component={CollectionList} />
-      <Route exact path={collectionAddUrl} component={CollectionCreate} />
-      <Route path={collectionUrl(":id")} component={CollectionDetails} />
+      <Route exact path={collectionListPath} component={CollectionList} />
+      <Route exact path={collectionAddPath} component={CollectionCreate} />
+      <Route path={collectionPath(":id")} component={CollectionDetails} />
     </Switch>
   </>
 );
