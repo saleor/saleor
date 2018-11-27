@@ -1,12 +1,11 @@
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar, {
-  SaveButtonBarState
-} from "../../../components/SaveButtonBar/SaveButtonBar";
+import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
 import i18n from "../../../i18n";
 import { UserError } from "../../../types";
@@ -62,7 +61,7 @@ interface ProductCreatePageProps {
     productAttributes: ProductCreateData_productTypes_edges_node_productAttributes[];
   }>;
   header: string;
-  saveButtonBarState?: SaveButtonBarState;
+  saveButtonBarState: ConfirmButtonTransitionState;
   onAttributesEdit: () => void;
   onBack?();
   onSubmit?(data: FormData);

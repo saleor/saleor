@@ -6,7 +6,7 @@ import Navigator from "../../components/Navigator";
 import { WindowTitle } from "../../components/WindowTitle";
 import { configurationMenuUrl } from "../../configuration";
 import i18n from "../../i18n";
-import { maybe } from "../../misc";
+import { getMutationState, maybe } from "../../misc";
 import { AuthorizationKeyType } from "../../types/globalTypes";
 import SiteSettingsKeyDialog, {
   SiteSettingsKeyDialogForm
@@ -131,6 +131,25 @@ export const SiteSettings: React.StatelessComponent<{}> = () => (
                                   }
                                 }
                               });
+
+                            const formTransitionState = getMutationState(
+                              updateShopSettingsOpts.called,
+                              updateShopSettingsOpts.loading,
+                              [
+                                ...maybe(
+                                  () =>
+                                    updateShopSettingsOpts.data.shopDomainUpdate
+                                      .errors,
+                                  []
+                                ),
+                                ...maybe(
+                                  () =>
+                                    updateShopSettingsOpts.data
+                                      .shopSettingsUpdate.errors,
+                                  []
+                                )
+                              ]
+                            );
                             return (
                               <>
                                 <WindowTitle title={i18n.t("Site settings")} />
@@ -148,6 +167,7 @@ export const SiteSettings: React.StatelessComponent<{}> = () => (
                                     })
                                   }
                                   onSubmit={handleUpdateShopSettings}
+                                  saveButtonBarState={formTransitionState}
                                 />
                                 <Route
                                   path={siteSettingsAddKeyUrl}

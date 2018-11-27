@@ -2,12 +2,11 @@ import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
 import { CardSpacer } from "../../../components/CardSpacer";
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar, {
-  SaveButtonBarState
-} from "../../../components/SaveButtonBar/SaveButtonBar";
+import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
 import Tabs, { Tab } from "../../../components/Tab";
 import i18n from "../../../i18n";
@@ -41,7 +40,7 @@ export interface CategoryUpdatePageProps {
     hasNextPage: boolean;
     hasPreviousPage: boolean;
   };
-  saveButtonBarState?: SaveButtonBarState;
+  saveButtonBarState: ConfirmButtonTransitionState;
   onImageDelete: () => void;
   onSubmit: (data: FormData) => void;
   onImageUpload(event: React.ChangeEvent<any>);

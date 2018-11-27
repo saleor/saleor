@@ -19,8 +19,9 @@ const ProductUpdateProvider: React.StatelessComponent<
   ProductUpdateProviderProps
 > = ({ children, onError, onSuccess }) => (
   <TypedProductUpdateMutation onCompleted={onSuccess} onError={onError}>
-    {(mutate, { data, error, loading }) =>
+    {(mutate, { called, data, error, loading }) =>
       children({
+        called,
         data,
         error,
         loading,

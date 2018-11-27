@@ -2,9 +2,11 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 
 import ActionDialog from "../../../components/ActionDialog";
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import i18n from "../../../i18n";
 
 export interface OrderDraftFinalizeDialogProps {
+  confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
   orderNumber: string;
   onClose: () => void;
@@ -13,7 +15,7 @@ export interface OrderDraftFinalizeDialogProps {
 
 const OrderDraftFinalizeDialog: React.StatelessComponent<
   OrderDraftFinalizeDialogProps
-> = ({ open, onClose, onConfirm, orderNumber }) => (
+> = ({ confirmButtonState, open, onClose, onConfirm, orderNumber }) => (
   <ActionDialog
     onClose={onClose}
     onConfirm={onConfirm}
@@ -21,6 +23,7 @@ const OrderDraftFinalizeDialog: React.StatelessComponent<
     title={i18n.t("Finalize draft order", {
       context: "modal title"
     })}
+    confirmButtonState={confirmButtonState}
   >
     <DialogContentText
       dangerouslySetInnerHTML={{

@@ -1,12 +1,11 @@
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import { Container } from "../../../components/Container";
 import Form, { FormProps } from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar, {
-  SaveButtonBarState
-} from "../../../components/SaveButtonBar";
+import SaveButtonBar from "../../../components/SaveButtonBar";
 import Toggle from "../../../components/Toggle";
 import PageContent from "../PageContent";
 import PageDeleteDialog from "../PageDeleteDialog";
@@ -19,7 +18,7 @@ interface PageInput {
   availableOn: string;
   isVisible: boolean;
 }
-interface PageDetailsPageProps {
+export interface PageDetailsPageProps {
   page?: PageInput & {
     created?: string;
   };
@@ -29,7 +28,7 @@ interface PageDetailsPageProps {
   }>;
   disabled?: boolean;
   title?: string;
-  saveButtonBarState?: SaveButtonBarState;
+  saveButtonBarState: ConfirmButtonTransitionState;
   onBack?();
   onDelete?();
   onSubmit(data: PageInput);

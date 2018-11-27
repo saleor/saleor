@@ -11,7 +11,7 @@ import {
 } from "../../../components/Paginator";
 import { WindowTitle } from "../../../components/WindowTitle";
 import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
+import { getMutationState, maybe } from "../../../misc";
 import { productAddUrl, productUrl } from "../../../products/urls";
 import { CategoryUpdatePage } from "../../components/CategoryUpdatePage/CategoryUpdatePage";
 import {
@@ -20,7 +20,6 @@ import {
 } from "../../mutations";
 import { TypedCategoryDetailsQuery } from "../../queries";
 import { CategoryDelete } from "../../types/CategoryDelete";
-import { CategoryUpdate } from "../../types/CategoryUpdate";
 import { categoryAddUrl, categoryListUrl, categoryUrl } from "../../urls";
 import { categoryDeleteUrl } from "./urls";
 
@@ -42,18 +41,6 @@ export const CategoryDetails: React.StatelessComponent<
     {navigate => (
       <Messages>
         {pushMessage => {
-          const onCategoryUpdate = (data: CategoryUpdate) => {
-            if (
-              data.categoryUpdate.errors === null ||
-              data.categoryUpdate.errors.length === 0
-            ) {
-              pushMessage({
-                text: i18n.t("Category updated", {
-                  context: "notification"
-                })
-              });
-            }
-          };
           const onCategoryDelete = (data: CategoryDelete) => {
             if (
               data.categoryDelete.errors === null ||
@@ -70,12 +57,22 @@ export const CategoryDetails: React.StatelessComponent<
 
           return (
             <TypedCategoryDeleteMutation onCompleted={onCategoryDelete}>
-              {deleteCategory => (
-                <TypedCategoryUpdateMutation onCompleted={onCategoryUpdate}>
+              {(deleteCategory, deleteResult) => (
+                <TypedCategoryUpdateMutation>
                   {(updateCategory, updateResult) => {
                     const paginationState = createPaginationState(
                       PAGINATE_BY,
                       params
+                    );
+                    const formTransitionState = getMutationState(
+                      updateResult.called,
+                      updateResult.loading,
+                      maybe(() => updateResult.data.categoryUpdate.errors)
+                    );
+                    const removeDialogTransitionState = getMutationState(
+                      deleteResult.called,
+                      deleteResult.loading,
+                      maybe(() => deleteResult.data.categoryDelete.errors)
                     );
                     return (
                       <TypedCategoryDetailsQuery
@@ -165,9 +162,7 @@ export const CategoryDetails: React.StatelessComponent<
                                       edge => edge.node
                                     )
                                   )}
-                                  saveButtonBarState={
-                                    loading ? "loading" : "default"
-                                  }
+                                  saveButtonBarState={formTransitionState}
                                   subcategories={maybe(() =>
                                     data.category.children.edges.map(
                                       edge => edge.node
@@ -180,6 +175,9 @@ export const CategoryDetails: React.StatelessComponent<
                               path={categoryDeleteUrl(encodeURIComponent(id))}
                               render={({ match }) => (
                                 <ActionDialog
+                                  confirmButtonState={
+                                    removeDialogTransitionState
+                                  }
                                   onClose={() =>
                                     navigate(
                                       categoryUrl(encodeURIComponent(id)),
