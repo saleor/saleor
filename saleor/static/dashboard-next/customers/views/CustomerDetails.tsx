@@ -17,7 +17,12 @@ import {
 import { TypedCustomerDetailsQuery } from "../queries";
 import { RemoveCustomer } from "../types/RemoveCustomer";
 import { UpdateCustomer } from "../types/UpdateCustomer";
-import { customerListUrl, customerRemoveUrl, customerUrl } from "../urls";
+import {
+  customerListUrl,
+  customerRemovePath,
+  customerRemoveUrl,
+  customerUrl
+} from "../urls";
 
 interface CustomerDetailsViewProps {
   id: string;
@@ -87,9 +92,7 @@ export const CustomerDetailsView: React.StatelessComponent<
                             }
                             onAddressManageClick={() => undefined} // TODO: add address management #3173
                             onBack={() => navigate(customerListUrl)}
-                            onRowClick={id =>
-                              navigate(orderUrl(encodeURIComponent(id)))
-                            }
+                            onRowClick={id => navigate(orderUrl(id))}
                             onSubmit={formData =>
                               updateCustomer({
                                 variables: {
@@ -105,7 +108,7 @@ export const CustomerDetailsView: React.StatelessComponent<
                             onDelete={() => navigate(customerRemoveUrl(id))}
                             onViewAllOrdersClick={() => undefined} // TODO: add filters to order #3172
                           />
-                          <Route exact path={customerRemoveUrl(id)}>
+                          <Route exact path={customerRemovePath(":id")}>
                             {({ match }) => (
                               <ActionDialog
                                 onClose={() => navigate(customerUrl(id))}
