@@ -224,6 +224,7 @@ export interface OrderDetailsFragment {
   id: string;
   billingAddress: OrderDetailsFragment_billingAddress | null;
   created: any;
+  customerNote: string;
   events: (OrderDetailsFragment_events | null)[] | null;
   fulfillments: (OrderDetailsFragment_fulfillments | null)[];
   lines: (OrderDetailsFragment_lines | null)[];

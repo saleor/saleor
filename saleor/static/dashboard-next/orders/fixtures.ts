@@ -796,6 +796,7 @@ export const order = (placeholder: string): OrderDetails_order => ({
     streetAddress2: ""
   },
   created: "2018-09-11T09:37:28.185874+00:00",
+  customerNote: "Lorem ipsum dolor sit amet",
   events: [
     {
       __typename: "OrderEvent",

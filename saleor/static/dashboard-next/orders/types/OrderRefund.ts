@@ -230,6 +230,7 @@ export interface OrderRefund_orderRefund_order {
   id: string;
   billingAddress: OrderRefund_orderRefund_order_billingAddress | null;
   created: any;
+  customerNote: string;
   events: (OrderRefund_orderRefund_order_events | null)[] | null;
   fulfillments: (OrderRefund_orderRefund_order_fulfillments | null)[];
   lines: (OrderRefund_orderRefund_order_lines | null)[];
