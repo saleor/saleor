@@ -1,6 +1,5 @@
 import json
 
-import six
 from django.conf import settings
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import render_to_response
@@ -49,7 +48,7 @@ class GraphQLView(View):
         if request.method == 'GET':
             if settings.DEBUG:
                 return render_to_response('graphql/playground.html')
-            response = self.handle_query(request, *args, **kwargs)
+            return HttpResponseNotAllowed(['OPTIONS', 'POST'])
         elif request.method == 'OPTIONS':
             response = self.options(request, *args, **kwargs)
         elif request.method == 'POST':
@@ -60,7 +59,7 @@ class GraphQLView(View):
         # Add access control headers
         response['Access-Control-Allow-Origin'] = (
             settings.ALLOWED_GRAPHQL_ORIGINS)
-        response['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+        response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
         response['Access-Control-Allow-Headers'] = (
             'Origin, Content-Type, Accept, Authorization')
         return response
@@ -84,11 +83,8 @@ class GraphQLView(View):
         return JsonResponse(data=result, status=status_code, safe=False)
 
     def get_response(self, request: HttpRequest, data: dict):
-        try:
-            query, variables, operation_name = self.get_graphql_params(
-                request, data)
-        except ValueError as e:
-            return dict(errors=[self.format_error(e)]), 400
+        query, variables, operation_name = self.get_graphql_params(
+            request, data)
 
         execution_result = self.execute_graphql_request(
             request, query, variables, operation_name)
@@ -152,18 +148,10 @@ class GraphQLView(View):
 
     @staticmethod
     def get_graphql_params(request: HttpRequest, data: dict):
-        query = request.GET.get("query") or data.get("query")
-        variables = request.GET.get("variables") or data.get("variables")
-
-        if variables and isinstance(variables, six.text_type):
-            try:
-                variables = json.loads(variables)
-            except Exception:
-                raise ValueError("Variables are invalid JSON.")
-
-        operation_name = request.GET.get(
-            "operationName") or data.get("operationName")
-        if operation_name == "null":
+        query = data.get('query')
+        variables = data.get('variables')
+        operation_name = data.get('operationName')
+        if operation_name == 'null':
             operation_name = None
 
         if request.content_type == 'multipart/form-data':
