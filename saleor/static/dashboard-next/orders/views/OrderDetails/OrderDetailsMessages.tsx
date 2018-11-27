@@ -101,12 +101,7 @@ export const OrderDetailsMessages: React.StatelessComponent<
                   context: "notification"
                 })
               });
-              navigate(
-                orderUrl(
-                  encodeURIComponent(data.orderFulfillmentCreate.order.id)
-                ),
-                true
-              );
+              navigate(orderUrl(data.orderFulfillmentCreate.order.id), true);
             } else {
               pushMessage({
                 text: i18n.t("Could not fulfill items", {
@@ -136,10 +131,7 @@ export const OrderDetailsMessages: React.StatelessComponent<
                 context: "notification"
               })
             });
-            navigate(
-              orderUrl(encodeURIComponent(data.orderCancel.order.id)),
-              true
-            );
+            navigate(orderUrl(data.orderCancel.order.id), true);
           };
           const handleDraftCancel = () => {
             pushMessage({
@@ -178,10 +170,7 @@ export const OrderDetailsMessages: React.StatelessComponent<
                   context: "notification"
                 })
               });
-              navigate(
-                orderUrl(encodeURIComponent(data.orderUpdate.order.id)),
-                true
-              );
+              navigate(orderUrl(data.orderUpdate.order.id), true);
             }
           };
           const handleDraftUpdate = (data: OrderDraftUpdate) => {
@@ -191,10 +180,7 @@ export const OrderDetailsMessages: React.StatelessComponent<
                   context: "notification"
                 })
               });
-              navigate(
-                orderUrl(encodeURIComponent(data.draftOrderUpdate.order.id)),
-                true
-              );
+              navigate(orderUrl(data.draftOrderUpdate.order.id), true);
             }
           };
           const handleShippingMethodUpdate = (
@@ -213,10 +199,7 @@ export const OrderDetailsMessages: React.StatelessComponent<
                 })
               });
             }
-            navigate(
-              orderUrl(encodeURIComponent(data.orderUpdateShipping.order.id)),
-              true
-            );
+            navigate(orderUrl(data.orderUpdateShipping.order.id), true);
           };
           const handleOrderLineDelete = (data: OrderLineDelete) => {
             if (!maybe(() => data.draftOrderLineDelete.errors.length)) {
@@ -240,12 +223,7 @@ export const OrderDetailsMessages: React.StatelessComponent<
                   context: "notification"
                 })
               });
-              navigate(
-                orderUrl(
-                  encodeURIComponent(data.draftOrderLineCreate.order.id)
-                ),
-                true
-              );
+              navigate(orderUrl(data.draftOrderLineCreate.order.id), true);
             } else {
               pushMessage({
                 text: i18n.t("Could not create order line", {
@@ -278,12 +256,7 @@ export const OrderDetailsMessages: React.StatelessComponent<
                   context: "notification"
                 })
               });
-              navigate(
-                orderUrl(
-                  encodeURIComponent(data.orderFulfillmentCancel.order.id)
-                ),
-                true
-              );
+              navigate(orderUrl(data.orderFulfillmentCancel.order.id), true);
             } else {
               pushMessage({
                 text: i18n.t("Could not cancel fulfillment", {
@@ -304,11 +277,7 @@ export const OrderDetailsMessages: React.StatelessComponent<
                 })
               });
               navigate(
-                orderUrl(
-                  encodeURIComponent(
-                    data.orderFulfillmentUpdateTracking.order.id
-                  )
-                ),
+                orderUrl(data.orderFulfillmentUpdateTracking.order.id),
                 true
               );
             } else {
@@ -326,10 +295,7 @@ export const OrderDetailsMessages: React.StatelessComponent<
                   context: "notification"
                 })
               });
-              navigate(
-                orderUrl(encodeURIComponent(data.draftOrderComplete.order.id)),
-                true
-              );
+              navigate(orderUrl(data.draftOrderComplete.order.id), true);
             } else {
               pushMessage({
                 text: i18n.t("Could not finalize draft", {
