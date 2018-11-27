@@ -500,6 +500,21 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       }
                                       saveButtonBarState="default"
                                     />
+                                    <Route
+                                      path={orderCancelPath(":id")}
+                                      render={({ match }) => (
+                                        <OrderDraftCancelDialog
+                                          onClose={onModalClose}
+                                          onConfirm={() =>
+                                            orderDraftCancel.mutate({ id })
+                                          }
+                                          open={!!match}
+                                          orderNumber={maybe(
+                                            () => order.number
+                                          )}
+                                        />
+                                      )}
+                                    />
                                   </>
                                 )}
                                 <Route
@@ -570,19 +585,6 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       onClose={onModalClose}
                                       onConfirm={() =>
                                         orderDraftFinalize.mutate({ id })
-                                      }
-                                      open={!!match}
-                                      orderNumber={maybe(() => order.number)}
-                                    />
-                                  )}
-                                />
-                                <Route
-                                  path={orderCancelPath(":id")}
-                                  render={({ match }) => (
-                                    <OrderDraftCancelDialog
-                                      onClose={onModalClose}
-                                      onConfirm={() =>
-                                        orderDraftCancel.mutate({ id })
                                       }
                                       open={!!match}
                                       orderNumber={maybe(() => order.number)}

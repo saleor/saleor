@@ -22,9 +22,11 @@ import { CollectionUpdate } from "../types/CollectionUpdate";
 import { RemoveCollection } from "../types/RemoveCollection";
 import { UnassignCollectionProduct } from "../types/UnassignCollectionProduct";
 import {
+  collectionAddProductPath,
   collectionAddProductUrl,
   collectionImageRemoveUrl,
   collectionListUrl,
+  collectionRemovePath,
   collectionRemoveUrl,
   collectionUrl
 } from "../urls";
@@ -239,7 +241,7 @@ export const CollectionDetails: React.StatelessComponent<
                                 )}
                               </Paginator>
                               <Route
-                                path={collectionAddProductUrl(":id")}
+                                path={collectionAddProductPath(":id")}
                                 render={({ match }) => (
                                   <CollectionAssignProductDialog
                                     open={!!match}
@@ -264,7 +266,7 @@ export const CollectionDetails: React.StatelessComponent<
                                 )}
                               />
                               <Route
-                                path={collectionRemoveUrl(":id")}
+                                path={collectionRemovePath(":id")}
                                 render={({ match }) => (
                                   <ActionDialog
                                     onClose={() =>
@@ -284,8 +286,9 @@ export const CollectionDetails: React.StatelessComponent<
                                         __html: i18n.t(
                                           "Are you sure you want to remove <strong>{{ collectionName }}</strong>?",
                                           {
-                                            collectionName:
-                                              data.collection.name,
+                                            collectionName: maybe(
+                                              () => data.collection.name
+                                            ),
                                             context: "modal"
                                           }
                                         )
