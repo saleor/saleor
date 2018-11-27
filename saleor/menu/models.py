@@ -15,6 +15,7 @@ class Menu(models.Model):
     json_content = JSONField(blank=True, default=dict)
 
     class Meta:
+        ordering = ['pk']
         permissions = ((
             'manage_menus', pgettext_lazy(
                 'Permission description', 'Manage navigation.')),)
