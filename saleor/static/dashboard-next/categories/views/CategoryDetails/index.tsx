@@ -21,7 +21,7 @@ import {
 import { TypedCategoryDetailsQuery } from "../../queries";
 import { CategoryDelete } from "../../types/CategoryDelete";
 import { categoryAddUrl, categoryListUrl, categoryUrl } from "../../urls";
-import { categoryDeleteUrl } from "./urls";
+import { categoryDeletePath, categoryDeleteUrl } from "./urls";
 
 export type CategoryDetailsQueryParams = Partial<{
   after: string;
@@ -105,32 +105,22 @@ export const CategoryDetails: React.StatelessComponent<
                                   )}
                                   placeholderImage={""}
                                   onAddCategory={() =>
-                                    navigate(
-                                      categoryAddUrl(encodeURIComponent(id))
-                                    )
+                                    navigate(categoryAddUrl(id))
                                   }
                                   onAddProduct={() => navigate(productAddUrl)}
                                   onBack={() =>
                                     navigate(
                                       maybe(
                                         () =>
-                                          categoryUrl(
-                                            encodeURIComponent(
-                                              data.category.parent.id
-                                            )
-                                          ),
+                                          categoryUrl(data.category.parent.id),
                                         categoryListUrl
                                       )
                                     )
                                   }
                                   onCategoryClick={id => () =>
-                                    navigate(
-                                      categoryUrl(encodeURIComponent(id))
-                                    )}
+                                    navigate(categoryUrl(id))}
                                   onDelete={() =>
-                                    navigate(
-                                      categoryDeleteUrl(encodeURIComponent(id))
-                                    )
+                                    navigate(categoryDeleteUrl(id))
                                   }
                                   onImageDelete={() => undefined}
                                   onImageUpload={() => undefined}
@@ -172,17 +162,14 @@ export const CategoryDetails: React.StatelessComponent<
                               )}
                             </Paginator>
                             <Route
-                              path={categoryDeleteUrl(encodeURIComponent(id))}
+                              path={categoryDeletePath(":id")}
                               render={({ match }) => (
                                 <ActionDialog
                                   confirmButtonState={
                                     removeDialogTransitionState
                                   }
                                   onClose={() =>
-                                    navigate(
-                                      categoryUrl(encodeURIComponent(id)),
-                                      true
-                                    )
+                                    navigate(categoryUrl(id), true)
                                   }
                                   onConfirm={() =>
                                     deleteCategory({ variables: { id } })
