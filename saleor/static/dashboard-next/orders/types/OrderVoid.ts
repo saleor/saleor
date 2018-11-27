@@ -224,6 +224,7 @@ export interface OrderVoid_orderVoid_order {
   id: string;
   billingAddress: OrderVoid_orderVoid_order_billingAddress | null;
   created: any;
+  customerNote: string;
   events: (OrderVoid_orderVoid_order_events | null)[] | null;
   fulfillments: (OrderVoid_orderVoid_order_fulfillments | null)[];
   lines: (OrderVoid_orderVoid_order_lines | null)[];

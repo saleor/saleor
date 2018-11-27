@@ -18,6 +18,7 @@ import OrderFulfillment from "../OrderFulfillment";
 import OrderHistory, { FormData as HistoryFormData } from "../OrderHistory";
 import OrderPayment from "../OrderPayment/OrderPayment";
 import OrderUnfulfilledItems from "../OrderUnfulfilledItems/OrderUnfulfilledItems";
+import OrderCustomerNote from "../OrderCustomerNote";
 
 export interface OrderDetailsPageProps {
   order: OrderDetails_order;
@@ -164,6 +165,8 @@ const OrderDetailsPage = decorate<OrderDetailsPageProps>(
               onBillingAddressEdit={onBillingAddressEdit}
               onShippingAddressEdit={onShippingAddressEdit}
             />
+            <CardSpacer />
+            <OrderCustomerNote note={maybe(() => order.customerNote)} />
           </div>
         </div>
       </Container>

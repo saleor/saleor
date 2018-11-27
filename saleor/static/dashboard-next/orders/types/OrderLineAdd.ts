@@ -230,6 +230,7 @@ export interface OrderLineAdd_draftOrderLineCreate_order {
   id: string;
   billingAddress: OrderLineAdd_draftOrderLineCreate_order_billingAddress | null;
   created: any;
+  customerNote: string;
   events: (OrderLineAdd_draftOrderLineCreate_order_events | null)[] | null;
   fulfillments: (OrderLineAdd_draftOrderLineCreate_order_fulfillments | null)[];
   lines: (OrderLineAdd_draftOrderLineCreate_order_lines | null)[];
