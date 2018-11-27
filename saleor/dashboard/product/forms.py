@@ -58,7 +58,7 @@ class ProductTypeSelectorForm(forms.Form):
 
 
 def get_tax_rate_type_choices():
-    rate_types = get_tax_rate_types() + [DEFAULT_TAX_RATE_NAME, '']
+    rate_types = get_tax_rate_types() + [DEFAULT_TAX_RATE_NAME]
     translations = dict(TaxRateType.CHOICES)
     choices = [
         (rate_name, translations.get(rate_name, '---------'))
