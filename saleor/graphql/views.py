@@ -49,7 +49,8 @@ class GraphQLView(View):
             if settings.DEBUG:
                 return render_to_response('graphql/playground.html')
             return HttpResponseNotAllowed(['OPTIONS', 'POST'])
-        elif request.method == 'OPTIONS':
+
+        if request.method == 'OPTIONS':
             response = self.options(request, *args, **kwargs)
         elif request.method == 'POST':
             response = self.handle_query(request, *args, **kwargs)
