@@ -85,6 +85,7 @@ const VariantUpdateOperations: React.StatelessComponent<
                         mutate: variables => unassignImage.mutate({ variables })
                       },
                       updateVariant: {
+                        called: updateVariant.called,
                         data: updateVariant.data,
                         loading: updateVariant.loading,
                         mutate: variables => updateVariant.mutate({ variables })

@@ -8,7 +8,7 @@ import Navigator from "../../components/Navigator";
 import { createPaginationState, Paginator } from "../../components/Paginator";
 import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
-import { maybe } from "../../misc";
+import { getMutationState, maybe } from "../../misc";
 import { productUrl } from "../../products/urls";
 import CollectionAssignProductDialog from "../components/CollectionAssignProductDialog/CollectionAssignProductDialog";
 import CollectionDetailsPage, {
@@ -155,6 +155,15 @@ export const CollectionDetails: React.StatelessComponent<
                               });
                             }
                           };
+
+                          const formTransitionState = getMutationState(
+                            updateCollection.called,
+                            updateCollection.loading,
+                            maybe(
+                              () =>
+                                updateCollection.data.collectionUpdate.errors
+                            )
+                          );
                           return (
                             <>
                               <WindowTitle
@@ -233,6 +242,7 @@ export const CollectionDetails: React.StatelessComponent<
                                       navigate(
                                         productUrl(encodeURIComponent(id))
                                       )}
+                                    saveButtonBarState={formTransitionState}
                                   />
                                 )}
                               </Paginator>

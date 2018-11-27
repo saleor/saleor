@@ -5,12 +5,11 @@ import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar, {
-  SaveButtonBarState
-} from "../../../components/SaveButtonBar";
+import SaveButtonBar from "../../../components/SaveButtonBar";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import ProductImageNavigation from "../ProductImageNavigation";
@@ -26,7 +25,7 @@ interface ProductImagePageProps {
     url: string;
   }>;
   disabled: boolean;
-  saveButtonBarState?: SaveButtonBarState;
+  saveButtonBarState: ConfirmButtonTransitionState;
   onBack: () => void;
   onDelete: () => void;
   onRowClick: (id: string) => () => void;

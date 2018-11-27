@@ -23,8 +23,9 @@ const CollectionUUpdateProvider: React.StatelessComponent<
   CollectionUpdateProviderProps
 > = ({ children, onError, onSuccess }) => (
   <TypedCollectionUpdateMutation onCompleted={onSuccess} onError={onError}>
-    {(mutate, { data, error, loading }) =>
+    {(mutate, { called, data, error, loading }) =>
       children({
+        called,
         data,
         error,
         loading,

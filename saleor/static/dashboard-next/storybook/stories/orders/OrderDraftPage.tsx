@@ -34,6 +34,7 @@ const props: OrderDraftPageProps = {
   onShippingAddressEdit: undefined,
   onShippingMethodEdit: undefined,
   order,
+  saveButtonBarState: "default",
   users: clients,
   usersLoading: false,
   variants,

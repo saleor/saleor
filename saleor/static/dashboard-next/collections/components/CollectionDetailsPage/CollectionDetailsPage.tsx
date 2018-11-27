@@ -2,6 +2,7 @@ import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
 import { CardSpacer } from "../../../components/CardSpacer";
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import { Container } from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
@@ -27,6 +28,7 @@ export interface CollectionDetailsPageFormData {
 export interface CollectionDetailsPageProps extends PageListProps {
   collection: CollectionDetails_collection;
   isFeatured: boolean;
+  saveButtonBarState: ConfirmButtonTransitionState;
   onBack: () => void;
   onCollectionRemove: () => void;
   onImageDelete: () => void;
@@ -48,6 +50,7 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
     collection,
     disabled,
     isFeatured,
+    saveButtonBarState,
     onBack,
     onCollectionRemove,
     onImageDelete,
@@ -116,6 +119,7 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
             </div>
           </div>
           <SaveButtonBar
+            state={saveButtonBarState}
             disabled={disabled || !hasChanged}
             onCancel={onBack}
             onDelete={onCollectionRemove}

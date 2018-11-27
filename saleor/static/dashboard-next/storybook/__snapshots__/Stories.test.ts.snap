@@ -2900,7 +2900,7 @@ exports[`Storyshots Generics / SaveButtonBar disabled 1`] = `
       />
     </button>
     <button
-      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
       disabled=""
       tabindex="-1"
       type="button"
@@ -2908,7 +2908,42 @@ exports[`Storyshots Generics / SaveButtonBar disabled 1`] = `
       <span
         class="MuiButton-label-id"
       >
-        Save
+        <div
+          class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+          role="progressbar"
+          style="width:24px;height:24px"
+        >
+          <svg
+            class="MuiCircularProgress-svg-id"
+            viewBox="22 22 44 44"
+          >
+            <circle
+              class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+              cx="44"
+              cy="44"
+              fill="none"
+              r="20.2"
+              stroke-width="3.6"
+            />
+          </svg>
+        </div>
+        <svg
+          aria-hidden="true"
+          class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <g>
+            <path
+              d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+            />
+          </g>
+        </svg>
+        <span
+          class="ConfirmButtonComponent-label-id"
+        >
+          Save
+        </span>
       </span>
     </button>
   </div>
@@ -2938,14 +2973,49 @@ exports[`Storyshots Generics / SaveButtonBar error 1`] = `
       />
     </button>
     <button
-      class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id Component-error-id"
+      class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id undefined"
       tabindex="0"
       type="button"
     >
       <span
         class="MuiButton-label-id"
       >
-        Error
+        <div
+          class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+          role="progressbar"
+          style="width:24px;height:24px"
+        >
+          <svg
+            class="MuiCircularProgress-svg-id"
+            viewBox="22 22 44 44"
+          >
+            <circle
+              class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+              cx="44"
+              cy="44"
+              fill="none"
+              r="20.2"
+              stroke-width="3.6"
+            />
+          </svg>
+        </div>
+        <svg
+          aria-hidden="true"
+          class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <g>
+            <path
+              d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+            />
+          </g>
+        </svg>
+        <span
+          class="ConfirmButtonComponent-label-id"
+        >
+          Save
+        </span>
       </span>
       <span
         class="MuiTouchRipple-root-id"
@@ -2978,14 +3048,49 @@ exports[`Storyshots Generics / SaveButtonBar idle 1`] = `
       />
     </button>
     <button
-      class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id"
+      class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id undefined"
       tabindex="0"
       type="button"
     >
       <span
         class="MuiButton-label-id"
       >
-        Save
+        <div
+          class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+          role="progressbar"
+          style="width:24px;height:24px"
+        >
+          <svg
+            class="MuiCircularProgress-svg-id"
+            viewBox="22 22 44 44"
+          >
+            <circle
+              class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+              cx="44"
+              cy="44"
+              fill="none"
+              r="20.2"
+              stroke-width="3.6"
+            />
+          </svg>
+        </div>
+        <svg
+          aria-hidden="true"
+          class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <g>
+            <path
+              d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+            />
+          </g>
+        </svg>
+        <span
+          class="ConfirmButtonComponent-label-id"
+        >
+          Save
+        </span>
       </span>
       <span
         class="MuiTouchRipple-root-id"
@@ -3018,14 +3123,49 @@ exports[`Storyshots Generics / SaveButtonBar interactive error 1`] = `
       />
     </button>
     <button
-      class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id"
+      class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id undefined"
       tabindex="0"
       type="button"
     >
       <span
         class="MuiButton-label-id"
       >
-        Save
+        <div
+          class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+          role="progressbar"
+          style="width:24px;height:24px"
+        >
+          <svg
+            class="MuiCircularProgress-svg-id"
+            viewBox="22 22 44 44"
+          >
+            <circle
+              class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+              cx="44"
+              cy="44"
+              fill="none"
+              r="20.2"
+              stroke-width="3.6"
+            />
+          </svg>
+        </div>
+        <svg
+          aria-hidden="true"
+          class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <g>
+            <path
+              d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+            />
+          </g>
+        </svg>
+        <span
+          class="ConfirmButtonComponent-label-id"
+        >
+          Save
+        </span>
       </span>
       <span
         class="MuiTouchRipple-root-id"
@@ -3058,14 +3198,49 @@ exports[`Storyshots Generics / SaveButtonBar interactive success 1`] = `
       />
     </button>
     <button
-      class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id"
+      class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id undefined"
       tabindex="0"
       type="button"
     >
       <span
         class="MuiButton-label-id"
       >
-        Save
+        <div
+          class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+          role="progressbar"
+          style="width:24px;height:24px"
+        >
+          <svg
+            class="MuiCircularProgress-svg-id"
+            viewBox="22 22 44 44"
+          >
+            <circle
+              class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+              cx="44"
+              cy="44"
+              fill="none"
+              r="20.2"
+              stroke-width="3.6"
+            />
+          </svg>
+        </div>
+        <svg
+          aria-hidden="true"
+          class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <g>
+            <path
+              d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+            />
+          </g>
+        </svg>
+        <span
+          class="ConfirmButtonComponent-label-id"
+        >
+          Save
+        </span>
       </span>
       <span
         class="MuiTouchRipple-root-id"
@@ -3098,16 +3273,15 @@ exports[`Storyshots Generics / SaveButtonBar loading 1`] = `
       />
     </button>
     <button
-      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
-      disabled=""
-      tabindex="-1"
+      class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id undefined"
+      tabindex="0"
       type="button"
     >
       <span
         class="MuiButton-label-id"
       >
         <div
-          class="MuiCircularProgress-root-id MuiCircularProgress-colorSecondary-id MuiCircularProgress-indeterminate-id Component-buttonProgress-id"
+          class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id"
           role="progressbar"
           style="width:24px;height:24px"
         >
@@ -3125,8 +3299,27 @@ exports[`Storyshots Generics / SaveButtonBar loading 1`] = `
             />
           </svg>
         </div>
-        Saving
+        <svg
+          aria-hidden="true"
+          class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <g>
+            <path
+              d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+            />
+          </g>
+        </svg>
+        <span
+          class="ConfirmButtonComponent-label-id ConfirmButtonComponent-invisible-id"
+        >
+          Save
+        </span>
       </span>
+      <span
+        class="MuiTouchRipple-root-id"
+      />
     </button>
   </div>
 </div>
@@ -3155,16 +3348,35 @@ exports[`Storyshots Generics / SaveButtonBar success 1`] = `
       />
     </button>
     <button
-      class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id Component-success-id"
+      class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id undefined"
       tabindex="0"
       type="button"
     >
       <span
         class="MuiButton-label-id"
       >
+        <div
+          class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+          role="progressbar"
+          style="width:24px;height:24px"
+        >
+          <svg
+            class="MuiCircularProgress-svg-id"
+            viewBox="22 22 44 44"
+          >
+            <circle
+              class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+              cx="44"
+              cy="44"
+              fill="none"
+              r="20.2"
+              stroke-width="3.6"
+            />
+          </svg>
+        </div>
         <svg
           aria-hidden="true"
-          class="MuiSvgIcon-root-id Component-icon-id"
+          class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
           focusable="false"
           viewBox="0 0 24 24"
         >
@@ -3174,7 +3386,11 @@ exports[`Storyshots Generics / SaveButtonBar success 1`] = `
             />
           </g>
         </svg>
-        Saved
+        <span
+          class="ConfirmButtonComponent-label-id"
+        >
+          Save
+        </span>
       </span>
       <span
         class="MuiTouchRipple-root-id"
@@ -6865,7 +7081,7 @@ exports[`Storyshots Views / Categories / Create category When loading 1`] = `
             />
           </button>
           <button
-            class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+            class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
             disabled=""
             tabindex="-1"
             type="button"
@@ -6873,7 +7089,42 @@ exports[`Storyshots Views / Categories / Create category When loading 1`] = `
             <span
               class="MuiButton-label-id"
             >
-              Save category
+              <div
+                class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+                role="progressbar"
+                style="width:24px;height:24px"
+              >
+                <svg
+                  class="MuiCircularProgress-svg-id"
+                  viewBox="22 22 44 44"
+                >
+                  <circle
+                    class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                    cx="44"
+                    cy="44"
+                    fill="none"
+                    r="20.2"
+                    stroke-width="3.6"
+                  />
+                </svg>
+              </div>
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <g>
+                  <path
+                    d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                  />
+                </g>
+              </svg>
+              <span
+                class="ConfirmButtonComponent-label-id"
+              >
+                Save category
+              </span>
             </span>
           </button>
         </div>
@@ -7095,7 +7346,7 @@ exports[`Storyshots Views / Categories / Create category default 1`] = `
             />
           </button>
           <button
-            class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+            class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
             disabled=""
             tabindex="-1"
             type="button"
@@ -7103,7 +7354,42 @@ exports[`Storyshots Views / Categories / Create category default 1`] = `
             <span
               class="MuiButton-label-id"
             >
-              Save category
+              <div
+                class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+                role="progressbar"
+                style="width:24px;height:24px"
+              >
+                <svg
+                  class="MuiCircularProgress-svg-id"
+                  viewBox="22 22 44 44"
+                >
+                  <circle
+                    class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                    cx="44"
+                    cy="44"
+                    fill="none"
+                    r="20.2"
+                    stroke-width="3.6"
+                  />
+                </svg>
+              </div>
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <g>
+                  <path
+                    d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                  />
+                </g>
+              </svg>
+              <span
+                class="ConfirmButtonComponent-label-id"
+              >
+                Save category
+              </span>
             </span>
           </button>
         </div>
@@ -7447,7 +7733,7 @@ exports[`Storyshots Views / Categories / Update category default 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -7455,7 +7741,42 @@ exports[`Storyshots Views / Categories / Update category default 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -7822,7 +8143,7 @@ exports[`Storyshots Views / Categories / Update category loading 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -7830,7 +8151,42 @@ exports[`Storyshots Views / Categories / Update category loading 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -8173,7 +8529,7 @@ exports[`Storyshots Views / Categories / Update category no background 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -8181,7 +8537,42 @@ exports[`Storyshots Views / Categories / Update category no background 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -8524,7 +8915,7 @@ exports[`Storyshots Views / Categories / Update category no products 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -8532,7 +8923,42 @@ exports[`Storyshots Views / Categories / Update category no products 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -8875,7 +9301,7 @@ exports[`Storyshots Views / Categories / Update category no subcategories 1`] = 
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -8883,7 +9309,42 @@ exports[`Storyshots Views / Categories / Update category no subcategories 1`] = 
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -9682,7 +10143,7 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -9690,7 +10151,42 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -10287,7 +10783,7 @@ exports[`Storyshots Views / Collections / Collection details loading 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -10295,7 +10791,42 @@ exports[`Storyshots Views / Collections / Collection details loading 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -10848,7 +11379,7 @@ exports[`Storyshots Views / Collections / Collection details no products 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -10856,7 +11387,42 @@ exports[`Storyshots Views / Collections / Collection details no products 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -11548,7 +12114,7 @@ exports[`Storyshots Views / Collections / Create collection default 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -11556,7 +12122,42 @@ exports[`Storyshots Views / Collections / Create collection default 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -11865,7 +12466,7 @@ exports[`Storyshots Views / Collections / Create collection loading 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -11873,7 +12474,42 @@ exports[`Storyshots Views / Collections / Create collection loading 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -12972,7 +13608,7 @@ exports[`Storyshots Views / Customers / Create customer default 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -12980,7 +13616,42 @@ exports[`Storyshots Views / Customers / Create customer default 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -13564,7 +14235,7 @@ exports[`Storyshots Views / Customers / Create customer form errors 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -13572,7 +14243,42 @@ exports[`Storyshots Views / Customers / Create customer form errors 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -14106,7 +14812,7 @@ exports[`Storyshots Views / Customers / Create customer loading 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -14114,7 +14820,42 @@ exports[`Storyshots Views / Customers / Create customer loading 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -14579,7 +15320,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -14587,7 +15328,42 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -15089,7 +15865,7 @@ exports[`Storyshots Views / Customers / Customer details different addresses 1`]
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -15097,7 +15873,42 @@ exports[`Storyshots Views / Customers / Customer details different addresses 1`]
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -15572,7 +16383,7 @@ exports[`Storyshots Views / Customers / Customer details form errors 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -15580,7 +16391,42 @@ exports[`Storyshots Views / Customers / Customer details form errors 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -16026,7 +16872,7 @@ exports[`Storyshots Views / Customers / Customer details loading 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -16034,7 +16880,42 @@ exports[`Storyshots Views / Customers / Customer details loading 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -16494,7 +17375,7 @@ exports[`Storyshots Views / Customers / Customer details never logged 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -16502,7 +17383,42 @@ exports[`Storyshots Views / Customers / Customer details never logged 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -16962,7 +17878,7 @@ exports[`Storyshots Views / Customers / Customer details never placed order 1`] 
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -16970,7 +17886,42 @@ exports[`Storyshots Views / Customers / Customer details never placed order 1`] 
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -31796,14 +32747,49 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
         />
       </button>
       <button
-        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id"
+        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id undefined"
         tabindex="0"
         type="button"
       >
         <span
           class="MuiButton-label-id"
         >
-          Finalize
+          <div
+            class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+            role="progressbar"
+            style="width:24px;height:24px"
+          >
+            <svg
+              class="MuiCircularProgress-svg-id"
+              viewBox="22 22 44 44"
+            >
+              <circle
+                class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                cx="44"
+                cy="44"
+                fill="none"
+                r="20.2"
+                stroke-width="3.6"
+              />
+            </svg>
+          </div>
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+              />
+            </g>
+          </svg>
+          <span
+            class="ConfirmButtonComponent-label-id"
+          >
+            Finalize
+          </span>
         </span>
         <span
           class="MuiTouchRipple-root-id"
@@ -32283,7 +33269,7 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
         />
       </button>
       <button
-        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
         disabled=""
         tabindex="-1"
         type="button"
@@ -32291,7 +33277,42 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
         <span
           class="MuiButton-label-id"
         >
-          Finalize
+          <div
+            class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+            role="progressbar"
+            style="width:24px;height:24px"
+          >
+            <svg
+              class="MuiCircularProgress-svg-id"
+              viewBox="22 22 44 44"
+            >
+              <circle
+                class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                cx="44"
+                cy="44"
+                fill="none"
+                r="20.2"
+                stroke-width="3.6"
+              />
+            </svg>
+          </div>
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+              />
+            </g>
+          </svg>
+          <span
+            class="ConfirmButtonComponent-label-id"
+          >
+            Finalize
+          </span>
         </span>
       </button>
     </div>
@@ -32717,7 +33738,7 @@ exports[`Storyshots Views / Orders / Order draft without lines 1`] = `
         />
       </button>
       <button
-        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
         disabled=""
         tabindex="-1"
         type="button"
@@ -32725,7 +33746,42 @@ exports[`Storyshots Views / Orders / Order draft without lines 1`] = `
         <span
           class="MuiButton-label-id"
         >
-          Finalize
+          <div
+            class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+            role="progressbar"
+            style="width:24px;height:24px"
+          >
+            <svg
+              class="MuiCircularProgress-svg-id"
+              viewBox="22 22 44 44"
+            >
+              <circle
+                class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                cx="44"
+                cy="44"
+                fill="none"
+                r="20.2"
+                stroke-width="3.6"
+              />
+            </svg>
+          </div>
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+              />
+            </g>
+          </svg>
+          <span
+            class="ConfirmButtonComponent-label-id"
+          >
+            Finalize
+          </span>
         </span>
       </button>
     </div>
@@ -36057,7 +37113,7 @@ exports[`Storyshots Views / Pages / Page details when loading 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -36065,7 +37121,42 @@ exports[`Storyshots Views / Pages / Page details when loading 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -36343,7 +37434,7 @@ exports[`Storyshots Views / Pages / Page details with initial data 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -36351,7 +37442,42 @@ exports[`Storyshots Views / Pages / Page details with initial data 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -37157,7 +38283,7 @@ exports[`Storyshots Views / Product types / Create product type default 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -37165,7 +38291,42 @@ exports[`Storyshots Views / Product types / Create product type default 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -37430,7 +38591,7 @@ exports[`Storyshots Views / Product types / Create product type loading 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -37438,7 +38599,42 @@ exports[`Storyshots Views / Product types / Create product type loading 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -37955,7 +39151,7 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -37963,7 +39159,42 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -38407,7 +39638,7 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -38415,7 +39646,42 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -39493,7 +40759,7 @@ exports[`Storyshots Views / Products / Create product When loading 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -39501,7 +40767,42 @@ exports[`Storyshots Views / Products / Create product When loading 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -40122,7 +41423,7 @@ exports[`Storyshots Views / Products / Create product default 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -40130,7 +41431,42 @@ exports[`Storyshots Views / Products / Create product default 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -40538,7 +41874,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -40546,7 +41882,42 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save variant
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save variant
+            </span>
           </span>
         </button>
       </div>
@@ -40908,7 +42279,7 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -40916,7 +42287,42 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
           <span
             class="MuiButton-label-id"
           >
-            Save variant
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save variant
+            </span>
           </span>
         </button>
       </div>
@@ -41329,7 +42735,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -41337,7 +42743,42 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
           <span
             class="MuiButton-label-id"
           >
-            Save variant
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save variant
+            </span>
           </span>
         </button>
       </div>
@@ -42367,7 +43808,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -42375,7 +43816,42 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -43136,7 +44612,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -43144,7 +44620,42 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -44111,7 +45622,7 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -44119,7 +45630,42 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -45080,7 +46626,7 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -45088,7 +46634,42 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -45372,7 +46953,7 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -45380,7 +46961,42 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -45595,7 +47211,7 @@ exports[`Storyshots Views / Products / Product image details when loading data 1
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -45603,7 +47219,42 @@ exports[`Storyshots Views / Products / Product image details when loading data 1
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -48125,7 +49776,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -48133,7 +49784,42 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -48531,7 +50217,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -48539,7 +50225,42 @@ exports[`Storyshots Views / Products / Product variant details when loading data
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -48819,7 +50540,7 @@ exports[`Storyshots Views / Site settings / Page default 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -48827,7 +50548,42 @@ exports[`Storyshots Views / Site settings / Page default 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -49112,7 +50868,7 @@ exports[`Storyshots Views / Site settings / Page form errors 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -49120,7 +50876,42 @@ exports[`Storyshots Views / Site settings / Page form errors 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -49409,7 +51200,7 @@ exports[`Storyshots Views / Site settings / Page loading 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -49417,7 +51208,42 @@ exports[`Storyshots Views / Site settings / Page loading 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -49718,18 +51544,51 @@ exports[`Storyshots Views / Staff / Staff member details default 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id"
-          tabindex="0"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
+          disabled=""
+          tabindex="-1"
           type="button"
         >
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
-          <span
-            class="MuiTouchRipple-root-id"
-          />
         </button>
       </div>
     </div>
@@ -50375,18 +52234,51 @@ exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id"
-          tabindex="0"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
+          disabled=""
+          tabindex="-1"
           type="button"
         >
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
-          <span
-            class="MuiTouchRipple-root-id"
-          />
         </button>
       </div>
     </div>
@@ -51051,18 +52943,51 @@ exports[`Storyshots Views / Staff / Staff member details not admin 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id"
-          tabindex="0"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
+          disabled=""
+          tabindex="-1"
           type="button"
         >
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
-          <span
-            class="MuiTouchRipple-root-id"
-          />
         </button>
       </div>
     </div>
@@ -52186,7 +54111,7 @@ exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -52194,7 +54119,42 @@ exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -52715,7 +54675,7 @@ exports[`Storyshots Views / Vouchers / Voucher details when loading 1`] = `
           />
         </button>
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
           disabled=""
           tabindex="-1"
           type="button"
@@ -52723,7 +54683,42 @@ exports[`Storyshots Views / Vouchers / Voucher details when loading 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                />
+              </g>
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
           </span>
         </button>
       </div>

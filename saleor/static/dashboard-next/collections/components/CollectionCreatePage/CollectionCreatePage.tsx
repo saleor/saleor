@@ -5,6 +5,7 @@ import * as React from "react";
 
 import { CardSpacer } from "../../../components/CardSpacer";
 import CardTitle from "../../../components/CardTitle";
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import { Container } from "../../../components/Container";
 import { ControlledSwitch } from "../../../components/ControlledSwitch";
 import Form from "../../../components/Form";
@@ -30,6 +31,7 @@ export interface CollectionCreatePageFormData {
 export interface CollectionCreatePageProps {
   disabled: boolean;
   errors: UserError[];
+  saveButtonBarState: ConfirmButtonTransitionState;
   onBack: () => void;
   onSubmit: (data: CollectionCreatePageFormData) => void;
 }
@@ -53,7 +55,7 @@ const decorate = withStyles(theme => ({
   }
 }));
 const CollectionCreatePage = decorate<CollectionCreatePageProps>(
-  ({ classes, disabled, errors, onBack, onSubmit }) => (
+  ({ classes, disabled, errors, saveButtonBarState, onBack, onSubmit }) => (
     <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container width="md">
@@ -141,6 +143,7 @@ const CollectionCreatePage = decorate<CollectionCreatePageProps>(
             </div>
           </div>
           <SaveButtonBar
+            state={saveButtonBarState}
             disabled={disabled || !hasChanged}
             onCancel={onBack}
             onSave={submit}

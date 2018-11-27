@@ -38,6 +38,7 @@ storiesOf("Views / Products / Create product variant", module)
       onBack={() => undefined}
       onSubmit={() => undefined}
       onVariantClick={undefined}
+      saveButtonBarState="default"
     />
   ))
   .add("with errors", () => (
@@ -50,6 +51,7 @@ storiesOf("Views / Products / Create product variant", module)
       onBack={() => undefined}
       onSubmit={() => undefined}
       onVariantClick={undefined}
+      saveButtonBarState="default"
     />
   ))
   .add("when loading data", () => (
@@ -62,5 +64,6 @@ storiesOf("Views / Products / Create product variant", module)
       onBack={() => undefined}
       onSubmit={() => undefined}
       onVariantClick={undefined}
+      saveButtonBarState="default"
     />
   ));

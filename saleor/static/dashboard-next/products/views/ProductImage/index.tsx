@@ -6,7 +6,7 @@ import ActionDialog from "../../../components/ActionDialog";
 import Messages from "../../../components/messages";
 import Navigator from "../../../components/Navigator";
 import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
+import { getMutationState, maybe } from "../../../misc";
 import ProductImagePage from "../../components/ProductImagePage";
 import {
   TypedProductImageDeleteMutation,
@@ -53,7 +53,7 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
                   <TypedProductImageUpdateMutation
                     onCompleted={handleUpdateSuccess}
                   >
-                    {updateImage => (
+                    {(updateImage, updateResult) => (
                       <TypedProductImageDeleteMutation onCompleted={handleBack}>
                         {deleteImage => {
                           const handleDelete = () =>
@@ -77,6 +77,14 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
                           };
                           const image =
                             data && data.product && data.product.mainImage;
+
+                          const formTransitionState = getMutationState(
+                            updateResult.called,
+                            updateResult.loading,
+                            maybe(
+                              () => updateResult.data.productImageUpdate.errors
+                            )
+                          );
                           return (
                             <>
                               <ProductImagePage
@@ -94,6 +102,7 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
                                 }
                                 onRowClick={handleImageClick}
                                 onSubmit={handleUpdate}
+                                saveButtonBarState={formTransitionState}
                               />
                               <Route
                                 path={productImageRemoveUrl(

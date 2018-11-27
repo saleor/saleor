@@ -110,6 +110,7 @@ const CollectionOperations: React.StatelessComponent<
                           mutate: variables => unassignProduct({ variables })
                         },
                         updateCollection: {
+                          called: updateCollection.called,
                           data: updateCollection.data,
                           loading: updateCollection.loading,
                           mutate: variables =>

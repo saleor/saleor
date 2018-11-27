@@ -1,20 +1,17 @@
 import Button from "@material-ui/core/Button";
-import CircularProgress from "@material-ui/core/CircularProgress";
 import gray from "@material-ui/core/colors/grey";
 import { withStyles } from "@material-ui/core/styles";
-import CheckIcon from "@material-ui/icons/Check";
 import * as React from "react";
-import i18n from "../../i18n";
 
-export type SaveButtonBarState =
-  | "loading"
-  | "success"
-  | "error"
-  | "default"
-  | string;
+import i18n from "../../i18n";
+import { maybe } from "../../misc";
+import ConfirmButton, {
+  ConfirmButtonTransitionState
+} from "../ConfirmButton/ConfirmButton";
+
 interface SaveButtonBarProps {
-  disabled?: boolean;
-  state?: SaveButtonBarState;
+  disabled: boolean;
+  state: ConfirmButtonTransitionState;
   labels?: {
     cancel?: string;
     delete?: string;
@@ -29,17 +26,6 @@ const decorate = withStyles(theme => ({
   button: {
     marginRight: theme.spacing.unit
   },
-  buttonProgress: {
-    "& svg": {
-      margin: 0
-    },
-    color: theme.palette.primary.main,
-    marginBottom: -theme.spacing.unit * 1.5,
-    marginLeft: -theme.spacing.unit * 0.5,
-    marginRight: theme.spacing.unit * 0.5,
-    marginTop: -theme.spacing.unit * 1.5,
-    position: "relative" as "relative"
-  },
   cancelButton: {
     marginRight: theme.spacing.unit * 2
   },
@@ -49,19 +35,6 @@ const decorate = withStyles(theme => ({
     },
     backgroundColor: theme.palette.error.main,
     color: theme.palette.error.contrastText
-  },
-  error: {
-    "&:hover": {
-      backgroundColor: theme.palette.error.main
-    },
-    backgroundColor: theme.palette.error.main,
-    color: theme.palette.error.contrastText
-  },
-  icon: {
-    marginBottom: -theme.spacing.unit * 1.5,
-    marginRight: theme.spacing.unit * 0.5,
-    marginTop: -theme.spacing.unit * 1.5,
-    position: "relative" as "relative"
   },
   root: {
     borderTop: `1px ${gray[300]} solid`,
@@ -75,13 +48,6 @@ const decorate = withStyles(theme => ({
   },
   spacer: {
     flex: "1"
-  },
-  success: {
-    "&:hover": {
-      backgroundColor: theme.palette.primary.main
-    },
-    backgroundColor: theme.palette.primary.main,
-    color: theme.palette.primary.contrastText
   }
 }));
 export const SaveButtonBar = decorate<SaveButtonBarProps>(
@@ -95,26 +61,6 @@ export const SaveButtonBar = decorate<SaveButtonBarProps>(
     onSave,
     ...props
   }) => {
-    let buttonClassName;
-    let buttonLabel;
-    switch (state) {
-      case "success":
-        buttonClassName = classes.success;
-        buttonLabel = i18n.t("Saved");
-        break;
-      case "error":
-        buttonClassName = classes.error;
-        buttonLabel = i18n.t("Error");
-        break;
-      case "loading":
-        buttonClassName = "";
-        buttonLabel = i18n.t("Saving");
-        break;
-      default:
-        buttonClassName = "";
-        buttonLabel = labels && labels.save ? labels.save : i18n.t("Save");
-        break;
-    }
     return (
       <div className={classes.root} {...props}>
         {!!onDelete && (
@@ -134,23 +80,18 @@ export const SaveButtonBar = decorate<SaveButtonBarProps>(
         >
           {labels && labels.cancel ? labels.cancel : i18n.t("Cancel")}
         </Button>
-        <Button
-          variant="contained"
+        <ConfirmButton
+          disabled={disabled}
           onClick={onSave}
-          color="secondary"
-          disabled={disabled || state === "loading"}
-          className={buttonClassName}
+          transitionState={state}
         >
-          {state === "loading" && (
-            <CircularProgress
-              size={24}
-              color="secondary"
-              className={classes.buttonProgress}
-            />
+          {maybe(
+            () => labels.save,
+            i18n.t("Save", {
+              context: "button"
+            })
           )}
-          {state === "success" && <CheckIcon className={classes.icon} />}
-          {buttonLabel}
-        </Button>
+        </ConfirmButton>
       </div>
     );
   }
