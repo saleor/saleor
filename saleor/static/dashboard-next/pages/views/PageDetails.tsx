@@ -47,7 +47,6 @@ export class PageUpdateForm extends React.Component<
                 ) {
                   return;
                 }
-                // FIXME: component is loaded with previous state (meaning that deleted page will still be there until table reload)
                 this.handleRemoveButtonClick();
                 return <Redirect to={pageListUrl} />;
               }
