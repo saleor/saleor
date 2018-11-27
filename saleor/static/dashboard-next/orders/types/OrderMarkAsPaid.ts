@@ -230,6 +230,7 @@ export interface OrderMarkAsPaid_orderMarkAsPaid_order {
   id: string;
   billingAddress: OrderMarkAsPaid_orderMarkAsPaid_order_billingAddress | null;
   created: any;
+  customerNote: string;
   events: (OrderMarkAsPaid_orderMarkAsPaid_order_events | null)[] | null;
   fulfillments: (OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments | null)[];
   lines: (OrderMarkAsPaid_orderMarkAsPaid_order_lines | null)[];

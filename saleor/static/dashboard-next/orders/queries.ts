@@ -75,6 +75,7 @@ export const fragmentOrderDetails = gql`
       ...AddressFragment
     }
     created
+    customerNote
     events {
       ...OrderEventFragment
     }

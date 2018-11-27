@@ -230,6 +230,7 @@ export interface OrderLineDelete_draftOrderLineDelete_order {
   id: string;
   billingAddress: OrderLineDelete_draftOrderLineDelete_order_billingAddress | null;
   created: any;
+  customerNote: string;
   events: (OrderLineDelete_draftOrderLineDelete_order_events | null)[] | null;
   fulfillments: (OrderLineDelete_draftOrderLineDelete_order_fulfillments | null)[];
   lines: (OrderLineDelete_draftOrderLineDelete_order_lines | null)[];

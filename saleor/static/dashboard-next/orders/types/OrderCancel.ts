@@ -224,6 +224,7 @@ export interface OrderCancel_orderCancel_order {
   id: string;
   billingAddress: OrderCancel_orderCancel_order_billingAddress | null;
   created: any;
+  customerNote: string;
   events: (OrderCancel_orderCancel_order_events | null)[] | null;
   fulfillments: (OrderCancel_orderCancel_order_fulfillments | null)[];
   lines: (OrderCancel_orderCancel_order_lines | null)[];
