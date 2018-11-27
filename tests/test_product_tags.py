@@ -1,4 +1,5 @@
 from unittest.mock import Mock, patch
+import pytest
 
 from django.templatetags.static import static
 from django.test import override_settings
@@ -68,7 +69,13 @@ def test_get_thumbnail_no_match_by_method():
     instance = Mock()
     cropped_value = Mock(url='crop.jpg')
     instance.crop = {'1000x1000': cropped_value}
-    cropped = get_thumbnail(instance, 800, method='crop')
+    with pytest.warns(UserWarning) as record:
+        cropped = get_thumbnail(instance, 800, method='crop')
+
+    assert len(record) == 1
+    assert str(record[0].message) == \
+        'Thumbnail size crop__800x800 is not defined in settings' \
+        ' and it won\'t be generated automatically'
     assert cropped == static('images/placeholder1080x1080.png')
 
 
