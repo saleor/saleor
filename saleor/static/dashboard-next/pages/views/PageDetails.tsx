@@ -39,14 +39,12 @@ export class PageUpdateForm extends React.Component<
             ) => {
               if (called && !deleteInProgress) {
                 if (error) {
-                  console.error(error);
                   return;
                 }
                 if (
                   deleteResult.pageDelete.errors &&
                   deleteResult.pageDelete.errors.length
                 ) {
-                  console.error(deleteResult.pageDelete);
                   return;
                 }
                 // FIXME: component is loaded with previous state (meaning that deleted page will still be there until table reload)
@@ -72,7 +70,6 @@ export class PageUpdateForm extends React.Component<
                       !updateResult.pageUpdate.errors.length
                     ) {
                       if (error) {
-                        console.error(error);
                         return;
                       }
                       return <Redirect to={pageListUrl} />;
