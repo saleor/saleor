@@ -1,5 +1,6 @@
 import graphene
 import pytest
+from django.test import override_settings
 
 from .conftest import API_PATH
 from .utils import get_graphql_content, _get_graphql_content_from_response
@@ -39,7 +40,13 @@ def test_batch_queries(category, product, api_client):
     assert data['category']['name'] == category.name
 
 
-def test_graphql_view_get(client):
+def test_graphql_view_get_in_non_debug_mode(client):
+    response = client.get(API_PATH)
+    assert response.status_code == 405
+
+
+@override_settings(DEBUG=True)
+def test_graphql_view_get_in_debug_mode(client):
     response = client.get(API_PATH)
     assert response.status_code == 200
     assert response.templates[0].name == 'graphql/playground.html'
