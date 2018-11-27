@@ -140,4 +140,13 @@ storiesOf("Views / Orders / Order details", module)
         shippingAddress: null
       }}
     />
+  ))
+  .add("no customer note", () => (
+    <OrderDetailsPage
+      {...props}
+      order={{
+        ...props.order,
+        customerNote: ""
+      }}
+    />
   ));
