@@ -554,9 +554,10 @@ SERIALIZATION_MODULES = {
 
 DUMMY = 'dummy'
 BRAINTREE = 'braintree'
+RAZORPAY = 'razorpay'
+
 CHECKOUT_PAYMENT_GATEWAYS = {
-    DUMMY: pgettext_lazy('Payment method name', 'Dummy gateway')
-}
+    DUMMY: pgettext_lazy('Payment method name', 'Dummy gateway')}
 
 PAYMENT_GATEWAYS = {
     DUMMY: {
@@ -569,6 +570,16 @@ PAYMENT_GATEWAYS = {
             'merchant_id': os.environ.get('BRAINTREE_MERCHANT_ID'),
             'public_key': os.environ.get('BRAINTREE_PUBLIC_KEY'),
             'private_key': os.environ.get('BRAINTREE_PRIVATE_KEY')
+        }
+    },
+    RAZORPAY: {
+        'module': 'saleor.payment.gateways.razorpay',
+        'connection_params': {
+            'public_key': os.environ.get('RAZORPAY_PUBLIC_KEY'),
+            'secret_key': os.environ.get('RAZORPAY_SECRET_KEY'),
+            'prefill': get_bool_from_env('RAZORPAY_PREFILL', True),
+            'store_name': os.environ.get('RAZORPAY_STORE_NAME'),
+            'store_image': os.environ.get('RAZORPAY_STORE_IMAGE')
         }
     }
 }
