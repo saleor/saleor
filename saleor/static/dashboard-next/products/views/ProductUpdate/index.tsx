@@ -81,7 +81,6 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                         createProductImage,
                         deleteProduct,
                         deleteProductImage,
-                        errors,
                         reorderProductImages,
                         updateProduct
                       }) => {
@@ -115,15 +114,17 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                         };
 
                         const disableFormSave =
-                          createProductImage.loading ||
-                          deleteProduct.loading ||
-                          reorderProductImages.loading ||
-                          updateProduct.loading ||
+                          createProductImage.opts.loading ||
+                          deleteProduct.opts.loading ||
+                          reorderProductImages.opts.loading ||
+                          updateProduct.opts.loading ||
                           loading;
                         const formTransitionState = getMutationState(
-                          updateProduct.called,
-                          updateProduct.loading,
-                          maybe(() => updateProduct.data.productUpdate.errors)
+                          updateProduct.opts.called,
+                          updateProduct.opts.loading,
+                          maybe(
+                            () => updateProduct.opts.data.productUpdate.errors
+                          )
                         );
                         return (
                           <>
@@ -134,7 +135,11 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               categories={allCategories}
                               collections={allCollections}
                               disabled={disableFormSave}
-                              errors={errors}
+                              errors={maybe(
+                                () =>
+                                  updateProduct.opts.data.productUpdate.errors,
+                                []
+                              )}
                               saveButtonBarState={formTransitionState}
                               images={maybe(() => data.product.images)}
                               header={maybe(() => product.name)}
