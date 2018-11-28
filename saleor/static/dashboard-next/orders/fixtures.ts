@@ -1007,6 +1007,7 @@ export const draftOrder = (placeholder: string) => ({
   availableShippingMethods: null,
   billingAddress: null,
   created: "2018-09-20T23:23:39.811428+00:00",
+  customerNote: "",
   events: [],
   fulfillments: [],
   id: "T3JkZXI6MjQ=",
