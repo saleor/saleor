@@ -45,7 +45,7 @@ def test_real_query(user_api_client, product):
     attr_value = product_attr.values.first()
     filter_by = '%s:%s' % (product_attr.slug, attr_value.slug)
     query = """
-    query Root($categoryId: ID!, $sortBy: String, $first: Int, $attributesFilter: [AttributeScalar], $minPrice: Float, $maxPrice: Float) {
+    query Root($categoryId: ID!, $sortBy: ProductOrder, $first: Int, $attributesFilter: [AttributeScalar], $minPrice: Float, $maxPrice: Float) {
         category(id: $categoryId) {
             ...CategoryPageFragmentQuery
             __typename
@@ -178,7 +178,9 @@ def test_real_query(user_api_client, product):
     variables = {
         'categoryId': graphene.Node.to_global_id(
             'Category', category.id),
-        'sortBy': 'name',
+        'sortBy': {
+            'field': 'NAME',
+            'direction': 'ASC'},
         'first': 1,
         'attributesFilter': [filter_by]}
     response = user_api_client.post_graphql(query, variables)
