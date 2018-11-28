@@ -311,7 +311,7 @@ def test_sort_products(user_api_client, product):
 
     query = """
     query {
-        products(sortBy: "%(sort_by)s") {
+        products(sortBy: %(sort_by_product_order)s) {
             edges {
                 node {
                     price {
@@ -323,15 +323,16 @@ def test_sort_products(user_api_client, product):
     }
     """
 
-    asc_price_query = query % {'sort_by': 'price'}
+    asc_price_query = query % {
+        'sort_by_product_order': '{field: PRICE, direction:ASC}'}
     response = user_api_client.post_graphql(asc_price_query)
     content = get_graphql_content(response)
-    content['data']['products']['edges'][0]['node']
     price_0 = content['data']['products']['edges'][0]['node']['price']['amount']
     price_1 = content['data']['products']['edges'][1]['node']['price']['amount']
     assert price_0 < price_1
 
-    desc_price_query = query % {'sort_by': '-price'}
+    desc_price_query = query % {
+        'sort_by_product_order': '{field: PRICE, direction:DESC}'}
     response = user_api_client.post_graphql(desc_price_query)
     content = get_graphql_content(response)
     price_0 = content['data']['products']['edges'][0]['node']['price']['amount']

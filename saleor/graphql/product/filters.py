@@ -54,7 +54,8 @@ def filter_products_by_collections(qs, collections):
     return qs.filter(collections__in=collections)
 
 
-def sort_qs(qs, sort_by):
-    if sort_by:
-        qs = qs.order_by(sort_by)
+def sort_qs(qs, sort_by_product_order):
+    if sort_by_product_order:
+        qs = qs.order_by(sort_by_product_order['direction']
+                         + sort_by_product_order['field'])
     return qs

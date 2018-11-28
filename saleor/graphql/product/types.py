@@ -42,6 +42,28 @@ class StockAvailability(graphene.Enum):
     OUT_OF_STOCK = 'OUT_OF_STOCK'
 
 
+class ProductOrderField(graphene.Enum):
+    NAME = 'name'
+    PRICE = 'price'
+
+    @property
+    def description(self):
+        if self == ProductOrderField.NAME:
+            return 'Sort products by name.'
+        return 'Sort products by price.'
+
+
+class OrderDirection(graphene.Enum):
+    ASC = ''
+    DESC = '-'
+
+    @property
+    def description(self):
+        if self == OrderDirection.ASC:
+            return 'Specifies an ascending sort order.'
+        return 'Specifies a descending sort order.'
+
+
 def resolve_attribute_list(attributes_hstore, attributes_qs):
     """Resolve attributes dict into a list of `SelectedAttribute`s.
     keys = list(attributes.keys())
@@ -127,6 +149,15 @@ class SelectedAttribute(graphene.ObjectType):
 
     class Meta:
         description = 'Represents a custom attribute.'
+
+
+class ProductOrder(graphene.InputObjectType):
+    field = graphene.Argument(
+        ProductOrderField, required=True,
+        description='Sort products by the selected field.')
+    direction = graphene.Argument(
+        OrderDirection, required=True,
+        description='Specifies the direction in which to sort products')
 
 
 class ProductVariant(CountableDjangoObjectType):
