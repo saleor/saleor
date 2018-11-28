@@ -12,26 +12,23 @@ import TokenAuthProvider from "./containers/TokenAuth";
 import TokenVerifyProvider from "./containers/TokenVerify";
 
 interface AuthProviderOperationsProps {
-  children:
-    | ((
-        props: {
-          hasToken: boolean;
-          isAuthenticated: boolean;
-          tokenAuthLoading: boolean;
-          tokenVerifyLoading: boolean;
-          user: User;
-        }
-      ) => React.ReactElement<any>)
-    | React.ReactNode;
-  onError?: () => void;
+  children: (
+    props: {
+      hasToken: boolean;
+      isAuthenticated: boolean;
+      tokenAuthLoading: boolean;
+      tokenVerifyLoading: boolean;
+      user: User;
+    }
+  ) => React.ReactNode;
 }
 const AuthProviderOperations: React.StatelessComponent<
   AuthProviderOperationsProps
-> = ({ children, onError }) => {
+> = ({ children }) => {
   return (
-    <TokenAuthProvider onError={onError}>
+    <TokenAuthProvider>
       {tokenAuth => (
-        <TokenVerifyProvider onError={onError}>
+        <TokenVerifyProvider>
           {tokenVerify => (
             <AuthProvider tokenAuth={tokenAuth} tokenVerify={tokenVerify}>
               {children}
@@ -44,17 +41,15 @@ const AuthProviderOperations: React.StatelessComponent<
 };
 
 interface AuthProviderProps {
-  children:
-    | ((
-        props: {
-          hasToken: boolean;
-          isAuthenticated: boolean;
-          tokenAuthLoading: boolean;
-          tokenVerifyLoading: boolean;
-          user: User;
-        }
-      ) => React.ReactElement<any>)
-    | React.ReactNode;
+  children: (
+    props: {
+      hasToken: boolean;
+      isAuthenticated: boolean;
+      tokenAuthLoading: boolean;
+      tokenVerifyLoading: boolean;
+      user: User;
+    }
+  ) => React.ReactNode;
   tokenAuth: any;
   tokenVerify: any;
 }
@@ -122,15 +117,13 @@ class AuthProvider extends React.Component<
       <UserContext.Provider
         value={{ user, login: this.login, logout: this.logout }}
       >
-        {typeof children === "function"
-          ? children({
-              hasToken: !!getAuthToken(),
-              isAuthenticated,
-              tokenAuthLoading: tokenAuth.loading,
-              tokenVerifyLoading: tokenVerify.loading,
-              user
-            })
-          : children}
+        {children({
+          hasToken: !!getAuthToken(),
+          isAuthenticated,
+          tokenAuthLoading: tokenAuth.loading,
+          tokenVerifyLoading: tokenVerify.loading,
+          user
+        })}
       </UserContext.Provider>
     );
   }
