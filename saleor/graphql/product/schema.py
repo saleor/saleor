@@ -61,7 +61,7 @@ class ProductQueries(graphene.ObjectType):
             description='Filter by price less than or equal to the given value.'),
         price_gte=graphene.Float(
             description='Filter by price greater than or equal to the given value.'),
-        sort_by=graphene.List(
+        sort_by=graphene.Argument(
             ProductOrder, description='Sort products.'),
         stock_availability=graphene.Argument(
             StockAvailability,

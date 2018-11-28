@@ -142,10 +142,10 @@ class SelectedAttribute(graphene.ObjectType):
 class ProductOrder(graphene.InputObjectType):
     field = graphene.Argument(
         ProductOrderField, required=True,
-        description='Allows selecting field to sort.')
+        description='Sort products by the selected field.')
     direction = graphene.Argument(
         OrderDirection, required=True,
-        description='Determines how the field is being sorted.')
+        description='Specifies the direction in which to sort products')
 
 
 class ProductVariant(CountableDjangoObjectType):
