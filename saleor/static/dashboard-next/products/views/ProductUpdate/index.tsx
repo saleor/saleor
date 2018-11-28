@@ -141,11 +141,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               variants={maybe(() => product.variants)}
                               onAttributesEdit={() =>
                                 navigate(
-                                  productTypeUrl(
-                                    encodeURIComponent(
-                                      data.product.productType.id
-                                    )
-                                  )
+                                  productTypeUrl(data.product.productType.id)
                                 )
                               }
                               onBack={() => {

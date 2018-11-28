@@ -4,7 +4,11 @@ import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
-import { productTypeAddUrl, productTypeListUrl, productTypeUrl } from "./urls";
+import {
+  productTypeAddPath,
+  productTypeListPath,
+  productTypePath
+} from "./urls";
 import ProductTypeCreate from "./views/ProductTypeCreate";
 import ProductTypeListComponent, {
   ProductTypeListQueryParams
@@ -37,9 +41,9 @@ export const ProductTypeRouter: React.StatelessComponent<
   <>
     <WindowTitle title={i18n.t("Product types")} />
     <Switch>
-      <Route exact path={productTypeListUrl} component={ProductTypeList} />
-      <Route exact path={productTypeAddUrl} component={ProductTypeCreate} />
-      <Route path={productTypeUrl(":id")} component={ProductTypeUpdate} />
+      <Route exact path={productTypeListPath} component={ProductTypeList} />
+      <Route exact path={productTypeAddPath} component={ProductTypeCreate} />
+      <Route path={productTypePath(":id")} component={ProductTypeUpdate} />
     </Switch>
   </>
 );
