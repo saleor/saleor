@@ -1,41 +1,24 @@
 import * as React from "react";
 
 export interface DebounceProps {
-  change: (event: React.ChangeEvent<any>) => void;
-  children:
-    | ((
-        props: (event: React.ChangeEvent<any>) => void
-      ) => React.ReactElement<any>)
-    | React.ReactNode;
-  submit: (event: React.FormEvent<any>) => void;
+  children: ((props: () => void) => React.ReactNode);
+  debounceFn: (event: React.FormEvent<any>) => void;
   time?: number;
 }
-export interface DebounceState {
-  timer: any | null;
-}
 
-export class Debounce extends React.Component<DebounceProps, DebounceState> {
-  state: DebounceState = {
-    timer: null
-  };
+export class Debounce extends React.Component<DebounceProps> {
+  timer = null;
 
-  handleChange = (event: React.ChangeEvent<any>) => {
-    const { timer } = this.state;
-    if (timer) {
-      clearTimeout(timer);
+  handleDebounce = () => {
+    const { debounceFn, time } = this.props;
+    if (this.timer) {
+      clearTimeout(this.timer);
     }
-    this.setState({
-      timer: setTimeout(this.props.submit, this.props.time || 200)
-    });
-    this.props.change(event);
+    this.timer = setTimeout(debounceFn, time || 200);
   };
 
   render() {
-    const { children } = this.props;
-    if (typeof children === "function") {
-      return children(this.handleChange);
-    }
-    return children;
+    return this.props.children(this.handleDebounce);
   }
 }
 export default Debounce;
