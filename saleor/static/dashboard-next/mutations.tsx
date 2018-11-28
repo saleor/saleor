@@ -12,7 +12,7 @@ import {
 import Messages from "./components/messages";
 import i18n from "./i18n";
 
-interface TypedMutationInnerProps<TData, TVariables> {
+export interface TypedMutationInnerProps<TData, TVariables> {
   children: (
     mutateFn: MutationFn<TData, TVariables>,
     result: MutationResult<TData>

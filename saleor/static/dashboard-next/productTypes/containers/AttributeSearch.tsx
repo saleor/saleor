@@ -7,12 +7,10 @@ import {
 } from "../types/SearchAttribute";
 
 interface AttributeSearchProviderProps {
-  children:
-    | ((
-        search: (query: string) => void,
-        props: QueryResult<SearchAttribute, SearchAttributeVariables>
-      ) => React.ReactElement<any>)
-    | React.ReactNode;
+  children: (
+    search: (query: string) => void,
+    props: QueryResult<SearchAttribute, SearchAttributeVariables>
+  ) => React.ReactNode;
 }
 interface AttributeSearchProviderState {
   query: string;

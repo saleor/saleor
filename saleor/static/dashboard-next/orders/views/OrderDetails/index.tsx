@@ -74,7 +74,6 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                       {orderMessages => (
                         <OrderOperations
                           order={id}
-                          onError={undefined}
                           onOrderFulfillmentCreate={
                             orderMessages.handleOrderFulfillmentCreate
                           }
@@ -108,7 +107,6 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                           }
                         >
                           {({
-                            errors,
                             orderAddNote,
                             orderCancel,
                             orderCreateFulfillment,
@@ -128,12 +126,12 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             orderPaymentMarkAsPaid
                           }) => {
                             const finalizeTransitionState = getMutationState(
-                              orderDraftFinalize.called,
-                              orderDraftFinalize.loading,
+                              orderDraftFinalize.opts.called,
+                              orderDraftFinalize.opts.loading,
                               maybe(
                                 () =>
-                                  orderDraftFinalize.data.draftOrderComplete
-                                    .errors
+                                  orderDraftFinalize.opts.data
+                                    .draftOrderComplete.errors
                               )
                             );
                             return (
@@ -148,7 +146,6 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       )}
                                     />
                                     <OrderDetailsPage
-                                      errors={errors}
                                       onNoteAdd={variables =>
                                         orderAddNote.mutate({
                                           input: variables,
@@ -403,7 +400,6 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                     />
                                     <OrderDraftPage
                                       disabled={loading}
-                                      errors={errors}
                                       onNoteAdd={variables =>
                                         orderAddNote.mutate({
                                           input: variables,
@@ -514,7 +510,12 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                         code: country.code,
                                         label: country.country
                                       }))}
-                                      errors={errors}
+                                      errors={maybe(
+                                        () =>
+                                          orderUpdate.opts.data.orderUpdate
+                                            .errors,
+                                        []
+                                      )}
                                       open={!!match}
                                       variant="shipping"
                                       onClose={onModalClose}
@@ -543,7 +544,12 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                         code: country.code,
                                         label: country.country
                                       }))}
-                                      errors={errors}
+                                      errors={maybe(
+                                        () =>
+                                          orderUpdate.opts.data.orderUpdate
+                                            .errors,
+                                        []
+                                      )}
                                       open={!!match}
                                       variant="billing"
                                       onClose={onModalClose}

@@ -61,29 +61,27 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
 
               return (
                 <ProductVariantOperations
-                  productId={productId}
-                  id={variantId}
                   onDelete={handleDelete}
                   onUpdate={handleUpdate}
                 >
                   {({
                     assignImage,
                     deleteVariant,
-                    errors,
                     updateVariant,
                     unassignImage
                   }) => {
                     const disableFormSave =
                       loading ||
-                      deleteVariant.loading ||
-                      updateVariant.loading ||
-                      assignImage.loading ||
-                      unassignImage.loading;
+                      deleteVariant.opts.loading ||
+                      updateVariant.opts.loading ||
+                      assignImage.opts.loading ||
+                      unassignImage.opts.loading;
                     const formTransitionState = getMutationState(
-                      updateVariant.called,
-                      updateVariant.loading,
+                      updateVariant.opts.called,
+                      updateVariant.opts.loading,
                       maybe(
-                        () => updateVariant.data.productVariantUpdate.errors
+                        () =>
+                          updateVariant.opts.data.productVariantUpdate.errors
                       )
                     );
                     const handleImageSelect = (id: string) => () => {
@@ -112,7 +110,12 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                           title={maybe(() => data.productVariant.name)}
                         />
                         <ProductVariantPage
-                          errors={errors}
+                          errors={maybe(
+                            () =>
+                              updateVariant.opts.data.productVariantUpdate
+                                .errors,
+                            []
+                          )}
                           saveButtonBarState={formTransitionState}
                           loading={disableFormSave}
                           placeholderImage={placeholderImg}

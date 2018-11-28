@@ -1,10 +1,14 @@
 import * as React from "react";
 
+import { getMutationProviderData } from "../../misc";
+import { PartialMutationProviderOutput } from "../../types";
 import {
-  MutationProviderProps,
-  MutationProviderRenderProps,
-  PartialMutationProviderOutput
-} from "../../types";
+  TypedAttributeCreateMutation,
+  TypedAttributeDeleteMutation,
+  TypedAttributeUpdateMutation,
+  TypedProductTypeDeleteMutation,
+  TypedProductTypeUpdateMutation
+} from "../mutations";
 import {
   AttributeCreate,
   AttributeCreateVariables
@@ -25,37 +29,32 @@ import {
   ProductTypeUpdate,
   ProductTypeUpdateVariables
 } from "../types/ProductTypeUpdate";
-import AttributeCreateProvider from "./AttributeCreate";
-import AttributeDeleteProvider from "./AttributeDelete";
-import AttributeUpdateProvider from "./AttributeUpdate";
-import ProductTypeDeleteProvider from "./ProductTypeDelete";
-import ProductTypeUpdateProvider from "./ProductTypeUpdate";
 
-interface ProductTypeOperationsProps extends MutationProviderProps {
-  id: string;
-  children: MutationProviderRenderProps<{
-    attributeCreate: PartialMutationProviderOutput<
-      AttributeCreate,
-      AttributeCreateVariables
-    >;
-    deleteAttribute: PartialMutationProviderOutput<
-      AttributeDelete,
-      AttributeDeleteVariables
-    >;
-    deleteProductType: PartialMutationProviderOutput<
-      ProductTypeDelete,
-      ProductTypeDeleteVariables
-    >;
-    updateAttribute: PartialMutationProviderOutput<
-      AttributeUpdate,
-      AttributeUpdateVariables
-    >;
-    updateProductType: PartialMutationProviderOutput<
-      ProductTypeUpdate,
-      ProductTypeUpdateVariables
-    >;
-    loading: boolean;
-  }>;
+interface ProductTypeOperationsProps {
+  children: (
+    props: {
+      attributeCreate: PartialMutationProviderOutput<
+        AttributeCreate,
+        AttributeCreateVariables
+      >;
+      deleteAttribute: PartialMutationProviderOutput<
+        AttributeDelete,
+        AttributeDeleteVariables
+      >;
+      deleteProductType: PartialMutationProviderOutput<
+        ProductTypeDelete,
+        ProductTypeDeleteVariables
+      >;
+      updateAttribute: PartialMutationProviderOutput<
+        AttributeUpdate,
+        AttributeUpdateVariables
+      >;
+      updateProductType: PartialMutationProviderOutput<
+        ProductTypeUpdate,
+        ProductTypeUpdateVariables
+      >;
+    }
+  ) => React.ReactNode;
   onAttributeCreate: (data: AttributeCreate) => void;
   onAttributeDelete: (data: AttributeDelete) => void;
   onAttributeUpdate: (data: AttributeUpdate) => void;
@@ -66,86 +65,53 @@ interface ProductTypeOperationsProps extends MutationProviderProps {
 const ProductTypeOperations: React.StatelessComponent<
   ProductTypeOperationsProps
 > = ({
-  id,
   children,
   onAttributeCreate,
   onAttributeDelete,
   onAttributeUpdate,
-  onError,
   onProductTypeDelete,
   onProductTypeUpdate
 }) => {
   return (
-    <ProductTypeDeleteProvider
-      id={id}
-      onError={onError}
-      onSuccess={onProductTypeDelete}
-    >
-      {deleteProductType => (
-        <ProductTypeUpdateProvider
-          onError={onError}
-          onSuccess={onProductTypeUpdate}
-        >
-          {updateProductType => (
-            <AttributeCreateProvider
-              onError={onError}
-              onSuccess={onAttributeCreate}
-            >
-              {createAttribute => (
-                <AttributeDeleteProvider
-                  onError={onError}
-                  onSuccess={onAttributeDelete}
-                >
-                  {deleteAttribute => (
-                    <AttributeUpdateProvider
-                      onError={onError}
-                      onSuccess={onAttributeUpdate}
+    <TypedProductTypeDeleteMutation onCompleted={onProductTypeDelete}>
+      {(...deleteProductType) => (
+        <TypedProductTypeUpdateMutation onCompleted={onProductTypeUpdate}>
+          {(...updateProductType) => (
+            <TypedAttributeCreateMutation onCompleted={onAttributeCreate}>
+              {(...createAttribute) => (
+                <TypedAttributeDeleteMutation onCompleted={onAttributeDelete}>
+                  {(...deleteAttribute) => (
+                    <TypedAttributeUpdateMutation
+                      onCompleted={onAttributeUpdate}
                     >
-                      {updateAttribute =>
+                      {(...updateAttribute) =>
                         children({
-                          attributeCreate: {
-                            data: createAttribute.data,
-                            loading: createAttribute.loading,
-                            mutate: variables =>
-                              createAttribute.mutate({ variables })
-                          },
-                          deleteAttribute: {
-                            data: deleteAttribute.data,
-                            loading: deleteAttribute.loading,
-                            mutate: variables =>
-                              deleteAttribute.mutate({ variables })
-                          },
-                          deleteProductType: {
-                            data: deleteProductType.data,
-                            loading: deleteProductType.loading,
-                            mutate: () =>
-                              deleteProductType.mutate({ variables: { id } })
-                          },
-                          errors: [],
-                          loading: deleteProductType.loading,
-                          updateAttribute: {
-                            data: updateAttribute.data,
-                            loading: updateAttribute.loading,
-                            mutate: variables =>
-                              updateAttribute.mutate({ variables })
-                          },
-                          updateProductType: {
-                            data: updateProductType.data,
-                            loading: updateProductType.loading,
-                            mutate: variables =>
-                              updateProductType.mutate({ variables })
-                          }
+                          attributeCreate: getMutationProviderData(
+                            ...createAttribute
+                          ),
+                          deleteAttribute: getMutationProviderData(
+                            ...deleteAttribute
+                          ),
+                          deleteProductType: getMutationProviderData(
+                            ...deleteProductType
+                          ),
+                          updateAttribute: getMutationProviderData(
+                            ...updateAttribute
+                          ),
+                          updateProductType: getMutationProviderData(
+                            ...updateProductType
+                          )
                         })
                       }
-                    </AttributeUpdateProvider>
+                    </TypedAttributeUpdateMutation>
                   )}
-                </AttributeDeleteProvider>
+                </TypedAttributeDeleteMutation>
               )}
-            </AttributeCreateProvider>
+            </TypedAttributeCreateMutation>
           )}
-        </ProductTypeUpdateProvider>
+        </TypedProductTypeUpdateMutation>
       )}
-    </ProductTypeDeleteProvider>
+    </TypedProductTypeDeleteMutation>
   );
 };
 export default ProductTypeOperations;
