@@ -131,7 +131,6 @@ export const ProductTypeUpdate: React.StatelessComponent<
 
                   return (
                     <ProductTypeOperations
-                      id={id}
                       onAttributeCreate={handleAttributeCreateSuccess}
                       onAttributeDelete={handleAttributeDeleteSuccess}
                       onAttributeUpdate={handleAttributeUpdateSuccess}
@@ -142,7 +141,6 @@ export const ProductTypeUpdate: React.StatelessComponent<
                         attributeCreate,
                         deleteAttribute,
                         deleteProductType,
-                        loading: mutationLoading,
                         updateAttribute,
                         updateProductType
                       }) => {
@@ -221,7 +219,8 @@ export const ProductTypeUpdate: React.StatelessComponent<
                             }
                           });
                         };
-                        const loading = mutationLoading || dataLoading;
+                        const loading =
+                          updateProductType.opts.loading || dataLoading;
                         return (
                           <>
                             <WindowTitle
@@ -269,7 +268,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                   >
                                     {({ match }) => (
                                       <ProductTypeAttributeEditDialog
-                                        disabled={attributeCreate.loading}
+                                        disabled={attributeCreate.opts.loading}
                                         errors={errors.addAttributeErrors}
                                         name=""
                                         values={[]}
@@ -312,7 +311,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                     );
                                     return (
                                       <ProductTypeAttributeEditDialog
-                                        disabled={updateAttribute.loading}
+                                        disabled={updateAttribute.opts.loading}
                                         errors={errors.editAttributeErrors}
                                         name={maybe(() => attribute.name)}
                                         values={maybe(() =>

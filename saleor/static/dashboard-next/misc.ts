@@ -1,7 +1,8 @@
+import { MutationFn, MutationResult } from "react-apollo";
 import { ConfirmButtonTransitionState } from "./components/ConfirmButton/ConfirmButton";
 import { AddressType } from "./customers/types";
 import i18n from "./i18n";
-import { UserError } from "./types";
+import { UserError, PartialMutationProviderOutput } from "./types";
 import {
   AuthorizationKeyType,
   OrderStatus,
@@ -151,4 +152,14 @@ export function getMutationState(
     return hasErrors(errorList) ? "error" : "success";
   }
   return "default";
+}
+
+export function getMutationProviderData<TData, TVariables>(
+  mutateFn: MutationFn<TData, TVariables>,
+  opts: MutationResult<TData>
+): PartialMutationProviderOutput<TData, TVariables> {
+  return {
+    mutate: variables => mutateFn({ variables }),
+    opts
+  };
 }
