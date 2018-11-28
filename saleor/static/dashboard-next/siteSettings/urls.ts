@@ -1,5 +1,9 @@
 import * as urlJoin from "url-join";
 
 const siteSettingsSection = "/siteSettings";
-export const siteSettingsUrl = siteSettingsSection;
-export const siteSettingsAddKeyUrl = urlJoin(siteSettingsSection, "addKey");
+
+export const siteSettingsPath = siteSettingsSection;
+export const siteSettingsUrl = siteSettingsPath;
+
+export const siteSettingsAddKeyPath = urlJoin(siteSettingsSection, "addKey");
+export const siteSettingsAddKeyUrl = siteSettingsAddKeyPath;

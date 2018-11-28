@@ -23,7 +23,11 @@ import { TypedSiteSettingsQuery } from "../queries";
 import { AuthorizationKeyAdd } from "../types/AuthorizationKeyAdd";
 import { AuthorizationKeyDelete } from "../types/AuthorizationKeyDelete";
 import { ShopSettingsUpdate } from "../types/ShopSettingsUpdate";
-import { siteSettingsAddKeyUrl, siteSettingsUrl } from "../urls";
+import {
+  siteSettingsAddKeyPath,
+  siteSettingsAddKeyUrl,
+  siteSettingsUrl
+} from "../urls";
 
 export const SiteSettings: React.StatelessComponent<{}> = () => (
   <Navigator>
@@ -170,7 +174,7 @@ export const SiteSettings: React.StatelessComponent<{}> = () => (
                                   saveButtonBarState={formTransitionState}
                                 />
                                 <Route
-                                  path={siteSettingsAddKeyUrl}
+                                  path={siteSettingsAddKeyPath}
                                   render={({ match }) => (
                                     <SiteSettingsKeyDialog
                                       errors={maybe(
