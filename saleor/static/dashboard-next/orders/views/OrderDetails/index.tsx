@@ -184,7 +184,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                         navigate(
                                           orderFulfillmentCancelUrl(
                                             id,
-                                            encodeURIComponent(fulfillmentId)
+                                            fulfillmentId
                                           )
                                         )
                                       }
@@ -192,7 +192,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                         navigate(
                                           orderFulfillmentEditTrackingUrl(
                                             id,
-                                            encodeURIComponent(fulfillmentId)
+                                            fulfillmentId
                                           )
                                         )
                                       }
@@ -206,9 +206,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                         navigate(orderPaymentRefundUrl(id))
                                       }
                                       onProductClick={id => () =>
-                                        navigate(
-                                          productUrl(encodeURIComponent(id))
-                                        )}
+                                        navigate(productUrl(id))}
                                       onBillingAddressEdit={() =>
                                         navigate(orderBillingAddressEditUrl(id))
                                       }

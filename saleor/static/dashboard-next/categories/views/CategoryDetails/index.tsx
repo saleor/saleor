@@ -128,9 +128,7 @@ export const CategoryDetails: React.StatelessComponent<
                                   onPreviousPage={loadPreviousPage}
                                   pageInfo={pageInfo}
                                   onProductClick={id => () =>
-                                    navigate(
-                                      productUrl(encodeURIComponent(id))
-                                    )}
+                                    navigate(productUrl(id))}
                                   onSubmit={formData =>
                                     updateCategory({
                                       variables: {
