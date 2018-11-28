@@ -1,20 +1,20 @@
 import * as React from "react";
 
-export interface DebounceProps {
-  children: ((props: () => void) => React.ReactNode);
-  debounceFn: (event: React.FormEvent<any>) => void;
+export interface DebounceProps<T> {
+  children: ((props: (...args: T[]) => void) => React.ReactNode);
+  debounceFn: (...args: T[]) => void;
   time?: number;
 }
 
-export class Debounce extends React.Component<DebounceProps> {
+export class Debounce<T> extends React.Component<DebounceProps<T>> {
   timer = null;
 
-  handleDebounce = () => {
+  handleDebounce = (...args: T[]) => {
     const { debounceFn, time } = this.props;
     if (this.timer) {
       clearTimeout(this.timer);
     }
-    this.timer = setTimeout(debounceFn, time || 200);
+    this.timer = setTimeout(() => debounceFn(...args), time || 200);
   };
 
   render() {
