@@ -1013,6 +1013,11 @@ type OrderCountableEdge {
   cursor: String!
 }
 
+enum OrderDirection {
+  ASC
+  DESC
+}
+
 type OrderEvent implements Node {
   id: ID!
   date: DateTime
@@ -1421,6 +1426,16 @@ input ProductInput {
   weight: WeightScalar
 }
 
+input ProductOrder {
+  field: ProductOrderField!
+  direction: OrderDirection!
+}
+
+enum ProductOrderField {
+  NAME
+  PRICE
+}
+
 type ProductType implements Node {
   id: ID!
   name: String!
@@ -1552,7 +1567,7 @@ type Query {
   collection(id: ID!): Collection
   collections(query: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   product(id: ID!): Product
-  products(attributes: [AttributeScalar], categories: [ID], collections: [ID], priceLte: Float, priceGte: Float, sortBy: String, stockAvailability: StockAvailability, query: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  products(attributes: [AttributeScalar], categories: [ID], collections: [ID], priceLte: Float, priceGte: Float, sortBy: ProductOrder, stockAvailability: StockAvailability, query: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   productType(id: ID!): ProductType
   productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   productVariant(id: ID!): ProductVariant
