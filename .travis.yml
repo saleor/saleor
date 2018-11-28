@@ -14,6 +14,8 @@ install:
   - pip install tox-travis
   - nvm install 10
   - npm i
+  - npm run build-schema
+  - npm run generate-types
   - npm run build-assets --production
   - npm run build-emails
 script:
@@ -24,9 +26,9 @@ env:
     - DATABASE_URL="postgres://postgres@localhost:5432/saleor"
     - SECRET_KEY="irrelevant"
   matrix:
-  - DJANGO="1.11"
-  - DJANGO="2.1"
-  - DJANGO="master"
+    - DJANGO="1.11"
+    - DJANGO="2.1"
+    - DJANGO="master"
 matrix:
   include:
     - python: "3.7"
