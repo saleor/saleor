@@ -5,12 +5,12 @@ import { Route, RouteComponentProps, Switch } from "react-router-dom";
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
 import {
-  productAddUrl,
-  productImageUrl,
-  productListUrl,
-  productUrl,
-  productVariantAddUrl,
-  productVariantEditUrl
+  productAddPath,
+  productImagePath,
+  productListPath,
+  productPath,
+  productVariantAddPath,
+  productVariantEditPath
 } from "./urls";
 import ProductCreate from "./views/ProductCreate";
 import ProductImageComponent from "./views/ProductImage";
@@ -75,22 +75,22 @@ const Component = () => (
   <>
     <WindowTitle title={i18n.t("Products")} />
     <Switch>
-      <Route exact path={productListUrl()} component={ProductList} />
-      <Route exact path={productAddUrl} component={ProductCreate} />
+      <Route exact path={productListPath} component={ProductList} />
+      <Route exact path={productAddPath} component={ProductCreate} />
       <Route
         exact
-        path={productVariantAddUrl(":id")}
+        path={productVariantAddPath(":id")}
         component={ProductVariantCreate}
       />
       <Route
-        path={productVariantEditUrl(":productId", ":variantId")}
+        path={productVariantEditPath(":productId", ":variantId")}
         component={ProductVariant}
       />
       <Route
-        path={productImageUrl(":productId", ":imageId")}
+        path={productImagePath(":productId", ":imageId")}
         component={ProductImage}
       />
-      <Route path={productUrl(":id")} component={ProductUpdate} />
+      <Route path={productPath(":id")} component={ProductUpdate} />
     </Switch>
   </>
 );

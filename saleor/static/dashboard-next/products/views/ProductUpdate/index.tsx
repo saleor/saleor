@@ -22,7 +22,7 @@ import {
   productVariantAddUrl,
   productVariantEditUrl
 } from "../../urls";
-import { productRemoveUrl } from "./urls";
+import { productRemovePath, productRemoveUrl } from "./urls";
 
 interface ProductUpdateProps {
   id: string;
@@ -58,7 +58,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                       text: i18n.t("Image successfully deleted")
                     });
                   const handleVariantAdd = () =>
-                    navigate(productVariantAddUrl(encodeURIComponent(id)));
+                    navigate(productVariantAddUrl(id));
 
                   const product = data ? data.product : undefined;
                   const allCollections =
@@ -88,12 +88,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                         const handleImageDelete = (id: string) => () =>
                           deleteProductImage.mutate({ id });
                         const handleImageEdit = (imageId: string) => () =>
-                          navigate(
-                            productImageUrl(
-                              encodeURIComponent(id),
-                              encodeURIComponent(imageId)
-                            )
-                          );
+                          navigate(productImageUrl(id, imageId));
                         const handleSubmit = data => {
                           if (product) {
                             updateProduct.mutate({
@@ -156,11 +151,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               onBack={() => {
                                 navigate(productListUrl());
                               }}
-                              onDelete={() =>
-                                navigate(
-                                  productRemoveUrl(encodeURIComponent(id))
-                                )
-                              }
+                              onDelete={() => navigate(productRemoveUrl(id))}
                               onProductShow={() => {
                                 if (product) {
                                   window.open(product.url);
@@ -182,10 +173,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               onVariantAdd={handleVariantAdd}
                               onVariantShow={variantId => () =>
                                 navigate(
-                                  productVariantEditUrl(
-                                    encodeURIComponent(product.id),
-                                    encodeURIComponent(variantId)
-                                  )
+                                  productVariantEditUrl(product.id, variantId)
                                 )}
                               onImageUpload={event => {
                                 if (product) {
@@ -200,13 +188,11 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               onImageDelete={handleImageDelete}
                             />
                             <Route
-                              path={productRemoveUrl(":id")}
+                              path={productRemovePath(":id")}
                               render={({ match }) => (
                                 <ActionDialog
                                   open={!!match}
-                                  onClose={() =>
-                                    navigate(productUrl(encodeURIComponent(id)))
-                                  }
+                                  onClose={() => navigate(productUrl(id))}
                                   onConfirm={() => deleteProduct.mutate({ id })}
                                   variant="delete"
                                   title={i18n.t("Remove product")}
