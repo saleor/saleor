@@ -50,7 +50,7 @@ class User(CountableDjangoObjectType):
     note = graphene.String(description='A note about the customer')
 
     class Meta:
-        exclude_fields = ['password', 'is_superuser', 'OrderEvent_set']
+        exclude_fields = ['carts', 'password', 'is_superuser', 'OrderEvent_set']
         description = 'Represents user data.'
         interfaces = [relay.Node]
         model = get_user_model()

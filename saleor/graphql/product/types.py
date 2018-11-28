@@ -191,7 +191,7 @@ class ProductVariant(CountableDjangoObjectType):
     class Meta:
         description = dedent("""Represents a version of a product such as
         different size or color.""")
-        exclude_fields = ['variant_images']
+        exclude_fields = ['order_lines', 'variant_images']
         interfaces = [relay.Node]
         model = models.ProductVariant
 
@@ -438,9 +438,6 @@ class Category(CountableDjangoObjectType):
         prefetch_related=prefetch_products)
     url = graphene.String(
         description='The storefront\'s URL for the category.')
-    ancestors = PrefetchingConnectionField(
-        lambda: Category,
-        description='List of ancestors of the category.')
     children = PrefetchingConnectionField(
         lambda: Category,
         description='List of children of the category.')
@@ -455,10 +452,6 @@ class Category(CountableDjangoObjectType):
             'menuitem_set']
         interfaces = [relay.Node]
         model = models.Category
-
-    def resolve_ancestors(self, info, **kwargs):
-        qs = self.get_ancestors()
-        return gql_optimizer.query(qs, info)
 
     def resolve_background_image(self, info, **kwargs):
         return self.background_image or None
