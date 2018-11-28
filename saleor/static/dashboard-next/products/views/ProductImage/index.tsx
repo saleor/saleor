@@ -14,8 +14,8 @@ import {
 } from "../../mutations";
 import { TypedProductImageQuery } from "../../queries";
 import { ProductImageUpdate } from "../../types/ProductImageUpdate";
+import { productImageUrl, productUrl } from "../../urls";
 import { productImageRemovePath, productImageRemoveUrl } from "./urls";
-import { productUrl, productImageUrl } from "../../urls";
 
 interface ProductImageProps {
   imageId: string;
