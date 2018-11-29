@@ -969,6 +969,7 @@ type Order implements Node {
   paymentStatusDisplay: String
   subtotal: TaxedMoney
   statusDisplay: String
+  canFinalize: Boolean
   totalAuthorized: Money
   totalCaptured: Money
   totalBalance: Money!
