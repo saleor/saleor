@@ -7,6 +7,7 @@ import OrderDraftCancelDialog, {
 import Decorator from "../../Decorator";
 
 const props: OrderDraftCancelDialogProps = {
+  confirmButtonState: "default",
   onClose: () => undefined,
   onConfirm: () => undefined,
   open: true,
