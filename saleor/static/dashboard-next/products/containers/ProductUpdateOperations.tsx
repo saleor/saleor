@@ -8,7 +8,7 @@ import {
   TypedProductImageDeleteMutation,
   TypedProductUpdateMutation
 } from "../mutations";
-import { ProductDelete } from "../types/ProductDelete";
+import { ProductDelete, ProductDeleteVariables } from "../types/ProductDelete";
 import { ProductDetails_product } from "../types/ProductDetails";
 import {
   ProductImageCreate,
@@ -33,7 +33,10 @@ interface ProductUpdateOperationsProps {
         ProductImageCreate,
         ProductImageCreateVariables
       >;
-      deleteProduct: PartialMutationProviderOutput;
+      deleteProduct: PartialMutationProviderOutput<
+        ProductDelete,
+        ProductDeleteVariables
+      >;
       deleteProductImage: PartialMutationProviderOutput<
         ProductImageDelete,
         ProductImageDeleteVariables
