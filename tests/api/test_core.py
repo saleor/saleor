@@ -9,6 +9,7 @@ from saleor.graphql.core.types import ReportingPeriod
 from saleor.graphql.core.utils import clean_seo_fields, snake_to_camel_case
 from saleor.graphql.product import types as product_types
 from saleor.graphql.utils import get_database_id, reporting_period_to_date
+from saleor.product.models import Product
 
 
 def test_clean_seo_fields():
@@ -137,4 +138,4 @@ def test_total_count_query(api_client, product):
     """
     response = api_client.post_graphql(query)
     content = get_graphql_content(response)
-    assert content['data']['products']['totalCount'] == 1
+    assert content['data']['products']['totalCount'] == Product.objects.count()
