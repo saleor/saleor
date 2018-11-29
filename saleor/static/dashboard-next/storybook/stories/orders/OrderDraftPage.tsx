@@ -18,7 +18,6 @@ const order = draftOrder(placeholderImage);
 const props: OrderDraftPageProps = {
   countries,
   disabled: false,
-  errors: [],
   fetchUsers: () => undefined,
   fetchVariants: () => undefined,
   onBack: () => undefined,

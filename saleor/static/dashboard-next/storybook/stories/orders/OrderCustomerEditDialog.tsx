@@ -11,6 +11,7 @@ storiesOf("Orders / OrderCustomerEditDialog", module)
   .addDecorator(Decorator)
   .add("default", () => (
     <OrderCustomerEditDialog
+      confirmButtonState="default"
       fetchUsers={undefined}
       onChange={undefined}
       onClose={undefined}

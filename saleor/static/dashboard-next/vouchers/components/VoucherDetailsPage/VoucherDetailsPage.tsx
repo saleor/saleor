@@ -195,6 +195,7 @@ const VoucherDetailsPage = decorate<VoucherDetailsPageProps>(
           </Form>
           {voucher !== undefined && (
             <ActionDialog
+              confirmButtonState="default"
               open={openedVoucherDeleteDialog}
               onClose={toggleVoucherDeleteDialog}
               onConfirm={onVoucherDelete}
