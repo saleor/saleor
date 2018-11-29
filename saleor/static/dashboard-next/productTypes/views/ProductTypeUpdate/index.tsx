@@ -1,11 +1,13 @@
+import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 import { Route } from "react-router-dom";
 
+import ActionDialog from "../../../components/ActionDialog";
 import Messages from "../../../components/messages";
 import Navigator from "../../../components/Navigator";
 import { WindowTitle } from "../../../components/WindowTitle";
 import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
+import { getMutationState, maybe } from "../../../misc";
 import { AttributeTypeEnum } from "../../../types/globalTypes";
 import ProductTypeAttributeEditDialog, {
   FormData as AttributeForm
@@ -26,7 +28,9 @@ import {
   addAttributePath,
   addAttributeUrl,
   editAttributePath,
-  editAttributeUrl
+  editAttributeUrl,
+  productTypeRemovePath,
+  productTypeRemoveUrl
 } from "./urls";
 
 interface ProductTypeUpdateProps {
@@ -226,6 +230,15 @@ export const ProductTypeUpdate: React.StatelessComponent<
                         };
                         const loading =
                           updateProductType.opts.loading || dataLoading;
+                        const deleteTransactionState = getMutationState(
+                          deleteProductType.opts.called,
+                          deleteProductType.opts.loading,
+                          maybe(
+                            () =>
+                              deleteProductType.opts.data.productTypeDelete
+                                .errors
+                          )
+                        );
                         return (
                           <>
                             <WindowTitle
@@ -257,7 +270,9 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                 )
                               }
                               onBack={() => navigate(productTypeListUrl)}
-                              onDelete={handleProductTypeDelete}
+                              onDelete={() =>
+                                navigate(productTypeRemoveUrl(id))
+                              }
                               onSubmit={handleProductTypeUpdate}
                             />
                             {!dataLoading && (
@@ -340,6 +355,36 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                     );
                                   }}
                                 </Route>
+                                <Route
+                                  path={productTypeRemovePath(":id")}
+                                  render={({ match }) => (
+                                    <ActionDialog
+                                      confirmButtonState={
+                                        deleteTransactionState
+                                      }
+                                      open={!!match}
+                                      onClose={() =>
+                                        navigate(productTypeUrl(id))
+                                      }
+                                      onConfirm={handleProductTypeDelete}
+                                      title={i18n.t("Remove product type")}
+                                      variant="delete"
+                                    >
+                                      <DialogContentText
+                                        dangerouslySetInnerHTML={{
+                                          __html: i18n.t(
+                                            "Are you sure you want to remove <strong>{{ name }}</strong>?",
+                                            {
+                                              name: maybe(
+                                                () => data.productType.name
+                                              )
+                                            }
+                                          )
+                                        }}
+                                      />
+                                    </ActionDialog>
+                                  )}
+                                />
                               </>
                             )}
                           </>
