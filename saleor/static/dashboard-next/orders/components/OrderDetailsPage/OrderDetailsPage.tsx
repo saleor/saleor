@@ -10,15 +10,14 @@ import PageHeader from "../../../components/PageHeader";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
-import { UserError } from "../../../types";
 import { OrderStatus } from "../../../types/globalTypes";
 import { OrderDetails_order } from "../../types/OrderDetails";
 import OrderCustomer from "../OrderCustomer";
+import OrderCustomerNote from "../OrderCustomerNote";
 import OrderFulfillment from "../OrderFulfillment";
 import OrderHistory, { FormData as HistoryFormData } from "../OrderHistory";
 import OrderPayment from "../OrderPayment/OrderPayment";
 import OrderUnfulfilledItems from "../OrderUnfulfilledItems/OrderUnfulfilledItems";
-import OrderCustomerNote from "../OrderCustomerNote";
 
 export interface OrderDetailsPageProps {
   order: OrderDetails_order;
@@ -30,7 +29,6 @@ export interface OrderDetailsPageProps {
     code: string;
     label: string;
   }>;
-  errors: UserError[];
   onBack();
   onBillingAddressEdit();
   onFulfillmentCancel(id: string);

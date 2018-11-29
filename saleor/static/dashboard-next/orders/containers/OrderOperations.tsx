@@ -1,11 +1,26 @@
 import * as React from "react";
 
-import { maybe } from "../../misc";
+import { getMutationProviderData } from "../../misc";
+import { PartialMutationProviderOutput } from "../../types";
 import {
-  MutationProviderProps,
-  MutationProviderRenderProps,
-  PartialMutationProviderOutput
-} from "../../types";
+  TypedOrderAddNoteMutation,
+  TypedOrderCancelMutation,
+  TypedOrderCaptureMutation,
+  TypedOrderCreateFulfillmentMutation,
+  TypedOrderDraftCancelMutation,
+  TypedOrderDraftFinalizeMutation,
+  TypedOrderDraftUpdateMutation,
+  TypedOrderFulfillmentCancelMutation,
+  TypedOrderFulfillmentUpdateTrackingMutation,
+  TypedOrderLineAddMutation,
+  TypedOrderLineDeleteMutation,
+  TypedOrderLineUpdateMutation,
+  TypedOrderMarkAsPaidMutation,
+  TypedOrderRefundMutation,
+  TypedOrderShippingMethodUpdateMutation,
+  TypedOrderUpdateMutation,
+  TypedOrderVoidMutation
+} from "../mutations";
 import { OrderAddNote, OrderAddNoteVariables } from "../types/OrderAddNote";
 import { OrderCancel, OrderCancelVariables } from "../types/OrderCancel";
 import { OrderCapture, OrderCaptureVariables } from "../types/OrderCapture";
@@ -53,93 +68,78 @@ import {
 } from "../types/OrderShippingMethodUpdate";
 import { OrderUpdate, OrderUpdateVariables } from "../types/OrderUpdate";
 import { OrderVoid, OrderVoidVariables } from "../types/OrderVoid";
-import OrderCancelMutationProvider from "./OrderCancel";
-import OrderCreateFulfillmentProvider from "./OrderCreateFulfillment";
-import OrderDraftCancelMutationProvider from "./OrderDraftCancel";
-import OrderDraftFinalizeMutationProvider from "./OrderDraftFinalize";
-import OrderDraftUpdateProvider from "./OrderDraftUpdate";
-import OrderFulfillmentCancelProvider from "./OrderFulfillmentCancel";
-import OrderFulfillmentUpdateTrackingProvider from "./OrderFulfillmentUpdateTracking";
-import OrderLineAddProvider from "./OrderLineAdd";
-import OrderLineDeleteProvider from "./OrderLineDelete";
-import OrderLineUpdateProvider from "./OrderLineUpdate";
-import OrderMarkAsPaidProvider from "./OrderMarkAsPaid";
-import OrderNoteAddProvider from "./OrderNoteAdd";
-import OrderPaymentCaptureProvider from "./OrderPaymentCapture";
-import OrderPaymentRefundProvider from "./OrderPaymentRefund";
-import OrderShippingMethodUpdateProvider from "./OrderShippingUpdate";
-import OrderUpdateProvider from "./OrderUpdate";
-import OrderVoidMutationProvider from "./OrderVoid";
 
-interface OrderOperationsProps extends MutationProviderProps {
+interface OrderOperationsProps {
   order: string;
-  children: MutationProviderRenderProps<{
-    orderAddNote: PartialMutationProviderOutput<
-      OrderAddNote,
-      OrderAddNoteVariables
-    >;
-    orderCancel: PartialMutationProviderOutput<
-      OrderCancel,
-      OrderCancelVariables
-    >;
-    orderCreateFulfillment: PartialMutationProviderOutput<
-      OrderCreateFulfillment,
-      OrderCreateFulfillmentVariables
-    >;
-    orderFulfillmentCancel: PartialMutationProviderOutput<
-      OrderFulfillmentCancel,
-      OrderFulfillmentCancelVariables
-    >;
-    orderFulfillmentUpdateTracking: PartialMutationProviderOutput<
-      OrderFulfillmentUpdateTracking,
-      OrderFulfillmentUpdateTrackingVariables
-    >;
-    orderPaymentCapture: PartialMutationProviderOutput<
-      OrderCapture,
-      OrderCaptureVariables
-    >;
-    orderPaymentRefund: PartialMutationProviderOutput<
-      OrderRefund,
-      OrderRefundVariables
-    >;
-    orderPaymentMarkAsPaid: PartialMutationProviderOutput<
-      OrderMarkAsPaid,
-      OrderMarkAsPaidVariables
-    >;
-    orderVoid: PartialMutationProviderOutput<OrderVoid, OrderVoidVariables>;
-    orderUpdate: PartialMutationProviderOutput<
-      OrderUpdate,
-      OrderUpdateVariables
-    >;
-    orderDraftCancel: PartialMutationProviderOutput<
-      OrderDraftCancel,
-      OrderDraftCancelVariables
-    >;
-    orderDraftFinalize: PartialMutationProviderOutput<
-      OrderDraftFinalize,
-      OrderDraftFinalizeVariables
-    >;
-    orderDraftUpdate: PartialMutationProviderOutput<
-      OrderDraftUpdate,
-      OrderDraftUpdateVariables
-    >;
-    orderShippingMethodUpdate: PartialMutationProviderOutput<
-      OrderShippingMethodUpdate,
-      OrderShippingMethodUpdateVariables
-    >;
-    orderLineDelete: PartialMutationProviderOutput<
-      OrderLineDelete,
-      OrderLineDeleteVariables
-    >;
-    orderLineAdd: PartialMutationProviderOutput<
-      OrderLineAdd,
-      OrderLineAddVariables
-    >;
-    orderLineUpdate: PartialMutationProviderOutput<
-      OrderLineUpdate,
-      OrderLineUpdateVariables
-    >;
-  }>;
+  children: (
+    props: {
+      orderAddNote: PartialMutationProviderOutput<
+        OrderAddNote,
+        OrderAddNoteVariables
+      >;
+      orderCancel: PartialMutationProviderOutput<
+        OrderCancel,
+        OrderCancelVariables
+      >;
+      orderCreateFulfillment: PartialMutationProviderOutput<
+        OrderCreateFulfillment,
+        OrderCreateFulfillmentVariables
+      >;
+      orderFulfillmentCancel: PartialMutationProviderOutput<
+        OrderFulfillmentCancel,
+        OrderFulfillmentCancelVariables
+      >;
+      orderFulfillmentUpdateTracking: PartialMutationProviderOutput<
+        OrderFulfillmentUpdateTracking,
+        OrderFulfillmentUpdateTrackingVariables
+      >;
+      orderPaymentCapture: PartialMutationProviderOutput<
+        OrderCapture,
+        OrderCaptureVariables
+      >;
+      orderPaymentRefund: PartialMutationProviderOutput<
+        OrderRefund,
+        OrderRefundVariables
+      >;
+      orderPaymentMarkAsPaid: PartialMutationProviderOutput<
+        OrderMarkAsPaid,
+        OrderMarkAsPaidVariables
+      >;
+      orderVoid: PartialMutationProviderOutput<OrderVoid, OrderVoidVariables>;
+      orderUpdate: PartialMutationProviderOutput<
+        OrderUpdate,
+        OrderUpdateVariables
+      >;
+      orderDraftCancel: PartialMutationProviderOutput<
+        OrderDraftCancel,
+        OrderDraftCancelVariables
+      >;
+      orderDraftFinalize: PartialMutationProviderOutput<
+        OrderDraftFinalize,
+        OrderDraftFinalizeVariables
+      >;
+      orderDraftUpdate: PartialMutationProviderOutput<
+        OrderDraftUpdate,
+        OrderDraftUpdateVariables
+      >;
+      orderShippingMethodUpdate: PartialMutationProviderOutput<
+        OrderShippingMethodUpdate,
+        OrderShippingMethodUpdateVariables
+      >;
+      orderLineDelete: PartialMutationProviderOutput<
+        OrderLineDelete,
+        OrderLineDeleteVariables
+      >;
+      orderLineAdd: PartialMutationProviderOutput<
+        OrderLineAdd,
+        OrderLineAddVariables
+      >;
+      orderLineUpdate: PartialMutationProviderOutput<
+        OrderLineUpdate,
+        OrderLineUpdateVariables
+      >;
+    }
+  ) => React.ReactNode;
   onOrderFulfillmentCancel: (data: OrderFulfillmentCancel) => void;
   onOrderFulfillmentCreate: (data: OrderCreateFulfillment) => void;
   onOrderFulfillmentUpdate: (data: OrderFulfillmentUpdateTracking) => void;
@@ -161,9 +161,7 @@ interface OrderOperationsProps extends MutationProviderProps {
 
 const OrderOperations: React.StatelessComponent<OrderOperationsProps> = ({
   children,
-  order,
   onDraftUpdate,
-  onError,
   onOrderFulfillmentCreate,
   onNoteAdd,
   onOrderCancel,
@@ -181,446 +179,166 @@ const OrderOperations: React.StatelessComponent<OrderOperationsProps> = ({
   onOrderFulfillmentUpdate,
   onOrderMarkAsPaid
 }) => (
-  <OrderVoidMutationProvider onError={onError} onSuccess={onOrderVoid}>
-    {orderVoid => (
-      <OrderCancelMutationProvider onError={onError} onSuccess={onOrderCancel}>
-        {orderCancel => (
-          <OrderPaymentCaptureProvider
-            id={order}
-            onError={onError}
-            onSuccess={onPaymentCapture}
-          >
-            {paymentCapture => (
-              <OrderPaymentRefundProvider
-                id={order}
-                onError={onError}
-                onSuccess={onPaymentRefund}
-              >
-                {paymentRefund => (
-                  <OrderCreateFulfillmentProvider
-                    id={order}
-                    onError={onError}
-                    onSuccess={onOrderFulfillmentCreate}
+  <TypedOrderVoidMutation onCompleted={onOrderVoid}>
+    {(...orderVoid) => (
+      <TypedOrderCancelMutation onCompleted={onOrderCancel}>
+        {(...orderCancel) => (
+          <TypedOrderCaptureMutation onCompleted={onPaymentCapture}>
+            {(...paymentCapture) => (
+              <TypedOrderRefundMutation onCompleted={onPaymentRefund}>
+                {(...paymentRefund) => (
+                  <TypedOrderCreateFulfillmentMutation
+                    onCompleted={onOrderFulfillmentCreate}
                   >
-                    {createFulfillment => (
-                      <OrderNoteAddProvider
-                        onError={onError}
-                        onSuccess={onNoteAdd}
-                      >
-                        {addNote => (
-                          <OrderUpdateProvider
-                            onError={onError}
-                            onSuccess={onUpdate}
-                          >
-                            {update => (
-                              <OrderDraftUpdateProvider
-                                onError={onError}
-                                onSuccess={onDraftUpdate}
+                    {(...createFulfillment) => (
+                      <TypedOrderAddNoteMutation onCompleted={onNoteAdd}>
+                        {(...addNote) => (
+                          <TypedOrderUpdateMutation onCompleted={onUpdate}>
+                            {(...update) => (
+                              <TypedOrderDraftUpdateMutation
+                                onCompleted={onDraftUpdate}
                               >
-                                {updateDraft => (
-                                  <OrderShippingMethodUpdateProvider
-                                    onError={onError}
-                                    onSuccess={onShippingMethodUpdate}
+                                {(...updateDraft) => (
+                                  <TypedOrderShippingMethodUpdateMutation
+                                    onCompleted={onShippingMethodUpdate}
                                   >
-                                    {updateShippingMethod => (
-                                      <OrderLineDeleteProvider
-                                        onError={onError}
-                                        onSuccess={onOrderLineDelete}
+                                    {(...updateShippingMethod) => (
+                                      <TypedOrderLineDeleteMutation
+                                        onCompleted={onOrderLineDelete}
                                       >
-                                        {deleteOrderLine => (
-                                          <OrderLineAddProvider
-                                            onError={onError}
-                                            onSuccess={onOrderLineAdd}
+                                        {(...deleteOrderLine) => (
+                                          <TypedOrderLineAddMutation
+                                            onCompleted={onOrderLineAdd}
                                           >
-                                            {addOrderLine => (
-                                              <OrderLineUpdateProvider
-                                                onError={onError}
-                                                onSuccess={onOrderLineUpdate}
+                                            {(...addOrderLine) => (
+                                              <TypedOrderLineUpdateMutation
+                                                onCompleted={onOrderLineUpdate}
                                               >
-                                                {updateOrderLine => (
-                                                  <OrderFulfillmentCancelProvider
-                                                    onError={onError}
-                                                    onSuccess={
+                                                {(...updateOrderLine) => (
+                                                  <TypedOrderFulfillmentCancelMutation
+                                                    onCompleted={
                                                       onOrderFulfillmentCancel
                                                     }
                                                   >
-                                                    {cancelFulfillment => (
-                                                      <OrderFulfillmentUpdateTrackingProvider
-                                                        onError={onError}
-                                                        onSuccess={
+                                                    {(...cancelFulfillment) => (
+                                                      <TypedOrderFulfillmentUpdateTrackingMutation
+                                                        onCompleted={
                                                           onOrderFulfillmentUpdate
                                                         }
                                                       >
-                                                        {updateTrackingNumber => (
-                                                          <OrderDraftFinalizeMutationProvider
-                                                            onError={onError}
-                                                            onSuccess={
+                                                        {(
+                                                          ...updateTrackingNumber
+                                                        ) => (
+                                                          <TypedOrderDraftFinalizeMutation
+                                                            onCompleted={
                                                               onDraftFinalize
                                                             }
                                                           >
-                                                            {finalizeDraft => (
-                                                              <OrderDraftCancelMutationProvider
-                                                                onError={
-                                                                  onError
-                                                                }
-                                                                onSuccess={
+                                                            {(
+                                                              ...finalizeDraft
+                                                            ) => (
+                                                              <TypedOrderDraftCancelMutation
+                                                                onCompleted={
                                                                   onDraftCancel
                                                                 }
                                                               >
-                                                                {cancelDraft => (
-                                                                  <OrderMarkAsPaidProvider
-                                                                    onError={
-                                                                      onError
-                                                                    }
-                                                                    onSuccess={
+                                                                {(
+                                                                  ...cancelDraft
+                                                                ) => (
+                                                                  <TypedOrderMarkAsPaidMutation
+                                                                    onCompleted={
                                                                       onOrderMarkAsPaid
                                                                     }
                                                                   >
-                                                                    {markAsPaid =>
+                                                                    {(
+                                                                      ...markAsPaid
+                                                                    ) =>
                                                                       children({
-                                                                        errors: [
-                                                                          ...(maybe(
-                                                                            () =>
-                                                                              createFulfillment
-                                                                                .data
-                                                                                .orderFulfillmentCreate
-                                                                                .errors
-                                                                          )
-                                                                            ? createFulfillment
-                                                                                .data
-                                                                                .orderFulfillmentCreate
-                                                                                .errors
-                                                                            : []),
-                                                                          ...(maybe(
-                                                                            () =>
-                                                                              cancelFulfillment
-                                                                                .data
-                                                                                .orderFulfillmentCancel
-                                                                                .errors
-                                                                          )
-                                                                            ? cancelFulfillment
-                                                                                .data
-                                                                                .orderFulfillmentCancel
-                                                                                .errors
-                                                                            : []),
-                                                                          ...(maybe(
-                                                                            () =>
-                                                                              updateTrackingNumber
-                                                                                .data
-                                                                                .orderFulfillmentUpdateTracking
-                                                                                .errors
-                                                                          )
-                                                                            ? updateTrackingNumber
-                                                                                .data
-                                                                                .orderFulfillmentUpdateTracking
-                                                                                .errors
-                                                                            : []),
-                                                                          ...(maybe(
-                                                                            () =>
-                                                                              paymentCapture
-                                                                                .data
-                                                                                .orderCapture
-                                                                                .errors
-                                                                          )
-                                                                            ? paymentCapture
-                                                                                .data
-                                                                                .orderCapture
-                                                                                .errors
-                                                                            : []),
-                                                                          ...(maybe(
-                                                                            () =>
-                                                                              paymentRefund
-                                                                                .data
-                                                                                .orderRefund
-                                                                                .errors
-                                                                          )
-                                                                            ? paymentRefund
-                                                                                .data
-                                                                                .orderRefund
-                                                                                .errors
-                                                                            : []),
-                                                                          ...(maybe(
-                                                                            () =>
-                                                                              addNote
-                                                                                .data
-                                                                                .orderAddNote
-                                                                                .errors
-                                                                          )
-                                                                            ? addNote
-                                                                                .data
-                                                                                .orderAddNote
-                                                                                .errors
-                                                                            : []),
-                                                                          ...(maybe(
-                                                                            () =>
-                                                                              update
-                                                                                .data
-                                                                                .orderUpdate
-                                                                                .errors
-                                                                          )
-                                                                            ? update
-                                                                                .data
-                                                                                .orderUpdate
-                                                                                .errors
-                                                                            : []),
-
-                                                                          ...(maybe(
-                                                                            () =>
-                                                                              updateDraft
-                                                                                .data
-                                                                                .draftOrderUpdate
-                                                                                .errors
-                                                                          )
-                                                                            ? updateDraft
-                                                                                .data
-                                                                                .draftOrderUpdate
-                                                                                .errors
-                                                                            : [])
-                                                                        ],
-                                                                        orderAddNote: {
-                                                                          data:
-                                                                            addNote.data,
-                                                                          loading:
-                                                                            addNote.loading,
-                                                                          mutate: variables =>
-                                                                            addNote.mutate(
-                                                                              {
-                                                                                variables
-                                                                              }
-                                                                            )
-                                                                        },
-                                                                        orderCancel: {
-                                                                          data:
-                                                                            orderCancel.data,
-                                                                          loading:
-                                                                            orderCancel.loading,
-                                                                          mutate: variables =>
-                                                                            orderCancel.mutate(
-                                                                              {
-                                                                                variables
-                                                                              }
-                                                                            )
-                                                                        },
-                                                                        orderCreateFulfillment: {
-                                                                          data:
-                                                                            createFulfillment.data,
-                                                                          loading:
-                                                                            createFulfillment.loading,
-                                                                          mutate: variables =>
-                                                                            createFulfillment.mutate(
-                                                                              {
-                                                                                variables: {
-                                                                                  ...variables,
-                                                                                  input: {
-                                                                                    ...variables.input
-                                                                                  },
-                                                                                  order
-                                                                                }
-                                                                              }
-                                                                            )
-                                                                        },
-                                                                        orderDraftCancel: {
-                                                                          data:
-                                                                            cancelDraft.data,
-                                                                          loading:
-                                                                            cancelDraft.loading,
-                                                                          mutate: variables =>
-                                                                            cancelDraft.mutate(
-                                                                              {
-                                                                                variables
-                                                                              }
-                                                                            )
-                                                                        },
-                                                                        orderDraftFinalize: {
-                                                                          data:
-                                                                            finalizeDraft.data,
-                                                                          loading:
-                                                                            finalizeDraft.loading,
-                                                                          mutate: variables =>
-                                                                            finalizeDraft.mutate(
-                                                                              {
-                                                                                variables
-                                                                              }
-                                                                            )
-                                                                        },
-                                                                        orderDraftUpdate: {
-                                                                          data:
-                                                                            updateDraft.data,
-                                                                          loading:
-                                                                            updateDraft.loading,
-                                                                          mutate: variables =>
-                                                                            updateDraft.mutate(
-                                                                              {
-                                                                                variables
-                                                                              }
-                                                                            )
-                                                                        },
-                                                                        orderFulfillmentCancel: {
-                                                                          data:
-                                                                            cancelFulfillment.data,
-                                                                          loading:
-                                                                            cancelFulfillment.loading,
-                                                                          mutate: variables =>
-                                                                            cancelFulfillment.mutate(
-                                                                              {
-                                                                                variables
-                                                                              }
-                                                                            )
-                                                                        },
-                                                                        orderFulfillmentUpdateTracking: {
-                                                                          data:
-                                                                            updateTrackingNumber.data,
-                                                                          loading:
-                                                                            updateTrackingNumber.loading,
-                                                                          mutate: variables =>
-                                                                            updateTrackingNumber.mutate(
-                                                                              {
-                                                                                variables
-                                                                              }
-                                                                            )
-                                                                        },
-                                                                        orderLineAdd: {
-                                                                          data:
-                                                                            addOrderLine.data,
-                                                                          loading:
-                                                                            addOrderLine.loading,
-                                                                          mutate: variables =>
-                                                                            addOrderLine.mutate(
-                                                                              {
-                                                                                variables
-                                                                              }
-                                                                            )
-                                                                        },
-                                                                        orderLineDelete: {
-                                                                          data:
-                                                                            deleteOrderLine.data,
-                                                                          loading:
-                                                                            deleteOrderLine.loading,
-                                                                          mutate: variables =>
-                                                                            deleteOrderLine.mutate(
-                                                                              {
-                                                                                variables
-                                                                              }
-                                                                            )
-                                                                        },
-                                                                        orderLineUpdate: {
-                                                                          data:
-                                                                            updateOrderLine.data,
-                                                                          loading:
-                                                                            updateOrderLine.loading,
-                                                                          mutate: variables =>
-                                                                            updateOrderLine.mutate(
-                                                                              {
-                                                                                variables
-                                                                              }
-                                                                            )
-                                                                        },
-                                                                        orderPaymentCapture: {
-                                                                          data:
-                                                                            paymentCapture.data,
-                                                                          loading:
-                                                                            paymentCapture.loading,
-                                                                          mutate: variables =>
-                                                                            paymentCapture.mutate(
-                                                                              {
-                                                                                variables
-                                                                              }
-                                                                            )
-                                                                        },
-                                                                        orderPaymentMarkAsPaid: {
-                                                                          data:
-                                                                            markAsPaid.data,
-                                                                          loading:
-                                                                            markAsPaid.loading,
-                                                                          mutate: variables =>
-                                                                            markAsPaid.mutate(
-                                                                              {
-                                                                                variables
-                                                                              }
-                                                                            )
-                                                                        },
-                                                                        orderPaymentRefund: {
-                                                                          data:
-                                                                            paymentRefund.data,
-                                                                          loading:
-                                                                            paymentRefund.loading,
-                                                                          mutate: variables =>
-                                                                            paymentRefund.mutate(
-                                                                              {
-                                                                                variables
-                                                                              }
-                                                                            )
-                                                                        },
-                                                                        orderShippingMethodUpdate: {
-                                                                          data:
-                                                                            updateShippingMethod.data,
-                                                                          loading:
-                                                                            updateShippingMethod.loading,
-                                                                          mutate: variables =>
-                                                                            updateShippingMethod.mutate(
-                                                                              {
-                                                                                variables
-                                                                              }
-                                                                            )
-                                                                        },
-                                                                        orderUpdate: {
-                                                                          data:
-                                                                            update.data,
-                                                                          loading:
-                                                                            update.loading,
-                                                                          mutate: variables =>
-                                                                            update.mutate(
-                                                                              {
-                                                                                variables
-                                                                              }
-                                                                            )
-                                                                        },
-                                                                        orderVoid: {
-                                                                          data:
-                                                                            orderVoid.data,
-                                                                          loading:
-                                                                            orderVoid.loading,
-                                                                          mutate: variables =>
-                                                                            orderVoid.mutate(
-                                                                              {
-                                                                                variables
-                                                                              }
-                                                                            )
-                                                                        }
+                                                                        orderAddNote: getMutationProviderData(
+                                                                          ...addNote
+                                                                        ),
+                                                                        orderCancel: getMutationProviderData(
+                                                                          ...orderCancel
+                                                                        ),
+                                                                        orderCreateFulfillment: getMutationProviderData(
+                                                                          ...createFulfillment
+                                                                        ),
+                                                                        orderDraftCancel: getMutationProviderData(
+                                                                          ...cancelDraft
+                                                                        ),
+                                                                        orderDraftFinalize: getMutationProviderData(
+                                                                          ...finalizeDraft
+                                                                        ),
+                                                                        orderDraftUpdate: getMutationProviderData(
+                                                                          ...updateDraft
+                                                                        ),
+                                                                        orderFulfillmentCancel: getMutationProviderData(
+                                                                          ...cancelFulfillment
+                                                                        ),
+                                                                        orderFulfillmentUpdateTracking: getMutationProviderData(
+                                                                          ...updateTrackingNumber
+                                                                        ),
+                                                                        orderLineAdd: getMutationProviderData(
+                                                                          ...addOrderLine
+                                                                        ),
+                                                                        orderLineDelete: getMutationProviderData(
+                                                                          ...deleteOrderLine
+                                                                        ),
+                                                                        orderLineUpdate: getMutationProviderData(
+                                                                          ...updateOrderLine
+                                                                        ),
+                                                                        orderPaymentCapture: getMutationProviderData(
+                                                                          ...paymentCapture
+                                                                        ),
+                                                                        orderPaymentMarkAsPaid: getMutationProviderData(
+                                                                          ...markAsPaid
+                                                                        ),
+                                                                        orderPaymentRefund: getMutationProviderData(
+                                                                          ...paymentRefund
+                                                                        ),
+                                                                        orderShippingMethodUpdate: getMutationProviderData(
+                                                                          ...updateShippingMethod
+                                                                        ),
+                                                                        orderUpdate: getMutationProviderData(
+                                                                          ...update
+                                                                        ),
+                                                                        orderVoid: getMutationProviderData(
+                                                                          ...orderVoid
+                                                                        )
                                                                       })
                                                                     }
-                                                                  </OrderMarkAsPaidProvider>
+                                                                  </TypedOrderMarkAsPaidMutation>
                                                                 )}
-                                                              </OrderDraftCancelMutationProvider>
+                                                              </TypedOrderDraftCancelMutation>
                                                             )}
-                                                          </OrderDraftFinalizeMutationProvider>
+                                                          </TypedOrderDraftFinalizeMutation>
                                                         )}
-                                                      </OrderFulfillmentUpdateTrackingProvider>
+                                                      </TypedOrderFulfillmentUpdateTrackingMutation>
                                                     )}
-                                                  </OrderFulfillmentCancelProvider>
+                                                  </TypedOrderFulfillmentCancelMutation>
                                                 )}
-                                              </OrderLineUpdateProvider>
+                                              </TypedOrderLineUpdateMutation>
                                             )}
-                                          </OrderLineAddProvider>
+                                          </TypedOrderLineAddMutation>
                                         )}
-                                      </OrderLineDeleteProvider>
+                                      </TypedOrderLineDeleteMutation>
                                     )}
-                                  </OrderShippingMethodUpdateProvider>
+                                  </TypedOrderShippingMethodUpdateMutation>
                                 )}
-                              </OrderDraftUpdateProvider>
+                              </TypedOrderDraftUpdateMutation>
                             )}
-                          </OrderUpdateProvider>
+                          </TypedOrderUpdateMutation>
                         )}
-                      </OrderNoteAddProvider>
+                      </TypedOrderAddNoteMutation>
                     )}
-                  </OrderCreateFulfillmentProvider>
+                  </TypedOrderCreateFulfillmentMutation>
                 )}
-              </OrderPaymentRefundProvider>
+              </TypedOrderRefundMutation>
             )}
-          </OrderPaymentCaptureProvider>
+          </TypedOrderCaptureMutation>
         )}
-      </OrderCancelMutationProvider>
+      </TypedOrderCancelMutation>
     )}
-  </OrderVoidMutationProvider>
+  </TypedOrderVoidMutation>
 );
 export default OrderOperations;
