@@ -62,7 +62,6 @@ const CustomerDetailsPage = decorate<CustomerDetailsPageProps>(
         isActive: maybe(() => customer.isActive),
         note: maybe(() => customer.note)
       }}
-      key={JSON.stringify(customer)}
       onSubmit={onSubmit}
     >
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
