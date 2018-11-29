@@ -157,11 +157,12 @@ export const CollectionDetails: React.StatelessComponent<
                           };
 
                           const formTransitionState = getMutationState(
-                            updateCollection.called,
-                            updateCollection.loading,
+                            updateCollection.opts.called,
+                            updateCollection.opts.loading,
                             maybe(
                               () =>
-                                updateCollection.data.collectionUpdate.errors
+                                updateCollection.opts.data.collectionUpdate
+                                  .errors
                             )
                           );
                           return (

@@ -1,19 +1,14 @@
 import * as React from "react";
 
-import { maybe } from "../../misc";
-import {
-  MutationProviderProps,
-  MutationProviderRenderProps,
-  PartialMutationProviderOutput,
-  PartialMutationProviderProps,
-  PartialMutationProviderRenderProps
-} from "../../types";
+import { getMutationProviderData, maybe } from "../../misc";
+import { PartialMutationProviderOutput } from "../../types";
 import {
   TypedProductDeleteMutation,
   TypedProductImageCreateMutation,
-  TypedProductImageDeleteMutation
+  TypedProductImageDeleteMutation,
+  TypedProductUpdateMutation
 } from "../mutations";
-import { ProductDelete, ProductDeleteVariables } from "../types/ProductDelete";
+import { ProductDelete } from "../types/ProductDelete";
 import { ProductDetails_product } from "../types/ProductDetails";
 import {
   ProductImageCreate,
@@ -29,103 +24,30 @@ import {
 } from "../types/ProductImageReorder";
 import { ProductUpdate, ProductUpdateVariables } from "../types/ProductUpdate";
 import ProductImagesReorderProvider from "./ProductImagesReorder";
-import ProductUpdateProvider from "./ProductUpdate";
 
-interface ProductDeleteProviderProps
-  extends PartialMutationProviderProps<ProductDelete> {
-  productId: string;
-  children: PartialMutationProviderRenderProps<
-    ProductDelete,
-    ProductDeleteVariables
-  >;
-}
-
-const ProductDeleteProvider: React.StatelessComponent<
-  ProductDeleteProviderProps
-> = ({ productId, children, onError, onSuccess }) => (
-  <TypedProductDeleteMutation
-    variables={{ id: productId }}
-    onCompleted={onSuccess}
-    onError={onError}
-  >
-    {(mutate, { data, error, loading }) =>
-      children({
-        data,
-        error,
-        loading,
-        mutate
-      })
+interface ProductUpdateOperationsProps {
+  product: ProductDetails_product;
+  children: (
+    props: {
+      createProductImage: PartialMutationProviderOutput<
+        ProductImageCreate,
+        ProductImageCreateVariables
+      >;
+      deleteProduct: PartialMutationProviderOutput;
+      deleteProductImage: PartialMutationProviderOutput<
+        ProductImageDelete,
+        ProductImageDeleteVariables
+      >;
+      reorderProductImages: PartialMutationProviderOutput<
+        ProductImageReorder,
+        ProductImageReorderVariables
+      >;
+      updateProduct: PartialMutationProviderOutput<
+        ProductUpdate,
+        ProductUpdateVariables
+      >;
     }
-  </TypedProductDeleteMutation>
-);
-
-interface ProductImageCreateProviderProps
-  extends PartialMutationProviderProps<ProductImageCreate> {
-  children: PartialMutationProviderRenderProps<
-    ProductImageCreate,
-    ProductImageCreateVariables
-  >;
-}
-
-const ProductImageCreateProvider: React.StatelessComponent<
-  ProductImageCreateProviderProps
-> = ({ children, onError, onSuccess }) => (
-  <TypedProductImageCreateMutation onCompleted={onSuccess} onError={onError}>
-    {(mutate, { data, error, loading }) =>
-      children({
-        data,
-        error,
-        loading,
-        mutate
-      })
-    }
-  </TypedProductImageCreateMutation>
-);
-
-interface ProductImageDeleteProviderProps
-  extends PartialMutationProviderProps<ProductImageDelete> {
-  children: PartialMutationProviderRenderProps<
-    ProductImageDelete,
-    ProductImageDeleteVariables
-  >;
-}
-
-const ProductImageDeleteProvider: React.StatelessComponent<
-  ProductImageDeleteProviderProps
-> = ({ children, onError, onSuccess }) => (
-  <TypedProductImageDeleteMutation onCompleted={onSuccess} onError={onError}>
-    {(mutate, { data, error, loading }) =>
-      children({
-        data,
-        error,
-        loading,
-        mutate
-      })
-    }
-  </TypedProductImageDeleteMutation>
-);
-
-interface ProductUpdateOperationsProps extends MutationProviderProps {
-  product?: ProductDetails_product;
-  children: MutationProviderRenderProps<{
-    createProductImage: PartialMutationProviderOutput<
-      ProductImageCreate,
-      ProductImageCreateVariables
-    >;
-    deleteProduct: PartialMutationProviderOutput;
-    deleteProductImage: PartialMutationProviderOutput<
-      ProductImageDelete,
-      ProductImageDeleteVariables
-    >;
-    reorderProductImages: PartialMutationProviderOutput<
-      ProductImageReorder,
-      ProductImageReorderVariables
-    >;
-    updateProduct: PartialMutationProviderOutput<
-      ProductUpdate,
-      ProductUpdateVariables
-    >;
-  }>;
+  ) => React.ReactNode;
   onDelete?: (data: ProductDelete) => void;
   onImageCreate?: (data: ProductImageCreate) => void;
   onImageDelete?: (data: ProductImageDelete) => void;
@@ -139,7 +61,6 @@ const ProductUpdateOperations: React.StatelessComponent<
   product,
   children,
   onDelete,
-  onError,
   onImageDelete,
   onImageCreate,
   onImageReorder,
@@ -147,79 +68,49 @@ const ProductUpdateOperations: React.StatelessComponent<
 }) => {
   const productId = product ? product.id : "";
   return (
-    <ProductUpdateProvider onError={onError} onSuccess={onUpdate}>
-      {updateProduct => (
+    <TypedProductUpdateMutation onCompleted={onUpdate}>
+      {(...updateProduct) => (
         <ProductImagesReorderProvider
           productId={productId}
           productImages={maybe(() => product.images, [])}
-          onError={onError}
-          onSuccess={onImageReorder}
+          onCompleted={onImageReorder}
         >
-          {reorderProductImages => (
-            <ProductImageCreateProvider
-              onError={onError}
-              onSuccess={onImageCreate}
-            >
-              {createProductImage => (
-                <ProductDeleteProvider
-                  productId={productId}
-                  onError={onError}
-                  onSuccess={onDelete}
-                >
-                  {deleteProduct => (
-                    <ProductImageDeleteProvider
-                      onError={onError}
-                      onSuccess={onImageDelete}
+          {(...reorderProductImages) => (
+            <TypedProductImageCreateMutation onCompleted={onImageCreate}>
+              {(...createProductImage) => (
+                <TypedProductDeleteMutation onCompleted={onDelete}>
+                  {(...deleteProduct) => (
+                    <TypedProductImageDeleteMutation
+                      onCompleted={onImageDelete}
                     >
-                      {deleteProductImage =>
+                      {(...deleteProductImage) =>
                         children({
-                          createProductImage: {
-                            data: createProductImage.data,
-                            loading: createProductImage.loading,
-                            mutate: variables =>
-                              createProductImage.mutate({ variables })
-                          },
-                          deleteProduct: {
-                            data: deleteProduct.data,
-                            loading: deleteProduct.loading,
-                            mutate: deleteProduct.mutate
-                          },
-                          deleteProductImage: {
-                            data: deleteProductImage.data,
-                            loading: deleteProductImage.loading,
-                            mutate: variables =>
-                              deleteProductImage.mutate({ variables })
-                          },
-                          errors:
-                            updateProduct &&
-                            updateProduct.data &&
-                            updateProduct.data.productUpdate
-                              ? updateProduct.data.productUpdate.errors
-                              : [],
-                          reorderProductImages: {
-                            data: reorderProductImages.data,
-                            loading: reorderProductImages.loading,
-                            mutate: variables =>
-                              reorderProductImages.mutate({ variables })
-                          },
-                          updateProduct: {
-                            called: updateProduct.called,
-                            data: updateProduct.data,
-                            loading: updateProduct.loading,
-                            mutate: variables =>
-                              updateProduct.mutate({ variables })
-                          }
+                          createProductImage: getMutationProviderData(
+                            ...createProductImage
+                          ),
+                          deleteProduct: getMutationProviderData(
+                            ...deleteProduct
+                          ),
+                          deleteProductImage: getMutationProviderData(
+                            ...deleteProductImage
+                          ),
+                          reorderProductImages: getMutationProviderData(
+                            ...reorderProductImages
+                          ),
+                          updateProduct: getMutationProviderData(
+                            ...updateProduct
+                          )
                         })
                       }
-                    </ProductImageDeleteProvider>
+                    </TypedProductImageDeleteMutation>
                   )}
-                </ProductDeleteProvider>
+                </TypedProductDeleteMutation>
               )}
-            </ProductImageCreateProvider>
+            </TypedProductImageCreateMutation>
           )}
         </ProductImagesReorderProvider>
       )}
-    </ProductUpdateProvider>
+    </TypedProductUpdateMutation>
   );
 };
 export default ProductUpdateOperations;
