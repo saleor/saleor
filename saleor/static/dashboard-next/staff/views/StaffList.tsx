@@ -5,7 +5,7 @@ import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import { createPaginationState, Paginator } from "../../components/Paginator";
 import i18n from "../../i18n";
-import { maybe, getMutationState } from "../../misc";
+import { getMutationState, maybe } from "../../misc";
 import StaffAddMemberDialog, {
   FormData as AddStaffMemberForm
 } from "../components/StaffAddMemberDialog";
