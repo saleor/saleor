@@ -38,7 +38,7 @@ def test_resolve_attribute_list(color_attribute):
 def test_fetch_all_products(user_api_client, product):
     query = """
     query {
-        products {
+        products(first: 1) {
             totalCount
             edges {
                 node {
@@ -60,7 +60,7 @@ def test_fetch_unavailable_products(user_api_client, product):
     Product.objects.update(is_published=False)
     query = """
     query {
-        products {
+        products(first: 1) {
             totalCount
             edges {
                 node {
@@ -82,7 +82,7 @@ def test_product_query(staff_api_client, product, permission_manage_products):
     query = """
     query {
         category(id: "%(category_id)s") {
-            products {
+            products(first: 20) {
                 edges {
                     node {
                         id
@@ -200,7 +200,7 @@ def test_filter_product_by_category(user_api_client, product):
     category = product.category
     query = """
     query getProducts($categoryId: ID) {
-        products(categories: [$categoryId]) {
+        products(categories: [$categoryId], first: 1) {
             edges {
                 node {
                     name
@@ -241,7 +241,7 @@ def test_filter_products_by_attributes(user_api_client, product):
     filter_by = '%s:%s' % (product_attr.slug, attr_value.slug)
     query = """
     query {
-        products(attributes: ["%(filter_by)s"]) {
+        products(attributes: ["%(filter_by)s"], first: 1) {
             edges {
                 node {
                     name
@@ -263,7 +263,7 @@ def test_filter_products_by_categories(
     product.save()
     query = """
     query {
-        products(categories: ["%(category_id)s"]) {
+        products(categories: ["%(category_id)s"], first: 1) {
             edges {
                 node {
                     name
@@ -283,7 +283,7 @@ def test_filter_products_by_collections(
     collection.products.add(product)
     query = """
     query {
-        products(collections: ["%(collection_id)s"]) {
+        products(collections: ["%(collection_id)s"], first: 1) {
             edges {
                 node {
                     name
@@ -311,7 +311,7 @@ def test_sort_products(user_api_client, product):
 
     query = """
     query {
-        products(sortBy: %(sort_by_product_order)s) {
+        products(sortBy: %(sort_by_product_order)s, first: 2) {
             edges {
                 node {
                     price {
@@ -572,7 +572,7 @@ def test_delete_product(staff_api_client, product, permission_manage_products):
 def test_product_type(user_api_client, product_type):
     query = """
     query {
-        productTypes {
+        productTypes(first: 20) {
             totalCount
             edges {
                 node {
@@ -604,7 +604,7 @@ def test_product_type_query(
             query getProductType($id: ID!) {
                 productType(id: $id) {
                     name
-                    products {
+                    products(first: 20) {
                         totalCount
                         edges {
                             node {
@@ -1126,7 +1126,7 @@ def test_product_update_variants_names(mock__update_variants_names,
 def test_product_variants_by_ids(user_api_client, variant):
     query = """
         query getProduct($ids: [ID!]) {
-            productVariants(ids: $ids) {
+            productVariants(ids: $ids, first: 1) {
                 edges {
                     node {
                         id
@@ -1206,7 +1206,7 @@ def test_product_variant_price(
 def test_stock_availability_filter(user_api_client, product):
     query = """
     query Products($stockAvailability: StockAvailability) {
-        products(stockAvailability: $stockAvailability) {
+        products(stockAvailability: $stockAvailability, first: 1) {
             totalCount
             edges {
                 node {
@@ -1244,7 +1244,7 @@ def test_product_sales(
         permission_manage_orders):
     query = """
     query TopProducts($period: ReportingPeriod!) {
-        reportProductSales(period: $period) {
+        reportProductSales(period: $period, first: 20) {
             edges {
                 node {
                     revenue(period: $period) {

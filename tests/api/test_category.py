@@ -16,14 +16,7 @@ def test_category_query(user_api_client, product):
         category(id: "%(category_pk)s") {
             id
             name
-            ancestors {
-                edges {
-                    node {
-                        name
-                    }
-                }
-            }
-            children {
+            children(first: 20) {
                 edges {
                     node {
                         name
@@ -38,9 +31,6 @@ def test_category_query(user_api_client, product):
     category_data = content['data']['category']
     assert category_data is not None
     assert category_data['name'] == category.name
-    assert (
-        len(category_data['ancestors']['edges']) ==
-        category.get_ancestors().count())
     assert (
         len(category_data['children']['edges']) ==
         category.get_children().count())
@@ -292,7 +282,7 @@ def test_category_delete_mutation(
 
 LEVELED_CATEGORIES_QUERY = """
 query leveled_categories($level: Int) {
-    categories(level: $level) {
+    categories(level: $level, first: 20) {
         edges {
             node {
                 name

@@ -285,7 +285,7 @@ class Product(CountableDjangoObjectType):
         description='Get a single product image by ID')
     variants = gql_optimizer.field(
         graphene.List(
-            ProductVariant, description='List of varinats for the product'),
+            ProductVariant, description='List of variants for the product'),
         model_field='variants')
     images = gql_optimizer.field(
         graphene.List(

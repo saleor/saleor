@@ -39,7 +39,7 @@ def test_attributes_query(user_api_client, product):
     attributes = Attribute.objects.prefetch_related('values')
     query = """
     query {
-        attributes {
+        attributes(first: 20) {
             edges {
                 node {
                     id
@@ -65,7 +65,7 @@ def test_attributes_in_category_query(user_api_client, product):
     category = Category.objects.first()
     query = """
     query {
-        attributes(inCategory: "%(category_id)s") {
+        attributes(inCategory: "%(category_id)s", first: 20) {
             edges {
                 node {
                     id
