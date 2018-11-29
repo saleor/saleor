@@ -220,6 +220,15 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       path={orderCancelPath(":id")}
                                       render={({ match }) => (
                                         <OrderCancelDialog
+                                          confirmButtonState={getMutationState(
+                                            orderCancel.opts.called,
+                                            orderCancel.opts.loading,
+                                            maybe(
+                                              () =>
+                                                orderCancel.opts.data
+                                                  .orderCancel.errors
+                                            )
+                                          )}
                                           number={maybe(() => order.number)}
                                           open={!!match}
                                           onClose={onModalClose}
@@ -236,6 +245,15 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       path={orderMarkAsPaidPath(":id")}
                                       render={({ match }) => (
                                         <OrderMarkAsPaidDialog
+                                          confirmButtonState={getMutationState(
+                                            orderPaymentMarkAsPaid.opts.called,
+                                            orderPaymentMarkAsPaid.opts.loading,
+                                            maybe(
+                                              () =>
+                                                orderPaymentMarkAsPaid.opts.data
+                                                  .orderMarkAsPaid.errors
+                                            )
+                                          )}
                                           onClose={onModalClose}
                                           onConfirm={() =>
                                             orderPaymentMarkAsPaid.mutate({
@@ -250,6 +268,15 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       path={orderPaymentVoidPath(":id")}
                                       render={({ match }) => (
                                         <OrderPaymentVoidDialog
+                                          confirmButtonState={getMutationState(
+                                            orderVoid.opts.called,
+                                            orderVoid.opts.loading,
+                                            maybe(
+                                              () =>
+                                                orderVoid.opts.data.orderVoid
+                                                  .errors
+                                            )
+                                          )}
                                           open={!!match}
                                           onClose={onModalClose}
                                           onConfirm={() =>
@@ -262,6 +289,15 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       path={orderPaymentCapturePath(":id")}
                                       render={({ match }) => (
                                         <OrderPaymentDialog
+                                          confirmButtonState={getMutationState(
+                                            orderPaymentCapture.opts.called,
+                                            orderPaymentCapture.opts.loading,
+                                            maybe(
+                                              () =>
+                                                orderPaymentCapture.opts.data
+                                                  .orderCapture.errors
+                                            )
+                                          )}
                                           initial={maybe(
                                             () => order.total.gross.amount
                                           )}
@@ -281,6 +317,15 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       path={orderPaymentRefundPath(":id")}
                                       render={({ match }) => (
                                         <OrderPaymentDialog
+                                          confirmButtonState={getMutationState(
+                                            orderPaymentRefund.opts.called,
+                                            orderPaymentRefund.opts.loading,
+                                            maybe(
+                                              () =>
+                                                orderPaymentRefund.opts.data
+                                                  .orderRefund.errors
+                                            )
+                                          )}
                                           initial={maybe(
                                             () => order.total.gross.amount
                                           )}
@@ -300,6 +345,15 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       path={orderFulfillPath(":id")}
                                       render={({ match }) => (
                                         <OrderFulfillmentDialog
+                                          confirmButtonState={getMutationState(
+                                            orderCreateFulfillment.opts.called,
+                                            orderCreateFulfillment.opts.loading,
+                                            maybe(
+                                              () =>
+                                                orderCreateFulfillment.opts.data
+                                                  .orderFulfillmentCreate.errors
+                                            )
+                                          )}
                                           open={!!match}
                                           lines={maybe(
                                             () => order.lines,
@@ -345,6 +399,15 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       )}
                                       render={({ match }) => (
                                         <OrderFulfillmentCancelDialog
+                                          confirmButtonState={getMutationState(
+                                            orderFulfillmentCancel.opts.called,
+                                            orderFulfillmentCancel.opts.loading,
+                                            maybe(
+                                              () =>
+                                                orderFulfillmentCancel.opts.data
+                                                  .orderFulfillmentCancel.errors
+                                            )
+                                          )}
                                           open={!!match}
                                           onConfirm={variables =>
                                             orderFulfillmentCancel.mutate({
@@ -365,6 +428,19 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       )}
                                       render={({ match }) => (
                                         <OrderFulfillmentTrackingDialog
+                                          confirmButtonState={getMutationState(
+                                            orderFulfillmentUpdateTracking.opts
+                                              .called,
+                                            orderFulfillmentUpdateTracking.opts
+                                              .loading,
+                                            maybe(
+                                              () =>
+                                                orderFulfillmentUpdateTracking
+                                                  .opts.data
+                                                  .orderFulfillmentUpdateTracking
+                                                  .errors
+                                            )
+                                          )}
                                           open={!!match}
                                           trackingNumber={maybe(
                                             () =>
@@ -515,6 +591,15 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                   path={orderShippingAddressEditPath(":id")}
                                   render={({ match }) => (
                                     <OrderAddressEditDialog
+                                      confirmButtonState={getMutationState(
+                                        orderUpdate.opts.called,
+                                        orderUpdate.opts.loading,
+                                        maybe(
+                                          () =>
+                                            orderUpdate.opts.data.orderUpdate
+                                              .errors
+                                        )
+                                      )}
                                       address={transformAddressToForm(
                                         maybe(() => order.shippingAddress)
                                       )}
@@ -549,6 +634,15 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                   path={orderBillingAddressEditPath(":id")}
                                   render={({ match }) => (
                                     <OrderAddressEditDialog
+                                      confirmButtonState={getMutationState(
+                                        orderUpdate.opts.called,
+                                        orderUpdate.opts.loading,
+                                        maybe(
+                                          () =>
+                                            orderUpdate.opts.data.orderUpdate
+                                              .errors
+                                        )
+                                      )}
                                       address={transformAddressToForm(
                                         maybe(() => order.billingAddress)
                                       )}
@@ -596,9 +690,40 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                   )}
                                 />
                                 <Route
+                                  path={orderCancelPath(":id")}
+                                  render={({ match }) => (
+                                    <OrderDraftCancelDialog
+                                      confirmButtonState={getMutationState(
+                                        orderDraftCancel.opts.called,
+                                        orderDraftCancel.opts.loading,
+                                        maybe(
+                                          () =>
+                                            orderDraftCancel.opts.data
+                                              .draftOrderDelete.errors
+                                        )
+                                      )}
+                                      onClose={onModalClose}
+                                      onConfirm={() =>
+                                        orderDraftCancel.mutate({ id })
+                                      }
+                                      open={!!match}
+                                      orderNumber={maybe(() => order.number)}
+                                    />
+                                  )}
+                                />
+                                <Route
                                   path={orderDraftShippingMethodPath(":id")}
                                   render={({ match }) => (
                                     <OrderShippingMethodEditDialog
+                                      confirmButtonState={getMutationState(
+                                        orderShippingMethodUpdate.opts.called,
+                                        orderShippingMethodUpdate.opts.loading,
+                                        maybe(
+                                          () =>
+                                            orderShippingMethodUpdate.opts.data
+                                              .orderUpdateShipping.errors
+                                        )
+                                      )}
                                       open={!!match}
                                       shippingMethod={maybe(
                                         () => order.shippingMethod.id,
@@ -624,6 +749,15 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                   path={orderDraftLineAddPath(":id")}
                                   render={({ match }) => (
                                     <OrderProductAddDialog
+                                      confirmButtonState={getMutationState(
+                                        orderLineAdd.opts.called,
+                                        orderLineAdd.opts.loading,
+                                        maybe(
+                                          () =>
+                                            orderLineAdd.opts.data
+                                              .draftOrderLineCreate.errors
+                                        )
+                                      )}
                                       loading={variantSearchOpts.loading}
                                       open={!!match}
                                       variants={maybe(() =>

@@ -6,6 +6,9 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
+import ConfirmButton, {
+  ConfirmButtonTransitionState
+} from "../../../components/ConfirmButton";
 import Form from "../../../components/Form";
 import Money from "../../../components/Money";
 import { SingleSelectField } from "../../../components/SingleSelectField";
@@ -17,6 +20,7 @@ export interface FormData {
 }
 
 interface OrderShippingMethodEditDialogProps {
+  confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
   shippingMethod: string;
   shippingMethods?: OrderDetails_order_availableShippingMethods[];
@@ -47,53 +51,68 @@ const decorate = withStyles(
 );
 const OrderShippingMethodEditDialog = decorate<
   OrderShippingMethodEditDialogProps
->(({ classes, open, shippingMethod, shippingMethods, onClose, onSubmit }) => {
-  const choices = shippingMethods
-    ? shippingMethods.map(s => ({
-        label: (
-          <div className={classes.menuItem}>
-            <span className={classes.shippingMethodName}>{s.name}</span>
-            &nbsp;
-            <span>
-              <Money money={s.price} />
-            </span>
-          </div>
-        ),
-        value: s.id
-      }))
-    : [];
-  const initialForm: FormData = {
-    shippingMethod
-  };
-  return (
-    <Dialog open={open} classes={{ paper: classes.dialog }}>
-      <DialogTitle>
-        {i18n.t("Edit shipping method", { context: "title" })}
-      </DialogTitle>
-      <Form initial={initialForm} onSubmit={onSubmit}>
-        {({ change, data }) => (
-          <>
-            <DialogContent className={classes.root}>
-              <SingleSelectField
-                choices={choices}
-                name="shippingMethod"
-                value={data.shippingMethod}
-                onChange={change}
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={onClose}>
-                {i18n.t("Cancel", { context: "button" })}
-              </Button>
-              <Button color="primary" variant="raised" type="submit">
-                {i18n.t("Confirm", { context: "button" })}
-              </Button>
-            </DialogActions>
-          </>
-        )}
-      </Form>
-    </Dialog>
-  );
-});
+>(
+  ({
+    classes,
+    confirmButtonState,
+    open,
+    shippingMethod,
+    shippingMethods,
+    onClose,
+    onSubmit
+  }) => {
+    const choices = shippingMethods
+      ? shippingMethods.map(s => ({
+          label: (
+            <div className={classes.menuItem}>
+              <span className={classes.shippingMethodName}>{s.name}</span>
+              &nbsp;
+              <span>
+                <Money money={s.price} />
+              </span>
+            </div>
+          ),
+          value: s.id
+        }))
+      : [];
+    const initialForm: FormData = {
+      shippingMethod
+    };
+    return (
+      <Dialog open={open} classes={{ paper: classes.dialog }}>
+        <DialogTitle>
+          {i18n.t("Edit shipping method", { context: "title" })}
+        </DialogTitle>
+        <Form initial={initialForm} onSubmit={onSubmit}>
+          {({ change, data }) => (
+            <>
+              <DialogContent className={classes.root}>
+                <SingleSelectField
+                  choices={choices}
+                  name="shippingMethod"
+                  value={data.shippingMethod}
+                  onChange={change}
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={onClose}>
+                  {i18n.t("Cancel", { context: "button" })}
+                </Button>
+                <ConfirmButton
+                  transitionState={confirmButtonState}
+                  color="primary"
+                  variant="raised"
+                  type="submit"
+                >
+                  {i18n.t("Confirm", { context: "button" })}
+                </ConfirmButton>
+              </DialogActions>
+            </>
+          )}
+        </Form>
+      </Dialog>
+    );
+  }
+);
 OrderShippingMethodEditDialog.displayName = "OrderShippingMethodEditDialog";
 export default OrderShippingMethodEditDialog;

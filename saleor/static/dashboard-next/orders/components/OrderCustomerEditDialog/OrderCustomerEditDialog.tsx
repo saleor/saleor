@@ -6,10 +6,14 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
+import ConfirmButton, {
+  ConfirmButtonTransitionState
+} from "../../../components/ConfirmButton/ConfirmButton";
 import { SingleAutocompleteSelectField } from "../../../components/SingleAutocompleteSelectField";
 import i18n from "../../../i18n";
 
 interface OrderCustomerEditDialogProps {
+  confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
   user?: {
     label: string;
@@ -48,6 +52,7 @@ const decorate = withStyles(
 const OrderCustomerEditDialog = decorate<OrderCustomerEditDialogProps>(
   ({
     classes,
+    confirmButtonState,
     open,
     loading,
     user,
@@ -82,9 +87,14 @@ const OrderCustomerEditDialog = decorate<OrderCustomerEditDialogProps>(
           <Button onClick={onClose}>
             {i18n.t("Cancel", { context: "button" })}
           </Button>
-          <Button color="primary" variant="raised" onClick={onConfirm}>
+          <ConfirmButton
+            transitionState={confirmButtonState}
+            color="primary"
+            variant="raised"
+            onClick={onConfirm}
+          >
             {i18n.t("Confirm", { context: "button" })}
-          </Button>
+          </ConfirmButton>
         </DialogActions>
       </Dialog>
     );
