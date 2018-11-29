@@ -1,12 +1,11 @@
 from ..core.types.common import Error
 
 
-def check_for_draft_order_errors(order, errors=[]):
-    # TODO: New Description
+def check_for_draft_order_errors(order, errors):
     """Return a list of errors associated with the order.
 
-    Checks, if given order has a proper shipping address and method
-    set up and return list of errors if not.
+    Checks, if given order has a proper customer data, shipping
+    address and method set up and return list of errors if not.
     """
     if order.get_total_quantity() == 0:
         errors.append(
@@ -31,3 +30,12 @@ def check_for_draft_order_errors(order, errors=[]):
                 field=None,
                 message='Both user and user_email fields are null'))
     return errors
+
+
+def can_finalize_order(order):
+    """Return `True` if an order draft can be complete.
+    """
+
+    errors = []
+    errors = check_for_draft_order_errors(order, errors)
+    return not errors
