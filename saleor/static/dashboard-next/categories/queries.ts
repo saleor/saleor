@@ -22,7 +22,7 @@ export const categoryDetailsFragment = gql`
 
 export const rootCategories = gql`
   query RootCategories {
-    categories(level: 0) {
+    categories(level: 0, first: 20) {
       edges {
         node {
           id
@@ -53,7 +53,7 @@ export const categoryDetails = gql`
   ) {
     category(id: $id) {
       ...CategoryDetailsFragment
-      children {
+      children(first: 20) {
         edges {
           node {
             id
