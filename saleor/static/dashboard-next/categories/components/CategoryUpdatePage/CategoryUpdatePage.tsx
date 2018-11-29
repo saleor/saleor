@@ -94,12 +94,7 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
           seoTitle: ""
         };
     return (
-      <Form
-        onSubmit={onSubmit}
-        initial={initialData}
-        errors={userErrors}
-        key={JSON.stringify(category)}
-      >
+      <Form onSubmit={onSubmit} initial={initialData} errors={userErrors}>
         {({ data, change, errors, submit, hasChanged }) => (
           <Container width="md">
             <PageHeader
