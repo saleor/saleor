@@ -2,7 +2,7 @@ import { MutationFn, MutationResult } from "react-apollo";
 import { ConfirmButtonTransitionState } from "./components/ConfirmButton/ConfirmButton";
 import { AddressType } from "./customers/types";
 import i18n from "./i18n";
-import { UserError, PartialMutationProviderOutput } from "./types";
+import { PartialMutationProviderOutput, UserError } from "./types";
 import {
   AuthorizationKeyType,
   OrderStatus,
