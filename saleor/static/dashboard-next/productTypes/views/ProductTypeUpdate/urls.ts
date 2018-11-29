@@ -22,3 +22,7 @@ export const editAttributeUrl = (productTypeId: string, attributeId: string) =>
     encodeURIComponent(productTypeId),
     encodeURIComponent(attributeId)
   );
+export const productTypeRemovePath = (id: string) =>
+  urlJoin(productTypePath(id), "remove");
+export const productTypeRemoveUrl = (id: string) =>
+  productTypeRemovePath(encodeURIComponent(id));
