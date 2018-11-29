@@ -60,11 +60,16 @@ export const StaffDetails: React.StatelessComponent<OrderListProps> = ({
                       variables={{ id }}
                       onCompleted={handleStaffMemberDelete}
                     >
-                      {deleteStaffMember => {
+                      {(deleteStaffMember, deleteResult) => {
                         const formTransitionState = getMutationState(
                           updateResult.called,
                           updateResult.loading,
                           maybe(() => updateResult.data.staffUpdate.errors)
+                        );
+                        const deleteTransitionState = getMutationState(
+                          deleteResult.called,
+                          deleteResult.loading,
+                          maybe(() => deleteResult.data.staffDelete.errors)
                         );
                         return (
                           <>
@@ -96,6 +101,7 @@ export const StaffDetails: React.StatelessComponent<OrderListProps> = ({
                                 <ActionDialog
                                   open={!!match}
                                   title={i18n.t("Remove staff user")}
+                                  confirmButtonState={deleteTransitionState}
                                   variant="delete"
                                   onClose={() =>
                                     navigate(staffMemberDetailsUrl(id))
