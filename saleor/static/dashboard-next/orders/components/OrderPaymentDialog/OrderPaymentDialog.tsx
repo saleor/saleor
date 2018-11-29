@@ -6,6 +6,9 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
+import ConfirmButton, {
+  ConfirmButtonTransitionState
+} from "../../../components/ConfirmButton";
 import Form from "../../../components/Form";
 import i18n from "../../../i18n";
 
@@ -14,6 +17,7 @@ export interface FormData {
 }
 
 interface OrderPaymentDialogProps {
+  confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
   initial: number;
   variant: string;
@@ -22,6 +26,7 @@ interface OrderPaymentDialogProps {
 }
 
 const OrderPaymentDialog: React.StatelessComponent<OrderPaymentDialogProps> = ({
+  confirmButtonState,
   open,
   initial,
   variant,
@@ -63,7 +68,8 @@ const OrderPaymentDialog: React.StatelessComponent<OrderPaymentDialogProps> = ({
             <Button onClick={onClose}>
               {i18n.t("Cancel", { context: "button" })}
             </Button>
-            <Button
+            <ConfirmButton
+              transitionState={confirmButtonState}
               color="primary"
               variant="raised"
               onClick={data => {
@@ -72,7 +78,7 @@ const OrderPaymentDialog: React.StatelessComponent<OrderPaymentDialogProps> = ({
               }}
             >
               {i18n.t("Confirm", { context: "button" })}
-            </Button>
+            </ConfirmButton>
           </DialogActions>
         </>
       )}

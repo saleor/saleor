@@ -6,12 +6,16 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import * as React from "react";
 
 import AddressEdit from "../../../components/AddressEdit/AddressEdit";
+import ConfirmButton, {
+  ConfirmButtonTransitionState
+} from "../../../components/ConfirmButton/ConfirmButton";
 import Form from "../../../components/Form";
 import { AddressTypeInput } from "../../../customers/types";
 import i18n from "../../../i18n";
 import { UserError } from "../../../types";
 
 interface OrderAddressEditDialogProps {
+  confirmButtonState: ConfirmButtonTransitionState;
   address: AddressTypeInput;
   open: boolean;
   errors: UserError[];
@@ -26,7 +30,16 @@ interface OrderAddressEditDialogProps {
 
 const OrderAddressEditDialog: React.StatelessComponent<
   OrderAddressEditDialogProps
-> = ({ address, open, errors, variant, countries, onClose, onConfirm }) => (
+> = ({
+  address,
+  confirmButtonState,
+  open,
+  errors,
+  variant,
+  countries,
+  onClose,
+  onConfirm
+}) => (
   <Dialog open={open}>
     <Form initial={address} errors={errors} onSubmit={onConfirm}>
       {({ change, data, errors, submit }) => (
@@ -48,14 +61,15 @@ const OrderAddressEditDialog: React.StatelessComponent<
             <Button onClick={onClose}>
               {i18n.t("Cancel", { context: "button" })}
             </Button>
-            <Button
+            <ConfirmButton
+              transitionState={confirmButtonState}
               color="primary"
               variant="raised"
               onClick={submit}
               type="submit"
             >
               {i18n.t("Confirm", { context: "button" })}
-            </Button>
+            </ConfirmButton>
           </DialogActions>
         </>
       )}
