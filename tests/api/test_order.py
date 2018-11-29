@@ -10,7 +10,8 @@ from saleor.graphql.order.mutations.orders import (
     clean_order_cancel, clean_order_capture, clean_order_mark_as_paid,
     clean_refund_payment, clean_void_payment)
 from saleor.graphql.order.types import OrderEventsEmailsEnum, OrderStatusFilter
-from saleor.graphql.order.utils import check_for_draft_order_errors
+from saleor.graphql.order.utils import (
+    can_finalize_order, check_for_draft_order_errors)
 from saleor.graphql.payment.types import PaymentChargeStatusEnum
 from saleor.order import OrderEvents, OrderEventsEmails, OrderStatus
 from saleor.order.models import Order, OrderEvent
@@ -60,6 +61,7 @@ def test_order_query(
             edges {
                 node {
                     number
+                    canFinalize
                     status
                     statusDisplay
                     paymentStatus
@@ -111,6 +113,7 @@ def test_order_query(
     content = get_graphql_content(response)
     order_data = content['data']['orders']['edges'][0]['node']
     assert order_data['number'] == str(order.pk)
+    assert order_data['canFinalize'] == True
     assert order_data['status'] == order.status.upper()
     assert order_data['statusDisplay'] == order.get_status_display()
     assert order_data['paymentStatus'] == order.get_last_payment_status()
@@ -351,6 +354,14 @@ def test_draft_order_delete(
         query, variables, permissions=[permission_manage_orders])
     with pytest.raises(order._meta.model.DoesNotExist):
         order.refresh_from_db()
+
+
+def test_can_finalize_order(order_with_lines):
+    assert can_finalize_order(order_with_lines) == True
+
+
+def test_can_finalize_order_no_order_lines(order):
+    assert can_finalize_order(order) == False
 
 
 def test_check_for_draft_order_errors(order_with_lines):
