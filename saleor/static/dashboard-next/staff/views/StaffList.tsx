@@ -5,7 +5,7 @@ import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import { createPaginationState, Paginator } from "../../components/Paginator";
 import i18n from "../../i18n";
-import { maybe } from "../../misc";
+import { maybe, getMutationState } from "../../misc";
 import StaffAddMemberDialog, {
   FormData as AddStaffMemberForm
 } from "../components/StaffAddMemberDialog";
@@ -69,6 +69,11 @@ export const StaffList: React.StatelessComponent<StaffListProps> = ({
                             }
                           }
                         });
+                      const addTransitionState = getMutationState(
+                        addStaffMemberData.called,
+                        addStaffMemberData.loading,
+                        maybe(() => addStaffMemberData.data.staffCreate.errors)
+                      );
                       return (
                         <Paginator
                           pageInfo={maybe(() => data.staffUsers.pageInfo)}
@@ -93,6 +98,7 @@ export const StaffList: React.StatelessComponent<StaffListProps> = ({
                                 path={staffMemberAddPath}
                                 render={({ match }) => (
                                   <StaffAddMemberDialog
+                                    confirmButtonState={addTransitionState}
                                     errors={maybe(
                                       () =>
                                         addStaffMemberData.data.staffCreate
