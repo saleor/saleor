@@ -1,17 +1,14 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
 
 import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import AddPhotoIcon from "@material-ui/icons/AddAPhoto";
 import * as React from "react";
 import { SortableContainer, SortableElement } from "react-sortable-hoc";
-import ActionDialog from "../../../components/ActionDialog";
 import CardTitle from "../../../components/CardTitle";
 import ImageTile from "../../../components/ImageTile";
-import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
 import { ProductDetails_product_images } from "../../types/ProductDetails";
 
@@ -112,13 +109,15 @@ const decorate = withStyles(theme => ({
   }
 }));
 
-const SortableImage = SortableElement(({ image, onImageEdit, toggle }) => (
-  <ImageTile
-    image={image}
-    onImageEdit={onImageEdit ? () => onImageEdit(image.id) : undefined}
-    onImageDelete={toggle}
-  />
-));
+const SortableImage = SortableElement(
+  ({ image, onImageEdit, onImageDelete }) => (
+    <ImageTile
+      image={image}
+      onImageEdit={onImageEdit ? () => onImageEdit(image.id) : undefined}
+      onImageDelete={onImageDelete}
+    />
+  )
+);
 
 const ImageListContainer = SortableContainer(
   decorate<ImageListContainerProps>(
@@ -126,33 +125,13 @@ const ImageListContainer = SortableContainer(
       return (
         <div {...props}>
           {items.map((image, index) => (
-            <Toggle key={index}>
-              {(opened, { toggle }) => (
-                <>
-                  <SortableImage
-                    key={`item-${index}`}
-                    index={index}
-                    image={image}
-                    onImageEdit={onImageEdit ? onImageEdit(image.id) : null}
-                    onImageDelete={toggle}
-                  />
-                  <ActionDialog
-                    open={opened}
-                    onClose={toggle}
-                    onConfirm={() => {
-                      onImageDelete(image.id)();
-                      toggle();
-                    }}
-                    variant="delete"
-                    title={i18n.t("Remove product image")}
-                  >
-                    <DialogContentText>
-                      {i18n.t("Are you sure you want to delete this image?")}
-                    </DialogContentText>
-                  </ActionDialog>
-                </>
-              )}
-            </Toggle>
+            <SortableImage
+              key={`item-${index}`}
+              index={index}
+              image={image}
+              onImageEdit={onImageEdit ? onImageEdit(image.id) : null}
+              onImageDelete={onImageDelete(image.id)}
+            />
           ))}
         </div>
       );

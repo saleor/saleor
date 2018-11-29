@@ -7,6 +7,9 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
+import ConfirmButton, {
+  ConfirmButtonTransitionState
+} from "../../../components/ConfirmButton/ConfirmButton";
 import i18n from "../../../i18n";
 
 const decorate = withStyles(theme => ({
@@ -20,6 +23,7 @@ const decorate = withStyles(theme => ({
 }));
 
 export interface ProductVariantDeleteDialogProps {
+  confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
   name: string;
   onClose?();
@@ -28,7 +32,14 @@ export interface ProductVariantDeleteDialogProps {
 
 const ProductVariantDeleteDialog = decorate<ProductVariantDeleteDialogProps>(
   props => {
-    const { classes, name, open, onConfirm, onClose } = props;
+    const {
+      classes,
+      confirmButtonState,
+      name,
+      open,
+      onConfirm,
+      onClose
+    } = props;
     return (
       <Dialog open={open}>
         <DialogTitle>
@@ -48,13 +59,14 @@ const ProductVariantDeleteDialog = decorate<ProductVariantDeleteDialogProps>(
           <Button onClick={onClose}>
             {i18n.t("Cancel", { context: "button" })}
           </Button>
-          <Button
+          <ConfirmButton
+            transitionState={confirmButtonState}
             className={classes.deleteButton}
             variant="raised"
             onClick={onConfirm}
           >
             {i18n.t("Delete variant", { context: "button" })}
-          </Button>
+          </ConfirmButton>
         </DialogActions>
       </Dialog>
     );
