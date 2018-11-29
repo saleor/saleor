@@ -4,15 +4,13 @@ import graphene
 import pytest
 from tests.api.utils import get_graphql_content
 
-from saleor.account.models import Address
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.graphql.core.types import ReportingPeriod
-from saleor.graphql.order.mutations.draft_orders import (
-    check_for_draft_order_errors)
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel, clean_order_capture, clean_order_mark_as_paid,
     clean_refund_payment, clean_void_payment)
 from saleor.graphql.order.types import OrderEventsEmailsEnum, OrderStatusFilter
+from saleor.graphql.order.utils import check_for_draft_order_errors
 from saleor.graphql.payment.types import PaymentChargeStatusEnum
 from saleor.order import OrderEvents, OrderEventsEmails, OrderStatus
 from saleor.order.models import Order, OrderEvent
