@@ -68,6 +68,16 @@ def test_real_query(user_api_client, product):
         id
         name
         url
+        ancestors(last: 20) {
+            edges {
+                node {
+                    name
+                    id
+                    url
+                    __typename
+                }
+            }
+        }
         children(first: 20) {
             edges {
                 node {

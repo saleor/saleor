@@ -432,6 +432,9 @@ class Collection(CountableDjangoObjectType):
 
 
 class Category(CountableDjangoObjectType):
+    ancestors = PrefetchingConnectionField(
+        lambda: Category,
+        description='List of ancestors of the category.')
     products = gql_optimizer.field(
         PrefetchingConnectionField(
             Product, description='List of products in the category.'),
@@ -452,6 +455,10 @@ class Category(CountableDjangoObjectType):
             'menuitem_set']
         interfaces = [relay.Node]
         model = models.Category
+
+    def resolve_ancestors(self, info, **kwargs):
+        qs = self.get_ancestors()
+        return gql_optimizer.query(qs, info)
 
     def resolve_background_image(self, info, **kwargs):
         return self.background_image or None
