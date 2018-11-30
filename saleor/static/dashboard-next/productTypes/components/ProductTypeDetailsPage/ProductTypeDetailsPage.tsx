@@ -114,12 +114,7 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
       <Toggle>
         {(openedDeleteDialog, { toggle: toggleDeleteDialog }) => (
           <>
-            <Form
-              errors={errors}
-              initial={formInitialData}
-              onSubmit={onSubmit}
-              key={JSON.stringify(productType)}
-            >
+            <Form errors={errors} initial={formInitialData} onSubmit={onSubmit}>
               {({ change, data, hasChanged, submit }) => (
                 <Container width="md">
                   <PageHeader title={pageTitle} onBack={onBack} />
