@@ -16,7 +16,7 @@ from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import Decimal
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
-from ..utils import check_for_draft_order_errors
+from ..utils import can_finalize_draft_order
 
 
 class OrderLineInput(graphene.InputObjectType):
@@ -181,7 +181,7 @@ class DraftOrderComplete(BaseMutation):
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
         if order:
-            errors = check_for_draft_order_errors(order, errors)
+            errors = can_finalize_draft_order(order, errors)
         if errors:
             return cls(errors=errors)
 
