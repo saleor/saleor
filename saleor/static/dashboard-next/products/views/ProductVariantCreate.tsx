@@ -41,15 +41,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                 displayLoader
                 variables={{ id: productId }}
               >
-                {({ data, error, loading: productLoading }) => {
-                  if (error) {
-                    return (
-                      <ErrorMessageCard
-                        message={i18n.t("Something went wrong")}
-                      />
-                    );
-                  }
-
+                {({ data, loading: productLoading }) => {
                   const handleCreateSuccess = (data: VariantCreate) => {
                     if (
                       data.productVariantCreate.errors === null ||
@@ -58,10 +50,8 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                       pushMessage({ text: i18n.t("Product created") });
                       navigate(
                         productVariantEditUrl(
-                          encodeURIComponent(productId),
-                          encodeURIComponent(
-                            data.productVariantCreate.productVariant.id
-                          )
+                          productId,
+                          data.productVariantCreate.productVariant.id
                         )
                       );
                     }
@@ -81,7 +71,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                         }
 
                         const handleBack = () =>
-                          navigate(productUrl(encodeURIComponent(productId)));
+                          navigate(productUrl(productId));
                         const handleSubmit = (formData: FormData) =>
                           variantCreate({
                             variables: {
@@ -95,12 +85,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                             }
                           });
                         const handleVariantClick = (id: string) =>
-                          navigate(
-                            productVariantEditUrl(
-                              encodeURIComponent(productId),
-                              encodeURIComponent(id)
-                            )
-                          );
+                          navigate(productVariantEditUrl(productId, id));
 
                         const disableForm =
                           productLoading || variantCreateResult.loading;

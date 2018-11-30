@@ -19,6 +19,7 @@ import { StaffMemberUpdate } from "../types/StaffMemberUpdate";
 import {
   staffListUrl,
   staffMemberDetailsUrl,
+  staffMemberRemovePath,
   staffMemberRemoveUrl
 } from "../urls";
 
@@ -90,7 +91,7 @@ export const StaffDetails: React.StatelessComponent<OrderListProps> = ({
                               saveButtonBarState={formTransitionState}
                             />
                             <Route
-                              path={staffMemberRemoveUrl(id)}
+                              path={staffMemberRemovePath(":id")}
                               render={({ match }) => (
                                 <ActionDialog
                                   open={!!match}

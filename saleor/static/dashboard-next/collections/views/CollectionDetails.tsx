@@ -22,9 +22,11 @@ import { CollectionUpdate } from "../types/CollectionUpdate";
 import { RemoveCollection } from "../types/RemoveCollection";
 import { UnassignCollectionProduct } from "../types/UnassignCollectionProduct";
 import {
+  collectionAddProductPath,
   collectionAddProductUrl,
   collectionImageRemoveUrl,
   collectionListUrl,
+  collectionRemovePath,
   collectionRemoveUrl,
   collectionUrl
 } from "../urls";
@@ -185,9 +187,7 @@ export const CollectionDetails: React.StatelessComponent<
                                   <CollectionDetailsPage
                                     onAdd={() =>
                                       navigate(
-                                        collectionAddProductUrl(
-                                          encodeURIComponent(id)
-                                        ),
+                                        collectionAddProductUrl(id),
                                         false,
                                         true
                                       )
@@ -203,18 +203,14 @@ export const CollectionDetails: React.StatelessComponent<
                                     )}
                                     onCollectionRemove={() =>
                                       navigate(
-                                        collectionRemoveUrl(
-                                          encodeURIComponent(id)
-                                        ),
+                                        collectionRemoveUrl(id),
                                         false,
                                         true
                                       )
                                     }
                                     onImageDelete={() =>
                                       navigate(
-                                        collectionImageRemoveUrl(
-                                          encodeURIComponent(id)
-                                        ),
+                                        collectionImageRemoveUrl(id),
                                         false,
                                         true
                                       )
@@ -240,28 +236,20 @@ export const CollectionDetails: React.StatelessComponent<
                                       });
                                     }}
                                     onRowClick={id => () =>
-                                      navigate(
-                                        productUrl(encodeURIComponent(id))
-                                      )}
+                                      navigate(productUrl(id))}
                                     saveButtonBarState={formTransitionState}
                                   />
                                 )}
                               </Paginator>
                               <Route
-                                path={collectionAddProductUrl(
-                                  encodeURIComponent(id)
-                                )}
+                                path={collectionAddProductPath(":id")}
                                 render={({ match }) => (
                                   <CollectionAssignProductDialog
                                     open={!!match}
                                     fetch={searchProducts}
                                     loading={searchProductsOpts.loading}
                                     onClose={() =>
-                                      navigate(
-                                        collectionUrl(encodeURIComponent(id)),
-                                        true,
-                                        true
-                                      )
+                                      navigate(collectionUrl(id), true, true)
                                     }
                                     onSubmit={product =>
                                       assignProduct.mutate({
@@ -279,17 +267,11 @@ export const CollectionDetails: React.StatelessComponent<
                                 )}
                               />
                               <Route
-                                path={collectionRemoveUrl(
-                                  encodeURIComponent(id)
-                                )}
+                                path={collectionRemovePath(":id")}
                                 render={({ match }) => (
                                   <ActionDialog
                                     onClose={() =>
-                                      navigate(
-                                        collectionUrl(encodeURIComponent(id)),
-                                        true,
-                                        true
-                                      )
+                                      navigate(collectionUrl(id), true, true)
                                     }
                                     onConfirm={() =>
                                       removeCollection.mutate({ id })
@@ -305,8 +287,9 @@ export const CollectionDetails: React.StatelessComponent<
                                         __html: i18n.t(
                                           "Are you sure you want to remove <strong>{{ collectionName }}</strong>?",
                                           {
-                                            collectionName:
-                                              data.collection.name,
+                                            collectionName: maybe(
+                                              () => data.collection.name
+                                            ),
                                             context: "modal"
                                           }
                                         )

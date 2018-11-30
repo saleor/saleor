@@ -35,11 +35,7 @@ export const ProductUpdate: React.StatelessComponent<
                       const handleSuccess = (data: ProductCreate) => {
                         if (data.productCreate.errors.length === 0) {
                           pushMessage({ text: i18n.t("Product created") });
-                          navigate(
-                            productUrl(
-                              encodeURIComponent(data.productCreate.product.id)
-                            )
-                          );
+                          navigate(productUrl(data.productCreate.product.id));
                         }
                       };
 

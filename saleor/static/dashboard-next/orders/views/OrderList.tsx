@@ -41,9 +41,7 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
             pushMessage({
               text: i18n.t("Order draft succesfully created")
             });
-            navigate(
-              orderUrl(encodeURIComponent(data.draftOrderCreate.order.id))
-            );
+            navigate(orderUrl(data.draftOrderCreate.order.id));
           };
 
           const changeFilters = (newParams: OrderListQueryParams) =>
@@ -92,8 +90,7 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
                             onAdd={createOrder}
                             onNextPage={loadNextPage}
                             onPreviousPage={loadPreviousPage}
-                            onRowClick={id => () =>
-                              navigate(orderUrl(encodeURIComponent(id)))}
+                            onRowClick={id => () => navigate(orderUrl(id))}
                             onAllProducts={() =>
                               changeFilters({
                                 status: undefined

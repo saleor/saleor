@@ -17,8 +17,7 @@ export const CategoryList: React.StatelessComponent = () => (
               []
             )}
             onAddCategory={() => navigate(categoryAddUrl())}
-            onCategoryClick={id => () =>
-              navigate(categoryUrl(encodeURIComponent(id)))}
+            onCategoryClick={id => () => navigate(categoryUrl(id))}
           />
         )}
       </TypedRootCategoriesQuery>

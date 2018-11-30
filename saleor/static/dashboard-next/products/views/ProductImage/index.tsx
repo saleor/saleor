@@ -15,7 +15,7 @@ import {
 import { TypedProductImageQuery } from "../../queries";
 import { ProductImageUpdate } from "../../types/ProductImageUpdate";
 import { productImageUrl, productUrl } from "../../urls";
-import { productImageRemoveUrl } from "./urls";
+import { productImageRemovePath, productImageRemoveUrl } from "./urls";
 
 interface ProductImageProps {
   imageId: string;
@@ -30,8 +30,7 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
     {pushMessage => (
       <Navigator>
         {navigate => {
-          const handleBack = () =>
-            navigate(productUrl(encodeURIComponent(productId)));
+          const handleBack = () => navigate(productUrl(productId));
           const handleUpdateSuccess = (data: ProductImageUpdate) => {
             if (
               data.productImageUpdate &&
@@ -59,12 +58,7 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
                           const handleDelete = () =>
                             deleteImage({ variables: { id: imageId } });
                           const handleImageClick = (id: string) => () =>
-                            navigate(
-                              productImageUrl(
-                                encodeURIComponent(productId),
-                                encodeURIComponent(id)
-                              )
-                            );
+                            navigate(productImageUrl(productId, id));
                           const handleUpdate = (formData: {
                             description: string;
                           }) => {
@@ -94,10 +88,7 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
                                 onBack={handleBack}
                                 onDelete={() =>
                                   navigate(
-                                    productImageRemoveUrl(
-                                      encodeURIComponent(productId),
-                                      encodeURIComponent(imageId)
-                                    )
+                                    productImageRemoveUrl(productId, imageId)
                                   )
                                 }
                                 onRowClick={handleImageClick}
@@ -105,7 +96,7 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
                                 saveButtonBarState={formTransitionState}
                               />
                               <Route
-                                path={productImageRemoveUrl(
+                                path={productImageRemovePath(
                                   ":productId",
                                   ":imageId"
                                 )}

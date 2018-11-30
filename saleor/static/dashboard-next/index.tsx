@@ -145,7 +145,7 @@ render(
                           />
                           <SectionRoute
                             permissions={[PermissionEnum.MANAGE_PRODUCTS]}
-                            path="/productTypes"
+                            path="/product-types"
                             component={ProductTypesSection}
                           />
                           <SectionRoute
@@ -155,7 +155,7 @@ render(
                           />
                           <SectionRoute
                             permissions={[PermissionEnum.MANAGE_SETTINGS]}
-                            path="/siteSettings"
+                            path="/site-settings"
                             component={SiteSettingsSection}
                           />
                           {configurationMenu.filter(menuItem =>

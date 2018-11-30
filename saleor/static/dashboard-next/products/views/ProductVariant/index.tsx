@@ -14,7 +14,7 @@ import ProductVariantOperations from "../../containers/ProductVariantOperations"
 import { TypedProductVariantQuery } from "../../queries";
 import { VariantUpdate } from "../../types/VariantUpdate";
 import { productUrl, productVariantEditUrl } from "../../urls";
-import { productVariantRemoveUrl } from "./urls";
+import { productVariantRemovePath, productVariantRemoveUrl } from "./urls";
 
 interface ProductUpdateProps {
   variantId: string;
@@ -47,11 +47,10 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                 return <ErrorMessageCard message="Something went wrong" />;
               }
               const variant = data ? data.productVariant : undefined;
-              const handleBack = () =>
-                navigate(productUrl(encodeURIComponent(productId)));
+              const handleBack = () => navigate(productUrl(productId));
               const handleDelete = () => {
                 pushMessage({ text: i18n.t("Variant removed") });
-                navigate(productUrl(encodeURIComponent(productId)));
+                navigate(productUrl(productId));
               };
               const handleUpdate = (data: VariantUpdate) => {
                 if (!maybe(() => data.productVariantUpdate.errors.length)) {
@@ -126,10 +125,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                           onBack={handleBack}
                           onDelete={() =>
                             navigate(
-                              productVariantRemoveUrl(
-                                encodeURIComponent(productId),
-                                encodeURIComponent(variantId)
-                              )
+                              productVariantRemoveUrl(productId, variantId)
                             )
                           }
                           onImageSelect={handleImageSelect}
@@ -150,15 +146,12 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                           }}
                           onVariantClick={variantId => {
                             navigate(
-                              productVariantEditUrl(
-                                encodeURIComponent(productId),
-                                encodeURIComponent(variantId)
-                              )
+                              productVariantEditUrl(productId, variantId)
                             );
                           }}
                         />
                         <Route
-                          path={productVariantRemoveUrl(
+                          path={productVariantRemovePath(
                             ":productId",
                             ":variantId"
                           )}
@@ -166,10 +159,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                             <ProductVariantDeleteDialog
                               onClose={() =>
                                 navigate(
-                                  productVariantEditUrl(
-                                    encodeURIComponent(productId),
-                                    encodeURIComponent(variantId)
-                                  )
+                                  productVariantEditUrl(productId, variantId)
                                 )
                               }
                               onConfirm={() => deleteVariant.mutate(variantId)}
