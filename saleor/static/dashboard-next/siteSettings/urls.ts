@@ -1,6 +1,6 @@
 import * as urlJoin from "url-join";
 
-const siteSettingsSection = "/siteSettings";
+const siteSettingsSection = "/site-settings";
 
 export const siteSettingsPath = siteSettingsSection;
 export const siteSettingsUrl = siteSettingsPath;

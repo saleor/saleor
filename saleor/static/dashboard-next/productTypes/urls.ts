@@ -1,6 +1,6 @@
 import * as urlJoin from "url-join";
 
-const productTypeSection = "/productTypes/";
+const productTypeSection = "/product-types/";
 
 export const productTypeListPath = productTypeSection;
 export const productTypeListUrl = productTypeListPath;
