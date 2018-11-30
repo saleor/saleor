@@ -16,14 +16,14 @@ def test_category_query(user_api_client, product):
         category(id: "%(category_pk)s") {
             id
             name
-            ancestors {
+            ancestors(last: 20) {
                 edges {
                     node {
                         name
                     }
                 }
             }
-            children {
+            children(first: 20) {
                 edges {
                     node {
                         name
@@ -292,7 +292,7 @@ def test_category_delete_mutation(
 
 LEVELED_CATEGORIES_QUERY = """
 query leveled_categories($level: Int) {
-    categories(level: $level) {
+    categories(level: $level, first: 20) {
         edges {
             node {
                 name

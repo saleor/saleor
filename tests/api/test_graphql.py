@@ -54,7 +54,7 @@ def test_real_query(user_api_client, product):
             ...ProductListFragmentQuery
             __typename
         }
-        attributes(inCategory: $categoryId) {
+        attributes(inCategory: $categoryId, first: 20) {
             edges {
                 node {
                     ...ProductFiltersFragmentQuery
@@ -68,7 +68,7 @@ def test_real_query(user_api_client, product):
         id
         name
         url
-        ancestors {
+        ancestors(last: 20) {
             edges {
                 node {
                     name
@@ -78,7 +78,7 @@ def test_real_query(user_api_client, product):
                 }
             }
         }
-        children {
+        children(first: 20) {
             edges {
                 node {
                     name
