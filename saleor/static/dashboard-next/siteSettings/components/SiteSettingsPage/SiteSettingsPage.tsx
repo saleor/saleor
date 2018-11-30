@@ -60,12 +60,7 @@ const SiteSettingsPage = decorate<SiteSettingsPageProps>(
       name: maybe(() => shop.name, "")
     };
     return (
-      <Form
-        errors={errors}
-        initial={initialForm}
-        onSubmit={onSubmit}
-        key={JSON.stringify(shop)}
-      >
+      <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
         {({ change, data, errors: formErrors, hasChanged, submit }) => (
           <Container width="md">
             <PageHeader

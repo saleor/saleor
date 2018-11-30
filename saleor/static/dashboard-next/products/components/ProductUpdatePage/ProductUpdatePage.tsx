@@ -185,12 +185,7 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
       product && product.productType && product.productType.hasVariants;
 
     return (
-      <Form
-        onSubmit={onSubmit}
-        errors={userErrors}
-        initial={initialData}
-        key={product ? JSON.stringify(product) : "loading"}
-      >
+      <Form onSubmit={onSubmit} errors={userErrors} initial={initialData}>
         {({ change, data, errors, hasChanged, submit }) => (
           <>
             <Container width="md">
