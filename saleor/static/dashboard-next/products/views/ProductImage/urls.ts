@@ -1,6 +1,11 @@
 import * as urlJoin from "url-join";
 
-import { productImageUrl } from "../../urls";
+import { productImagePath } from "../../urls";
 
+export const productImageRemovePath = (productId: string, imageId: string) =>
+  urlJoin(productImagePath(productId, imageId), "remove");
 export const productImageRemoveUrl = (productId: string, imageId: string) =>
-  urlJoin(productImageUrl(productId, imageId), "remove");
+  productImageRemovePath(
+    encodeURIComponent(productId),
+    encodeURIComponent(imageId)
+  );

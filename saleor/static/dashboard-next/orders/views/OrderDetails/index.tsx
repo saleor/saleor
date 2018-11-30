@@ -28,18 +28,31 @@ import { TypedOrderDetailsQuery } from "../../queries";
 import { orderListUrl, orderUrl } from "../../urls";
 import { OrderDetailsMessages } from "./OrderDetailsMessages";
 import {
+  orderBillingAddressEditPath,
   orderBillingAddressEditUrl,
+  orderCancelPath,
   orderCancelUrl,
+  orderDraftFinalizePath,
   orderDraftFinalizeUrl,
+  orderDraftLineAddPath,
   orderDraftLineAddUrl,
+  orderDraftShippingMethodPath,
   orderDraftShippingMethodUrl,
+  orderFulfillmentCancelPath,
   orderFulfillmentCancelUrl,
+  orderFulfillmentEditTrackingPath,
   orderFulfillmentEditTrackingUrl,
+  orderFulfillPath,
   orderFulfillUrl,
+  orderMarkAsPaidPath,
   orderMarkAsPaidUrl,
+  orderPaymentCapturePath,
   orderPaymentCaptureUrl,
+  orderPaymentRefundPath,
   orderPaymentRefundUrl,
+  orderPaymentVoidPath,
   orderPaymentVoidUrl,
+  orderShippingAddressEditPath,
   orderShippingAddressEditUrl
 } from "./urls";
 
@@ -58,8 +71,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
             return <ErrorMessageCard message="Something went wrong" />;
           }
           const order = maybe(() => data.order);
-          const encodedId = encodeURIComponent(id);
-          const onModalClose = () => navigate(orderUrl(encodedId), true);
+          const onModalClose = () => navigate(orderUrl(id), true);
           return (
             <UserSearchProvider>
               {users => (
@@ -160,60 +172,52 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                         []
                                       )}
                                       onOrderCancel={() =>
-                                        navigate(orderCancelUrl(encodedId))
+                                        navigate(orderCancelUrl(id))
                                       }
                                       onOrderFulfill={() =>
-                                        navigate(orderFulfillUrl(encodedId))
+                                        navigate(orderFulfillUrl(id))
                                       }
                                       onFulfillmentCancel={fulfillmentId =>
                                         navigate(
                                           orderFulfillmentCancelUrl(
-                                            encodedId,
-                                            encodeURIComponent(fulfillmentId)
+                                            id,
+                                            fulfillmentId
                                           )
                                         )
                                       }
                                       onFulfillmentTrackingNumberUpdate={fulfillmentId =>
                                         navigate(
                                           orderFulfillmentEditTrackingUrl(
-                                            encodedId,
-                                            encodeURIComponent(fulfillmentId)
+                                            id,
+                                            fulfillmentId
                                           )
                                         )
                                       }
                                       onPaymentCapture={() =>
-                                        navigate(
-                                          orderPaymentCaptureUrl(encodedId)
-                                        )
+                                        navigate(orderPaymentCaptureUrl(id))
                                       }
                                       onPaymentVoid={() =>
-                                        navigate(orderPaymentVoidUrl(encodedId))
+                                        navigate(orderPaymentVoidUrl(id))
                                       }
                                       onPaymentRefund={() =>
-                                        navigate(
-                                          orderPaymentRefundUrl(encodedId)
-                                        )
+                                        navigate(orderPaymentRefundUrl(id))
                                       }
                                       onProductClick={id => () =>
-                                        navigate(
-                                          productUrl(encodeURIComponent(id))
-                                        )}
+                                        navigate(productUrl(id))}
                                       onBillingAddressEdit={() =>
-                                        navigate(
-                                          orderBillingAddressEditUrl(encodedId)
-                                        )
+                                        navigate(orderBillingAddressEditUrl(id))
                                       }
                                       onShippingAddressEdit={() =>
                                         navigate(
-                                          orderShippingAddressEditUrl(encodedId)
+                                          orderShippingAddressEditUrl(id)
                                         )
                                       }
                                       onPaymentPaid={() =>
-                                        navigate(orderMarkAsPaidUrl(encodedId))
+                                        navigate(orderMarkAsPaidUrl(id))
                                       }
                                     />
                                     <Route
-                                      path={orderCancelUrl(":id")}
+                                      path={orderCancelPath(":id")}
                                       render={({ match }) => (
                                         <OrderCancelDialog
                                           number={maybe(() => order.number)}
@@ -229,7 +233,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       )}
                                     />
                                     <Route
-                                      path={orderMarkAsPaidUrl(":id")}
+                                      path={orderMarkAsPaidPath(":id")}
                                       render={({ match }) => (
                                         <OrderMarkAsPaidDialog
                                           onClose={onModalClose}
@@ -243,7 +247,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       )}
                                     />
                                     <Route
-                                      path={orderPaymentVoidUrl(":id")}
+                                      path={orderPaymentVoidPath(":id")}
                                       render={({ match }) => (
                                         <OrderPaymentVoidDialog
                                           open={!!match}
@@ -255,7 +259,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       )}
                                     />
                                     <Route
-                                      path={orderPaymentCaptureUrl(":id")}
+                                      path={orderPaymentCapturePath(":id")}
                                       render={({ match }) => (
                                         <OrderPaymentDialog
                                           initial={maybe(
@@ -274,7 +278,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       )}
                                     />
                                     <Route
-                                      path={orderPaymentRefundUrl(":id")}
+                                      path={orderPaymentRefundPath(":id")}
                                       render={({ match }) => (
                                         <OrderPaymentDialog
                                           initial={maybe(
@@ -293,7 +297,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       )}
                                     />
                                     <Route
-                                      path={orderFulfillUrl(":id")}
+                                      path={orderFulfillPath(":id")}
                                       render={({ match }) => (
                                         <OrderFulfillmentDialog
                                           open={!!match}
@@ -335,7 +339,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       )}
                                     />
                                     <Route
-                                      path={orderFulfillmentCancelUrl(
+                                      path={orderFulfillmentCancelPath(
                                         ":orderId",
                                         ":fulfillmentId"
                                       )}
@@ -355,7 +359,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       )}
                                     />
                                     <Route
-                                      path={orderFulfillmentEditTrackingUrl(
+                                      path={orderFulfillmentEditTrackingPath(
                                         ":orderId",
                                         ":fulfillmentId"
                                       )}
@@ -443,17 +447,15 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       }
                                       onDraftFinalize={() =>
                                         navigate(
-                                          orderDraftFinalizeUrl(encodedId),
+                                          orderDraftFinalizeUrl(id),
                                           true
                                         )
                                       }
                                       onDraftRemove={() =>
-                                        navigate(orderCancelUrl(encodedId))
+                                        navigate(orderCancelUrl(id))
                                       }
                                       onOrderLineAdd={() =>
-                                        navigate(
-                                          orderDraftLineAddUrl(encodedId)
-                                        )
+                                        navigate(orderDraftLineAddUrl(id))
                                       }
                                       onBack={() => navigate(orderListUrl())}
                                       order={order}
@@ -469,18 +471,16 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                           productUrl(encodeURIComponent(id))
                                         )}
                                       onBillingAddressEdit={() =>
-                                        navigate(
-                                          orderBillingAddressEditUrl(encodedId)
-                                        )
+                                        navigate(orderBillingAddressEditUrl(id))
                                       }
                                       onShippingAddressEdit={() =>
                                         navigate(
-                                          orderShippingAddressEditUrl(encodedId)
+                                          orderShippingAddressEditUrl(id)
                                         )
                                       }
                                       onShippingMethodEdit={() =>
                                         navigate(
-                                          orderDraftShippingMethodUrl(encodedId)
+                                          orderDraftShippingMethodUrl(id)
                                         )
                                       }
                                       onOrderLineRemove={id =>
@@ -494,10 +494,25 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       }
                                       saveButtonBarState="default"
                                     />
+                                    <Route
+                                      path={orderCancelPath(":id")}
+                                      render={({ match }) => (
+                                        <OrderDraftCancelDialog
+                                          onClose={onModalClose}
+                                          onConfirm={() =>
+                                            orderDraftCancel.mutate({ id })
+                                          }
+                                          open={!!match}
+                                          orderNumber={maybe(
+                                            () => order.number
+                                          )}
+                                        />
+                                      )}
+                                    />
                                   </>
                                 )}
                                 <Route
-                                  path={orderShippingAddressEditUrl(":id")}
+                                  path={orderShippingAddressEditPath(":id")}
                                   render={({ match }) => (
                                     <OrderAddressEditDialog
                                       address={transformAddressToForm(
@@ -531,7 +546,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                   )}
                                 />
                                 <Route
-                                  path={orderBillingAddressEditUrl(":id")}
+                                  path={orderBillingAddressEditPath(":id")}
                                   render={({ match }) => (
                                     <OrderAddressEditDialog
                                       address={transformAddressToForm(
@@ -565,7 +580,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                   )}
                                 />
                                 <Route
-                                  path={orderDraftFinalizeUrl(":id")}
+                                  path={orderDraftFinalizePath(":id")}
                                   render={({ match }) => (
                                     <OrderDraftFinalizeDialog
                                       confirmButtonState={
@@ -581,20 +596,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                   )}
                                 />
                                 <Route
-                                  path={orderCancelUrl(":id")}
-                                  render={({ match }) => (
-                                    <OrderDraftCancelDialog
-                                      onClose={onModalClose}
-                                      onConfirm={() =>
-                                        orderDraftCancel.mutate({ id })
-                                      }
-                                      open={!!match}
-                                      orderNumber={maybe(() => order.number)}
-                                    />
-                                  )}
-                                />
-                                <Route
-                                  path={orderDraftShippingMethodUrl(":id")}
+                                  path={orderDraftShippingMethodPath(":id")}
                                   render={({ match }) => (
                                     <OrderShippingMethodEditDialog
                                       open={!!match}
@@ -619,7 +621,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                   )}
                                 />
                                 <Route
-                                  path={orderDraftLineAddUrl(":id")}
+                                  path={orderDraftLineAddPath(":id")}
                                   render={({ match }) => (
                                     <OrderProductAddDialog
                                       loading={variantSearchOpts.loading}

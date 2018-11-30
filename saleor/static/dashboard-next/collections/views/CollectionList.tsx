@@ -42,8 +42,7 @@ export const CollectionList: React.StatelessComponent<CollectionListProps> = ({
                   onNextPage={loadNextPage}
                   onPreviousPage={loadPreviousPage}
                   pageInfo={pageInfo}
-                  onRowClick={id => () =>
-                    navigate(collectionUrl(encodeURIComponent(id)))}
+                  onRowClick={id => () => navigate(collectionUrl(id))}
                 />
               )}
             </Paginator>

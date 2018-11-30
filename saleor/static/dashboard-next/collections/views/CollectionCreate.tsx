@@ -25,11 +25,7 @@ export const CollectionCreate: React.StatelessComponent<{}> = () => (
                   context: "notification"
                 })
               });
-              navigate(
-                collectionUrl(
-                  encodeURIComponent(data.collectionCreate.collection.id)
-                )
-              );
+              navigate(collectionUrl(data.collectionCreate.collection.id));
             }
           };
           return (

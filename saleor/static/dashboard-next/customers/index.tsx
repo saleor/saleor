@@ -4,7 +4,7 @@ import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
-import { customerAddUrl, customerListUrl, customerUrl } from "./urls";
+import { customerAddPath, customerListPath, customerPath } from "./urls";
 import CustomerCreateView from "./views/CustomerCreate";
 import CustomerDetailsViewComponent from "./views/CustomerDetails";
 import CustomerListViewComponent, {
@@ -35,9 +35,9 @@ export const CustomerSection: React.StatelessComponent<{}> = () => (
   <>
     <WindowTitle title={i18n.t("Customers")} />
     <Switch>
-      <Route exact path={customerListUrl} component={CustomerListView} />
-      <Route exact path={customerAddUrl} component={CustomerCreateView} />
-      <Route path={customerUrl(":id")} component={CustomerDetailsView} />
+      <Route exact path={customerListPath} component={CustomerListView} />
+      <Route exact path={customerAddPath} component={CustomerCreateView} />
+      <Route path={customerPath(":id")} component={CustomerDetailsView} />
     </Switch>
   </>
 );

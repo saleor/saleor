@@ -22,7 +22,12 @@ import { ProductTypeDelete } from "../../types/ProductTypeDelete";
 import { ProductTypeUpdate as ProductTypeUpdateMutation } from "../../types/ProductTypeUpdate";
 import { productTypeListUrl, productTypeUrl } from "../../urls";
 import { ProductTypeUpdateErrors } from "./errors";
-import { addAttributeUrl, editAttributeUrl } from "./urls";
+import {
+  addAttributePath,
+  addAttributeUrl,
+  editAttributePath,
+  editAttributeUrl
+} from "./urls";
 
 interface ProductTypeUpdateProps {
   id: string;
@@ -40,7 +45,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
               <TypedProductTypeDetailsQuery displayLoader variables={{ id }}>
                 {({ data, loading: dataLoading }) => {
                   const closeModal = () => {
-                    navigate(productTypeUrl(encodeURIComponent(id)), true);
+                    navigate(productTypeUrl(id), true);
                     setErrors.addAttributeErrors([]);
                     setErrors.editAttributeErrors([]);
                   };
@@ -260,7 +265,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                 {Object.keys(AttributeTypeEnum).map(key => (
                                   <Route
                                     exact
-                                    path={addAttributeUrl(
+                                    path={addAttributePath(
                                       encodeURIComponent(id),
                                       AttributeTypeEnum[key]
                                     )}
@@ -289,8 +294,8 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                 ))}
                                 <Route
                                   exact
-                                  path={editAttributeUrl(
-                                    encodeURIComponent(id),
+                                  path={editAttributePath(
+                                    ":productTypeId",
                                     ":id"
                                   )}
                                 >

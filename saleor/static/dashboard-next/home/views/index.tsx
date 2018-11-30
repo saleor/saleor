@@ -26,12 +26,7 @@ const HomeSection = () => (
                   data.productTopToday.edges.map(edge => edge.node)
                 )}
                 onProductClick={(productId, variantId) =>
-                  navigate(
-                    productVariantEditUrl(
-                      encodeURIComponent(productId),
-                      encodeURIComponent(variantId)
-                    )
-                  )
+                  navigate(productVariantEditUrl(productId, variantId))
                 }
                 onOrdersToCaptureClick={() =>
                   navigate(
