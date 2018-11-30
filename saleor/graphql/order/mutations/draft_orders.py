@@ -13,9 +13,10 @@ from ....order.utils import (
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.types.common import Decimal, Error
+from ...core.types.common import Decimal
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
+from ..utils import can_finalize_draft_order
 
 
 class OrderLineInput(graphene.InputObjectType):
@@ -153,32 +154,6 @@ class DraftOrderDelete(ModelDeleteMutation):
         return user.has_perm('order.manage_orders')
 
 
-def check_for_draft_order_errors(order, errors):
-    """Return a list of errors associated with the order.
-
-    Checks, if given order has a proper shipping address and method
-    set up and return list of errors if not.
-    """
-    if order.get_total_quantity() == 0:
-        errors.append(
-            Error(
-                field='lines',
-                message='Could not create order without any products.'))
-    if order.is_shipping_required():
-        method = order.shipping_method
-        shipping_address = order.shipping_address
-        shipping_not_valid = (
-            method and shipping_address and
-            shipping_address.country.code not in method.shipping_zone.countries)  # noqa
-        if shipping_not_valid:
-            errors.append(
-                Error(
-                    field='shipping',
-                    message='Shipping method is not valid for chosen shipping '
-                            'address'))
-    return errors
-
-
 class DraftOrderComplete(BaseMutation):
     order = graphene.Field(Order, description='Completed order.')
 
@@ -191,7 +166,7 @@ class DraftOrderComplete(BaseMutation):
         description = 'Completes creating an order.'
 
     @classmethod
-    def update_user_fields(cls, order, errors):
+    def update_user_fields(cls, order):
         if order.user:
             order.user_email = order.user.email
         elif order.user_email:
@@ -199,21 +174,18 @@ class DraftOrderComplete(BaseMutation):
                 order.user = User.objects.get(email=order.user_email)
             except User.DoesNotExist:
                 order.user = None
-        else:
-            cls.add_error(
-                errors, field=None,
-                message='Both user and user_email fields are null')
 
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id):
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
-        errors = check_for_draft_order_errors(order, errors)
-        cls.update_user_fields(order, errors)
+        if order:
+            errors = can_finalize_draft_order(order, errors)
         if errors:
             return cls(errors=errors)
 
+        cls.update_user_fields(order)
         order.status = OrderStatus.UNFULFILLED
         if not order.is_shipping_required():
             order.shipping_method_name = None

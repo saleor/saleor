@@ -4,15 +4,13 @@ import graphene
 import pytest
 from tests.api.utils import get_graphql_content
 
-from saleor.account.models import Address
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.graphql.core.types import ReportingPeriod
-from saleor.graphql.order.mutations.draft_orders import (
-    check_for_draft_order_errors)
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel, clean_order_capture, clean_order_mark_as_paid,
     clean_refund_payment, clean_void_payment)
 from saleor.graphql.order.types import OrderEventsEmailsEnum, OrderStatusFilter
+from saleor.graphql.order.utils import can_finalize_draft_order
 from saleor.graphql.payment.types import PaymentChargeStatusEnum
 from saleor.order import OrderEvents, OrderEventsEmails, OrderStatus
 from saleor.order.models import Order, OrderEvent
@@ -62,6 +60,7 @@ def test_order_query(
             edges {
                 node {
                     number
+                    canFinalize
                     status
                     statusDisplay
                     paymentStatus
@@ -113,6 +112,7 @@ def test_order_query(
     content = get_graphql_content(response)
     order_data = content['data']['orders']['edges'][0]['node']
     assert order_data['number'] == str(order.pk)
+    assert order_data['canFinalize'] is True
     assert order_data['status'] == order.status.upper()
     assert order_data['statusDisplay'] == order.get_status_display()
     assert order_data['paymentStatus'] == order.get_last_payment_status()
@@ -355,24 +355,54 @@ def test_draft_order_delete(
         order.refresh_from_db()
 
 
-def test_check_for_draft_order_errors(order_with_lines):
-    errors = check_for_draft_order_errors(order_with_lines, [])
+ORDER_CAN_FINALIZE_QUERY = """
+    query OrderQuery($id: ID!){
+        order(id: $id){
+            canFinalize
+        }
+    }
+"""
+
+def test_can_finalize_order(
+        staff_api_client, permission_manage_orders, order_with_lines):
+    order_id = graphene.Node.to_global_id('Order', order_with_lines.id)
+    variables = {'id': order_id}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        ORDER_CAN_FINALIZE_QUERY, variables)
+    content = get_graphql_content(response)
+    assert content['data']['order']['canFinalize'] is True
+
+
+def test_can_finalize_order_no_order_lines(
+        staff_api_client, permission_manage_orders, order):
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    variables = {'id': order_id}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        ORDER_CAN_FINALIZE_QUERY, variables)
+    content = get_graphql_content(response)
+    assert content['data']['order']['canFinalize'] is False
+
+
+def test_can_finalize_draft_order(order_with_lines):
+    errors = can_finalize_draft_order(order_with_lines, [])
     assert not errors
 
 
-def test_check_for_draft_order_errors_wrong_shipping(order_with_lines):
+def test_can_finalize_draft_order_wrong_shipping(order_with_lines):
     order = order_with_lines
     shipping_zone = order.shipping_method.shipping_zone
     shipping_zone.countries = ['DE']
     shipping_zone.save()
     assert order.shipping_address.country.code not in shipping_zone.countries
-    errors = check_for_draft_order_errors(order, [])
+    errors = can_finalize_draft_order(order, [])
     msg = 'Shipping method is not valid for chosen shipping address'
     assert errors[0].message == msg
 
 
-def test_check_for_draft_order_errors_no_order_lines(order):
-    errors = check_for_draft_order_errors(order, [])
+def test_can_finalize_draft_order_no_order_lines(order):
+    errors = can_finalize_draft_order(order, [])
     assert errors[0].message == 'Could not create order without any products.'
 
 

@@ -9,6 +9,7 @@ from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
 from ..shipping.types import ShippingMethod
+from .utils import can_finalize_draft_order
 
 OrderEventsEnum = graphene.Enum.from_enum(OrderEvents)
 OrderEventsEmailsEnum = graphene.Enum.from_enum(OrderEventsEmails)
@@ -175,6 +176,10 @@ class Order(CountableDjangoObjectType):
         TaxedMoney,
         description='The sum of line prices not including shipping.')
     status_display = graphene.String(description='User-friendly order status.')
+    can_finalize = graphene.Boolean(
+        description=(
+            'Informs whether a draft order can be finalized',
+            '(turned into a regular order).'))
     total_authorized = graphene.Field(
         Money, description='Amount authorized for the order.')
     total_captured = graphene.Field(
@@ -283,6 +288,11 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_status_display(self, info):
         return self.get_status_display()
+
+    @staticmethod
+    def resolve_can_finalize(self, info):
+        errors = can_finalize_draft_order(self, [])
+        return not errors
 
     @staticmethod
     def resolve_user_email(self, info):
