@@ -233,7 +233,7 @@ const productDetailsQuery = gql`
     product(id: $id) {
       ...Product
     }
-    collections {
+    collections(first: 20) {
       edges {
         node {
           id
@@ -241,7 +241,7 @@ const productDetailsQuery = gql`
         }
       }
     }
-    categories {
+    categories(first: 20) {
       edges {
         node {
           id
@@ -271,7 +271,7 @@ export const TypedProductVariantQuery = TypedQuery<
 
 const productCreateQuery = gql`
   query ProductCreateData {
-    productTypes {
+    productTypes(first: 20) {
       edges {
         node {
           id
@@ -291,7 +291,7 @@ const productCreateQuery = gql`
         }
       }
     }
-    collections {
+    collections(first: 20) {
       edges {
         node {
           id
@@ -299,7 +299,7 @@ const productCreateQuery = gql`
         }
       }
     }
-    categories {
+    categories(first: 20) {
       edges {
         node {
           id

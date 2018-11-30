@@ -230,8 +230,8 @@ type Category implements Node {
   level: Int!
   children(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
-  url: String
   ancestors(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
+  url: String
 }
 
 type CategoryCountableConnection {
@@ -1085,17 +1085,6 @@ type OrderLine implements Node {
   thumbnailUrl(size: Int): String
 }
 
-type OrderLineCountableConnection {
-  pageInfo: PageInfo!
-  edges: [OrderLineCountableEdge!]!
-  totalCount: Int
-}
-
-type OrderLineCountableEdge {
-  node: OrderLine!
-  cursor: String!
-}
-
 input OrderLineCreateInput {
   quantity: Int!
   variantId: ID!
@@ -1503,7 +1492,6 @@ type ProductVariant implements Node {
   quantityAllocated: Int!
   costPrice: Money
   weight: Weight
-  orderLines(before: String, after: String, first: Int, last: Int): OrderLineCountableConnection
   stockQuantity: Int!
   price: Money
   margin: Int
@@ -1696,7 +1684,6 @@ type ShippingMethod implements Node {
   maximumOrderPrice: Money
   minimumOrderWeight: Weight
   maximumOrderWeight: Weight
-  carts(before: String, after: String, first: Int, last: Int, token: UUID): CheckoutCountableConnection
 }
 
 enum ShippingMethodTypeEnum {
@@ -1940,7 +1927,6 @@ type User implements Node {
   dateJoined: DateTime!
   defaultShippingAddress: Address
   defaultBillingAddress: Address
-  carts(before: String, after: String, first: Int, last: Int, token: UUID): CheckoutCountableConnection
   orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
   permissions: [PermissionDisplay]
 }

@@ -550,7 +550,7 @@ def test_query_checkouts(
         cart_with_item, staff_api_client, permission_manage_orders):
     query = """
     {
-        checkouts {
+        checkouts(first: 20) {
             edges {
                 node {
                     token
@@ -571,7 +571,7 @@ def test_query_checkout_lines(
         cart_with_item, staff_api_client, permission_manage_orders):
     query = """
     {
-        checkoutLines {
+        checkoutLines(first: 20) {
             edges {
                 node {
                     id

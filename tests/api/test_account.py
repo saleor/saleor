@@ -170,7 +170,7 @@ def test_query_customers(
         staff_api_client, user_api_client, permission_manage_users):
     query = """
     query Users {
-        customers {
+        customers(first: 20) {
             totalCount
             edges {
                 node {
@@ -198,7 +198,7 @@ def test_query_staff(
         admin_user, permission_manage_staff):
     query = """
     {
-        staffUsers {
+        staffUsers(first: 20) {
             edges {
                 node {
                     email
