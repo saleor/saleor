@@ -10,7 +10,7 @@ import Typography from "@material-ui/core/Typography";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
-import Debounce from "../../../components/Debounce";
+import { DebounceForm } from "../../../components/DebounceForm";
 import Form from "../../../components/Form";
 import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
@@ -96,7 +96,7 @@ const OrderDraftDetailsProducts = decorate<OrderDraftDetailsProductsProps>(
                     onSubmit={data => onOrderLineChange(line.id, data)}
                   >
                     {({ change, data, hasChanged, submit }) => (
-                      <Debounce
+                      <DebounceForm
                         change={change}
                         submit={hasChanged ? submit : undefined}
                         time={200}
@@ -111,7 +111,7 @@ const OrderDraftDetailsProducts = decorate<OrderDraftDetailsProductsProps>(
                             onChange={debounce}
                           />
                         )}
-                      </Debounce>
+                      </DebounceForm>
                     )}
                   </Form>
                 ) : (
