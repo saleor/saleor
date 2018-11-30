@@ -16,6 +16,13 @@ def test_category_query(user_api_client, product):
         category(id: "%(category_pk)s") {
             id
             name
+            ancestors(last: 20) {
+                edges {
+                    node {
+                        name
+                    }
+                }
+            }
             children(first: 20) {
                 edges {
                     node {
@@ -31,6 +38,9 @@ def test_category_query(user_api_client, product):
     category_data = content['data']['category']
     assert category_data is not None
     assert category_data['name'] == category.name
+    assert (
+        len(category_data['ancestors']['edges']) ==
+        category.get_ancestors().count())
     assert (
         len(category_data['children']['edges']) ==
         category.get_children().count())
