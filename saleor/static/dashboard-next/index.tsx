@@ -21,6 +21,7 @@ import CategorySection from "./categories";
 import CollectionSection from "./collections";
 import { AppProgressProvider } from "./components/AppProgress";
 import { DateProvider } from "./components/DateFormatter";
+import { FormProvider } from "./components/Form";
 import { LocaleProvider } from "./components/Locale";
 import { MessageManager } from "./components/messages";
 import { ShopProvider } from "./components/Shop";
@@ -90,99 +91,101 @@ const apolloClient = new ApolloClient({
 export const appMountPoint = "/dashboard/next/";
 
 render(
-  <ApolloProvider client={apolloClient}>
-    <BrowserRouter basename={appMountPoint}>
-      <MuiThemeProvider theme={theme}>
-        <DateProvider>
-          <LocaleProvider>
-            <MessageManager>
-              <AppProgressProvider>
-                <ShopProvider>
-                  <CssBaseline />
-                  <WindowTitle title={i18n.t("Dashboard")} />
-                  <AuthProvider>
-                    {({
-                      hasToken,
-                      isAuthenticated,
-                      tokenAuthLoading,
-                      tokenVerifyLoading,
-                      user
-                    }) => {
-                      return isAuthenticated &&
-                        !tokenAuthLoading &&
-                        !tokenVerifyLoading ? (
-                        <Switch>
-                          <SectionRoute exact path="/" component={HomePage} />
-                          <SectionRoute
-                            permissions={[PermissionEnum.MANAGE_PRODUCTS]}
-                            path="/categories"
-                            component={CategorySection}
-                          />
-                          <SectionRoute
-                            permissions={[PermissionEnum.MANAGE_PRODUCTS]}
-                            path="/collections"
-                            component={CollectionSection}
-                          />
-                          <SectionRoute
-                            permissions={[PermissionEnum.MANAGE_USERS]}
-                            path="/customers"
-                            component={CustomerSection}
-                          />
-                          <SectionRoute
-                            permissions={[PermissionEnum.MANAGE_PAGES]}
-                            path="/pages"
-                            component={PageSection}
-                          />
-                          <SectionRoute
-                            permissions={[PermissionEnum.MANAGE_ORDERS]}
-                            path="/orders"
-                            component={OrdersSection}
-                          />
-                          <SectionRoute
-                            permissions={[PermissionEnum.MANAGE_PRODUCTS]}
-                            path="/products"
-                            component={ProductSection}
-                          />
-                          <SectionRoute
-                            permissions={[PermissionEnum.MANAGE_PRODUCTS]}
-                            path="/product-types"
-                            component={ProductTypesSection}
-                          />
-                          <SectionRoute
-                            permissions={[PermissionEnum.MANAGE_STAFF]}
-                            path="/staff"
-                            component={StaffSection}
-                          />
-                          <SectionRoute
-                            permissions={[PermissionEnum.MANAGE_SETTINGS]}
-                            path="/site-settings"
-                            component={SiteSettingsSection}
-                          />
-                          {configurationMenu.filter(menuItem =>
-                            hasPermission(menuItem.permission, user)
-                          ).length > 0 && (
+  <FormProvider>
+    <ApolloProvider client={apolloClient}>
+      <BrowserRouter basename={appMountPoint}>
+        <MuiThemeProvider theme={theme}>
+          <DateProvider>
+            <LocaleProvider>
+              <MessageManager>
+                <AppProgressProvider>
+                  <ShopProvider>
+                    <CssBaseline />
+                    <WindowTitle title={i18n.t("Dashboard")} />
+                    <AuthProvider>
+                      {({
+                        hasToken,
+                        isAuthenticated,
+                        tokenAuthLoading,
+                        tokenVerifyLoading,
+                        user
+                      }) => {
+                        return isAuthenticated &&
+                          !tokenAuthLoading &&
+                          !tokenVerifyLoading ? (
+                          <Switch>
+                            <SectionRoute exact path="/" component={HomePage} />
                             <SectionRoute
-                              exact
-                              path="/configuration"
-                              component={ConfigurationSection}
+                              permissions={[PermissionEnum.MANAGE_PRODUCTS]}
+                              path="/categories"
+                              component={CategorySection}
                             />
-                          )}
-                          <Route component={NotFound} />
-                        </Switch>
-                      ) : hasToken && tokenVerifyLoading ? (
-                        <LoginLoading />
-                      ) : (
-                        <Login loading={tokenAuthLoading} />
-                      );
-                    }}
-                  </AuthProvider>
-                </ShopProvider>
-              </AppProgressProvider>
-            </MessageManager>
-          </LocaleProvider>
-        </DateProvider>
-      </MuiThemeProvider>
-    </BrowserRouter>
-  </ApolloProvider>,
+                            <SectionRoute
+                              permissions={[PermissionEnum.MANAGE_PRODUCTS]}
+                              path="/collections"
+                              component={CollectionSection}
+                            />
+                            <SectionRoute
+                              permissions={[PermissionEnum.MANAGE_USERS]}
+                              path="/customers"
+                              component={CustomerSection}
+                            />
+                            <SectionRoute
+                              permissions={[PermissionEnum.MANAGE_PAGES]}
+                              path="/pages"
+                              component={PageSection}
+                            />
+                            <SectionRoute
+                              permissions={[PermissionEnum.MANAGE_ORDERS]}
+                              path="/orders"
+                              component={OrdersSection}
+                            />
+                            <SectionRoute
+                              permissions={[PermissionEnum.MANAGE_PRODUCTS]}
+                              path="/products"
+                              component={ProductSection}
+                            />
+                            <SectionRoute
+                              permissions={[PermissionEnum.MANAGE_PRODUCTS]}
+                              path="/product-types"
+                              component={ProductTypesSection}
+                            />
+                            <SectionRoute
+                              permissions={[PermissionEnum.MANAGE_STAFF]}
+                              path="/staff"
+                              component={StaffSection}
+                            />
+                            <SectionRoute
+                              permissions={[PermissionEnum.MANAGE_SETTINGS]}
+                              path="/site-settings"
+                              component={SiteSettingsSection}
+                            />
+                            {configurationMenu.filter(menuItem =>
+                              hasPermission(menuItem.permission, user)
+                            ).length > 0 && (
+                              <SectionRoute
+                                exact
+                                path="/configuration"
+                                component={ConfigurationSection}
+                              />
+                            )}
+                            <Route component={NotFound} />
+                          </Switch>
+                        ) : hasToken && tokenVerifyLoading ? (
+                          <LoginLoading />
+                        ) : (
+                          <Login loading={tokenAuthLoading} />
+                        );
+                      }}
+                    </AuthProvider>
+                  </ShopProvider>
+                </AppProgressProvider>
+              </MessageManager>
+            </LocaleProvider>
+          </DateProvider>
+        </MuiThemeProvider>
+      </BrowserRouter>
+    </ApolloProvider>
+  </FormProvider>,
   document.querySelector("#dashboard-app")
 );

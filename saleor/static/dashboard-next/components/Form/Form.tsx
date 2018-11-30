@@ -16,17 +16,23 @@ export interface FormProps<T extends {}> {
   useForm?: boolean;
   onSubmit?(data: T);
 }
+
+interface FormComponentProps<T extends {}> extends FormProps<T> {
+  hasChanged: boolean;
+  toggleFormChangeState: () => void;
+}
+
 interface FormState<T extends {}> {
   initial: T;
   fields: T;
 }
 
-class Form<T extends {} = {}> extends React.Component<
-  FormProps<T>,
+class FormComponent<T extends {} = {}> extends React.Component<
+  FormComponentProps<T>,
   FormState<T>
 > {
   static getDerivedStateFromProps<T extends {} = {}>(
-    nextProps: FormProps<T>,
+    nextProps: FormComponentProps<T>,
     prevState: FormState<T>
   ): FormState<T> {
     const changedFields = Object.keys(nextProps.initial).filter(
@@ -57,6 +63,27 @@ class Form<T extends {} = {}> extends React.Component<
     fields: this.props.initial,
     initial: this.props.initial
   };
+
+  componentDidUpdate() {
+    const { hasChanged, toggleFormChangeState } = this.props;
+    if (this.hasChanged() !== hasChanged) {
+      toggleFormChangeState();
+    }
+  }
+
+  componentDidMount() {
+    const { hasChanged, toggleFormChangeState } = this.props;
+    if (this.hasChanged() !== hasChanged) {
+      toggleFormChangeState();
+    }
+  }
+
+  componentWillUnmount() {
+    const { hasChanged, toggleFormChangeState } = this.props;
+    if (hasChanged) {
+      toggleFormChangeState();
+    }
+  }
 
   handleChange = (event: React.ChangeEvent<any>) => {
     const { target } = event;
@@ -93,8 +120,11 @@ class Form<T extends {} = {}> extends React.Component<
     }
   };
 
+  hasChanged = () =>
+    JSON.stringify(this.state.initial) !== JSON.stringify(this.state.fields);
+
   render() {
-    const { children, errors, useForm = true } = this.props;
+    const { children, errors, hasChanged, useForm = true } = this.props;
 
     const contents = children({
       change: this.handleChange,
@@ -108,9 +138,7 @@ class Form<T extends {} = {}> extends React.Component<
             {}
           )
         : {},
-      hasChanged:
-        JSON.stringify(this.state.initial) !==
-        JSON.stringify(this.state.fields),
+      hasChanged,
       submit: this.handleSubmit
     });
 
@@ -121,4 +149,4 @@ class Form<T extends {} = {}> extends React.Component<
     );
   }
 }
-export default Form;
+export default FormComponent;
