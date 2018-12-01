@@ -26,6 +26,7 @@ export interface CollectionCreatePageFormData {
   isPublished: boolean;
   seoDescription: string;
   seoTitle: string;
+  publishedAt: string;
 }
 
 export interface CollectionCreatePageProps {
@@ -43,6 +44,7 @@ const initialForm: CollectionCreatePageFormData = {
   },
   isPublished: false,
   name: "",
+  publishedAt: "",
   seoDescription: "",
   seoTitle: ""
 };

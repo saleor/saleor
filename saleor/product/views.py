@@ -136,10 +136,11 @@ def collection_index(request, slug, pk):
     collection = get_object_or_404(collections, id=pk)
     if collection.slug != slug:
         return HttpResponsePermanentRedirect(collection.get_absolute_url())
+    is_available = collection.is_available
     products = products_for_products_list(user=request.user).filter(
         collections__id=collection.id).order_by('name')
     product_filter = ProductCollectionFilter(
         request.GET, queryset=products, collection=collection)
     ctx = get_product_list_context(request, product_filter)
-    ctx.update({'object': collection})
+    ctx.update({'object': collection, 'is_available': is_available})
     return TemplateResponse(request, 'collection/index.html', ctx)

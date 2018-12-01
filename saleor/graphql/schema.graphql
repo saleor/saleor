@@ -408,6 +408,7 @@ type Collection implements Node {
   backgroundImage: Image
   isPublished: Boolean!
   description: String!
+  publishedAt: Date
 }
 
 type CollectionAddProducts {

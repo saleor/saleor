@@ -1,5 +1,6 @@
 import graphene
 import pytest
+from datetime import datetime
 from django.utils.text import slugify
 from graphql_relay import to_global_id
 from unittest.mock import Mock
@@ -54,9 +55,9 @@ def test_create_collection(
         monkeypatch, staff_api_client, product_list, permission_manage_products):
     query = """
         mutation createCollection(
-            $name: String!, $slug: String!, $description: String, $products: [ID], $backgroundImage: Upload!, $isPublished: Boolean!) {
+            $name: String!, $slug: String!, $description: String, $products: [ID], $backgroundImage: Upload!, $isPublished: Boolean!, $publishedAt: Date) {
             collectionCreate(
-                input: {name: $name, slug: $slug, description: $description, products: $products, backgroundImage: $backgroundImage, isPublished: $isPublished}) {
+                input: {name: $name, slug: $slug, description: $description, products: $products, backgroundImage: $backgroundImage, isPublished: $isPublished, publishedAt: $publishedAt}) {
                 collection {
                     name
                     slug
@@ -81,10 +82,12 @@ def test_create_collection(
     name = 'test-name'
     slug = 'test-slug'
     description = 'test-description'
+    published_at = datetime.today()
+
     variables = {
         'name': name, 'slug': slug, 'description': description,
         'products': product_ids, 'backgroundImage': image_name,
-        'isPublished': True}
+        'isPublished': True, 'publishedAt': published_at}
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products])
@@ -93,6 +96,7 @@ def test_create_collection(
     assert data['name'] == name
     assert data['slug'] == slug
     assert data['description'] == description
+    assert data['publishedAt'] == published_at
     assert data['products']['totalCount'] == len(product_ids)
     collection = Collection.objects.get(slug=slug)
     assert collection.background_image.file

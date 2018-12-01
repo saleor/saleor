@@ -1,9 +1,20 @@
 {% load i18n %}
 
   <div class="label label-{{ label_cls }}">
-    {% if is_published %}
+    {% if is_available %}
       {% trans "Published" context "Collection availability status" %}
-    {% else %}
-      {% trans "Not Published" context "Collection availability status" %}
-    {% endif %}
+    {% elif not collection.is_published %}
+    <div class="label">
+      {% trans "Hidden" context "Collection availability status" %}
+    </div>
+    {% elif collection.published_at %}
+  <div class="label">
+    {% blocktrans with date=collection.published_at context "Collection availability status" %}
+      Hidden (will become visible on {{ date }})
+    {% endblocktrans %}
   </div>
+    <div class="label">
+      {% trans "Hidden" context "Collection availability status" %}
+    </div>
+  </div>
+{% endif %}

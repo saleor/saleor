@@ -28,6 +28,9 @@ class CollectionForm(forms.ModelForm):
             'is_published': pgettext_lazy(
                 'Collection published toggle',
                 'Published'),
+            'published_at': pgettext_lazy(
+                'Published at which date field',
+                'Published at'),
             'description': pgettext_lazy(
                 'Description field of a collection',
                 'Description')}
