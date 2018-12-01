@@ -64,6 +64,9 @@
             <div class="row">
               {{ form.is_published|materializecss }}
             </div>
+            <div class="row">
+              {{ form.published_at|materializecss }}
+            </div>
             {% include "dashboard/includes/_google_preview.html" with object=collection form=form %}
           </div>
           <div class="card-action right-align">

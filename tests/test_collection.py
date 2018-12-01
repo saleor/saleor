@@ -38,3 +38,11 @@ def test_collection_not_published_404(client, draft_collection):
     url = reverse('product:collection', kwargs=url_kwargs)
     response = client.get(url)
     assert response.status_code == 404
+
+def test_collection_not_yet_published(admin_client, client, not_yet_available_collection):
+    url_kwargs = {'pk': not_yet_available_collection.pk, 'slug': not_yet_available_collection.slug}
+    url = reverse('product:collection', kwargs=url_kwargs)
+    response = client.get(url)
+    assert response.status_code == 404
+    response = admin_client.get(url)
+    assert response.status_code == 200

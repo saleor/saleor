@@ -17,6 +17,13 @@
         You are previewing a collection that is not published.
       {% endblocktrans %}
     </div>
+  {% elif not is_available %}
+    <div class="alert alert-warning" role="alert">
+      {% blocktrans trimmed with date=object.published_at|date context "Unpublished collection details text" %}
+        <strong>Warning!</strong>
+        You are previewing a collection that will become visible on <strong>{{ date }}</strong>.
+      {% endblocktrans %}
+    </div>
   {% endif %}
 {% endblock %}
 
