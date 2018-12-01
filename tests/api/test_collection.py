@@ -1,6 +1,6 @@
 import graphene
 import pytest
-from datetime import datetime
+from datetime import date
 from django.utils.text import slugify
 from graphql_relay import to_global_id
 from unittest.mock import Mock
@@ -55,7 +55,7 @@ def test_create_collection(
         monkeypatch, staff_api_client, product_list, permission_manage_products):
     query = """
         mutation createCollection(
-            $name: String!, $slug: String!, $description: String, $products: [ID], $backgroundImage: Upload!, $isPublished: Boolean!, $publishedAt: Date) {
+            $name: String!, $slug: String!, $description: String, $products: [ID], $backgroundImage: Upload!, $isPublished: Boolean!, $publishedAt: String) {
             collectionCreate(
                 input: {name: $name, slug: $slug, description: $description, products: $products, backgroundImage: $backgroundImage, isPublished: $isPublished, publishedAt: $publishedAt}) {
                 collection {
@@ -65,6 +65,11 @@ def test_create_collection(
                     products {
                         totalCount
                     }
+                    publishedAt
+                }
+                errors {
+                    field
+                    message
                 }
             }
         }
@@ -82,8 +87,7 @@ def test_create_collection(
     name = 'test-name'
     slug = 'test-slug'
     description = 'test-description'
-    published_at = datetime.today()
-
+    published_at = date.today().isoformat()
     variables = {
         'name': name, 'slug': slug, 'description': description,
         'products': product_ids, 'backgroundImage': image_name,
@@ -136,13 +140,14 @@ def test_update_collection(
         monkeypatch, staff_api_client, collection, permission_manage_products):
     query = """
         mutation updateCollection(
-            $name: String!, $slug: String!, $description: String, $id: ID!, $isPublished: Boolean!) {
+            $name: String!, $slug: String!, $description: String, $id: ID!, $isPublished: Boolean!, $publishedAt: String) {
             collectionUpdate(
-                id: $id, input: {name: $name, slug: $slug, description: $description, isPublished: $isPublished}) {
+                id: $id, input: {name: $name, slug: $slug, description: $description, isPublished: $isPublished, publishedAt: $publishedAt}) {
                 collection {
                     name
                     slug
                     description
+                    publishedAt
                 }
             }
         }
@@ -157,15 +162,17 @@ def test_update_collection(
     name = 'new-name'
     slug = 'new-slug'
     description = 'new-description'
+    published_at = date.today().isoformat()
     variables = {
         'name': name, 'slug': slug, 'description': description,
-        'id': to_global_id('Collection', collection.id), 'isPublished': True}
+        'id': to_global_id('Collection', collection.id), 'isPublished': True, 'publishedAt': published_at}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     data = content['data']['collectionUpdate']['collection']
     assert data['name'] == name
     assert data['slug'] == slug
+    assert data['publishedAt'] == published_at
     assert mock_create_thumbnails.call_count == 0
 
 

@@ -457,7 +457,7 @@ class Collection(SeoModel):
         upload_to='collection-backgrounds', blank=True, null=True)
     is_published = models.BooleanField(default=False)
     description = models.TextField(blank=True)
-    published_at = models.DateField(blank=True, null=True);
+    published_at = models.DateField(blank=True, null=True)
     objects = CollectionQuerySet.as_manager()
     translated = TranslationProxy()
 
@@ -475,8 +475,8 @@ class Collection(SeoModel):
     @property
     def is_available(self):
         today = datetime.date.today()
-        return self.is_published and (self.published_at is None or self.published_at <= today)
-
+        return self.is_published and \
+               (self.published_at is None or self.published_at <= today)
 
 
 class CollectionTranslation(SeoModelTranslation):

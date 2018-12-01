@@ -439,6 +439,7 @@ input CollectionCreateInput {
   description: String
   backgroundImage: Upload
   seo: SeoInput
+  publishedAt: String
   products: [ID]
 }
 
@@ -454,6 +455,7 @@ input CollectionInput {
   description: String
   backgroundImage: Upload
   seo: SeoInput
+  publishedAt: String
 }
 
 type CollectionRemoveProducts {
@@ -669,6 +671,7 @@ input FulfillmentUpdateTrackingInput {
 enum GatewaysEnum {
   DUMMY
   BRAINTREE
+  RAZORPAY
 }
 
 scalar GenericScalar
