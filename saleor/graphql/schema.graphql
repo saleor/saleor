@@ -408,7 +408,7 @@ type Collection implements Node {
   backgroundImage: Image
   isPublished: Boolean!
   description: String!
-  publishedAt: Date
+  publishedDate: Date
 }
 
 type CollectionAddProducts {
@@ -439,7 +439,7 @@ input CollectionCreateInput {
   description: String
   backgroundImage: Upload
   seo: SeoInput
-  publishedAt: String
+  publishedDate: String
   products: [ID]
 }
 
@@ -455,7 +455,7 @@ input CollectionInput {
   description: String
   backgroundImage: Upload
   seo: SeoInput
-  publishedAt: String
+  publishedDate: String
 }
 
 type CollectionRemoveProducts {

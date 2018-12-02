@@ -68,10 +68,10 @@ def render_page_availability(page):
 
 @register.inclusion_tag('dashboard/includes/_collection_availability.html')
 def render_collection_availability(collection):
-    if collection.is_available:
+    if collection.is_visible:
         label_cls = LABEL_SUCCESS
     else:
         label_cls = LABEL_DANGER
-    return {'is_available': collection.is_available,
+    return {'is_visible': collection.is_visible,
             'collection': collection,
             'label_cls': label_cls}

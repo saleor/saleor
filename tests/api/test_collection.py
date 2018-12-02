@@ -42,7 +42,6 @@ def test_collections_query(
     assert collection_data['slug'] == collection.slug
     assert collection_data['description'] == collection.description
     assert collection_data['products']['totalCount'] == collection.products.count()
-
     # query all collections only as a staff user with proper permissions
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query)
@@ -55,9 +54,9 @@ def test_create_collection(
         monkeypatch, staff_api_client, product_list, permission_manage_products):
     query = """
         mutation createCollection(
-            $name: String!, $slug: String!, $description: String, $products: [ID], $backgroundImage: Upload!, $isPublished: Boolean!, $publishedAt: String) {
+            $name: String!, $slug: String!, $description: String, $products: [ID], $backgroundImage: Upload!, $isPublished: Boolean!, $publishedDate: String) {
             collectionCreate(
-                input: {name: $name, slug: $slug, description: $description, products: $products, backgroundImage: $backgroundImage, isPublished: $isPublished, publishedAt: $publishedAt}) {
+                input: {name: $name, slug: $slug, description: $description, products: $products, backgroundImage: $backgroundImage, isPublished: $isPublished, publishedDate: $publishedDate}) {
                 collection {
                     name
                     slug
@@ -65,7 +64,7 @@ def test_create_collection(
                     products {
                         totalCount
                     }
-                    publishedAt
+                    publishedDate
                 }
                 errors {
                     field
@@ -87,11 +86,11 @@ def test_create_collection(
     name = 'test-name'
     slug = 'test-slug'
     description = 'test-description'
-    published_at = date.today().isoformat()
+    published_date = date.today().isoformat()
     variables = {
         'name': name, 'slug': slug, 'description': description,
         'products': product_ids, 'backgroundImage': image_name,
-        'isPublished': True, 'publishedAt': published_at}
+        'isPublished': True, 'publishedDate': published_date}
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products])
@@ -100,7 +99,7 @@ def test_create_collection(
     assert data['name'] == name
     assert data['slug'] == slug
     assert data['description'] == description
-    assert data['publishedAt'] == published_at
+    assert data['publishedDate'] == published_date
     assert data['products']['totalCount'] == len(product_ids)
     collection = Collection.objects.get(slug=slug)
     assert collection.background_image.file
@@ -140,14 +139,14 @@ def test_update_collection(
         monkeypatch, staff_api_client, collection, permission_manage_products):
     query = """
         mutation updateCollection(
-            $name: String!, $slug: String!, $description: String, $id: ID!, $isPublished: Boolean!, $publishedAt: String) {
+            $name: String!, $slug: String!, $description: String, $id: ID!, $isPublished: Boolean!, $publishedDate: String) {
             collectionUpdate(
-                id: $id, input: {name: $name, slug: $slug, description: $description, isPublished: $isPublished, publishedAt: $publishedAt}) {
+                id: $id, input: {name: $name, slug: $slug, description: $description, isPublished: $isPublished, publishedDate: $publishedDate}) {
                 collection {
                     name
                     slug
                     description
-                    publishedAt
+                    publishedDate
                 }
             }
         }
@@ -162,17 +161,17 @@ def test_update_collection(
     name = 'new-name'
     slug = 'new-slug'
     description = 'new-description'
-    published_at = date.today().isoformat()
+    published_date = date.today().isoformat()
     variables = {
         'name': name, 'slug': slug, 'description': description,
-        'id': to_global_id('Collection', collection.id), 'isPublished': True, 'publishedAt': published_at}
+        'id': to_global_id('Collection', collection.id), 'isPublished': True, 'publishedDate': published_date}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     data = content['data']['collectionUpdate']['collection']
     assert data['name'] == name
     assert data['slug'] == slug
-    assert data['publishedAt'] == published_at
+    assert data['publishedDate'] == published_date
     assert mock_create_thumbnails.call_count == 0
 
 
