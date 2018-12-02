@@ -1,6 +1,5 @@
 from io import BytesIO
 from unittest.mock import MagicMock, Mock
-from datetime import datetime, timedelta
 import pytest
 
 from django.contrib.auth.models import Permission
@@ -594,14 +593,6 @@ def permission_manage_pages():
 def collection(db):
     collection = Collection.objects.create(
         name='Collection', slug='collection', is_published=True,
-        description='Test description')
-    return collection
-
-
-@pytest.fixture
-def not_yet_available_collection(db):
-    collection = Collection.objects.create(
-        name='Collection', slug='collection', is_published=True, published_at=datetime.today() + timedelta(days=1),
         description='Test description')
     return collection
 
