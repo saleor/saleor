@@ -16498,9 +16498,10 @@ exports[`Storyshots Views / Customers / Customer details loading 1`] = `
               >
                 General Information
                 <span
-                  class="MuiTypography-root-id MuiTypography-caption-id"
+                  class="Skeleton-skeleton-id"
+                  style="width:10rem"
                 >
-                  Customer since: Nov 2018
+                  ‌
                 </span>
               </span>
               <div
