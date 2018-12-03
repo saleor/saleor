@@ -2,34 +2,32 @@
 # Copyright (C) 2017 Mirumee Software
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
-#
+# 
+# Translators:
+# Nix Nix <nixnix33@hotmail.com>, 2018
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-03 09:23-0600\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"POT-Creation-Date: 2018-10-05 06:34-0500\n"
+"PO-Revision-Date: 2017-02-08 11:00+0000\n"
+"Last-Translator: Nix Nix <nixnix33@hotmail.com>, 2018\n"
+"Language-Team: Slovenian (https://www.transifex.com/mirumee/teams/34782/sl/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-
-#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:75
-msgid "Missing source"
-msgstr ""
-
-#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:136
-msgid "\n"
-msgstr ""
+"Language: sl\n"
+"Plural-Forms: nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);\n"
 
 #: saleor/static/dashboard/js/components/bulk-actions.js:89
 msgid "item selected"
 msgid_plural "items selected"
 msgstr[0] ""
 msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
 
 #: saleor/static/dashboard/js/components/datepicker.js:4
 msgctxt "Datepicker option"
@@ -291,62 +289,62 @@ msgctxt "Datepicker option"
 msgid "Close"
 msgstr ""
 
-#: saleor/static/dashboard/js/components/editor.js:27
+#: saleor/static/dashboard/js/components/editor.js:24
 msgctxt "Rich text editor option"
 msgid "Bold text"
 msgstr ""
 
-#: saleor/static/dashboard/js/components/editor.js:31
+#: saleor/static/dashboard/js/components/editor.js:28
 msgctxt "Rich text editor option"
 msgid "Italic text"
 msgstr ""
 
-#: saleor/static/dashboard/js/components/editor.js:35
+#: saleor/static/dashboard/js/components/editor.js:32
 msgctxt "Rich text editor option"
 msgid "Header"
 msgstr ""
 
-#: saleor/static/dashboard/js/components/editor.js:42
+#: saleor/static/dashboard/js/components/editor.js:39
 msgctxt "Rich text editor option"
 msgid "Subheader"
 msgstr ""
 
-#: saleor/static/dashboard/js/components/editor.js:49
+#: saleor/static/dashboard/js/components/editor.js:46
 msgctxt "Rich text editor option"
 msgid "Quote"
 msgstr ""
 
-#: saleor/static/dashboard/js/components/editor.js:54
+#: saleor/static/dashboard/js/components/editor.js:51
 msgctxt "Rich text editor option"
 msgid "Link"
-msgstr ""
+msgstr "Povezava"
 
-#: saleor/static/dashboard/js/components/editor.js:61
+#: saleor/static/dashboard/js/components/editor.js:58
 msgctxt "Rich text editor option"
 msgid "Image (converts selected text to an image tag)"
 msgstr ""
 
-#: saleor/static/dashboard/js/components/editor.js:66
+#: saleor/static/dashboard/js/components/editor.js:63
 msgctxt "Rich text editor option"
 msgid "Left align"
 msgstr ""
 
-#: saleor/static/dashboard/js/components/editor.js:71
+#: saleor/static/dashboard/js/components/editor.js:68
 msgctxt "Rich text editor option"
 msgid "Center align"
 msgstr ""
 
-#: saleor/static/dashboard/js/components/editor.js:76
+#: saleor/static/dashboard/js/components/editor.js:73
 msgctxt "Rich text editor option"
 msgid "Right align"
 msgstr ""
 
-#: saleor/static/dashboard/js/components/editor.js:81
+#: saleor/static/dashboard/js/components/editor.js:78
 msgctxt "Rich text editor option"
 msgid "Justify"
 msgstr ""
 
-#: saleor/static/dashboard/js/components/editor.js:86
+#: saleor/static/dashboard/js/components/editor.js:83
 msgctxt "Rich text editor option"
 msgid "Remove formatting"
 msgstr ""
@@ -363,9 +361,9 @@ msgstr ""
 #: saleor/static/js/components/variantPicker/QuantityInput.js:22
 msgctxt "Add to cart form field label"
 msgid "Quantity"
-msgstr ""
+msgstr "Količina"
 
 #: saleor/static/js/components/variantPicker/VariantPicker.js:167
 msgctxt "Product details primary action"
 msgid "Add to cart"
-msgstr ""
+msgstr "Dodaj v košarico"
