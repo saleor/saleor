@@ -7,6 +7,7 @@ import OrderMarkAsPaidDialog, {
 import Decorator from "../../Decorator";
 
 const props: OrderMarkAsPaidDialogProps = {
+  confirmButtonState: "default",
   onClose: () => undefined,
   onConfirm: () => undefined,
   open: true

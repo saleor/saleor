@@ -7,6 +7,9 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
+import ConfirmButton, {
+  ConfirmButtonTransitionState
+} from "../../../components/ConfirmButton";
 import { ControlledCheckbox } from "../../../components/ControlledCheckbox";
 import Form from "../../../components/Form";
 import i18n from "../../../i18n";
@@ -16,6 +19,7 @@ export interface FormData {
 }
 
 interface OrderFulfillmentCancelDialogProps {
+  confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
   onClose();
   onConfirm(data: FormData);
@@ -35,7 +39,7 @@ const decorate = withStyles(
 );
 const OrderFulfillmentCancelDialog = decorate<
   OrderFulfillmentCancelDialogProps
->(({ classes, open, onConfirm, onClose }) => (
+>(({ confirmButtonState, classes, open, onConfirm, onClose }) => (
   <Dialog open={open}>
     <Form initial={{ restock: true }} onSubmit={onConfirm}>
       {({ change, data, submit }) => (
@@ -58,13 +62,14 @@ const OrderFulfillmentCancelDialog = decorate<
             <Button onClick={onClose}>
               {i18n.t("Back", { context: "button" })}
             </Button>
-            <Button
+            <ConfirmButton
+              transitionState={confirmButtonState}
               className={classes.deleteButton}
               variant="raised"
               onClick={submit}
             >
               {i18n.t("Cancel fulfillment", { context: "button" })}
-            </Button>
+            </ConfirmButton>
           </DialogActions>
         </>
       )}

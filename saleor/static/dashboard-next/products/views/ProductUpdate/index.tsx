@@ -121,6 +121,13 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                             () => updateProduct.opts.data.productUpdate.errors
                           )
                         );
+                        const deleteTransitionState = getMutationState(
+                          deleteProduct.opts.called,
+                          deleteProduct.opts.loading,
+                          maybe(
+                            () => deleteProduct.opts.data.productDelete.errors
+                          )
+                        );
                         return (
                           <>
                             <WindowTitle
@@ -194,6 +201,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                                 <ActionDialog
                                   open={!!match}
                                   onClose={() => navigate(productUrl(id))}
+                                  confirmButtonState={deleteTransitionState}
                                   onConfirm={() => deleteProduct.mutate({ id })}
                                   variant="delete"
                                   title={i18n.t("Remove product")}
