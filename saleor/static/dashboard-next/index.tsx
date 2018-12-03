@@ -20,6 +20,7 @@ import Login from "./auth/views/Login";
 import CategorySection from "./categories";
 import CollectionSection from "./collections";
 import { AppProgressProvider } from "./components/AppProgress";
+import { ConfirmFormLeaveDialog } from "./components/ConfirmFormLeaveDialog";
 import { DateProvider } from "./components/DateFormatter";
 import { FormProvider } from "./components/Form";
 import { LocaleProvider } from "./components/Locale";
@@ -100,8 +101,9 @@ render(
               <MessageManager>
                 <AppProgressProvider>
                   <ShopProvider>
-                    <CssBaseline />
                     <WindowTitle title={i18n.t("Dashboard")} />
+                    <ConfirmFormLeaveDialog />
+                    <CssBaseline />
                     <AuthProvider>
                       {({
                         hasToken,
