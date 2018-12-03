@@ -9,10 +9,9 @@ import * as React from "react";
 import CardTitle from "../../../components/CardTitle";
 import { ControlledCheckbox } from "../../../components/ControlledCheckbox";
 import { FormSpacer } from "../../../components/FormSpacer";
-import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
-import { CustomerDetails_user } from "../../types/CustomerDetails";
 import Skeleton from "../../../components/Skeleton";
+import i18n from "../../../i18n";
+import { CustomerDetails_user } from "../../types/CustomerDetails";
 
 export interface CustomerDetailsProps {
   customer: CustomerDetails_user;
