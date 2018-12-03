@@ -1,33 +1,54 @@
+import Button from "@material-ui/core/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 import NavigationPrompt from "react-router-navigation-prompt";
 
-import DialogContentText from "@material-ui/core/DialogContentText";
 import i18n from "../i18n";
-import ActionDialog from "./ActionDialog";
 import { FormContext } from "./Form";
 
-export const ConfirmFormLeaveDialog: React.StatelessComponent<{}> = () => (
+const decorate = withStyles(theme => ({
+  deleteButton: {
+    "&:hover": {
+      backgroundColor: theme.palette.error.main
+    },
+    backgroundColor: theme.palette.error.main,
+    color: theme.palette.error.contrastText
+  }
+}));
+
+export const ConfirmFormLeaveDialog = decorate(({ classes }) => (
   <FormContext.Consumer>
     {({ hasChanged: hasFormChanged }) => (
       <NavigationPrompt renderIfNotActive={true} when={hasFormChanged}>
         {({ isActive, onCancel, onConfirm }) => (
-          <ActionDialog
-            open={isActive}
-            onClose={onCancel}
-            onConfirm={onConfirm}
-            confirmButtonState="default"
-            title={i18n.t("Leaving form", {
-              context: "modal title"
-            })}
-          >
-            <DialogContentText>
-              {i18n.t("Are you sure you want to leave unsaved changes?", {
-                context: "form leave confirmation"
-              })}
-            </DialogContentText>
-          </ActionDialog>
+          <Dialog open={isActive}>
+            <DialogTitle>{i18n.t("There are unsaved changes")}</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                {i18n.t(
+                  "If you leave this page, unsaved changed will be lost. Are you sure you want to leave?",
+                  {
+                    context: "form leave confirmation"
+                  }
+                )}
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={onCancel}>
+                {i18n.t("Cancel", { context: "button" })}
+              </Button>
+              <Button onClick={onConfirm} className={classes.deleteButton}>
+                {i18n.t("Leave page", { context: "button" })}
+              </Button>
+            </DialogActions>
+          </Dialog>
         )}
       </NavigationPrompt>
     )}
   </FormContext.Consumer>
-);
+));
