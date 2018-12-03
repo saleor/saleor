@@ -71,6 +71,7 @@
     "react-moment": "^0.7.7",
     "react-router": "^4.2.0",
     "react-router-dom": "^4.2.2",
+    "react-router-navigation-prompt": "^1.8.2",
     "react-sortable-hoc": "^0.6.8",
     "react-svg": "^2.2.11",
     "select2": "^4.0.5",
