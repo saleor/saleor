@@ -29,7 +29,8 @@ class CollectionForm(forms.ModelForm):
                 'Collection published toggle',
                 'Published'),
             'published_date': pgettext_lazy(
-                'The publication date field, can be a posterior date for a planned publication.',
+                'The publication date field, can be a posterior date for '
+                'a planned publication.',
                 'Published date'),
             'description': pgettext_lazy(
                 'Description field of a collection',

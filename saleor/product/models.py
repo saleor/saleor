@@ -437,7 +437,8 @@ class CollectionQuerySet(models.QuerySet):
     def public(self):
         return self.filter(
             Q(is_published=True),
-            Q(published_date__lte=datetime.date.today()) | Q(published_date__isnull=True))
+            Q(published_date__isnull=True)
+            | Q(published_date__lte=datetime.date.today()))
 
     def visible_to_user(self, user):
         has_access_to_all = (
@@ -474,7 +475,8 @@ class Collection(SeoModel):
     @property
     def is_visible(self):
         return self.is_published and (
-            self.published_date is None or self.published_date <= datetime.date.today())
+            self.published_date is None or
+            self.published_date <= datetime.date.today())
 
 
 class CollectionTranslation(SeoModelTranslation):

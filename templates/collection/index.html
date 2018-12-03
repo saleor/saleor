@@ -17,7 +17,7 @@
         You are previewing a collection that is not published.
       {% endblocktrans %}
     </div>
-  {% elif object.is_published and object.published_date is not None %}
+  {% elif object.published_date is not None %}
     <div class="alert alert-warning" role="alert">
       {% blocktrans trimmed with date=object.published_date|date context "Unpublished collection details text" %}
         <strong>Warning!</strong>
