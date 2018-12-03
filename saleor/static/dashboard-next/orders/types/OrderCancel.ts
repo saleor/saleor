@@ -7,6 +7,12 @@ import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusE
 // GraphQL mutation operation: OrderCancel
 // ====================================================
 
+export interface OrderCancel_orderCancel_errors {
+  __typename: "Error";
+  field: string | null;
+  message: string | null;
+}
+
 export interface OrderCancel_orderCancel_order_billingAddress_country {
   __typename: "CountryDisplay";
   code: string;
@@ -247,6 +253,7 @@ export interface OrderCancel_orderCancel_order {
 
 export interface OrderCancel_orderCancel {
   __typename: "OrderCancel";
+  errors: (OrderCancel_orderCancel_errors | null)[] | null;
   order: OrderCancel_orderCancel_order | null;
 }
 

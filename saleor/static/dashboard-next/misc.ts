@@ -137,7 +137,11 @@ export function empty(obj: object): boolean {
 }
 
 export function hasErrors(errorList: UserError[] | null): boolean {
-  return !(errorList === null || errorList.length === 0);
+  return !(
+    errorList === undefined ||
+    errorList === null ||
+    errorList.length === 0
+  );
 }
 
 export function getMutationState(

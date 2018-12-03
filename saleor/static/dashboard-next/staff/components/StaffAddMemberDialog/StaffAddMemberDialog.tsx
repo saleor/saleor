@@ -8,6 +8,9 @@ import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
+import ConfirmButton, {
+  ConfirmButtonTransitionState
+} from "../../../components/ConfirmButton/ConfirmButton";
 import { ControlledCheckbox } from "../../../components/ControlledCheckbox";
 import Form from "../../../components/Form";
 import i18n from "../../../i18n";
@@ -18,6 +21,7 @@ export interface FormData {
   fullAccess: boolean;
 }
 interface StaffAddMemberDialogProps {
+  confirmButtonState: ConfirmButtonTransitionState;
   errors: UserError[];
   open: boolean;
   onClose: () => void;
@@ -43,7 +47,7 @@ const decorate = withStyles(theme => ({
   }
 }));
 const StaffAddMemberDialog = decorate<StaffAddMemberDialogProps>(
-  ({ classes, errors, open, onClose, onConfirm }) => (
+  ({ classes, confirmButtonState, errors, open, onClose, onConfirm }) => (
     <Dialog open={open}>
       <Form errors={errors} initial={initialForm} onSubmit={onConfirm}>
         {({ change, data, errors: formErrors, hasChanged }) => (
@@ -82,14 +86,15 @@ const StaffAddMemberDialog = decorate<StaffAddMemberDialogProps>(
               <Button onClick={onClose}>
                 {i18n.t("Cancel", { context: "button" })}
               </Button>
-              <Button
+              <ConfirmButton
                 color="primary"
                 disabled={!hasChanged}
                 variant="raised"
                 type="submit"
+                transitionState={confirmButtonState}
               >
                 {i18n.t("Send invite", { context: "button" })}
-              </Button>
+              </ConfirmButton>
             </DialogActions>
           </>
         )}

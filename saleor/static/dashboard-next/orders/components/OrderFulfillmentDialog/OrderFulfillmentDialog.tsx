@@ -12,6 +12,9 @@ import TableRow from "@material-ui/core/TableRow";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
+import ConfirmButton, {
+  ConfirmButtonTransitionState
+} from "../../../components/ConfirmButton/ConfirmButton";
 import Form from "../../../components/Form";
 import { FormSpacer } from "../../../components/FormSpacer";
 import TableCellAvatar from "../../../components/TableCellAvatar";
@@ -25,6 +28,7 @@ export interface FormData {
 }
 
 export interface OrderFulfillmentDialogProps {
+  confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
   lines: OrderDetails_order_lines[];
   onClose();
@@ -48,7 +52,7 @@ const decorate = withStyles(
   { name: "OrderFulfillmentDialog" }
 );
 const OrderFulfillmentDialog = decorate<OrderFulfillmentDialogProps>(
-  ({ classes, open, lines, onClose, onSubmit }) => (
+  ({ classes, confirmButtonState, open, lines, onClose, onSubmit }) => (
     <Dialog open={open}>
       <Form
         initial={{
@@ -135,9 +139,14 @@ const OrderFulfillmentDialog = decorate<OrderFulfillmentDialogProps>(
                 <Button onClick={onClose}>
                   {i18n.t("Cancel", { context: "button" })}
                 </Button>
-                <Button color="primary" variant="raised" type="submit">
+                <ConfirmButton
+                  transitionState={confirmButtonState}
+                  color="primary"
+                  variant="raised"
+                  type="submit"
+                >
                   {i18n.t("Confirm", { context: "button" })}
-                </Button>
+                </ConfirmButton>
               </DialogActions>
             </>
           );

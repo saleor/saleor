@@ -13,7 +13,7 @@ import ConfirmButton, {
 } from "../ConfirmButton/ConfirmButton";
 
 interface ActionDialogProps {
-  confirmButtonState?: ConfirmButtonTransitionState;
+  confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
   title: string;
   variant?: string;

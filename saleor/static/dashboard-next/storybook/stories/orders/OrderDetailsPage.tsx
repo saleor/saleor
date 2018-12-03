@@ -17,7 +17,6 @@ const order = orderFixture(placeholderImage);
 
 const props: OrderDetailsPageProps = {
   countries,
-  errors: [],
   onBack: () => undefined,
   onBillingAddressEdit: undefined,
   onFulfillmentCancel: () => undefined,

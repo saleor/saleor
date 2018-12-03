@@ -8,6 +8,7 @@ storiesOf("Orders / OrderCancelDialog", module)
   .addDecorator(Decorator)
   .add("default", () => (
     <OrderCancelDialog
+      confirmButtonState="default"
       open={true}
       number="123"
       onSubmit={undefined}
