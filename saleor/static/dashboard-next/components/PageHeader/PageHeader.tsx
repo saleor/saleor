@@ -19,17 +19,17 @@ const styles = (theme: Theme) =>
   });
 
 interface PageHeaderProps extends WithStyles<typeof styles> {
+  back: boolean;
   children?: React.ReactNode;
   className?: string;
   title?: string;
-  onBack?();
 }
 
 const PageHeader = withStyles(styles)(
-  ({ children, classes, className, onBack, title }: PageHeaderProps) => (
+  ({ back, children, classes, className, title }: PageHeaderProps) => (
     <ExtendedPageHeader
+      back={back}
       className={className}
-      onBack={onBack}
       title={
         <Typography className={classes.title} variant="title">
           {title !== undefined ? title : <Skeleton style={{ width: "10em" }} />}

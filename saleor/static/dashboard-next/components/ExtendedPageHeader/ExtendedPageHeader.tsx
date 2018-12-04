@@ -41,26 +41,20 @@ const styles = (theme: Theme) =>
   });
 
 interface ExtendedPageHeaderProps extends WithStyles<typeof styles> {
+  back?: boolean;
   children?: React.ReactNode;
   className?: string;
   title?: React.ReactNode;
-  onBack?();
 }
 
 const ExtendedPageHeader = withStyles(styles, { name: "ExtendedPageHeader" })(
-  ({
-    children,
-    classes,
-    className,
-    onBack,
-    title
-  }: ExtendedPageHeaderProps) => (
+  ({ back, children, classes, className, title }: ExtendedPageHeaderProps) => (
     <div className={classNames(classes.root, className)}>
-      {onBack && (
+      {back && (
         <IconButton
           color="inherit"
           className={classes.menuButton}
-          onClick={onBack}
+          onClick={window.history.back}
         >
           <ArrowBackIcon />
         </IconButton>
