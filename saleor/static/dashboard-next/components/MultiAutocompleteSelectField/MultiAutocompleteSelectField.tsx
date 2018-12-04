@@ -1,7 +1,12 @@
 import Chip from "@material-ui/core/Chip";
 import MenuItem from "@material-ui/core/MenuItem";
 import Paper from "@material-ui/core/Paper";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import Downshift, { ControllerStateAndHelpers } from "downshift";
 import * as React from "react";
@@ -13,7 +18,29 @@ interface ChoiceType {
   label: string;
   value: string;
 }
-interface MultiAutocompleteSelectFieldProps {
+
+const styles = (theme: Theme) =>
+  createStyles({
+    chip: {
+      margin: `${theme.spacing.unit / 2}px ${theme.spacing.unit / 2}px`
+    },
+    container: {
+      flexGrow: 1,
+      position: "relative"
+    },
+    inputRoot: {
+      flexWrap: "wrap"
+    },
+    paper: {
+      left: 0,
+      marginTop: theme.spacing.unit,
+      position: "absolute",
+      right: 0,
+      zIndex: 1
+    }
+  });
+
+interface MultiAutocompleteSelectFieldProps extends WithStyles<typeof styles> {
   name: string;
   choices: ChoiceType[];
   value?: ChoiceType[];
@@ -25,29 +52,9 @@ interface MultiAutocompleteSelectFieldProps {
   onChange(event);
 }
 
-const decorate = withStyles(theme => ({
-  chip: {
-    margin: `${theme.spacing.unit / 2}px ${theme.spacing.unit / 2}px`
-  },
-  container: {
-    flexGrow: 1,
-    position: "relative" as "relative"
-  },
-  inputRoot: {
-    flexWrap: "wrap" as "wrap"
-  },
-  paper: {
-    left: 0,
-    marginTop: theme.spacing.unit,
-    position: "absolute" as "absolute",
-    right: 0,
-    zIndex: 1
-  }
-}));
-
-export const MultiAutocompleteSelectField = decorate<
-  MultiAutocompleteSelectFieldProps
->(
+export const MultiAutocompleteSelectField = withStyles(styles, {
+  name: "MultiAutocompleteSelectField"
+})(
   ({
     choices,
     classes,
@@ -59,7 +66,7 @@ export const MultiAutocompleteSelectField = decorate<
     value,
     fetchChoices,
     onChange
-  }) => {
+  }: MultiAutocompleteSelectFieldProps) => {
     const handleSelect = (
       item: ChoiceType,
       { reset }: ControllerStateAndHelpers

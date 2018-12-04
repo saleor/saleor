@@ -1,28 +1,34 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Tab from "@material-ui/core/Tab";
 import * as React from "react";
 
-interface FilterTabProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    tabLabel: {
+      color: "#616161",
+      fontSize: "0.875rem"
+    },
+    tabRoot: {
+      minWidth: "80px",
+      opacity: 1,
+      paddingTop: `${theme.spacing.unit * 1}px`,
+      textTransform: "initial" as "initial"
+    }
+  });
+
+interface FilterTabProps extends WithStyles<typeof styles> {
   onClick: () => void;
   label: string;
   value?: number;
 }
 
-const decorate = withStyles(theme => ({
-  tabLabel: {
-    color: "#616161",
-    fontSize: "0.875rem"
-  },
-  tabRoot: {
-    minWidth: "80px",
-    opacity: 1,
-    paddingTop: `${theme.spacing.unit * 1}px`,
-    textTransform: "initial" as "initial"
-  }
-}));
-
-export const FilterTab = decorate<FilterTabProps>(
-  ({ classes, onClick, label, value }) => (
+export const FilterTab = withStyles(styles, { name: "FilterTab" })(
+  ({ classes, onClick, label, value }: FilterTabProps) => (
     <Tab
       disableRipple
       label={label}
@@ -32,5 +38,5 @@ export const FilterTab = decorate<FilterTabProps>(
     />
   )
 );
-
+FilterTab.displayName = "FilterTab";
 export default FilterTab;

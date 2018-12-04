@@ -1,6 +1,5 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
@@ -17,38 +16,39 @@ export interface CollectionStatusProps {
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
-const decorate = withStyles({ root: {} });
-const CollectionStatus = decorate<CollectionStatusProps>(
-  ({ data, disabled, onChange }) => (
-    <Card>
-      <CardTitle
-        title={i18n.t("Availability", {
-          context: "collection status"
+const CollectionStatus: React.StatelessComponent<CollectionStatusProps> = ({
+  data,
+  disabled,
+  onChange
+}) => (
+  <Card>
+    <CardTitle
+      title={i18n.t("Availability", {
+        context: "collection status"
+      })}
+    />
+    <CardContent>
+      <ControlledSwitch
+        checked={data.isPublished}
+        disabled={disabled}
+        name="isPublished"
+        onChange={onChange}
+        label={i18n.t("Publish on storefront", {
+          context: "button"
         })}
       />
-      <CardContent>
-        <ControlledSwitch
-          checked={data.isPublished}
-          disabled={disabled}
-          name="isPublished"
-          onChange={onChange}
-          label={i18n.t("Publish on storefront", {
-            context: "button"
-          })}
-        />
-        <FormSpacer />
-        <ControlledSwitch
-          checked={data.isFeatured}
-          disabled={disabled}
-          name="isFeatured"
-          onChange={onChange}
-          label={i18n.t("Feature on Homepage", {
-            context: "button"
-          })}
-        />
-      </CardContent>
-    </Card>
-  )
+      <FormSpacer />
+      <ControlledSwitch
+        checked={data.isFeatured}
+        disabled={disabled}
+        name="isFeatured"
+        onChange={onChange}
+        label={i18n.t("Feature on Homepage", {
+          context: "button"
+        })}
+      />
+    </CardContent>
+  </Card>
 );
 CollectionStatus.displayName = "CollectionStatus";
 export default CollectionStatus;

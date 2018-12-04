@@ -1,4 +1,4 @@
-import { withStyles } from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
 import { CardSpacer } from "../../../components/CardSpacer";
@@ -29,7 +29,13 @@ interface FormData {
   seoDescription: string;
 }
 
-export interface CategoryUpdatePageProps {
+const styles = createStyles({
+  tabsBorder: {
+    borderBottom: "1px solid #eeeeee"
+  }
+});
+
+export interface CategoryUpdatePageProps extends WithStyles<typeof styles> {
   errors: UserError[];
   disabled: boolean;
   placeholderImage: string;
@@ -54,13 +60,9 @@ export interface CategoryUpdatePageProps {
   onCategoryClick(id: string): () => void;
 }
 
-const decorate = withStyles({
-  tabsBorder: {
-    borderBottom: "1px solid #eeeeee"
-  }
-});
-
-export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
+export const CategoryUpdatePage = withStyles(styles, {
+  name: "CategoryUpdatePage"
+})(
   ({
     category,
     classes,
@@ -79,7 +81,7 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
     onPreviousPage,
     onProductClick,
     onSubmit
-  }) => {
+  }: CategoryUpdatePageProps) => {
     const initialData = category
       ? {
           description: category.description || "",

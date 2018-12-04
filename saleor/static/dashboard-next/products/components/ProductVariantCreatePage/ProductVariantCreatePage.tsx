@@ -1,4 +1,9 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
@@ -26,7 +31,21 @@ interface FormData {
   quantity?: number;
   sku?: string;
 }
-interface ProductVariantCreatePageProps {
+
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      display: "grid",
+      gridGap: `${theme.spacing.unit * 2}px`,
+      gridTemplateColumns: "4fr 9fr",
+      [theme.breakpoints.down("sm")]: {
+        gridGap: `${theme.spacing.unit}px`,
+        gridTemplateColumns: "1fr"
+      }
+    }
+  });
+
+interface ProductVariantCreatePageProps extends WithStyles<typeof styles> {
   currencySymbol: string;
   errors: UserError[];
   header: string;
@@ -38,19 +57,9 @@ interface ProductVariantCreatePageProps {
   onVariantClick: (variantId: string) => void;
 }
 
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid",
-    gridGap: `${theme.spacing.unit * 2}px`,
-    gridTemplateColumns: "4fr 9fr",
-    [theme.breakpoints.down("sm")]: {
-      gridGap: `${theme.spacing.unit}px`,
-      gridTemplateColumns: "1fr"
-    }
-  }
-}));
-
-const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
+const ProductVariantCreatePage = withStyles(styles, {
+  name: "ProductVariantCreatePage"
+})(
   ({
     classes,
     currencySymbol,
@@ -62,7 +71,7 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
     onBack,
     onSubmit,
     onVariantClick
-  }) => {
+  }: ProductVariantCreatePageProps) => {
     const initialForm = {
       attributes: maybe(() =>
         product.productType.variantAttributes.map(attribute => ({

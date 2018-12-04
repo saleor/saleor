@@ -3,7 +3,12 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
 import ConfirmButton, {
@@ -19,7 +24,27 @@ export interface FormData {
   shippingMethod: string;
 }
 
-interface OrderShippingMethodEditDialogProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    dialog: {
+      overflowY: "visible"
+    },
+    menuItem: {
+      display: "flex",
+      width: "100%"
+    },
+    root: {
+      overflowY: "visible",
+      width: theme.breakpoints.values.sm
+    },
+    shippingMethodName: {
+      flex: 1,
+      overflowX: "hidden",
+      textOverflow: "ellipsis"
+    }
+  });
+
+interface OrderShippingMethodEditDialogProps extends WithStyles<typeof styles> {
   confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
   shippingMethod: string;
@@ -28,30 +53,9 @@ interface OrderShippingMethodEditDialogProps {
   onSubmit?(data: FormData);
 }
 
-const decorate = withStyles(
-  theme => ({
-    dialog: {
-      overflowY: "visible" as "visible"
-    },
-    menuItem: {
-      display: "flex" as "flex",
-      width: "100%"
-    },
-    root: {
-      overflowY: "visible" as "visible",
-      width: theme.breakpoints.values.sm
-    },
-    shippingMethodName: {
-      flex: 1,
-      overflowX: "hidden" as "hidden",
-      textOverflow: "ellipsis" as "ellipsis"
-    }
-  }),
-  { name: "OrderShippingMethodEditDialog" }
-);
-const OrderShippingMethodEditDialog = decorate<
-  OrderShippingMethodEditDialogProps
->(
+const OrderShippingMethodEditDialog = withStyles(styles, {
+  name: "OrderShippingMethodEditDialog"
+})(
   ({
     classes,
     confirmButtonState,
@@ -60,7 +64,7 @@ const OrderShippingMethodEditDialog = decorate<
     shippingMethods,
     onClose,
     onSubmit
-  }) => {
+  }: OrderShippingMethodEditDialogProps) => {
     const choices = shippingMethods
       ? shippingMethods.map(s => ({
           label: (
@@ -101,7 +105,7 @@ const OrderShippingMethodEditDialog = decorate<
                 <ConfirmButton
                   transitionState={confirmButtonState}
                   color="primary"
-                  variant="raised"
+                  variant="contained"
                   type="submit"
                 >
                   {i18n.t("Confirm", { context: "button" })}

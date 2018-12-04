@@ -12,7 +12,7 @@ storiesOf("Generics / Global messages", module)
       {pushMessage => (
         <Button
           color="primary"
-          variant="raised"
+          variant="contained"
           onClick={() => pushMessage({ text: "This is message" })}
         >
           Push message
@@ -25,7 +25,7 @@ storiesOf("Generics / Global messages", module)
       {pushMessage => (
         <Button
           color="primary"
-          variant="raised"
+          variant="contained"
           onClick={() =>
             pushMessage({ text: "This is message", onUndo: undefined })
           }

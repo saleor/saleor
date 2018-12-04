@@ -1,5 +1,10 @@
 import Card from "@material-ui/core/Card";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -15,7 +20,29 @@ import { maybe, renderCollection } from "../../../misc";
 import { ProductVariantCreateData_product_variants } from "../../types/ProductVariantCreateData";
 import { ProductVariantDetails_productVariant } from "../../types/ProductVariantDetails";
 
-interface ProductVariantNavigationProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    link: {
+      cursor: "pointer"
+    },
+    tabActive: {
+      "&:before": {
+        background: theme.palette.primary.main,
+        content: '""',
+        height: "100%",
+        left: 0,
+        position: "absolute",
+        top: 0,
+        width: 2
+      },
+      position: "relative"
+    },
+    textLeft: {
+      textAlign: [["left"], "!important"] as any
+    }
+  });
+
+interface ProductVariantNavigationProps extends WithStyles<typeof styles> {
   current?: string;
   variants:
     | ProductVariantDetails_productVariant[]
@@ -23,29 +50,15 @@ interface ProductVariantNavigationProps {
   onRowClick: (variantId: string) => void;
 }
 
-const decorate = withStyles(theme => ({
-  link: {
-    cursor: "pointer"
-  },
-  tabActive: {
-    "&:before": {
-      background: theme.palette.primary.main,
-      content: '""',
-      height: "100%",
-      left: 0,
-      position: "absolute" as "absolute",
-      top: 0,
-      width: 2
-    },
-    position: "relative" as "relative"
-  },
-  textLeft: {
-    textAlign: [["left"], "!important"] as any
-  }
-}));
-
-const ProductVariantNavigation = decorate<ProductVariantNavigationProps>(
-  ({ classes, current, variants, onRowClick }) => (
+const ProductVariantNavigation = withStyles(styles, {
+  name: "ProductVariantNavigation"
+})(
+  ({
+    classes,
+    current,
+    variants,
+    onRowClick
+  }: ProductVariantNavigationProps) => (
     <Card>
       <CardTitle title={i18n.t("Variants")} />
       <Table>

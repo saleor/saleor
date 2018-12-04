@@ -1,6 +1,6 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
-import { withStyles } from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -17,22 +17,28 @@ import i18n from "../../../i18n";
 import { maybe, renderCollection, transformPaymentStatus } from "../../../misc";
 import { CustomerDetails_user_orders_edges_node } from "../../types/CustomerDetails";
 
-export interface CustomerOrdersProps {
+const styles = createStyles({
+  link: {
+    cursor: "pointer"
+  },
+  textRight: {
+    textAlign: "right"
+  }
+});
+
+export interface CustomerOrdersProps extends WithStyles<typeof styles> {
   orders: CustomerDetails_user_orders_edges_node[];
   onViewAllOrdersClick: () => void;
   onRowClick: (id: string) => void;
 }
 
-const decorate = withStyles({
-  link: {
-    cursor: "pointer"
-  },
-  textRight: {
-    textAlign: "right" as "right"
-  }
-});
-const CustomerOrders = decorate<CustomerOrdersProps>(
-  ({ classes, orders, onRowClick, onViewAllOrdersClick }) => {
+const CustomerOrders = withStyles(styles, { name: "CustomerOrders" })(
+  ({
+    classes,
+    orders,
+    onRowClick,
+    onViewAllOrdersClick
+  }: CustomerOrdersProps) => {
     const orderList = orders
       ? orders.map(order => ({
           ...order,
@@ -45,7 +51,7 @@ const CustomerOrders = decorate<CustomerOrdersProps>(
           title={i18n.t("Recent orders")}
           toolbar={
             <Button
-              variant="flat"
+              variant="text"
               color="secondary"
               onClick={onViewAllOrdersClick}
             >

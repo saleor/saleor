@@ -1,3 +1,4 @@
+import { Omit } from "@material-ui/core";
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
@@ -7,7 +8,7 @@ import StaffDetailsPage, {
 import { permissions, staffMember } from "../../../staff/fixtures";
 import Decorator from "../../Decorator";
 
-const props: StaffDetailsPageProps = {
+const props: Omit<StaffDetailsPageProps, "classes"> = {
   disabled: false,
   onBack: () => undefined,
   onDelete: () => undefined,

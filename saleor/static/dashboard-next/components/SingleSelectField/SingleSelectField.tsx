@@ -3,18 +3,18 @@ import FormHelperText from "@material-ui/core/FormHelperText";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import Select, { SelectProps } from "@material-ui/core/Select";
-import { withStyles } from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
 import i18n from "../../i18n";
 
-const decorate = withStyles({
+const styles = createStyles({
   formControl: {
     width: "100%"
   }
 });
 
-interface SingleSelectFieldProps {
+interface SingleSelectFieldProps extends WithStyles<typeof styles> {
   choices: Array<{
     value: string;
     label: string | React.ReactNode;
@@ -29,7 +29,9 @@ interface SingleSelectFieldProps {
   onChange(event: any);
 }
 
-export const SingleSelectField = decorate<SingleSelectFieldProps>(
+export const SingleSelectField = withStyles(styles, {
+  name: "SingleSelectField"
+})(
   ({
     classes,
     disabled,
@@ -41,7 +43,7 @@ export const SingleSelectField = decorate<SingleSelectFieldProps>(
     name,
     hint,
     selectProps
-  }) => {
+  }: SingleSelectFieldProps) => {
     const choicesByKey: { [key: string]: string } =
       choices === undefined
         ? {}

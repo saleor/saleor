@@ -3,7 +3,7 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import { withStyles } from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
 import ConfirmButton, {
@@ -20,7 +20,13 @@ export interface FormData {
   };
 }
 
-interface CollectionAssignProductDialogProps {
+const styles = createStyles({
+  overflow: {
+    overflowY: "visible"
+  }
+});
+
+interface CollectionAssignProductDialogProps extends WithStyles<typeof styles> {
   confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
   products: Array<{
@@ -33,23 +39,15 @@ interface CollectionAssignProductDialogProps {
   onSubmit: (data: FormData) => void;
 }
 
-const decorate = withStyles(
-  {
-    overflow: {
-      overflowY: "visible" as "visible"
-    }
-  },
-  { name: "OrderProductAddDialog" }
-);
 const initialForm: FormData = {
   product: {
     label: "",
     value: ""
   }
 };
-const CollectionAssignProductDialog = decorate<
-  CollectionAssignProductDialogProps
->(
+const CollectionAssignProductDialog = withStyles(styles, {
+  name: "CollectionAssignProductDialog"
+})(
   ({
     classes,
     confirmButtonState,
@@ -59,7 +57,7 @@ const CollectionAssignProductDialog = decorate<
     fetch,
     onClose,
     onSubmit
-  }) => (
+  }: CollectionAssignProductDialogProps) => (
     <Dialog
       open={open}
       classes={{ paper: classes.overflow }}
