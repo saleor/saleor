@@ -27,11 +27,11 @@ export const ConfirmFormLeaveDialog = decorate(({ classes }) => (
       <NavigationPrompt renderIfNotActive={true} when={hasFormChanged}>
         {({ isActive, onCancel, onConfirm }) => (
           <Dialog open={isActive}>
-            <DialogTitle>{i18n.t("There are unsaved changes")}</DialogTitle>
+            <DialogTitle>{i18n.t("Unsaved changes")}</DialogTitle>
             <DialogContent>
               <DialogContentText>
                 {i18n.t(
-                  "If you leave this page, unsaved changed will be lost. Are you sure you want to leave?",
+                  "If you leave this page, unsaved changes will be lost. Are you sure you want to leave?",
                   {
                     context: "form leave confirmation"
                   }
