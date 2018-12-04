@@ -14,8 +14,7 @@ import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import i18n from "../../../i18n";
-import { maybe, renderCollection } from "../../../misc";
-import { transformPaymentStatus } from "../../../orders";
+import { maybe, renderCollection, transformPaymentStatus } from "../../../misc";
 import { CustomerDetails_user_orders_edges_node } from "../../types/CustomerDetails";
 
 export interface CustomerOrdersProps {
@@ -109,10 +108,7 @@ const CustomerOrders = decorate<CustomerOrdersProps>(
                   </TableCell>
                   <TableCell className={classes.textRight} padding="dense">
                     {maybe(() => order.total.gross) ? (
-                      <Money
-                        amount={order.total.gross.amount}
-                        currency={order.total.gross.currency}
-                      />
+                      <Money money={order.total.gross} />
                     ) : (
                       <Skeleton />
                     )}

@@ -5,14 +5,13 @@ import CardContent from "@material-ui/core/CardContent";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import { transformPaymentStatus } from "../..";
 import CardTitle from "../../../components/CardTitle";
 import { Hr } from "../../../components/Hr";
 import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
+import { maybe, transformPaymentStatus } from "../../../misc";
 import { OrderAction, OrderStatus } from "../../../types/globalTypes";
 import { OrderDetails_order } from "../../types/OrderDetails";
 
@@ -81,7 +80,7 @@ const OrderPayment = decorate<OrderPaymentProps>(
                   {maybe(() => order.subtotal.gross) === undefined ? (
                     <Skeleton />
                   ) : (
-                    <Money {...order.subtotal.gross} />
+                    <Money money={order.subtotal.gross} />
                   )}
                 </td>
               </tr>
@@ -100,7 +99,7 @@ const OrderPayment = decorate<OrderPaymentProps>(
                   {maybe(() => order.total.tax) === undefined ? (
                     <Skeleton />
                   ) : (
-                    <Money {...order.total.tax} />
+                    <Money money={order.total.tax} />
                   )}
                 </td>
               </tr>
@@ -120,7 +119,7 @@ const OrderPayment = decorate<OrderPaymentProps>(
                   {maybe(() => order.shippingPrice.gross) === undefined ? (
                     <Skeleton />
                   ) : (
-                    <Money {...order.shippingPrice.gross} />
+                    <Money money={order.shippingPrice.gross} />
                   )}
                 </td>
               </tr>
@@ -131,7 +130,7 @@ const OrderPayment = decorate<OrderPaymentProps>(
                   {maybe(() => order.total.gross) === undefined ? (
                     <Skeleton />
                   ) : (
-                    <Money {...order.total.gross} />
+                    <Money money={order.total.gross} />
                   )}
                 </td>
               </tr>

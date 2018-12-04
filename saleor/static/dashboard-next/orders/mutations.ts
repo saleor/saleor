@@ -59,6 +59,10 @@ const orderCancelMutation = gql`
   ${fragmentOrderDetails}
   mutation OrderCancel($id: ID!, $restock: Boolean!) {
     orderCancel(id: $id, restock: $restock) {
+      errors {
+        field
+        message
+      }
       order {
         ...OrderDetailsFragment
       }
@@ -74,6 +78,10 @@ const orderDraftCancelMutation = gql`
   ${fragmentOrderDetails}
   mutation OrderDraftCancel($id: ID!) {
     draftOrderDelete(id: $id) {
+      errors {
+        field
+        message
+      }
       order {
         ...OrderDetailsFragment
       }
@@ -127,6 +135,10 @@ const orderVoidMutation = gql`
   ${fragmentOrderDetails}
   mutation OrderVoid($id: ID!) {
     orderVoid(id: $id) {
+      errors {
+        field
+        message
+      }
       order {
         ...OrderDetailsFragment
       }
@@ -349,6 +361,10 @@ export const TypedOrderShippingMethodUpdateMutation = TypedMutation<
 const orderDraftCreateMutation = gql`
   mutation OrderDraftCreate {
     draftOrderCreate(input: {}) {
+      errors {
+        field
+        message
+      }
       order {
         id
       }

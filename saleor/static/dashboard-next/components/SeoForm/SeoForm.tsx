@@ -162,4 +162,5 @@ const SeoForm = decorate<SeoFormProps>(
     </Toggle>
   )
 );
+SeoForm.displayName = "SeoForm";
 export default SeoForm;

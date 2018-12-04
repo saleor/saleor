@@ -28,6 +28,21 @@ def convert_field_measurements(field, registry=None):
 
 
 class PrefetchingConnectionField(DjangoConnectionField):
+    @classmethod
+    def connection_resolver(
+            cls, resolver, connection, default_manager, max_limit,
+            enforce_first_or_last, root, info, **args):
+
+        # Disable `enforce_first_or_last` if not querying for `edges`.
+        values = [
+            field.name.value
+            for field in info.field_asts[0].selection_set.selections]
+        if 'edges' not in values:
+            enforce_first_or_last = False
+
+        return super().connection_resolver(
+            resolver, connection, default_manager, max_limit,
+            enforce_first_or_last, root, info, **args)
 
     @classmethod
     def resolve_connection(cls, connection, default_manager, args, iterable):

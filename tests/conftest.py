@@ -593,7 +593,8 @@ def permission_manage_pages():
 @pytest.fixture
 def collection(db):
     collection = Collection.objects.create(
-        name='Collection', slug='collection', is_published=True)
+        name='Collection', slug='collection', is_published=True,
+        description='Test description')
     return collection
 
 

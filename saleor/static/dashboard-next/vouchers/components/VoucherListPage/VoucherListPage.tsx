@@ -3,10 +3,10 @@ import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
 import { VoucherType } from "../..";
-import { PageListProps } from "../../..";
 import { Container } from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
+import { PageListProps } from "../../../types";
 import VoucherList from "../VoucherList/VoucherList";
 
 interface VoucherListPageProps extends PageListProps {

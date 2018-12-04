@@ -8,6 +8,7 @@ import { compareTwoStrings } from "string-similarity";
 
 import i18n from "../../i18n";
 import ArrowDropdownIcon from "../../icons/ArrowDropdown";
+import Debounce, { DebounceProps } from "../Debounce";
 
 interface SingleAutocompleteSelectFieldProps {
   name: string;
@@ -53,6 +54,10 @@ const decorate = withStyles(theme => ({
   }
 }));
 
+const DebounceAutocomplete: React.ComponentType<
+  DebounceProps<string>
+> = Debounce;
+
 const SingleAutocompleteSelectFieldComponent = decorate<
   SingleAutocompleteSelectFieldProps
 >(
@@ -73,83 +78,88 @@ const SingleAutocompleteSelectFieldComponent = decorate<
     const handleChange = item => onChange({ target: { name, value: item } });
 
     return (
-      <Downshift
-        selectedItem={value}
-        itemToString={item => (item ? item.label : "")}
-        onSelect={handleChange}
-        onInputValueChange={fetchChoices}
-      >
-        {({
-          getInputProps,
-          getItemProps,
-          isOpen,
-          inputValue,
-          selectedItem,
-          highlightedIndex
-        }) => {
-          const isCustom =
-            choices && selectedItem
-              ? choices.filter(c => c.value === selectedItem.value).length === 0
-              : false;
-          return (
-            <div className={classes.container}>
-              <TextField
-                InputProps={{
-                  classes: {
-                    root: classes.inputRoot
-                  },
-                  ...getInputProps({
-                    placeholder
-                  }),
-                  endAdornment: <ArrowDropdownIcon />
-                }}
-                disabled={disabled}
-                helperText={helperText}
-                label={label}
-                fullWidth={true}
-              />
-              {isOpen && (
-                <Paper className={classes.paper} square>
-                  {loading ? (
-                    <MenuItem disabled={true} component="div">
-                      {i18n.t("Loading...")}
-                    </MenuItem>
-                  ) : choices.length > 0 || custom ? (
-                    <>
-                      {choices.map((suggestion, index) => (
-                        <MenuItem
-                          key={JSON.stringify(suggestion)}
-                          selected={highlightedIndex === index}
-                          component="div"
-                          {...getItemProps({ item: suggestion })}
-                        >
-                          {suggestion.label}
+      <DebounceAutocomplete debounceFn={fetchChoices}>
+        {debounceFn => (
+          <Downshift
+            selectedItem={value}
+            itemToString={item => (item ? item.label : "")}
+            onSelect={handleChange}
+            onInputValueChange={value => debounceFn(value)}
+          >
+            {({
+              getInputProps,
+              getItemProps,
+              isOpen,
+              inputValue,
+              selectedItem,
+              highlightedIndex
+            }) => {
+              const isCustom =
+                choices && selectedItem
+                  ? choices.filter(c => c.value === selectedItem.value)
+                      .length === 0
+                  : false;
+              return (
+                <div className={classes.container}>
+                  <TextField
+                    InputProps={{
+                      classes: {
+                        root: classes.inputRoot
+                      },
+                      ...getInputProps({
+                        placeholder
+                      }),
+                      endAdornment: <ArrowDropdownIcon />
+                    }}
+                    disabled={disabled}
+                    helperText={helperText}
+                    label={label}
+                    fullWidth={true}
+                  />
+                  {isOpen && (
+                    <Paper className={classes.paper} square>
+                      {loading ? (
+                        <MenuItem disabled={true} component="div">
+                          {i18n.t("Loading...")}
                         </MenuItem>
-                      ))}
-                      {custom && (
-                        <MenuItem
-                          key={"customValue"}
-                          selected={isCustom}
-                          component="div"
-                          {...getItemProps({
-                            item: { label: inputValue, value: inputValue }
-                          })}
-                        >
-                          {i18n.t("Add custom value")}
+                      ) : choices.length > 0 || custom ? (
+                        <>
+                          {choices.map((suggestion, index) => (
+                            <MenuItem
+                              key={JSON.stringify(suggestion)}
+                              selected={highlightedIndex === index}
+                              component="div"
+                              {...getItemProps({ item: suggestion })}
+                            >
+                              {suggestion.label}
+                            </MenuItem>
+                          ))}
+                          {custom && (
+                            <MenuItem
+                              key={"customValue"}
+                              selected={isCustom}
+                              component="div"
+                              {...getItemProps({
+                                item: { label: inputValue, value: inputValue }
+                              })}
+                            >
+                              {i18n.t("Add custom value")}
+                            </MenuItem>
+                          )}
+                        </>
+                      ) : (
+                        <MenuItem disabled={true} component="div">
+                          {i18n.t("No results found")}
                         </MenuItem>
                       )}
-                    </>
-                  ) : (
-                    <MenuItem disabled={true} component="div">
-                      {i18n.t("No results found")}
-                    </MenuItem>
+                    </Paper>
                   )}
-                </Paper>
-              )}
-            </div>
-          );
-        }}
-      </Downshift>
+                </div>
+              );
+            }}
+          </Downshift>
+        )}
+      </DebounceAutocomplete>
     );
   }
 );

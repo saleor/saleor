@@ -8,6 +8,7 @@ storiesOf("Orders / OrderFulfillmentTrackingDialog", module)
   .addDecorator(Decorator)
   .add("default", () => (
     <OrderFulfillmentTrackingDialog
+      confirmButtonState="default"
       open={true}
       trackingNumber="21kn7526v1"
       onConfirm={undefined}

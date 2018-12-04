@@ -88,10 +88,7 @@ const OrderUnfulfilledItems = decorate<OrderUnfulfilledItemsProps>(
               </TableCell>
               <TableCell className={classes.textRight}>
                 {maybe(() => line.unitPrice.gross) ? (
-                  <Money
-                    amount={line.unitPrice.gross.amount}
-                    currency={line.unitPrice.gross.currency}
-                  />
+                  <Money money={line.unitPrice.gross} />
                 ) : (
                   <Skeleton />
                 )}
@@ -103,11 +100,12 @@ const OrderUnfulfilledItems = decorate<OrderUnfulfilledItemsProps>(
                     line.unitPrice.gross.amount
                 ) ? (
                   <Money
-                    amount={
-                      (line.quantity - line.quantityFulfilled) *
-                      line.unitPrice.gross.amount
-                    }
-                    currency={line.unitPrice.gross.currency}
+                    money={{
+                      amount:
+                        (line.quantity - line.quantityFulfilled) *
+                        line.unitPrice.gross.amount,
+                      currency: line.unitPrice.gross.currency
+                    }}
                   />
                 ) : (
                   <Skeleton />

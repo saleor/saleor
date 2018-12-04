@@ -106,4 +106,5 @@ TablePagination.defaultProps = {
   component: TableCell
 };
 
+TablePagination.displayName = "TablePagination";
 export default TablePagination;

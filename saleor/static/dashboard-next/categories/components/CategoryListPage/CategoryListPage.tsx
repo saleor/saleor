@@ -49,4 +49,5 @@ export const CategoryListPage = decorate<CategoryTableProps>(
     );
   }
 );
+CategoryListPage.displayName = "CategoryListPage";
 export default CategoryListPage;

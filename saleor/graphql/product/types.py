@@ -42,6 +42,28 @@ class StockAvailability(graphene.Enum):
     OUT_OF_STOCK = 'OUT_OF_STOCK'
 
 
+class ProductOrderField(graphene.Enum):
+    NAME = 'name'
+    PRICE = 'price'
+
+    @property
+    def description(self):
+        if self == ProductOrderField.NAME:
+            return 'Sort products by name.'
+        return 'Sort products by price.'
+
+
+class OrderDirection(graphene.Enum):
+    ASC = ''
+    DESC = '-'
+
+    @property
+    def description(self):
+        if self == OrderDirection.ASC:
+            return 'Specifies an ascending sort order.'
+        return 'Specifies a descending sort order.'
+
+
 def resolve_attribute_list(attributes_hstore, attributes_qs):
     """Resolve attributes dict into a list of `SelectedAttribute`s.
     keys = list(attributes.keys())
@@ -57,10 +79,13 @@ def resolve_attribute_list(attributes_hstore, attributes_qs):
         for val in attr.values.all():
             values_map[val.pk] = val
 
-    attributes_list = [SelectedAttribute(
-        attribute=attributes_map.get(int(k)),
-        value=values_map.get(int(v)))
-        for k, v in attributes_hstore.items()]
+    attributes_list = []
+    for k, v in attributes_hstore.items():
+        attribute = attributes_map.get(int(k))
+        value = values_map.get(int(v))
+        if attribute and value:
+            attributes_list.append(
+                SelectedAttribute(attribute=attribute, value=value))
     return attributes_list
 
 
@@ -116,13 +141,23 @@ class Margin(graphene.ObjectType):
 
 class SelectedAttribute(graphene.ObjectType):
     attribute = graphene.Field(
-        Attribute, default_value=None, description=AttributeDescriptions.NAME)
+        Attribute, default_value=None, description=AttributeDescriptions.NAME,
+        required=True)
     value = graphene.Field(
-        AttributeValue,
-        default_value=None, description='Value of an attribute.')
+        AttributeValue, default_value=None,
+        description='Value of an attribute.', required=True)
 
     class Meta:
         description = 'Represents a custom attribute.'
+
+
+class ProductOrder(graphene.InputObjectType):
+    field = graphene.Argument(
+        ProductOrderField, required=True,
+        description='Sort products by the selected field.')
+    direction = graphene.Argument(
+        OrderDirection, required=True,
+        description='Specifies the direction in which to sort products')
 
 
 class ProductVariant(CountableDjangoObjectType):
@@ -147,11 +182,16 @@ class ProductVariant(CountableDjangoObjectType):
         period of time. Note: this field should be queried using
         `reportProductSales` query as it uses optimizations suitable
         for such calculations.'''))
+    images = gql_optimizer.field(
+        graphene.List(
+            lambda: ProductImage,
+            description='List of images for the product variant'),
+        model_field='images')
 
     class Meta:
         description = dedent("""Represents a version of a product such as
         different size or color.""")
-        exclude_fields = ['variant_images']
+        exclude_fields = ['order_lines', 'variant_images']
         interfaces = [relay.Node]
         model = models.ProductVariant
 
@@ -184,6 +224,9 @@ class ProductVariant(CountableDjangoObjectType):
     def resolve_revenue(self, info, period):
         start_date = reporting_period_to_date(period)
         return calculate_revenue_for_variant(self, start_date)
+
+    def resolve_images(self, info):
+        return self.images.all()
 
 
 class ProductAvailability(graphene.ObjectType):
@@ -231,7 +274,7 @@ class Product(CountableDjangoObjectType):
         description=dedent("""The product's base price (without any discounts
         applied)."""))
     attributes = graphene.List(
-        SelectedAttribute,
+        graphene.NonNull(SelectedAttribute), required=True,
         description='List of attributes assigned to this product.')
     purchase_cost = graphene.Field(MoneyRange)
     margin = graphene.Field(Margin)
@@ -241,15 +284,26 @@ class Product(CountableDjangoObjectType):
             graphene.ID, description='ID of a product image.'),
         description='Get a single product image by ID')
     variants = gql_optimizer.field(
-        PrefetchingConnectionField(ProductVariant), model_field='variants')
+        graphene.List(
+            ProductVariant, description='List of variants for the product'),
+        model_field='variants')
     images = gql_optimizer.field(
-        PrefetchingConnectionField(lambda: ProductImage), model_field='images')
+        graphene.List(
+            lambda: ProductImage,
+            description='List of images for the product'),
+        model_field='images')
+    collections = gql_optimizer.field(
+        graphene.List(
+            lambda: Collection,
+            description='List of collections for the product'),
+        model_field='collections')
 
     class Meta:
         description = dedent("""Represents an individual item for sale in the
         storefront.""")
         interfaces = [relay.Node]
         model = models.Product
+        exclude_fields = ['voucher_set', 'sale_set']
 
     @gql_optimizer.resolver_hints(prefetch_related='images')
     def resolve_thumbnail_url(self, info, *, size=None):
@@ -299,6 +353,9 @@ class Product(CountableDjangoObjectType):
 
     def resolve_variants(self, info, **kwargs):
         return self.variants.all()
+
+    def resolve_collections(self, info):
+        return self.collections.all()
 
 
 def prefetch_products(info, *args, **kwargs):
@@ -375,15 +432,15 @@ class Collection(CountableDjangoObjectType):
 
 
 class Category(CountableDjangoObjectType):
+    ancestors = PrefetchingConnectionField(
+        lambda: Category,
+        description='List of ancestors of the category.')
     products = gql_optimizer.field(
         PrefetchingConnectionField(
             Product, description='List of products in the category.'),
         prefetch_related=prefetch_products)
     url = graphene.String(
         description='The storefront\'s URL for the category.')
-    ancestors = PrefetchingConnectionField(
-        lambda: Category,
-        description='List of ancestors of the category.')
     children = PrefetchingConnectionField(
         lambda: Category,
         description='List of children of the category.')

@@ -1,3 +1,4 @@
+import { transformOrderStatus, transformPaymentStatus } from "../misc";
 import {
   FulfillmentStatus,
   OrderAction,
@@ -5,7 +6,6 @@ import {
   OrderStatus,
   PaymentChargeStatusEnum
 } from "../types/globalTypes";
-import { transformOrderStatus, transformPaymentStatus } from "./";
 import { OrderDetails_order } from "./types/OrderDetails";
 import { OrderList_orders_edges_node } from "./types/OrderList";
 import { UserSearch_customers_edges_node } from "./types/UserSearch";
@@ -796,6 +796,7 @@ export const order = (placeholder: string): OrderDetails_order => ({
     streetAddress2: ""
   },
   created: "2018-09-11T09:37:28.185874+00:00",
+  customerNote: "Lorem ipsum dolor sit amet",
   events: [
     {
       __typename: "OrderEvent",
@@ -818,41 +819,35 @@ export const order = (placeholder: string): OrderDetails_order => ({
       __typename: "Fulfillment",
       fulfillmentOrder: 2,
       id: "RnVsZmlsbG1lbnQ6MjQ=",
-      lines: {
-        __typename: "FulfillmentLineCountableConnection",
-        edges: [
-          {
-            __typename: "FulfillmentLineCountableEdge",
-            node: {
-              __typename: "FulfillmentLine",
-              id: "RnVsZmlsbG1lbnRMaW5lOjM5",
-              orderLine: {
-                __typename: "OrderLine",
-                id: "T3JkZXJMaW5lOjIz",
-                productName: "Williams, Garcia and Walker (XS)",
-                productSku: "5-1337",
-                quantity: 2,
-                quantityFulfilled: 2,
-                thumbnailUrl: placeholder,
-                unitPrice: {
-                  __typename: "TaxedMoney",
-                  gross: {
-                    __typename: "Money",
-                    amount: 79.71,
-                    currency: "USD"
-                  },
-                  net: {
-                    __typename: "Money",
-                    amount: 79.71,
-                    currency: "USD"
-                  }
-                }
+      lines: [
+        {
+          __typename: "FulfillmentLine",
+          id: "RnVsZmlsbG1lbnRMaW5lOjM5",
+          orderLine: {
+            __typename: "OrderLine",
+            id: "T3JkZXJMaW5lOjIz",
+            productName: "Williams, Garcia and Walker (XS)",
+            productSku: "5-1337",
+            quantity: 2,
+            quantityFulfilled: 2,
+            thumbnailUrl: placeholder,
+            unitPrice: {
+              __typename: "TaxedMoney",
+              gross: {
+                __typename: "Money",
+                amount: 79.71,
+                currency: "USD"
               },
-              quantity: 1
+              net: {
+                __typename: "Money",
+                amount: 79.71,
+                currency: "USD"
+              }
             }
-          }
-        ]
-      },
+          },
+          quantity: 1
+        }
+      ],
       status: FulfillmentStatus.FULFILLED,
       trackingNumber: ""
     },
@@ -860,41 +855,35 @@ export const order = (placeholder: string): OrderDetails_order => ({
       __typename: "Fulfillment",
       fulfillmentOrder: 1,
       id: "RnVsZmlsbG1lbnQ6OQ==",
-      lines: {
-        __typename: "FulfillmentLineCountableConnection",
-        edges: [
-          {
-            __typename: "FulfillmentLineCountableEdge",
-            node: {
-              __typename: "FulfillmentLine",
-              id: "RnVsZmlsbG1lbnRMaW5lOjE1",
-              orderLine: {
-                __typename: "OrderLine",
-                id: "T3JkZXJMaW5lOjIz",
-                productName: "Williams, Garcia and Walker (XS)",
-                productSku: "5-1337",
-                quantity: 2,
-                quantityFulfilled: 2,
-                thumbnailUrl: placeholder,
-                unitPrice: {
-                  __typename: "TaxedMoney",
-                  gross: {
-                    __typename: "Money",
-                    amount: 79.71,
-                    currency: "USD"
-                  },
-                  net: {
-                    __typename: "Money",
-                    amount: 79.71,
-                    currency: "USD"
-                  }
-                }
+      lines: [
+        {
+          __typename: "FulfillmentLine",
+          id: "RnVsZmlsbG1lbnRMaW5lOjE1",
+          orderLine: {
+            __typename: "OrderLine",
+            id: "T3JkZXJMaW5lOjIz",
+            productName: "Williams, Garcia and Walker (XS)",
+            productSku: "5-1337",
+            quantity: 2,
+            quantityFulfilled: 2,
+            thumbnailUrl: placeholder,
+            unitPrice: {
+              __typename: "TaxedMoney",
+              gross: {
+                __typename: "Money",
+                amount: 79.71,
+                currency: "USD"
               },
-              quantity: 1
+              net: {
+                __typename: "Money",
+                amount: 79.71,
+                currency: "USD"
+              }
             }
-          }
-        ]
-      },
+          },
+          quantity: 1
+        }
+      ],
       status: FulfillmentStatus.FULFILLED,
       trackingNumber: ""
     }
@@ -1018,6 +1007,7 @@ export const draftOrder = (placeholder: string) => ({
   availableShippingMethods: null,
   billingAddress: null,
   created: "2018-09-20T23:23:39.811428+00:00",
+  customerNote: "Lorem ipsum dolor sit",
   events: [],
   fulfillments: [],
   id: "T3JkZXI6MjQ=",

@@ -47,4 +47,5 @@ const PhoneField = decorate<PhoneFieldProps>(
     </div>
   )
 );
+PhoneField.displayName = "PhoneField";
 export default PhoneField;

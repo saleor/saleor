@@ -18,7 +18,6 @@ const order = draftOrder(placeholderImage);
 const props: OrderDraftPageProps = {
   countries,
   disabled: false,
-  errors: [],
   fetchUsers: () => undefined,
   fetchVariants: () => undefined,
   onBack: () => undefined,
@@ -34,6 +33,7 @@ const props: OrderDraftPageProps = {
   onShippingAddressEdit: undefined,
   onShippingMethodEdit: undefined,
   order,
+  saveButtonBarState: "default",
   users: clients,
   usersLoading: false,
   variants,

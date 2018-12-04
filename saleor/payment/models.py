@@ -142,6 +142,9 @@ class Payment(models.Model):
             and self.get_total() > self.get_captured_amount())
         return self.is_active and not_charged or not_fully_charged
 
+    def can_charge(self):
+        return self.can_capture()
+
     def can_void(self):
         return (
             self.is_active and self.charge_status == ChargeStatus.NOT_CHARGED)

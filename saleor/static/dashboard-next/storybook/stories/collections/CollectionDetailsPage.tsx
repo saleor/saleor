@@ -25,7 +25,8 @@ const props: CollectionDetailsPageProps = {
   onImageDelete: () => undefined,
   onImageUpload: () => undefined,
   onProductUnassign: () => undefined,
-  onSubmit: () => undefined
+  onSubmit: () => undefined,
+  saveButtonBarState: "default"
 };
 
 storiesOf("Views / Collections / Collection details", module)

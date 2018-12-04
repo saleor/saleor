@@ -1,18 +1,17 @@
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import { UserError } from "../../../";
 import { CardSpacer } from "../../../components/CardSpacer";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
 import SeoForm from "../../../components/SeoForm";
 import i18n from "../../../i18n";
+import { UserError } from "../../../types";
 import CategoryDetailsForm from "../../components/CategoryDetailsForm";
 
-import SaveButtonBar, {
-  SaveButtonBarState
-} from "../../../components/SaveButtonBar/SaveButtonBar";
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
+import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
 
 interface FormData {
   description: string;
@@ -31,7 +30,7 @@ const initialData: FormData = {
 export interface CategoryCreatePageProps {
   errors: UserError[];
   disabled: boolean;
-  saveButtonBarState?: SaveButtonBarState;
+  saveButtonBarState: ConfirmButtonTransitionState;
   onSubmit(data: FormData);
   onBack();
 }
@@ -82,4 +81,5 @@ export const CategoryCreatePage = decorate<CategoryCreatePageProps>(
     );
   }
 );
+CategoryCreatePage.displayName = "CategoryCreatePage";
 export default CategoryCreatePage;

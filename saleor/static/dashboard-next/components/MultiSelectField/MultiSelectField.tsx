@@ -103,4 +103,5 @@ MultiSelectField.defaultProps = {
   value: []
 };
 
+MultiSelectField.displayName = "MultiSelectField";
 export default MultiSelectField;

@@ -7,6 +7,9 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
+import ConfirmButton, {
+  ConfirmButtonTransitionState
+} from "../../../components/ConfirmButton/ConfirmButton";
 import ControlledCheckbox from "../../../components/ControlledCheckbox";
 import Form from "../../../components/Form";
 import i18n from "../../../i18n";
@@ -15,6 +18,7 @@ export interface FormData {
   restock: boolean;
 }
 interface OrderCancelDialogProps {
+  confirmButtonState: ConfirmButtonTransitionState;
   number: string;
   open: boolean;
   onClose?();
@@ -34,18 +38,27 @@ const decorate = withStyles(
   { name: "OrderCancelDialog" }
 );
 const OrderCancelDialog = decorate<OrderCancelDialogProps>(
-  ({ classes, number: orderNumber, open, onSubmit, onClose }) => (
+  ({
+    classes,
+    confirmButtonState,
+    number: orderNumber,
+    open,
+    onSubmit,
+    onClose
+  }) => (
     <Dialog open={open}>
       <Form
         initial={{
-          restock: true,
+          restock: true
         }}
         onSubmit={onSubmit}
       >
         {({ data, change }) => {
           return (
             <>
-              <DialogTitle>{i18n.t("Cancel order", { context: "title" })}</DialogTitle>
+              <DialogTitle>
+                {i18n.t("Cancel order", { context: "title" })}
+              </DialogTitle>
               <DialogContent>
                 <DialogContentText
                   dangerouslySetInnerHTML={{
@@ -57,7 +70,7 @@ const OrderCancelDialog = decorate<OrderCancelDialogProps>(
                 />
                 <ControlledCheckbox
                   checked={data.restock}
-                  label={i18n.t("Restock")}
+                  label={i18n.t("Release all stock allocated to this order")}
                   name="restock"
                   onChange={change}
                 />
@@ -66,13 +79,14 @@ const OrderCancelDialog = decorate<OrderCancelDialogProps>(
                 <Button onClick={onClose}>
                   {i18n.t("Back", { context: "button" })}
                 </Button>
-                <Button
+                <ConfirmButton
+                  transitionState={confirmButtonState}
                   className={classes.deleteButton}
                   variant="raised"
                   type="submit"
                 >
                   {i18n.t("Cancel order", { context: "button" })}
-                </Button>
+                </ConfirmButton>
               </DialogActions>
             </>
           );
@@ -81,4 +95,5 @@ const OrderCancelDialog = decorate<OrderCancelDialogProps>(
     </Dialog>
   )
 );
+OrderCancelDialog.displayName = "OrderCancelDialog";
 export default OrderCancelDialog;

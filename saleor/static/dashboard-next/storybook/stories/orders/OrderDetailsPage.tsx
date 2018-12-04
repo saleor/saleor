@@ -17,7 +17,6 @@ const order = orderFixture(placeholderImage);
 
 const props: OrderDetailsPageProps = {
   countries,
-  errors: [],
   onBack: () => undefined,
   onBillingAddressEdit: undefined,
   onFulfillmentCancel: () => undefined,
@@ -138,6 +137,15 @@ storiesOf("Views / Orders / Order details", module)
       order={{
         ...props.order,
         shippingAddress: null
+      }}
+    />
+  ))
+  .add("no customer note", () => (
+    <OrderDetailsPage
+      {...props}
+      order={{
+        ...props.order,
+        customerNote: ""
       }}
     />
   ));

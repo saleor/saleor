@@ -2,6 +2,7 @@ import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
@@ -26,6 +27,7 @@ export interface SiteSettingsPageProps {
     message: string;
   }>;
   shop: SiteSettings_shop;
+  saveButtonBarState: ConfirmButtonTransitionState;
   onBack: () => void;
   onKeyAdd: () => void;
   onKeyRemove: (keyType: AuthorizationKeyType) => void;
@@ -45,6 +47,7 @@ const SiteSettingsPage = decorate<SiteSettingsPageProps>(
     classes,
     disabled,
     errors,
+    saveButtonBarState,
     shop,
     onBack,
     onKeyAdd,
@@ -57,12 +60,7 @@ const SiteSettingsPage = decorate<SiteSettingsPageProps>(
       name: maybe(() => shop.name, "")
     };
     return (
-      <Form
-        errors={errors}
-        initial={initialForm}
-        onSubmit={onSubmit}
-        key={JSON.stringify(shop)}
-      >
+      <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
         {({ change, data, errors: formErrors, hasChanged, submit }) => (
           <Container width="md">
             <PageHeader
@@ -89,6 +87,7 @@ const SiteSettingsPage = decorate<SiteSettingsPageProps>(
               />
             </div>
             <SaveButtonBar
+              state={saveButtonBarState}
               disabled={disabled || !hasChanged}
               onCancel={onBack}
               onSave={submit}

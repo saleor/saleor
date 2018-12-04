@@ -101,4 +101,5 @@ export const ConfigurationPage = decorate<ConfigurationPageProps>(
     </Container>
   )
 );
+ConfigurationPage.displayName = "ConfigurationPage";
 export default ConfigurationPage;

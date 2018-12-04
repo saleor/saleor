@@ -121,7 +121,7 @@ def test_create_fake_order(db, monkeypatch, product_image):
         pass
     for _ in random_data.create_users(3):
         pass
-        random_data.create_products_by_schema('/', 10, False)
+        random_data.create_products_by_schema('/', 10)
     how_many = 5
     for _ in random_data.create_orders(how_many):
         pass

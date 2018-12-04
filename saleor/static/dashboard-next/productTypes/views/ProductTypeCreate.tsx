@@ -1,8 +1,8 @@
 import * as React from "react";
 import Navigator from "../../components/Navigator";
 
-import { productTypeDetailsUrl, productTypeListUrl } from "..";
 import Messages from "../../components/messages";
+import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
 import ProductTypeCreatePage, {
@@ -11,6 +11,7 @@ import ProductTypeCreatePage, {
 import { TypedProductTypeCreateMutation } from "../mutations";
 import { TypedProductTypeCreateDataQuery } from "../queries";
 import { ProductTypeCreate as ProductTypeCreateMutation } from "../types/ProductTypeCreate";
+import { productTypeListUrl, productTypeUrl } from "../urls";
 
 export const ProductTypeCreate: React.StatelessComponent = () => (
   <Messages>
@@ -25,9 +26,7 @@ export const ProductTypeCreate: React.StatelessComponent = () => (
                 text: i18n.t("Successfully created product type")
               });
               navigate(
-                productTypeDetailsUrl(
-                  updateData.productTypeCreate.productType.id
-                )
+                productTypeUrl(updateData.productTypeCreate.productType.id)
               );
             }
           };
@@ -50,27 +49,30 @@ export const ProductTypeCreate: React.StatelessComponent = () => (
                     }
                   });
                 return (
-                  <TypedProductTypeCreateDataQuery>
+                  <TypedProductTypeCreateDataQuery displayLoader>
                     {({ data, loading }) => (
-                      <ProductTypeCreatePage
-                        defaultWeightUnit={maybe(
-                          () => data.shop.defaultWeightUnit
-                        )}
-                        disabled={loadingCreate || loading}
-                        errors={
-                          createProductTypeData
-                            ? createProductTypeData.productTypeCreate.errors
-                            : undefined
-                        }
-                        pageTitle={i18n.t("Create Product Type", {
-                          context: "page title"
-                        })}
-                        saveButtonBarState={
-                          loadingCreate ? "loading" : "default"
-                        }
-                        onBack={() => navigate(productTypeListUrl)}
-                        onSubmit={handleCreate}
-                      />
+                      <>
+                        <WindowTitle title={i18n.t("Create product type")} />
+                        <ProductTypeCreatePage
+                          defaultWeightUnit={maybe(
+                            () => data.shop.defaultWeightUnit
+                          )}
+                          disabled={loadingCreate || loading}
+                          errors={
+                            createProductTypeData
+                              ? createProductTypeData.productTypeCreate.errors
+                              : undefined
+                          }
+                          pageTitle={i18n.t("Create Product Type", {
+                            context: "page title"
+                          })}
+                          saveButtonBarState={
+                            loadingCreate ? "loading" : "default"
+                          }
+                          onBack={() => navigate(productTypeListUrl)}
+                          onSubmit={handleCreate}
+                        />
+                      </>
                     )}
                   </TypedProductTypeCreateDataQuery>
                 );

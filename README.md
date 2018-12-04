@@ -63,7 +63,7 @@ Saleor is a rapidly-growing open source e-commerce platform that has served high
 - __Dashboard__: Administrators have total control of users, processes and products
 - __Orders__: A comprehensive system for orders, dispatch and refunds
 - __Cart__: Advanced payment and tax options, with full control over discounts and promotions
-- __Payments__: Flexible API architecture allows integration of any payment method. Comes with Braintree support our of the box.
+- __Payments__: Flexible API architecture allows integration of any payment method. Comes with Braintree support out of the box.
 - __Geo-adaptive__: Automatic localized pricing. Over 20 local languages. Localized checkout experience by country.
 - __SEO__: Packed with features that get stores to a wider audience
 - __Cloud__: Optimized for deployments using Docker
@@ -97,7 +97,9 @@ Login credentials: `admin@example.com`/`admin`
 
 
 ## PWA Storefront
-The PWA, single-page storefront is available in a separate repository: [see it here](https://github.com/mirumee/saleor-storefront)!
+The PWA, single-page storefront lives in a [separate repository](https://github.com/mirumee/saleor-storefront).
+
+[View PWA Storefront](https://pwa.getsaleor.com/)
 
 
 ## Contributing

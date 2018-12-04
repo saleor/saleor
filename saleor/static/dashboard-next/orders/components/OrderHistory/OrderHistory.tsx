@@ -127,11 +127,7 @@ const OrderHistory = decorate<OrderHistoryProps>(
       />
       {history ? (
         <Timeline>
-          <Form
-            initial={{ message: "" }}
-            onSubmit={onNoteAdd}
-            key={JSON.stringify(history)}
-          >
+          <Form initial={{ message: "" }} onSubmit={onNoteAdd}>
             {({ change, data, submit }) => (
               <TimelineAddNote
                 message={data.message}
@@ -169,4 +165,5 @@ const OrderHistory = decorate<OrderHistoryProps>(
     </div>
   )
 );
+OrderHistory.displayName = "OrderHistory";
 export default OrderHistory;

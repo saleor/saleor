@@ -3,9 +3,9 @@ import CardContent from "@material-ui/core/CardContent";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import { UserError } from "../../..";
 import { CardSpacer } from "../../../components/CardSpacer";
 import CardTitle from "../../../components/CardTitle";
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import { Container } from "../../../components/Container";
 import { ControlledSwitch } from "../../../components/ControlledSwitch";
 import Form from "../../../components/Form";
@@ -13,6 +13,7 @@ import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
 import i18n from "../../../i18n";
+import { UserError } from "../../../types";
 import CollectionDetails from "../CollectionDetails/CollectionDetails";
 import { CollectionImage } from "../CollectionImage/CollectionImage";
 
@@ -30,6 +31,7 @@ export interface CollectionCreatePageFormData {
 export interface CollectionCreatePageProps {
   disabled: boolean;
   errors: UserError[];
+  saveButtonBarState: ConfirmButtonTransitionState;
   onBack: () => void;
   onSubmit: (data: CollectionCreatePageFormData) => void;
 }
@@ -53,7 +55,7 @@ const decorate = withStyles(theme => ({
   }
 }));
 const CollectionCreatePage = decorate<CollectionCreatePageProps>(
-  ({ classes, disabled, errors, onBack, onSubmit }) => (
+  ({ classes, disabled, errors, saveButtonBarState, onBack, onSubmit }) => (
     <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container width="md">
@@ -141,6 +143,7 @@ const CollectionCreatePage = decorate<CollectionCreatePageProps>(
             </div>
           </div>
           <SaveButtonBar
+            state={saveButtonBarState}
             disabled={disabled || !hasChanged}
             onCancel={onBack}
             onSave={submit}

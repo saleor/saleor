@@ -6,6 +6,11 @@ Configuration
 We are fans of the `12factor <https://12factor.net/>`_ approach and portable code so you can configure most of Saleor using just environment variables.
 
 
+Payments Gateways
+-----------------
+For the configuration of the payment gateways, see :ref:`payment-gateways`.
+
+
 Environment variables
 ---------------------
 
@@ -76,3 +81,9 @@ Environment variables
 
 ``DEFAULT_COUNTRY``
   Sets the default country for the store. It controls the default VAT to be shown if required, the default shipping country, etc.
+
+``CREATE_IMAGES_ON_DEMAND``
+  Whether or not to create new images on-the-fly (``True`` by default).
+  Set this to ``False`` for speedy performance, which is recommended for production.
+  Every image should come with a pre-warm to ensure they're
+  created and available at the appropriate URL.

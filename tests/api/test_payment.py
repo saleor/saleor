@@ -257,7 +257,7 @@ def test_payment_refund_error(
 def test_payments_query(
         payment_txn_captured, permission_manage_orders, staff_api_client):
     query = """ {
-        payments {
+        payments(first: 20) {
             edges {
                 node {
                     id
@@ -365,7 +365,7 @@ def test_query_payments(
         payment_dummy, permission_manage_orders, staff_api_client):
     query = """
     {
-        payments {
+        payments(first: 20) {
             edges {
                 node {
                     id

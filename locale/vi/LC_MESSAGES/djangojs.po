@@ -3,13 +3,18 @@
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
 # 
+# Translators:
+# Trong Lam Phan <lampt2509@gmail.com>, 2018
+# Khoa <lnxkhoa@gmail.com>, 2018
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-04 04:15-0500\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"POT-Creation-Date: 2018-10-05 06:34-0500\n"
+"PO-Revision-Date: 2017-02-08 11:00+0000\n"
+"Last-Translator: Khoa <lnxkhoa@gmail.com>, 2018\n"
 "Language-Team: Vietnamese (https://www.transifex.com/mirumee/teams/34782/vi/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -310,7 +315,7 @@ msgstr ""
 #: saleor/static/dashboard/js/components/editor.js:51
 msgctxt "Rich text editor option"
 msgid "Link"
-msgstr ""
+msgstr "Link"
 
 #: saleor/static/dashboard/js/components/editor.js:58
 msgctxt "Rich text editor option"
@@ -351,12 +356,12 @@ msgstr ""
 msgid "Your input fits between the recommended lengths"
 msgstr ""
 
-#: saleor/static/js/components/variantPicker/QuantityInput.js:21
+#: saleor/static/js/components/variantPicker/QuantityInput.js:22
 msgctxt "Add to cart form field label"
 msgid "Quantity"
-msgstr ""
+msgstr "Số lượng"
 
-#: saleor/static/js/components/variantPicker/VariantPicker.js:166
+#: saleor/static/js/components/variantPicker/VariantPicker.js:167
 msgctxt "Product details primary action"
 msgid "Add to cart"
 msgstr ""

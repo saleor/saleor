@@ -1,4 +1,3 @@
-import itertools
 import json
 import os
 import random
@@ -6,13 +5,12 @@ import unicodedata
 import uuid
 from collections import defaultdict
 from datetime import date
-from decimal import Decimal
+from textwrap import dedent
 from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.files import File
-from django.template.defaultfilters import slugify
 from django_countries.fields import Country
 from faker import Factory
 from faker.providers import BaseProvider
@@ -24,7 +22,6 @@ from ...account.utils import store_user_address
 from ...checkout import AddressType
 from ...core.utils.json_serializer import object_hook
 from ...core.utils.taxes import get_tax_rate_by_name, get_taxes_for_country
-from ...core.utils.text import strip_html_and_truncate
 from ...core.weight import zero_weight
 from ...dashboard.menu.utils import update_menu
 from ...discount import DiscountValueType, VoucherType
@@ -33,14 +30,14 @@ from ...menu.models import Menu
 from ...order.models import Fulfillment, Order
 from ...order.utils import update_order_status
 from ...page.models import Page
-from ...payment import ChargeStatus, TransactionKind
 from ...payment.models import Payment
 from ...payment.utils import get_billing_data
 from ...product.models import (
     Attribute, AttributeValue, Category, Collection, Product, ProductImage,
     ProductType, ProductVariant)
-from ...product.thumbnails import create_product_thumbnails
-from ...product.utils.attributes import get_name_from_attributes
+from ...product.thumbnails import (
+    create_category_background_image_thumbnails,
+    create_collection_background_image_thumbnails, create_product_thumbnails)
 from ...shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
 from ...shipping.utils import get_taxed_shipping_price
 
@@ -53,10 +50,17 @@ GROCERIES_CATEGORY = {'name': 'Groceries', 'image_name': 'groceries.jpg'}
 COLLECTIONS_SCHEMA = [
     {
         'name': 'Summer collection',
-        'image_name': 'summer.jpg'},
+        'image_name': 'summer.jpg',
+        'description': dedent('''The Saleor Summer Collection features a range
+            of products that feel the heat of the market. A demo store for all
+            seasons. Saleor captures the open source, e-commerce sun.''')},
     {
         'name': 'Winter sale',
-        'image_name': 'clothing.jpg'}]
+        'image_name': 'clothing.jpg',
+        'description': dedent('''The Saleor Winter Sale is snowed under with
+            seasonal offers. Unreal products at unreal prices. Literally,
+            they are not real products, but the Saleor demo store is a
+            genuine e-commerce leader.''')}]
 
 IMAGES_MAPPING = {
     61: ['saleordemoproduct_paints_01.png'],
@@ -89,8 +93,9 @@ IMAGES_MAPPING = {
         'saleordemoproduct_sneakers_02_2.png',
         'saleordemoproduct_sneakers_02_3.png',
         'saleordemoproduct_sneakers_02_4.png'],
-    89:
-    ['saleordemoproduct_cl_boot07_1.png', 'saleordemoproduct_cl_boot07_2.png'],
+    89: [
+        'saleordemoproduct_cl_boot07_1.png',
+        'saleordemoproduct_cl_boot07_2.png'],
     107: ['saleordemoproduct_cl_polo01.png'],
     108: ['saleordemoproduct_cl_polo02.png'],
     109: ['saleordemoproduct_cl_polo03-woman.png'],
@@ -147,6 +152,7 @@ def create_categories(categories_data, placeholder_dir):
         background_image = get_image(placeholder_dir, image_name)
         defaults['background_image'] = background_image
         Category.objects.update_or_create(pk=pk, defaults=defaults)
+        create_category_background_image_thumbnails.delay(pk)
 
 
 def create_attributes(attributes_data):
@@ -200,8 +206,9 @@ def create_product_variants(variants_data):
         ProductVariant.objects.update_or_create(pk=pk, defaults=defaults)
 
 
-def create_products_by_schema(placeholder_dir, create_images, stdout=None):
-    with open('saleor/static/db.json') as f:
+def create_products_by_schema(placeholder_dir, create_images):
+    path = os.path.join(settings.PROJECT_ROOT, 'saleor', 'static', 'db.json')
+    with open(path) as f:
         db_items = json.load(f, object_hook=object_hook)
     types = defaultdict(list)
     # Sort db objects by its model
@@ -240,11 +247,12 @@ def get_email(first_name, last_name):
         _first.lower().decode('utf-8'), _last.lower().decode('utf-8'))
 
 
-def get_or_create_collection(name, placeholder_dir, image_name):
+def get_or_create_collection(name, placeholder_dir, image_name, description):
     background_image = get_image(placeholder_dir, image_name)
     defaults = {
         'slug': fake.slug(name),
-        'background_image': background_image}
+        'background_image': background_image,
+        'description': description}
     return Collection.objects.get_or_create(name=name, defaults=defaults)[0]
 
 
@@ -529,9 +537,11 @@ def create_fake_collection(placeholder_dir, collection_data):
     image_dir = get_product_list_images_dir(placeholder_dir)
     collection = get_or_create_collection(
         name=collection_data['name'], placeholder_dir=image_dir,
-        image_name=collection_data['image_name'])
+        image_name=collection_data['image_name'],
+        description=collection_data['description'])
     products = Product.objects.order_by('?')[:4]
     collection.products.add(*products)
+    create_collection_background_image_thumbnails.delay(collection.pk)
     return collection
 
 
@@ -543,13 +553,9 @@ def create_collections_by_schema(placeholder_dir, schema=COLLECTIONS_SCHEMA):
 
 def create_page():
     content = """
-    <h2 align="center">AN OPENSOURCE STOREFRONT PLATFORM FOR PERFECTIONISTS</h2>
-    <h3 align="center">WRITTEN IN PYTHON, BEST SERVED AS A BESPOKE, HIGH-PERFORMANCE E-COMMERCE SOLUTION</h3>
-    <p><br></p>
-    <p><img src="http://getsaleor.com/images/main-pic.svg"></p>
-    <p style="text-align: center;">
-        <a href="https://github.com/mirumee/saleor/">Get Saleor</a> today!
-    </p>
+    <h2>E-commerce for the PWA era</h2>
+    <h3>A modular, high performance e-commerce storefront built with GraphQL, Django, and ReactJS.</h3>
+    <p>Saleor is a rapidly-growing open source e-commerce platform that has served high-volume companies from branches like publishing and apparel since 2012. Based on Python and Django, the latest major update introduces a modular front end with a GraphQL API and storefront and dashboard written in React to make Saleor a full-functionality open source e-commerce.</p>
     """
     page_data = {'content': content, 'title': 'About', 'is_visible': True}
     page, dummy = Page.objects.get_or_create(slug='about', **page_data)

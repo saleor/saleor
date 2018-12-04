@@ -5,9 +5,11 @@ import { Route } from "react-router-dom";
 import ActionDialog from "../../components/ActionDialog";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
+import { createPaginationState, Paginator } from "../../components/Paginator";
+import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
-import { createPaginationData, createPaginationState, maybe } from "../../misc";
-import { productUrl } from "../../products";
+import { getMutationState, maybe } from "../../misc";
+import { productUrl } from "../../products/urls";
 import CollectionAssignProductDialog from "../components/CollectionAssignProductDialog/CollectionAssignProductDialog";
 import CollectionDetailsPage, {
   CollectionDetailsPageFormData
@@ -20,19 +22,23 @@ import { CollectionUpdate } from "../types/CollectionUpdate";
 import { RemoveCollection } from "../types/RemoveCollection";
 import { UnassignCollectionProduct } from "../types/UnassignCollectionProduct";
 import {
+  collectionAddProductPath,
   collectionAddProductUrl,
   collectionImageRemoveUrl,
   collectionListUrl,
+  collectionRemovePath,
   collectionRemoveUrl,
   collectionUrl
 } from "../urls";
 
+export type CollectionDetailsQueryParams = Partial<{
+  after: string;
+  before: string;
+}>;
+
 interface CollectionDetailsProps {
   id: string;
-  params: {
-    after?: string;
-    before?: string;
-  };
+  params: CollectionDetailsQueryParams;
 }
 
 const PAGINATE_BY = 20;
@@ -49,21 +55,10 @@ export const CollectionDetails: React.StatelessComponent<
             <SearchProductsProvider>
               {(searchProducts, searchProductsOpts) => (
                 <TypedCollectionDetailsQuery
+                  displayLoader
                   variables={{ id, ...paginationState }}
                 >
                   {({ data, loading }) => {
-                    const {
-                      loadNextPage,
-                      loadPreviousPage,
-                      pageInfo
-                    } = createPaginationData(
-                      navigate,
-                      paginationState,
-                      collectionUrl(encodeURIComponent(id)),
-                      maybe(() => data.collection.products.pageInfo),
-                      loading
-                    );
-
                     const handleCollectionUpdate = (data: CollectionUpdate) => {
                       if (
                         data.collectionUpdate.errors === null ||
@@ -162,87 +157,124 @@ export const CollectionDetails: React.StatelessComponent<
                               });
                             }
                           };
+
+                          const formTransitionState = getMutationState(
+                            updateCollection.opts.called,
+                            updateCollection.opts.loading,
+                            maybe(
+                              () =>
+                                updateCollection.opts.data.collectionUpdate
+                                  .errors
+                            )
+                          );
+                          const assignTransitionState = getMutationState(
+                            assignProduct.opts.called,
+                            assignProduct.opts.loading,
+                            maybe(
+                              () =>
+                                assignProduct.opts.data.collectionAddProducts
+                                  .errors
+                            )
+                          );
+                          const removeTransitionState = getMutationState(
+                            removeCollection.opts.called,
+                            removeCollection.opts.loading,
+                            maybe(
+                              () =>
+                                removeCollection.opts.data.collectionDelete
+                                  .errors
+                            )
+                          );
                           return (
                             <>
-                              <CollectionDetailsPage
-                                onAdd={() =>
-                                  navigate(
-                                    collectionAddProductUrl(
-                                      encodeURIComponent(id)
-                                    ),
-                                    false,
-                                    true
-                                  )
-                                }
-                                onBack={() => navigate(collectionListUrl)}
-                                disabled={loading}
-                                collection={maybe(() => data.collection)}
-                                isFeatured={maybe(
-                                  () =>
-                                    data.shop.homepageCollection.id ===
-                                    data.collection.id,
-                                  false
-                                )}
-                                onCollectionRemove={() =>
-                                  navigate(
-                                    collectionRemoveUrl(encodeURIComponent(id)),
-                                    false,
-                                    true
-                                  )
-                                }
-                                onImageDelete={() =>
-                                  navigate(
-                                    collectionImageRemoveUrl(
-                                      encodeURIComponent(id)
-                                    ),
-                                    false,
-                                    true
-                                  )
-                                }
-                                onImageUpload={event =>
-                                  updateCollection.mutate({
-                                    id,
-                                    input: {
-                                      backgroundImage: event.target.files[0]
-                                    }
-                                  })
-                                }
-                                onSubmit={handleSubmit}
-                                onNextPage={loadNextPage}
-                                onPreviousPage={loadPreviousPage}
-                                pageInfo={pageInfo}
-                                onProductUnassign={(productId, event) => {
-                                  event.stopPropagation();
-                                  unassignProduct.mutate({
-                                    collectionId: id,
-                                    productId,
-                                    ...paginationState
-                                  });
-                                }}
-                                onRowClick={id => () =>
-                                  navigate(productUrl(encodeURIComponent(id)))}
+                              <WindowTitle
+                                title={maybe(() => data.collection.name)}
                               />
-                              <Route
-                                path={collectionAddProductUrl(
-                                  encodeURIComponent(id)
+                              <Paginator
+                                pageInfo={maybe(
+                                  () => data.collection.products.pageInfo
                                 )}
+                                paginationState={paginationState}
+                                queryString={params}
+                              >
+                                {({
+                                  loadNextPage,
+                                  loadPreviousPage,
+                                  pageInfo
+                                }) => (
+                                  <CollectionDetailsPage
+                                    onAdd={() =>
+                                      navigate(
+                                        collectionAddProductUrl(id),
+                                        false,
+                                        true
+                                      )
+                                    }
+                                    onBack={() => navigate(collectionListUrl)}
+                                    disabled={loading}
+                                    collection={maybe(() => data.collection)}
+                                    isFeatured={maybe(
+                                      () =>
+                                        data.shop.homepageCollection.id ===
+                                        data.collection.id,
+                                      false
+                                    )}
+                                    onCollectionRemove={() =>
+                                      navigate(
+                                        collectionRemoveUrl(id),
+                                        false,
+                                        true
+                                      )
+                                    }
+                                    onImageDelete={() =>
+                                      navigate(
+                                        collectionImageRemoveUrl(id),
+                                        false,
+                                        true
+                                      )
+                                    }
+                                    onImageUpload={event =>
+                                      updateCollection.mutate({
+                                        id,
+                                        input: {
+                                          backgroundImage: event.target.files[0]
+                                        }
+                                      })
+                                    }
+                                    onSubmit={handleSubmit}
+                                    onNextPage={loadNextPage}
+                                    onPreviousPage={loadPreviousPage}
+                                    pageInfo={pageInfo}
+                                    onProductUnassign={(productId, event) => {
+                                      event.stopPropagation();
+                                      unassignProduct.mutate({
+                                        collectionId: id,
+                                        productId,
+                                        ...paginationState
+                                      });
+                                    }}
+                                    onRowClick={id => () =>
+                                      navigate(productUrl(id))}
+                                    saveButtonBarState={formTransitionState}
+                                  />
+                                )}
+                              </Paginator>
+                              <Route
+                                path={collectionAddProductPath(":id")}
                                 render={({ match }) => (
                                   <CollectionAssignProductDialog
+                                    confirmButtonState={assignTransitionState}
                                     open={!!match}
                                     fetch={searchProducts}
                                     loading={searchProductsOpts.loading}
                                     onClose={() =>
-                                      navigate(
-                                        collectionUrl(encodeURIComponent(id)),
-                                        true,
-                                        true
-                                      )
+                                      navigate(collectionUrl(id), true, true)
                                     }
                                     onSubmit={product =>
                                       assignProduct.mutate({
                                         collectionId: id,
-                                        productId: product.product.value,
-                                        first: PAGINATE_BY
+                                        first: PAGINATE_BY,
+                                        productId: product.product.value
                                       })
                                     }
                                     products={maybe(() =>
@@ -254,17 +286,12 @@ export const CollectionDetails: React.StatelessComponent<
                                 )}
                               />
                               <Route
-                                path={collectionRemoveUrl(
-                                  encodeURIComponent(id)
-                                )}
+                                path={collectionRemovePath(":id")}
                                 render={({ match }) => (
                                   <ActionDialog
+                                    confirmButtonState={removeTransitionState}
                                     onClose={() =>
-                                      navigate(
-                                        collectionUrl(encodeURIComponent(id)),
-                                        true,
-                                        true
-                                      )
+                                      navigate(collectionUrl(id), true, true)
                                     }
                                     onConfirm={() =>
                                       removeCollection.mutate({ id })
@@ -280,8 +307,9 @@ export const CollectionDetails: React.StatelessComponent<
                                         __html: i18n.t(
                                           "Are you sure you want to remove <strong>{{ collectionName }}</strong>?",
                                           {
-                                            collectionName:
-                                              data.collection.name,
+                                            collectionName: maybe(
+                                              () => data.collection.name
+                                            ),
                                             context: "modal"
                                           }
                                         )
