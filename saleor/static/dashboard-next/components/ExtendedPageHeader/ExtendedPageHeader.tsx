@@ -54,7 +54,7 @@ const ExtendedPageHeader = withStyles(styles, { name: "ExtendedPageHeader" })(
         <IconButton
           color="inherit"
           className={classes.menuButton}
-          onClick={window.history.back}
+          onClick={() => window.history.back()}
         >
           <ArrowBackIcon />
         </IconButton>
