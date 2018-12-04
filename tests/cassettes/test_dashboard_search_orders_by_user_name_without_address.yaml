@@ -24,9 +24,9 @@ interactions:
     method: GET
     uri: http://search:9200/users/doc/_search
   response:
-    body: {string: '{"took":1,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":1,"max_score":2.261763,"hits":[{"_index":"users","_type":"doc","_id":"17","_score":2.261763,"_source":{}}]}}'}
+    body: {string: '{"took":1,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":1,"max_score":2.261763,"hits":[{"_index":"users","_type":"doc","_id":"117","_score":2.261763,"_source":{}}]}}'}
     headers:
-      content-length: ['210']
+      content-length: ['211']
       content-type: [application/json; charset=UTF-8]
     status: {code: 200, message: OK}
 - request:
