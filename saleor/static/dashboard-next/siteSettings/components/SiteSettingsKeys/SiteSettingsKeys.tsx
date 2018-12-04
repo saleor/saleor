@@ -1,7 +1,12 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import IconButton from "@material-ui/core/IconButton";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -22,23 +27,25 @@ import { ICONBUTTON_SIZE } from "../../../theme";
 import { AuthorizationKeyType } from "../../../types/globalTypes";
 import { SiteSettings_shop_authorizationKeys } from "../../types/SiteSettings";
 
-interface SiteSettingsKeysProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    iconCell: {
+      "&:last-child": {
+        paddingRight: 0
+      },
+      width: ICONBUTTON_SIZE + theme.spacing.unit / 2
+    }
+  });
+
+interface SiteSettingsKeysProps extends WithStyles<typeof styles> {
   disabled: boolean;
   keys: SiteSettings_shop_authorizationKeys[];
   onAdd: () => void;
   onRemove: (name: AuthorizationKeyType) => void;
 }
 
-const decorate = withStyles(theme => ({
-  iconCell: {
-    "&:last-child": {
-      paddingRight: 0
-    },
-    width: ICONBUTTON_SIZE + theme.spacing.unit / 2
-  }
-}));
-const SiteSettingsKeys = decorate<SiteSettingsKeysProps>(
-  ({ classes, disabled, keys, onAdd, onRemove }) => {
+const SiteSettingsKeys = withStyles(styles, { name: "SiteSettingsKeys" })(
+  ({ classes, disabled, keys, onAdd, onRemove }: SiteSettingsKeysProps) => {
     const keyTypes = translatedAuthorizationKeyTypes();
     return (
       <Card>
@@ -50,7 +57,7 @@ const SiteSettingsKeys = decorate<SiteSettingsKeysProps>(
             <Button
               color="secondary"
               disabled={disabled}
-              variant="flat"
+              variant="text"
               onClick={onAdd}
             >
               {i18n.t("Add key", {

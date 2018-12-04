@@ -1,5 +1,10 @@
 import IconButton from "@material-ui/core/IconButton";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -23,31 +28,40 @@ export interface FormData {
   quantity: number;
 }
 
-interface OrderDraftDetailsProductsProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    iconCell: {
+      "&:last-child": {
+        paddingRight: 0
+      },
+      width: 48 + theme.spacing.unit / 2
+    },
+    quantityField: {
+      "& input": {
+        textAlign: "right"
+      },
+      width: 60
+    },
+    textRight: {
+      textAlign: "right"
+    }
+  });
+
+interface OrderDraftDetailsProductsProps extends WithStyles<typeof styles> {
   lines: OrderDetails_order_lines[];
   onOrderLineChange: (id: string, data: FormData) => void;
   onOrderLineRemove: (id: string) => void;
 }
 
-const decorate = withStyles(theme => ({
-  iconCell: {
-    "&:last-child": {
-      paddingRight: 0
-    },
-    width: 48 + theme.spacing.unit / 2
-  },
-  quantityField: {
-    "& input": {
-      textAlign: "right" as "right"
-    },
-    width: 60
-  },
-  textRight: {
-    textAlign: "right" as "right"
-  }
-}));
-const OrderDraftDetailsProducts = decorate<OrderDraftDetailsProductsProps>(
-  ({ classes, lines, onOrderLineChange, onOrderLineRemove }) => (
+const OrderDraftDetailsProducts = withStyles(styles, {
+  name: "OrderDraftDetailsProducts"
+})(
+  ({
+    classes,
+    lines,
+    onOrderLineChange,
+    onOrderLineRemove
+  }: OrderDraftDetailsProductsProps) => (
     <Table>
       {maybe(() => !!lines.length) && (
         <TableHead>

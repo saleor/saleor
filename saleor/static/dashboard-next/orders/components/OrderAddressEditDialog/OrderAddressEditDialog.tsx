@@ -64,7 +64,7 @@ const OrderAddressEditDialog: React.StatelessComponent<
             <ConfirmButton
               transitionState={confirmButtonState}
               color="primary"
-              variant="raised"
+              variant="contained"
               onClick={submit}
               type="submit"
             >

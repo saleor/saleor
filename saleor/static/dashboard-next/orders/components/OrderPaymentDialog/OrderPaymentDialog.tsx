@@ -71,7 +71,7 @@ const OrderPaymentDialog: React.StatelessComponent<OrderPaymentDialogProps> = ({
             <ConfirmButton
               transitionState={confirmButtonState}
               color="primary"
-              variant="raised"
+              variant="contained"
               onClick={data => {
                 onClose();
                 submit(data);

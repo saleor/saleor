@@ -1,6 +1,11 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
@@ -20,7 +25,25 @@ interface ProductType {
   name: string;
   productAttributes: ProductCreateData_productTypes_edges_node_productAttributes[];
 }
-interface ProductOrganizationProps {
+
+const styles = (theme: Theme) =>
+  createStyles({
+    card: {
+      overflow: "visible"
+    },
+    cardSubtitle: {
+      fontSize: "1rem",
+      margin: `${theme.spacing.unit * 3}px 0`
+    },
+    hr: {
+      backgroundColor: "#eaeaea",
+      border: "none",
+      height: 1,
+      margin: `0 -${theme.spacing.unit * 3}px ${theme.spacing.unit * 3}px`
+    }
+  });
+
+interface ProductOrganizationProps extends WithStyles<typeof styles> {
   categories?: Array<{ value: string; label: string }>;
   collections?: Array<{ value: string; label: string }>;
   category: string;
@@ -52,22 +75,7 @@ interface ProductOrganizationProps {
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
-const decorate = withStyles(theme => ({
-  card: {
-    overflow: "visible" as "visible"
-  },
-  cardSubtitle: {
-    fontSize: "1rem",
-    margin: `${theme.spacing.unit * 3}px 0`
-  },
-  hr: {
-    backgroundColor: "#eaeaea",
-    border: "none",
-    height: 1,
-    margin: `0 -${theme.spacing.unit * 3}px ${theme.spacing.unit * 3}px`
-  }
-}));
-const ProductOrganization = decorate<ProductOrganizationProps>(
+const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
   ({
     category,
     categories,
@@ -80,7 +88,7 @@ const ProductOrganization = decorate<ProductOrganizationProps>(
     productCollections,
     productTypes,
     onChange
-  }) => {
+  }: ProductOrganizationProps) => {
     const unrolledAttributes = maybe(
       () => data.productType.value.productAttributes,
       []

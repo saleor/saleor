@@ -1,6 +1,6 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
-import { withStyles } from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -13,7 +13,19 @@ import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
 
-interface CategoryListProps {
+const styles = createStyles({
+  centerText: {
+    textAlign: "center"
+  },
+  tableRow: {
+    cursor: "pointer"
+  },
+  wideColumn: {
+    width: "100%"
+  }
+});
+
+interface CategoryListProps extends WithStyles<typeof styles> {
   categories?: Array<{
     id: string;
     name: string;
@@ -29,26 +41,14 @@ interface CategoryListProps {
   onRowClick?(id: string): () => void;
 }
 
-const decorate = withStyles({
-  centerText: {
-    textAlign: "center" as "center"
-  },
-  tableRow: {
-    cursor: "pointer" as "pointer"
-  },
-  wideColumn: {
-    width: "100%"
-  }
-});
-
-const CategoryList = decorate<CategoryListProps>(
-  ({ categories, classes, isRoot, onAdd, onRowClick }) => (
+const CategoryList = withStyles(styles, { name: "CategoryList" })(
+  ({ categories, classes, isRoot, onAdd, onRowClick }: CategoryListProps) => (
     <Card>
       {!isRoot && (
         <CardTitle
           title={i18n.t("All Subcategories")}
           toolbar={
-            <Button color="secondary" variant="flat" onClick={onAdd}>
+            <Button color="secondary" variant="text" onClick={onAdd}>
               {i18n.t("Add subcategory")}
             </Button>
           }

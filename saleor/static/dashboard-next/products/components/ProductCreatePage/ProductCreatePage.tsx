@@ -1,4 +1,9 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
@@ -42,7 +47,29 @@ interface FormData {
   sku: string;
   stockQuantity: number;
 }
-interface ProductCreatePageProps {
+
+const styles = (theme: Theme) =>
+  createStyles({
+    cardContainer: {
+      marginTop: theme.spacing.unit * 2,
+      [theme.breakpoints.down("sm")]: {
+        marginTop: theme.spacing.unit
+      }
+    },
+    root: {
+      display: "grid",
+      gridGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "9fr 4fr",
+      marginTop: theme.spacing.unit * 2,
+      [theme.breakpoints.down("sm")]: {
+        gridGap: theme.spacing.unit + "px",
+        gridTemplateColumns: "1fr",
+        marginTop: theme.spacing.unit
+      }
+    }
+  });
+
+interface ProductCreatePageProps extends WithStyles<typeof styles> {
   errors: UserError[];
   collections?: Array<{
     id: string;
@@ -67,27 +94,9 @@ interface ProductCreatePageProps {
   onSubmit?(data: FormData);
 }
 
-const decorate = withStyles(theme => ({
-  cardContainer: {
-    marginTop: theme.spacing.unit * 2,
-    [theme.breakpoints.down("sm")]: {
-      marginTop: theme.spacing.unit
-    }
-  },
-  root: {
-    display: "grid",
-    gridGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "9fr 4fr",
-    marginTop: theme.spacing.unit * 2,
-    [theme.breakpoints.down("sm")]: {
-      gridGap: theme.spacing.unit + "px",
-      gridTemplateColumns: "1fr",
-      marginTop: theme.spacing.unit
-    }
-  }
-}));
-
-export const ProductCreatePage = decorate<ProductCreatePageProps>(
+export const ProductCreatePage = withStyles(styles, {
+  name: "ProductCreatePage"
+})(
   ({
     classes,
     currency,
@@ -100,7 +109,7 @@ export const ProductCreatePage = decorate<ProductCreatePageProps>(
     saveButtonBarState,
     onBack,
     onSubmit
-  }) => {
+  }: ProductCreatePageProps) => {
     const initialData: FormData = {
       attributes: [],
       available: false,

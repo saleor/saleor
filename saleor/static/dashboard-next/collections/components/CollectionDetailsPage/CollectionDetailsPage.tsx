@@ -1,4 +1,9 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
 import { CardSpacer } from "../../../components/CardSpacer";
@@ -25,7 +30,18 @@ export interface CollectionDetailsPageFormData {
   isPublished: boolean;
 }
 
-export interface CollectionDetailsPageProps extends PageListProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "9fr 4fr"
+    }
+  });
+
+export interface CollectionDetailsPageProps
+  extends PageListProps,
+    WithStyles<typeof styles> {
   collection: CollectionDetails_collection;
   isFeatured: boolean;
   saveButtonBarState: ConfirmButtonTransitionState;
@@ -37,14 +53,9 @@ export interface CollectionDetailsPageProps extends PageListProps {
   onSubmit: (data: CollectionDetailsPageFormData) => void;
 }
 
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "9fr 4fr"
-  }
-}));
-const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
+const CollectionDetailsPage = withStyles(styles, {
+  name: "CollectionDetailsPage"
+})(
   ({
     classes,
     collection,
@@ -57,7 +68,7 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
     onImageUpload,
     onSubmit,
     ...collectionProductsProps
-  }) => (
+  }: CollectionDetailsPageProps) => (
     <Form
       initial={{
         isFeatured,

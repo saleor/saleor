@@ -33,7 +33,7 @@ const OrderPaymentVoidDialog: React.StatelessComponent<
       <ConfirmButton
         transitionState={confirmButtonState}
         color="primary"
-        variant="raised"
+        variant="contained"
         onClick={onConfirm}
       >
         {i18n.t("Confirm", { context: "button" })}

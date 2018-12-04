@@ -1,5 +1,10 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as CRC from "crc-32";
 import * as React from "react";
 
@@ -16,7 +21,22 @@ import VoucherDetails from "../VoucherDetails/VoucherDetails";
 import VoucherProperties from "../VoucherProperties/VoucherProperties";
 import VoucherUsability from "../VoucherUsability";
 
-interface VoucherDetailsPageProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    cardSpacer: {
+      marginTop: theme.spacing.unit * 2,
+      [theme.breakpoints.down("md")]: {
+        marginTop: theme.spacing.unit
+      }
+    },
+    root: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "2fr 1fr"
+    }
+  });
+
+interface VoucherDetailsPageProps extends WithStyles<typeof styles> {
   disabled?: boolean;
   voucher?: {
     id: string;
@@ -66,20 +86,7 @@ interface VoucherDetailsPageProps {
   onVoucherDelete?();
 }
 
-const decorate = withStyles(theme => ({
-  cardSpacer: {
-    marginTop: theme.spacing.unit * 2,
-    [theme.breakpoints.down("md")]: {
-      marginTop: theme.spacing.unit
-    }
-  },
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "2fr 1fr"
-  }
-}));
-const VoucherDetailsPage = decorate<VoucherDetailsPageProps>(
+const VoucherDetailsPage = withStyles(styles, { name: "VoucherDetailsPage" })(
   ({
     classes,
     currency,
@@ -97,7 +104,7 @@ const VoucherDetailsPage = decorate<VoucherDetailsPageProps>(
     voucher,
     onBack,
     onVoucherDelete
-  }) => (
+  }: VoucherDetailsPageProps) => (
     <Toggle>
       {(openedVoucherDeleteDialog, { toggle: toggleVoucherDeleteDialog }) => (
         <>

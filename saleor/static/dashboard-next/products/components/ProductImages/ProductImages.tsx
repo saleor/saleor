@@ -2,7 +2,12 @@ import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import AddPhotoIcon from "@material-ui/icons/AddAPhoto";
 import * as React from "react";
@@ -12,7 +17,89 @@ import ImageTile from "../../../components/ImageTile";
 import i18n from "../../../i18n";
 import { ProductDetails_product_images } from "../../types/ProductDetails";
 
-interface ProductImagesProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    card: {
+      marginTop: theme.spacing.unit * 2,
+      [theme.breakpoints.down("sm")]: {
+        marginTop: 0
+      }
+    },
+    fileField: {
+      display: "none"
+    },
+    icon: {
+      color: "rgba(255, 255, 255, 0.54)"
+    },
+    image: {
+      height: "100%",
+      objectFit: "contain",
+      userSelect: "none",
+      width: "100%"
+    },
+    imageContainer: {
+      "&:hover, &.dragged": {
+        "& $imageOverlay": {
+          display: "block"
+        }
+      },
+      background: "#ffffff",
+      border: "1px solid #eaeaea",
+      borderRadius: theme.spacing.unit,
+      height: 140,
+      margin: "auto",
+      overflow: "hidden",
+      padding: theme.spacing.unit * 2,
+      position: "relative",
+      width: 140
+    },
+    imageOverlay: {
+      background: "rgba(0, 0, 0, 0.6)",
+      cursor: "move",
+      display: "none",
+      height: 140,
+      left: 0,
+      padding: theme.spacing.unit * 2,
+      position: "absolute",
+      top: 0,
+      width: 140
+    },
+    imageOverlayToolbar: {
+      alignContent: "flex-end",
+      display: "flex",
+      position: "relative",
+      right: -theme.spacing.unit * 3,
+      top: -theme.spacing.unit * 2
+    },
+    noPhotosIcon: {
+      height: theme.spacing.unit * 8,
+      margin: "0 auto",
+      width: theme.spacing.unit * 8
+    },
+    noPhotosIconContainer: {
+      margin: `${theme.spacing.unit * 5}px 0`,
+      textAlign: "center"
+    },
+    noPhotosIconText: {
+      fontSize: "1rem",
+      fontWeight: 600,
+      marginTop: theme.spacing.unit
+    },
+    root: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridRowGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "repeat(4, 1fr)",
+      [theme.breakpoints.down("sm")]: {
+        gridTemplateColumns: "repeat(3, 1fr)"
+      },
+      [theme.breakpoints.down("xs")]: {
+        gridTemplateColumns: "repeat(2, 1fr)"
+      }
+    }
+  });
+
+interface ProductImagesProps extends WithStyles<typeof styles> {
   placeholderImage?: string;
   images: ProductDetails_product_images[];
   loading?: boolean;
@@ -22,92 +109,11 @@ interface ProductImagesProps {
   onImageReorder?(event: { oldIndex: number; newIndex: number });
 }
 
-interface ImageListContainerProps {
+interface ImageListContainerProps extends WithStyles<typeof styles> {
   items: any;
   onImageDelete: (id: string) => () => void;
   onImageEdit: (id: string) => () => void;
 }
-
-const decorate = withStyles(theme => ({
-  card: {
-    marginTop: theme.spacing.unit * 2,
-    [theme.breakpoints.down("sm")]: {
-      marginTop: 0
-    }
-  },
-  fileField: {
-    display: "none"
-  },
-  icon: {
-    color: "rgba(255, 255, 255, 0.54)"
-  },
-  image: {
-    height: "100%",
-    objectFit: "contain" as "contain",
-    userSelect: "none" as "none",
-    width: "100%"
-  },
-  imageContainer: {
-    "&:hover, &.dragged": {
-      "& $imageOverlay": {
-        display: "block" as "block"
-      }
-    },
-    background: "#ffffff",
-    border: "1px solid #eaeaea",
-    borderRadius: theme.spacing.unit,
-    height: 140,
-    margin: "auto",
-    overflow: "hidden" as "hidden",
-    padding: theme.spacing.unit * 2,
-    position: "relative" as "relative",
-    width: 140
-  },
-  imageOverlay: {
-    background: "rgba(0, 0, 0, 0.6)",
-    cursor: "move",
-    display: "none" as "none",
-    height: 140,
-    left: 0,
-    padding: theme.spacing.unit * 2,
-    position: "absolute" as "absolute",
-    top: 0,
-    width: 140
-  },
-  imageOverlayToolbar: {
-    alignContent: "flex-end",
-    display: "flex" as "flex",
-    position: "relative" as "relative",
-    right: -theme.spacing.unit * 3,
-    top: -theme.spacing.unit * 2
-  },
-  noPhotosIcon: {
-    height: theme.spacing.unit * 8,
-    margin: "0 auto",
-    width: theme.spacing.unit * 8
-  },
-  noPhotosIconContainer: {
-    margin: `${theme.spacing.unit * 5}px 0`,
-    textAlign: "center" as "center"
-  },
-  noPhotosIconText: {
-    fontSize: "1rem",
-    fontWeight: 600 as 600,
-    marginTop: theme.spacing.unit
-  },
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridRowGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "repeat(4, 1fr)",
-    [theme.breakpoints.down("sm")]: {
-      gridTemplateColumns: "repeat(3, 1fr)"
-    },
-    [theme.breakpoints.down("xs")]: {
-      gridTemplateColumns: "repeat(2, 1fr)"
-    }
-  }
-}));
 
 const SortableImage = SortableElement(
   ({ image, onImageEdit, onImageDelete }) => (
@@ -120,8 +126,14 @@ const SortableImage = SortableElement(
 );
 
 const ImageListContainer = SortableContainer(
-  decorate<ImageListContainerProps>(
-    ({ classes, items, onImageDelete, onImageEdit, ...props }) => {
+  withStyles(styles, { name: "ImageListContainer" })(
+    ({
+      classes,
+      items,
+      onImageDelete,
+      onImageEdit,
+      ...props
+    }: ImageListContainerProps) => {
       return (
         <div {...props}>
           {items.map((image, index) => (
@@ -139,7 +151,7 @@ const ImageListContainer = SortableContainer(
   )
 );
 
-const ProductImages = decorate<ProductImagesProps>(
+const ProductImages = withStyles(styles, { name: "ProductImages" })(
   ({
     classes,
     images,
@@ -149,7 +161,7 @@ const ProductImages = decorate<ProductImagesProps>(
     onImageDelete,
     onImageReorder,
     onImageUpload
-  }) => (
+  }: ProductImagesProps) => (
     <Card className={classes.card}>
       <CardTitle
         title={i18n.t("Images")}
@@ -158,7 +170,7 @@ const ProductImages = decorate<ProductImagesProps>(
             <Button
               onClick={() => this.upload.click()}
               disabled={loading}
-              variant="flat"
+              variant="text"
               color="secondary"
             >
               {i18n.t("Upload image")}

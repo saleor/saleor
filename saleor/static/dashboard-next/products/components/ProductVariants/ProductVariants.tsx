@@ -2,7 +2,12 @@ import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Hidden from "@material-ui/core/Hidden";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -20,7 +25,25 @@ import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
 import { ProductVariant_costPrice } from "../../types/ProductVariant";
 
-interface ProductVariantsProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    denseTable: {
+      "& td, & th": {
+        paddingRight: theme.spacing.unit * 3
+      }
+    },
+    link: {
+      cursor: "pointer"
+    },
+    textLeft: {
+      textAlign: "left" as "left"
+    },
+    textRight: {
+      textAlign: "right" as "right"
+    }
+  });
+
+interface ProductVariantsProps extends WithStyles<typeof styles> {
   disabled?: boolean;
   variants?: Array<{
     id: string;
@@ -36,26 +59,7 @@ interface ProductVariantsProps {
   onVariantAdd?();
 }
 
-const decorate = withStyles(theme => {
-  return {
-    denseTable: {
-      "& td, & th": {
-        paddingRight: theme.spacing.unit * 3
-      }
-    },
-    link: {
-      cursor: "pointer"
-    },
-    textLeft: {
-      textAlign: "left" as "left"
-    },
-    textRight: {
-      textAlign: "right" as "right"
-    }
-  };
-});
-
-export const ProductVariants = decorate<ProductVariantsProps>(
+export const ProductVariants = withStyles(styles, { name: "ProductVariants" })(
   ({
     classes,
     variants,
@@ -63,16 +67,16 @@ export const ProductVariants = decorate<ProductVariantsProps>(
     onAttributesEdit,
     onRowClick,
     onVariantAdd
-  }) => (
+  }: ProductVariantsProps) => (
     <Card>
       <CardTitle
         title={i18n.t("Variants")}
         toolbar={
           <>
-            <Button onClick={onAttributesEdit} variant="flat" color="secondary">
+            <Button onClick={onAttributesEdit} variant="text" color="secondary">
               {i18n.t("Edit attributes")}
             </Button>
-            <Button onClick={onVariantAdd} variant="flat" color="secondary">
+            <Button onClick={onVariantAdd} variant="text" color="secondary">
               {i18n.t("Add variant")}
             </Button>
           </>

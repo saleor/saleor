@@ -4,24 +4,32 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 import NavigationPrompt from "react-router-navigation-prompt";
 
 import i18n from "../i18n";
 import { FormContext } from "./Form";
 
-const decorate = withStyles(theme => ({
-  deleteButton: {
-    "&:hover": {
-      backgroundColor: theme.palette.error.main
-    },
-    backgroundColor: theme.palette.error.main,
-    color: theme.palette.error.contrastText
-  }
-}));
+const styles = (theme: Theme) =>
+  createStyles({
+    deleteButton: {
+      "&:hover": {
+        backgroundColor: theme.palette.error.main
+      },
+      backgroundColor: theme.palette.error.main,
+      color: theme.palette.error.contrastText
+    }
+  });
 
-export const ConfirmFormLeaveDialog = decorate(({ classes }) => (
+export const ConfirmFormLeaveDialog = withStyles(styles, {
+  name: "ConfirmFormLeaveDialog"
+})(({ classes }: WithStyles<typeof styles>) => (
   <FormContext.Consumer>
     {({ hasChanged: hasFormChanged }) => (
       <NavigationPrompt renderIfNotActive={true} when={hasFormChanged}>

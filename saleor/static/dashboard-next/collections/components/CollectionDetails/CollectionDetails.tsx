@@ -1,13 +1,19 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { withStyles } from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
 import i18n from "../../../i18n";
 
-export interface CollectionDetailsProps {
+const styles = createStyles({
+  name: {
+    width: "80%"
+  }
+});
+
+export interface CollectionDetailsProps extends WithStyles<typeof styles> {
   data: {
     name: string;
   };
@@ -18,13 +24,8 @@ export interface CollectionDetailsProps {
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
-const decorate = withStyles({
-  name: {
-    width: "80%"
-  }
-});
-const CollectionDetails = decorate<CollectionDetailsProps>(
-  ({ classes, disabled, data, onChange, errors }) => (
+const CollectionDetails = withStyles(styles, { name: "CollectionDetails" })(
+  ({ classes, disabled, data, onChange, errors }: CollectionDetailsProps) => (
     <Card>
       <CardTitle title={i18n.t("General information")} />
       <CardContent>
