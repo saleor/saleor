@@ -9,7 +9,6 @@ import { page } from "../../../pages/fixtures";
 import Decorator from "../../Decorator";
 
 const callbacks: Omit<PageDetailsPageProps, "classes"> = {
-  onBack: () => undefined,
   onSubmit: () => undefined,
   saveButtonBarState: "default"
 };

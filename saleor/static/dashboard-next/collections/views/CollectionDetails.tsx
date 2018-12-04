@@ -240,7 +240,6 @@ export const CollectionDetails: React.StatelessComponent<
                                         true
                                       )
                                     }
-                                    onBack={() => navigate(collectionListUrl)}
                                     disabled={loading}
                                     collection={maybe(() => data.collection)}
                                     isFeatured={maybe(

@@ -15,7 +15,6 @@ storiesOf("Views / Products / Product variant details", module)
       header={variant.name || variant.sku}
       errors={[]}
       variant={variant}
-      onBack={() => undefined}
       onDelete={undefined}
       onImageSelect={() => undefined}
       onSubmit={() => undefined}
@@ -28,7 +27,6 @@ storiesOf("Views / Products / Product variant details", module)
       header={undefined}
       errors={[]}
       loading={true}
-      onBack={() => undefined}
       placeholderImage={placeholderImage}
       onDelete={undefined}
       onImageSelect={() => undefined}

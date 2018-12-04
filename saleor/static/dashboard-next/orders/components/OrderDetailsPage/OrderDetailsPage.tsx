@@ -53,7 +53,6 @@ export interface OrderDetailsPageProps extends WithStyles<typeof styles> {
     code: string;
     label: string;
   }>;
-  onBack();
   onBillingAddressEdit();
   onFulfillmentCancel(id: string);
   onFulfillmentTrackingNumberUpdate(id: string);
@@ -73,7 +72,6 @@ const OrderDetailsPage = withStyles(styles, { name: "OrderDetailsPage" })(
     classes,
     order,
     onOrderCancel,
-    onBack,
     onBillingAddressEdit,
     onFulfillmentCancel,
     onFulfillmentTrackingNumberUpdate,
@@ -97,7 +95,7 @@ const OrderDetailsPage = withStyles(styles, { name: "OrderDetailsPage" })(
         <PageHeader
           className={classes.header}
           title={maybe(() => order.number) ? "#" + order.number : undefined}
-          onBack={onBack}
+          back={true}
         >
           {canCancel && (
             <CardMenu

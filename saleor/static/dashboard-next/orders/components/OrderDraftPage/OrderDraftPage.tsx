@@ -62,7 +62,6 @@ export interface OrderDraftPageProps extends WithStyles<typeof styles> {
   variantsLoading: boolean;
   fetchVariants: (value: string) => void;
   fetchUsers: (query: string) => void;
-  onBack: () => void;
   onBillingAddressEdit: () => void;
   onCustomerEdit: (data: DraftOrderInput) => void;
   onDraftFinalize: () => void;
@@ -85,7 +84,6 @@ const OrderDraftPage = withStyles(styles, { name: "OrderDraftPage" })(
     disabled,
     fetchUsers,
     saveButtonBarState,
-    onBack,
     onBillingAddressEdit,
     onCustomerEdit,
     onDraftFinalize,
@@ -104,7 +102,7 @@ const OrderDraftPage = withStyles(styles, { name: "OrderDraftPage" })(
       <PageHeader
         className={classes.header}
         title={maybe(() => order.number) ? "#" + order.number : undefined}
-        onBack={onBack}
+        back={true}
       >
         <CardMenu
           className={classes.menu}
@@ -156,7 +154,6 @@ const OrderDraftPage = withStyles(styles, { name: "OrderDraftPage" })(
       <SaveButtonBar
         state={saveButtonBarState}
         disabled={disabled || !maybe(() => order.canFinalize)}
-        onCancel={onBack}
         onSave={onDraftFinalize}
         labels={{ save: i18n.t("Finalize", { context: "button" }) }}
       />

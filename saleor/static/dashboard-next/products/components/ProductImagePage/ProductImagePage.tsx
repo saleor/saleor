@@ -53,7 +53,6 @@ interface ProductImagePageProps extends WithStyles<typeof styles> {
   }>;
   disabled: boolean;
   saveButtonBarState: ConfirmButtonTransitionState;
-  onBack: () => void;
   onDelete: () => void;
   onRowClick: (id: string) => () => void;
   onSubmit: (data: { description: string }) => void;
@@ -66,7 +65,6 @@ const ProductImagePage = withStyles(styles, { name: "ProductImagePage" })(
     image,
     images,
     saveButtonBarState,
-    onBack,
     onDelete,
     onRowClick,
     onSubmit
@@ -76,10 +74,10 @@ const ProductImagePage = withStyles(styles, { name: "ProductImagePage" })(
       onSubmit={onSubmit}
       confirmLeave
     >
-      {({ change, data, hasChanged, submit }) => {
+      {({ change, data, hasChanged, reset, submit }) => {
         return (
           <Container width="md">
-            <PageHeader title={i18n.t("Edit Photo")} onBack={onBack} />
+            <PageHeader title={i18n.t("Edit Photo")} back={true} />
             <div className={classes.root}>
               <div>
                 <ProductImageNavigation
@@ -122,7 +120,7 @@ const ProductImagePage = withStyles(styles, { name: "ProductImagePage" })(
             <SaveButtonBar
               disabled={disabled || !onSubmit || !hasChanged}
               state={saveButtonBarState}
-              onCancel={onBack}
+              onCancel={reset}
               onDelete={onDelete}
               onSave={submit}
             />

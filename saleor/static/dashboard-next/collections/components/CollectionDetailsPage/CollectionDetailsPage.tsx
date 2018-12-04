@@ -47,7 +47,6 @@ export interface CollectionDetailsPageProps
   collection: CollectionDetails_collection;
   isFeatured: boolean;
   saveButtonBarState: ConfirmButtonTransitionState;
-  onBack: () => void;
   onCollectionRemove: () => void;
   onImageDelete: () => void;
   onImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -64,7 +63,6 @@ const CollectionDetailsPage = withStyles(styles, {
     disabled,
     isFeatured,
     saveButtonBarState,
-    onBack,
     onCollectionRemove,
     onImageDelete,
     onImageUpload,
@@ -84,9 +82,9 @@ const CollectionDetailsPage = withStyles(styles, {
       onSubmit={onSubmit}
       confirmLeave
     >
-      {({ change, data, errors: formErrors, hasChanged, submit }) => (
+      {({ change, data, errors: formErrors, hasChanged, reset, submit }) => (
         <Container width="md">
-          <PageHeader title={maybe(() => collection.name)} onBack={onBack} />
+          <PageHeader title={maybe(() => collection.name)} back={true} />
           <div className={classes.root}>
             <div>
               <CollectionDetails
@@ -138,7 +136,7 @@ const CollectionDetailsPage = withStyles(styles, {
           <SaveButtonBar
             state={saveButtonBarState}
             disabled={disabled || !hasChanged}
-            onCancel={onBack}
+            onCancel={reset}
             onDelete={onCollectionRemove}
             onSave={submit}
           />

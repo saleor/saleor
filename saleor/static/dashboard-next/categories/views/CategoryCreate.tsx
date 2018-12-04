@@ -46,7 +46,6 @@ export const CategoryCreateView: React.StatelessComponent<
                         []
                       )}
                       disabled={createCategoryResult.loading}
-                      onBack={() => navigate(categoryUrl(parentId))}
                       onSubmit={formData =>
                         createCategory({
                           variables: {

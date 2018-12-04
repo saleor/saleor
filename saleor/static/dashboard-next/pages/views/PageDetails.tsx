@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Redirect } from "react-router";
 
-import { NavigatorLink } from "../../components/Navigator";
 import { WindowTitle } from "../../components/WindowTitle";
 import { maybe } from "../../misc";
 import PageDetailsPage from "../components/PageDetailsPage";
@@ -78,34 +77,26 @@ export class PageUpdateForm extends React.Component<
                       return <Redirect to={pageListUrl} />;
                     }
                     return (
-                      <NavigatorLink to={pageListUrl}>
-                        {handleCancel => (
-                          <>
-                            <WindowTitle title={maybe(() => data.page.title)} />
-                            <PageDetailsPage
-                              onBack={handleCancel}
-                              page={loading ? undefined : data.page}
-                              onSubmit={data =>
-                                updatePage({
-                                  variables: { id, ...data }
-                                })
-                              }
-                              errors={
-                                updateResult
-                                  ? updateResult.pageUpdate.errors
-                                  : []
-                              }
-                              title={
-                                data && data.page ? data.page.title : undefined
-                              }
-                              disabled={
-                                loading || deleteInProgress || updateInProgress
-                              }
-                              saveButtonBarState="default"
-                            />
-                          </>
-                        )}
-                      </NavigatorLink>
+                      <>
+                        <WindowTitle title={maybe(() => data.page.title)} />
+                        <PageDetailsPage
+                          onSubmit={data =>
+                            updatePage({
+                              variables: { id, ...data }
+                            })
+                          }
+                          errors={
+                            updateResult ? updateResult.pageUpdate.errors : []
+                          }
+                          title={
+                            data && data.page ? data.page.title : undefined
+                          }
+                          disabled={
+                            loading || deleteInProgress || updateInProgress
+                          }
+                          saveButtonBarState="default"
+                        />
+                      </>
                     );
                   }}
                 </TypedPageUpdateMutation>

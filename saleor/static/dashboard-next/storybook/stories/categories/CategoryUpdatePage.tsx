@@ -21,7 +21,6 @@ const updateProps: Omit<CategoryUpdatePageProps, "classes"> = {
   errors: [],
   onAddCategory: undefined,
   onAddProduct: undefined,
-  onBack: () => undefined,
   onCategoryClick: () => undefined,
   onDelete: () => undefined,
   onImageDelete: () => undefined,

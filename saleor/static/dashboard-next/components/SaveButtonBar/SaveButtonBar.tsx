@@ -52,7 +52,7 @@ interface SaveButtonBarProps extends WithStyles<typeof styles> {
     delete?: string;
     save?: string;
   };
-  onCancel: () => void;
+  onCancel?: () => void;
   onDelete?: () => void;
   onSave(event: any);
 }

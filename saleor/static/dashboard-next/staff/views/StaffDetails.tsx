@@ -80,7 +80,6 @@ export const StaffDetails: React.StatelessComponent<OrderListProps> = ({
                             <WindowTitle title={maybe(() => data.user.email)} />
                             <StaffDetailsPage
                               disabled={loading}
-                              onBack={() => navigate(staffListUrl)}
                               onDelete={() =>
                                 navigate(staffMemberRemoveUrl(id))
                               }

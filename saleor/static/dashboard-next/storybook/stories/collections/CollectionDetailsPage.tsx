@@ -21,7 +21,6 @@ const props: Omit<CollectionDetailsPageProps, "classes"> = {
   collection,
   disabled: false,
   isFeatured: true,
-  onBack: () => undefined,
   onCollectionRemove: () => undefined,
   onImageDelete: () => undefined,
   onImageUpload: () => undefined,

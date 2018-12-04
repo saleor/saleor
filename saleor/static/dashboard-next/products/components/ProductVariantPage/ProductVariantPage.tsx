@@ -42,7 +42,6 @@ interface ProductVariantPageProps extends WithStyles<typeof styles> {
   loading?: boolean;
   placeholderImage?: string;
   header: string;
-  onBack();
   onDelete();
   onSubmit(data: any);
   onImageSelect(id: string);
@@ -58,7 +57,6 @@ const ProductVariantPage = withStyles(styles, { name: "ProductVariantPage" })(
     placeholderImage,
     saveButtonBarState,
     variant,
-    onBack,
     onDelete,
     onImageSelect,
     onSubmit,
@@ -80,7 +78,7 @@ const ProductVariantPage = withStyles(styles, { name: "ProductVariantPage" })(
         {(isImageSelectModalActive, { toggle: toggleImageSelectModal }) => (
           <>
             <Container width="md">
-              <PageHeader title={header} onBack={onBack} />
+              <PageHeader title={header} back={true} />
               <Form
                 initial={{
                   attributes:
@@ -105,7 +103,7 @@ const ProductVariantPage = withStyles(styles, { name: "ProductVariantPage" })(
                 onSubmit={onSubmit}
                 confirmLeave
               >
-                {({ change, data, errors, hasChanged, submit }) => (
+                {({ change, data, errors, hasChanged, reset, submit }) => (
                   <>
                     <div className={classes.root}>
                       <div>
@@ -165,7 +163,7 @@ const ProductVariantPage = withStyles(styles, { name: "ProductVariantPage" })(
                     <SaveButtonBar
                       disabled={loading || !hasChanged}
                       state={saveButtonBarState}
-                      onCancel={onBack}
+                      onCancel={reset}
                       onDelete={onDelete}
                       onSave={submit}
                     />

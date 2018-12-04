@@ -10,7 +10,6 @@ import Decorator from "../../Decorator";
 
 const props: Omit<StaffDetailsPageProps, "classes"> = {
   disabled: false,
-  onBack: () => undefined,
   onDelete: () => undefined,
   onSubmit: () => undefined,
   permissions,

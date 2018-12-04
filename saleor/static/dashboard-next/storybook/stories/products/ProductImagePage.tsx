@@ -17,7 +17,6 @@ storiesOf("Views / Products / Product image details", module)
       disabled={false}
       image={image}
       images={images}
-      onBack={() => undefined}
       onDelete={undefined}
       onRowClick={() => undefined}
       onSubmit={() => undefined}
@@ -27,7 +26,6 @@ storiesOf("Views / Products / Product image details", module)
   .add("when loading data", () => (
     <ProductImagePage
       disabled={true}
-      onBack={() => undefined}
       onDelete={undefined}
       onRowClick={() => undefined}
       onSubmit={() => undefined}

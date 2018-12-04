@@ -82,7 +82,6 @@ interface VoucherDetailsPageProps extends WithStyles<typeof styles> {
   fetchCategories?();
   fetchProducts?();
   fetchShipping?();
-  onBack?();
   onVoucherDelete?();
 }
 
@@ -102,7 +101,6 @@ const VoucherDetailsPage = withStyles(styles, { name: "VoucherDetailsPage" })(
     productSearchResults,
     shippingSearchResults,
     voucher,
-    onBack,
     onVoucherDelete
   }: VoucherDetailsPageProps) => (
     <Toggle>
@@ -144,7 +142,7 @@ const VoucherDetailsPage = withStyles(styles, { name: "VoucherDetailsPage" })(
             }}
             key={voucher ? CRC.str(JSON.stringify(voucher)) : "loading"}
           >
-            {({ change, data, hasChanged, submit }) => (
+            {({ change, data, hasChanged, reset, submit }) => (
               <Container width="md">
                 <PageHeader
                   title={
@@ -154,7 +152,7 @@ const VoucherDetailsPage = withStyles(styles, { name: "VoucherDetailsPage" })(
                         : createVoucherName(voucher, currency)
                       : undefined
                   }
-                  onBack={onBack}
+                  back={true}
                 />
                 <div className={classes.root}>
                   <div>
@@ -191,7 +189,7 @@ const VoucherDetailsPage = withStyles(styles, { name: "VoucherDetailsPage" })(
                   </div>
                 </div>
                 <SaveButtonBar
-                  onCancel={onBack}
+                  onCancel={reset}
                   onDelete={toggleVoucherDeleteDialog}
                   onSave={submit}
                   state={saveButtonBarState}

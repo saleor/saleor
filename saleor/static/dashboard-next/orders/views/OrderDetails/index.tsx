@@ -28,7 +28,7 @@ import { OrderVariantSearchProvider } from "../../containers/OrderVariantSearch"
 import { UserSearchProvider } from "../../containers/UserSearch";
 import { TypedOrderDetailsQuery } from "../../queries";
 import { OrderDetails_order } from "../../types/OrderDetails";
-import { orderListUrl, orderUrl } from "../../urls";
+import { orderUrl } from "../../urls";
 import { OrderDetailsMessages } from "./OrderDetailsMessages";
 import {
   orderBillingAddressEditPath,
@@ -201,7 +201,6 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                           order: id
                                         })
                                       }
-                                      onBack={() => navigate(orderListUrl())}
                                       order={order}
                                       shippingMethods={maybe(
                                         () =>
@@ -594,7 +593,6 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       onOrderLineAdd={() =>
                                         navigate(orderDraftLineAddUrl(id))
                                       }
-                                      onBack={() => navigate(orderListUrl())}
                                       order={order}
                                       countries={maybe(
                                         () => data.shop.countries,

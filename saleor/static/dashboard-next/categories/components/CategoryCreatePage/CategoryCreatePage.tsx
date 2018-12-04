@@ -31,27 +31,20 @@ export interface CategoryCreatePageProps {
   disabled: boolean;
   saveButtonBarState: ConfirmButtonTransitionState;
   onSubmit(data: FormData);
-  onBack();
 }
 
 export const CategoryCreatePage: React.StatelessComponent<
   CategoryCreatePageProps
-> = ({
-  disabled,
-  onSubmit,
-  onBack,
-  errors: userErrors,
-  saveButtonBarState
-}) => (
+> = ({ disabled, onSubmit, errors: userErrors, saveButtonBarState }) => (
   <Form
     onSubmit={onSubmit}
     initial={initialData}
     errors={userErrors}
     confirmLeave
   >
-    {({ data, change, errors, submit, hasChanged }) => (
+    {({ data, change, errors, reset, submit, hasChanged }) => (
       <Container width="md">
-        <PageHeader title={i18n.t("Add Category")} onBack={onBack} />
+        <PageHeader title={i18n.t("Add Category")} back={true} />
         <div>
           <CategoryDetailsForm
             disabled={disabled}
@@ -73,7 +66,7 @@ export const CategoryCreatePage: React.StatelessComponent<
             disabled={disabled}
           />
           <SaveButtonBar
-            onCancel={onBack}
+            onCancel={reset}
             onSave={submit}
             labels={{
               save: i18n.t("Save category")

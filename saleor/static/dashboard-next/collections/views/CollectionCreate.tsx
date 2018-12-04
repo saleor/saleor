@@ -8,7 +8,7 @@ import { getMutationState, maybe } from "../../misc";
 import CollectionCreatePage from "../components/CollectionCreatePage/CollectionCreatePage";
 import { TypedCollectionCreateMutation } from "../mutations";
 import { CreateCollection } from "../types/CreateCollection";
-import { collectionListUrl, collectionUrl } from "../urls";
+import { collectionUrl } from "../urls";
 
 export const CollectionCreate: React.StatelessComponent<{}> = () => (
   <Messages>
@@ -43,7 +43,6 @@ export const CollectionCreate: React.StatelessComponent<{}> = () => (
                     <WindowTitle title={i18n.t("Create collection")} />
                     <CollectionCreatePage
                       errors={maybe(() => data.collectionCreate.errors, [])}
-                      onBack={() => navigate(collectionListUrl)}
                       disabled={loading}
                       onSubmit={formData =>
                         createCollection({

@@ -11,7 +11,7 @@ import ProductVariantCreatePage from "../components/ProductVariantCreatePage";
 import { TypedVariantCreateMutation } from "../mutations";
 import { TypedProductVariantCreateQuery } from "../queries";
 import { VariantCreate } from "../types/VariantCreate";
-import { productUrl, productVariantEditUrl } from "../urls";
+import { productVariantEditUrl } from "../urls";
 
 interface ProductUpdateProps {
   productId: string;
@@ -71,8 +71,6 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                           );
                         }
 
-                        const handleBack = () =>
-                          navigate(productUrl(productId));
                         const handleSubmit = (formData: FormData) =>
                           variantCreate({
                             variables: {
@@ -114,7 +112,6 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                               header={i18n.t("Add Variant")}
                               loading={disableForm}
                               product={maybe(() => data.product)}
-                              onBack={handleBack}
                               onSubmit={handleSubmit}
                               onVariantClick={handleVariantClick}
                               saveButtonBarState={formTransitionstate}

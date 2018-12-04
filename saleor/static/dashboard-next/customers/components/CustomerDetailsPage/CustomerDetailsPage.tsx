@@ -42,7 +42,6 @@ export interface CustomerDetailsPageProps extends WithStyles<typeof styles> {
   disabled: boolean;
   errors: UserError[];
   saveButtonBar: ConfirmButtonTransitionState;
-  onBack: () => void;
   onSubmit: (data: CustomerDetailsPageFormData) => void;
   onViewAllOrdersClick: () => void;
   onRowClick: (id: string) => void;
@@ -57,7 +56,6 @@ const CustomerDetailsPage = withStyles(styles, { name: "CustomerDetailsPage" })(
     disabled,
     errors,
     saveButtonBar,
-    onBack,
     onSubmit,
     onViewAllOrdersClick,
     onRowClick,
@@ -76,9 +74,9 @@ const CustomerDetailsPage = withStyles(styles, { name: "CustomerDetailsPage" })(
       onSubmit={onSubmit}
       confirmLeave
     >
-      {({ change, data, errors: formErrors, hasChanged, submit }) => (
+      {({ change, data, errors: formErrors, hasChanged, reset, submit }) => (
         <Container width="md">
-          <PageHeader onBack={onBack} title={getUserName(customer, true)} />
+          <PageHeader back={true} title={getUserName(customer, true)} />
           <div className={classes.root}>
             <div>
               <CustomerDetails
@@ -111,7 +109,7 @@ const CustomerDetailsPage = withStyles(styles, { name: "CustomerDetailsPage" })(
             disabled={disabled || !hasChanged}
             state={saveButtonBar}
             onSave={submit}
-            onCancel={onBack}
+            onCancel={reset}
             onDelete={onDelete}
           />
         </Container>

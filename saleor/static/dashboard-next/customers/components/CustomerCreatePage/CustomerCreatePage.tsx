@@ -25,6 +25,14 @@ export interface CustomerCreatePageFormData extends AddressTypeInput {
   note: string;
 }
 
+export interface CustomerCreatePageProps {
+  countries: CustomerCreateData_shop_countries[];
+  disabled: boolean;
+  errors: UserError[];
+  saveButtonBar: ConfirmButtonTransitionState;
+  onSubmit: (data: CustomerCreatePageFormData) => void;
+}
+
 const initialForm: CustomerCreatePageFormData = {
   city: "",
   cityArea: "",
@@ -69,7 +77,6 @@ const CustomerCreatePage = withStyles(styles, { name: "CustomerCreatePage" })(
     disabled,
     errors,
     saveButtonBar,
-    onBack,
     onSubmit
   }: CustomerCreatePageProps) => (
     <Form
@@ -78,9 +85,9 @@ const CustomerCreatePage = withStyles(styles, { name: "CustomerCreatePage" })(
       errors={errors}
       confirmLeave
     >
-      {({ change, data, errors: formErrors, hasChanged, submit }) => (
+      {({ change, data, errors: formErrors, hasChanged, reset, submit }) => (
         <Container width="md">
-          <PageHeader title={i18n.t("Add customer")} onBack={onBack} />
+          <PageHeader title={i18n.t("Add customer")} back={true} />
           <div className={classes.root}>
             <div>
               <CustomerCreateDetails
@@ -110,7 +117,7 @@ const CustomerCreatePage = withStyles(styles, { name: "CustomerCreatePage" })(
             disabled={disabled || !hasChanged}
             state={saveButtonBar}
             onSave={submit}
-            onCancel={onBack}
+            onCancel={reset}
           />
         </Container>
       )}

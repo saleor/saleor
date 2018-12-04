@@ -13,7 +13,6 @@ storiesOf("Views / Products / Product edit", module)
   .add("when data is fully loaded", () => (
     <ProductUpdatePage
       errors={[]}
-      onBack={() => undefined}
       onSubmit={() => undefined}
       product={product}
       header={product.name}
@@ -37,7 +36,6 @@ storiesOf("Views / Products / Product edit", module)
   .add("when product has no images", () => (
     <ProductUpdatePage
       errors={[]}
-      onBack={() => undefined}
       onSubmit={() => undefined}
       product={product}
       header={product.name}
@@ -61,7 +59,6 @@ storiesOf("Views / Products / Product edit", module)
   .add("when product has no variants", () => (
     <ProductUpdatePage
       errors={[]}
-      onBack={() => undefined}
       onSubmit={() => undefined}
       product={
         {
@@ -94,7 +91,6 @@ storiesOf("Views / Products / Product edit", module)
       categories={[]}
       fetchCategories={() => undefined}
       fetchCollections={() => undefined}
-      onBack={() => undefined}
       onSubmit={() => undefined}
       disabled={true}
       placeholderImage={placeholderImage}

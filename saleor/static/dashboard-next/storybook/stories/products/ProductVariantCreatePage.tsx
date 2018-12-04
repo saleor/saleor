@@ -35,7 +35,6 @@ storiesOf("Views / Products / Create product variant", module)
       header="Add variant"
       loading={false}
       product={product}
-      onBack={() => undefined}
       onSubmit={() => undefined}
       onVariantClick={undefined}
       saveButtonBarState="default"
@@ -48,7 +47,6 @@ storiesOf("Views / Products / Create product variant", module)
       header="Add variant"
       loading={false}
       product={product}
-      onBack={() => undefined}
       onSubmit={() => undefined}
       onVariantClick={undefined}
       saveButtonBarState="default"
@@ -61,7 +59,6 @@ storiesOf("Views / Products / Create product variant", module)
       header="Add variant"
       loading={true}
       product={undefined}
-      onBack={() => undefined}
       onSubmit={() => undefined}
       onVariantClick={undefined}
       saveButtonBarState="default"

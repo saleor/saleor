@@ -12,7 +12,6 @@ const props: Omit<ProductTypeCreatePageProps, "classes"> = {
   defaultWeightUnit: "kg" as WeightUnitsEnum,
   disabled: false,
   errors: [],
-  onBack: () => undefined,
   onSubmit: () => undefined,
   pageTitle: "Create product type",
   saveButtonBarState: "default"

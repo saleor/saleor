@@ -96,7 +96,6 @@ interface ProductCreatePageProps extends WithStyles<typeof styles> {
   fetchCategories: (data: string) => void;
   fetchCollections: (data: string) => void;
   onAttributesEdit: () => void;
-  onBack?();
   onSubmit?(data: FormData);
 }
 
@@ -115,7 +114,6 @@ export const ProductCreatePage = withStyles(styles, {
     header,
     productTypes,
     saveButtonBarState,
-    onBack,
     onSubmit
   }: ProductCreatePageProps) => {
     const initialData: FormData = {
@@ -152,9 +150,9 @@ export const ProductCreatePage = withStyles(styles, {
         initial={initialData}
         confirmLeave
       >
-        {({ change, data, errors, hasChanged, submit }) => (
+        {({ change, data, errors, hasChanged, reset, submit }) => (
           <Container width="md">
-            <PageHeader title={header} onBack={onBack} />
+            <PageHeader title={header} back={true} />
             <div className={classes.root}>
               <div>
                 <ProductDetailsForm
@@ -222,7 +220,7 @@ export const ProductCreatePage = withStyles(styles, {
               </div>
             </div>
             <SaveButtonBar
-              onCancel={onBack}
+              onCancel={reset}
               onSave={submit}
               state={saveButtonBarState}
               disabled={disabled || !onSubmit || !hasChanged}

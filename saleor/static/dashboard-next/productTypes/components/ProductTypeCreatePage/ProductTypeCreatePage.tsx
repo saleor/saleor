@@ -45,7 +45,6 @@ export interface ProductTypeCreatePageProps extends WithStyles<typeof styles> {
   disabled: boolean;
   pageTitle: string;
   saveButtonBarState: ConfirmButtonTransitionState;
-  onBack: () => void;
   onSubmit: (data: ProductTypeForm) => void;
 }
 
@@ -59,7 +58,6 @@ const ProductTypeCreatePage = withStyles(styles, {
     errors,
     pageTitle,
     saveButtonBarState,
-    onBack,
     onSubmit
   }: ProductTypeCreatePageProps) => {
     const formInitialData: ProductTypeForm = {
@@ -76,9 +74,9 @@ const ProductTypeCreatePage = withStyles(styles, {
         onSubmit={onSubmit}
         confirmLeave
       >
-        {({ change, data, hasChanged, submit }) => (
+        {({ change, data, hasChanged, reset, submit }) => (
           <Container width="md">
-            <PageHeader title={pageTitle} onBack={onBack} />
+            <PageHeader title={pageTitle} back={true} />
             <div className={classes.root}>
               <div>
                 <ProductTypeDetails
@@ -104,7 +102,7 @@ const ProductTypeCreatePage = withStyles(styles, {
               </div>
             </div>
             <SaveButtonBar
-              onCancel={onBack}
+              onCancel={reset}
               onSave={submit}
               disabled={disabled || !hasChanged}
               state={saveButtonBarState}

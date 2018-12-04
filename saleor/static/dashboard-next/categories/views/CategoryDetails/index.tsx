@@ -129,15 +129,6 @@ export const CategoryDetails: React.StatelessComponent<
                                     navigate(categoryAddUrl(id))
                                   }
                                   onAddProduct={() => navigate(productAddUrl)}
-                                  onBack={() =>
-                                    navigate(
-                                      maybe(
-                                        () =>
-                                          categoryUrl(data.category.parent.id),
-                                        categoryListUrl
-                                      )
-                                    )
-                                  }
                                   onCategoryClick={id => () =>
                                     navigate(categoryUrl(id))}
                                   onDelete={() =>

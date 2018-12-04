@@ -91,7 +91,6 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
                                 disabled={loading}
                                 image={image || null}
                                 images={maybe(() => data.product.images)}
-                                onBack={handleBack}
                                 onDelete={() =>
                                   navigate(
                                     productImageRemoveUrl(productId, imageId)

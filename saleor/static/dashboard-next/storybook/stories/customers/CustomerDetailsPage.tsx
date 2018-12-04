@@ -14,7 +14,6 @@ const props: Omit<CustomerDetailsPageProps, "classes"> = {
   disabled: false,
   errors: [],
   onAddressManageClick: () => undefined,
-  onBack: () => undefined,
   onDelete: () => undefined,
   onRowClick: () => undefined,
   onSubmit: () => undefined,

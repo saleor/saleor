@@ -11,7 +11,7 @@ import ProductTypeCreatePage, {
 import { TypedProductTypeCreateMutation } from "../mutations";
 import { TypedProductTypeCreateDataQuery } from "../queries";
 import { ProductTypeCreate as ProductTypeCreateMutation } from "../types/ProductTypeCreate";
-import { productTypeListUrl, productTypeUrl } from "../urls";
+import { productTypeUrl } from "../urls";
 
 export const ProductTypeCreate: React.StatelessComponent = () => (
   <Messages>
@@ -69,7 +69,6 @@ export const ProductTypeCreate: React.StatelessComponent = () => (
                           saveButtonBarState={
                             loadingCreate ? "loading" : "default"
                           }
-                          onBack={() => navigate(productTypeListUrl)}
                           onSubmit={handleCreate}
                         />
                       </>

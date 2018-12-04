@@ -54,7 +54,6 @@ export interface PageDetailsPageProps extends WithStyles<typeof styles> {
   disabled?: boolean;
   title?: string;
   saveButtonBarState: ConfirmButtonTransitionState;
-  onBack?();
   onDelete?();
   onSubmit(data: PageInput);
 }
@@ -67,7 +66,6 @@ const PageDetailsPage = withStyles(styles, { name: "PageDetailsPage" })(
     page,
     title,
     saveButtonBarState,
-    onBack,
     onDelete,
     onSubmit
   }: PageDetailsPageProps) => (
@@ -77,12 +75,12 @@ const PageDetailsPage = withStyles(styles, { name: "PageDetailsPage" })(
       initial={page ? page : defaultPage}
       onSubmit={onSubmit}
     >
-      {({ change, data, errors, hasChanged, submit }) => (
+      {({ change, data, errors, hasChanged, reset, submit }) => (
         <Toggle>
           {(opened, { toggle: togglePageDeleteDialog }) => (
             <Container width="md">
               <>
-                <PageHeader onBack={onBack} title={title} />
+                <PageHeader back={true} title={title} />
                 <div className={classes.root}>
                   <div>
                     <PageContent
@@ -107,7 +105,7 @@ const PageDetailsPage = withStyles(styles, { name: "PageDetailsPage" })(
                 <SaveButtonBar
                   disabled={disabled || !onSubmit || !hasChanged}
                   state={saveButtonBarState}
-                  onCancel={onBack}
+                  onCancel={reset}
                   onDelete={togglePageDeleteDialog}
                   onSave={submit}
                 />

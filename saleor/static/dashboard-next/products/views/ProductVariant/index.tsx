@@ -51,7 +51,6 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                 return <ErrorMessageCard message="Something went wrong" />;
               }
               const variant = data ? data.productVariant : undefined;
-              const handleBack = () => navigate(productUrl(productId));
               const handleDelete = () => {
                 pushMessage({ text: i18n.t("Variant removed") });
                 navigate(productUrl(productId));
@@ -134,7 +133,6 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                           header={
                             variant ? variant.name || variant.sku : undefined
                           }
-                          onBack={handleBack}
                           onDelete={() =>
                             navigate(
                               productVariantRemoveUrl(productId, variantId)
