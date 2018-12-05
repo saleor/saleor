@@ -1,3 +1,4 @@
+import { Omit } from "@material-ui/core";
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
@@ -6,7 +7,7 @@ import CollectionCreatePage, {
 } from "../../../collections/components/CollectionCreatePage";
 import Decorator from "../../Decorator";
 
-const props: CollectionCreatePageProps = {
+const props: Omit<CollectionCreatePageProps, "classes"> = {
   disabled: false,
   errors: [],
   onBack: () => undefined,

@@ -1,13 +1,27 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
 import i18n from "../../../i18n";
 
-export interface CustomerCreateDetailsProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "1fr 1fr"
+    }
+  });
+
+export interface CustomerCreateDetailsProps extends WithStyles<typeof styles> {
   data: {
     email: string;
   };
@@ -18,15 +32,16 @@ export interface CustomerCreateDetailsProps {
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "1fr 1fr"
-  }
-}));
-const CustomerCreateDetails = decorate<CustomerCreateDetailsProps>(
-  ({ classes, data, disabled, errors, onChange }) => (
+const CustomerCreateDetails = withStyles(styles, {
+  name: "CustomerCreateDetails"
+})(
+  ({
+    classes,
+    data,
+    disabled,
+    errors,
+    onChange
+  }: CustomerCreateDetailsProps) => (
     <Card>
       <CardTitle title={i18n.t("Customer overview")} />
       <CardContent>

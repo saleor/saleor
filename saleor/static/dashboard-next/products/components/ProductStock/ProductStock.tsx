@@ -1,13 +1,27 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
 import i18n from "../../../i18n";
 
-interface ProductStockProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "1fr 1fr"
+    }
+  });
+
+interface ProductStockProps extends WithStyles<typeof styles> {
   data: {
     sku: string;
     stockQuantity: number;
@@ -16,15 +30,8 @@ interface ProductStockProps {
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "1fr 1fr"
-  }
-}));
-const ProductStock = decorate<ProductStockProps>(
-  ({ classes, data, disabled, onChange }) => (
+const ProductStock = withStyles(styles, { name: "ProductStock" })(
+  ({ classes, data, disabled, onChange }: ProductStockProps) => (
     <Card>
       <CardTitle title={i18n.t("Inventory")} />
       <CardContent>

@@ -9,7 +9,12 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Menu from "@material-ui/core/MenuList";
 import Paper from "@material-ui/core/Paper";
 import Popper from "@material-ui/core/Popper";
-import { withStyles, WithStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import MenuIcon from "@material-ui/icons/Menu";
@@ -94,11 +99,11 @@ const menuStructure: IMenuItem[] = [
   }
 ];
 
-const decorate = withStyles(
-  theme => ({
+const styles = (theme: Theme) =>
+  createStyles({
     appBar: {
       boxShadow: "none",
-      display: "grid" as "grid",
+      display: "grid",
       gridTemplateColumns: `${drawerWidth}px 1fr`,
       zIndex: theme.zIndex.drawer + 1
     },
@@ -113,12 +118,12 @@ const decorate = withStyles(
     },
     arrow: {
       marginLeft: theme.spacing.unit * 2,
-      position: "relative" as "relative",
+      position: "relative",
       top: 6,
       transition: theme.transitions.duration.standard + "ms"
     },
     container: {
-      textAlign: "right" as "right",
+      textAlign: "right",
       width: "100%"
     },
     content: {
@@ -165,8 +170,8 @@ const decorate = withStyles(
       marginRight: theme.spacing.unit
     },
     menuList: {
-      display: "flex" as "flex",
-      flexDirection: "column" as "column",
+      display: "flex",
+      flexDirection: "column",
       height: "100%",
       marginLeft: theme.spacing.unit * 4,
       marginTop: theme.spacing.unit * 2,
@@ -176,19 +181,19 @@ const decorate = withStyles(
       "&:hover": {
         color: theme.palette.primary.main
       },
-      alignItems: "center" as "center",
+      alignItems: "center",
       color: "#616161",
-      display: "flex" as "flex",
+      display: "flex",
       height: 40,
       paddingLeft: 0,
-      textDecoration: "none" as "none",
+      textDecoration: "none",
       transition: theme.transitions.duration.standard + "ms"
     },
     menuListItemText: {
       "&:hover": {
         color: theme.palette.primary.main
       },
-      cursor: "pointer" as "pointer",
+      cursor: "pointer",
       fontSize: "1rem",
       marginLeft: theme.spacing.unit * 2,
       transition: theme.transitions.duration.standard + "ms"
@@ -216,19 +221,18 @@ const decorate = withStyles(
       marginRight: theme.spacing.unit
     },
     userMenuItem: {
-      textAlign: "right" as "right"
+      textAlign: "right"
     }
-  }),
-  { name: "ResponsiveDrawer" }
-);
+  });
 
-interface ResponsiveDrawerProps {
+interface ResponsiveDrawerProps extends WithStyles<typeof styles> {
+  children?: React.ReactNode;
   open: boolean;
   onClose?();
 }
 
-const ResponsiveDrawer = decorate<ResponsiveDrawerProps>(
-  ({ children, classes, onClose, open }) => (
+const ResponsiveDrawer = withStyles(styles, { name: "ResponsiveDrawer" })(
+  ({ children, classes, onClose, open }: ResponsiveDrawerProps) => (
     <>
       <Hidden smDown>
         <Drawer
@@ -263,13 +267,13 @@ interface IMenuItem {
   permission?: PermissionEnum;
   url?: string;
 }
-interface MenuListProps {
+interface MenuListProps extends WithStyles<typeof styles> {
   menuItems: IMenuItem[];
   user: User;
   onMenuItemClick: (url: string, event: React.MouseEvent<any>) => void;
 }
-const MenuList = decorate<MenuListProps>(
-  ({ classes, menuItems, user, onMenuItemClick }) => (
+const MenuList = withStyles(styles, { name: "MenuList" })(
+  ({ classes, menuItems, user, onMenuItemClick }: MenuListProps) => (
     <div>
       {menuItems.map(menuItem => {
         if (
@@ -331,35 +335,9 @@ interface AppRootState {
   open: boolean;
 }
 
-export const AppRoot = decorate(
+export const AppRoot = withStyles(styles, { name: "AppRoot" })(
   class InnerAppRoot extends React.Component<
-    WithStyles<
-      | "appBar"
-      | "appFrame"
-      | "appLoader"
-      | "arrow"
-      | "content"
-      | "contentShift"
-      | "container"
-      | "drawerDesktop"
-      | "drawerMobile"
-      | "email"
-      | "emailLabel"
-      | "hide"
-      | "logo"
-      | "menuButton"
-      | "menuList"
-      | "menuListItem"
-      | "menuListItemText"
-      | "menuListNested"
-      | "root"
-      | "rotate"
-      | "spacer"
-      | "toolBarContent"
-      | "toolBarMenu"
-      | "userIcon"
-      | "userMenuItem"
-    >,
+    WithStyles<typeof styles>,
     AppRootState
   > {
     state = { open: false };

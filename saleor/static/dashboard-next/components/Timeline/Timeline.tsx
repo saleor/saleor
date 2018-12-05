@@ -4,7 +4,12 @@ import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
 import deepPurple from "@material-ui/core/colors/deepPurple";
 import grey from "@material-ui/core/colors/grey";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import PersonIcon from "@material-ui/icons/Person";
 import * as classNames from "classnames";
@@ -12,52 +17,60 @@ import * as React from "react";
 
 import i18n from "../../i18n";
 
-interface TimelineAddNoteProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    avatar: {
+      alignSelf: "flex-start",
+      marginRight: theme.spacing.unit * 5.5
+    },
+    cardActions: {
+      direction: "rtl",
+      display: "block",
+      maxHeight: 0,
+      overflow: "hidden",
+      padding: "0 20px",
+      transitionDuration: "200ms"
+    },
+    cardActionsExpanded: {
+      maxHeight: theme.spacing.unit * 6
+    },
+    noteRoot: {
+      left: -theme.spacing.unit * 8.5 - 1,
+      marginBottom: theme.spacing.unit * 3,
+      position: "relative",
+      width: `calc(100% + ${theme.spacing.unit * 8.5}px)`
+    },
+    noteTitle: {
+      alignItems: "center",
+      display: "flex"
+    },
+    root: {
+      borderColor: grey[300],
+      borderStyle: "solid",
+      borderWidth: "0 0 0 2px",
+      marginLeft: theme.spacing.unit * 5.5,
+      paddingLeft: theme.spacing.unit * 3
+    }
+  });
+
+interface TimelineProps extends WithStyles<typeof styles> {
+  children?: React.ReactNode;
+}
+
+interface TimelineAddNoteProps extends WithStyles<typeof styles> {
   message: string;
   onChange(event: React.ChangeEvent<any>);
   onSubmit(event: React.FormEvent<any>);
 }
 
-const decorate = withStyles(theme => ({
-  avatar: {
-    alignSelf: "flex-start" as "flex-start",
-    marginRight: theme.spacing.unit * 5.5
-  },
-  cardActions: {
-    direction: "rtl" as "rtl",
-    display: "block" as "block",
-    maxHeight: 0,
-    overflow: "hidden" as "hidden",
-    padding: "0 20px",
-    transitionDuration: "200ms"
-  },
-  cardActionsExpanded: {
-    maxHeight: theme.spacing.unit * 6
-  },
-  noteRoot: {
-    left: -theme.spacing.unit * 8.5 - 1,
-    marginBottom: theme.spacing.unit * 3,
-    position: "relative" as "relative",
-    width: `calc(100% + ${theme.spacing.unit * 8.5}px)`
-  },
-  noteTitle: {
-    alignItems: "center" as "center",
-    display: "flex" as "flex"
-  },
-  root: {
-    borderColor: grey[300],
-    borderStyle: "solid",
-    borderWidth: "0 0 0 2px",
-    marginLeft: theme.spacing.unit * 5.5,
-    paddingLeft: theme.spacing.unit * 3
-  }
-}));
+export const Timeline = withStyles(styles, { name: "Timeline" })(
+  ({ classes, children }: TimelineProps) => (
+    <div className={classes.root}>{children}</div>
+  )
+);
 
-export const Timeline = decorate(({ classes, children }) => (
-  <div className={classes.root}>{children}</div>
-));
-export const TimelineAddNote = decorate<TimelineAddNoteProps>(
-  ({ classes, message, onChange, onSubmit }) => (
+export const TimelineAddNote = withStyles(styles, { name: "TimelineAddNote" })(
+  ({ classes, message, onChange, onSubmit }: TimelineAddNoteProps) => (
     <div className={classes.noteRoot}>
       <CardContent className={classes.noteTitle}>
         <Avatar

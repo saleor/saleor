@@ -1,6 +1,11 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
@@ -10,7 +15,21 @@ import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { StaffMemberDetails_shop_permissions } from "../../types/StaffMemberDetails";
 
-interface StaffPermissionsProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    checkboxContainer: {
+      marginTop: theme.spacing.unit
+    },
+    hr: {
+      backgroundColor: "#eaeaea",
+      border: "none",
+      height: 1,
+      marginBottom: 0,
+      marginTop: 0
+    }
+  });
+
+interface StaffPermissionsProps extends WithStyles<typeof styles> {
   permissions: StaffMemberDetails_shop_permissions[];
   data: {
     hasFullAccess: boolean;
@@ -20,20 +39,14 @@ interface StaffPermissionsProps {
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
-const decorate = withStyles(theme => ({
-  checkboxContainer: {
-    marginTop: theme.spacing.unit
-  },
-  hr: {
-    backgroundColor: "#eaeaea",
-    border: "none",
-    height: 1,
-    marginBottom: 0,
-    marginTop: 0
-  }
-}));
-const StaffPermissions = decorate<StaffPermissionsProps>(
-  ({ classes, data, disabled, permissions, onChange }) => {
+const StaffPermissions = withStyles(styles, { name: "StaffPermissions" })(
+  ({
+    classes,
+    data,
+    disabled,
+    permissions,
+    onChange
+  }: StaffPermissionsProps) => {
     const handleFullAccessChange = (event: React.ChangeEvent<any>) => {
       onChange(event);
       onChange({

@@ -1,4 +1,4 @@
-import { withStyles } from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -22,22 +22,20 @@ import {
 import { ListProps } from "../../../types";
 import { OrderList_orders_edges_node } from "../../types/OrderList";
 
-interface OrderListProps extends ListProps {
+const styles = createStyles({
+  link: {
+    cursor: "pointer"
+  },
+  textRight: {
+    textAlign: "right"
+  }
+});
+
+interface OrderListProps extends ListProps, WithStyles<typeof styles> {
   orders: OrderList_orders_edges_node[];
 }
 
-const decorate = withStyles(
-  {
-    link: {
-      cursor: "pointer"
-    },
-    textRight: {
-      textAlign: "right" as "right"
-    }
-  },
-  { name: "OrderList" }
-);
-export const OrderList = decorate<OrderListProps>(
+export const OrderList = withStyles(styles, { name: "OrderList" })(
   ({
     classes,
     disabled,
@@ -46,7 +44,7 @@ export const OrderList = decorate<OrderListProps>(
     onPreviousPage,
     onNextPage,
     onRowClick
-  }) => {
+  }: OrderListProps) => {
     const orderList = orders
       ? orders.map(order => ({
           ...order,

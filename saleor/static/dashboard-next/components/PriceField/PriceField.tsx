@@ -3,11 +3,38 @@ import FormHelperText from "@material-ui/core/FormHelperText";
 import Input from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import InputLabel from "@material-ui/core/InputLabel";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as classNames from "classnames";
 import * as React from "react";
 
-interface PriceRangeFieldProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    currencySymbol: {
+      fontSize: "0.875rem"
+    },
+    inputContainer: {
+      display: "grid",
+      gridTemplateColumns: "1fr 2rem 1fr"
+    },
+    pullDown: {
+      marginTop: theme.spacing.unit * 2
+    },
+    separator: {
+      marginTop: theme.spacing.unit * 3,
+      textAlign: "center",
+      width: "100%"
+    },
+    widgetContainer: {
+      marginTop: theme.spacing.unit * 2
+    }
+  });
+
+interface PriceRangeFieldProps extends WithStyles<typeof styles> {
   currencySymbol: string;
   disabled?: boolean;
   error?: boolean;
@@ -21,28 +48,7 @@ interface PriceRangeFieldProps {
   onChange(event: any);
 }
 
-const decorate = withStyles(theme => ({
-  currencySymbol: {
-    fontSize: "0.875rem"
-  },
-  inputContainer: {
-    display: "grid",
-    gridTemplateColumns: "1fr 2rem 1fr"
-  },
-  pullDown: {
-    marginTop: theme.spacing.unit * 2
-  },
-  separator: {
-    marginTop: theme.spacing.unit * 3,
-    textAlign: "center" as "center",
-    width: "100%"
-  },
-  widgetContainer: {
-    marginTop: theme.spacing.unit * 2
-  }
-}));
-
-export const PriceRangeField = decorate<PriceRangeFieldProps>(
+export const PriceRangeField = withStyles(styles, { name: "PriceRangeField" })(
   ({
     disabled,
     error,
@@ -53,7 +59,7 @@ export const PriceRangeField = decorate<PriceRangeFieldProps>(
     classes,
     onChange,
     value
-  }) => (
+  }: PriceRangeFieldProps) => (
     <div className={classes.widgetContainer}>
       <div className={classes.inputContainer}>
         <FormControl error={error}>
@@ -103,7 +109,7 @@ PriceRangeField.defaultProps = {
   name: "price"
 };
 
-interface PriceFieldProps {
+interface PriceFieldProps extends WithStyles<typeof styles> {
   currencySymbol?: string;
   disabled?: boolean;
   error?: boolean;
@@ -114,7 +120,7 @@ interface PriceFieldProps {
   onChange(event: any);
 }
 
-export const PriceField = decorate<PriceFieldProps>(
+export const PriceField = withStyles(styles, { name: "PriceField" })(
   ({
     disabled,
     error,
@@ -125,7 +131,7 @@ export const PriceField = decorate<PriceFieldProps>(
     classes,
     onChange,
     value
-  }) => (
+  }: PriceFieldProps) => (
     <FormControl error={error} fullWidth>
       {label && <InputLabel htmlFor={name}>{label}</InputLabel>}
       <Input

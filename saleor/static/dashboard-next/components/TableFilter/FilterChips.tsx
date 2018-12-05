@@ -1,4 +1,4 @@
-import { withStyles } from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import AddIcon from "@material-ui/icons/Add";
 import ClearIcon from "@material-ui/icons/Clear";
@@ -12,11 +12,7 @@ export interface Filter {
   onClick: () => void;
 }
 
-interface FilterChipProps {
-  filtersList: Filter[];
-}
-
-const decorate = withStyles({
+const styles = createStyles({
   addFilterButtonPrimary: {
     "&:hover": {
       backgroundColor: "rgba(90, 179, 120, .25)"
@@ -52,7 +48,7 @@ const decorate = withStyles({
   filterContainer: {
     borderBottom: "1px solid #e8e8e8",
     display: "flex",
-    flexWrap: "wrap" as "wrap",
+    flexWrap: "wrap",
     paddingBottom: "10px",
     paddingLeft: "12px"
   },
@@ -67,8 +63,12 @@ const decorate = withStyles({
   }
 });
 
-export const FilterChips = decorate<FilterChipProps>(
-  ({ classes, filtersList }) => (
+interface FilterChipProps extends WithStyles<typeof styles> {
+  filtersList: Filter[];
+}
+
+export const FilterChips = withStyles(styles, { name: "FilterChips" })(
+  ({ classes, filtersList }: FilterChipProps) => (
     <div className={classes.filterContainer}>
       {filtersList.map(filter => (
         <div

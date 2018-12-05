@@ -1,5 +1,10 @@
 import Card from "@material-ui/core/Card";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -16,31 +21,32 @@ import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { Home_productTopToday_edges_node } from "../../types/Home";
 
-interface HomeProductListProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    avatarProps: {
+      height: 64,
+      width: 64
+    },
+    avatarSpacing: {
+      paddingBottom: theme.spacing.unit * 2,
+      paddingTop: theme.spacing.unit * 2
+    },
+    noProducts: {
+      paddingBottom: 20,
+      paddingTop: 20
+    },
+    tableRow: {
+      cursor: "pointer"
+    }
+  });
+
+interface HomeProductListProps extends WithStyles<typeof styles> {
   topProducts: Home_productTopToday_edges_node[];
   onRowClick: (productId: string, variantId: string) => void;
 }
 
-const decorate = withStyles(theme => ({
-  avatarProps: {
-    height: 64,
-    width: 64
-  },
-  avatarSpacing: {
-    paddingBottom: theme.spacing.unit * 2,
-    paddingTop: theme.spacing.unit * 2
-  },
-  noProducts: {
-    paddingBottom: 20,
-    paddingTop: 20
-  },
-  tableRow: {
-    cursor: "pointer" as "pointer"
-  }
-}));
-
-export const HomeProductList = decorate<HomeProductListProps>(
-  ({ classes, topProducts, onRowClick }) => (
+export const HomeProductList = withStyles(styles, { name: "HomeProductList" })(
+  ({ classes, topProducts, onRowClick }: HomeProductListProps) => (
     <Card>
       <CardTitle title={i18n.t("Top products")} />
       <Table>
