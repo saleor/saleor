@@ -258,8 +258,9 @@
       {% endif %}
     </label>
     {% for value in field.value %}
-      <input type="date" id="{{ field.auto_id }}" class="datepicker col s5" name="{{ field.name }}_{{ forloop.counter0 }}"
-        value="{% if field.value %}{{ field.value|date:'Y-m-d' }}{% endif %}" data-value="{% if field.value %}{{ field.value|date:'Y-m-d' }}{% endif %}">
+      {% comment %} cycle after/before - this is assuming range will only iterate over 2 fields, required for django-filter instead of 0-1 indexes {% endcomment %}
+      <input type="date" id="{{ field.auto_id }}" class="datepicker col s5" name="{{ field.name }}_{% cycle 'after' 'before' %}"
+        value="{% if value %}{{ value }}{% endif %}" data-value="{% if value %}{{ value }}{% endif %}">
       {% for error in field.errors %}
         <p class="help-block materialize-red-text">
           {{ error }}
@@ -287,7 +288,8 @@
       {% for value in field.value %}
         <div class="input-range--field">
           <div class="input-with-suffix">
-            <input type="number" name="{{ field.name }}_{{ forloop.counter0 }}" value="{{ value }}"
+            {% comment %} cycle min/max - this is assuming range will only iterate over 2 fields, required for django-filter instead of 0-1 indexes {% endcomment %}
+            <input type="number" name="{{ field.name }}_{% cycle 'min' 'max' %}" value="{{ value }}"
                    id="{{ field.auto_id }}_{{ forloop.counter0 }}">
             <div class="input-text-suffix">{{ field.field.widget.currency }}</div>
           </div>
@@ -327,8 +329,9 @@
           {{ field.help_text|safe }}
         </p>
       {% endif %}
+      {% comment %} cycle min/max - this is assuming range will only iterate over 2 fields, required for django-filter instead of 0-1 indexes {% endcomment %}
       <input type="number" class="col s5"
-             name="{{ field.name }}_{{ forloop.counter0 }}" value="{{ value }}"
+             name="{{ field.name }}_{% cycle 'min' 'max' %}" value="{{ value }}"
              id="{{ field.auto_id }}_{{ forloop.counter0 }}">
       {% if not forloop.last %}
         <div class="col s2 center-align separator">-</div>
