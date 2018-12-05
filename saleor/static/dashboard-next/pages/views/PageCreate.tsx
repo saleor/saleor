@@ -4,6 +4,7 @@ import { Redirect } from "react-router";
 import { NavigatorLink } from "../../components/Navigator";
 import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
+import { getMutationState, maybe } from "../../misc";
 import PageDetailsPage from "../../pages/components/PageDetailsPage";
 import { TypedPageCreateMutation } from "../mutations";
 import { pageListUrl } from "../urls";
@@ -14,6 +15,11 @@ export const PageCreateForm: React.StatelessComponent = () => (
       if (called && !loading && !createResult.pageCreate.errors.length) {
         return <Redirect to={pageListUrl} push={false} />;
       }
+      const formTransitionState = getMutationState(
+        called,
+        loading,
+        maybe(() => createResult.pageCreate.errors)
+      );
       return (
         <NavigatorLink to={pageListUrl}>
           {handleCancel => (
@@ -35,6 +41,7 @@ export const PageCreateForm: React.StatelessComponent = () => (
                   })
                 }
                 title={i18n.t("Add page", { context: "title" })}
+                saveButtonBarState={formTransitionState}
               />
             </>
           )}

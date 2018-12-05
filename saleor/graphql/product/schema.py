@@ -1,30 +1,28 @@
 import graphene
 from graphql_jwt.decorators import permission_required
 
-from ..descriptions import DESCRIPTIONS
 from ..core.fields import PrefetchingConnectionField
 from ..core.types import ReportingPeriod
+from ..descriptions import DESCRIPTIONS
 from .mutations.attributes import (
-    AttributeValueCreate, AttributeValueDelete,
-    AttributeValueUpdate, AttributeCreate, AttributeDelete,
-    AttributeUpdate)
+    AttributeCreate, AttributeDelete, AttributeUpdate, AttributeValueCreate,
+    AttributeValueDelete, AttributeValueUpdate)
 from .mutations.products import (
-    CategoryCreate, CategoryDelete, CategoryUpdate,
-    CollectionAddProducts, CollectionCreate, CollectionDelete,
-    CollectionRemoveProducts, CollectionUpdate, ProductCreate,
-    ProductDelete, ProductUpdate, ProductTypeCreate,
-    ProductTypeDelete, ProductImageCreate, ProductImageDelete,
-    ProductImageReorder, ProductImageUpdate, ProductTypeUpdate,
-    ProductVariantCreate, ProductVariantDelete,
-    ProductVariantUpdate, VariantImageAssign, VariantImageUnassign)
+    CategoryCreate, CategoryDelete, CategoryUpdate, CollectionAddProducts,
+    CollectionCreate, CollectionDelete, CollectionRemoveProducts,
+    CollectionUpdate, ProductCreate, ProductDelete, ProductImageCreate,
+    ProductImageDelete, ProductImageReorder, ProductImageUpdate,
+    ProductTypeCreate, ProductTypeDelete, ProductTypeUpdate, ProductUpdate,
+    ProductVariantCreate, ProductVariantDelete, ProductVariantUpdate,
+    VariantImageAssign, VariantImageUnassign)
 from .resolvers import (
     resolve_attributes, resolve_categories, resolve_collections,
-    resolve_products, resolve_product_types, resolve_product_variants,
+    resolve_product_types, resolve_product_variants, resolve_products,
     resolve_report_product_sales)
 from .scalars import AttributeScalar
 from .types import (
-    Category, Collection, Product, Attribute, ProductType, ProductVariant,
-    StockAvailability)
+    Attribute, Category, Collection, Product, ProductOrder, ProductType,
+    ProductVariant, StockAvailability)
 
 
 class ProductQueries(graphene.ObjectType):
@@ -63,7 +61,8 @@ class ProductQueries(graphene.ObjectType):
             description='Filter by price less than or equal to the given value.'),
         price_gte=graphene.Float(
             description='Filter by price greater than or equal to the given value.'),
-        sort_by=graphene.String(description='Sort products.'),
+        sort_by=graphene.Argument(
+            ProductOrder, description='Sort products.'),
         stock_availability=graphene.Argument(
             StockAvailability,
             description='Filter products by the stock availability'),

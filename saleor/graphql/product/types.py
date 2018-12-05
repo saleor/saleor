@@ -42,6 +42,28 @@ class StockAvailability(graphene.Enum):
     OUT_OF_STOCK = 'OUT_OF_STOCK'
 
 
+class ProductOrderField(graphene.Enum):
+    NAME = 'name'
+    PRICE = 'price'
+
+    @property
+    def description(self):
+        if self == ProductOrderField.NAME:
+            return 'Sort products by name.'
+        return 'Sort products by price.'
+
+
+class OrderDirection(graphene.Enum):
+    ASC = ''
+    DESC = '-'
+
+    @property
+    def description(self):
+        if self == OrderDirection.ASC:
+            return 'Specifies an ascending sort order.'
+        return 'Specifies a descending sort order.'
+
+
 def resolve_attribute_list(attributes_hstore, attributes_qs):
     """Resolve attributes dict into a list of `SelectedAttribute`s.
     keys = list(attributes.keys())
@@ -129,6 +151,15 @@ class SelectedAttribute(graphene.ObjectType):
         description = 'Represents a custom attribute.'
 
 
+class ProductOrder(graphene.InputObjectType):
+    field = graphene.Argument(
+        ProductOrderField, required=True,
+        description='Sort products by the selected field.')
+    direction = graphene.Argument(
+        OrderDirection, required=True,
+        description='Specifies the direction in which to sort products')
+
+
 class ProductVariant(CountableDjangoObjectType):
     stock_quantity = graphene.Int(
         required=True, description='Quantity of a product available for sale.')
@@ -160,7 +191,7 @@ class ProductVariant(CountableDjangoObjectType):
     class Meta:
         description = dedent("""Represents a version of a product such as
         different size or color.""")
-        exclude_fields = ['variant_images']
+        exclude_fields = ['order_lines', 'variant_images']
         interfaces = [relay.Node]
         model = models.ProductVariant
 
@@ -254,7 +285,7 @@ class Product(CountableDjangoObjectType):
         description='Get a single product image by ID')
     variants = gql_optimizer.field(
         graphene.List(
-            ProductVariant, description='List of varinats for the product'),
+            ProductVariant, description='List of variants for the product'),
         model_field='variants')
     images = gql_optimizer.field(
         graphene.List(
@@ -401,15 +432,15 @@ class Collection(CountableDjangoObjectType):
 
 
 class Category(CountableDjangoObjectType):
+    ancestors = PrefetchingConnectionField(
+        lambda: Category,
+        description='List of ancestors of the category.')
     products = gql_optimizer.field(
         PrefetchingConnectionField(
             Product, description='List of products in the category.'),
         prefetch_related=prefetch_products)
     url = graphene.String(
         description='The storefront\'s URL for the category.')
-    ancestors = PrefetchingConnectionField(
-        lambda: Category,
-        description='List of ancestors of the category.')
     children = PrefetchingConnectionField(
         lambda: Category,
         description='List of children of the category.')

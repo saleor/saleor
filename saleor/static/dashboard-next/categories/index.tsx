@@ -3,7 +3,7 @@ import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
-import { categoryAddUrl, categoryListUrl, categoryUrl } from "./urls";
+import { categoryAddPath, categoryListPath, categoryPath } from "./urls";
 import { CategoryCreateView } from "./views/CategoryCreate";
 import CategoryDetailsView, {
   CategoryDetailsQueryParams
@@ -48,10 +48,10 @@ const Component = () => (
   <>
     <WindowTitle title={i18n.t("Categories")} />
     <Switch>
-      <Route exact path={categoryListUrl} component={CategoryList} />
-      <Route exact path={categoryAddUrl()} component={CategoryCreate} />
-      <Route exact path={categoryAddUrl(":id")} component={CategoryCreate} />
-      <Route path={categoryUrl(":id")} component={CategoryDetails} />
+      <Route exact path={categoryListPath} component={CategoryList} />
+      <Route exact path={categoryAddPath()} component={CategoryCreate} />
+      <Route exact path={categoryAddPath(":id")} component={CategoryCreate} />
+      <Route path={categoryPath(":id")} component={CategoryDetails} />
     </Switch>
   </>
 );

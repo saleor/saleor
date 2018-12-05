@@ -10,7 +10,8 @@ const props: CollectionCreatePageProps = {
   disabled: false,
   errors: [],
   onBack: () => undefined,
-  onSubmit: () => undefined
+  onSubmit: () => undefined,
+  saveButtonBarState: "default"
 };
 
 storiesOf("Views / Collections / Create collection", module)

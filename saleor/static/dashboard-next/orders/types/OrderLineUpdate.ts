@@ -230,6 +230,7 @@ export interface OrderLineUpdate_draftOrderLineUpdate_order {
   id: string;
   billingAddress: OrderLineUpdate_draftOrderLineUpdate_order_billingAddress | null;
   created: any;
+  customerNote: string;
   events: (OrderLineUpdate_draftOrderLineUpdate_order_events | null)[] | null;
   fulfillments: (OrderLineUpdate_draftOrderLineUpdate_order_fulfillments | null)[];
   lines: (OrderLineUpdate_draftOrderLineUpdate_order_lines | null)[];

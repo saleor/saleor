@@ -7,6 +7,12 @@ import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusE
 // GraphQL mutation operation: OrderDraftCancel
 // ====================================================
 
+export interface OrderDraftCancel_draftOrderDelete_errors {
+  __typename: "Error";
+  field: string | null;
+  message: string | null;
+}
+
 export interface OrderDraftCancel_draftOrderDelete_order_billingAddress_country {
   __typename: "CountryDisplay";
   code: string;
@@ -224,6 +230,7 @@ export interface OrderDraftCancel_draftOrderDelete_order {
   id: string;
   billingAddress: OrderDraftCancel_draftOrderDelete_order_billingAddress | null;
   created: any;
+  customerNote: string;
   events: (OrderDraftCancel_draftOrderDelete_order_events | null)[] | null;
   fulfillments: (OrderDraftCancel_draftOrderDelete_order_fulfillments | null)[];
   lines: (OrderDraftCancel_draftOrderDelete_order_lines | null)[];
@@ -246,6 +253,7 @@ export interface OrderDraftCancel_draftOrderDelete_order {
 
 export interface OrderDraftCancel_draftOrderDelete {
   __typename: "DraftOrderDelete";
+  errors: (OrderDraftCancel_draftOrderDelete_errors | null)[] | null;
   order: OrderDraftCancel_draftOrderDelete_order | null;
 }
 

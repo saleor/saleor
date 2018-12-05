@@ -1,5 +1,7 @@
 import * as urlJoin from "url-join";
-import { productUrl } from "../../urls";
+import { productPath } from "../../urls";
 
+export const productRemovePath = (id: string) =>
+  urlJoin(productPath(id), "remove");
 export const productRemoveUrl = (id: string) =>
-  urlJoin(productUrl(id), "remove");
+  productRemovePath(encodeURIComponent(id));

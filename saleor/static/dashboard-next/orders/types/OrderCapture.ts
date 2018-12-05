@@ -230,6 +230,7 @@ export interface OrderCapture_orderCapture_order {
   id: string;
   billingAddress: OrderCapture_orderCapture_order_billingAddress | null;
   created: any;
+  customerNote: string;
   events: (OrderCapture_orderCapture_order_events | null)[] | null;
   fulfillments: (OrderCapture_orderCapture_order_fulfillments | null)[];
   lines: (OrderCapture_orderCapture_order_lines | null)[];

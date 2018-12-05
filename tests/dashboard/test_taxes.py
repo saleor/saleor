@@ -1,4 +1,7 @@
+from unittest import mock
+
 import pytest
+from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse
 from django_countries.fields import Country
 from django_prices_vatlayer.models import VAT
@@ -52,6 +55,55 @@ def test_configure_taxes(admin_client, site_settings):
     assert not site_settings.include_taxes_in_prices
     assert not site_settings.display_gross_prices
     assert not site_settings.charge_taxes_on_shipping
+
+
+@mock.patch('saleor.dashboard.taxes.views.messages', create=True)
+@mock.patch('saleor.dashboard.taxes.views.call_command', create=True)
+def test_fetch_tax_rates(
+        mocked_call_command, mocked_messages, admin_client):
+    """Ensure a valid fetch VAT rates request is correctly handled,
+    and is leading to the proper VAT fetching command being invoked."""
+    url = reverse('dashboard:fetch-tax-rates')
+    response = admin_client.post(url)
+
+    # Ensure the request was successful
+    assert response.status_code == 302
+    assert get_redirect_location(response) == reverse('dashboard:taxes')
+    assert mocked_messages.success.call_count == 1
+
+    # Ensure the get VAT rates (mocked) command was invoked
+    mocked_call_command.assert_called_once_with('get_vat_rates')
+
+
+@mock.patch('saleor.dashboard.taxes.views.messages', create=True)
+@mock.patch('saleor.dashboard.taxes.views.logger', create=True)
+@mock.patch(
+    'saleor.dashboard.taxes.views.call_command',
+    side_effect=ImproperlyConfigured('Test'), create=True)
+def test_fetch_tax_rates_improperly_configured(
+        mocked_call_command, mocked_logger, mocked_messages, admin_client):
+    """Ensure a failing VAT rate fetching is leading to an error being
+    returned, and that error is handled."""
+    url = reverse('dashboard:fetch-tax-rates')
+    response = admin_client.post(url)
+
+    # Ensure the request was successful
+    assert response.status_code == 302
+    assert get_redirect_location(response) == reverse('dashboard:taxes')
+
+    # Ensure error was logged to the logger
+    # and the error was returned to the client
+    assert mocked_logger.exception.call_count == 1
+    assert mocked_messages.warning.call_count == 1
+
+    # Ensure the get VAT rates (mocked) command was invoked
+    mocked_call_command.assert_called_once_with('get_vat_rates')
+
+
+def test_fetch_tax_rates_invalid_method(admin_client):
+    """Ensure the GET method is not allowed for tax rates fetching"""
+    url = reverse('dashboard:fetch-tax-rates')
+    assert admin_client.get(url).status_code == 405
 
 
 def test_tax_list_filters_empty(admin_client, vatlayer):

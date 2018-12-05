@@ -10,7 +10,7 @@ import Messages from "../../../components/messages";
 import Navigator from "../../../components/Navigator";
 import { WindowTitle } from "../../../components/WindowTitle";
 import i18n from "../../../i18n";
-import { decimal, maybe } from "../../../misc";
+import { decimal, getMutationState, maybe } from "../../../misc";
 import { productTypeUrl } from "../../../productTypes/urls";
 import ProductUpdatePage from "../../components/ProductUpdatePage";
 import ProductUpdateOperations from "../../containers/ProductUpdateOperations";
@@ -22,7 +22,7 @@ import {
   productVariantAddUrl,
   productVariantEditUrl
 } from "../../urls";
-import { productRemoveUrl } from "./urls";
+import { productRemovePath, productRemoveUrl } from "./urls";
 
 interface ProductUpdateProps {
   id: string;
@@ -58,7 +58,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                       text: i18n.t("Image successfully deleted")
                     });
                   const handleVariantAdd = () =>
-                    navigate(productVariantAddUrl(encodeURIComponent(id)));
+                    navigate(productVariantAddUrl(id));
 
                   const product = data ? data.product : undefined;
                   const allCollections =
@@ -81,19 +81,13 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                         createProductImage,
                         deleteProduct,
                         deleteProductImage,
-                        errors,
                         reorderProductImages,
                         updateProduct
                       }) => {
                         const handleImageDelete = (id: string) => () =>
                           deleteProductImage.mutate({ id });
                         const handleImageEdit = (imageId: string) => () =>
-                          navigate(
-                            productImageUrl(
-                              encodeURIComponent(id),
-                              encodeURIComponent(imageId)
-                            )
-                          );
+                          navigate(productImageUrl(id, imageId));
                         const handleSubmit = data => {
                           if (product) {
                             updateProduct.mutate({
@@ -115,14 +109,25 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                         };
 
                         const disableFormSave =
-                          createProductImage.loading ||
-                          deleteProduct.loading ||
-                          reorderProductImages.loading ||
-                          updateProduct.loading ||
+                          createProductImage.opts.loading ||
+                          deleteProduct.opts.loading ||
+                          reorderProductImages.opts.loading ||
+                          updateProduct.opts.loading ||
                           loading;
-                        const formSubmitState = disableFormSave
-                          ? "loading"
-                          : "idle";
+                        const formTransitionState = getMutationState(
+                          updateProduct.opts.called,
+                          updateProduct.opts.loading,
+                          maybe(
+                            () => updateProduct.opts.data.productUpdate.errors
+                          )
+                        );
+                        const deleteTransitionState = getMutationState(
+                          deleteProduct.opts.called,
+                          deleteProduct.opts.loading,
+                          maybe(
+                            () => deleteProduct.opts.data.productDelete.errors
+                          )
+                        );
                         return (
                           <>
                             <WindowTitle
@@ -132,8 +137,12 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               categories={allCategories}
                               collections={allCollections}
                               disabled={disableFormSave}
-                              errors={errors}
-                              saveButtonBarState={formSubmitState}
+                              errors={maybe(
+                                () =>
+                                  updateProduct.opts.data.productUpdate.errors,
+                                []
+                              )}
+                              saveButtonBarState={formTransitionState}
                               images={maybe(() => data.product.images)}
                               header={maybe(() => product.name)}
                               placeholderImage={placeholderImg}
@@ -144,21 +153,13 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               variants={maybe(() => product.variants)}
                               onAttributesEdit={() =>
                                 navigate(
-                                  productTypeUrl(
-                                    encodeURIComponent(
-                                      data.product.productType.id
-                                    )
-                                  )
+                                  productTypeUrl(data.product.productType.id)
                                 )
                               }
                               onBack={() => {
                                 navigate(productListUrl());
                               }}
-                              onDelete={() =>
-                                navigate(
-                                  productRemoveUrl(encodeURIComponent(id))
-                                )
-                              }
+                              onDelete={() => navigate(productRemoveUrl(id))}
                               onProductShow={() => {
                                 if (product) {
                                   window.open(product.url);
@@ -180,10 +181,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               onVariantAdd={handleVariantAdd}
                               onVariantShow={variantId => () =>
                                 navigate(
-                                  productVariantEditUrl(
-                                    encodeURIComponent(product.id),
-                                    encodeURIComponent(variantId)
-                                  )
+                                  productVariantEditUrl(product.id, variantId)
                                 )}
                               onImageUpload={event => {
                                 if (product) {
@@ -198,13 +196,12 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               onImageDelete={handleImageDelete}
                             />
                             <Route
-                              path={productRemoveUrl(":id")}
+                              path={productRemovePath(":id")}
                               render={({ match }) => (
                                 <ActionDialog
                                   open={!!match}
-                                  onClose={() =>
-                                    navigate(productUrl(encodeURIComponent(id)))
-                                  }
+                                  onClose={() => navigate(productUrl(id))}
+                                  confirmButtonState={deleteTransitionState}
                                   onConfirm={() => deleteProduct.mutate({ id })}
                                   variant="delete"
                                   title={i18n.t("Remove product")}

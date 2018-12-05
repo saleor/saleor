@@ -10,7 +10,8 @@ const createProps: CategoryCreatePageProps = {
   disabled: false,
   errors: [],
   onBack: () => undefined,
-  onSubmit: () => undefined
+  onSubmit: () => undefined,
+  saveButtonBarState: "default"
 };
 
 storiesOf("Views / Categories / Create category", module)

@@ -27,7 +27,7 @@ class ShippingMethod(CountableDjangoObjectType):
             They are directly exposed to the customers.""")
         model = models.ShippingMethod
         interfaces = [relay.Node]
-        exclude_fields = ['shipping_zone', 'orders']
+        exclude_fields = ['carts', 'shipping_zone', 'orders']
 
 
 class ShippingZone(CountableDjangoObjectType):

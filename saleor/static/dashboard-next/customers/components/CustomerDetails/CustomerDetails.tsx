@@ -9,8 +9,8 @@ import * as React from "react";
 import CardTitle from "../../../components/CardTitle";
 import { ControlledCheckbox } from "../../../components/ControlledCheckbox";
 import { FormSpacer } from "../../../components/FormSpacer";
+import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
 import { CustomerDetails_user } from "../../types/CustomerDetails";
 
 export interface CustomerDetailsProps {
@@ -41,12 +41,16 @@ const CustomerDetails = decorate<CustomerDetailsProps>(
         title={
           <>
             {i18n.t("General Information")}
-            <Typography variant="caption">
-              {i18n.t("Customer since: {{ month }} {{ year }}", {
-                month: moment(maybe(() => customer.dateJoined)).format("MMM"),
-                year: moment(maybe(() => customer.dateJoined)).format("YYYY")
-              })}
-            </Typography>
+            {customer && customer.dateJoined ? (
+              <Typography variant="caption">
+                {i18n.t("Customer since: {{ month }} {{ year }}", {
+                  month: moment(customer.dateJoined).format("MMM"),
+                  year: moment(customer.dateJoined).format("YYYY")
+                })}
+              </Typography>
+            ) : (
+              <Skeleton style={{ width: "10rem" }} />
+            )}
           </>
         }
       />

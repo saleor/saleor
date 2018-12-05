@@ -230,6 +230,7 @@ export interface OrderFulfillmentCancel_orderFulfillmentCancel_order {
   id: string;
   billingAddress: OrderFulfillmentCancel_orderFulfillmentCancel_order_billingAddress | null;
   created: any;
+  customerNote: string;
   events: (OrderFulfillmentCancel_orderFulfillmentCancel_order_events | null)[] | null;
   fulfillments: (OrderFulfillmentCancel_orderFulfillmentCancel_order_fulfillments | null)[];
   lines: (OrderFulfillmentCancel_orderFulfillmentCancel_order_lines | null)[];

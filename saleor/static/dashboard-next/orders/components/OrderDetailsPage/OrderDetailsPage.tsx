@@ -10,10 +10,10 @@ import PageHeader from "../../../components/PageHeader";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
-import { UserError } from "../../../types";
 import { OrderStatus } from "../../../types/globalTypes";
 import { OrderDetails_order } from "../../types/OrderDetails";
 import OrderCustomer from "../OrderCustomer";
+import OrderCustomerNote from "../OrderCustomerNote";
 import OrderFulfillment from "../OrderFulfillment";
 import OrderHistory, { FormData as HistoryFormData } from "../OrderHistory";
 import OrderPayment from "../OrderPayment/OrderPayment";
@@ -29,7 +29,6 @@ export interface OrderDetailsPageProps {
     code: string;
     label: string;
   }>;
-  errors: UserError[];
   onBack();
   onBillingAddressEdit();
   onFulfillmentCancel(id: string);
@@ -164,6 +163,8 @@ const OrderDetailsPage = decorate<OrderDetailsPageProps>(
               onBillingAddressEdit={onBillingAddressEdit}
               onShippingAddressEdit={onShippingAddressEdit}
             />
+            <CardSpacer />
+            <OrderCustomerNote note={maybe(() => order.customerNote)} />
           </div>
         </div>
       </Container>

@@ -15,6 +15,7 @@ const props: SiteSettingsPageProps = {
   onKeyAdd: () => undefined,
   onKeyRemove: () => undefined,
   onSubmit: () => undefined,
+  saveButtonBarState: "default",
   shop
 };
 

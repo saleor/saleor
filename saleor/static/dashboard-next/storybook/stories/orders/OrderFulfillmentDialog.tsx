@@ -11,6 +11,7 @@ import Decorator from "../../Decorator";
 const order = orderFixture(placeholderImage);
 
 const props: OrderFulfillmentDialogProps = {
+  confirmButtonState: "default",
   lines: order.lines,
   onClose: undefined,
   onSubmit: undefined,

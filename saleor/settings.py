@@ -389,6 +389,7 @@ AWS_S3_CUSTOM_DOMAIN = os.environ.get('AWS_STATIC_CUSTOM_DOMAIN')
 AWS_S3_ENDPOINT_URL = os.environ.get('AWS_S3_ENDPOINT_URL', None)
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+AWS_DEFAULT_ACL = os.environ.get('AWS_DEFAULT_ACL', None)
 
 if AWS_STORAGE_BUCKET_NAME:
     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
@@ -555,9 +556,10 @@ SERIALIZATION_MODULES = {
 
 DUMMY = 'dummy'
 BRAINTREE = 'braintree'
+RAZORPAY = 'razorpay'
+
 CHECKOUT_PAYMENT_GATEWAYS = {
-    DUMMY: pgettext_lazy('Payment method name', 'Dummy gateway')
-}
+    DUMMY: pgettext_lazy('Payment method name', 'Dummy gateway')}
 
 PAYMENT_GATEWAYS = {
     DUMMY: {
@@ -571,5 +573,20 @@ PAYMENT_GATEWAYS = {
             'public_key': os.environ.get('BRAINTREE_PUBLIC_KEY'),
             'private_key': os.environ.get('BRAINTREE_PRIVATE_KEY')
         }
+    },
+    RAZORPAY: {
+        'module': 'saleor.payment.gateways.razorpay',
+        'connection_params': {
+            'public_key': os.environ.get('RAZORPAY_PUBLIC_KEY'),
+            'secret_key': os.environ.get('RAZORPAY_SECRET_KEY'),
+            'prefill': get_bool_from_env('RAZORPAY_PREFILL', True),
+            'store_name': os.environ.get('RAZORPAY_STORE_NAME'),
+            'store_image': os.environ.get('RAZORPAY_STORE_IMAGE')
+        }
     }
+}
+
+GRAPHENE = {
+    'RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST': True,
+    'RELAY_CONNECTION_MAX_LIMIT': 100
 }

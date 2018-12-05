@@ -5,7 +5,7 @@ import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import { createPaginationState, Paginator } from "../../components/Paginator";
 import i18n from "../../i18n";
-import { maybe } from "../../misc";
+import { getMutationState, maybe } from "../../misc";
 import StaffAddMemberDialog, {
   FormData as AddStaffMemberForm
 } from "../components/StaffAddMemberDialog";
@@ -15,6 +15,7 @@ import { TypedStaffListQuery } from "../queries";
 import { StaffMemberAdd } from "../types/StaffMemberAdd";
 import {
   staffListUrl,
+  staffMemberAddPath,
   staffMemberAddUrl,
   staffMemberDetailsUrl
 } from "../urls";
@@ -46,11 +47,7 @@ export const StaffList: React.StatelessComponent<StaffListProps> = ({
                     pushMessage({
                       text: i18n.t("Succesfully added staff member")
                     });
-                    navigate(
-                      staffMemberDetailsUrl(
-                        encodeURIComponent(data.staffCreate.user.id)
-                      )
-                    );
+                    navigate(staffMemberDetailsUrl(data.staffCreate.user.id));
                   }
                 };
                 return (
@@ -72,6 +69,11 @@ export const StaffList: React.StatelessComponent<StaffListProps> = ({
                             }
                           }
                         });
+                      const addTransitionState = getMutationState(
+                        addStaffMemberData.called,
+                        addStaffMemberData.loading,
+                        maybe(() => addStaffMemberData.data.staffCreate.errors)
+                      );
                       return (
                         <Paginator
                           pageInfo={maybe(() => data.staffUsers.pageInfo)}
@@ -90,16 +92,13 @@ export const StaffList: React.StatelessComponent<StaffListProps> = ({
                                 onNextPage={loadNextPage}
                                 onPreviousPage={loadPreviousPage}
                                 onRowClick={id => () =>
-                                  navigate(
-                                    staffMemberDetailsUrl(
-                                      encodeURIComponent(id)
-                                    )
-                                  )}
+                                  navigate(staffMemberDetailsUrl(id))}
                               />
                               <Route
-                                path={staffMemberAddUrl}
+                                path={staffMemberAddPath}
                                 render={({ match }) => (
                                   <StaffAddMemberDialog
+                                    confirmButtonState={addTransitionState}
                                     errors={maybe(
                                       () =>
                                         addStaffMemberData.data.staffCreate

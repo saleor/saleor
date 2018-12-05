@@ -11,6 +11,7 @@ from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.views import PAYMENT_TEMPLATE
 from saleor.payment import (
     ChargeStatus, PaymentError, TransactionKind, get_payment_gateway)
+from saleor.payment.models import Payment
 from saleor.payment.utils import (
     clean_authorize, clean_capture, create_payment, create_transaction,
     gateway_authorize, gateway_capture, gateway_get_client_token,
@@ -493,3 +494,74 @@ def test_clean_capture():
         total=amount,
         captured_amount=Decimal('0.00'))
     clean_capture(payment, amount)
+
+
+def test_can_authorize(payment_dummy: Payment):
+    assert payment_dummy.charge_status == ChargeStatus.NOT_CHARGED
+
+    payment_dummy.is_active = False
+    assert not payment_dummy.can_authorize()
+
+    payment_dummy.is_active = True
+    assert payment_dummy.can_authorize()
+
+    payment_dummy.charge_status = ChargeStatus.CHARGED
+    assert not payment_dummy.can_authorize()
+
+
+def test_can_capture(payment_dummy: Payment):
+    assert payment_dummy.charge_status == ChargeStatus.NOT_CHARGED
+
+    payment_dummy.is_active = False
+    assert not payment_dummy.can_capture()
+
+    payment_dummy.is_active = True
+    assert payment_dummy.can_capture()
+
+    payment_dummy.charge_status = ChargeStatus.CHARGED
+    assert payment_dummy.can_capture()
+
+    payment_dummy.captured_amount = payment_dummy.total
+    assert not payment_dummy.can_capture()
+
+
+def test_can_charge(payment_dummy: Payment):
+    assert payment_dummy.charge_status == ChargeStatus.NOT_CHARGED
+
+    payment_dummy.is_active = False
+    assert not payment_dummy.can_charge()
+
+    payment_dummy.is_active = True
+    assert payment_dummy.can_charge()
+
+    payment_dummy.charge_status = ChargeStatus.CHARGED
+    assert payment_dummy.can_charge()
+
+    payment_dummy.captured_amount = payment_dummy.total
+    assert not payment_dummy.can_charge()
+
+
+def test_can_void(payment_dummy: Payment):
+    assert payment_dummy.charge_status == ChargeStatus.NOT_CHARGED
+
+    payment_dummy.is_active = False
+    assert not payment_dummy.can_void()
+
+    payment_dummy.is_active = True
+    assert payment_dummy.can_void()
+
+    payment_dummy.charge_status = ChargeStatus.CHARGED
+    assert not payment_dummy.can_void()
+
+
+def test_can_refund(payment_dummy: Payment):
+    assert payment_dummy.charge_status == ChargeStatus.NOT_CHARGED
+
+    payment_dummy.is_active = False
+    assert not payment_dummy.can_refund()
+
+    payment_dummy.is_active = True
+    assert not payment_dummy.can_refund()
+
+    payment_dummy.charge_status = ChargeStatus.CHARGED
+    assert payment_dummy.can_refund()

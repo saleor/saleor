@@ -3,14 +3,21 @@
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
 # 
+# Translators:
+# Chung Hien Hoang <hoangchunghien@gmail.com>, 2018
+# Tran Van <vantxm@yahoo.co.uk>, 2018
+# Trong Lam Phan <lampt2509@gmail.com>, 2018
+# Khoa <lnxkhoa@gmail.com>, 2018
+# Duc Dang <dangtrungduc17895@gmail.com>, 2018
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-09-10 05:20-0500\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Tran Van <vantxm@yahoo.co.uk>, 2018\n"
+"POT-Creation-Date: 2018-10-05 06:33-0500\n"
+"PO-Revision-Date: 2017-02-08 11:00+0000\n"
+"Last-Translator: Duc Dang <dangtrungduc17895@gmail.com>, 2018\n"
 "Language-Team: Vietnamese (https://www.transifex.com/mirumee/teams/34782/vi/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -23,20 +30,20 @@ msgctxt "Form field"
 msgid "Email"
 msgstr "Thư điện tử"
 
-#: saleor/account/forms.py:86
-msgctxt "Registration error"
-msgid "This email has already been registered."
-msgstr ""
-
-#: saleor/account/forms.py:93
-msgctxt "Email"
-msgid "Email"
-msgstr "Thư điện thử"
-
-#: saleor/account/forms.py:95
+#: saleor/account/forms.py:82
 msgctxt "Password"
 msgid "Password"
 msgstr "Mật khẩu"
+
+#: saleor/account/forms.py:84
+msgctxt "Email"
+msgid "Email"
+msgstr "Thư điện tử"
+
+#: saleor/account/forms.py:88
+msgctxt "Registration error"
+msgid "This email has already been registered."
+msgstr "Email này đã được đăng ký."
 
 #: saleor/account/i18n.py:18
 msgctxt "Address field"
@@ -46,7 +53,7 @@ msgstr "Vùng"
 #: saleor/account/i18n.py:19
 msgctxt "Address field"
 msgid "County"
-msgstr ""
+msgstr "Quận"
 
 #: saleor/account/i18n.py:20
 msgctxt "Address field"
@@ -71,17 +78,17 @@ msgstr ""
 #: saleor/account/i18n.py:24
 msgctxt "Address field"
 msgid "Emirate"
-msgstr ""
+msgstr "Tiểu vương quốc"
 
 #: saleor/account/i18n.py:25
 msgctxt "Address field"
 msgid "Island"
-msgstr ""
+msgstr "Đảo"
 
 #: saleor/account/i18n.py:26
 msgctxt "Address field"
 msgid "Neighborhood"
-msgstr ""
+msgstr "Khu vực lân cận"
 
 #: saleor/account/i18n.py:27
 msgctxt "Address field"
@@ -101,12 +108,12 @@ msgstr ""
 #: saleor/account/i18n.py:30
 msgctxt "Address field"
 msgid "Postal code"
-msgstr ""
+msgstr "Mã bưu điện"
 
 #: saleor/account/i18n.py:31
 msgctxt "Address field"
 msgid "Prefecture"
-msgstr ""
+msgstr "Quận"
 
 #: saleor/account/i18n.py:32
 msgctxt "Address field"
@@ -116,12 +123,12 @@ msgstr "Tỉnh"
 #: saleor/account/i18n.py:33
 msgctxt "Address field"
 msgid "State"
-msgstr ""
+msgstr "Tiểu bang"
 
 #: saleor/account/i18n.py:34
 msgctxt "Address field"
 msgid "Suburb"
-msgstr ""
+msgstr "Ngoại ô"
 
 #: saleor/account/i18n.py:35
 msgctxt "Address field"
@@ -131,14 +138,14 @@ msgstr ""
 #: saleor/account/i18n.py:36
 msgctxt "Address field"
 msgid "Village/township"
-msgstr ""
+msgstr "Làng/thị trấn"
 
 #: saleor/account/i18n.py:37
 msgctxt "Address field"
 msgid "ZIP code"
-msgstr ""
+msgstr "Mã bưu chính"
 
-#: saleor/account/i18n.py:63 saleor/account/i18n.py:110
+#: saleor/account/i18n.py:63 saleor/account/i18n.py:109
 msgctxt "Country"
 msgid "Country"
 msgstr "Quốc gia"
@@ -158,62 +165,62 @@ msgctxt "Company or organization"
 msgid "Company or organization"
 msgstr "Công ty hoặc tổ chức"
 
-#: saleor/account/i18n.py:100 saleor/account/i18n.py:102
+#: saleor/account/i18n.py:100
 msgctxt "Address"
 msgid "Address"
 msgstr "Địa chỉ"
 
-#: saleor/account/i18n.py:104
+#: saleor/account/i18n.py:103
 msgctxt "City"
 msgid "City"
 msgstr "Thành phố"
 
-#: saleor/account/i18n.py:106
+#: saleor/account/i18n.py:105
 msgctxt "City area"
 msgid "District"
 msgstr "Quận"
 
-#: saleor/account/i18n.py:108
+#: saleor/account/i18n.py:107
 msgctxt "Postal code"
 msgid "Postal code"
 msgstr "Mã bưu chính"
 
-#: saleor/account/i18n.py:112
+#: saleor/account/i18n.py:111
 msgctxt "Country area"
 msgid "State or province"
 msgstr "Tỉnh thành"
 
-#: saleor/account/i18n.py:114
+#: saleor/account/i18n.py:113
 msgctxt "Phone number"
 msgid "Phone number"
 msgstr "Số điện thoại"
 
-#: saleor/account/i18n.py:117
+#: saleor/account/i18n.py:116
 msgctxt "Address"
 msgid "Street address, P.O. box, company name"
-msgstr ""
+msgstr "Địa chỉ, hộp thư P.O, tên công ty"
 
-#: saleor/account/i18n.py:119
+#: saleor/account/i18n.py:118
 msgctxt "Address"
 msgid "Apartment, suite, unit, building, floor, etc"
-msgstr ""
+msgstr "Căn hộ, suite, đơn vị, tòa nhà, tầng, ..."
 
-#: saleor/account/i18n.py:171
+#: saleor/account/i18n.py:170
 msgctxt "Address form"
 msgid "This value is invalid for selected country"
-msgstr ""
+msgstr "Giá trị này không hợp lệ cho quốc gia đã chọn"
 
-#: saleor/account/models.py:134
+#: saleor/account/models.py:133
 msgctxt "Permission description"
 msgid "Manage customers."
-msgstr ""
+msgstr "Quản lý khách hàng."
 
-#: saleor/account/models.py:137
+#: saleor/account/models.py:136
 msgctxt "Permission description"
 msgid "Manage staff."
-msgstr ""
+msgstr "Quản lý nhân viên."
 
-#: saleor/account/models.py:140
+#: saleor/account/models.py:139
 msgctxt "Permission description"
 msgid "Impersonate customers."
 msgstr ""
@@ -234,35 +241,35 @@ msgstr ""
 
 #: saleor/account/validators.py:11
 msgid "The phone number entered is not valid."
-msgstr ""
+msgstr "Số điện thoại đã nhập không hợp lệ."
 
 #: saleor/account/views.py:31
 msgid "You have been successfully logged out."
-msgstr ""
+msgstr "Bạn đã đăng xuất thành công."
 
 #: saleor/account/views.py:45
 msgid "User has been created"
-msgstr ""
+msgstr "Người dùng đã được tạo"
 
 #: saleor/account/views.py:95
 msgctxt "Storefront message"
 msgid "Password successfully changed."
-msgstr ""
+msgstr "Mật khẩu đã được thay đổi thành công."
 
 #: saleor/account/views.py:108
 msgctxt "Storefront message"
 msgid "Address successfully updated."
-msgstr ""
+msgstr "Đã cập nhật thành công địa chỉ."
 
 #: saleor/account/views.py:123
 msgctxt "Storefront message"
 msgid "Address successfully removed"
-msgstr ""
+msgstr "Đã xóa địa chỉ thành công"
 
 #: saleor/account/views.py:137
 msgctxt "Storefront message, when user requested his account removed"
 msgid "Please check your inbox for a confirmation e-mail."
-msgstr ""
+msgstr "Vui lòng kiểm tra hộp thư đến của bạn cho một email xác nhận."
 
 #: saleor/account/views.py:152
 msgctxt "Account deleted"
@@ -270,16 +277,18 @@ msgid ""
 "Your account was deleted successfully. In case of any trouble or questions "
 "feel free to contact us."
 msgstr ""
+"Tài khoản của bạn đã được xóa thành công. Trong trường hợp có rắc rối hay "
+"câu hỏi hãy liên hệ với chúng tôi."
 
 #: saleor/checkout/__init__.py:15
 msgctxt "Type of address used to fulfill order"
 msgid "Billing"
-msgstr ""
+msgstr "Thanh toán"
 
 #: saleor/checkout/__init__.py:19
 msgctxt "Type of address used to fulfill order"
 msgid "Shipping"
-msgstr ""
+msgstr "Vận chuyển"
 
 #: saleor/checkout/forms.py:39
 msgctxt "Add to cart form field label"
@@ -289,24 +298,24 @@ msgstr "Số lượng"
 #: saleor/checkout/forms.py:43
 msgctxt "Add to cart form error"
 msgid "Sorry. This product is currently not available."
-msgstr ""
+msgstr "Xin thứ lỗi. Sản phẩm này hiện chưa có."
 
 #: saleor/checkout/forms.py:46
 msgctxt "Add to cart form error"
 msgid "Sorry. This product is currently out of stock."
-msgstr ""
+msgstr "Xin thứ lỗi. Sản phẩm này đang hết hàng."
 
 #: saleor/checkout/forms.py:48
 msgctxt "Add to cart form error"
 msgid "Oops. We could not find that product."
-msgstr ""
+msgstr "Oops. Chúng tôi không tìm thấy sản phẩm."
 
 #: saleor/checkout/forms.py:51
 #, python-format
 msgctxt "Add to cart form error"
 msgid "Only %d remaining in stock."
 msgid_plural "Only %d remaining in stock."
-msgstr[0] ""
+msgstr[0] "Chỉ còn %d còn lại trong kho."
 
 #: saleor/checkout/forms.py:162
 msgctxt "Country form field label"
@@ -316,27 +325,27 @@ msgstr "Quốc gia"
 #: saleor/checkout/forms.py:188 saleor/checkout/forms.py:200
 msgctxt "Address form field label"
 msgid "Email"
-msgstr "Thư điện thử"
+msgstr "Thư điện tử"
 
 #: saleor/checkout/forms.py:213
 msgctxt "Shipping addresses form choice"
 msgid "Enter a new address"
-msgstr ""
+msgstr "Nhập địa chỉ mới"
 
 #: saleor/checkout/forms.py:216
 msgctxt "Shipping addresses form field label"
 msgid "Address"
-msgstr ""
+msgstr "Địa chỉ"
 
 #: saleor/checkout/forms.py:233
 msgctxt "Billing addresses form choice"
 msgid "Enter a new address"
-msgstr ""
+msgstr "Nhập địa chỉ mới"
 
 #: saleor/checkout/forms.py:235
 msgctxt "Billing addresses form choice"
 msgid "Same as shipping"
-msgstr ""
+msgstr "Tương tự vận chuyển"
 
 #: saleor/checkout/forms.py:238
 msgctxt "Billing addresses form field label"
@@ -346,17 +355,17 @@ msgstr "Địa chỉ"
 #: saleor/checkout/forms.py:268
 msgctxt "Shipping method form field label"
 msgid "Shipping method"
-msgstr ""
+msgstr "Phương thức vận chuyển"
 
-#: saleor/checkout/forms.py:308
+#: saleor/checkout/forms.py:309
 msgctxt "Voucher form error"
 msgid "Discount code incorrect or expired"
-msgstr ""
+msgstr "Mã giảm giá không chính xác hoặc đã hết hạn"
 
-#: saleor/checkout/forms.py:319
+#: saleor/checkout/forms.py:320
 msgctxt "Checkout discount form label for voucher field"
 msgid "Gift card or discount code"
-msgstr ""
+msgstr "Thẻ quà tặng hoặc mã giảm giá"
 
 #: saleor/checkout/utils.py:135
 msgctxt "Cart warning message"
@@ -364,46 +373,43 @@ msgid ""
 "Sorry. We don't have that many items in stock. Quantity was set to maximum "
 "available for now."
 msgstr ""
+"Lấy làm tiếc. Chúng tôi không có nhiều mặt hàng trong kho. Số lượng được đặt"
+" ở mức tối đa có sẵn ngay bây giờ."
 
 #: saleor/checkout/utils.py:647
 msgctxt "Voucher not applicable"
 msgid "Your order does not require shipping."
-msgstr ""
+msgstr " Đơn đặt hàng của bạn không yêu cầu giao hàng."
 
 #: saleor/checkout/utils.py:653
 msgctxt "Voucher not applicable"
 msgid "Please select a shipping method first."
-msgstr ""
+msgstr "Vui lòng chọn phương thức giao hàng trước."
 
 #: saleor/checkout/utils.py:661
 msgctxt "Voucher not applicable"
 msgid "This offer is not valid in your country."
-msgstr ""
+msgstr "Ưu đãi này không hợp lệ ở quốc gia của bạn."
 
 #: saleor/checkout/utils.py:682
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for selected items."
-msgstr ""
+msgstr "Phiếu mua hàng này chỉ hợp lệ cho các mục đã chọn."
 
-#: saleor/checkout/utils.py:818
+#: saleor/checkout/utils.py:792
 msgctxt "Voucher not applicable"
 msgid "Voucher expired in meantime. Order placement aborted."
-msgstr ""
+msgstr "Voucher hết hạn trong thời gian chờ đợi. Đã hủy vị trí đơn đặt hàng."
 
 #: saleor/checkout/views/discount.py:62
 msgctxt "Checkout warning"
 msgid "This voucher has expired. Please review your checkout."
-msgstr ""
+msgstr "Phiếu giảm giá này đã hết hạn. Vui lòng xem lại thanh toán của bạn."
 
-#: saleor/checkout/views/summary.py:33
+#: saleor/checkout/views/summary.py:34
 msgctxt "Checkout warning"
 msgid "Please review your checkout."
-msgstr ""
-
-#: saleor/checkout/views/summary.py:39
-msgctxt "Order status history entry"
-msgid "Order was placed"
-msgstr ""
+msgstr "Vui lòng xem lại thanh toán của bạn."
 
 #: saleor/core/__init__.py:54
 msgctxt "VAT rate type"
@@ -428,7 +434,7 @@ msgstr ""
 #: saleor/core/__init__.py:61
 msgctxt "VAT rate type"
 msgid "advertising"
-msgstr ""
+msgstr "quảng cáo"
 
 #: saleor/core/__init__.py:63
 msgctxt "VAT rate type"
@@ -478,12 +484,12 @@ msgstr ""
 #: saleor/core/__init__.py:74
 msgctxt "VAT rate type"
 msgid "hotels"
-msgstr ""
+msgstr "Khách sạn"
 
 #: saleor/core/__init__.py:75
 msgctxt "VAT rate type"
 msgid "medical"
-msgstr ""
+msgstr "Y tế"
 
 #: saleor/core/__init__.py:76
 msgctxt "VAT rate type"
@@ -508,7 +514,7 @@ msgstr ""
 #: saleor/core/__init__.py:83
 msgctxt "VAT rate type"
 msgid "restaurants"
-msgstr ""
+msgstr "Nhà hàng"
 
 #: saleor/core/__init__.py:84
 msgctxt "VAT rate type"
@@ -518,12 +524,12 @@ msgstr ""
 #: saleor/core/__init__.py:85
 msgctxt "VAT rate type"
 msgid "standard"
-msgstr ""
+msgstr "Tiêu chuẩn"
 
 #: saleor/core/__init__.py:86
 msgctxt "VAT rate type"
 msgid "water"
-msgstr ""
+msgstr "Nước"
 
 #: saleor/core/filters.py:27
 #, python-format
@@ -535,12 +541,12 @@ msgstr[0] ""
 #: saleor/core/i18n.py:5
 msgctxt "Country choice"
 msgid "Any Country"
-msgstr ""
+msgstr "Bất kỳ quốc gia nào"
 
 #: saleor/core/views.py:39
 msgctxt "Impersonation message"
 msgid "You are now logged as {}"
-msgstr ""
+msgstr "Bạn đang đăng nhập là {}"
 
 #: saleor/core/weight.py:33
 msgctxt "Kilogram weight unit symbol"
@@ -565,182 +571,106 @@ msgstr ""
 #: saleor/discount/__init__.py:12
 msgctxt "Discount type"
 msgid "%"
-msgstr ""
+msgstr "%"
 
 #: saleor/discount/__init__.py:23
 msgctxt "Voucher: discount for"
 msgid "All products"
-msgstr ""
+msgstr "Tất cả sản phẩm"
 
 #: saleor/discount/__init__.py:24
 msgctxt "Voucher: discount for"
 msgid "Specific products"
-msgstr ""
+msgstr "Sản phẩm cụ thể"
 
 #: saleor/discount/__init__.py:26
 msgctxt "Voucher: discount for"
 msgid "Specific collections of products"
-msgstr ""
+msgstr "Bộ sưu tập sản phẩm cụ thể"
 
 #: saleor/discount/__init__.py:28
 msgctxt "Voucher: discount for"
 msgid "Specific categories of products"
-msgstr ""
+msgstr "Danh mục sản phẩm cụ thể"
 
 #: saleor/discount/__init__.py:29
 msgctxt "Voucher: discount for"
 msgid "Shipping"
-msgstr ""
+msgstr "Vận chuyển"
 
 #: saleor/discount/models.py:75
 msgctxt "Voucher type"
 msgid "Free shipping"
-msgstr ""
+msgstr "Miễn phí vận chuyển"
 
 #: saleor/discount/models.py:78
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off shipping"
-msgstr ""
+msgstr "Giảm %(discount)sphí vận chuyển"
 
 #: saleor/discount/models.py:84
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(product_num)d products"
-msgstr ""
+msgstr "%(discount)s off %(product_num)dsản phẩm"
 
 #: saleor/discount/models.py:92
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(collections_num)d collections"
-msgstr ""
+msgstr "%(discount)s off %(collections_num)d bộ sưu tập"
 
 #: saleor/discount/models.py:100
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(categories_num)d categories"
-msgstr ""
+msgstr "%(discount)s off %(categories_num)d danh mục"
 
 #: saleor/discount/models.py:104
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off"
-msgstr ""
+msgstr "%(discount)s off"
 
 #: saleor/discount/models.py:134
 #, python-format
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for orders over %(amount)s."
-msgstr ""
+msgstr "Ưu đãi này chỉ có với các đơn hàng trên %(amount)s."
 
 #: saleor/discount/models.py:176
 msgctxt "Permission description"
 msgid "Manage sales and vouchers."
-msgstr ""
+msgstr "Quản lý bán hàng và chứng từ."
 
 #: saleor/discount/utils.py:47
 msgctxt "Voucher not applicable"
 msgid "Discount not applicable for this product"
-msgstr ""
+msgstr "Giảm giá không áp dụng cho sản phẩm này"
 
-#: saleor/graphql/order/mutations/draft_orders.py:58
-#, python-format
-msgctxt "Add line mutation error"
-msgid "Could not add item. Only %(remaining)d remaining in stock."
-msgstr ""
-
-#: saleor/graphql/order/mutations/draft_orders.py:227
-msgctxt "Dashboard message related to an order"
-msgid "Order created from draft order"
-msgstr ""
-
-#: saleor/graphql/order/mutations/fulfillments.py:21
+#: saleor/graphql/order/mutations/fulfillments.py:77
 #, python-format
 msgctxt "Fulfill order line mutation error"
-msgid "%(quantity)d item remaining to fulfill."
-msgid_plural "%(quantity)d items remaining to fulfill."
+msgid "Only %(quantity)d item remaining to fulfill."
+msgid_plural "Only %(quantity)d items remaining to fulfill."
 msgstr[0] ""
 
-#: saleor/graphql/order/mutations/fulfillments.py:121
-#, python-format
-msgctxt "Dashboard message related to an order"
-msgid "Fulfilled %(quantity_fulfilled)d item"
-msgid_plural "Fulfilled %(quantity_fulfilled)d items"
-msgstr[0] ""
-
-#: saleor/graphql/order/mutations/fulfillments.py:132
-#, python-format
-msgctxt "Dashboard message related to an order"
-msgid "Shipping confirmation email was sent to user(%(email)s)"
-msgstr ""
-
-#: saleor/graphql/order/mutations/fulfillments.py:177
+#: saleor/graphql/order/mutations/fulfillments.py:210
 msgctxt "Cancel fulfillment mutation error"
 msgid "This fulfillment can't be canceled"
-msgstr ""
+msgstr "Không thể hủy quá trình thực hiện này"
 
-#: saleor/graphql/order/mutations/fulfillments.py:187
-#, python-format
-msgctxt "Dashboard message"
-msgid "Restocked %(quantity)d item"
-msgid_plural "Restocked %(quantity)d items"
-msgstr[0] ""
-
-#: saleor/graphql/order/mutations/fulfillments.py:193
-#, python-format
-msgctxt "Dashboard message"
-msgid "Fulfillment #%(fulfillment)s canceled"
-msgstr ""
-
-#: saleor/graphql/order/mutations/orders.py:90
-msgctxt "Dashboard message related to an order"
-msgid "Added note"
-msgstr ""
-
-#: saleor/graphql/order/mutations/orders.py:120
-#, python-format
-msgctxt "Dashboard message related to an order"
-msgid "Restocked %(quantity)d item"
-msgid_plural "Restocked %(quantity)d items"
-msgstr[0] ""
-
-#: saleor/graphql/order/mutations/orders.py:127
-msgctxt "Dashboard message related to an order"
-msgid "Order canceled"
-msgstr ""
-
-#: saleor/graphql/order/mutations/orders.py:163
+#: saleor/graphql/order/mutations/orders.py:302
 #, python-format
 msgctxt "Payment description"
 msgid "Order %(order)s"
-msgstr ""
-
-#: saleor/graphql/order/mutations/orders.py:171
-msgctxt "Dashboard message related to an order"
-msgid "Order manually marked as paid."
-msgstr ""
-
-#: saleor/graphql/order/mutations/orders.py:203
-#, python-format
-msgctxt "Dashboard message related to an order"
-msgid "Captured %(amount)s"
-msgstr ""
-
-#: saleor/graphql/order/mutations/orders.py:233
-msgctxt "Dashboard message related to an order"
-msgid "Released payment"
-msgstr ""
-
-#: saleor/graphql/order/mutations/orders.py:265
-#, python-format
-msgctxt "Dashboard message related to an order"
-msgid "Refunded %(amount)s"
-msgstr ""
+msgstr "Đặt hàng %(order)s"
 
 #: saleor/menu/models.py:20
 msgctxt "Permission description"
 msgid "Manage navigation."
-msgstr ""
+msgstr "Quản lý điều hướng."
 
 #: saleor/menu/models.py:68
 msgctxt "Link object type description"
@@ -750,59 +680,178 @@ msgstr ""
 #: saleor/menu/models.py:73
 msgctxt "Link object type description"
 msgid "Category: "
-msgstr ""
+msgstr "Danh mục:"
 
 #: saleor/menu/models.py:76
 msgctxt "Link object type description"
 msgid "Collection: "
-msgstr ""
+msgstr "Bộ sưu tập:"
 
 #: saleor/menu/models.py:79
 msgctxt "Link object type description"
 msgid "Page: "
-msgstr ""
+msgstr "Trang:"
 
-#: saleor/order/__init__.py:25
+#: saleor/order/__init__.py:30
 msgctxt ""
 "Status for a fully editable, not confirmed order created by staff users"
 msgid "Draft"
 msgstr ""
 
-#: saleor/order/__init__.py:28
+#: saleor/order/__init__.py:33
 msgctxt "Status for an order with any items marked as fulfilled"
 msgid "Unfulfilled"
-msgstr ""
+msgstr "Chưa hoàn thành"
 
-#: saleor/order/__init__.py:31
+#: saleor/order/__init__.py:36
 msgctxt "Status for an order with some items marked as fulfilled"
 msgid "Partially fulfilled"
-msgstr ""
+msgstr "Đã hoàn thành một phần"
 
-#: saleor/order/__init__.py:34
+#: saleor/order/__init__.py:39
 msgctxt "Status for an order with all items marked as fulfilled"
 msgid "Fulfilled"
-msgstr ""
+msgstr "Đã hoàn thành"
 
-#: saleor/order/__init__.py:37
+#: saleor/order/__init__.py:42
 msgctxt "Status for a permanently canceled order"
 msgid "Canceled"
-msgstr ""
+msgstr "Đã hủy"
 
-#: saleor/order/__init__.py:47
+#: saleor/order/__init__.py:52
 msgctxt "Status for a group of products in an order marked as fulfilled"
 msgid "Fulfilled"
-msgstr ""
+msgstr "Đã hoàn thành"
 
-#: saleor/order/__init__.py:51
+#: saleor/order/__init__.py:56
 msgctxt ""
 "Status for a fulfilled group of products in an order marked as canceled"
 msgid "Canceled"
-msgstr ""
+msgstr "Đã hủy"
 
-#: saleor/order/__init__.py:58
+#: saleor/order/__init__.py:63
 msgctxt "Custom payment choice type"
 msgid "Manual"
+msgstr "Hướng dẫn"
+
+#: saleor/order/__init__.py:100
+msgctxt "Email type"
+msgid "Payment confirmation"
+msgstr "Xác nhận thanh toán"
+
+#: saleor/order/__init__.py:102
+msgctxt "Email type"
+msgid "Shipping confirmation"
+msgstr "Xác nhận giao hàng"
+
+#: saleor/order/__init__.py:104
+msgctxt "Email type"
+msgid "Fulfillment confirmation"
+msgstr "Xác nhận hoàn thành"
+
+#: saleor/order/__init__.py:106
+msgctxt "Email type"
+msgid "Order confirmation"
+msgstr "Xác nhận Order"
+
+#: saleor/order/__init__.py:119
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Order created from draft order by %(user_name)s"
 msgstr ""
+
+#: saleor/order/__init__.py:124
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Payment was released by %(user_name)s"
+msgstr "Thanh toán được phát hành bởi%(user_name)s"
+
+#: saleor/order/__init__.py:131
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Successfully refunded: %(amount)s"
+msgstr "Đã hoàn tiền thành công: %(amount)s"
+
+#: saleor/order/__init__.py:138
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Successfully captured: %(amount)s"
+msgstr "Đã chụp thành công: %(amount)s"
+
+#: saleor/order/__init__.py:143
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Order manually marked as paid by %(user_name)s"
+msgstr " Đặt hàng được đánh dấu thủ công là đã thanh toán bằng %(user_name)s"
+
+#: saleor/order/__init__.py:148
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Order was canceled by %(user_name)s"
+msgstr "Đơn hàng đã bị hủy bởi %(user_name)s"
+
+#: saleor/order/__init__.py:153
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "We restocked %(quantity)d item"
+msgid_plural "We restocked %(quantity)d items"
+msgstr[0] "Chúng tôi đã bổ sung %(quantity)d"
+
+#: saleor/order/__init__.py:159
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "%(user_name)s added note: %(note)s"
+msgstr ""
+
+#: saleor/order/__init__.py:165
+#, python-format
+msgctxt "Dashboard message"
+msgid "Fulfillment #%(fulfillment)s canceled by %(user_name)s"
+msgstr ""
+
+#: saleor/order/__init__.py:171
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Fulfilled %(quantity_fulfilled)d item"
+msgid_plural "Fulfilled %(quantity_fulfilled)d items"
+msgstr[0] ""
+
+#: saleor/order/__init__.py:178
+msgctxt "Dashboard message related to an order"
+msgid "Order was placed"
+msgstr "Đơn đặt hàng đã được đặt"
+
+#: saleor/order/__init__.py:182
+msgctxt "Dashboard message related to an order"
+msgid "Order was fully paid"
+msgstr "Đơn đặt hàng đã được thanh toán đầy đủ"
+
+#: saleor/order/__init__.py:186
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "%(email_type)s email was sent to the customer (%(email)s)"
+msgstr "%(email_type)semail đã được gửi cho khách hàng (%(email)s)"
+
+#: saleor/order/__init__.py:193
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Order details were updated by %(user_name)s"
+msgstr "Chi tiết đơn hàng đã được cập nhật bởi %(user_name)s"
+
+#: saleor/order/__init__.py:198
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid ""
+"Fulfillment #%(fulfillment)s tracking was updated to %(tracking_number)s by "
+"%(user_name)s"
+msgstr ""
+
+#: saleor/order/__init__.py:206
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "%(quantity)d line item oversold on this order."
+msgid_plural "%(quantity)d line items oversold on this order."
+msgstr[0] ""
 
 #: saleor/order/forms.py:12
 msgctxt "Payment methods form label"
@@ -812,22 +861,17 @@ msgstr ""
 #: saleor/order/forms.py:35
 msgctxt "Payment delete form error"
 msgid "Payment does not exist"
-msgstr ""
+msgstr "Thanh toán không tồn tại"
 
-#: saleor/order/models.py:107
+#: saleor/order/models.py:108
 msgctxt "Permission description"
 msgid "Manage orders."
-msgstr ""
+msgstr "Quản lý đơn hàng."
 
-#: saleor/order/models.py:237
+#: saleor/order/models.py:245
 #, python-format
 msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
-msgstr ""
-
-#: saleor/order/signals.py:15
-msgctxt "Order status history entry"
-msgid "Order fully paid"
 msgstr ""
 
 #: saleor/order/views.py:105
@@ -841,6 +885,8 @@ msgctxt "Payment gateway error"
 msgid ""
 "Oops, it looks like we were unable to contact the selected payment service"
 msgstr ""
+"Rất tiếc, có vẻ như chúng tôi không thể liên hệ với dịch vụ thanh toán đã "
+"chọn"
 
 #: saleor/order/views.py:198
 msgctxt "Connect order with user warning message"
@@ -848,31 +894,33 @@ msgid ""
 "We couldn't assign the order to your account as the email addresses don't "
 "match"
 msgstr ""
+"Chúng tôi không thể chỉ định đơn đặt hàng cho tài khoản của bạn vì địa chỉ "
+"email không khớp"
 
 #: saleor/order/views.py:205
 msgctxt "storefront message"
 msgid "The order is now assigned to your account"
-msgstr ""
+msgstr " Đơn đặt hàng hiện được chỉ định cho tài khoản của bạn"
 
 #: saleor/page/models.py:36
 msgctxt "Permission description"
 msgid "Manage pages."
-msgstr ""
+msgstr "Quản lý trang."
 
 #: saleor/product/__init__.py:15
 msgctxt "Product status"
 msgid "not published"
-msgstr ""
+msgstr "Chưa xuất bản"
 
 #: saleor/product/__init__.py:17
 msgctxt "Product status"
 msgid "variants missing"
-msgstr ""
+msgstr "thiếu biến thể"
 
 #: saleor/product/__init__.py:19
 msgctxt "Product status"
 msgid "out of stock"
-msgstr ""
+msgstr "Hết hàng"
 
 #: saleor/product/__init__.py:21
 msgctxt "Product status"
@@ -882,22 +930,22 @@ msgstr ""
 #: saleor/product/__init__.py:23
 msgctxt "Product status"
 msgid "not yet available"
-msgstr ""
+msgstr "chưa có sẵn"
 
 #: saleor/product/__init__.py:25
 msgctxt "Product status"
 msgid "ready for purchase"
-msgstr ""
+msgstr " sẵn sàng mua"
 
 #: saleor/product/__init__.py:37
 msgctxt "Variant status"
 msgid "available"
-msgstr ""
+msgstr "có thể dùng"
 
 #: saleor/product/__init__.py:39
 msgctxt "Variant status"
 msgid "out of stock"
-msgstr ""
+msgstr "Hết hàng"
 
 #: saleor/product/filters.py:12
 msgctxt "Product list sorting option"
@@ -907,17 +955,22 @@ msgstr "tên"
 #: saleor/product/filters.py:13
 msgctxt "Product list sorting option"
 msgid "price"
-msgstr ""
+msgstr "Giá"
 
-#: saleor/product/filters.py:18
+#: saleor/product/filters.py:15
+msgctxt "Product list sorting option"
+msgid "last updated"
+msgstr "Cập nhật mới nhất"
+
+#: saleor/product/filters.py:20
 msgctxt "Product list sorting form"
 msgid "Sort by"
 msgstr "Sắp xếp theo"
 
-#: saleor/product/filters.py:22
+#: saleor/product/filters.py:24
 msgctxt "Currency amount"
 msgid "Price"
-msgstr ""
+msgstr "Giá"
 
 #: saleor/product/forms.py:23
 #, python-format
@@ -968,66 +1021,74 @@ msgid "Hungarian"
 msgstr ""
 
 #: saleor/settings.py:69
-msgid "Italian"
+msgid "Armenian"
 msgstr ""
 
 #: saleor/settings.py:70
-msgid "Japanese"
+msgid "Italian"
 msgstr ""
 
 #: saleor/settings.py:71
-msgid "Korean"
+msgid "Japanese"
 msgstr ""
 
 #: saleor/settings.py:72
-msgid "Norwegian"
+msgid "Korean"
 msgstr ""
 
 #: saleor/settings.py:73
-msgid "Dutch"
+msgid "Norwegian"
 msgstr ""
 
 #: saleor/settings.py:74
-msgid "Polish"
+msgid "Dutch"
 msgstr ""
 
 #: saleor/settings.py:75
-msgid "Portuguese (Brazil)"
+msgid "Polish"
 msgstr ""
 
 #: saleor/settings.py:76
-msgid "Romanian"
+msgid "Portuguese (Brazil)"
 msgstr ""
 
 #: saleor/settings.py:77
-msgid "Russian"
+msgid "Romanian"
 msgstr ""
 
 #: saleor/settings.py:78
-msgid "Slovak"
+msgid "Russian"
 msgstr ""
 
 #: saleor/settings.py:79
-msgid "Turkish"
+msgid "Russian (Russia)"
 msgstr ""
 
 #: saleor/settings.py:80
-msgid "Ukrainian"
+msgid "Slovak"
 msgstr ""
 
 #: saleor/settings.py:81
-msgid "Vietnamese"
+msgid "Turkish"
 msgstr ""
 
 #: saleor/settings.py:82
-msgid "Chinese"
+msgid "Ukrainian"
 msgstr ""
 
 #: saleor/settings.py:83
+msgid "Vietnamese"
+msgstr ""
+
+#: saleor/settings.py:84
+msgid "Chinese"
+msgstr ""
+
+#: saleor/settings.py:85
 msgid "Chinese (Taiwan)"
 msgstr ""
 
-#: saleor/settings.py:317
+#: saleor/settings.py:319
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr ""
@@ -1042,13 +1103,13 @@ msgctxt "Type of shipping"
 msgid "Weight based shipping"
 msgstr ""
 
-#: saleor/shipping/models.py:33
+#: saleor/shipping/models.py:38
 #, python-format
 msgctxt "Number of countries shipping zone apply to"
 msgid "%(num_of_countries)d countries"
 msgstr ""
 
-#: saleor/shipping/models.py:48
+#: saleor/shipping/models.py:53
 msgctxt "Permission description"
 msgid "Manage shipping."
 msgstr ""
@@ -1149,7 +1210,7 @@ msgstr ""
 #: templates/product/details.html:44
 msgctxt "Main navigation item"
 msgid "Home"
-msgstr ""
+msgstr "Trang chủ"
 
 #: templates/account/address_edit.html:21
 msgctxt "Edit/new address breadcrumb"
@@ -1192,21 +1253,21 @@ msgstr ""
 #: templates/order/payment/details.html:17
 msgctxt "Main navigation item"
 msgid "Your account"
-msgstr ""
+msgstr "Trang cá nhân"
 
 #: templates/account/details.html:26
 msgid "My account"
-msgstr ""
+msgstr "Trang cá nhân"
 
 #: templates/account/details.html:30
 msgctxt "User profile tab"
 msgid "Recent Orders"
-msgstr ""
+msgstr "Đơn hàng gần đây"
 
 #: templates/account/details.html:36
 msgctxt "User profile tab"
 msgid "Change password"
-msgstr ""
+msgstr "Đổi mật khẩu"
 
 #: templates/account/details.html:42
 msgctxt "User profile tab"
@@ -1216,7 +1277,7 @@ msgstr ""
 #: templates/account/details.html:47
 msgctxt "User profile tab"
 msgid "Settings"
-msgstr ""
+msgstr "Cài đặt"
 
 #: templates/account/details.html:59
 msgctxt "Recent orders column title"
@@ -1246,12 +1307,12 @@ msgstr ""
 #: templates/account/details.html:107
 msgctxt "No recent orders text"
 msgid "There are not any completed orders yet."
-msgstr ""
+msgstr "Chưa có đơn hàng nào."
 
 #: templates/account/details.html:118
 msgctxt "User profile action"
 msgid "Change password"
-msgstr ""
+msgstr "Đổi mật khẩu"
 
 #: templates/account/details.html:133
 msgctxt "User address action"
@@ -1270,31 +1331,34 @@ msgid ""
 "                  If you'd like to remove your account, please click on the button below and a confirmation email will be sent to you.\n"
 "                "
 msgstr ""
+"\n"
+"                  Nếu bạn muốn xoá tài khoản, vui lòng nhấn vào nút dưới đây, sau đó bạn sẽ nhận được một email xác nhận thao tác này.\n"
+"                "
 
 #: templates/account/details.html:165
 msgctxt "Remove account form action"
 msgid "Remove Account"
-msgstr ""
+msgstr "Xoá tài khoản"
 
 #: templates/account/login.html:5
 msgctxt "Login page title"
 msgid "Log in"
-msgstr ""
+msgstr "Đăng nhập"
 
 #: templates/account/login.html:16
 msgctxt "Login form secondary title"
 msgid "Don't have an account yet?"
-msgstr ""
+msgstr "Bạn chưa có tài khoản ?"
 
 #: templates/account/login.html:21
 msgctxt "Login form secondary action"
 msgid "Register"
-msgstr ""
+msgstr "Tạo tài khoản"
 
 #: templates/account/login.html:26
 msgctxt "Login form title"
 msgid "Log in"
-msgstr ""
+msgstr "Đăng nhập"
 
 #: templates/account/partials/already_logged_in.html:5
 #, python-format
@@ -1305,12 +1369,12 @@ msgstr ""
 #: templates/account/partials/login_form.html:16
 msgctxt "Login form primary action"
 msgid "Log in"
-msgstr ""
+msgstr "Đăng nhập"
 
 #: templates/account/partials/login_form.html:19
 msgctxt "Login form secondary link"
 msgid "Forgot password?"
-msgstr ""
+msgstr "Quên mật khẩu ?"
 
 #: templates/account/partials/login_form.html:29
 msgid "Facebook"
@@ -1328,12 +1392,12 @@ msgstr ""
 #: templates/account/password_change.html:22
 msgctxt "Password change form legend"
 msgid "Change Password"
-msgstr ""
+msgstr "Đổi mật khẩu"
 
 #: templates/account/password_change.html:28
 msgctxt "Password change form primary action"
 msgid "Save new password"
-msgstr ""
+msgstr "Lưu mật khẩu mới"
 
 #: templates/account/password_reset.html:6
 msgctxt "Password reset page title"
@@ -1343,7 +1407,7 @@ msgstr ""
 #: templates/account/password_reset.html:17
 msgctxt "Password reset form title"
 msgid "Forgot your password?"
-msgstr ""
+msgstr "Quên mật khẩu ?"
 
 #: templates/account/password_reset.html:19
 msgctxt "Password reset form help text"
@@ -1351,21 +1415,23 @@ msgid ""
 "Please let us know the email you have used to register or purchase at our "
 "store."
 msgstr ""
+"Vui lòng cho chúng tôi biết email bạn đã dùng để đăng ký hoặc mua hàng tại "
+"cửa hàng của chúng tôi."
 
 #: templates/account/password_reset.html:30
 msgctxt "Password reset primary action"
 msgid "Continue"
-msgstr ""
+msgstr "Tiếp tục"
 
 #: templates/account/password_reset_done.html:6
 msgctxt "Password reset done page title"
 msgid "Password Reset"
-msgstr ""
+msgstr "Thay đổi mật khẩu"
 
 #: templates/account/password_reset_done.html:10
 msgctxt "Password reset done title"
 msgid "Password Reset"
-msgstr ""
+msgstr "Thay đổi mật khẩu"
 
 #: templates/account/password_reset_done.html:14
 msgctxt "Password reset done text"
@@ -1373,11 +1439,13 @@ msgid ""
 "We have sent you an e-mail. Please contact us if you do not receive it "
 "within a few minutes."
 msgstr ""
+"Chúng tôi đã gửi cho bạn một email. Vui lòng liên hệ với chúng tôi nếu bạn "
+"không nhận được nó trong vòng vài phút tới."
 
 #: templates/account/password_reset_from_key.html:6
 msgctxt "Password reset from key page title"
 msgid "Change Password"
-msgstr ""
+msgstr "Đổi mật khẩu"
 
 #: templates/account/password_reset_from_key.html:11
 msgid "Bad Token"
@@ -1395,7 +1463,7 @@ msgstr ""
 #: templates/account/password_reset_from_key.html:24
 msgctxt "Password reset from key form title"
 msgid "Password Reset"
-msgstr ""
+msgstr "Thay đổi mật khẩu"
 
 #: templates/account/password_reset_from_key.html:25
 msgctxt "Password reset from key form title"
@@ -1405,7 +1473,7 @@ msgstr ""
 #: templates/account/password_reset_from_key.html:32
 msgctxt "Password reset from key form primary action"
 msgid "Continue"
-msgstr ""
+msgstr "Tiếp tục"
 
 #: templates/account/password_reset_from_key.html:39
 msgctxt "Password reset link expired from key form title"
@@ -1452,27 +1520,27 @@ msgstr ""
 #: templates/account/signup.html:17
 msgctxt "Signup form secondary title"
 msgid "Already have an account?"
-msgstr ""
+msgstr "Bạn đã có tài khoản ?"
 
 #: templates/account/signup.html:21
 msgctxt "Signup form secondary action"
 msgid "Log in"
-msgstr ""
+msgstr "Đăng nhập"
 
 #: templates/account/signup.html:28
 msgctxt "Signup form title"
 msgid "Create an account"
-msgstr ""
+msgstr "Tạo tài khoản mới"
 
 #: templates/account/signup.html:36
 msgctxt "Signup form primary action"
 msgid "Create an account"
-msgstr ""
+msgstr "Tạo tài khoản mới"
 
 #: templates/base.html:78 templates/base.html:215
 msgctxt "Main navigation item"
 msgid "Dashboard"
-msgstr ""
+msgstr "Trang quản trị"
 
 #: templates/base.html:89 templates/base.html:232
 msgctxt "Main navigation item"
@@ -1482,17 +1550,17 @@ msgstr ""
 #: templates/base.html:95 templates/base.html:238
 msgctxt "Main navigation item"
 msgid "Log out"
-msgstr ""
+msgstr "Đăng xuất"
 
 #: templates/base.html:101 templates/base.html:244
 msgctxt "Main navigation item"
 msgid "Register"
-msgstr ""
+msgstr "Đăng ký"
 
 #: templates/base.html:105 templates/base.html:249
 msgctxt "Main navigation item"
 msgid "Log in"
-msgstr ""
+msgstr "Đăng nhập"
 
 #: templates/base.html:120
 msgctxt "Hamburger button text"
@@ -1501,12 +1569,12 @@ msgstr ""
 
 #: templates/base.html:137
 msgid "Search for product"
-msgstr ""
+msgstr "Tìm kiếm sản phẩm"
 
 #: templates/base.html:149 templates/base.html:208
 msgctxt "Main navigation item"
 msgid "Your Cart"
-msgstr ""
+msgstr "Giỏ hàng"
 
 #: templates/base.html:220
 msgctxt "Main navigation item"
@@ -1537,7 +1605,7 @@ msgstr ""
 #: templates/cart_dropdown.html:62 templates/checkout/index.html:91
 msgctxt "Empty cart message"
 msgid "There are no products in your shopping cart."
-msgstr ""
+msgstr "Không có sản phẩm nào trong giỏ."
 
 #: templates/cart_dropdown.html:67 templates/checkout/index.html:92
 msgctxt "Empty cart link"
@@ -1547,7 +1615,7 @@ msgstr ""
 #: templates/category/index.html:7
 msgctxt "Category breadcrumbs home"
 msgid "Home"
-msgstr ""
+msgstr "Trang chủ"
 
 #: templates/checkout/_subtotal_table.html:32
 msgctxt "Cart shipping cost form"
@@ -1557,7 +1625,7 @@ msgstr ""
 #: templates/checkout/_subtotal_table.html:57
 msgctxt "Order subtotal"
 msgid "Total"
-msgstr ""
+msgstr "Tổng"
 
 #: templates/checkout/_subtotal_table.html:58
 msgctxt "Cart summary text"
@@ -1612,7 +1680,7 @@ msgstr ""
 #: templates/checkout/details.html:95
 msgctxt "Order review section title"
 msgid "Total"
-msgstr ""
+msgstr "Tổng"
 
 #: templates/checkout/index.html:7
 msgctxt "Cart page title"
@@ -1622,7 +1690,7 @@ msgstr ""
 #: templates/checkout/index.html:12
 msgctxt "Cart breadcrumb"
 msgid "Cart"
-msgstr ""
+msgstr "Giỏ hàng"
 
 #: templates/checkout/index.html:22
 msgctxt "Cart message"
@@ -1637,12 +1705,12 @@ msgstr ""
 #: templates/checkout/index.html:33
 msgctxt "Cart table header"
 msgid "Quantity"
-msgstr ""
+msgstr "Số lượng"
 
 #: templates/checkout/index.html:36
 msgctxt "Cart table header"
 msgid "Price"
-msgstr ""
+msgstr "Giá"
 
 #: templates/checkout/index.html:81
 msgctxt "Cart primary action"
@@ -1667,7 +1735,7 @@ msgstr ""
 #: templates/checkout/login.html:18
 msgctxt "Checkout login page new users action"
 msgid "Continue"
-msgstr ""
+msgstr "Tiếp tục"
 
 #: templates/checkout/login.html:21
 msgctxt "Checkout login page new users message"
@@ -1698,7 +1766,7 @@ msgstr ""
 #: templates/checkout/shipping_address.html:18
 msgctxt "Checkout shipping address primary action"
 msgid "Continue"
-msgstr ""
+msgstr "Tiếp tục"
 
 #: templates/checkout/shipping_method.html:9
 msgid "Select other address"
@@ -1707,12 +1775,12 @@ msgstr ""
 #: templates/checkout/shipping_method.html:14
 msgctxt "Checkout shipping method form title"
 msgid "Shipping method"
-msgstr ""
+msgstr "Phương thức vận chuyển"
 
 #: templates/checkout/shipping_method.html:18
 msgctxt "Checkout shipping method primary action"
 msgid "Continue"
-msgstr ""
+msgstr "Tiếp tục"
 
 #: templates/checkout/shipping_method.html:23
 msgctxt ""
@@ -1728,16 +1796,16 @@ msgstr ""
 #: templates/checkout/snippets/addresses_form.html:4
 msgctxt "Checkout addresses form label"
 msgid "Same as shipping"
-msgstr ""
+msgstr "Tương tự vận chuyển"
 
 #: templates/checkout/snippets/addresses_form.html:11
 msgctxt "Checkout addresses form label"
 msgid "Enter a new address"
-msgstr ""
+msgstr "Nhập địa chỉ mới"
 
 #: templates/checkout/snippets/addresses_form_panel.html:2
 msgid "Same as shipping"
-msgstr ""
+msgstr "Tương tự vận chuyển"
 
 #: templates/checkout/snippets/voucher_form.html:14
 msgctxt "Checkout voucher form action"
@@ -1792,7 +1860,7 @@ msgstr ""
 #: templates/collection/index.html:7
 msgctxt "Site breadcrumbs home"
 msgid "Home"
-msgstr ""
+msgstr "Trang chủ"
 
 #: templates/collection/index.html:15
 msgctxt "Unavailable collection detail text"
@@ -1807,7 +1875,7 @@ msgstr ""
 #, python-format
 msgctxt "Dashboard default page title"
 msgid "Dashboard - %(site_name)s"
-msgstr ""
+msgstr "Trang quản trị - %(site_name)s"
 
 #: templates/dashboard/base.html:42
 msgctxt "Dashboard top navigation action"
@@ -1822,7 +1890,7 @@ msgstr ""
 #: templates/dashboard/base.html:52
 msgctxt "Dashboard top navigation action"
 msgid "Log out"
-msgstr ""
+msgstr "Đăng xuất"
 
 #: templates/dashboard/base.html:81
 msgctxt "Dashboard search"
@@ -1832,7 +1900,7 @@ msgstr ""
 #: templates/dashboard/base.html:96 templates/dashboard/base.html:248
 msgctxt "Dashboard homepage"
 msgid "Home"
-msgstr ""
+msgstr "Trang chủ"
 
 #: templates/dashboard/base.html:102
 msgctxt "Dashboard catalogue"
@@ -1857,12 +1925,12 @@ msgstr "Sản phẩm"
 #: templates/dashboard/category/list.html:32
 msgctxt "Dashboard categories list"
 msgid "Categories"
-msgstr ""
+msgstr "Thư mục"
 
 #: templates/dashboard/base.html:117
 msgctxt "Dashboard side navigation link"
 msgid "Collections"
-msgstr ""
+msgstr "Bộ sưu tập"
 
 #: templates/dashboard/base.html:126
 msgctxt "Dashboard discounts list"
@@ -1935,10 +2003,10 @@ msgid "Product types"
 msgstr ""
 
 #: templates/dashboard/base.html:193
-#: templates/dashboard/product/product_attribute/form.html:29
-#: templates/dashboard/product/product_attribute/list.html:8
-#: templates/dashboard/product/product_attribute/list.html:26
-#: templates/dashboard/product/product_attribute/values/form.html:29
+#: templates/dashboard/product/attribute/form.html:29
+#: templates/dashboard/product/attribute/list.html:8
+#: templates/dashboard/product/attribute/list.html:26
+#: templates/dashboard/product/attribute/values/form.html:29
 msgctxt "Dashboard attributes list"
 msgid "Attributes"
 msgstr ""
@@ -1946,7 +2014,7 @@ msgstr ""
 #: templates/dashboard/base.html:200
 msgctxt "Dashboard shipping zones list"
 msgid "Shipping"
-msgstr ""
+msgstr "Vận chuyển"
 
 #: templates/dashboard/base.html:207 templates/dashboard/menu/detail.html:21
 #: templates/dashboard/menu/form.html:12 templates/dashboard/menu/form.html:29
@@ -1990,11 +2058,11 @@ msgstr ""
 #: templates/dashboard/menu/item/form.html:80
 #: templates/dashboard/order/address_form.html:61
 #: templates/dashboard/order/fulfillment.html:133
+#: templates/dashboard/product/attribute/form.html:77
+#: templates/dashboard/product/attribute/form.html:84
+#: templates/dashboard/product/attribute/values/form.html:78
 #: templates/dashboard/product/form.html:134
 #: templates/dashboard/product/form.html:141
-#: templates/dashboard/product/product_attribute/form.html:77
-#: templates/dashboard/product/product_attribute/form.html:84
-#: templates/dashboard/product/product_attribute/values/form.html:78
 #: templates/dashboard/product/product_image/form.html:79
 #: templates/dashboard/product/product_type/form.html:113
 #: templates/dashboard/product/product_variant/form.html:111
@@ -2014,7 +2082,7 @@ msgstr ""
 #: templates/dashboard/category/list.html:9
 msgctxt "Category list page title"
 msgid "Categories"
-msgstr ""
+msgstr "Thư mục"
 
 #: templates/dashboard/category/detail.html:83
 msgctxt "Category field"
@@ -2037,9 +2105,9 @@ msgid "Subcategories"
 msgstr ""
 
 #: templates/dashboard/category/detail.html:109
-#: templates/dashboard/includes/_menu_items.html:13
-#: templates/dashboard/product/detail.html:91
-#: templates/dashboard/product/product_attribute/detail.html:63
+#: templates/dashboard/includes/_menu_items.html:14
+#: templates/dashboard/product/attribute/detail.html:63
+#: templates/dashboard/product/detail.html:93
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:13
 #: templates/dashboard/sites/detail.html:77
 msgid "Add"
@@ -2119,9 +2187,9 @@ msgstr ""
 #: templates/dashboard/discount/voucher/form.html:133
 #: templates/dashboard/menu/form.html:66
 #: templates/dashboard/menu/item/form.html:88
+#: templates/dashboard/product/attribute/form.html:87
+#: templates/dashboard/product/attribute/values/form.html:86
 #: templates/dashboard/product/form.html:144
-#: templates/dashboard/product/product_attribute/form.html:87
-#: templates/dashboard/product/product_attribute/values/form.html:86
 #: templates/dashboard/product/product_image/form.html:87
 #: templates/dashboard/product/product_type/form.html:121
 #: templates/dashboard/product/product_variant/form.html:121
@@ -2177,9 +2245,9 @@ msgstr[0] ""
 #: templates/dashboard/menu/modal/confirm_delete.html:34
 #: templates/dashboard/order/modal/cancel_line.html:65
 #: templates/dashboard/page/modal_delete.html:26
+#: templates/dashboard/product/attribute/modal/attribute_confirm_delete.html:26
+#: templates/dashboard/product/attribute/values/modal/confirm_delete.html:26
 #: templates/dashboard/product/modal/confirm_delete.html:26
-#: templates/dashboard/product/product_attribute/modal/attribute_confirm_delete.html:26
-#: templates/dashboard/product/product_attribute/values/modal/confirm_delete.html:26
 #: templates/dashboard/product/product_image/modal/confirm_delete.html:25
 #: templates/dashboard/product/product_type/modal/confirm_delete.html:40
 #: templates/dashboard/product/product_variant/modal/confirm_delete.html:34
@@ -2227,7 +2295,7 @@ msgstr ""
 #: templates/dashboard/collection/detail.html:18
 #: templates/dashboard/collection/list.html:19
 msgid "Collections"
-msgstr ""
+msgstr "Bộ sưu tập"
 
 #: templates/dashboard/collection/detail.html:32
 msgctxt "Collection action"
@@ -2259,20 +2327,25 @@ msgctxt "Collection detail action"
 msgid "Create"
 msgstr ""
 
-#: templates/dashboard/collection/detail.html:96
+#: templates/dashboard/collection/detail.html:97
 msgctxt "Collection field"
 msgid "Published"
 msgstr "Xuất bản"
 
-#: templates/dashboard/collection/detail.html:98
+#: templates/dashboard/collection/detail.html:99
 msgctxt "Collection field"
 msgid "Draft"
+msgstr ""
+
+#: templates/dashboard/collection/detail.html:107
+msgctxt "Collection field"
+msgid "Can't unpublish homepage collection"
 msgstr ""
 
 #: templates/dashboard/collection/list.html:10
 msgctxt "Collections list page title "
 msgid "Collections"
-msgstr ""
+msgstr "Bộ sưu tập"
 
 #: templates/dashboard/collection/list.html:25
 msgctxt "Collections list add button text"
@@ -2363,17 +2436,17 @@ msgstr ""
 #: templates/dashboard/customer/detail.html:102
 msgctxt "Customer orders table header"
 msgid "Placed on"
-msgstr ""
+msgstr "Nơi giao"
 
 #: templates/dashboard/customer/detail.html:105
 msgctxt "Customer orders table header"
 msgid "Order status"
-msgstr ""
+msgstr "Tình trạng đặt hàng"
 
 #: templates/dashboard/customer/detail.html:108
 msgctxt "Customer orders table header"
 msgid "Total"
-msgstr ""
+msgstr "Tổng"
 
 #: templates/dashboard/customer/detail.html:135
 msgctxt "Empty customer orders table message"
@@ -2424,7 +2497,7 @@ msgstr ""
 #: templates/dashboard/search/results.html:89
 msgctxt "Dashboard customer"
 msgid "Customer"
-msgstr ""
+msgstr "Khách hàng"
 
 #: templates/dashboard/customer/form.html:36
 msgctxt "Dashboard add customer action"
@@ -2561,12 +2634,12 @@ msgstr "Tên"
 #: templates/dashboard/discount/sale/list.html:45
 msgctxt "Sale (discount) table header"
 msgid "Start date"
-msgstr ""
+msgstr "Ngày bắt đầu"
 
 #: templates/dashboard/discount/sale/list.html:48
 msgctxt "Sale (discount) table header"
 msgid "End date"
-msgstr ""
+msgstr "Ngày kết thúc"
 
 #: templates/dashboard/discount/sale/list.html:51
 msgctxt "Sale (discount) table header"
@@ -2635,12 +2708,12 @@ msgstr ""
 #: templates/dashboard/discount/voucher/list.html:49
 msgctxt "Voucher table header"
 msgid "Start date"
-msgstr ""
+msgstr "Ngày bắt đầu"
 
 #: templates/dashboard/discount/voucher/list.html:52
 msgctxt "Voucher table header"
 msgid "End date"
-msgstr ""
+msgstr "Ngày kết thúc"
 
 #: templates/dashboard/discount/voucher/list.html:55
 msgctxt "Voucher table header"
@@ -2712,32 +2785,47 @@ msgctxt "Title of the box showing preview from the search engine perspective"
 msgid "Search engine listing preview"
 msgstr ""
 
-#: templates/dashboard/includes/_menu_items.html:8
+#: templates/dashboard/includes/_menu_items.html:9
 msgctxt "Title of the menu items list"
 msgid "Menu items"
 msgstr ""
 
-#: templates/dashboard/includes/_menu_items.html:22
+#: templates/dashboard/includes/_menu_items.html:23
 msgctxt "Menu items list table header name"
 msgid "Name"
 msgstr "Tên"
 
-#: templates/dashboard/includes/_menu_items.html:25
+#: templates/dashboard/includes/_menu_items.html:26
 msgctxt "Menu items list table header points to"
 msgid "Points to"
+msgstr "Chuyển đến"
+
+#: templates/dashboard/includes/_menu_items.html:28
+msgctxt "Menu items status"
+msgid "Status"
 msgstr ""
 
-#: templates/dashboard/includes/_menu_items.html:45
+#: templates/dashboard/includes/_menu_items.html:47
+msgctxt "Menu items status"
+msgid "Published"
+msgstr "Đã xuất bản"
+
+#: templates/dashboard/includes/_menu_items.html:51
+msgctxt "Menu items status"
+msgid "Not published"
+msgstr "Chưa xuất bản"
+
+#: templates/dashboard/includes/_menu_items.html:56
 msgctxt "Menu item edit action"
 msgid "Edit"
 msgstr ""
 
-#: templates/dashboard/includes/_menu_items.html:48
+#: templates/dashboard/includes/_menu_items.html:59
 msgctxt "Menu item list action link"
 msgid "Remove"
 msgstr ""
 
-#: templates/dashboard/includes/_menu_items.html:54
+#: templates/dashboard/includes/_menu_items.html:65
 msgctxt "Empty list of menu items"
 msgid "No menu items"
 msgstr ""
@@ -2787,12 +2875,12 @@ msgstr ""
 #: templates/dashboard/index.html:31
 msgctxt "Preauthorized payments table header"
 msgid "Customer"
-msgstr ""
+msgstr "Khách hàng"
 
 #: templates/dashboard/index.html:34
 msgctxt "Preauthorized payments table header"
 msgid "Amount"
-msgstr ""
+msgstr "Số tiền"
 
 #: templates/dashboard/index.html:48
 msgid "Guest"
@@ -2811,22 +2899,22 @@ msgstr ""
 #: templates/dashboard/index.html:83 templates/dashboard/order/list.html:46
 msgctxt "Orders table header"
 msgid "Customer"
-msgstr ""
+msgstr "Khách hàng"
 
 #: templates/dashboard/index.html:86 templates/dashboard/order/list.html:49
 msgctxt "Orders table header"
 msgid "Placed on"
-msgstr ""
+msgstr "Nơi giao"
 
 #: templates/dashboard/index.html:89 templates/dashboard/order/list.html:52
 msgctxt "Orders table header"
 msgid "Payment status"
-msgstr ""
+msgstr "Tình trạng thanh toán"
 
 #: templates/dashboard/index.html:92 templates/dashboard/order/list.html:55
 msgctxt "Orders table header"
 msgid "Total"
-msgstr ""
+msgstr "Tổng"
 
 #: templates/dashboard/index.html:105
 #: templates/dashboard/order/detail.html:207
@@ -2898,7 +2986,7 @@ msgstr ""
 #: templates/dashboard/menu/item/detail.html:73
 msgctxt "Menu item field"
 msgid "Points to"
-msgstr ""
+msgstr "Chuyển đến"
 
 #: templates/dashboard/menu/item/detail.html:85
 msgctxt "Menu item detail view action"
@@ -2964,7 +3052,7 @@ msgstr ""
 #: templates/dashboard/menu/list.html:45
 msgctxt "Menu list table header Menu name"
 msgid "Menu name"
-msgstr ""
+msgstr "Tên menu"
 
 #: templates/dashboard/menu/list.html:69
 msgctxt "Empty menu list message"
@@ -2976,9 +3064,9 @@ msgid "Storefront Menus"
 msgstr ""
 
 #: templates/dashboard/menu/list.html:95
+#: templates/dashboard/product/attribute/form.html:80
+#: templates/dashboard/product/attribute/values/form.html:82
 #: templates/dashboard/product/form.html:137
-#: templates/dashboard/product/product_attribute/form.html:80
-#: templates/dashboard/product/product_attribute/values/form.html:82
 #: templates/dashboard/product/product_image/form.html:83
 #: templates/dashboard/product/product_variant/form.html:114
 #: templates/dashboard/shipping/form.html:80
@@ -3017,7 +3105,7 @@ msgstr ""
 #: templates/dashboard/next.html:11
 msgctxt "Dashboard default page title"
 msgid "Dashboard - Saleor"
-msgstr ""
+msgstr "Trang quản trị - Saleor"
 
 #: templates/dashboard/order/address_form.html:7
 msgctxt ""
@@ -3121,7 +3209,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:189
 msgctxt "Order details summary header"
 msgid "Customer"
-msgstr ""
+msgstr "Khách hàng"
 
 #: templates/dashboard/order/detail.html:193
 msgctxt "Order customer details action title"
@@ -3167,7 +3255,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:266
 msgctxt "Order placed on date"
 msgid "Placed on"
-msgstr ""
+msgstr "Nơi giao"
 
 #: templates/dashboard/order/detail.html:276
 #: templates/dashboard/order/detail.html:469
@@ -3179,7 +3267,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:279
 msgctxt "Order table header"
 msgid "Price"
-msgstr ""
+msgstr "Giá"
 
 #: templates/dashboard/order/detail.html:282
 #: templates/dashboard/order/detail.html:472
@@ -3191,7 +3279,7 @@ msgstr "Số lượng"
 #: templates/dashboard/order/detail.html:285
 msgctxt "Order table header"
 msgid "Total"
-msgstr ""
+msgstr "Tổng"
 
 #: templates/dashboard/order/detail.html:300
 #: templates/dashboard/order/fulfillment.html:85
@@ -3228,7 +3316,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:358
 msgctxt "Order totals header"
 msgid "Shipping"
-msgstr ""
+msgstr "Vận chuyển"
 
 #: templates/dashboard/order/detail.html:364
 msgctxt "Order total taxes"
@@ -3398,7 +3486,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:580
 msgctxt "Payment history table header"
 msgid "Payment status"
-msgstr ""
+msgstr "Tình trạng thanh toán"
 
 #: templates/dashboard/order/detail.html:583
 msgctxt "Payment history table header"
@@ -3408,7 +3496,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:586
 msgctxt "Payment history table header"
 msgid "Amount"
-msgstr ""
+msgstr "Số tiền"
 
 #: templates/dashboard/order/detail.html:594
 #, python-format
@@ -3442,7 +3530,7 @@ msgstr ""
 #: templates/dashboard/order/modal/cancel_line.html:34
 msgctxt "Modal remove order line table header"
 msgid "Quantity"
-msgstr ""
+msgstr "Số lượng"
 
 #: templates/dashboard/order/fulfillment.html:105
 #, python-format
@@ -3511,17 +3599,17 @@ msgstr ""
 #: templates/dashboard/order/modal/cancel_line.html:28
 msgctxt "Modal remove order line table header"
 msgid "SKU"
-msgstr ""
+msgstr "SKU"
 
 #: templates/dashboard/order/modal/cancel_line.html:31
 msgctxt "Modal remove order line table header"
 msgid "Price"
-msgstr ""
+msgstr "Giá"
 
 #: templates/dashboard/order/modal/cancel_line.html:37
 msgctxt "Modal remove order line table header"
 msgid "Total"
-msgstr ""
+msgstr "Tổng"
 
 #: templates/dashboard/order/modal/cancel_order.html:11
 msgctxt "Modal cancel order title"
@@ -3808,27 +3896,27 @@ msgstr ""
 #: templates/dashboard/order/pdf/invoice.html:64
 msgctxt "Shipment order table header"
 msgid "SKU"
-msgstr ""
+msgstr "SKU"
 
 #: templates/dashboard/order/pdf/invoice.html:67
 msgctxt "Shipment order table header"
 msgid "Tax rate"
-msgstr ""
+msgstr "Thuế"
 
 #: templates/dashboard/order/pdf/invoice.html:70
 msgctxt "Shipment order table header"
 msgid "Gross price"
-msgstr ""
+msgstr "Giá đã bao gồm thuế"
 
 #: templates/dashboard/order/pdf/invoice.html:73
 msgctxt "Shipment order table header"
 msgid "Quantity"
-msgstr ""
+msgstr "Số lượng"
 
 #: templates/dashboard/order/pdf/invoice.html:76
 msgctxt "Shipment order table header"
 msgid "Total"
-msgstr ""
+msgstr "Tổng"
 
 #: templates/dashboard/order/pdf/invoice.html:90
 #, python-format
@@ -3847,7 +3935,7 @@ msgstr ""
 #: templates/dashboard/order/pdf/invoice.html:121
 msgctxt "Order total shipping price header"
 msgid "Shipping"
-msgstr ""
+msgstr "Vận chuyển"
 
 #: templates/dashboard/order/pdf/invoice.html:129
 msgctxt "Order total taxes header"
@@ -3902,7 +3990,7 @@ msgstr ""
 #: templates/dashboard/order/pdf/packing_slip.html:67
 msgctxt "Order table header"
 msgid "SKU"
-msgstr ""
+msgstr "SKU"
 
 #: templates/dashboard/order/zero_page.html:5
 msgid "No orders found."
@@ -3994,12 +4082,12 @@ msgstr ""
 #: templates/dashboard/page/list.html:40
 msgctxt "Static pages table header name"
 msgid "Title"
-msgstr ""
+msgstr "Tiêu đề"
 
 #: templates/dashboard/page/list.html:43
 msgctxt "Static pages table header url"
 msgid "URL"
-msgstr ""
+msgstr "Địa chỉ"
 
 #: templates/dashboard/page/list.html:46
 msgctxt "Pages table header"
@@ -4036,6 +4124,134 @@ msgid ""
 "  "
 msgstr ""
 
+#: templates/dashboard/product/attribute/detail.html:18
+msgctxt "Attribute detail breadcrumbs"
+msgid "Attributes"
+msgstr ""
+
+#: templates/dashboard/product/attribute/detail.html:48
+msgctxt "Attribute detail action"
+msgid "Edit attribute"
+msgstr ""
+
+#: templates/dashboard/product/attribute/detail.html:51
+msgctxt "Attribute detail action"
+msgid "Remove attribute"
+msgstr ""
+
+#: templates/dashboard/product/attribute/detail.html:59
+msgid "Attribute values"
+msgstr ""
+
+#: templates/dashboard/product/attribute/detail.html:72
+msgid "Display name"
+msgstr "Tên hiển thị"
+
+#: templates/dashboard/product/attribute/detail.html:87
+#: templates/dashboard/shipping/methods/_shipping_methods_table.html:39
+msgctxt "Attribute value edit action"
+msgid "Edit"
+msgstr ""
+
+#: templates/dashboard/product/attribute/detail.html:90
+msgctxt "Attribute value edit action"
+msgid "Remove"
+msgstr ""
+
+#: templates/dashboard/product/attribute/detail.html:96
+msgctxt "Empty list of attribute values"
+msgid "No attribute values"
+msgstr ""
+
+#: templates/dashboard/product/attribute/form.html:8
+#: templates/dashboard/product/attribute/values/form.html:8
+msgctxt "Dashboard attributes list"
+msgid "Edit"
+msgstr ""
+
+#: templates/dashboard/product/attribute/form.html:10
+#: templates/dashboard/product/attribute/values/form.html:10
+msgctxt "Attribute detail page title"
+msgid "Add new attribute"
+msgstr ""
+
+#: templates/dashboard/product/attribute/form.html:45
+#: templates/dashboard/product/attribute/values/form.html:47
+msgctxt "Attribute detail breadcrumbs"
+msgid "Edit"
+msgstr ""
+
+#: templates/dashboard/product/attribute/form.html:51
+#: templates/dashboard/product/attribute/values/form.html:53
+msgctxt "Attribute detail breadcrumbs"
+msgid "Add new attribute"
+msgstr ""
+
+#: templates/dashboard/product/attribute/list.html:17
+msgctxt "Attribute list add button text"
+msgid "Add attribute"
+msgstr ""
+
+#: templates/dashboard/product/attribute/list.html:42
+msgctxt "Dashboard attributes list table header name"
+msgid "Name"
+msgstr "Tên"
+
+#: templates/dashboard/product/attribute/list.html:45
+msgctxt "Dashboard attributes list table header values"
+msgid "Values"
+msgstr ""
+
+#: templates/dashboard/product/attribute/list.html:72
+msgctxt "Empty attribute list message"
+msgid "No attributes found."
+msgstr ""
+
+#: templates/dashboard/product/attribute/modal/attribute_confirm_delete.html:12
+#, python-format
+msgctxt "Modal remove attribute text"
+msgid "Remove attribute %(attribute)s"
+msgstr ""
+
+#: templates/dashboard/product/attribute/modal/attribute_confirm_delete.html:19
+#, python-format
+msgctxt "Modal remove attribute text"
+msgid ""
+"Are you sure you want to remove attribute <strong>%(attribute)s</strong>?"
+msgstr ""
+
+#: templates/dashboard/product/attribute/values/form.html:70
+msgctxt "Attribute values form title"
+msgid "Attribute values"
+msgstr ""
+
+#: templates/dashboard/product/attribute/values/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Modal delete attribute text"
+msgid "Delete attribute value %(value)s"
+msgstr ""
+
+#: templates/dashboard/product/attribute/values/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Modal delete attribute text"
+msgid ""
+"Are you sure you want to remove attribute value <strong>%(value)s</strong>?"
+msgstr ""
+
+#: templates/dashboard/product/attribute/zero_page.html:5
+#: templates/dashboard/product/product_variant/form.html:82
+msgid "No attributes found."
+msgstr ""
+
+#: templates/dashboard/product/attribute/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Attributes are used to define custom properties of products and variants, that can be used for filtering purposes in the storefront.<br>\n"
+"    You can add attributes by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+
 #: templates/dashboard/product/detail.html:19
 #: templates/dashboard/product/product_variant/detail.html:20
 msgctxt "Product form breadcrumbs"
@@ -4052,142 +4268,142 @@ msgctxt "Product field"
 msgid "Draft"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:75
+#: templates/dashboard/product/detail.html:77
 msgctxt "Product action"
 msgid "Edit product"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:78
+#: templates/dashboard/product/detail.html:80
 msgctxt "Product action"
 msgid "Remove product"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:81
+#: templates/dashboard/product/detail.html:83
 msgctxt "Product action"
 msgid "View on site"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:88
+#: templates/dashboard/product/detail.html:90
 msgid "Variant"
-msgstr ""
+msgstr "Loại"
 
-#: templates/dashboard/product/detail.html:97
+#: templates/dashboard/product/detail.html:99
 msgid "SKU"
-msgstr ""
+msgstr "SKU"
 
-#: templates/dashboard/product/detail.html:98
+#: templates/dashboard/product/detail.html:100
 msgid "Name"
 msgstr "Tên"
 
-#: templates/dashboard/product/detail.html:99
+#: templates/dashboard/product/detail.html:101
 msgid "Status"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:102
-msgid "Gross price"
-msgstr ""
-
 #: templates/dashboard/product/detail.html:104
-msgid "Net price"
-msgstr ""
+msgid "Gross price"
+msgstr "Giá đã bao gồm thuế"
 
-#: templates/dashboard/product/detail.html:107
+#: templates/dashboard/product/detail.html:106
+msgid "Net price"
+msgstr "Giá ròng"
+
+#: templates/dashboard/product/detail.html:109
 msgid "Margin"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:130
+#: templates/dashboard/product/detail.html:132
 msgid "Edit"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:134
+#: templates/dashboard/product/detail.html:136
 msgctxt "Dashboard product details page"
 msgid "No variants found"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:150
+#: templates/dashboard/product/detail.html:152
 #: templates/dashboard/product/product_variant/detail.html:77
 msgctxt "Product pricing card header"
 msgid "Pricing"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:154
+#: templates/dashboard/product/detail.html:156
 #, python-format
 msgctxt "Product pricing card header subtitle"
 msgid "Taxes are charged (%(tax_rate)s tax rate)"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:158
+#: templates/dashboard/product/detail.html:160
 msgctxt "Product pricing card header subtitle"
 msgid "Taxes are not charged"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:169
+#: templates/dashboard/product/detail.html:171
 #: templates/dashboard/product/product_variant/detail.html:87
 msgctxt "Product field"
 msgid "Gross sale price"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:171
+#: templates/dashboard/product/detail.html:173
 #: templates/dashboard/product/product_variant/detail.html:89
 msgctxt "Product field"
 msgid "Net sale price"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:182
+#: templates/dashboard/product/detail.html:184
 #: templates/dashboard/product/product_variant/detail.html:100
 msgctxt "Product field"
 msgid "Gross discounted price"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:184
+#: templates/dashboard/product/detail.html:186
 #: templates/dashboard/product/product_variant/detail.html:102
 msgctxt "Product field"
 msgid "Net discounted price"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:195
+#: templates/dashboard/product/detail.html:197
 #: templates/dashboard/product/product_variant/detail.html:113
 msgctxt "Product field"
 msgid "Gross purchase cost"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:197
+#: templates/dashboard/product/detail.html:199
 #: templates/dashboard/product/product_variant/detail.html:115
 msgctxt "Product field"
 msgid "Net purchase cost"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:206
+#: templates/dashboard/product/detail.html:208
 #: templates/dashboard/product/product_variant/detail.html:128
 msgctxt "Product field"
 msgid "Margin"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:229
+#: templates/dashboard/product/detail.html:231
 #: templates/dashboard/product/product_variant/detail.html:146
 msgctxt "Product variant inventory card header"
 msgid "Inventory"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:238
+#: templates/dashboard/product/detail.html:240
 #: templates/dashboard/product/product_variant/detail.html:155
 msgctxt "Dashboard variant details view"
 msgid "Number in stock"
-msgstr ""
+msgstr "Số lượng còn lại"
 
-#: templates/dashboard/product/detail.html:246
+#: templates/dashboard/product/detail.html:248
 #: templates/dashboard/product/product_variant/detail.html:163
 msgctxt "Dashboard variant details view"
 msgid "Allocated"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:259
+#: templates/dashboard/product/detail.html:261
 #: templates/dashboard/product/product_image/list.html:7
 #: templates/dashboard/product/product_image/list.html:41
 msgid "Images"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:269
+#: templates/dashboard/product/detail.html:271
 msgid "Edit images"
 msgstr ""
 
@@ -4215,7 +4431,7 @@ msgstr ""
 #: templates/dashboard/product/product_type/form.html:103
 #: templates/dashboard/product/product_variant/form.html:85
 msgid "Shipping"
-msgstr ""
+msgstr "Vận chuyển"
 
 #: templates/dashboard/product/form.html:115
 #: templates/dashboard/product/product_variant/form.html:76
@@ -4244,7 +4460,7 @@ msgstr "Tên"
 #: templates/dashboard/product/list.html:64
 msgctxt "Products list table header"
 msgid "Price"
-msgstr ""
+msgstr "Giá"
 
 #: templates/dashboard/product/list.html:101
 msgctxt "Empty product list message"
@@ -4266,140 +4482,11 @@ msgstr ""
 #: templates/dashboard/product/modal/select_type.html:11
 msgctxt "Modal select product types title"
 msgid "Product type"
-msgstr ""
+msgstr "Loại sản phẩm"
 
 #: templates/dashboard/product/modal/select_type.html:19
 msgctxt "Dashboard add action"
 msgid "Create"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/detail.html:18
-msgctxt "Attribute detail breadcrumbs"
-msgid "Attributes"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/detail.html:48
-msgctxt "Attribute detail action"
-msgid "Edit attribute"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/detail.html:51
-msgctxt "Attribute detail action"
-msgid "Remove attribute"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/detail.html:59
-msgid "Attribute values"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/detail.html:72
-msgid "Display name"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/detail.html:87
-#: templates/dashboard/shipping/methods/_shipping_methods_table.html:39
-msgctxt "Attribute choice value edit action"
-msgid "Edit"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/detail.html:90
-msgctxt "Attribute choice value edit action"
-msgid "Remove"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/detail.html:96
-msgctxt "Empty list of attribute values"
-msgid "No attribute values"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/form.html:8
-#: templates/dashboard/product/product_attribute/values/form.html:8
-msgctxt "Dashboard attributes list"
-msgid "Edit"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/form.html:10
-#: templates/dashboard/product/product_attribute/values/form.html:10
-msgctxt "Attribute detail page title"
-msgid "Add new attribute"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/form.html:45
-#: templates/dashboard/product/product_attribute/values/form.html:47
-msgctxt "Attribute detail breadcrumbs"
-msgid "Edit"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/form.html:51
-#: templates/dashboard/product/product_attribute/values/form.html:53
-msgctxt "Attribute detail breadcrumbs"
-msgid "Add new attribute"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/list.html:17
-msgctxt "Attribute list add button text"
-msgid "Add attribute"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/list.html:42
-msgctxt "Dashboard attributes list table header name"
-msgid "Name"
-msgstr "Tên"
-
-#: templates/dashboard/product/product_attribute/list.html:45
-msgctxt "Dashboard attributes list table header values"
-msgid "Values"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/list.html:72
-msgctxt "Empty attribute list message"
-msgid "No attributes found."
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/modal/attribute_confirm_delete.html:12
-#, python-format
-msgctxt "Modal remove attribute text"
-msgid "Remove attribute %(attribute)s"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/modal/attribute_confirm_delete.html:19
-#, python-format
-msgctxt "Modal remove attribute text"
-msgid ""
-"Are you sure you want to remove attribute <strong>%(attribute)s</strong>?"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/values/form.html:70
-msgctxt "Attribute values form title"
-msgid "Attribute values"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/values/modal/confirm_delete.html:12
-#, python-format
-msgctxt "Modal delete attribute text"
-msgid "Delete attribute choice value %(value)s"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/values/modal/confirm_delete.html:19
-#, python-format
-msgctxt "Modal delete attribute text"
-msgid ""
-"Are you sure you want to remove attribute choice value "
-"<strong>%(value)s</strong>?"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/zero_page.html:5
-#: templates/dashboard/product/product_variant/form.html:82
-msgid "No attributes found."
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/zero_page.html:8
-#, python-format
-msgid ""
-"\n"
-"    Attributes are used to define custom properties of products and variants, that can be used for filtering purposes in the storefront.<br>\n"
-"    You can add attributes by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
-"  "
 msgstr ""
 
 #: templates/dashboard/product/product_image/form.html:8
@@ -4415,7 +4502,7 @@ msgstr ""
 #: templates/dashboard/product/product_image/form.html:38
 msgctxt "Image form text"
 msgid "Image"
-msgstr ""
+msgstr "Hình ảnh"
 
 #: templates/dashboard/product/product_image/form.html:43
 msgctxt "Image form text"
@@ -4517,12 +4604,12 @@ msgstr "Tên"
 #: templates/dashboard/product/product_type/list.html:48
 msgctxt "Product type item list text"
 msgid "Product attributes"
-msgstr ""
+msgstr "Thuộc tính sản phẩm"
 
 #: templates/dashboard/product/product_type/list.html:51
 msgctxt "Product type item list text"
 msgid "Variant attributes"
-msgstr ""
+msgstr "Biến thể của thuộc tính"
 
 #: templates/dashboard/product/product_type/list.html:89
 msgctxt "Empty product type list message"
@@ -4570,7 +4657,7 @@ msgstr ""
 #: templates/dashboard/product/product_variant/detail.html:52
 msgctxt "Dashboard variant details view"
 msgid "SKU"
-msgstr ""
+msgstr "SKU"
 
 #: templates/dashboard/product/product_variant/detail.html:62
 msgctxt "Dashboard action"
@@ -4811,13 +4898,13 @@ msgctxt ""
 "Shipping zones table header, price range of shipping methods within shipping"
 " zone"
 msgid "Price range"
-msgstr ""
+msgstr "Khoảng giá"
 
 #: templates/dashboard/shipping/list.html:49
 msgctxt ""
 "Shipping zones table header, list of countries within of shipping zone"
 msgid "Countries"
-msgstr ""
+msgstr "Các nước"
 
 #: templates/dashboard/shipping/list.html:83
 msgctxt "Empty shipping list message"
@@ -4841,10 +4928,10 @@ msgstr ""
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:27
 msgctxt "Header of the shipping methods list"
 msgid "Price"
-msgstr ""
+msgstr "Giá"
 
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:42
-msgctxt "Attribute choice value remove action"
+msgctxt "Attribute value remove action"
 msgid "Remove"
 msgstr ""
 
@@ -4881,7 +4968,7 @@ msgstr ""
 #: templates/dashboard/shipping/methods/form.html:72
 msgctxt "Shipping method form title"
 msgid "Shipping method"
-msgstr ""
+msgstr "Phương thức vận chuyển"
 
 #: templates/dashboard/shipping/modal/confirm_delete.html:13
 #, python-format
@@ -4965,7 +5052,7 @@ msgstr ""
 #: templates/dashboard/sites/detail.html:43
 msgctxt "Site settings field"
 msgid "Header text"
-msgstr ""
+msgstr "Nội dung header"
 
 #: templates/dashboard/sites/detail.html:53
 msgctxt "Site settings field"
@@ -4990,7 +5077,7 @@ msgstr "Tên"
 #: templates/dashboard/sites/detail.html:88
 msgctxt "Header of authorization keys list"
 msgid "Key"
-msgstr ""
+msgstr "Khoá"
 
 #: templates/dashboard/sites/detail.html:99
 msgctxt "Authorization key edit action"
@@ -5140,7 +5227,7 @@ msgstr "Tên"
 #: templates/dashboard/taxes/details.html:53
 msgctxt "Country tax rates list header"
 msgid "Value"
-msgstr ""
+msgstr "Giá trị"
 
 #: templates/dashboard/taxes/details.html:62
 #, python-format
@@ -5175,7 +5262,7 @@ msgstr ""
 
 #: templates/dashboard/taxes/form.html:46
 msgid "Dashboard"
-msgstr ""
+msgstr "Trang quản trị"
 
 #: templates/dashboard/taxes/form.html:54
 msgctxt "Dashboard site taxes settings form help text"
@@ -5237,7 +5324,7 @@ msgstr ""
 #: templates/dashboard/taxes/list.html:33
 msgctxt "Taxes table header"
 msgid "Country name"
-msgstr ""
+msgstr "Tên đất nước"
 
 #: templates/dashboard/taxes/list.html:61
 msgctxt "Empty taxes message"
@@ -5252,7 +5339,7 @@ msgstr ""
 #: templates/dashboard/taxes/list.html:80
 msgctxt "Site settings field"
 msgid "All products prices are entered with tax included"
-msgstr ""
+msgstr "Tất cả giá đều đã bao gồm thuế"
 
 #: templates/dashboard/taxes/list.html:84
 msgctxt "Include taxes in prices setting description"
@@ -5267,7 +5354,7 @@ msgstr ""
 #: templates/dashboard/taxes/list.html:94
 msgctxt "Site settings field"
 msgid "Show gross prices to customers in the storefront"
-msgstr ""
+msgstr "Hiển thị tổng giá cho ngừoi dùng ở trang chủ"
 
 #: templates/dashboard/taxes/list.html:98
 msgctxt "Show customers gross prices setting description"
@@ -5282,7 +5369,7 @@ msgstr ""
 #: templates/dashboard/taxes/list.html:108
 msgctxt "Site settings field"
 msgid "Charge taxes on shipping rates"
-msgstr ""
+msgstr "Tính thuế vào phí ship"
 
 #: templates/dashboard/taxes/list.html:112
 msgctxt "Charge taxes on shipping rates setting description"
@@ -5399,12 +5486,12 @@ msgstr ""
 #: templates/order/_ordered_items_table.html:178
 msgctxt "Order details column title"
 msgid "Quantity"
-msgstr ""
+msgstr "Số lượng"
 
 #: templates/order/_ordered_items_table.html:42
 msgctxt "Order details column title"
 msgid "Price"
-msgstr ""
+msgstr "Giá"
 
 #: templates/order/_ordered_items_table.html:85
 msgctxt "Order details subtotal row text"
@@ -5414,7 +5501,7 @@ msgstr ""
 #: templates/order/_ordered_items_table.html:102
 msgctxt "Order details shipment row text"
 msgid "Shipping"
-msgstr ""
+msgstr "Vận chuyển"
 
 #: templates/order/_ordered_items_table.html:134
 msgctxt "Order details taxes text"
@@ -5429,7 +5516,7 @@ msgstr ""
 #: templates/order/_ordered_items_table.html:150
 msgctxt "Order details total text"
 msgid "Total"
-msgstr ""
+msgstr "Tổng"
 
 #: templates/order/_ordered_items_table.html:164
 #, python-format
@@ -5440,7 +5527,7 @@ msgstr ""
 #: templates/order/_ordered_items_table.html:207
 msgctxt "Fulfillment tracking number details"
 msgid "Tracking number"
-msgstr ""
+msgstr "Tracking number"
 
 #: templates/order/checkout_success.html:8
 #: templates/order/checkout_success_anonymous.html:8
@@ -5491,19 +5578,19 @@ msgstr ""
 #: templates/order/checkout_success_anonymous.html:47
 msgctxt "Checkout primary action"
 msgid "Create an account"
-msgstr ""
+msgstr "Tạo tài khoản mới"
 
 #: templates/order/details.html:8
 #, python-format
 msgctxt "Order details page title"
 msgid "Order %(order)s"
-msgstr ""
+msgstr "Đặt hàng %(order)s"
 
 #: templates/order/details.html:28 templates/order/payment/details.html:22
 #, python-format
 msgctxt "Order details breadcrumb"
 msgid "Order %(order)s"
-msgstr ""
+msgstr "Đặt hàng %(order)s"
 
 #: templates/order/details.html:49
 #, python-format
@@ -5546,7 +5633,7 @@ msgstr ""
 #, python-format
 msgctxt "Payment details breadcrumb"
 msgid "Order %(order)s"
-msgstr ""
+msgstr "Đặt hàng %(order)s"
 
 #: templates/order/payment.html:44
 msgctxt "Payment details title"
@@ -5664,7 +5751,7 @@ msgid "Update"
 msgstr ""
 
 #. Translators: Layout may break if character length is different than four.
-#: templates/product/_items.html:28
+#: templates/product/_items.html:30
 msgctxt "Sale (discount) label for item in product list"
 msgid "Sale"
 msgstr ""
@@ -5682,34 +5769,34 @@ msgid ""
 "visible on <strong>%(date)s</strong>."
 msgstr ""
 
-#: templates/product/details.html:121
+#: templates/product/details.html:123
 msgctxt "Product details link text"
 msgid "Edit in dashboard"
-msgstr ""
+msgstr "Thay đổi trong trang quản trị"
 
-#: templates/product/details.html:147
+#: templates/product/details.html:149
 #, python-format
 msgctxt "Product details page vat rate value"
 msgid "including %(tax_rate)s%% VAT"
 msgstr ""
 
-#: templates/product/details.html:151
+#: templates/product/details.html:153
 #, python-format
 msgctxt "Product details page vat rate value"
 msgid "excluding %(tax_rate)s%% VAT"
 msgstr ""
 
-#: templates/product/details.html:175
+#: templates/product/details.html:177
 msgctxt "Product details primary action"
 msgid "Add to cart"
 msgstr ""
 
-#: templates/product/details.html:187
+#: templates/product/details.html:189
 msgctxt "Product details text"
 msgid "This product is currently <strong>unavailable</strong>."
 msgstr ""
 
-#: templates/product/details.html:191
+#: templates/product/details.html:193
 msgctxt "Product details title"
 msgid "Description"
 msgstr "Mô tả"
@@ -5741,13 +5828,13 @@ msgstr ""
 #: templates/search/results.html:34
 msgctxt "Search without results text"
 msgid "Sorry, no matches found for your request."
-msgstr ""
+msgstr "Xin lỗi, không có kết quả nào tương ứng với tìm kiếm của bạn."
 
 #: templates/product/product_list_base.html:150
 #: templates/search/results.html:35
 msgctxt "Search without results text"
 msgid "Try again or shop new arrivals."
-msgstr ""
+msgstr "Vui lòng thử lại."
 
 #: templates/search/results.html:32
 msgid "Search:"
@@ -5897,7 +5984,7 @@ msgid ""
 "Hi!\n"
 "\n"
 "Thank you for your order. Below is the list of ordered products. To see your payment details please visit:\n"
-"%(url)s"
+"%(order_details_url)s"
 msgstr ""
 
 #: templates/templated_email/order/confirm_order.email:18
@@ -5913,7 +6000,7 @@ msgstr ""
 #: templates/templated_email/order/confirm_order.email:20
 msgctxt "Order confirmation e-mail table header"
 msgid "Shipping"
-msgstr ""
+msgstr "Vận chuyển"
 
 #: templates/templated_email/order/confirm_order.email:21
 msgctxt "Order confirmation e-mail table header"
@@ -5933,7 +6020,7 @@ msgstr ""
 #: templates/templated_email/order/confirm_order.email:23
 msgctxt "Order confirmation e-mail table header"
 msgid "Total"
-msgstr ""
+msgstr "Tổng"
 
 #: templates/templated_email/order/confirm_order.email:25
 #: templates/templated_email/source/confirm_order.mjml:29
@@ -5977,7 +6064,7 @@ msgid ""
 "Hi!\n"
 "\n"
 "A new note has been added to your order. To see details please visit:\n"
-"%(url)s\n"
+"%(order_details_url)s\n"
 "\n"
 "This is an automatically generated email, please do not reply.\n"
 "\n"
@@ -5998,7 +6085,7 @@ msgid ""
 "Hi!\n"
 "\n"
 "Thank you for your payment. To see your payment details please visit:\n"
-"%(url)s\n"
+"%(order_details_url)s\n"
 "\n"
 "This is an automatically generated email, please do not reply.\n"
 "\n"
@@ -6074,7 +6161,7 @@ msgstr ""
 msgctxt "Note confirmation e-mail text"
 msgid ""
 "A new note has been added to your order. To see details please visit: <a "
-"href=\"%(url)s\">%(url)s</a>"
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
 #: templates/templated_email/source/confirm_order.mjml:14
@@ -6087,7 +6174,8 @@ msgstr ""
 msgctxt "Order confirmation e-mail text"
 msgid ""
 "Thank you for your order. Below is the list of ordered products. To see your"
-" payment details please visit: <a href=\"%(url)s\">%(url)s</a>"
+" payment details please visit: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
 #: templates/templated_email/source/confirm_payment.mjml:13
@@ -6100,7 +6188,7 @@ msgstr ""
 msgctxt "Payment confirmation e-mail text"
 msgid ""
 "Thank you for your payment. To see your payment details please visit: <a "
-"href=\"%(url)s\">%(url)s</a>"
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
 #: templates/templated_email/source/partials/_order_lines.mjml:11
@@ -6111,7 +6199,7 @@ msgstr ""
 #: templates/templated_email/source/partials/_order_lines.mjml:19
 msgctxt "E-mail order lines summary table"
 msgid "Shipping"
-msgstr ""
+msgstr "Vận chuyển"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:28
 msgctxt "E-mail order lines summary table"
@@ -6131,7 +6219,7 @@ msgstr ""
 #: templates/templated_email/source/partials/_order_lines.mjml:49
 msgctxt "E-mail order lines summary table"
 msgid "Total"
-msgstr ""
+msgstr "Tổng"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:58
 msgctxt "Ordered item name"
@@ -6179,7 +6267,7 @@ msgctxt "Promote customer to staff member confirmation e-mail text"
 msgid ""
 "You're receiving this e-mail because you have been promoted to staff member "
 "at %(domain)s.<br/> To access dashboard please visit: <a "
-"href=\"%(url)s\">%(url)s</a>"
+"href=\"%(dashboard_url)s\">%(dashboard_url)s</a>"
 msgstr ""
 
 #: templates/templated_email/source/set_password.mjml:13

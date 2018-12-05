@@ -2,9 +2,11 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 
 import ActionDialog from "../../../components/ActionDialog";
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import i18n from "../../../i18n";
 
 export interface OrderDraftCancelDialogProps {
+  confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
@@ -13,8 +15,9 @@ export interface OrderDraftCancelDialogProps {
 
 const OrderDraftCancelDialog: React.StatelessComponent<
   OrderDraftCancelDialogProps
-> = ({ onClose, onConfirm, open, orderNumber }) => (
+> = ({ confirmButtonState, onClose, onConfirm, open, orderNumber }) => (
   <ActionDialog
+    confirmButtonState={confirmButtonState}
     onClose={onClose}
     onConfirm={onConfirm}
     open={open}
