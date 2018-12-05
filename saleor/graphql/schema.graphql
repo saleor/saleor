@@ -468,6 +468,7 @@ type CollectionUpdate {
 type CountryDisplay {
   code: String!
   country: String!
+  vat: VAT
 }
 
 type CreateToken {
@@ -668,6 +669,7 @@ input FulfillmentUpdateTrackingInput {
 enum GatewaysEnum {
   DUMMY
   BRAINTREE
+  RAZORPAY
 }
 
 scalar GenericScalar
@@ -1591,6 +1593,11 @@ type Query {
   node(id: ID!): Node
 }
 
+type ReducedRate {
+  rate: Float!
+  rateType: String!
+}
+
 type Refresh {
   token: String
   payload: GenericScalar
@@ -1954,6 +1961,12 @@ input UserCreateInput {
   isActive: Boolean
   note: String
   sendPasswordEmail: Boolean
+}
+
+type VAT {
+  countryCode: String!
+  standardRate: Float
+  reducedRates: [ReducedRate]
 }
 
 type VariantImageAssign {
