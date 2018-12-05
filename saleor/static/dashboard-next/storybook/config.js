@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { configure } from "@storybook/react";
+configure = require("@storybook/react").configure;
 
 function loadStories() {
   // Components

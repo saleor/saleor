@@ -34,7 +34,7 @@ const ProductImagesReorderProvider: React.StatelessComponent<
           ...productImagesMap[id],
           sortOrder: index
         }));
-        const optimisticResponse = {
+        const optimisticResponse: typeof mutationResult["data"] = {
           productImageReorder: {
             __typename: "ProductImageReorder",
             errors: null,
