@@ -1,4 +1,9 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
@@ -24,6 +29,7 @@ interface ChoiceType {
   label: string;
   value: string;
 }
+
 export interface ProductTypeForm {
   name: string;
   hasVariants: boolean;
@@ -33,7 +39,20 @@ export interface ProductTypeForm {
   variantAttributes: ChoiceType[];
   weight: number;
 }
-export interface ProductTypeDetailsPageProps {
+
+const styles = (theme: Theme) =>
+  createStyles({
+    cardContainer: {
+      marginTop: theme.spacing.unit * 2
+    },
+    root: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "2fr 1fr"
+    }
+  });
+
+export interface ProductTypeDetailsPageProps extends WithStyles<typeof styles> {
   errors: Array<{
     field: string;
     message: string;
@@ -51,17 +70,9 @@ export interface ProductTypeDetailsPageProps {
   onSubmit: (data: ProductTypeForm) => void;
 }
 
-const decorate = withStyles(theme => ({
-  cardContainer: {
-    marginTop: theme.spacing.unit * 2
-  },
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "2fr 1fr"
-  }
-}));
-const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
+const ProductTypeDetailsPage = withStyles(styles, {
+  name: "ProductTypeDetailsPage"
+})(
   ({
     classes,
     defaultWeightUnit,
@@ -76,7 +87,7 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
     onBack,
     onDelete,
     onSubmit
-  }) => {
+  }: ProductTypeDetailsPageProps) => {
     const formInitialData: ProductTypeForm = {
       hasVariants:
         maybe(() => productType.hasVariants) !== undefined

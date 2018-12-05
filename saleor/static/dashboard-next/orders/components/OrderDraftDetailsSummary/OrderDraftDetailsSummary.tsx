@@ -1,4 +1,9 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
 import Link from "../../../components/Link";
@@ -8,23 +13,27 @@ import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { OrderDetails_order } from "../../types/OrderDetails";
 
-interface OrderDraftDetailsSummaryProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      ...theme.typography.body1,
+      lineHeight: 1.9,
+      width: "100%"
+    },
+    textRight: {
+      textAlign: "right"
+    }
+  });
+
+interface OrderDraftDetailsSummaryProps extends WithStyles<typeof styles> {
   order: OrderDetails_order;
   onShippingMethodEdit: () => void;
 }
 
-const decorate = withStyles(theme => ({
-  root: {
-    ...theme.typography.body1,
-    lineHeight: 1.9,
-    width: "100%"
-  },
-  textRight: {
-    textAlign: "right" as "right"
-  }
-}));
-const OrderDraftDetailsSummary = decorate<OrderDraftDetailsSummaryProps>(
-  ({ classes, order, onShippingMethodEdit }) => (
+const OrderDraftDetailsSummary = withStyles(styles, {
+  name: "OrderDraftDetailsSummary"
+})(
+  ({ classes, order, onShippingMethodEdit }: OrderDraftDetailsSummaryProps) => (
     <table className={classes.root}>
       <tbody>
         <tr>

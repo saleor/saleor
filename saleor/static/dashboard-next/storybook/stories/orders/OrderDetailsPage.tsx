@@ -1,3 +1,4 @@
+import { Omit } from "@material-ui/core";
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
@@ -15,7 +16,7 @@ import Decorator from "../../Decorator";
 
 const order = orderFixture(placeholderImage);
 
-const props: OrderDetailsPageProps = {
+const props: Omit<OrderDetailsPageProps, "classes"> = {
   countries,
   onBack: () => undefined,
   onBillingAddressEdit: undefined,

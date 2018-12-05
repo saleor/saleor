@@ -1,3 +1,4 @@
+import { Omit } from "@material-ui/core";
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
@@ -8,7 +9,7 @@ import { shop } from "../../../siteSettings/fixtures";
 import Decorator from "../../Decorator";
 import { formError } from "../../misc";
 
-const props: SiteSettingsPageProps = {
+const props: Omit<SiteSettingsPageProps, "classes"> = {
   disabled: false,
   errors: [],
   onBack: () => undefined,

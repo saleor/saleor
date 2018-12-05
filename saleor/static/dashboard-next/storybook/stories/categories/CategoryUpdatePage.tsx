@@ -1,3 +1,4 @@
+import { Omit } from "@material-ui/core";
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 import * as placeholderImage from "../../../../images/placeholder255x255.png";
@@ -11,7 +12,7 @@ import Decorator from "../../Decorator";
 
 const category = categoryFixture(placeholderImage);
 
-const updateProps: CategoryUpdatePageProps = {
+const updateProps: Omit<CategoryUpdatePageProps, "classes"> = {
   category,
   disabled: false,
   errors: [],

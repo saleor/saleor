@@ -1,58 +1,65 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import { IconProps } from "@material-ui/core/Icon";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import i18n from "../../../i18n";
 
-interface HomeAnalyticsCardProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    cardContent: {
+      "&:last-child": {
+        paddingBottom: 16
+      },
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 1 + "px",
+      gridTemplateColumns: "1fr 64px"
+    },
+    cardSpacing: {
+      [theme.breakpoints.down("sm")]: {
+        marginBottom: theme.spacing.unit
+      },
+      marginBottom: theme.spacing.unit * 3
+    },
+    cardSubtitle: {
+      color: theme.palette.text.secondary,
+      height: "20px",
+      lineHeight: 0.9
+    },
+    cardTitle: {
+      fontWeight: 600 as 600
+    },
+    icon: {
+      color: theme.palette.primary.contrastText,
+      fontSize: 54,
+      margin: ".5rem .3rem"
+    },
+    iconBackground: {
+      backgroundColor: theme.palette.primary.main,
+      borderRadius: "8px",
+      color: "white",
+      fontSize: "54px",
+      height: "100%",
+      padding: "10px 5px 0px 5px",
+      width: "100%"
+    }
+  });
+
+interface HomeAnalyticsCardProps extends WithStyles<typeof styles> {
   icon: React.ReactElement<IconProps>;
   title: string;
   children?: React.ReactNode;
 }
 
-const decorate = withStyles(theme => ({
-  cardContent: {
-    "&:last-child": {
-      paddingBottom: 16
-    },
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 1 + "px",
-    gridTemplateColumns: "1fr 64px"
-  },
-  cardSpacing: {
-    [theme.breakpoints.down("sm")]: {
-      marginBottom: theme.spacing.unit
-    },
-    marginBottom: theme.spacing.unit * 3
-  },
-  cardSubtitle: {
-    color: theme.palette.text.secondary,
-    height: "20px",
-    lineHeight: 0.9
-  },
-  cardTitle: {
-    fontWeight: 600 as 600
-  },
-  icon: {
-    color: theme.palette.primary.contrastText,
-    fontSize: 54,
-    margin: ".5rem .3rem"
-  },
-  iconBackground: {
-    backgroundColor: theme.palette.primary.main,
-    borderRadius: "8px",
-    color: "white",
-    fontSize: "54px",
-    height: "100%",
-    padding: "10px 5px 0px 5px",
-    width: "100%"
-  }
-}));
-const HomeAnalyticsCard = decorate<HomeAnalyticsCardProps>(
-  ({ children, classes, title, icon }) => (
+const HomeAnalyticsCard = withStyles(styles, { name: "HomeAnalyticsCard" })(
+  ({ children, classes, title, icon }: HomeAnalyticsCardProps) => (
     <Card className={classes.cardSpacing}>
       <CardContent className={classes.cardContent}>
         <div>
@@ -66,7 +73,7 @@ const HomeAnalyticsCard = decorate<HomeAnalyticsCardProps>(
           >
             {i18n.t("Today")}
           </Typography>
-          <Typography color={"textPrimary"} variant="headline">
+          <Typography color="textPrimary" variant="headline">
             {children}
           </Typography>
         </div>
