@@ -1,5 +1,10 @@
 import Card from "@material-ui/core/Card";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -18,7 +23,16 @@ import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
 import { ListProps } from "../../../types";
 
-interface VoucherListProps extends ListProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    link: {
+      color: theme.palette.secondary.main,
+      cursor: "pointer"
+    },
+    textRight: { textAlign: "right" }
+  });
+
+interface VoucherListProps extends ListProps, WithStyles<typeof styles> {
   currency?: string;
   vouchers?: Array<{
     id: string;
@@ -41,14 +55,7 @@ interface VoucherListProps extends ListProps {
   }>;
 }
 
-const decorate = withStyles(theme => ({
-  link: {
-    color: theme.palette.secondary.main,
-    cursor: "pointer" as "pointer"
-  },
-  textRight: { textAlign: "right" as "right" }
-}));
-const VoucherList = decorate<VoucherListProps>(
+const VoucherList = withStyles(styles, { name: "VoucherList" })(
   ({
     classes,
     currency,
@@ -58,7 +65,7 @@ const VoucherList = decorate<VoucherListProps>(
     onNextPage,
     onPreviousPage,
     onRowClick
-  }) => (
+  }: VoucherListProps) => (
     <Card>
       <Table>
         <TableHead>

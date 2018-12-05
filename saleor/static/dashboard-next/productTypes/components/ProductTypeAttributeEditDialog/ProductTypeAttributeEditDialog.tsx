@@ -85,7 +85,7 @@ const ProductTypeAttributeEditDialog: React.StatelessComponent<
               <Button onClick={onClose}>
                 {i18n.t("Cancel", { context: "button" })}
               </Button>
-              <Button color="primary" variant="raised" type="submit">
+              <Button color="primary" variant="contained" type="submit">
                 {i18n.t("Save", { context: "button" })}
               </Button>
             </DialogActions>

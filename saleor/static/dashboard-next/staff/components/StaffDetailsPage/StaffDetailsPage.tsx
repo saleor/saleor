@@ -1,4 +1,9 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
@@ -21,7 +26,19 @@ interface FormData {
   permissions: string[];
 }
 
-export interface StaffDetailsPageProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    card: {
+      marginBottom: theme.spacing.unit * 2 + "px"
+    },
+    root: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "9fr 4fr"
+    }
+  });
+
+export interface StaffDetailsPageProps extends WithStyles<typeof styles> {
   disabled: boolean;
   permissions: StaffMemberDetails_shop_permissions[];
   saveButtonBarState: ConfirmButtonTransitionState;
@@ -31,17 +48,7 @@ export interface StaffDetailsPageProps {
   onSubmit: (data: FormData) => void;
 }
 
-const decorate = withStyles(theme => ({
-  card: {
-    marginBottom: theme.spacing.unit * 2 + "px"
-  },
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "9fr 4fr"
-  }
-}));
-const StaffDetailsPage = decorate<StaffDetailsPageProps>(
+const StaffDetailsPage = withStyles(styles, { name: "StaffDetailsPage" })(
   ({
     classes,
     disabled,
@@ -51,7 +58,7 @@ const StaffDetailsPage = decorate<StaffDetailsPageProps>(
     onBack,
     onDelete,
     onSubmit
-  }) => {
+  }: StaffDetailsPageProps) => {
     const initialForm: FormData = {
       hasFullAccess: maybe(
         () =>

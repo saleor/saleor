@@ -50,7 +50,7 @@ const OrderFulfillmentTrackingDialog: React.StatelessComponent<
             <ConfirmButton
               transitionState={confirmButtonState}
               color="primary"
-              variant="raised"
+              variant="contained"
               onClick={submit}
             >
               {i18n.t("Confirm", { context: "button" })}

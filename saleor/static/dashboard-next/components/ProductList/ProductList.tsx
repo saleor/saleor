@@ -1,4 +1,9 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -17,28 +22,29 @@ import Skeleton from "../Skeleton";
 import StatusLabel from "../StatusLabel";
 import TablePagination from "../TablePagination";
 
-const decorate = withStyles(theme => ({
-  avatarCell: {
-    paddingLeft: theme.spacing.unit * 2,
-    paddingRight: 0,
-    width: theme.spacing.unit * 5
-  },
-  link: {
-    cursor: "pointer" as "pointer"
-  },
-  textLeft: {
-    textAlign: "left" as "left"
-  },
-  textRight: {
-    textAlign: "right" as "right"
-  }
-}));
+const styles = (theme: Theme) =>
+  createStyles({
+    avatarCell: {
+      paddingLeft: theme.spacing.unit * 2,
+      paddingRight: 0,
+      width: theme.spacing.unit * 5
+    },
+    link: {
+      cursor: "pointer"
+    },
+    textLeft: {
+      textAlign: "left"
+    },
+    textRight: {
+      textAlign: "right"
+    }
+  });
 
-interface ProductListProps extends ListProps {
+interface ProductListProps extends ListProps, WithStyles<typeof styles> {
   products: CategoryDetails_category_products_edges_node[];
 }
 
-export const ProductList = decorate<ProductListProps>(
+export const ProductList = withStyles(styles, { name: "ProductList" })(
   ({
     classes,
     disabled,
@@ -47,7 +53,7 @@ export const ProductList = decorate<ProductListProps>(
     onPreviousPage,
     onRowClick,
     products
-  }) => (
+  }: ProductListProps) => (
     <Table>
       <TableHead>
         <TableRow>
@@ -136,6 +142,5 @@ export const ProductList = decorate<ProductListProps>(
     </Table>
   )
 );
-
 ProductList.displayName = "ProductList";
 export default ProductList;

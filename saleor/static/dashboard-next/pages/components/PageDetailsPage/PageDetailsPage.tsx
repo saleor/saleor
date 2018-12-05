@@ -1,4 +1,9 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
@@ -18,7 +23,27 @@ interface PageInput {
   availableOn: string;
   isVisible: boolean;
 }
-export interface PageDetailsPageProps {
+
+const defaultPage = {
+  availableOn: "",
+  content: "",
+  isVisible: false,
+  slug: "",
+  title: ""
+};
+
+const PageForm: React.ComponentType<FormProps<PageInput>> = Form;
+
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      display: "grid",
+      gridColumnGap: `${theme.spacing.unit * 2}px`,
+      gridTemplateColumns: "3fr 1fr"
+    }
+  });
+
+export interface PageDetailsPageProps extends WithStyles<typeof styles> {
   page?: PageInput & {
     created?: string;
   };
@@ -34,22 +59,7 @@ export interface PageDetailsPageProps {
   onSubmit(data: PageInput);
 }
 
-const defaultPage = {
-  availableOn: "",
-  content: "",
-  isVisible: false,
-  slug: "",
-  title: ""
-};
-const PageForm: React.ComponentType<FormProps<PageInput>> = Form;
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: `${theme.spacing.unit * 2}px`,
-    gridTemplateColumns: "3fr 1fr"
-  }
-}));
-const PageDetailsPage = decorate<PageDetailsPageProps>(
+const PageDetailsPage = withStyles(styles, { name: "PageDetailsPage" })(
   ({
     classes,
     errors,
@@ -60,7 +70,7 @@ const PageDetailsPage = decorate<PageDetailsPageProps>(
     onBack,
     onDelete,
     onSubmit
-  }) => (
+  }: PageDetailsPageProps) => (
     <PageForm
       errors={errors}
       key={page ? "ready" : "loading"}

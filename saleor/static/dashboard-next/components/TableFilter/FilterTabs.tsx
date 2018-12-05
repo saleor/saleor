@@ -1,20 +1,27 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Tabs from "@material-ui/core/Tabs";
 import * as React from "react";
 
-interface FilterTabsProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    tabsRoot: {
+      borderBottom: "1px solid #e0e0e0",
+      paddingLeft: `${theme.spacing.unit * 3}px`
+    }
+  });
+
+interface FilterTabsProps extends WithStyles<typeof styles> {
+  children?: React.ReactNode;
   currentTab: number;
 }
 
-const decorate = withStyles(theme => ({
-  tabsRoot: {
-    borderBottom: "1px solid #e0e0e0",
-    paddingLeft: `${theme.spacing.unit * 3}px`
-  }
-}));
-
-export const FilterTabs = decorate<FilterTabsProps>(
-  ({ classes, children, currentTab }) => (
+export const FilterTabs = withStyles(styles, { name: "FilterTabs" })(
+  ({ classes, children, currentTab }: FilterTabsProps) => (
     <Tabs
       className={classes.tabsRoot}
       value={currentTab}

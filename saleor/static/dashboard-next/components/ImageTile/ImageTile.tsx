@@ -1,49 +1,55 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
 import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
 import EditIcon from "@material-ui/icons/Edit";
 
-const decorate = withStyles(theme => ({
-  image: {
-    height: "100%",
-    objectFit: "contain" as "contain",
-    userSelect: "none" as "none",
-    width: "100%"
-  },
-  imageContainer: {
-    "&:hover, &.dragged": {
-      "& $imageOverlay": {
-        display: "block" as "block"
-      }
+const styles = (theme: Theme) =>
+  createStyles({
+    image: {
+      height: "100%",
+      objectFit: "contain",
+      userSelect: "none",
+      width: "100%"
     },
-    background: "#ffffff",
-    border: "1px solid #eaeaea",
-    borderRadius: theme.spacing.unit,
-    height: 148,
-    overflow: "hidden" as "hidden",
-    padding: theme.spacing.unit * 2,
-    position: "relative" as "relative",
-    width: 148
-  },
-  imageOverlay: {
-    background: "rgba(0, 0, 0, 0.6)",
-    cursor: "move",
-    display: "none" as "none",
-    height: 148,
-    left: 0,
-    position: "absolute" as "absolute",
-    top: 0,
-    width: 148
-  },
-  imageOverlayToolbar: {
-    display: "flex" as "flex",
-    justifyContent: "flex-end"
-  }
-}));
+    imageContainer: {
+      "&:hover, &.dragged": {
+        "& $imageOverlay": {
+          display: "block"
+        }
+      },
+      background: "#ffffff",
+      border: "1px solid #eaeaea",
+      borderRadius: theme.spacing.unit,
+      height: 148,
+      overflow: "hidden",
+      padding: theme.spacing.unit * 2,
+      position: "relative",
+      width: 148
+    },
+    imageOverlay: {
+      background: "rgba(0, 0, 0, 0.6)",
+      cursor: "move",
+      display: "none",
+      height: 148,
+      left: 0,
+      position: "absolute",
+      top: 0,
+      width: 148
+    },
+    imageOverlayToolbar: {
+      display: "flex",
+      justifyContent: "flex-end"
+    }
+  });
 
-interface ImageTileProps {
+interface ImageTileProps extends WithStyles<typeof styles> {
   image: {
     alt?: string;
     url: string;
@@ -52,8 +58,8 @@ interface ImageTileProps {
   onImageEdit?: (event: React.ChangeEvent<any>) => void;
 }
 
-const ImageTile = decorate<ImageTileProps>(
-  ({ classes, onImageDelete, onImageEdit, image }) => (
+const ImageTile = withStyles(styles, { name: "ImageTile" })(
+  ({ classes, onImageDelete, onImageEdit, image }: ImageTileProps) => (
     <div className={classes.imageContainer}>
       <div className={classes.imageOverlay}>
         <div className={classes.imageOverlayToolbar}>

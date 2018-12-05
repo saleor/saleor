@@ -3,7 +3,12 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -27,16 +32,8 @@ export interface FormData {
   trackingNumber: string;
 }
 
-export interface OrderFulfillmentDialogProps {
-  confirmButtonState: ConfirmButtonTransitionState;
-  open: boolean;
-  lines: OrderDetails_order_lines[];
-  onClose();
-  onSubmit(data: FormData);
-}
-
-const decorate = withStyles(
-  theme => ({
+const styles = (theme: Theme) =>
+  createStyles({
     avatarCell: {
       paddingLeft: theme.spacing.unit * 2,
       paddingRight: theme.spacing.unit * 3,
@@ -48,11 +45,27 @@ const decorate = withStyles(
     textRight: {
       textAlign: "right" as "right"
     }
-  }),
-  { name: "OrderFulfillmentDialog" }
-);
-const OrderFulfillmentDialog = decorate<OrderFulfillmentDialogProps>(
-  ({ classes, confirmButtonState, open, lines, onClose, onSubmit }) => (
+  });
+
+export interface OrderFulfillmentDialogProps extends WithStyles<typeof styles> {
+  confirmButtonState: ConfirmButtonTransitionState;
+  open: boolean;
+  lines: OrderDetails_order_lines[];
+  onClose();
+  onSubmit(data: FormData);
+}
+
+const OrderFulfillmentDialog = withStyles(styles, {
+  name: "OrderFulfillmentDialog"
+})(
+  ({
+    classes,
+    confirmButtonState,
+    open,
+    lines,
+    onClose,
+    onSubmit
+  }: OrderFulfillmentDialogProps) => (
     <Dialog open={open}>
       <Form
         initial={{
@@ -142,7 +155,7 @@ const OrderFulfillmentDialog = decorate<OrderFulfillmentDialogProps>(
                 <ConfirmButton
                   transitionState={confirmButtonState}
                   color="primary"
-                  variant="raised"
+                  variant="contained"
                   type="submit"
                 >
                   {i18n.t("Confirm", { context: "button" })}

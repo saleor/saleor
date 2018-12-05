@@ -1,6 +1,6 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { withStyles } from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import * as moment from "moment-timezone";
@@ -13,7 +13,13 @@ import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { CustomerDetails_user } from "../../types/CustomerDetails";
 
-export interface CustomerDetailsProps {
+const styles = createStyles({
+  cardTitle: {
+    height: 64
+  }
+});
+
+export interface CustomerDetailsProps extends WithStyles<typeof styles> {
   customer: CustomerDetails_user;
   data: {
     email: string;
@@ -28,13 +34,15 @@ export interface CustomerDetailsProps {
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
-const decorate = withStyles({
-  cardTitle: {
-    height: 64
-  }
-});
-const CustomerDetails = decorate<CustomerDetailsProps>(
-  ({ classes, customer, data, disabled, errors, onChange }) => (
+const CustomerDetails = withStyles(styles, { name: "CustomerDetails" })(
+  ({
+    classes,
+    customer,
+    data,
+    disabled,
+    errors,
+    onChange
+  }: CustomerDetailsProps) => (
     <Card>
       <CardTitle
         className={classes.cardTitle}

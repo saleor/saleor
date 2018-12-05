@@ -1,47 +1,54 @@
+import { Omit } from "@material-ui/core";
 import Button from "@material-ui/core/Button";
-import { withStyles, WithStyles } from "@material-ui/core/styles";
-import TextField, { TextFieldProps } from "@material-ui/core/TextField";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
+import TextField, { StandardTextFieldProps } from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import CloseIcon from "@material-ui/icons/Close";
 import * as React from "react";
 import i18n from "../../i18n";
-
-interface ListFieldProps
-  extends Exclude<Exclude<TextFieldProps, "value">, "classes"> {
-  values: Array<{
-    label: string;
-    value: string;
-  }>;
-}
 
 interface ListFieldState {
   newValueCounter: number;
   value: string;
 }
 
-const decorate = withStyles(theme => ({
-  chip: {
-    background: "rgba(90, 179, 120, .1)",
-    borderRadius: 8,
-    display: "inline-block" as "inline-block",
-    marginRight: theme.spacing.unit * 2,
-    padding: "4px 8px"
-  },
-  chipContainer: {
-    marginTop: theme.spacing.unit * 2,
-    width: 552
-  },
-  closeIcon: {
-    cursor: "pointer" as "pointer",
-    fontSize: 16,
-    verticalAlign: "middle" as "middle"
-  }
-}));
-const ListField = decorate<
-  ListFieldProps & WithStyles<"chip" | "chipContainer" | "closeIcon">
->(
+const styles = (theme: Theme) =>
+  createStyles({
+    chip: {
+      background: "rgba(90, 179, 120, .1)",
+      borderRadius: 8,
+      display: "inline-block",
+      marginRight: theme.spacing.unit * 2,
+      padding: "4px 8px"
+    },
+    chipContainer: {
+      marginTop: theme.spacing.unit * 2,
+      width: 552
+    },
+    closeIcon: {
+      cursor: "pointer",
+      fontSize: 16,
+      verticalAlign: "middle"
+    }
+  });
+
+interface ListFieldProps
+  extends Omit<StandardTextFieldProps, "classes">,
+    WithStyles<typeof styles> {
+  values: Array<{
+    label: string;
+    value: string;
+  }>;
+}
+
+const ListField = withStyles(styles)(
   class ListFieldComponent extends React.Component<
-    ListFieldProps & WithStyles<"chip" | "chipContainer" | "closeIcon">,
+    ListFieldProps,
     ListFieldState
   > {
     state: ListFieldState = {
@@ -104,7 +111,7 @@ const ListField = decorate<
             InputProps={{
               endAdornment: (
                 <Button
-                  variant="flat"
+                  variant="text"
                   color="secondary"
                   onClick={this.handleValueAdd}
                 >

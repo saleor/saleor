@@ -1,5 +1,5 @@
 import Card from "@material-ui/core/Card";
-import { withStyles } from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -17,16 +17,17 @@ import { renderCollection } from "../../../misc";
 import { ListProps } from "../../../types";
 import { StaffList_staffUsers_edges_node } from "../../types/StaffList";
 
-interface StaffListProps extends ListProps {
+const styles = createStyles({
+  tableRow: {
+    cursor: "pointer"
+  }
+});
+
+interface StaffListProps extends ListProps, WithStyles<typeof styles> {
   staffMembers: StaffList_staffUsers_edges_node[];
 }
 
-const decorate = withStyles({
-  tableRow: {
-    cursor: "pointer" as "pointer"
-  }
-});
-const StaffList = decorate<StaffListProps>(
+const StaffList = withStyles(styles, { name: "StaffList" })(
   ({
     classes,
     disabled,
@@ -35,7 +36,7 @@ const StaffList = decorate<StaffListProps>(
     onRowClick,
     pageInfo,
     staffMembers
-  }) => (
+  }: StaffListProps) => (
     <Card>
       <Table>
         <TableHead>
