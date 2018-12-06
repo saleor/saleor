@@ -46,13 +46,16 @@ const styles = (theme: Theme) =>
 interface ProductOrganizationProps extends WithStyles<typeof styles> {
   categories?: Array<{ value: string; label: string }>;
   collections?: Array<{ value: string; label: string }>;
-  category: string;
   productCollections: string[];
   data: {
     attributes: Array<{
       slug: string;
       value: string;
     }>;
+    category: {
+      label: string;
+      value: string;
+    };
     productType: {
       label: string;
       value: {
@@ -72,18 +75,19 @@ interface ProductOrganizationProps extends WithStyles<typeof styles> {
     };
   };
   productTypes?: ProductType[];
+  fetchCategories: (query: string) => void;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
 const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
   ({
-    category,
     categories,
     classes,
     collections,
     data,
     disabled,
     errors,
+    fetchCategories,
     product,
     productCollections,
     productTypes,
@@ -215,7 +219,6 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
                       label: v.name,
                       value: v.slug
                     }))}
-                    key={index}
                     custom
                   />
                   <FormSpacer />
@@ -226,15 +229,14 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
             <Skeleton />
           )}
           <hr className={classes.hr} />
-          <SingleSelectField
+          <SingleAutocompleteSelectField
             disabled={disabled}
-            error={!!errors.category}
-            hint={errors.category}
             label={i18n.t("Category")}
             choices={disabled ? [] : categories}
             name="category"
-            value={category}
+            value={data.category}
             onChange={onChange}
+            fetchChoices={fetchCategories}
           />
           <FormSpacer />
           <hr className={classes.hr} />

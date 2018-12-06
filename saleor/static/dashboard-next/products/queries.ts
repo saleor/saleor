@@ -1,6 +1,10 @@
 import gql from "graphql-tag";
 
 import { TypedQuery } from "../queries";
+import {
+  CategorySearch,
+  CategorySearchVariables
+} from "./types/CategorySearch";
 import { ProductCreateData } from "./types/ProductCreateData";
 import {
   ProductDetails,
@@ -241,14 +245,6 @@ const productDetailsQuery = gql`
         }
       }
     }
-    categories(first: 20) {
-      edges {
-        node {
-          id
-          name
-        }
-      }
-    }
   }
 `;
 export const TypedProductDetailsQuery = TypedQuery<
@@ -292,14 +288,6 @@ const productCreateQuery = gql`
       }
     }
     collections(first: 20) {
-      edges {
-        node {
-          id
-          name
-        }
-      }
-    }
-    categories(first: 20) {
       edges {
         node {
           id
@@ -373,3 +361,20 @@ export const TypedProductImageQuery = TypedQuery<
   ProductImageById,
   ProductImageByIdVariables
 >(productImageQuery);
+
+const categorySearch = gql`
+  query CategorySearch($query: String) {
+    categories(first: 5, query: $query) {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+export const TypedCategorySearchQuery = TypedQuery<
+  CategorySearch,
+  CategorySearchVariables
+>(categorySearch);

@@ -45,3 +45,10 @@ export interface RootCategories_categories {
 export interface RootCategories {
   categories: RootCategories_categories | null;
 }
+
+export interface RootCategoriesVariables {
+  first?: number | null;
+  after?: string | null;
+  last?: number | null;
+  before?: string | null;
+}
