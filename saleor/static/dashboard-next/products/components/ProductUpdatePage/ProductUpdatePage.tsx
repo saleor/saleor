@@ -16,6 +16,7 @@ import i18n from "../../../i18n";
 import { UserError } from "../../../types";
 import {
   ProductDetails_product,
+  ProductDetails_product_attributes_attribute,
   ProductDetails_product_images,
   ProductDetails_product_variants_priceOverride
 } from "../../types/ProductDetails";
@@ -77,6 +78,7 @@ interface ProductUpdateProps extends WithStyles<typeof styles> {
   header: string;
   saveButtonBarState: ConfirmButtonTransitionState;
   fetchCategories: (query: string) => void;
+  fetchCollections: (query: string) => void;
   onVariantShow: (id: string) => () => void;
   onImageDelete: (id: string) => () => void;
   onAttributesEdit: () => void;
@@ -91,6 +93,40 @@ interface ProductUpdateProps extends WithStyles<typeof styles> {
   onVariantAdd?();
 }
 
+interface ChoiceType {
+  label: string;
+  value: string;
+}
+export interface FormData {
+  attributes: Array<{
+    slug: string;
+    value: string;
+  }>;
+  available: boolean;
+  availableOn: string;
+  category: ChoiceType | null;
+  chargeTaxes: boolean;
+  collections: ChoiceType[];
+  description: string;
+  name: string;
+  price: string;
+  productType: {
+    label: string;
+    value: {
+      hasVariants: boolean;
+      id: string;
+      name: string;
+      productAttributes: Array<
+        Exclude<ProductDetails_product_attributes_attribute, "__typename">
+      >;
+    };
+  } | null;
+  seoDescription: string;
+  seoTitle: string;
+  sku: string;
+  stockQuantity: number;
+}
+
 export const ProductUpdate = withStyles(styles, { name: "ProductUpdate" })(
   ({
     classes,
@@ -99,6 +135,7 @@ export const ProductUpdate = withStyles(styles, { name: "ProductUpdate" })(
     collections: collectionChoiceList,
     errors: userErrors,
     fetchCategories,
+    fetchCollections,
     images,
     header,
     placeholderImage,
@@ -118,7 +155,7 @@ export const ProductUpdate = withStyles(styles, { name: "ProductUpdate" })(
     onVariantAdd,
     onVariantShow
   }: ProductUpdateProps) => {
-    const initialData = product
+    const initialData: FormData = product
       ? {
           attributes: product.attributes
             ? product.attributes.map(a => ({
@@ -136,7 +173,10 @@ export const ProductUpdate = withStyles(styles, { name: "ProductUpdate" })(
             : undefined,
           chargeTaxes: product.chargeTaxes ? product.chargeTaxes : false,
           collections: productCollections
-            ? productCollections.map(node => node.id)
+            ? productCollections.map(collection => ({
+                label: collection.name,
+                value: collection.id
+              }))
             : [],
           description: product.description,
           name: product.name,
@@ -169,14 +209,20 @@ export const ProductUpdate = withStyles(styles, { name: "ProductUpdate" })(
               : undefined
         }
       : {
+          attributes: [],
+          available: false,
           availableOn: "",
+          category: null,
           chargeTaxes: false,
           collections: [],
           description: "",
-          featured: false,
           name: "",
+          price: "",
+          productType: null,
           seoDescription: "",
-          seoTitle: ""
+          seoTitle: "",
+          sku: "",
+          stockQuantity: 0
         };
     const categories =
       categoryChoiceList !== undefined
@@ -266,7 +312,7 @@ export const ProductUpdate = withStyles(styles, { name: "ProductUpdate" })(
                     categories={categories}
                     errors={errors}
                     fetchCategories={fetchCategories}
-                    productCollections={data.collections}
+                    fetchCollections={fetchCollections}
                     collections={collections}
                     product={product}
                     data={data}
