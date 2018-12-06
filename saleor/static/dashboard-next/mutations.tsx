@@ -4,7 +4,6 @@ import * as React from "react";
 import {
   Mutation,
   MutationFn,
-  MutationProps,
   MutationResult,
   MutationUpdaterFn
 } from "react-apollo";
@@ -26,9 +25,7 @@ export function TypedMutation<TData, TVariables>(
   mutation: DocumentNode,
   update?: MutationUpdaterFn<TData>
 ) {
-  const StrictTypedMutation: React.ComponentType<
-    MutationProps<TData, TVariables>
-  > = Mutation;
+  class StrictTypedMutation extends Mutation<TData, TVariables> {}
   return ({
     children,
     onCompleted,
