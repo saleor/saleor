@@ -11,7 +11,7 @@ import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
 import { FormSpacer } from "../../../components/FormSpacer";
-import MultiSelectField from "../../../components/MultiSelectField";
+import MultiAutocompleteSelectField from "../../../components/MultiAutocompleteSelectField";
 import SingleAutocompleteSelectField from "../../../components/SingleAutocompleteSelectField";
 import SingleSelectField from "../../../components/SingleSelectField";
 import Skeleton from "../../../components/Skeleton";
@@ -19,6 +19,10 @@ import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { ProductCreateData_productTypes_edges_node_productAttributes } from "../../types/ProductCreateData";
 
+interface ChoiceType {
+  label: string;
+  value: string;
+}
 interface ProductType {
   hasVariants: boolean;
   id: string;
@@ -46,16 +50,13 @@ const styles = (theme: Theme) =>
 interface ProductOrganizationProps extends WithStyles<typeof styles> {
   categories?: Array<{ value: string; label: string }>;
   collections?: Array<{ value: string; label: string }>;
-  productCollections: string[];
   data: {
     attributes: Array<{
       slug: string;
       value: string;
     }>;
-    category: {
-      label: string;
-      value: string;
-    };
+    category: ChoiceType;
+    collections: ChoiceType[];
     productType: {
       label: string;
       value: {
@@ -76,6 +77,7 @@ interface ProductOrganizationProps extends WithStyles<typeof styles> {
   };
   productTypes?: ProductType[];
   fetchCategories: (query: string) => void;
+  fetchCollections: (query: string) => void;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
@@ -86,10 +88,9 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
     collections,
     data,
     disabled,
-    errors,
     fetchCategories,
+    fetchCollections,
     product,
-    productCollections,
     productTypes,
     onChange
   }: ProductOrganizationProps) => {
@@ -240,15 +241,13 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
           />
           <FormSpacer />
           <hr className={classes.hr} />
-          <MultiSelectField
-            disabled={disabled}
-            error={!!errors.collections}
-            hint={errors.collections}
+          <MultiAutocompleteSelectField
             label={i18n.t("Collections")}
             choices={disabled ? [] : collections}
             name="collections"
-            value={productCollections}
+            value={data.collections}
             onChange={onChange}
+            fetchChoices={fetchCollections}
           />
         </CardContent>
       </Card>
