@@ -37,7 +37,8 @@ class FormComponent<T extends {} = {}> extends React.Component<
   ): FormState<T> {
     const changedFields = Object.keys(nextProps.initial).filter(
       nextFieldName =>
-        nextProps.initial[nextFieldName] !== prevState.initial[nextFieldName]
+        JSON.stringify(nextProps.initial[nextFieldName]) !==
+        JSON.stringify(prevState.initial[nextFieldName])
     );
     if (changedFields.length > 0) {
       const swapFields = changedFields.reduce((prev, curr) => {
