@@ -76,6 +76,7 @@ interface ProductUpdateProps extends WithStyles<typeof styles> {
   product?: ProductDetails_product;
   header: string;
   saveButtonBarState: ConfirmButtonTransitionState;
+  fetchCategories: (query: string) => void;
   onVariantShow: (id: string) => () => void;
   onImageDelete: (id: string) => () => void;
   onAttributesEdit: () => void;
@@ -97,6 +98,7 @@ export const ProductUpdate = withStyles(styles, { name: "ProductUpdate" })(
     categories: categoryChoiceList,
     collections: collectionChoiceList,
     errors: userErrors,
+    fetchCategories,
     images,
     header,
     placeholderImage,
@@ -126,7 +128,12 @@ export const ProductUpdate = withStyles(styles, { name: "ProductUpdate" })(
             : undefined,
           available: product.isPublished,
           availableOn: product.availableOn,
-          category: product.category ? product.category.id : undefined,
+          category: product.category
+            ? {
+                label: product.category.name,
+                value: product.category.id
+              }
+            : undefined,
           chargeTaxes: product.chargeTaxes ? product.chargeTaxes : false,
           collections: productCollections
             ? productCollections.map(node => node.id)
@@ -256,9 +263,9 @@ export const ProductUpdate = withStyles(styles, { name: "ProductUpdate" })(
                 </div>
                 <div>
                   <ProductOrganization
-                    category={data.category}
                     categories={categories}
                     errors={errors}
+                    fetchCategories={fetchCategories}
                     productCollections={data.collections}
                     collections={collections}
                     product={product}
