@@ -1,5 +1,6 @@
 import graphene
 from django_countries import countries
+from django_prices_vatlayer.models import VAT
 from saleor.core.permissions import MODELS_PERMISSIONS
 from saleor.graphql.core.utils import str_to_enum
 from saleor.site import AuthenticationBackends
@@ -42,6 +43,74 @@ def test_query_countries(user_api_client):
     content = get_graphql_content(response)
     data = content['data']['shop']
     assert len(data['countries']) == len(countries)
+
+
+def test_query_countries_with_tax(user_api_client, vatlayer, tax_rates):
+    query = """
+    query {
+        shop {
+            countries {
+                code
+                vat {
+                    standardRate
+                    reducedRates {
+                        rate
+                        rateType
+                    }
+                }
+            }
+        }
+    }
+    """
+    response = user_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    data = content['data']['shop']['countries']
+    vat = VAT.objects.first()
+    country = next(
+        country for country in data if country['code'] == vat.country_code)
+    assert country['vat']['standardRate'] == tax_rates['standard_rate']
+    rates = {
+        rate['rateType']: rate['rate']
+        for rate in country['vat']['reducedRates']}
+    assert rates == tax_rates['reduced_rates']
+
+
+def test_query_default_country(user_api_client, settings):
+    query = """
+    query {
+        shop {
+            defaultCountry {
+                country
+            }
+        }
+    }
+    """
+    response = user_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    data = content['data']['shop']['defaultCountry']
+    assert data['country'] == settings.DEFAULT_COUNTRY
+
+
+def test_query_default_country_with_tax(
+        user_api_client, settings, vatlayer, tax_rates):
+    settings.DEFAULT_COUNTRY = 'PL'
+    query = """
+    query {
+        shop {
+            defaultCountry {
+                code
+                vat {
+                    standardRate
+                }
+            }
+        }
+    }
+    """
+    response = user_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    data = content['data']['shop']['defaultCountry']
+    assert data['code'] == settings.DEFAULT_COUNTRY
+    assert data['vat']['standardRate'] == tax_rates['standard_rate']
 
 
 def test_query_currencies(user_api_client, settings):
