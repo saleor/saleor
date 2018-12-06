@@ -24,9 +24,4 @@ def can_finalize_draft_order(order, errors):
                     field='shipping',
                     message='Shipping method is not valid for chosen shipping '
                             'address'))
-    if not order.user and not order.user_email:
-        errors.append(
-            Error(
-                field=None,
-                message='Both user and user_email fields are null'))
     return errors
