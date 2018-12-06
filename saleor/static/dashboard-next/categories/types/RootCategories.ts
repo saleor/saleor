@@ -28,9 +28,18 @@ export interface RootCategories_categories_edges {
   node: RootCategories_categories_edges_node;
 }
 
+export interface RootCategories_categories_pageInfo {
+  __typename: "PageInfo";
+  endCursor: string | null;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  startCursor: string | null;
+}
+
 export interface RootCategories_categories {
   __typename: "CategoryCountableConnection";
   edges: RootCategories_categories_edges[];
+  pageInfo: RootCategories_categories_pageInfo;
 }
 
 export interface RootCategories {
