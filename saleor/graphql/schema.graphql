@@ -439,7 +439,7 @@ input CollectionCreateInput {
   description: String
   backgroundImage: Upload
   seo: SeoInput
-  publishedDate: String
+  publishedDate: Date
   products: [ID]
 }
 
@@ -455,7 +455,7 @@ input CollectionInput {
   description: String
   backgroundImage: Upload
   seo: SeoInput
-  publishedDate: String
+  publishedDate: Date
 }
 
 type CollectionRemoveProducts {

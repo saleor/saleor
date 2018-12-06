@@ -54,7 +54,7 @@ def test_create_collection(
         monkeypatch, staff_api_client, product_list, permission_manage_products):
     query = """
         mutation createCollection(
-            $name: String!, $slug: String!, $description: String, $products: [ID], $backgroundImage: Upload!, $isPublished: Boolean!, $publishedDate: String) {
+            $name: String!, $slug: String!, $description: String, $products: [ID], $backgroundImage: Upload!, $isPublished: Boolean!, $publishedDate: Date) {
             collectionCreate(
                 input: {name: $name, slug: $slug, description: $description, products: $products, backgroundImage: $backgroundImage, isPublished: $isPublished, publishedDate: $publishedDate}) {
                 collection {
@@ -86,7 +86,7 @@ def test_create_collection(
     name = 'test-name'
     slug = 'test-slug'
     description = 'test-description'
-    published_date = date.today().isoformat()
+    published_date = date.today()
     variables = {
         'name': name, 'slug': slug, 'description': description,
         'products': product_ids, 'backgroundImage': image_name,
@@ -99,7 +99,7 @@ def test_create_collection(
     assert data['name'] == name
     assert data['slug'] == slug
     assert data['description'] == description
-    assert data['publishedDate'] == published_date
+    assert data['publishedDate'] == published_date.isoformat()
     assert data['products']['totalCount'] == len(product_ids)
     collection = Collection.objects.get(slug=slug)
     assert collection.background_image.file
@@ -139,7 +139,7 @@ def test_update_collection(
         monkeypatch, staff_api_client, collection, permission_manage_products):
     query = """
         mutation updateCollection(
-            $name: String!, $slug: String!, $description: String, $id: ID!, $isPublished: Boolean!, $publishedDate: String) {
+            $name: String!, $slug: String!, $description: String, $id: ID!, $isPublished: Boolean!, $publishedDate: Date) {
             collectionUpdate(
                 id: $id, input: {name: $name, slug: $slug, description: $description, isPublished: $isPublished, publishedDate: $publishedDate}) {
                 collection {
@@ -161,7 +161,7 @@ def test_update_collection(
     name = 'new-name'
     slug = 'new-slug'
     description = 'new-description'
-    published_date = date.today().isoformat()
+    published_date = date.today()
     variables = {
         'name': name, 'slug': slug, 'description': description,
         'id': to_global_id('Collection', collection.id), 'isPublished': True, 'publishedDate': published_date}
@@ -171,7 +171,7 @@ def test_update_collection(
     data = content['data']['collectionUpdate']['collection']
     assert data['name'] == name
     assert data['slug'] == slug
-    assert data['publishedDate'] == published_date
+    assert data['publishedDate'] == published_date.isoformat()
     assert mock_create_thumbnails.call_count == 0
 
 

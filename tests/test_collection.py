@@ -40,13 +40,13 @@ def test_collection_not_yet_published_returns_404(
     response = client.get(url)
     assert response.status_code == 404
 
-    # A non staff user should not have access to collections yet to be published
-    # A staff user should have access to collections yet to be published
     draft_collection.is_published = True
     draft_collection.published_date = date.today() + timedelta(days=1)
     draft_collection.save()
+
+    # A non staff user should not have access to collections yet to be published
     response = client.get(url)
     assert response.status_code == 404
-
+    # A staff user should have access to collections yet to be published
     response = admin_client.get(url)
     assert response.status_code == 200

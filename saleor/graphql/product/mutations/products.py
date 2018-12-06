@@ -110,7 +110,7 @@ class CollectionInput(graphene.InputObjectType):
     description = graphene.String(description='Description of the collection.')
     background_image = Upload(description='Background image file.')
     seo = SeoInput(description='Search engine optimization fields.')
-    published_date = graphene.String(
+    published_date = graphene.Date(
         description='Publication date. ISO 8601 standard.')
 
 
