@@ -518,9 +518,8 @@ def test_draft_order_complete_anonymous_user_no_email(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
-    assert 'errors' in content['data']['draftOrderComplete']
-    assert content['data']['draftOrderComplete']['errors'][0] == {
-        'field': None, 'message': 'Both user and user_email fields are null'}
+    data = content['data']['draftOrderComplete']['order']
+    assert data['status'] == OrderStatus.UNFULFILLED.upper()
 
 
 DRAFT_ORDER_LINE_CREATE_MUTATION = """
@@ -777,6 +776,7 @@ def test_order_update_anonymous_user_no_user_email(
                     }
                     order {
                         id
+                        status
                     }
                 }
             }
@@ -788,16 +788,12 @@ def test_order_update_anonymous_user_no_user_email(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
-    assert 'errors' in content['data']['orderUpdate']
-    assert content['data']['orderUpdate']['errors'][0] == {
-        'field': 'userEmail',
-        'message': 'User_email field is null while order was created by '
-                   'anonymous user'}
-
     order.shipping_address.refresh_from_db()
     order.billing_address.refresh_from_db()
     assert order.shipping_address.first_name != first_name
     assert order.billing_address.last_name != last_name
+    data = content['data']['orderUpdate']['order']
+    assert data['status'] == OrderStatus.DRAFT.upper()
 
 
 def test_order_update_user_email_existing_user(
