@@ -1,4 +1,5 @@
 import json
+from django.core.serializers.json import DjangoJSONEncoder
 
 from saleor.graphql.core.utils import snake_to_camel_case
 
@@ -31,8 +32,8 @@ def get_multipart_request_body(query, variables, file, file_name):
     of additional 'operations' and 'map' keys.
     """
     return {
-        'operations': json.dumps({'query': query, 'variables': variables}),
-        'map': json.dumps({file_name: ['variables.file']}), file_name: file}
+        'operations': json.dumps({'query': query, 'variables': variables}, cls=DjangoJSONEncoder),
+        'map': json.dumps({file_name: ['variables.file']}, cls=DjangoJSONEncoder), file_name: file}
 
 
 def convert_dict_keys_to_camel_case(d):
