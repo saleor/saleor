@@ -6501,6 +6501,73 @@ exports[`Storyshots Views / Categories / Category list default 1`] = `
             </th>
           </tr>
         </thead>
+        <tfoot
+          class="MuiTableFooter-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-footer-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
+              colspan="3"
+            >
+              <div
+                class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
+              >
+                <div
+                  class="TablePagination-spacer-id"
+                />
+                <div
+                  class="TablePaginationActions-root-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                  <button
+                    class="MuiButtonBase-root-id MuiIconButton-root-id"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
         <tbody
           class="MuiTableBody-root-id"
         >
@@ -6701,6 +6768,73 @@ exports[`Storyshots Views / Categories / Category list empty 1`] = `
             </th>
           </tr>
         </thead>
+        <tfoot
+          class="MuiTableFooter-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-footer-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
+              colspan="3"
+            >
+              <div
+                class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
+              >
+                <div
+                  class="TablePagination-spacer-id"
+                />
+                <div
+                  class="TablePaginationActions-root-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                  <button
+                    class="MuiButtonBase-root-id MuiIconButton-root-id"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
         <tbody
           class="MuiTableBody-root-id"
         >
@@ -6797,6 +6931,73 @@ exports[`Storyshots Views / Categories / Category list loading 1`] = `
             </th>
           </tr>
         </thead>
+        <tfoot
+          class="MuiTableFooter-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-footer-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
+              colspan="3"
+            >
+              <div
+                class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
+              >
+                <div
+                  class="TablePagination-spacer-id"
+                />
+                <div
+                  class="TablePaginationActions-root-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                  <button
+                    class="MuiButtonBase-root-id MuiIconButton-root-id"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
         <tbody
           class="MuiTableBody-root-id"
         >
@@ -7637,6 +7838,72 @@ exports[`Storyshots Views / Categories / Update category default 1`] = `
               </th>
             </tr>
           </thead>
+          <tfoot
+            class="MuiTableFooter-root-id"
+          >
+            <tr
+              class="MuiTableRow-root-id MuiTableRow-footer-id"
+            >
+              <td
+                class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
+                colspan="3"
+              >
+                <div
+                  class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
+                >
+                  <div
+                    class="TablePagination-spacer-id"
+                  />
+                  <div
+                    class="TablePaginationActions-root-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tfoot>
           <tbody
             class="MuiTableBody-root-id"
           >
@@ -8015,6 +8282,74 @@ exports[`Storyshots Views / Categories / Update category loading 1`] = `
               </th>
             </tr>
           </thead>
+          <tfoot
+            class="MuiTableFooter-root-id"
+          >
+            <tr
+              class="MuiTableRow-root-id MuiTableRow-footer-id"
+            >
+              <td
+                class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
+                colspan="3"
+              >
+                <div
+                  class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
+                >
+                  <div
+                    class="TablePagination-spacer-id"
+                  />
+                  <div
+                    class="TablePaginationActions-root-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
+                      disabled=""
+                      tabindex="-1"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                    <button
+                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
+                      disabled=""
+                      tabindex="-1"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tfoot>
           <tbody
             class="MuiTableBody-root-id"
           >
@@ -8411,6 +8746,72 @@ exports[`Storyshots Views / Categories / Update category no background 1`] = `
               </th>
             </tr>
           </thead>
+          <tfoot
+            class="MuiTableFooter-root-id"
+          >
+            <tr
+              class="MuiTableRow-root-id MuiTableRow-footer-id"
+            >
+              <td
+                class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
+                colspan="3"
+              >
+                <div
+                  class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
+                >
+                  <div
+                    class="TablePagination-spacer-id"
+                  />
+                  <div
+                    class="TablePaginationActions-root-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tfoot>
           <tbody
             class="MuiTableBody-root-id"
           >
@@ -8711,12 +9112,12 @@ exports[`Storyshots Views / Categories / Update category no products 1`] = `
         class="CategoryUpdatePage-tabsBorder-id"
       >
         <span
-          class="MuiTypography-root-id MuiTypography-body1-id Tab-root-id Tab-active-id"
+          class="MuiTypography-root-id MuiTypography-body1-id Tab-root-id"
         >
           Subcategories
         </span>
         <span
-          class="MuiTypography-root-id MuiTypography-body1-id Tab-root-id"
+          class="MuiTypography-root-id MuiTypography-body1-id Tab-root-id Tab-active-id"
         >
           Products
         </span>
@@ -8733,7 +9134,7 @@ exports[`Storyshots Views / Categories / Update category no products 1`] = `
           <span
             class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
           >
-            All Subcategories
+            Products in Coffees
           </span>
           <div
             class="CardTitle-toolbar-id"
@@ -8746,7 +9147,7 @@ exports[`Storyshots Views / Categories / Update category no products 1`] = `
               <span
                 class="MuiButton-label-id"
               >
-                Add subcategory
+                Add product
               </span>
             </button>
           </div>
@@ -8767,25 +9168,97 @@ exports[`Storyshots Views / Categories / Update category no products 1`] = `
               class="MuiTableRow-root-id MuiTableRow-head-id"
             >
               <th
-                class="MuiTableCell-root-id MuiTableCell-head-id CategoryList-wideColumn-id"
+                class="MuiTableCell-root-id MuiTableCell-head-id ProductList-textLeft-id"
                 scope="col"
               >
-                Category Name
+                Name
               </th>
               <th
-                class="MuiTableCell-root-id MuiTableCell-head-id CategoryList-centerText-id"
+                class="MuiTableCell-root-id MuiTableCell-head-id"
                 scope="col"
               >
-                Subcategories
+                Type
               </th>
               <th
-                class="MuiTableCell-root-id MuiTableCell-head-id CategoryList-centerText-id"
+                class="MuiTableCell-root-id MuiTableCell-head-id"
                 scope="col"
               >
-                No. Products
+                Published
+              </th>
+              <th
+                class="MuiTableCell-root-id MuiTableCell-head-id ProductList-textRight-id"
+                scope="col"
+              >
+                Price
               </th>
             </tr>
           </thead>
+          <tfoot
+            class="MuiTableFooter-root-id"
+          >
+            <tr
+              class="MuiTableRow-root-id MuiTableRow-footer-id"
+            >
+              <td
+                class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
+                colspan="5"
+              >
+                <div
+                  class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
+                >
+                  <div
+                    class="TablePagination-spacer-id"
+                  />
+                  <div
+                    class="TablePaginationActions-root-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tfoot>
           <tbody
             class="MuiTableBody-root-id"
           >
@@ -8794,9 +9267,9 @@ exports[`Storyshots Views / Categories / Update category no products 1`] = `
             >
               <td
                 class="MuiTableCell-root-id MuiTableCell-body-id"
-                colspan="3"
+                colspan="5"
               >
-                No subcategories found
+                No products found
               </td>
             </tr>
           </tbody>
@@ -9161,6 +9634,72 @@ exports[`Storyshots Views / Categories / Update category no subcategories 1`] = 
               </th>
             </tr>
           </thead>
+          <tfoot
+            class="MuiTableFooter-root-id"
+          >
+            <tr
+              class="MuiTableRow-root-id MuiTableRow-footer-id"
+            >
+              <td
+                class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
+                colspan="3"
+              >
+                <div
+                  class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
+                >
+                  <div
+                    class="TablePagination-spacer-id"
+                  />
+                  <div
+                    class="TablePaginationActions-root-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tfoot>
           <tbody
             class="MuiTableBody-root-id"
           >
