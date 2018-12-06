@@ -5,7 +5,6 @@ import { arrayMove } from "react-sortable-hoc";
 
 import * as placeholderImg from "../../../../images/placeholder255x255.png";
 import ActionDialog from "../../../components/ActionDialog";
-import ErrorMessageCard from "../../../components/ErrorMessageCard";
 import Messages from "../../../components/messages";
 import Navigator from "../../../components/Navigator";
 import { WindowTitle } from "../../../components/WindowTitle";
@@ -55,13 +54,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                         displayLoader
                         variables={{ id }}
                       >
-                        {({ data, loading, error }) => {
-                          if (error) {
-                            return (
-                              <ErrorMessageCard message="Something went wrong" />
-                            );
-                          }
-
+                        {({ data, loading }) => {
                           const handleDelete = () => {
                             pushMessage({ text: i18n.t("Product removed") });
                             navigate(productListUrl());
