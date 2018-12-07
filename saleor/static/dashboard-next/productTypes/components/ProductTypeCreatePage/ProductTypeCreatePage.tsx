@@ -70,7 +70,12 @@ const ProductTypeCreatePage = withStyles(styles, {
       weight: 0
     };
     return (
-      <Form errors={errors} initial={formInitialData} onSubmit={onSubmit}>
+      <Form
+        errors={errors}
+        initial={formInitialData}
+        onSubmit={onSubmit}
+        confirmLeave
+      >
         {({ change, data, hasChanged, submit }) => (
           <Container width="md">
             <PageHeader title={pageTitle} onBack={onBack} />

@@ -96,7 +96,12 @@ export const CategoryUpdatePage = withStyles(styles, {
           seoTitle: ""
         };
     return (
-      <Form onSubmit={onSubmit} initial={initialData} errors={userErrors}>
+      <Form
+        onSubmit={onSubmit}
+        initial={initialData}
+        errors={userErrors}
+        confirmLeave
+      >
         {({ data, change, errors, submit, hasChanged }) => (
           <Container width="md">
             <PageHeader
