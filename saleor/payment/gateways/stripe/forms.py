@@ -26,7 +26,7 @@ class StripeCheckoutWidget(HiddenInput):
             'data-image': gateway_params.get('store_image'),
             'data-description': CHECKOUT_DESCRIPTION,
             'data-currency': payment.currency,
-            'data-locale': 'auto',
+            'data-locale': gateway_params.get('local'),
             'data-allow-remember-me': gateway_params.get('remember_me'),
             'data-billing-address': 'true' if gateway_params.get(
                 'enable_billing_address') else 'false',
