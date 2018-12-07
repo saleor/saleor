@@ -33,7 +33,7 @@ Payments Gateways
 
 
 ``PAYMENT_GATEWAYS``
-    For information on how to configure payment gateways (API keys, miscellaneous information),
+    For information on how to configure payment gateways (API keys, miscellaneous information, ...),
     see :ref:`the list of supported payment gateway and their associated environment variables <payment-gateways>`.
 
 
