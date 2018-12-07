@@ -19,9 +19,9 @@ export class FormProvider extends React.Component<{}, FormProviderState> {
   };
 
   toggle = () =>
-    this.setState({
-      hasChanged: !this.state.hasChanged
-    });
+    this.setState(prevState => ({
+      hasChanged: !prevState.hasChanged
+    }));
 
   render() {
     return (
