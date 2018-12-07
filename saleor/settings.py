@@ -584,7 +584,7 @@ PAYMENT_GATEWAYS = {
         }
     },
     STRIPE: {
-        'module': 'saleor.apps.payment.gateways.stripe',
+        'module': 'saleor.payment.gateways.stripe',
         'connection_params': {
             'public_key': os.environ.get('STRIPE_PUBLIC_KEY'),
             'secret_key': os.environ.get('STRIPE_SECRET_KEY'),
