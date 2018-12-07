@@ -191,7 +191,12 @@ export const ProductUpdate = withStyles(styles, { name: "ProductUpdate" })(
       product && product.productType && product.productType.hasVariants;
 
     return (
-      <Form onSubmit={onSubmit} errors={userErrors} initial={initialData}>
+      <Form
+        onSubmit={onSubmit}
+        errors={userErrors}
+        initial={initialData}
+        confirmLeave
+      >
         {({ change, data, errors, hasChanged, submit }) => (
           <>
             <Container width="md">

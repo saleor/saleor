@@ -13,6 +13,7 @@ export interface FormProps<T extends {}> {
   ) => React.ReactElement<any>);
   errors?: UserError[];
   initial?: T;
+  confirmLeave?: boolean;
   useForm?: boolean;
   onSubmit?(data: T);
 }
@@ -65,22 +66,22 @@ class FormComponent<T extends {} = {}> extends React.Component<
   };
 
   componentDidUpdate() {
-    const { hasChanged, toggleFormChangeState } = this.props;
-    if (this.hasChanged() !== hasChanged) {
+    const { hasChanged, confirmLeave, toggleFormChangeState } = this.props;
+    if (this.hasChanged() !== hasChanged && confirmLeave) {
       toggleFormChangeState();
     }
   }
 
   componentDidMount() {
-    const { hasChanged, toggleFormChangeState } = this.props;
-    if (this.hasChanged() !== hasChanged) {
+    const { hasChanged, confirmLeave, toggleFormChangeState } = this.props;
+    if (this.hasChanged() !== hasChanged && confirmLeave) {
       toggleFormChangeState();
     }
   }
 
   componentWillUnmount() {
-    const { hasChanged, toggleFormChangeState } = this.props;
-    if (hasChanged) {
+    const { hasChanged, confirmLeave, toggleFormChangeState } = this.props;
+    if (hasChanged && confirmLeave) {
       toggleFormChangeState();
     }
   }
@@ -124,7 +125,7 @@ class FormComponent<T extends {} = {}> extends React.Component<
     JSON.stringify(this.state.initial) !== JSON.stringify(this.state.fields);
 
   render() {
-    const { children, errors, hasChanged, useForm = true } = this.props;
+    const { children, errors, useForm = true } = this.props;
 
     const contents = children({
       change: this.handleChange,
@@ -138,7 +139,7 @@ class FormComponent<T extends {} = {}> extends React.Component<
             {}
           )
         : {},
-      hasChanged,
+      hasChanged: this.hasChanged(),
       submit: this.handleSubmit
     });
 

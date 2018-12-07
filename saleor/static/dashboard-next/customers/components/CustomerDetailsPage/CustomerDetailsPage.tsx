@@ -70,6 +70,7 @@ const CustomerDetailsPage = withStyles(styles, { name: "CustomerDetailsPage" })(
         note: maybe(() => customer.note)
       }}
       onSubmit={onSubmit}
+      confirmLeave
     >
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container width="md">
