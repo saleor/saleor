@@ -1,6 +1,5 @@
 from decimal import Decimal
 
-
 # FIXME: The amount should be dynamically calculated by payment's currency.
 # For example, amount will wrong for JPY since JPY does not support cents
 

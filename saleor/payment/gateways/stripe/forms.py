@@ -7,7 +7,6 @@ from django.utils.translation import pgettext_lazy
 from ...forms import PaymentForm
 from .utils import get_amount_for_stripe
 
-
 CHECKOUT_SCRIPT_URL = 'https://checkout.stripe.com/checkout.js'
 CHECKOUT_DESCRIPTION = pgettext_lazy(
     'Stripe payment gateway description', 'Total payment')
@@ -28,7 +27,7 @@ class StripeCheckoutWidget(HiddenInput):
             'data-description': CHECKOUT_DESCRIPTION,
             'data-currency': payment.currency,
             'data-locale': 'auto',
-            'data-allow-remember-me': gateway_params.get('remember_me'),      
+            'data-allow-remember-me': gateway_params.get('remember_me'),
             'data-billing-address': 'true' if gateway_params.get(
                 'enable_billing_address') else 'false',
             'data-zip-code': 'true' if gateway_params.get(
@@ -44,8 +43,8 @@ class StripeCheckoutWidget(HiddenInput):
         kwargs['attrs'].update(attrs)
         super(StripeCheckoutWidget, self).__init__(*args, **kwargs)
 
-    def render(self, **kwargs):
-        attrs = kwargs.setdefault('attrs', {})
+    def render(self, name, value, attrs=None, renderer=None):
+        attrs = attrs or {}
         attrs.update(self.attrs)
         del attrs['id']
         return format_html('<script{0}></script>', flatatt(attrs))
