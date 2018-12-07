@@ -694,6 +694,7 @@ def test_order_update_anonymous_user_no_user_email(
                     }
                     order {
                         id
+                        status
                     }
                 }
             }

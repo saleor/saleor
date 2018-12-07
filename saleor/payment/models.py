@@ -83,6 +83,9 @@ class Payment(models.Model):
     cc_exp_year = models.PositiveIntegerField(
         validators=[MinValueValidator(1000)], null=True, blank=True)
 
+    class Meta:
+        ordering = ['pk']
+
     def __repr__(self):
         return 'Payment(gateway=%s, is_active=%s, created=%s, charge_status=%s)' % (
             self.gateway, self.is_active, self.created, self.charge_status)

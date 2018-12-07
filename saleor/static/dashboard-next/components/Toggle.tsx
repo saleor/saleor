@@ -9,8 +9,9 @@ export type ToggleChildren = (
   value: boolean,
   funcs: ToggleFuncs
 ) => React.ReactElement<any>;
+
 interface ToggleProps {
-  children: ToggleChildren | React.ReactNode;
+  children: ToggleChildren;
   initial?: boolean;
 }
 
@@ -29,17 +30,11 @@ class Toggle extends React.Component<ToggleProps, ToggleState> {
 
   render() {
     const { children } = this.props;
-    if (typeof children === "function") {
-      return children(this.state.value, {
-        disable: this.disable,
-        enable: this.enable,
-        toggle: this.toggle
-      });
-    }
-    if (React.Children.count(children) > 0) {
-      return React.Children.only(children);
-    }
-    return null;
+    return children(this.state.value, {
+      disable: this.disable,
+      enable: this.enable,
+      toggle: this.toggle
+    });
   }
 }
 
