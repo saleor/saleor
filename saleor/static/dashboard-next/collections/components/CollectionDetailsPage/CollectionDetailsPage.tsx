@@ -78,6 +78,7 @@ const CollectionDetailsPage = withStyles(styles, {
         seoTitle: maybe(() => collection.seoTitle)
       }}
       onSubmit={onSubmit}
+      confirmLeave
     >
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container width="md">

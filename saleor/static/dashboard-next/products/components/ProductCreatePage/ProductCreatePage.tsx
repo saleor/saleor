@@ -135,7 +135,12 @@ export const ProductCreatePage = withStyles(styles, {
       stockQuantity: null
     };
     return (
-      <Form onSubmit={onSubmit} errors={userErrors} initial={initialData}>
+      <Form
+        onSubmit={onSubmit}
+        errors={userErrors}
+        initial={initialData}
+        confirmLeave
+      >
         {({ change, data, errors, hasChanged, submit }) => (
           <Container width="md">
             <PageHeader title={header} onBack={onBack} />
