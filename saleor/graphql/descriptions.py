@@ -8,7 +8,6 @@ from .product.resolvers import (
     PRODUCT_SEARCH_FIELDS)
 from .utils import generate_query_argument_description
 
-
 DESCRIPTIONS = {
     'attributes': generate_query_argument_description(
         ATTRIBUTES_SEARCH_FIELDS),
