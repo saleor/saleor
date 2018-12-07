@@ -78,7 +78,7 @@ interface ProductOrganizationProps extends WithStyles<typeof styles> {
   productTypes?: ProductType[];
   fetchCategories: (query: string) => void;
   fetchCollections: (query: string) => void;
-  onChange: (event: React.ChangeEvent<any>) => void;
+  onChange: (event: React.ChangeEvent<any>, cb?: () => void) => void;
 }
 
 const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
@@ -128,18 +128,21 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
         };
       }>
     ) => {
-      onChange(event);
-      onChange({
-        ...event,
-        target: {
-          ...event.target,
-          name: "attributes",
-          value: event.target.value.value.productAttributes.map(attribute => ({
-            slug: attribute.slug,
-            value: ""
-          }))
-        }
-      });
+      onChange(event, () =>
+        onChange({
+          ...event,
+          target: {
+            ...event.target,
+            name: "attributes",
+            value: event.target.value.value.productAttributes.map(
+              attribute => ({
+                slug: attribute.slug,
+                value: ""
+              })
+            )
+          }
+        })
+      );
     };
     const handleAttributeValueSelect = (
       event: React.ChangeEvent<{

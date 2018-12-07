@@ -20,16 +20,20 @@ import ProductDetailsForm from "../ProductDetailsForm";
 import ProductOrganization from "../ProductOrganization";
 import ProductPricing from "../ProductPricing";
 
-interface FormData {
+interface ChoiceType {
+  label: string;
+  value: string;
+}
+export interface FormData {
   attributes: Array<{
     slug: string;
     value: string;
   }>;
   available: boolean;
   availableOn: string;
-  category: string;
+  category: ChoiceType;
   chargeTaxes: boolean;
-  collections: string[];
+  collections: ChoiceType[];
   description: string;
   name: string;
   price: number;
@@ -89,6 +93,8 @@ interface ProductCreatePageProps extends WithStyles<typeof styles> {
   }>;
   header: string;
   saveButtonBarState: ConfirmButtonTransitionState;
+  fetchCategories: (data: string) => void;
+  fetchCollections: (data: string) => void;
   onAttributesEdit: () => void;
   onBack?();
   onSubmit?(data: FormData);
@@ -104,6 +110,8 @@ export const ProductCreatePage = withStyles(styles, {
     categories,
     collections,
     errors: userErrors,
+    fetchCategories,
+    fetchCollections,
     header,
     productTypes,
     saveButtonBarState,
@@ -114,7 +122,10 @@ export const ProductCreatePage = withStyles(styles, {
       attributes: [],
       available: false,
       availableOn: "",
-      category: "",
+      category: {
+        label: "",
+        value: ""
+      },
       chargeTaxes: false,
       collections: [],
       description: "",
@@ -171,7 +182,6 @@ export const ProductCreatePage = withStyles(styles, {
               </div>
               <div>
                 <ProductOrganization
-                  category={data.category}
                   categories={
                     categories !== undefined && categories !== null
                       ? categories.map(category => ({
@@ -181,7 +191,8 @@ export const ProductCreatePage = withStyles(styles, {
                       : []
                   }
                   errors={errors}
-                  productCollections={data.collections}
+                  fetchCategories={fetchCategories}
+                  fetchCollections={fetchCollections}
                   collections={
                     collections !== undefined && collections !== null
                       ? collections.map(collection => ({

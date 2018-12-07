@@ -7,7 +7,7 @@ export interface FormProps<T extends {}> {
       data: T;
       hasChanged: boolean;
       errors: { [key: string]: string };
-      change(event: React.ChangeEvent<any>);
+      change(event: React.ChangeEvent<any>, cb?: () => void);
       submit(event?: React.FormEvent<any>);
     }
   ) => React.ReactElement<any>);
@@ -86,19 +86,22 @@ class FormComponent<T extends {} = {}> extends React.Component<
     }
   }
 
-  handleChange = (event: React.ChangeEvent<any>) => {
+  handleChange = (event: React.ChangeEvent<any>, cb?: () => void) => {
     const { target } = event;
     if (!(target.name in this.state.fields)) {
       console.error(`Unknown form field: ${target.name}`);
       return;
     }
 
-    this.setState({
-      fields: {
-        ...(this.state.fields as any),
-        [target.name]: target.value
-      }
-    });
+    this.setState(
+      {
+        fields: {
+          ...(this.state.fields as any),
+          [target.name]: target.value
+        }
+      },
+      cb
+    );
   };
 
   handleKeyDown = (event: React.KeyboardEvent<any>) => {
