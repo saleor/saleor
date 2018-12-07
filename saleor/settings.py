@@ -10,7 +10,6 @@ from django_prices.templatetags.prices_i18n import get_currency_fraction
 
 from . import __version__
 
-
 def get_list(text):
     return [item.strip() for item in text.split(',')]
 
