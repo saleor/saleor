@@ -104,18 +104,19 @@ def refund(payment, amount, **connection_params):
 
     capture_txn = payment.transactions.filter(
         kind=TransactionKind.CHARGE, is_success=True).first()
-    if not capture_txn:
+
+    if capture_txn is not None:
+        try:
+            # Retrieve stripe charge and refund specific amount
+            stripe_charge = client.Charge.retrieve(capture_txn.token)
+            response = client.Refund.create(
+                charge=stripe_charge.id, amount=stripe_amount)
+        except stripe.error.StripeError as exc:
+            response = _get_error_response_from_exc(exc)
+            error = exc.user_message
+    else:
         error = errors.ORDER_NOT_CHARGED
         response = dict()
-
-    try:
-        # Retrieve stripe charge and refund specific amount
-        stripe_charge = client.Charge.retrieve(capture_txn.token)
-        response = client.Refund.create(
-            charge=stripe_charge.id, amount=stripe_amount)
-    except stripe.error.StripeError as exc:
-        response = _get_error_response_from_exc(exc)
-        error = exc.user_message
 
     # Create transaction
     txn = _create_transaction(
@@ -132,17 +133,18 @@ def void(payment, **connection_params):
 
     capture_txn = payment.transactions.filter(
         kind=TransactionKind.CHARGE, is_success=True).first()
-    if not capture_txn:
+
+    if capture_txn is not None:
+        try:
+            # Retrieve stripe charge and refund all
+            stripe_charge = client.Charge.retrieve(capture_txn.token)
+            response = client.Refund.create(charge=stripe_charge.id)
+        except stripe.error.StripeError as exc:
+            response = _get_error_response_from_exc(exc)
+            error = exc.user_message
+    else:
         error = errors.ORDER_NOT_CHARGED
         response = dict()
-
-    try:
-        # Retrieve stripe charge and refund all
-        stripe_charge = client.Charge.retrieve(capture_txn.token)
-        response = client.Refund.create(charge=stripe_charge.id)
-    except stripe.error.StripeError as exc:
-        response = _get_error_response_from_exc(exc)
-        error = exc.user_message
 
     # Create transaction
     txn = _create_transaction(
