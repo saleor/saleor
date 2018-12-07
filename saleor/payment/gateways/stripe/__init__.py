@@ -206,7 +206,7 @@ def _create_transaction(payment, amount, kind, response):
     # Get token, which is an empty string for error responses
     token = response.get('id', '')
 
-    # Check is_uccess from response
+    # Check if the response's status is flagged as succeeded
     is_success = (response.get('status') == 'succeeded')
 
     # Create transaction
