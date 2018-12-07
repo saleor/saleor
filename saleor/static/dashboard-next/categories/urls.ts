@@ -15,4 +15,4 @@ export const categoryAddPath = (parentId?: string) => {
   return urlJoin(categorySectionUrl, "add");
 };
 export const categoryAddUrl = (parentId?: string) =>
-  categoryAddPath(encodeURIComponent(parentId));
+  categoryAddPath(parentId ? encodeURIComponent(parentId) : undefined);
