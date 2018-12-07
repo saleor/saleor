@@ -27,5 +27,6 @@ if 'sqlite' in DATABASES['default']['ENGINE']:  # noqa
 CHECKOUT_PAYMENT_GATEWAYS = {
     DUMMY: 'Dummy gateway',
     BRAINTREE: 'Braintree',
-    RAZORPAY: 'Razorpay'
+    RAZORPAY: 'Razorpay',
+    STRIPE: 'Stripe',
 }
