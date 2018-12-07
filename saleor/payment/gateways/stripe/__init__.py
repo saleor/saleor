@@ -15,13 +15,8 @@ def get_client_token(**_):
     return
 
 
-def get_client(**connection_params):
-    stripe.api_key = connection_params.get('secret_key')
-    return stripe
-
-
 def authorize(payment, payment_token, **connection_params):
-    client, error = get_client(**connection_params), ''
+    client, error = _get_client(**connection_params), ''
 
     # Get amount from payment
     amount = payment.total
@@ -46,7 +41,7 @@ def authorize(payment, payment_token, **connection_params):
 
 
 def capture(payment, amount, **connection_params):
-    client, error = get_client(**connection_params), ''
+    client, error = _get_client(**connection_params), ''
 
     # Get amount from argument or payment, and convert to stripe's amount
     amount = amount or payment.total
@@ -71,7 +66,7 @@ def capture(payment, amount, **connection_params):
 
 
 def charge(payment, payment_token, amount, **connection_params):
-    client, error = get_client(**connection_params), ''
+    client, error = _get_client(**connection_params), ''
 
     # Get amount from argument or payment
     amount = amount or payment.total
@@ -96,7 +91,7 @@ def charge(payment, payment_token, amount, **connection_params):
 
 
 def refund(payment, amount, **connection_params):
-    client, error = get_client(**connection_params), ''
+    client, error = _get_client(**connection_params), ''
 
     # Get amount from argument or payment, and convert to stripe's amount
     amount = amount or payment.total
@@ -129,7 +124,7 @@ def refund(payment, amount, **connection_params):
 
 
 def void(payment, **connection_params):
-    client, error = get_client(**connection_params), ''
+    client, error = _get_client(**connection_params), ''
 
     capture_txn = payment.transactions.filter(
         kind=TransactionKind.CHARGE, is_success=True).first()
@@ -158,6 +153,11 @@ def void(payment, **connection_params):
 
 def get_form_class():
     return StripePaymentModalForm
+
+
+def _get_client(**connection_params):
+    stripe.api_key = connection_params.get('secret_key')
+    return stripe
 
 
 def _create_stripe_charge(client, payment, amount, payment_token, capture):
