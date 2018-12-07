@@ -3,7 +3,8 @@
 Supported Payment Gateways
 ==========================
 
-Here is our list of supported payment gateways, and their configuration:
+You will find below the list of payment gateways supported by Saleor
+and their configuration guide.
 
 .. toctree::
    :maxdepth: 1
