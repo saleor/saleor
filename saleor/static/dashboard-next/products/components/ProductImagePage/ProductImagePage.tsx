@@ -74,7 +74,7 @@ const ProductImagePage = withStyles(styles, { name: "ProductImagePage" })(
     <Form
       initial={{ description: image ? image.alt : "" }}
       onSubmit={onSubmit}
-      key={image ? image.alt : "loading"}
+      confirmLeave
     >
       {({ change, data, hasChanged, submit }) => {
         return (
