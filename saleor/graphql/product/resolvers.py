@@ -1,11 +1,11 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
-from django.db.models import Sum, Q
+from django.db.models import Q, Sum
 
 from ...order import OrderStatus
 from ...product import models
 from ..utils import (
-    filter_by_query_param, filter_by_period, get_database_id, get_nodes)
+    filter_by_period, filter_by_query_param, get_database_id, get_nodes)
 from .filters import (
     filter_products_by_attributes, filter_products_by_categories,
     filter_products_by_collections, filter_products_by_price, sort_qs)

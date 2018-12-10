@@ -1,11 +1,13 @@
+from unittest.mock import Mock
+
 import graphene
 import pytest
 from django.utils.text import slugify
 from graphql_relay import to_global_id
-from unittest.mock import Mock
+from tests.utils import create_image
 
 from saleor.product.models import Collection
-from tests.utils import create_image
+
 from .utils import get_graphql_content, get_multipart_request_body
 
 
@@ -173,7 +175,7 @@ def test_update_collection_with_background_image(
             collectionUpdate(
                 id: $id, input: {
                     name: $name, 
-                    slug: $slug, 
+                    slug: $slug,
                     backgroundImage: $backgroundImage, 
                     isPublished: $isPublished
                 }
@@ -371,3 +373,36 @@ def test_collection_image_query_without_associated_file(
     assert data['name'] == collection.name
     assert data['backgroundImage'] is None
 
+
+def test_update_collection_mutation_remove_background_image(
+        staff_api_client, collection_with_image, permission_manage_products):
+    query = """
+        mutation updateCollection($id: ID!, $backgroundImage: Upload) {
+            collectionUpdate(
+                id: $id, input: {
+                    backgroundImage: $backgroundImage
+                }
+            ) {
+                collection {
+                    backgroundImage{
+                        url
+                    }
+                }
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+    assert collection_with_image.background_image
+    variables = {
+        'id': to_global_id('Collection', collection_with_image.id),
+        'backgroundImage': None}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    content = get_graphql_content(response)
+    data = content['data']['collectionUpdate']['collection']
+    assert not data['backgroundImage']
+    collection_with_image.refresh_from_db()
+    assert not collection_with_image.background_image

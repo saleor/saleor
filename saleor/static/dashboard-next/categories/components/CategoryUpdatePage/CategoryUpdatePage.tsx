@@ -8,7 +8,7 @@ import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
-import Tabs, { Tab } from "../../../components/Tab";
+import { Tab } from "../../../components/Tab";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { UserError } from "../../../types";
@@ -35,7 +35,14 @@ const styles = createStyles({
   }
 });
 
+export enum CategoryPageTab {
+  categories = "categories",
+  products = "products"
+}
+
 export interface CategoryUpdatePageProps extends WithStyles<typeof styles> {
+  changeTab: (index: CategoryPageTab) => void;
+  currentTab: CategoryPageTab;
   errors: UserError[];
   disabled: boolean;
   placeholderImage: string;
@@ -60,10 +67,15 @@ export interface CategoryUpdatePageProps extends WithStyles<typeof styles> {
   onCategoryClick(id: string): () => void;
 }
 
+const CategoriesTab = Tab(CategoryPageTab.categories);
+const ProductsTab = Tab(CategoryPageTab.products);
+
 export const CategoryUpdatePage = withStyles(styles, {
   name: "CategoryUpdatePage"
 })(
   ({
+    changeTab,
+    currentTab,
     category,
     classes,
     disabled,
@@ -136,49 +148,45 @@ export const CategoryUpdatePage = withStyles(styles, {
               disabled={disabled}
             />
             <CardSpacer />
-            <Tabs>
-              {({ changeTab, currentTab }) => (
-                <>
-                  <div className={classes.tabsBorder}>
-                    <Tab
-                      isActive={currentTab === 0}
-                      value={0}
-                      changeTab={changeTab}
-                    >
-                      {i18n.t("Subcategories")}
-                    </Tab>
-                    <Tab
-                      isActive={currentTab === 1}
-                      value={1}
-                      changeTab={changeTab}
-                    >
-                      {i18n.t("Products")}
-                    </Tab>
-                  </div>
-                  <CardSpacer />
-                  {currentTab === 0 && (
-                    <CategoryList
-                      isRoot={false}
-                      categories={subcategories}
-                      onAdd={onAddCategory}
-                      onRowClick={onCategoryClick}
-                    />
-                  )}
-                  {currentTab === 1 && (
-                    <CategoryProductsCard
-                      categoryName={maybe(() => category.name)}
-                      products={products}
-                      disabled={disabled}
-                      pageInfo={pageInfo}
-                      onNextPage={onNextPage}
-                      onPreviousPage={onPreviousPage}
-                      onRowClick={onProductClick}
-                      onAdd={onAddProduct}
-                    />
-                  )}
-                </>
-              )}
-            </Tabs>
+            <div className={classes.tabsBorder}>
+              <CategoriesTab
+                isActive={currentTab === CategoryPageTab.categories}
+                changeTab={changeTab}
+              >
+                {i18n.t("Subcategories")}
+              </CategoriesTab>
+              <ProductsTab
+                isActive={currentTab === CategoryPageTab.products}
+                changeTab={changeTab}
+              >
+                {i18n.t("Products")}
+              </ProductsTab>
+            </div>
+            <CardSpacer />
+            {currentTab === CategoryPageTab.categories && (
+              <CategoryList
+                disabled={disabled}
+                isRoot={false}
+                categories={subcategories}
+                onAdd={onAddCategory}
+                onRowClick={onCategoryClick}
+                onNextPage={onNextPage}
+                onPreviousPage={onPreviousPage}
+                pageInfo={pageInfo}
+              />
+            )}
+            {currentTab === CategoryPageTab.products && (
+              <CategoryProductsCard
+                categoryName={maybe(() => category.name)}
+                products={products}
+                disabled={disabled}
+                pageInfo={pageInfo}
+                onNextPage={onNextPage}
+                onPreviousPage={onPreviousPage}
+                onRowClick={onProductClick}
+                onAdd={onAddProduct}
+              />
+            )}
             <SaveButtonBar
               onCancel={onBack}
               onDelete={onDelete}
