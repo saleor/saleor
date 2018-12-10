@@ -3,13 +3,13 @@ import decimal
 import graphene
 from django.conf import settings
 from graphql_jwt.decorators import permission_required
-from prices import Money, TaxedMoney
 
 from ...core.utils.taxes import get_taxes_for_address
 from ...payment import PaymentError
 from ...payment.utils import (
-    create_payment, gateway_authorize, gateway_capture, gateway_refund,
-    gateway_void)
+    create_payment,
+    gateway_authorize, gateway_capture, gateway_charge,
+    gateway_refund, gateway_void)
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..checkout.types import Checkout
@@ -113,6 +113,35 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             'customer_user_agent': user_agent}
 
 
+class PaymentAuthorize(BaseMutation):
+    payment = graphene.Field(Payment, description='Updated payment')
+
+    class Arguments:
+        payment_id = graphene.ID(required=True, description='Payment ID')
+        payment_token = graphene.String(
+            description='One-time-use reference to payment information')
+
+    class Meta:
+        description = 'Authorize the payment'
+
+    @classmethod
+    @permission_required('order.manage_orders')
+    def mutate(cls, root, info, payment_id, payment_token):
+        errors = []
+        payment = cls.get_node_or_error(
+            info, payment_id, errors, 'payment_id', only_type=Payment)
+
+        if not payment:
+            return PaymentAuthorize(errors=errors)
+
+        try:
+            gateway_authorize(payment, payment_token)
+        except PaymentError as exc:
+            msg = str(exc)
+            cls.add_error(field=None, message=msg, errors=errors)
+        return PaymentAuthorize(payment=payment, errors=errors)
+
+
 class PaymentCapture(BaseMutation):
     payment = graphene.Field(Payment, description='Updated payment')
 
@@ -139,6 +168,36 @@ class PaymentCapture(BaseMutation):
             msg = str(exc)
             cls.add_error(field=None, message=msg, errors=errors)
         return PaymentCapture(payment=payment, errors=errors)
+
+
+class PaymentCharge(BaseMutation):
+    payment = graphene.Field(Payment, description='Updated payment')
+
+    class Arguments:
+        payment_id = graphene.ID(required=True, description='Payment ID')
+        payment_token = graphene.String(
+            description='One-time-use reference to payment information')
+        amount = Decimal(description='Transaction amount')
+
+    class Meta:
+        description = 'Authorize the payment'
+
+    @classmethod
+    @permission_required('order.manage_orders')
+    def mutate(cls, root, info, payment_id, payment_token, amount=None):
+        errors = []
+        payment = cls.get_node_or_error(
+            info, payment_id, errors, 'payment_id', only_type=Payment)
+
+        if not payment:
+            return PaymentCharge(errors=errors)
+
+        try:
+            gateway_charge(payment, payment_token, amount)
+        except PaymentError as exc:
+            msg = str(exc)
+            cls.add_error(field=None, message=msg, errors=errors)
+        return PaymentCharge(payment=payment, errors=errors)
 
 
 class PaymentRefund(PaymentCapture):
