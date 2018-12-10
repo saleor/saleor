@@ -105,7 +105,8 @@ def refund(payment, amount, **connection_params):
     stripe_amount = get_amount_for_stripe(amount, payment.currency)
 
     capture_txn = payment.transactions.filter(
-        kind=TransactionKind.CHARGE, is_success=True).first()
+        kind__in=[TransactionKind.CAPTURE, TransactionKind.CHARGE],
+        is_success=True).first()
 
     if capture_txn is not None:
         try:
@@ -134,7 +135,7 @@ def void(payment, **connection_params):
     client, error = _get_client(**connection_params), ''
 
     capture_txn = payment.transactions.filter(
-        kind=TransactionKind.CHARGE, is_success=True).first()
+        kind=TransactionKind.AUTH, is_success=True).first()
 
     if capture_txn is not None:
         try:
