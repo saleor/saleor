@@ -47,13 +47,20 @@ def capture(payment, amount, **connection_params):
     amount = amount or payment.total
     stripe_amount = get_amount_for_stripe(amount, payment.currency)
 
-    try:
-        # Retrieve stripe charge and capture specific amount
-        stripe_charge = client.Charge.retrieve(payment.token)
-        response = stripe_charge.capture(amount=stripe_amount)
-    except stripe.error.StripeError as exc:
-        response = _get_error_response_from_exc(exc)
-        error = exc.user_message
+    capture_txn = payment.transactions.filter(
+        kind=TransactionKind.AUTH, is_success=True).first()
+
+    if capture_txn is not None:
+        try:
+            # Retrieve stripe charge and capture specific amount
+            stripe_charge = client.Charge.retrieve(capture_txn.token)
+            response = stripe_charge.capture(amount=stripe_amount)
+        except stripe.error.StripeError as exc:
+            response = _get_error_response_from_exc(exc)
+            error = exc.user_message
+    else:
+        error = errors.ORDER_NOT_AUTHORIZED
+        response = dict()
 
     # Create transaction
     txn = _create_transaction(
@@ -138,7 +145,7 @@ def void(payment, **connection_params):
             response = _get_error_response_from_exc(exc)
             error = exc.user_message
     else:
-        error = errors.ORDER_NOT_CHARGED
+        error = errors.ORDER_NOT_AUTHORIZED
         response = dict()
 
     # Create transaction
