@@ -96,6 +96,19 @@ class Payment(models.Model):
     def get_total(self):
         return Money(self.total, self.currency or settings.DEFAULT_CURRENCY)
 
+    def get_authorized_amount(self):
+        money = zero_money()
+
+        # Calculate authorized amount from all succeeded auth transactions
+        for transaction in self.transactions.filter(
+                kind=TransactionKind.AUTH, is_success=True).all():
+            money += Money(
+                transaction.amount, self.currency or settings.DEFAULT_CURRENCY)
+
+        # The authorized amount should exclude the already captured amount
+        money -= self.get_captured_amount()
+        return money
+
     def get_captured_amount(self):
         return Money(
             self.captured_amount, self.currency or settings.DEFAULT_CURRENCY)
