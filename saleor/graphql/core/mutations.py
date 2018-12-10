@@ -3,6 +3,7 @@ from textwrap import dedent
 
 import graphene
 from django.core.exceptions import ImproperlyConfigured, ValidationError
+from django.db.models.fields.files import FileField
 from graphene.types.mutation import MutationOptions
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
@@ -137,8 +138,15 @@ class BaseMutation(graphene.Mutation):
                     f.name not in cleaned_data]):
                 continue
             data = cleaned_data[f.name]
-            if not f.null and data is None:
-                data = f._get_default()
+            if data is None:
+                # We want to reset the file field value when None was passed
+                # in the input, but `FileField.save_form_data` ignores None
+                # values. In that case we manually pass False which clears
+                # the file.
+                if isinstance(f, FileField):
+                    data = False
+                if not f.null:
+                    data = f._get_default()
             f.save_form_data(instance, data)
         return instance
 

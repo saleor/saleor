@@ -4,14 +4,17 @@ import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
+import TableFooter from "@material-ui/core/TableFooter";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
 import Skeleton from "../../../components/Skeleton";
+import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
+import { ListProps } from "../../../types";
 
 const styles = createStyles({
   centerText: {
@@ -25,7 +28,7 @@ const styles = createStyles({
   }
 });
 
-interface CategoryListProps extends WithStyles<typeof styles> {
+interface CategoryListProps extends ListProps, WithStyles<typeof styles> {
   categories?: Array<{
     id: string;
     name: string;
@@ -38,11 +41,20 @@ interface CategoryListProps extends WithStyles<typeof styles> {
   }>;
   isRoot: boolean;
   onAdd?();
-  onRowClick?(id: string): () => void;
 }
 
 const CategoryList = withStyles(styles, { name: "CategoryList" })(
-  ({ categories, classes, isRoot, onAdd, onRowClick }: CategoryListProps) => (
+  ({
+    categories,
+    classes,
+    disabled,
+    pageInfo,
+    onNextPage,
+    onPreviousPage,
+    isRoot,
+    onAdd,
+    onRowClick
+  }: CategoryListProps) => (
     <Card>
       {!isRoot && (
         <CardTitle
@@ -70,6 +82,19 @@ const CategoryList = withStyles(styles, { name: "CategoryList" })(
             </TableCell>
           </TableRow>
         </TableHead>
+        <TableFooter>
+          <TableRow>
+            <TablePagination
+              colSpan={3}
+              hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
+              onNextPage={onNextPage}
+              hasPreviousPage={
+                pageInfo && !disabled ? pageInfo.hasPreviousPage : false
+              }
+              onPreviousPage={onPreviousPage}
+            />
+          </TableRow>
+        </TableFooter>
         <TableBody>
           {renderCollection(
             categories,

@@ -103,7 +103,7 @@ const ProductVariantPage = withStyles(styles, { name: "ProductVariantPage" })(
                 }}
                 errors={formErrors}
                 onSubmit={onSubmit}
-                key={variant ? JSON.stringify(variant) : "novariant"}
+                confirmLeave
               >
                 {({ change, data, errors, hasChanged, submit }) => (
                   <>

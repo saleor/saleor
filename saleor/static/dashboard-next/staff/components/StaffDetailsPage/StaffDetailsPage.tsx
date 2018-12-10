@@ -76,7 +76,7 @@ const StaffDetailsPage = withStyles(styles, { name: "StaffDetailsPage" })(
       )
     };
     return (
-      <Form initial={initialForm} onSubmit={onSubmit}>
+      <Form initial={initialForm} onSubmit={onSubmit} confirmLeave>
         {({ data, change, hasChanged, submit }) => (
           <Container width="md">
             <PageHeader
