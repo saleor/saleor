@@ -138,19 +138,22 @@ class Payment(models.Model):
             self.is_active and self.charge_status == ChargeStatus.NOT_CHARGED)
 
     def can_capture(self):
-        # FIXME should also have an auth transaction
         not_charged = self.charge_status == ChargeStatus.NOT_CHARGED
-        not_fully_charged = (
-            self.charge_status == ChargeStatus.CHARGED
-            and self.get_total() > self.get_captured_amount())
-        return self.is_active and not_charged or not_fully_charged
+        is_authorized = self.transactions.filter(
+            kind=TransactionKind.AUTH, is_success=True).exists()
+        return self.is_active and is_authorized and not_charged
 
     def can_charge(self):
-        return self.can_capture()
+        not_charged = (self.charge_status == ChargeStatus.NOT_CHARGED)
+        return self.is_active and not_charged
 
     def can_void(self):
+        is_authorized = self.transactions.filter(
+            kind=TransactionKind.AUTH, is_success=True).exists()
         return (
-            self.is_active and self.charge_status == ChargeStatus.NOT_CHARGED)
+            self.is_active
+            and self.charge_status == ChargeStatus.NOT_CHARGED
+            and is_authorized)
 
     def can_refund(self):
         return (
