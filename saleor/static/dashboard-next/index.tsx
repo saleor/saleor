@@ -20,7 +20,7 @@ import Login from "./auth/views/Login";
 import CategorySection from "./categories";
 import CollectionSection from "./collections";
 import { AppProgressProvider } from "./components/AppProgress";
-import { ConfirmFormLeaveDialog } from "./components/ConfirmFormLeaveDialog";
+// import { ConfirmFormLeaveDialog } from "./components/ConfirmFormLeaveDialog";
 import { DateProvider } from "./components/DateFormatter";
 import { FormProvider } from "./components/Form";
 import { LocaleProvider } from "./components/Locale";
@@ -102,7 +102,7 @@ render(
                 <AppProgressProvider>
                   <ShopProvider>
                     <WindowTitle title={i18n.t("Dashboard")} />
-                    <ConfirmFormLeaveDialog />
+                    {/* <ConfirmFormLeaveDialog /> */} // FIXME: #3424
                     <CssBaseline />
                     <AuthProvider>
                       {({
