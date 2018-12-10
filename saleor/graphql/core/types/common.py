@@ -3,6 +3,7 @@ from textwrap import dedent
 
 import graphene
 from graphene_django import DjangoObjectType
+
 from saleor.core.permissions import MODELS_PERMISSIONS
 from saleor.graphql.core.utils import str_to_enum
 

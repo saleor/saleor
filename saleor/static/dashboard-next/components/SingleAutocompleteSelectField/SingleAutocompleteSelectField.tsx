@@ -99,6 +99,7 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
               isOpen,
               inputValue,
               selectedItem,
+              toggleMenu,
               highlightedIndex
             }) => {
               const isCustom =
@@ -116,7 +117,7 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
                       ...getInputProps({
                         placeholder
                       }),
-                      endAdornment: <ArrowDropdownIcon />
+                      endAdornment: <ArrowDropdownIcon onClick={toggleMenu} />
                     }}
                     disabled={disabled}
                     helperText={helperText}
