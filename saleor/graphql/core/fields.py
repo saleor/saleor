@@ -2,10 +2,9 @@ import graphene
 from django.db.models.query import QuerySet
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
+from graphene.relay import PageInfo
 from graphene_django.converter import convert_django_field
 from graphene_django.fields import DjangoConnectionField
-
-from graphene.relay import PageInfo
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
 
 from .types.common import Weight
