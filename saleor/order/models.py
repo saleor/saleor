@@ -248,7 +248,7 @@ class Order(models.Model):
     def total_authorized(self):
         payment = self.get_last_payment()
         if payment:
-            return Money(payment.total, payment.currency)
+            return payment.get_authorized_amount()
         return zero_money()
 
     @property
