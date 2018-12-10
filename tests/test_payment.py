@@ -186,14 +186,6 @@ def test_payment_needs_to_be_active_for_any_action(func, payment_dummy):
     assert exc.value.message == NOT_ACTIVE_PAYMENT_ERROR
 
 
-def test_gateway_authorize_errors(payment_dummy):
-    payment_dummy.charge_status = ChargeStatus.CHARGED
-    with pytest.raises(PaymentError) as exc:
-        gateway_authorize(payment_dummy, 'payment-token')
-    assert exc.value.message == (
-        'Charged transactions cannot be authorized again.')
-
-
 @patch('saleor.payment.utils.get_payment_gateway')
 def test_gateway_authorize(
         mock_get_payment_gateway, payment_txn_preauth, gateway_params,
@@ -227,6 +219,14 @@ def test_gateway_authorize_failed(
     with pytest.raises(PaymentError) as exc:
         gateway_authorize(payment, payment_token)
     assert exc.value.message == EXAMPLE_ERROR
+
+
+def test_gateway_authorize_errors(payment_dummy):
+    payment_dummy.charge_status = ChargeStatus.CHARGED
+    with pytest.raises(PaymentError) as exc:
+        gateway_authorize(payment_dummy, 'payment-token')
+    assert exc.value.message == (
+        'Charged transactions cannot be authorized again.')
 
 
 @patch('saleor.payment.utils.handle_fully_paid_order')
@@ -588,6 +588,36 @@ def test_clean_capture():
         total=amount,
         captured_amount=Decimal('0.00'))
     clean_capture(payment, amount)
+
+
+def test_clean_charge():
+    # Amount should be a positive number
+    payment = Mock()
+    amount = Decimal('0.00')
+    with pytest.raises(PaymentError):
+        clean_charge(payment, amount)
+
+    # Payment cannot be charged
+    payment = Mock(can_charge=Mock(return_value=False))
+    amount = Decimal('1.00')
+    with pytest.raises(PaymentError):
+        clean_charge(payment, amount)
+
+    # Amount is larger than payment's total
+    payment = Mock(
+        can_capture=Mock(return_value=True),
+        total=Decimal('1.00'),
+        captured_amount=Decimal('0.00'))
+    amount = Decimal('2.00')
+    with pytest.raises(PaymentError):
+        clean_charge(payment, amount)
+
+    amount = Decimal('2.00')
+    payment = Mock(
+        can_charge=Mock(return_value=True),
+        total=amount,
+        captured_amount=Decimal('0.00'))
+    clean_charge(payment, amount)
 
 
 def test_can_authorize(payment_dummy: Payment):
