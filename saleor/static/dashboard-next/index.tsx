@@ -102,7 +102,8 @@ render(
                 <AppProgressProvider>
                   <ShopProvider>
                     <WindowTitle title={i18n.t("Dashboard")} />
-                    {/* <ConfirmFormLeaveDialog /> */} // FIXME: #3424
+                    {/* FIXME: #3424 */}
+                    {/* <ConfirmFormLeaveDialog /> */}
                     <CssBaseline />
                     <AuthProvider>
                       {({
