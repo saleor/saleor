@@ -164,7 +164,10 @@ class Payment(models.Model):
 
     def can_charge(self):
         not_charged = (self.charge_status == ChargeStatus.NOT_CHARGED)
-        return self.is_active and not_charged
+        not_fully_charged = (
+            self.charge_status == ChargeStatus.CHARGED
+            and self.get_total() > self.get_captured_amount())
+        return self.is_active and (not_charged or not_fully_charged)
 
     def can_void(self):
         is_authorized = self.transactions.filter(
