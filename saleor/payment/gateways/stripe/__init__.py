@@ -209,7 +209,12 @@ def _create_transaction(payment, amount, kind, response):
 
     # Get amount from response or payment
     if 'amount' in response:
-        amount = get_amount_from_stripe(response.get('amount'), currency)
+        stripe_amount = response.get('amount')
+        if 'amount_refunded' in response:
+            # This happens for partial catpure which will refund the left
+            # Then the actual amount should minus refunded amount
+            stripe_amount -= response.get('amount_refunded')
+        amount = get_amount_from_stripe(stripe_amount, currency)
 
     # Get token, which is an empty string for error responses
     token = response.get('id', '')
