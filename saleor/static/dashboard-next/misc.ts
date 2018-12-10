@@ -28,8 +28,11 @@ export function renderCollection<T>(
   return collection.map(renderItem);
 }
 
-export function decimal(value: string) {
-  return value === "" ? null : value;
+export function decimal(value: string | number) {
+  if (typeof value === "string") {
+    return value === "" ? null : value;
+  }
+  return value;
 }
 
 export const removeDoubleSlashes = (url: string) =>

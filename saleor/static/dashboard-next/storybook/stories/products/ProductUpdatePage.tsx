@@ -19,6 +19,8 @@ storiesOf("Views / Products / Product edit", module)
       header={product.name}
       collections={product.collections}
       categories={[product.category]}
+      fetchCategories={() => undefined}
+      fetchCollections={() => undefined}
       placeholderImage={placeholderImage}
       images={product.images}
       variants={product.variants}
@@ -41,6 +43,8 @@ storiesOf("Views / Products / Product edit", module)
       header={product.name}
       collections={product.collections}
       categories={[product.category]}
+      fetchCategories={() => undefined}
+      fetchCollections={() => undefined}
       placeholderImage={placeholderImage}
       images={[]}
       variants={product.variants}
@@ -68,6 +72,8 @@ storiesOf("Views / Products / Product edit", module)
       header={product.name}
       collections={product.collections}
       categories={[product.category]}
+      fetchCategories={() => undefined}
+      fetchCollections={() => undefined}
       placeholderImage={placeholderImage}
       images={product.images}
       variants={product.variants}
@@ -86,6 +92,8 @@ storiesOf("Views / Products / Product edit", module)
       errors={[]}
       header={undefined}
       categories={[]}
+      fetchCategories={() => undefined}
+      fetchCollections={() => undefined}
       onBack={() => undefined}
       onSubmit={() => undefined}
       disabled={true}
