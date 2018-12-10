@@ -5,7 +5,9 @@ from ... import TransactionKind
 from ...utils import create_transaction
 from . import errors
 from .forms import StripePaymentModalForm
-from .utils import get_amount_for_stripe, get_amount_from_stripe
+from .utils import (
+    get_amount_for_stripe, get_amount_from_stripe,
+    get_currency_for_stripe, get_currency_from_stripe)
 
 
 def get_client_token(**_):
@@ -171,7 +173,7 @@ def _get_client(**connection_params):
 def _create_stripe_charge(client, payment, amount, payment_token, capture):
     """Create a charge with specific amount, ignoring payment's total."""
     # Get currency
-    currency = str(payment.currency).upper()
+    currency = get_currency_for_stripe(payment.currency)
 
     # Get appropriate amount for stripe
     stripe_amount = get_amount_for_stripe(amount, currency)
@@ -205,7 +207,8 @@ def _create_stripe_charge(client, payment, amount, payment_token, capture):
 
 def _create_transaction(payment, amount, kind, response):
     # Get currency from response or payment
-    currency = response.get('currency', payment.currency)
+    currency = get_currency_from_stripe(
+        response.get('currency', payment.currency))
 
     # Get amount from response or payment
     if 'amount' in response:
