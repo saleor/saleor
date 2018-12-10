@@ -183,7 +183,8 @@ class Order(models.Model):
     def is_pre_authorized(self):
         return self.payments.filter(
             is_active=True,
-            transactions__kind=TransactionKind.AUTH).exists()
+            transactions__kind=TransactionKind.AUTH).filter(
+                transactions__is_success=True).exists()
 
     @property
     def quantity_fulfilled(self):
