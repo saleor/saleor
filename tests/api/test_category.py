@@ -350,8 +350,4 @@ def test_update_category_mutation_remove_background_image(
         'backgroundImage': None}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
-    content = get_graphql_content(response)
-    data = content['data']['categoryUpdate']['category']
-    assert not data['backgroundImage']
-    category_with_image.refresh_from_db()
-    assert not category_with_image.background_image
+    assert_read_only_mode(response)

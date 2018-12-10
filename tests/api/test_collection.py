@@ -7,7 +7,8 @@ from graphql_relay import to_global_id
 from tests.utils import create_image
 
 from saleor.product.models import Collection
-from .utils import get_graphql_content, get_multipart_request_body
+from .utils import (
+    assert_read_only_mode, get_graphql_content, get_multipart_request_body)
 
 
 def test_collections_query(
