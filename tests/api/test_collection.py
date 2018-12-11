@@ -323,8 +323,9 @@ FETCH_COLLECTION_QUERY = """
     query fetchCollection($id: ID!){
         collection(id: $id) {
             name
-            backgroundImage {
+            backgroundImage(size: 120) {
                url
+               alt
             }
         }
     }
@@ -332,42 +333,26 @@ FETCH_COLLECTION_QUERY = """
 
 
 def test_collection_image_query(user_api_client, collection):
-    query = """
-        query fetchCollection($id: ID!){
-            collection(id: $id) {
-                backgroundImage {
-                   url(size: 120)
-                }
-            }
-        }
-    """
+    alt_text = 'Alt text for an image.'
     image_file, image_name = create_image()
     collection.background_image = image_file
+    collection.background_image_alt = alt_text
     collection.save()
     collection_id = graphene.Node.to_global_id('Collection', collection.pk)
     variables = {'id': collection_id}
-    response = user_api_client.post_graphql(query, variables)
+    response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
     content = get_graphql_content(response)
     data = content['data']['collection']
     thumbnail_url = collection.background_image.thumbnail['120x120'].url
     assert thumbnail_url in data['backgroundImage']['url']
+    assert data['backgroundImage']['alt'] == alt_text
 
 
 def test_collection_image_query_without_associated_file(
         user_api_client, collection):
-    query = """
-        query fetchCollection($id: ID!){
-            collection(id: $id) {
-                name
-                backgroundImage {
-                   url
-                }
-            }
-        }
-    """
     collection_id = graphene.Node.to_global_id('Collection', collection.pk)
     variables = {'id': collection_id}
-    response = user_api_client.post_graphql(query, variables)
+    response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
     content = get_graphql_content(response)
     data = content['data']['collection']
     assert data['name'] == collection.name
