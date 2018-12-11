@@ -99,6 +99,17 @@ def resolve_attribute_value_type(attribute_value):
     return AttributeValueType.STRING
 
 
+def resolve_background_image(background_image, alt, size, info):
+    if background_image:
+        if size:
+            url = get_thumbnail(background_image, size, method='thumbnail')
+        else:
+            url = background_image.url
+        url = info.context.build_absolute_uri(url)
+        return Image(url, alt)
+    return None
+
+
 class AttributeValue(CountableDjangoObjectType):
     name = graphene.String(description=AttributeValueDescriptions.NAME)
     slug = graphene.String(description=AttributeValueDescriptions.SLUG)
@@ -417,15 +428,8 @@ class Collection(CountableDjangoObjectType):
         model = models.Collection
 
     def resolve_background_image(self, info, size=None, **kwargs):
-        if self.background_image:
-            if size:
-                url = get_thumbnail(
-                    self.background_image, size, method='thumbnail')
-            else:
-                url = self.background_image.url
-            url = info.context.build_absolute_uri(url)
-            return Image(url, self.background_image_alt)
-        return None
+        return resolve_background_image(
+            self.background_image, self.background_image_alt, size, info)
 
     def resolve_products(self, info, **kwargs):
         if hasattr(self, 'prefetched_products'):
@@ -447,7 +451,8 @@ class Category(CountableDjangoObjectType):
     children = PrefetchingConnectionField(
         lambda: Category,
         description='List of children of the category.')
-    background_image = graphene.Field(Image)
+    background_image = graphene.Field(
+        Image, size=graphene.Int(description='Size of the image'))
 
     class Meta:
         description = dedent("""Represents a single category of products.
@@ -463,8 +468,9 @@ class Category(CountableDjangoObjectType):
         qs = self.get_ancestors()
         return gql_optimizer.query(qs, info)
 
-    def resolve_background_image(self, info, **kwargs):
-        return self.background_image or None
+    def resolve_background_image(self, info, size=None, **kwargs):
+        return resolve_background_image(
+            self.background_image, self.background_image_alt, size, info)
 
     def resolve_children(self, info, **kwargs):
         qs = self.children.all()

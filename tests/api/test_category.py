@@ -330,8 +330,9 @@ FETCH_CATEGORY_QUERY = """
 query fetchCategory($id: ID!){
     category(id: $id) {
         name
-        backgroundImage {
-           url(size: 120)
+        backgroundImage(size: 120) {
+           url
+           alt
         }
     }
 }
@@ -339,9 +340,11 @@ query fetchCategory($id: ID!){
 
 
 def test_category_image_query(user_api_client, non_default_category):
+    alt_text = 'Alt text for an image.'
     category = non_default_category
     image_file, image_name = create_image()
     category.background_image = image_file
+    category.background_image_alt = alt_text
     category.save()
     category_id = graphene.Node.to_global_id('Category', category.pk)
     variables = {'id': category_id}
@@ -350,6 +353,7 @@ def test_category_image_query(user_api_client, non_default_category):
     data = content['data']['category']
     thumbnail_url = category.background_image.thumbnail['120x120'].url
     assert thumbnail_url in data['backgroundImage']['url']
+    assert data['backgroundImage']['alt'] == alt_text
 
 
 def test_category_image_query_without_associated_file(

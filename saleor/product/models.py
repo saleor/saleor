@@ -39,6 +39,7 @@ class Category(MPTTModel, SeoModel):
         on_delete=models.CASCADE)
     background_image = VersatileImageField(
         upload_to='category-backgrounds', blank=True, null=True)
+    background_image_alt = models.CharField(max_length=128, blank=True)
 
     objects = models.Manager()
     tree = TreeManager()
