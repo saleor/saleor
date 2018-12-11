@@ -68,6 +68,7 @@ export interface OrderDetailsFragment_fulfillments_lines_orderLine_unitPrice {
 export interface OrderDetailsFragment_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -113,6 +114,7 @@ export interface OrderDetailsFragment_lines_unitPrice {
 export interface OrderDetailsFragment_lines {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -223,6 +225,7 @@ export interface OrderDetailsFragment {
   __typename: "Order";
   id: string;
   billingAddress: OrderDetailsFragment_billingAddress | null;
+  canFinalize: boolean | null;
   created: any;
   customerNote: string;
   events: (OrderDetailsFragment_events | null)[] | null;
