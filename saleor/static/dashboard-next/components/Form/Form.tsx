@@ -101,7 +101,7 @@ class FormComponent<T extends {} = {}> extends React.Component<
           [target.name]: target.value
         }
       },
-      cb
+      typeof cb === "function" ? cb : undefined
     );
   };
 
