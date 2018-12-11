@@ -27,6 +27,7 @@ export interface CollectionCreatePageFormData {
     url: string;
     value: string;
   };
+  description: string;
   name: string;
   isPublished: boolean;
   seoDescription: string;
@@ -55,6 +56,7 @@ const initialForm: CollectionCreatePageFormData = {
     url: null,
     value: null
   },
+  description: "",
   isPublished: false,
   name: "",
   seoDescription: "",
