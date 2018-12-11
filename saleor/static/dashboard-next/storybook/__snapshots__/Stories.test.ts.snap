@@ -42108,11 +42108,9 @@ exports[`Storyshots Views / Products / Create product When loading 1`] = `
                   </div>
                 </div>
               </div>
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id ProductOrganization-cardSubtitle-id"
-              >
-                Attributes
-              </p>
+              <div
+                class="FormSpacer-spacer-id"
+              />
               <hr
                 class="ProductOrganization-hr-id"
               />
@@ -42768,11 +42766,9 @@ exports[`Storyshots Views / Products / Create product default 1`] = `
                   </div>
                 </div>
               </div>
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id ProductOrganization-cardSubtitle-id"
-              >
-                Attributes
-              </p>
+              <div
+                class="FormSpacer-spacer-id"
+              />
               <hr
                 class="ProductOrganization-hr-id"
               />
@@ -45949,11 +45945,9 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
                   </div>
                 </div>
               </div>
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id ProductOrganization-cardSubtitle-id"
-              >
-                Attributes
-              </p>
+              <div
+                class="FormSpacer-spacer-id"
+              />
               <hr
                 class="ProductOrganization-hr-id"
               />
