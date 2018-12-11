@@ -27,7 +27,8 @@ class StripeCheckoutWidget(HiddenInput):
             'data-description': CHECKOUT_DESCRIPTION,
             'data-currency': payment.currency,
             'data-locale': gateway_params.get('local'),
-            'data-allow-remember-me': gateway_params.get('remember_me'),
+            'data-allow-remember-me': 'true' if gateway_params.get(
+                'remember_me') else 'false',
             'data-billing-address': 'true' if gateway_params.get(
                 'enable_billing_address') else 'false',
             'data-zip-code': 'true' if gateway_params.get(
@@ -43,10 +44,10 @@ class StripeCheckoutWidget(HiddenInput):
         kwargs['attrs'].update(attrs)
         super(StripeCheckoutWidget, self).__init__(*args, **kwargs)
 
-    def render(self, name, value, attrs=None, renderer=None):
+    def render(self, name=None, value=None, attrs=None, renderer=None):
         attrs = attrs or {}
         attrs.update(self.attrs)
-        del attrs['id']
+        attrs.pop('id', None)
         return format_html('<script{0}></script>', flatatt(attrs))
 
 
