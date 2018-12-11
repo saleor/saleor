@@ -27,7 +27,6 @@ export default class sortBy extends Component {
   };
 
   changeLabel = (value) => {
-    this.props.sortedValue = value;
     this.setState({
       sortBy: value
     });

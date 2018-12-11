@@ -9,6 +9,7 @@ import ProductFilters from './ProductFilters';
 import ProductList from './ProductList';
 import SortBy from './SortBy';
 import { isMobile } from '../utils';
+import { convertSortByFromObject, convertSortByFromString } from './utils';
 
 const WAIT_FOR_INPUT = 200;
 
@@ -36,7 +37,7 @@ class CategoryPage extends Component {
 
   setSorting = (value) => {
     this.props.data.refetch({
-      sortBy: value
+      sortBy: convertSortByFromString(value)
     });
   };
 
@@ -52,7 +53,7 @@ class CategoryPage extends Component {
         id
         name
         url
-        ancestors {
+        ancestors(last: 5) {
           edges {
             node {
               name
@@ -61,7 +62,7 @@ class CategoryPage extends Component {
             }
           }
         }
-        children {
+        children(first: 5) {
           edges {
             node {
               name
@@ -128,7 +129,7 @@ class CategoryPage extends Component {
       urlParams['count'] = count;
     }
     if (sortBy) {
-      urlParams['sortBy'] = sortBy;
+      urlParams['sortBy'] = convertSortByFromObject(sortBy);
     }
     attributesFilter.forEach(filter => {
       const [attributeName, valueSlug] = filter.split(':');
@@ -157,6 +158,12 @@ class CategoryPage extends Component {
     const variables = this.props.data.variables;
     const pendingVariables = {};
     const {filtersMenu} = this.state;
+
+    let sortBy = '';
+    if (variables.sortBy) {
+      sortBy = convertSortByFromObject(variables.sortBy);
+    }
+
     return (
       <div className="category-page">
         <div className="category-top">
@@ -183,7 +190,7 @@ class CategoryPage extends Component {
                   )}
                 </div>
                 <div className="col-6 col-md-10 col-lg-6">
-                  <SortBy sortedValue={variables.sortBy} setSorting={this.setSorting}/>
+                  <SortBy sortedValue={sortBy} setSorting={this.setSorting}/>
                 </div>
               </div>
             </div>
