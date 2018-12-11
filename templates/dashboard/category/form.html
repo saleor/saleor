@@ -101,6 +101,9 @@
                 <div class="row">
                   {{ form.background_image|materializecss }}
                 </div>
+                <div class="row">
+                  {{ form.background_image_alt|materializecss }}
+                </div>
                 {% include "dashboard/includes/_google_preview.html" with object=category form=form %}
               </div>
             </div>
