@@ -9,7 +9,9 @@ def get_amount_for_stripe(amount, currency):
     Stripe is using currency's smallest unit such as cents for USD.
     Stripe requires integer instead of decimal.
     """
-    return int(amount * 100)
+    # Using int(Decimal) directly may yield wrong result
+    # such as int(Decimal(24.24)) will equal to 2423
+    return int((amount * 100).to_integral_value())
 
 
 def get_amount_from_stripe(amount, currency):
@@ -17,7 +19,9 @@ def get_amount_from_stripe(amount, currency):
     Stripe is using currency's smallest unit such as cents for USD.
     Saleor requires decimal instead of float or integer.
     """
-    return Decimal(amount / 100.0)
+    # Using Decimal(amount / 100.0) will convert to decimal from float
+    # which precision may be lost
+    return Decimal(amount) / Decimal(100)
 
 
 def get_currency_for_stripe(currency):
