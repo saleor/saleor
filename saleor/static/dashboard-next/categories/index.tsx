@@ -3,12 +3,15 @@ import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
-import { categoryAddUrl, categoryListUrl, categoryUrl } from "./urls";
+import { categoryAddPath, categoryListPath, categoryPath } from "./urls";
 import { CategoryCreateView } from "./views/CategoryCreate";
 import CategoryDetailsView, {
-  CategoryDetailsQueryParams
+  CategoryDetailsQueryParams,
+  getActiveTab
 } from "./views/CategoryDetails";
-import CategoryList from "./views/CategoryList";
+import CategoryListComponent, {
+  CategoryListQueryParams
+} from "./views/CategoryList";
 
 interface CategoryDetailsRouteParams {
   id: string;
@@ -18,6 +21,7 @@ const CategoryDetails: React.StatelessComponent<
 > = ({ location, match }) => {
   const qs = parseQs(location.search.substr(1));
   const params: CategoryDetailsQueryParams = {
+    activeTab: getActiveTab(qs.activeTab),
     after: qs.after,
     before: qs.before
   };
@@ -44,14 +48,25 @@ const CategoryCreate: React.StatelessComponent<
   );
 };
 
+const CategoryList: React.StatelessComponent<RouteComponentProps<{}>> = ({
+  location
+}) => {
+  const qs = parseQs(location.search.substr(1));
+  const params: CategoryListQueryParams = {
+    after: qs.after,
+    before: qs.before
+  };
+  return <CategoryListComponent params={params} />;
+};
+
 const Component = () => (
   <>
     <WindowTitle title={i18n.t("Categories")} />
     <Switch>
-      <Route exact path={categoryListUrl} component={CategoryList} />
-      <Route exact path={categoryAddUrl()} component={CategoryCreate} />
-      <Route exact path={categoryAddUrl(":id")} component={CategoryCreate} />
-      <Route path={categoryUrl(":id")} component={CategoryDetails} />
+      <Route exact path={categoryListPath} component={CategoryList} />
+      <Route exact path={categoryAddPath()} component={CategoryCreate} />
+      <Route exact path={categoryAddPath(":id")} component={CategoryCreate} />
+      <Route path={categoryPath(":id")} component={CategoryDetails} />
     </Switch>
   </>
 );

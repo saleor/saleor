@@ -6,7 +6,6 @@ from ...core.permissions import get_permissions
 from ..customer.filters import UserFilter
 from ..forms import PermissionMultipleChoiceField
 
-
 SORT_BY_FIELDS = (
     ('email', 'email'),
     ('default_billing_address__first_name', 'name'),

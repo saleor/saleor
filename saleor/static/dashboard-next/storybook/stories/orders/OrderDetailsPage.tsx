@@ -1,3 +1,4 @@
+import { Omit } from "@material-ui/core";
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
@@ -15,9 +16,8 @@ import Decorator from "../../Decorator";
 
 const order = orderFixture(placeholderImage);
 
-const props: OrderDetailsPageProps = {
+const props: Omit<OrderDetailsPageProps, "classes"> = {
   countries,
-  errors: [],
   onBack: () => undefined,
   onBillingAddressEdit: undefined,
   onFulfillmentCancel: () => undefined,
@@ -138,6 +138,15 @@ storiesOf("Views / Orders / Order details", module)
       order={{
         ...props.order,
         shippingAddress: null
+      }}
+    />
+  ))
+  .add("no customer note", () => (
+    <OrderDetailsPage
+      {...props}
+      order={{
+        ...props.order,
+        customerNote: ""
       }}
     />
   ));

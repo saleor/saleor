@@ -1,8 +1,14 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import { CardMenu } from "../../../components/CardMenu/CardMenu";
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import { Container } from "../../../components/Container";
 import DateFormatter from "../../../components/DateFormatter";
 import PageHeader from "../../../components/PageHeader";
@@ -10,7 +16,6 @@ import SaveButtonBar from "../../../components/SaveButtonBar";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { UserError } from "../../../types";
 import { DraftOrderInput } from "../../../types/globalTypes";
 import { OrderDetails_order } from "../../types/OrderDetails";
 import { UserSearch_customers_edges_node } from "../../types/UserSearch";
@@ -19,7 +24,26 @@ import OrderDraftDetails from "../OrderDraftDetails/OrderDraftDetails";
 import { FormData as OrderDraftDetailsProductsFormData } from "../OrderDraftDetailsProducts";
 import OrderHistory, { FormData as HistoryFormData } from "../OrderHistory";
 
-export interface OrderDraftPageProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    date: {
+      marginBottom: theme.spacing.unit * 3,
+      marginLeft: theme.spacing.unit * 7
+    },
+    header: {
+      marginBottom: 0
+    },
+    menu: {
+      marginRight: -theme.spacing.unit
+    },
+    root: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "9fr 4fr"
+    }
+  });
+
+export interface OrderDraftPageProps extends WithStyles<typeof styles> {
   disabled: boolean;
   order: OrderDetails_order;
   users: UserSearch_customers_edges_node[];
@@ -28,6 +52,7 @@ export interface OrderDraftPageProps {
     code: string;
     label: string;
   }>;
+  saveButtonBarState: ConfirmButtonTransitionState;
   variants: Array<{
     id: string;
     name: string;
@@ -35,7 +60,6 @@ export interface OrderDraftPageProps {
     stockQuantity: number;
   }>;
   variantsLoading: boolean;
-  errors: UserError[];
   fetchVariants: (value: string) => void;
   fetchUsers: (query: string) => void;
   onBack: () => void;
@@ -55,28 +79,12 @@ export interface OrderDraftPageProps {
   onShippingMethodEdit: () => void;
 }
 
-const decorate = withStyles(theme => ({
-  date: {
-    marginBottom: theme.spacing.unit * 3,
-    marginLeft: theme.spacing.unit * 7
-  },
-  header: {
-    marginBottom: 0
-  },
-  menu: {
-    marginRight: -theme.spacing.unit
-  },
-  root: {
-    display: "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "9fr 4fr"
-  }
-}));
-const OrderDraftPage = decorate<OrderDraftPageProps>(
+const OrderDraftPage = withStyles(styles, { name: "OrderDraftPage" })(
   ({
     classes,
     disabled,
     fetchUsers,
+    saveButtonBarState,
     onBack,
     onBillingAddressEdit,
     onCustomerEdit,
@@ -91,7 +99,7 @@ const OrderDraftPage = decorate<OrderDraftPageProps>(
     order,
     users,
     usersLoading
-  }) => (
+  }: OrderDraftPageProps) => (
     <Container width="md">
       <PageHeader
         className={classes.header}
@@ -146,6 +154,7 @@ const OrderDraftPage = decorate<OrderDraftPageProps>(
         </div>
       </div>
       <SaveButtonBar
+        state={saveButtonBarState}
         disabled={disabled || maybe(() => order.lines.length === 0)}
         onCancel={onBack}
         onSave={onDraftFinalize}

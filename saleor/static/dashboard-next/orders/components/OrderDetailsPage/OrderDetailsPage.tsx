@@ -1,4 +1,9 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
@@ -10,16 +15,35 @@ import PageHeader from "../../../components/PageHeader";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
-import { UserError } from "../../../types";
 import { OrderStatus } from "../../../types/globalTypes";
 import { OrderDetails_order } from "../../types/OrderDetails";
 import OrderCustomer from "../OrderCustomer";
+import OrderCustomerNote from "../OrderCustomerNote";
 import OrderFulfillment from "../OrderFulfillment";
 import OrderHistory, { FormData as HistoryFormData } from "../OrderHistory";
 import OrderPayment from "../OrderPayment/OrderPayment";
 import OrderUnfulfilledItems from "../OrderUnfulfilledItems/OrderUnfulfilledItems";
 
-export interface OrderDetailsPageProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    date: {
+      marginBottom: theme.spacing.unit * 3,
+      marginLeft: theme.spacing.unit * 7
+    },
+    header: {
+      marginBottom: 0
+    },
+    menu: {
+      marginRight: -theme.spacing.unit
+    },
+    root: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "9fr 4fr"
+    }
+  });
+
+export interface OrderDetailsPageProps extends WithStyles<typeof styles> {
   order: OrderDetails_order;
   shippingMethods?: Array<{
     id: string;
@@ -29,7 +53,6 @@ export interface OrderDetailsPageProps {
     code: string;
     label: string;
   }>;
-  errors: UserError[];
   onBack();
   onBillingAddressEdit();
   onFulfillmentCancel(id: string);
@@ -45,24 +68,7 @@ export interface OrderDetailsPageProps {
   onNoteAdd(data: HistoryFormData);
 }
 
-const decorate = withStyles(theme => ({
-  date: {
-    marginBottom: theme.spacing.unit * 3,
-    marginLeft: theme.spacing.unit * 7
-  },
-  header: {
-    marginBottom: 0
-  },
-  menu: {
-    marginRight: -theme.spacing.unit
-  },
-  root: {
-    display: "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "9fr 4fr"
-  }
-}));
-const OrderDetailsPage = decorate<OrderDetailsPageProps>(
+const OrderDetailsPage = withStyles(styles, { name: "OrderDetailsPage" })(
   ({
     classes,
     order,
@@ -78,7 +84,7 @@ const OrderDetailsPage = decorate<OrderDetailsPageProps>(
     onPaymentRefund,
     onPaymentVoid,
     onShippingAddressEdit
-  }) => {
+  }: OrderDetailsPageProps) => {
     const canCancel = maybe(() => order.status) !== OrderStatus.CANCELED;
     const canEditAddresses = maybe(() => order.status) !== OrderStatus.CANCELED;
     const canFulfill = maybe(() => order.status) !== OrderStatus.CANCELED;
@@ -164,6 +170,8 @@ const OrderDetailsPage = decorate<OrderDetailsPageProps>(
               onBillingAddressEdit={onBillingAddressEdit}
               onShippingAddressEdit={onShippingAddressEdit}
             />
+            <CardSpacer />
+            <OrderCustomerNote note={maybe(() => order.customerNote)} />
           </div>
         </div>
       </Container>

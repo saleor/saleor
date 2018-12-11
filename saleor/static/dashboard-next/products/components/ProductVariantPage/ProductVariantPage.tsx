@@ -1,12 +1,16 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar, {
-  SaveButtonBarState
-} from "../../../components/SaveButtonBar";
+import SaveButtonBar from "../../../components/SaveButtonBar";
 import Toggle from "../../../components/Toggle";
 import { maybe } from "../../../misc";
 import { UserError } from "../../../types";
@@ -18,10 +22,23 @@ import ProductVariantNavigation from "../ProductVariantNavigation";
 import ProductVariantPrice from "../ProductVariantPrice";
 import ProductVariantStock from "../ProductVariantStock";
 
-interface ProductVariantPageProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      display: "grid",
+      gridGap: `${theme.spacing.unit * 2}px`,
+      gridTemplateColumns: "4fr 9fr",
+      [theme.breakpoints.down("sm")]: {
+        gridGap: `${theme.spacing.unit}px`,
+        gridTemplateColumns: "1fr"
+      }
+    }
+  });
+
+interface ProductVariantPageProps extends WithStyles<typeof styles> {
   variant?: ProductVariant;
   errors: UserError[];
-  saveButtonBarState?: SaveButtonBarState;
+  saveButtonBarState: ConfirmButtonTransitionState;
   loading?: boolean;
   placeholderImage?: string;
   header: string;
@@ -32,19 +49,7 @@ interface ProductVariantPageProps {
   onVariantClick(variantId: string);
 }
 
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid",
-    gridGap: `${theme.spacing.unit * 2}px`,
-    gridTemplateColumns: "4fr 9fr",
-    [theme.breakpoints.down("sm")]: {
-      gridGap: `${theme.spacing.unit}px`,
-      gridTemplateColumns: "1fr"
-    }
-  }
-}));
-
-const ProductVariantPage = decorate<ProductVariantPageProps>(
+const ProductVariantPage = withStyles(styles, { name: "ProductVariantPage" })(
   ({
     classes,
     errors: formErrors,
@@ -58,7 +63,7 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
     onImageSelect,
     onSubmit,
     onVariantClick
-  }) => {
+  }: ProductVariantPageProps) => {
     const variantImages = variant ? variant.images.map(image => image.id) : [];
     const productImages = variant
       ? variant.product.images.sort((prev, next) =>
@@ -98,7 +103,7 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                 }}
                 errors={formErrors}
                 onSubmit={onSubmit}
-                key={variant ? JSON.stringify(variant) : "novariant"}
+                confirmLeave
               >
                 {({ change, data, errors, hasChanged, submit }) => (
                   <>
@@ -158,7 +163,7 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                       </div>
                     </div>
                     <SaveButtonBar
-                      disabled={loading || !onSubmit || !hasChanged}
+                      disabled={loading || !hasChanged}
                       state={saveButtonBarState}
                       onCancel={onBack}
                       onDelete={onDelete}

@@ -183,7 +183,8 @@ class Order(models.Model):
     def is_pre_authorized(self):
         return self.payments.filter(
             is_active=True,
-            transactions__kind=TransactionKind.AUTH).exists()
+            transactions__kind=TransactionKind.AUTH).filter(
+                transactions__is_success=True).exists()
 
     @property
     def quantity_fulfilled(self):
@@ -218,6 +219,15 @@ class Order(models.Model):
             OrderStatus.DRAFT, OrderStatus.CANCELED}
         return payment.can_capture() and order_status_ok
 
+    def can_charge(self, payment=None):
+        if not payment:
+            payment = self.get_last_payment()
+        if not payment:
+            return False
+        order_status_ok = self.status not in {
+            OrderStatus.DRAFT, OrderStatus.CANCELED}
+        return payment.can_charge() and order_status_ok
+
     def can_void(self, payment=None):
         if not payment:
             payment = self.get_last_payment()
@@ -239,7 +249,7 @@ class Order(models.Model):
     def total_authorized(self):
         payment = self.get_last_payment()
         if payment:
-            return Money(payment.total, payment.currency)
+            return payment.get_authorized_amount()
         return zero_money()
 
     @property

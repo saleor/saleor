@@ -8,6 +8,8 @@ import CategoryPage from './CategoryPage';
 import ProductFilters from './ProductFilters';
 import ProductList from './ProductList';
 
+import { convertSortByFromString } from './utils';
+
 class App extends React.Component {
   static propTypes = {
     root: PropTypes.object
@@ -25,7 +27,7 @@ class App extends React.Component {
 const rootQuery = gql`
   query Root(
     $categoryId: ID!,
-    $sortBy: String,
+    $sortBy: ProductOrder,
     $first: Int,
     $attributesFilter: [AttributeScalar],
     $minPrice: Float,
@@ -44,7 +46,7 @@ const rootQuery = gql`
     category(id: $categoryId) {
       ...CategoryPageFragmentQuery
     }
-    attributes(inCategory: $categoryId) {
+    attributes(inCategory: $categoryId, first: 20) {
       edges {
         node {
           ...ProductFiltersFragmentQuery
@@ -61,7 +63,7 @@ export default graphql(rootQuery, {
   options: ({categoryId, sortBy, PAGINATE_BY, attributesFilter, minPrice, maxPrice}) => ({
     variables: {
       categoryId,
-      sortBy: sortBy,
+      sortBy: convertSortByFromString(sortBy),
       first: PAGINATE_BY,
       attributesFilter: attributesFilter,
       minPrice: minPrice,

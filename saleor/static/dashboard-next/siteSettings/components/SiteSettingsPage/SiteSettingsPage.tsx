@@ -1,7 +1,13 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
@@ -19,38 +25,42 @@ export interface SiteSettingsPageFormData {
   name: string;
 }
 
-export interface SiteSettingsPageProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridRowGap: theme.spacing.unit * 3 + "px",
+      gridTemplateColumns: "4fr 9fr"
+    }
+  });
+
+export interface SiteSettingsPageProps extends WithStyles<typeof styles> {
   disabled: boolean;
   errors: Array<{
     field: string;
     message: string;
   }>;
   shop: SiteSettings_shop;
+  saveButtonBarState: ConfirmButtonTransitionState;
   onBack: () => void;
   onKeyAdd: () => void;
   onKeyRemove: (keyType: AuthorizationKeyType) => void;
   onSubmit: (data: SiteSettingsPageFormData) => void;
 }
 
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridRowGap: theme.spacing.unit * 3 + "px",
-    gridTemplateColumns: "4fr 9fr"
-  }
-}));
-const SiteSettingsPage = decorate<SiteSettingsPageProps>(
+const SiteSettingsPage = withStyles(styles, { name: "SiteSettingsPage" })(
   ({
     classes,
     disabled,
     errors,
+    saveButtonBarState,
     shop,
     onBack,
     onKeyAdd,
     onKeyRemove,
     onSubmit
-  }) => {
+  }: SiteSettingsPageProps) => {
     const initialForm: SiteSettingsPageFormData = {
       description: maybe(() => shop.description, ""),
       domain: maybe(() => shop.domain.host, ""),
@@ -61,7 +71,7 @@ const SiteSettingsPage = decorate<SiteSettingsPageProps>(
         errors={errors}
         initial={initialForm}
         onSubmit={onSubmit}
-        key={JSON.stringify(shop)}
+        confirmLeave
       >
         {({ change, data, errors: formErrors, hasChanged, submit }) => (
           <Container width="md">
@@ -89,6 +99,7 @@ const SiteSettingsPage = decorate<SiteSettingsPageProps>(
               />
             </div>
             <SaveButtonBar
+              state={saveButtonBarState}
               disabled={disabled || !hasChanged}
               onCancel={onBack}
               onSave={submit}

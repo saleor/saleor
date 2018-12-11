@@ -230,6 +230,7 @@ export interface OrderDraftFinalize_draftOrderComplete_order {
   id: string;
   billingAddress: OrderDraftFinalize_draftOrderComplete_order_billingAddress | null;
   created: any;
+  customerNote: string;
   events: (OrderDraftFinalize_draftOrderComplete_order_events | null)[] | null;
   fulfillments: (OrderDraftFinalize_draftOrderComplete_order_fulfillments | null)[];
   lines: (OrderDraftFinalize_draftOrderComplete_order_lines | null)[];

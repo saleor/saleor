@@ -33,3 +33,32 @@ export const ensureAllowedName = (name, allowed) => {
   }
   return allowed.indexOf(name) > -1 ? origName : null;
 };
+
+export const convertSortByFromString = (sortBy) => {
+  if (!sortBy) {
+    return null;
+  }
+  const direction = sortBy.startsWith('-')
+    ? 'DESC'
+    : 'ASC';
+
+  let field = sortBy.replace(/^-/, '');
+  field =
+    field === 'name'
+      ? 'NAME'
+      : field === 'price'
+        ? 'PRICE'
+        : undefined;
+  let output = { 'field': field, 'direction': direction };
+  return output;
+};
+
+export const convertSortByFromObject = (sortBy) => {
+  if (!sortBy) {
+    return '';
+  }
+  const sortOrder = sortBy.direction === 'DESC' ? '-' : '';
+  const sortField = sortBy.field.toLowerCase();
+  const output = `${sortOrder}${sortField}`;
+  return output;
+};

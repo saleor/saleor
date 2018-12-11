@@ -1,33 +1,83 @@
 import * as urlJoin from "url-join";
 
-import { orderUrl } from "../../urls";
+import { orderPath } from "../../urls";
 
-export const orderCancelUrl = (id: string) => urlJoin(orderUrl(id), "cancel");
+export const orderCancelPath = (id: string) => urlJoin(orderPath(id), "cancel");
+export const orderCancelUrl = (id: string) =>
+  orderCancelPath(encodeURIComponent(id));
+
+export const orderMarkAsPaidPath = (id: string) =>
+  urlJoin(orderPath(id), "markAsPaid");
 export const orderMarkAsPaidUrl = (id: string) =>
-  urlJoin(orderUrl(id), "markAsPaid");
+  orderMarkAsPaidPath(encodeURIComponent(id));
+
+export const orderPaymentVoidPath = (id: string) =>
+  urlJoin(orderPath(id), "voidPayment");
 export const orderPaymentVoidUrl = (id: string) =>
-  urlJoin(orderUrl(id), "voidPayment");
+  orderPaymentVoidPath(encodeURIComponent(id));
+
+export const orderPaymentRefundPath = (id: string) =>
+  urlJoin(orderPath(id), "refundPayment");
 export const orderPaymentRefundUrl = (id: string) =>
-  urlJoin(orderUrl(id), "refundPayment");
+  orderPaymentRefundPath(encodeURIComponent(id));
+
+export const orderPaymentCapturePath = (id: string) =>
+  urlJoin(orderPath(id), "capturePayment");
 export const orderPaymentCaptureUrl = (id: string) =>
-  urlJoin(orderUrl(id), "capturePayment");
-export const orderFulfillUrl = (id: string) => urlJoin(orderUrl(id), "fulfill");
+  orderPaymentCapturePath(encodeURIComponent(id));
+
+export const orderFulfillPath = (id: string) =>
+  urlJoin(orderPath(id), "fulfill");
+export const orderFulfillUrl = (id: string) =>
+  orderFulfillPath(encodeURIComponent(id));
+
+export const orderFulfillmentCancelPath = (
+  orderId: string,
+  fulfillmentId: string
+) => urlJoin(orderPath(orderId), "fulfillment", fulfillmentId, "cancel");
 export const orderFulfillmentCancelUrl = (
   orderId: string,
   fulfillmentId: string
-) => urlJoin(orderUrl(orderId), "fulfillment", fulfillmentId, "cancel");
+) =>
+  orderFulfillmentCancelPath(
+    encodeURIComponent(orderId),
+    encodeURIComponent(fulfillmentId)
+  );
+
+export const orderFulfillmentEditTrackingPath = (
+  orderId: string,
+  fulfillmentId: string
+) => urlJoin(orderPath(orderId), "fulfillment", fulfillmentId, "tracking");
 export const orderFulfillmentEditTrackingUrl = (
   orderId: string,
   fulfillmentId: string
-) => urlJoin(orderUrl(orderId), "fulfillment", fulfillmentId, "tracking");
-export const orderBillingAddressEditUrl = (id: string) =>
-  urlJoin(orderUrl(id), "editAddress", "billing");
-export const orderShippingAddressEditUrl = (id: string) =>
-  urlJoin(orderUrl(id), "editAddress", "shipping");
+) =>
+  orderFulfillmentEditTrackingPath(
+    encodeURIComponent(orderId),
+    encodeURIComponent(fulfillmentId)
+  );
 
+export const orderBillingAddressEditPath = (id: string) =>
+  urlJoin(orderPath(id), "editAddress", "billing");
+export const orderBillingAddressEditUrl = (id: string) =>
+  orderBillingAddressEditPath(encodeURIComponent(id));
+
+export const orderShippingAddressEditPath = (id: string) =>
+  urlJoin(orderPath(id), "editAddress", "shipping");
+export const orderShippingAddressEditUrl = (id: string) =>
+  orderShippingAddressEditPath(encodeURIComponent(id));
+
+export const orderDraftFinalizePath = (id: string) =>
+  urlJoin(orderPath(id), "finalize");
 export const orderDraftFinalizeUrl = (id: string) =>
-  urlJoin(orderUrl(id), "finalize");
+  orderDraftFinalizePath(encodeURIComponent(id));
+
+export const orderDraftShippingMethodPath = (id: string) =>
+  urlJoin(orderPath(id), "shipping");
 export const orderDraftShippingMethodUrl = (id: string) =>
-  urlJoin(orderUrl(id), "shipping");
+  orderDraftShippingMethodPath(encodeURIComponent(id));
+
+export const orderDraftLineAddPath = (id: string) =>
+  urlJoin(orderPath(id), "addLine");
 export const orderDraftLineAddUrl = (id: string) =>
-  urlJoin(orderUrl(id), "addLine");
+  orderDraftLineAddPath(encodeURIComponent(id));

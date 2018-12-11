@@ -1,7 +1,12 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
@@ -17,7 +22,29 @@ import { maybe } from "../../../misc";
 import { OrderDetails_order } from "../../types/OrderDetails";
 import { UserSearch_customers_edges_node } from "../../types/UserSearch";
 
-export interface OrderCustomerProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    sectionHeader: {
+      alignItems: "center",
+      display: "flex",
+      marginBottom: theme.spacing.unit * 3
+    },
+    sectionHeaderTitle: {
+      flex: 1,
+      fontWeight: 600 as 600,
+      lineHeight: 1,
+      textTransform: "uppercase"
+    },
+    sectionHeaderToolbar: {
+      marginRight: -theme.spacing.unit * 2
+    },
+    userEmail: {
+      fontWeight: 600 as 600,
+      marginBottom: theme.spacing.unit
+    }
+  });
+
+export interface OrderCustomerProps extends WithStyles<typeof styles> {
   order: OrderDetails_order;
   users?: UserSearch_customers_edges_node[];
   loading?: boolean;
@@ -34,30 +61,7 @@ export interface OrderCustomerProps {
   onShippingAddressEdit?: () => void;
 }
 
-const decorate = withStyles(
-  theme => ({
-    sectionHeader: {
-      alignItems: "center" as "center",
-      display: "flex",
-      marginBottom: theme.spacing.unit * 3
-    },
-    sectionHeaderTitle: {
-      flex: 1,
-      fontWeight: 600 as 600,
-      lineHeight: 1,
-      textTransform: "uppercase" as "uppercase"
-    },
-    sectionHeaderToolbar: {
-      marginRight: -theme.spacing.unit * 2
-    },
-    userEmail: {
-      fontWeight: 600 as 600,
-      marginBottom: theme.spacing.unit
-    }
-  }),
-  { name: "OrderCustomer" }
-);
-const OrderCustomer = decorate<OrderCustomerProps>(
+const OrderCustomer = withStyles(styles, { name: "OrderCustomer" })(
   ({
     classes,
     canEditAddresses,
@@ -69,7 +73,7 @@ const OrderCustomer = decorate<OrderCustomerProps>(
     onCustomerEdit,
     onBillingAddressEdit,
     onShippingAddressEdit
-  }) => {
+  }: OrderCustomerProps) => {
     const billingAddress = maybe(() => order.billingAddress);
     const shippingAddress = maybe(() => order.shippingAddress);
     const user = maybe(() => order.user);
@@ -84,7 +88,7 @@ const OrderCustomer = decorate<OrderCustomerProps>(
                   !!canEditCustomer && (
                     <Button
                       color="secondary"
-                      variant="flat"
+                      variant="text"
                       disabled={!onCustomerEdit}
                       onClick={toggleEditMode}
                     >
@@ -176,7 +180,7 @@ const OrderCustomer = decorate<OrderCustomerProps>(
               <div className={classes.sectionHeaderToolbar}>
                 <Button
                   color="secondary"
-                  variant="flat"
+                  variant="text"
                   onClick={onShippingAddressEdit}
                   disabled={!onShippingAddressEdit && user === undefined}
                 >
@@ -229,7 +233,7 @@ const OrderCustomer = decorate<OrderCustomerProps>(
               <div className={classes.sectionHeaderToolbar}>
                 <Button
                   color="secondary"
-                  variant="flat"
+                  variant="text"
                   onClick={onBillingAddressEdit}
                   disabled={!onBillingAddressEdit && user === undefined}
                 >

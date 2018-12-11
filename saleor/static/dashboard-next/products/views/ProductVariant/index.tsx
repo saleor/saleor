@@ -7,14 +7,14 @@ import Messages from "../../../components/messages";
 import Navigator from "../../../components/Navigator";
 import { WindowTitle } from "../../../components/WindowTitle";
 import i18n from "../../../i18n";
-import { decimal, maybe } from "../../../misc";
+import { decimal, getMutationState, maybe } from "../../../misc";
 import ProductVariantDeleteDialog from "../../components/ProductVariantDeleteDialog";
 import ProductVariantPage from "../../components/ProductVariantPage";
 import ProductVariantOperations from "../../containers/ProductVariantOperations";
 import { TypedProductVariantQuery } from "../../queries";
 import { VariantUpdate } from "../../types/VariantUpdate";
 import { productUrl, productVariantEditUrl } from "../../urls";
-import { productVariantRemoveUrl } from "./urls";
+import { productVariantRemovePath, productVariantRemoveUrl } from "./urls";
 
 interface ProductUpdateProps {
   variantId: string;
@@ -47,11 +47,10 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                 return <ErrorMessageCard message="Something went wrong" />;
               }
               const variant = data ? data.productVariant : undefined;
-              const handleBack = () =>
-                navigate(productUrl(encodeURIComponent(productId)));
+              const handleBack = () => navigate(productUrl(productId));
               const handleDelete = () => {
                 pushMessage({ text: i18n.t("Variant removed") });
-                navigate(productUrl(encodeURIComponent(productId)));
+                navigate(productUrl(productId));
               };
               const handleUpdate = (data: VariantUpdate) => {
                 if (!maybe(() => data.productVariantUpdate.errors.length)) {
@@ -61,27 +60,37 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
 
               return (
                 <ProductVariantOperations
-                  productId={productId}
-                  id={variantId}
                   onDelete={handleDelete}
                   onUpdate={handleUpdate}
                 >
                   {({
                     assignImage,
                     deleteVariant,
-                    errors,
                     updateVariant,
                     unassignImage
                   }) => {
                     const disableFormSave =
                       loading ||
-                      deleteVariant.loading ||
-                      updateVariant.loading ||
-                      assignImage.loading ||
-                      unassignImage.loading;
-                    const formSubmitState = disableFormSave
-                      ? "loading"
-                      : "idle";
+                      deleteVariant.opts.loading ||
+                      updateVariant.opts.loading ||
+                      assignImage.opts.loading ||
+                      unassignImage.opts.loading;
+                    const formTransitionState = getMutationState(
+                      updateVariant.opts.called,
+                      updateVariant.opts.loading,
+                      maybe(
+                        () =>
+                          updateVariant.opts.data.productVariantUpdate.errors
+                      )
+                    );
+                    const removeTransitionState = getMutationState(
+                      deleteVariant.opts.called,
+                      deleteVariant.opts.loading,
+                      maybe(
+                        () =>
+                          deleteVariant.opts.data.productVariantDelete.errors
+                      )
+                    );
                     const handleImageSelect = (id: string) => () => {
                       if (variant) {
                         if (
@@ -108,8 +117,13 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                           title={maybe(() => data.productVariant.name)}
                         />
                         <ProductVariantPage
-                          errors={errors}
-                          saveButtonBarState={formSubmitState}
+                          errors={maybe(
+                            () =>
+                              updateVariant.opts.data.productVariantUpdate
+                                .errors,
+                            []
+                          )}
+                          saveButtonBarState={formTransitionState}
                           loading={disableFormSave}
                           placeholderImage={placeholderImg}
                           variant={variant}
@@ -119,10 +133,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                           onBack={handleBack}
                           onDelete={() =>
                             navigate(
-                              productVariantRemoveUrl(
-                                encodeURIComponent(productId),
-                                encodeURIComponent(variantId)
-                              )
+                              productVariantRemoveUrl(productId, variantId)
                             )
                           }
                           onImageSelect={handleImageSelect}
@@ -143,29 +154,28 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                           }}
                           onVariantClick={variantId => {
                             navigate(
-                              productVariantEditUrl(
-                                encodeURIComponent(productId),
-                                encodeURIComponent(variantId)
-                              )
+                              productVariantEditUrl(productId, variantId)
                             );
                           }}
                         />
                         <Route
-                          path={productVariantRemoveUrl(
+                          path={productVariantRemovePath(
                             ":productId",
                             ":variantId"
                           )}
                           render={({ match }) => (
                             <ProductVariantDeleteDialog
+                              confirmButtonState={removeTransitionState}
                               onClose={() =>
                                 navigate(
-                                  productVariantEditUrl(
-                                    encodeURIComponent(productId),
-                                    encodeURIComponent(variantId)
-                                  )
+                                  productVariantEditUrl(productId, variantId)
                                 )
                               }
-                              onConfirm={() => deleteVariant.mutate(variantId)}
+                              onConfirm={() =>
+                                deleteVariant.mutate({
+                                  id: variantId
+                                })
+                              }
                               open={!!match}
                               name={maybe(() => data.productVariant.name)}
                             />

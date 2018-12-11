@@ -224,6 +224,7 @@ export interface OrderDetails_order {
   id: string;
   billingAddress: OrderDetails_order_billingAddress | null;
   created: any;
+  customerNote: string;
   events: (OrderDetails_order_events | null)[] | null;
   fulfillments: (OrderDetails_order_fulfillments | null)[];
   lines: (OrderDetails_order_lines | null)[];

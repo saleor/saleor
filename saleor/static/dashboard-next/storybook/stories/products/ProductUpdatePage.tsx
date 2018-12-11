@@ -19,6 +19,8 @@ storiesOf("Views / Products / Product edit", module)
       header={product.name}
       collections={product.collections}
       categories={[product.category]}
+      fetchCategories={() => undefined}
+      fetchCollections={() => undefined}
       placeholderImage={placeholderImage}
       images={product.images}
       variants={product.variants}
@@ -29,6 +31,7 @@ storiesOf("Views / Products / Product edit", module)
       onVariantAdd={undefined}
       onVariantShow={() => undefined}
       onImageDelete={() => undefined}
+      saveButtonBarState="default"
     />
   ))
   .add("when product has no images", () => (
@@ -40,6 +43,8 @@ storiesOf("Views / Products / Product edit", module)
       header={product.name}
       collections={product.collections}
       categories={[product.category]}
+      fetchCategories={() => undefined}
+      fetchCollections={() => undefined}
       placeholderImage={placeholderImage}
       images={[]}
       variants={product.variants}
@@ -50,6 +55,7 @@ storiesOf("Views / Products / Product edit", module)
       onImageDelete={() => undefined}
       onVariantAdd={undefined}
       onVariantShow={() => undefined}
+      saveButtonBarState="default"
     />
   ))
   .add("when product has no variants", () => (
@@ -66,6 +72,8 @@ storiesOf("Views / Products / Product edit", module)
       header={product.name}
       collections={product.collections}
       categories={[product.category]}
+      fetchCategories={() => undefined}
+      fetchCollections={() => undefined}
       placeholderImage={placeholderImage}
       images={product.images}
       variants={product.variants}
@@ -76,6 +84,7 @@ storiesOf("Views / Products / Product edit", module)
       onVariantAdd={undefined}
       onImageDelete={() => undefined}
       onVariantShow={() => undefined}
+      saveButtonBarState="default"
     />
   ))
   .add("when loading data", () => (
@@ -83,6 +92,8 @@ storiesOf("Views / Products / Product edit", module)
       errors={[]}
       header={undefined}
       categories={[]}
+      fetchCategories={() => undefined}
+      fetchCollections={() => undefined}
       onBack={() => undefined}
       onSubmit={() => undefined}
       disabled={true}
@@ -91,5 +102,6 @@ storiesOf("Views / Products / Product edit", module)
       onDelete={undefined}
       onImageDelete={() => undefined}
       onVariantShow={() => undefined}
+      saveButtonBarState="default"
     />
   ));

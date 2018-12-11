@@ -162,7 +162,8 @@
                 <a href="#base-modal" data-href="{% url 'dashboard:capture-payment' order_pk=order.pk payment_pk=payment.pk %}" class="btn-flat modal-trigger-custom waves-effect">
                   {% trans "Capture" context "Order summary card action" %}
                 </a>
-              {% elif order.can_refund %}
+              {% endif %}
+              {% if order.can_refund %}
                 <a href="#base-modal" data-href="{% url 'dashboard:refund-payment' order_pk=order.pk payment_pk=payment.pk %}" class="btn-flat modal-trigger-custom waves-effect">
                   {% trans "Refund" context "Order summary card action" %}
                 </a>

@@ -1,4 +1,5 @@
 import graphene_django_optimizer as gql_optimizer
+
 from ...shipping import models
 
 

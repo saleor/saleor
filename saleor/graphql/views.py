@@ -105,6 +105,7 @@ class GraphQLView(View):
                 data={
                     'errors': [self.format_error('Unable to parse query.')]},
                 status=400)
+
         if isinstance(data, list):
             responses = [self.get_response(request, entry) for entry in data]
             result = [response for response, code in responses]
@@ -117,6 +118,7 @@ class GraphQLView(View):
     def get_response(self, request: HttpRequest, data: dict):
         query, variables, operation_name = self.get_graphql_params(
             request, data)
+
         execution_result = self.execute_graphql_request(
             request, query, variables, operation_name)
         status_code = 200
@@ -184,6 +186,7 @@ class GraphQLView(View):
         operation_name = data.get('operationName')
         if operation_name == 'null':
             operation_name = None
+
         if request.content_type == 'multipart/form-data':
             operations = json.loads(data.get('operations', '{}'))
             files_map = json.loads(data.get('map', '{}'))

@@ -1,7 +1,6 @@
 import { stringify as stringifyQs } from "qs";
 import * as React from "react";
 
-import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
 import { createPaginationState, Paginator } from "../../components/Paginator";
 import { maybe } from "../../misc";
@@ -49,11 +48,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
             stockAvailability: params.status
           }}
         >
-          {({ data, loading, error }) => {
-            if (error) {
-              return <ErrorMessageCard message="Something went wrong" />;
-            }
-
+          {({ data, loading }) => {
             const currentTab = getTabName(params);
             return (
               <Paginator
@@ -77,8 +72,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                     onNextPage={loadNextPage}
                     onPreviousPage={loadPreviousPage}
                     pageInfo={pageInfo}
-                    onRowClick={id => () =>
-                      navigate(productUrl(encodeURIComponent(id)))}
+                    onRowClick={id => () => navigate(productUrl(id))}
                     onAllProducts={() =>
                       changeFilters({
                         status: undefined

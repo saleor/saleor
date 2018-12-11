@@ -29,7 +29,7 @@ export const CategoryProductsCard: React.StatelessComponent<
     <CardTitle
       title={i18n.t("Products in {{ categoryName }}", { categoryName })}
       toolbar={
-        <Button color="secondary" variant="flat" onClick={onAdd}>
+        <Button color="secondary" variant="text" onClick={onAdd}>
           {i18n.t("Add product")}
         </Button>
       }

@@ -1,3 +1,4 @@
+import { Omit } from "@material-ui/core";
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
@@ -15,10 +16,9 @@ import Decorator from "../../Decorator";
 
 const order = draftOrder(placeholderImage);
 
-const props: OrderDraftPageProps = {
+const props: Omit<OrderDraftPageProps, "classes"> = {
   countries,
   disabled: false,
-  errors: [],
   fetchUsers: () => undefined,
   fetchVariants: () => undefined,
   onBack: () => undefined,
@@ -34,6 +34,7 @@ const props: OrderDraftPageProps = {
   onShippingAddressEdit: undefined,
   onShippingMethodEdit: undefined,
   order,
+  saveButtonBarState: "default",
   users: clients,
   usersLoading: false,
   variants,

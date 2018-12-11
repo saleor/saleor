@@ -1,4 +1,9 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
@@ -8,7 +13,16 @@ import { maybe } from "../../misc";
 import FormSpacer from "../FormSpacer";
 import SingleSelectField from "../SingleSelectField";
 
-interface AddressEditProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      display: "grid",
+      gridColumnGap: `${theme.spacing.unit * 2}px`,
+      gridTemplateColumns: "1fr 1fr"
+    }
+  });
+
+interface AddressEditProps extends WithStyles<typeof styles> {
   countries?: Array<{
     code: string;
     label: string;
@@ -19,15 +33,15 @@ interface AddressEditProps {
   onChange(event: React.ChangeEvent<any>);
 }
 
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid",
-    gridColumnGap: `${theme.spacing.unit * 2}px`,
-    gridTemplateColumns: "1fr 1fr"
-  }
-}));
-const AddressEdit = decorate<AddressEditProps>(
-  ({ classes, countries, data, disabled, errors, onChange }) => (
+const AddressEdit = withStyles(styles, { name: "AddressEdit" })(
+  ({
+    classes,
+    countries,
+    data,
+    disabled,
+    errors,
+    onChange
+  }: AddressEditProps) => (
     <>
       <div className={classes.root}>
         <div>

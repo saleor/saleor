@@ -2,10 +2,9 @@ import graphene
 from django.db.models.query import QuerySet
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
+from graphene.relay import PageInfo
 from graphene_django.converter import convert_django_field
 from graphene_django.fields import DjangoConnectionField
-
-from graphene.relay import PageInfo
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
 
 from .types.common import Weight
@@ -28,6 +27,21 @@ def convert_field_measurements(field, registry=None):
 
 
 class PrefetchingConnectionField(DjangoConnectionField):
+    @classmethod
+    def connection_resolver(
+            cls, resolver, connection, default_manager, max_limit,
+            enforce_first_or_last, root, info, **args):
+
+        # Disable `enforce_first_or_last` if not querying for `edges`.
+        values = [
+            field.name.value
+            for field in info.field_asts[0].selection_set.selections]
+        if 'edges' not in values:
+            enforce_first_or_last = False
+
+        return super().connection_resolver(
+            resolver, connection, default_manager, max_limit,
+            enforce_first_or_last, root, info, **args)
 
     @classmethod
     def resolve_connection(cls, connection, default_manager, args, iterable):

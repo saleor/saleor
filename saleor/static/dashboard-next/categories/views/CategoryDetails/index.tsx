@@ -1,4 +1,5 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
+import { stringify as stringifyQs } from "qs";
 import * as React from "react";
 import { Route } from "react-router-dom";
 
@@ -11,26 +12,35 @@ import {
 } from "../../../components/Paginator";
 import { WindowTitle } from "../../../components/WindowTitle";
 import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
+import { getMutationState, maybe } from "../../../misc";
 import { productAddUrl, productUrl } from "../../../products/urls";
-import { CategoryUpdatePage } from "../../components/CategoryUpdatePage/CategoryUpdatePage";
+import {
+  CategoryPageTab,
+  CategoryUpdatePage
+} from "../../components/CategoryUpdatePage/CategoryUpdatePage";
 import {
   TypedCategoryDeleteMutation,
   TypedCategoryUpdateMutation
 } from "../../mutations";
 import { TypedCategoryDetailsQuery } from "../../queries";
 import { CategoryDelete } from "../../types/CategoryDelete";
-import { CategoryUpdate } from "../../types/CategoryUpdate";
 import { categoryAddUrl, categoryListUrl, categoryUrl } from "../../urls";
-import { categoryDeleteUrl } from "./urls";
+import { categoryDeletePath, categoryDeleteUrl } from "./urls";
 
 export type CategoryDetailsQueryParams = Partial<{
+  activeTab: CategoryPageTab;
   after: string;
   before: string;
 }>;
 export interface CategoryDetailsProps {
   params: CategoryDetailsQueryParams;
   id: string;
+}
+
+export function getActiveTab(tabName: string): CategoryPageTab {
+  return tabName === CategoryPageTab.products
+    ? CategoryPageTab.products
+    : CategoryPageTab.categories;
 }
 
 const PAGINATE_BY = 20;
@@ -42,18 +52,6 @@ export const CategoryDetails: React.StatelessComponent<
     {navigate => (
       <Messages>
         {pushMessage => {
-          const onCategoryUpdate = (data: CategoryUpdate) => {
-            if (
-              data.categoryUpdate.errors === null ||
-              data.categoryUpdate.errors.length === 0
-            ) {
-              pushMessage({
-                text: i18n.t("Category updated", {
-                  context: "notification"
-                })
-              });
-            }
-          };
           const onCategoryDelete = (data: CategoryDelete) => {
             if (
               data.categoryDelete.errors === null ||
@@ -68,14 +66,32 @@ export const CategoryDetails: React.StatelessComponent<
             }
           };
 
+          const changeTab = (tabName: CategoryPageTab) =>
+            navigate(
+              "?" +
+                stringifyQs({
+                  activeTab: tabName
+                })
+            );
+
           return (
             <TypedCategoryDeleteMutation onCompleted={onCategoryDelete}>
-              {deleteCategory => (
-                <TypedCategoryUpdateMutation onCompleted={onCategoryUpdate}>
+              {(deleteCategory, deleteResult) => (
+                <TypedCategoryUpdateMutation>
                   {(updateCategory, updateResult) => {
                     const paginationState = createPaginationState(
                       PAGINATE_BY,
                       params
+                    );
+                    const formTransitionState = getMutationState(
+                      updateResult.called,
+                      updateResult.loading,
+                      maybe(() => updateResult.data.categoryUpdate.errors)
+                    );
+                    const removeDialogTransitionState = getMutationState(
+                      deleteResult.called,
+                      deleteResult.loading,
+                      maybe(() => deleteResult.data.categoryDelete.errors)
                     );
                     return (
                       <TypedCategoryDetailsQuery
@@ -100,6 +116,8 @@ export const CategoryDetails: React.StatelessComponent<
                                 pageInfo
                               }) => (
                                 <CategoryUpdatePage
+                                  changeTab={changeTab}
+                                  currentTab={params.activeTab}
                                   category={maybe(() => data.category)}
                                   disabled={loading}
                                   errors={maybe(
@@ -108,32 +126,22 @@ export const CategoryDetails: React.StatelessComponent<
                                   )}
                                   placeholderImage={""}
                                   onAddCategory={() =>
-                                    navigate(
-                                      categoryAddUrl(encodeURIComponent(id))
-                                    )
+                                    navigate(categoryAddUrl(id))
                                   }
                                   onAddProduct={() => navigate(productAddUrl)}
                                   onBack={() =>
                                     navigate(
                                       maybe(
                                         () =>
-                                          categoryUrl(
-                                            encodeURIComponent(
-                                              data.category.parent.id
-                                            )
-                                          ),
+                                          categoryUrl(data.category.parent.id),
                                         categoryListUrl
                                       )
                                     )
                                   }
                                   onCategoryClick={id => () =>
-                                    navigate(
-                                      categoryUrl(encodeURIComponent(id))
-                                    )}
+                                    navigate(categoryUrl(id))}
                                   onDelete={() =>
-                                    navigate(
-                                      categoryDeleteUrl(encodeURIComponent(id))
-                                    )
+                                    navigate(categoryDeleteUrl(id))
                                   }
                                   onImageDelete={() => undefined}
                                   onImageUpload={() => undefined}
@@ -141,9 +149,7 @@ export const CategoryDetails: React.StatelessComponent<
                                   onPreviousPage={loadPreviousPage}
                                   pageInfo={pageInfo}
                                   onProductClick={id => () =>
-                                    navigate(
-                                      productUrl(encodeURIComponent(id))
-                                    )}
+                                    navigate(productUrl(id))}
                                   onSubmit={formData =>
                                     updateCategory({
                                       variables: {
@@ -165,9 +171,7 @@ export const CategoryDetails: React.StatelessComponent<
                                       edge => edge.node
                                     )
                                   )}
-                                  saveButtonBarState={
-                                    loading ? "loading" : "default"
-                                  }
+                                  saveButtonBarState={formTransitionState}
                                   subcategories={maybe(() =>
                                     data.category.children.edges.map(
                                       edge => edge.node
@@ -177,14 +181,14 @@ export const CategoryDetails: React.StatelessComponent<
                               )}
                             </Paginator>
                             <Route
-                              path={categoryDeleteUrl(encodeURIComponent(id))}
+                              path={categoryDeletePath(":id")}
                               render={({ match }) => (
                                 <ActionDialog
+                                  confirmButtonState={
+                                    removeDialogTransitionState
+                                  }
                                   onClose={() =>
-                                    navigate(
-                                      categoryUrl(encodeURIComponent(id)),
-                                      true
-                                    )
+                                    navigate(categoryUrl(id), true)
                                   }
                                   onConfirm={() =>
                                     deleteCategory({ variables: { id } })

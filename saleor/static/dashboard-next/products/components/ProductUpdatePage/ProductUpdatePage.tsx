@@ -1,17 +1,22 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar, {
-  SaveButtonBarState
-} from "../../../components/SaveButtonBar/SaveButtonBar";
+import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
 import i18n from "../../../i18n";
 import { UserError } from "../../../types";
 import {
   ProductDetails_product,
+  ProductDetails_product_attributes_attribute,
   ProductDetails_product_images,
   ProductDetails_product_variants_priceOverride
 } from "../../types/ProductDetails";
@@ -23,7 +28,28 @@ import ProductPricing from "../ProductPricing";
 import ProductStock from "../ProductStock";
 import ProductVariants from "../ProductVariants";
 
-interface ProductUpdateProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    cardContainer: {
+      marginTop: theme.spacing.unit * 2,
+      [theme.breakpoints.down("sm")]: {
+        marginTop: theme.spacing.unit
+      }
+    },
+    root: {
+      display: "grid",
+      gridGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "9fr 4fr",
+      marginTop: theme.spacing.unit * 2,
+      [theme.breakpoints.down("sm")]: {
+        gridGap: theme.spacing.unit + "px",
+        gridTemplateColumns: "1fr",
+        marginTop: theme.spacing.unit
+      }
+    }
+  });
+
+interface ProductUpdateProps extends WithStyles<typeof styles> {
   errors: UserError[];
   placeholderImage: string;
   collections?: Array<{
@@ -50,7 +76,9 @@ interface ProductUpdateProps {
   images?: ProductDetails_product_images[];
   product?: ProductDetails_product;
   header: string;
-  saveButtonBarState?: SaveButtonBarState;
+  saveButtonBarState: ConfirmButtonTransitionState;
+  fetchCategories: (query: string) => void;
+  fetchCollections: (query: string) => void;
   onVariantShow: (id: string) => () => void;
   onImageDelete: (id: string) => () => void;
   onAttributesEdit: () => void;
@@ -65,33 +93,49 @@ interface ProductUpdateProps {
   onVariantAdd?();
 }
 
-const decorate = withStyles(theme => ({
-  cardContainer: {
-    marginTop: theme.spacing.unit * 2,
-    [theme.breakpoints.down("sm")]: {
-      marginTop: theme.spacing.unit
-    }
-  },
-  root: {
-    display: "grid",
-    gridGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "9fr 4fr",
-    marginTop: theme.spacing.unit * 2,
-    [theme.breakpoints.down("sm")]: {
-      gridGap: theme.spacing.unit + "px",
-      gridTemplateColumns: "1fr",
-      marginTop: theme.spacing.unit
-    }
-  }
-}));
+interface ChoiceType {
+  label: string;
+  value: string;
+}
+export interface FormData {
+  attributes: Array<{
+    slug: string;
+    value: string;
+  }>;
+  available: boolean;
+  availableOn: string;
+  category: ChoiceType | null;
+  chargeTaxes: boolean;
+  collections: ChoiceType[];
+  description: string;
+  name: string;
+  price: string;
+  productType: {
+    label: string;
+    value: {
+      hasVariants: boolean;
+      id: string;
+      name: string;
+      productAttributes: Array<
+        Exclude<ProductDetails_product_attributes_attribute, "__typename">
+      >;
+    };
+  } | null;
+  seoDescription: string;
+  seoTitle: string;
+  sku: string;
+  stockQuantity: number;
+}
 
-export const ProductUpdate = decorate<ProductUpdateProps>(
+export const ProductUpdate = withStyles(styles, { name: "ProductUpdate" })(
   ({
     classes,
     disabled,
     categories: categoryChoiceList,
     collections: collectionChoiceList,
     errors: userErrors,
+    fetchCategories,
+    fetchCollections,
     images,
     header,
     placeholderImage,
@@ -110,8 +154,8 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
     onSubmit,
     onVariantAdd,
     onVariantShow
-  }) => {
-    const initialData = product
+  }: ProductUpdateProps) => {
+    const initialData: FormData = product
       ? {
           attributes: product.attributes
             ? product.attributes.map(a => ({
@@ -121,10 +165,18 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
             : undefined,
           available: product.isPublished,
           availableOn: product.availableOn,
-          category: product.category ? product.category.id : undefined,
+          category: product.category
+            ? {
+                label: product.category.name,
+                value: product.category.id
+              }
+            : undefined,
           chargeTaxes: product.chargeTaxes ? product.chargeTaxes : false,
           collections: productCollections
-            ? productCollections.map(node => node.id)
+            ? productCollections.map(collection => ({
+                label: collection.name,
+                value: collection.id
+              }))
             : [],
           description: product.description,
           name: product.name,
@@ -157,14 +209,20 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
               : undefined
         }
       : {
+          attributes: [],
+          available: false,
           availableOn: "",
+          category: null,
           chargeTaxes: false,
           collections: [],
           description: "",
-          featured: false,
           name: "",
+          price: "",
+          productType: null,
           seoDescription: "",
-          seoTitle: ""
+          seoTitle: "",
+          sku: "",
+          stockQuantity: 0
         };
     const categories =
       categoryChoiceList !== undefined
@@ -190,7 +248,7 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
         onSubmit={onSubmit}
         errors={userErrors}
         initial={initialData}
-        key={product ? JSON.stringify(product) : "loading"}
+        confirmLeave
       >
         {({ change, data, errors, hasChanged, submit }) => (
           <>
@@ -256,10 +314,10 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
                 </div>
                 <div>
                   <ProductOrganization
-                    category={data.category}
                     categories={categories}
                     errors={errors}
-                    productCollections={data.collections}
+                    fetchCategories={fetchCategories}
+                    fetchCollections={fetchCollections}
                     collections={collections}
                     product={product}
                     data={data}

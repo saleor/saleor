@@ -1,7 +1,12 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import IconButton from "@material-ui/core/IconButton";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -21,26 +26,30 @@ import { maybe, renderCollection } from "../../../misc";
 import { PageListProps } from "../../../types";
 import { CollectionDetails_collection } from "../../types/CollectionDetails";
 
-export interface CollectionProductsProps extends PageListProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    iconCell: {
+      "&:last-child": {
+        paddingRight: 0
+      },
+      width: 48 + theme.spacing.unit / 2
+    },
+    tableRow: {
+      cursor: "pointer"
+    },
+    textCenter: {
+      textAlign: "center"
+    }
+  });
+
+export interface CollectionProductsProps
+  extends PageListProps,
+    WithStyles<typeof styles> {
   collection: CollectionDetails_collection;
   onProductUnassign: (id: string, event: React.MouseEvent<any>) => void;
 }
 
-const decorate = withStyles(theme => ({
-  iconCell: {
-    "&:last-child": {
-      paddingRight: 0
-    },
-    width: 48 + theme.spacing.unit / 2
-  },
-  tableRow: {
-    cursor: "pointer" as "pointer"
-  },
-  textCenter: {
-    textAlign: "center" as "center"
-  }
-}));
-const CollectionProducts = decorate<CollectionProductsProps>(
+const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
   ({
     classes,
     collection,
@@ -51,7 +60,7 @@ const CollectionProducts = decorate<CollectionProductsProps>(
     onProductUnassign,
     onRowClick,
     pageInfo
-  }) => (
+  }: CollectionProductsProps) => (
     <Card>
       <CardTitle
         title={
@@ -66,7 +75,7 @@ const CollectionProducts = decorate<CollectionProductsProps>(
         toolbar={
           <Button
             disabled={disabled}
-            variant="flat"
+            variant="text"
             color="secondary"
             onClick={onAdd}
           >

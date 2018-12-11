@@ -17,11 +17,14 @@ storiesOf("Views / Products / Create product", module)
       errors={[]}
       header="Add product"
       collections={product.collections}
+      fetchCategories={() => undefined}
+      fetchCollections={() => undefined}
       productTypes={productTypes}
       categories={[product.category]}
       onAttributesEdit={undefined}
       onBack={() => undefined}
       onSubmit={() => undefined}
+      saveButtonBarState="default"
     />
   ))
   .add("When loading", () => (
@@ -31,10 +34,13 @@ storiesOf("Views / Products / Create product", module)
       errors={[]}
       header="Add product"
       collections={product.collections}
+      fetchCategories={() => undefined}
+      fetchCollections={() => undefined}
       productTypes={productTypes}
       categories={[product.category]}
       onAttributesEdit={undefined}
       onBack={() => undefined}
       onSubmit={() => undefined}
+      saveButtonBarState="default"
     />
   ));

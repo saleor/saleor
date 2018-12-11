@@ -1,12 +1,16 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar, {
-  SaveButtonBarState
-} from "../../../components/SaveButtonBar";
+import SaveButtonBar from "../../../components/SaveButtonBar";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { UserError } from "../../../types";
@@ -27,31 +31,35 @@ interface FormData {
   quantity?: number;
   sku?: string;
 }
-interface ProductVariantCreatePageProps {
+
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      display: "grid",
+      gridGap: `${theme.spacing.unit * 2}px`,
+      gridTemplateColumns: "4fr 9fr",
+      [theme.breakpoints.down("sm")]: {
+        gridGap: `${theme.spacing.unit}px`,
+        gridTemplateColumns: "1fr"
+      }
+    }
+  });
+
+interface ProductVariantCreatePageProps extends WithStyles<typeof styles> {
   currencySymbol: string;
   errors: UserError[];
   header: string;
   loading: boolean;
   product: ProductVariantCreateData_product;
-  saveButtonBarState?: SaveButtonBarState;
+  saveButtonBarState: ConfirmButtonTransitionState;
   onBack: () => void;
   onSubmit: (data: FormData) => void;
   onVariantClick: (variantId: string) => void;
 }
 
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid",
-    gridGap: `${theme.spacing.unit * 2}px`,
-    gridTemplateColumns: "4fr 9fr",
-    [theme.breakpoints.down("sm")]: {
-      gridGap: `${theme.spacing.unit}px`,
-      gridTemplateColumns: "1fr"
-    }
-  }
-}));
-
-const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
+const ProductVariantCreatePage = withStyles(styles, {
+  name: "ProductVariantCreatePage"
+})(
   ({
     classes,
     currencySymbol,
@@ -63,7 +71,7 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
     onBack,
     onSubmit,
     onVariantClick
-  }) => {
+  }: ProductVariantCreatePageProps) => {
     const initialForm = {
       attributes: maybe(() =>
         product.productType.variantAttributes.map(attribute => ({

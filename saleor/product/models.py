@@ -77,7 +77,7 @@ class ProductType(models.Model):
     has_variants = models.BooleanField(default=True)
     is_shipping_required = models.BooleanField(default=False)
     tax_rate = models.CharField(
-        max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True,
+        max_length=128, default=DEFAULT_TAX_RATE_NAME,
         choices=TaxRateType.CHOICES)
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES,

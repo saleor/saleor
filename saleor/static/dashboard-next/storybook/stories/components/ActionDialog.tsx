@@ -12,6 +12,7 @@ storiesOf("Generics / ActionDialog", module)
       open={true}
       onClose={undefined}
       onConfirm={undefined}
+      confirmButtonState="default"
     >
       Example content
     </ActionDialog>

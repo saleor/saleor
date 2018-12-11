@@ -3,11 +3,13 @@ from textwrap import dedent
 
 import graphene
 from graphene_django import DjangoObjectType
+
 from saleor.core.permissions import MODELS_PERMISSIONS
 from saleor.graphql.core.utils import str_to_enum
 
 from ....core import weight
 from ..connection import CountableConnection
+from .money import VAT
 
 
 class ReportingPeriod(graphene.Enum):
@@ -34,7 +36,8 @@ class Decimal(graphene.Float):
 
 class CountryDisplay(graphene.ObjectType):
     code = graphene.String(description='Country code.', required=True)
-    country = graphene.String(description='Country.', required=True)
+    country = graphene.String(description='Country name.', required=True)
+    vat = graphene.Field(VAT, description='Country tax.')
 
 
 class CountableDjangoObjectType(DjangoObjectType):

@@ -1,3 +1,4 @@
+import { Omit } from "@material-ui/core";
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
@@ -8,7 +9,7 @@ import CustomerCreatePage, {
 import Decorator from "../../Decorator";
 import { formError } from "../../misc";
 
-const props: CustomerCreatePageProps = {
+const props: Omit<CustomerCreatePageProps, "classes"> = {
   countries: [
     { __typename: "CountryDisplay", code: "UK", country: "United Kingdom" },
     { __typename: "CountryDisplay", code: "PL", country: "Poland" }

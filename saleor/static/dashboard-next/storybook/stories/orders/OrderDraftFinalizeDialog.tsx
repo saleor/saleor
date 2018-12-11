@@ -7,6 +7,7 @@ import OrderDraftFinalize, {
 import Decorator from "../../Decorator";
 
 const props: OrderDraftFinalizeDialogProps = {
+  confirmButtonState: "default",
   onClose: () => undefined,
   onConfirm: () => undefined,
   open: true,

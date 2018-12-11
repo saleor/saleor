@@ -146,7 +146,7 @@ def display_order_event(order_event):
             'Dashboard message related to an order',
             'We restocked %(quantity)d item',
             'We restocked %(quantity)d items',
-            'quantity') % {'quantity': params['quantity']}
+            number='quantity') % {'quantity': params['quantity']}
     if event_type == OrderEvents.NOTE_ADDED.value:
         return pgettext_lazy(
             'Dashboard message related to an order',
@@ -164,7 +164,7 @@ def display_order_event(order_event):
             'Dashboard message related to an order',
             'Fulfilled %(quantity_fulfilled)d item',
             'Fulfilled %(quantity_fulfilled)d items',
-            'quantity_fulfilled') % {
+            number='quantity_fulfilled') % {
                 'quantity_fulfilled': params['quantity']}
     if event_type == OrderEvents.PLACED.value:
         return pgettext_lazy(
@@ -198,7 +198,8 @@ def display_order_event(order_event):
         return npgettext_lazy(
             'Dashboard message related to an order',
             '%(quantity)d line item oversold on this order.',
-            '%(quantity)d line items oversold on this order.') % {
+            '%(quantity)d line items oversold on this order.',
+            number='quantity') % {
                 'quantity': len(params['oversold_items'])}
 
     if event_type == OrderEvents.OTHER.value:
