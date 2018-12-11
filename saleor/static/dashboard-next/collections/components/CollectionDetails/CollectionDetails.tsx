@@ -5,6 +5,8 @@ import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
+import FormSpacer from "../../../components/FormSpacer";
+import RichTextEditor from "../../../components/RichTextEditor";
 import i18n from "../../../i18n";
 
 const styles = createStyles({
@@ -15,10 +17,12 @@ const styles = createStyles({
 
 export interface CollectionDetailsProps extends WithStyles<typeof styles> {
   data: {
+    description: string;
     name: string;
   };
   disabled: boolean;
   errors: {
+    description?: string;
     name?: string;
   };
   onChange: (event: React.ChangeEvent<any>) => void;
@@ -38,6 +42,21 @@ const CollectionDetails = withStyles(styles, { name: "CollectionDetails" })(
           onChange={onChange}
           error={!!errors.name}
           helperText={errors.name}
+        />
+        <FormSpacer />
+        <RichTextEditor
+          label={i18n.t("Description")}
+          name="description"
+          disabled={disabled}
+          value={data.description}
+          onChange={onChange}
+          error={!!errors.name}
+          helperText={
+            !!errors.name
+              ? errors.name
+              : i18n.t("Select text to enable text-formatting tools.")
+          }
+          fullWidth
         />
       </CardContent>
     </Card>
