@@ -74,6 +74,7 @@ export interface OrderVoid_orderVoid_order_fulfillments_lines_orderLine_unitPric
 export interface OrderVoid_orderVoid_order_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -119,6 +120,7 @@ export interface OrderVoid_orderVoid_order_lines_unitPrice {
 export interface OrderVoid_orderVoid_order_lines {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -229,6 +231,7 @@ export interface OrderVoid_orderVoid_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderVoid_orderVoid_order_billingAddress | null;
+  canFinalize: boolean | null;
   created: any;
   customerNote: string;
   events: (OrderVoid_orderVoid_order_events | null)[] | null;
