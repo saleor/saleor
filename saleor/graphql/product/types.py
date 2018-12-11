@@ -245,18 +245,11 @@ class ProductAvailability(graphene.ObjectType):
 class Image(graphene.ObjectType):
     url = graphene.String(
         required=True,
-        description='The URL of the image.',
-        size=graphene.Int(description='Size of the image'))
+        description='The URL of the image.')
+    alt = graphene.String(description='Alt text for an image.')
 
     class Meta:
         description = 'Represents an image.'
-
-    def resolve_url(self, info, size=None):
-        if size:
-            url = get_thumbnail(self, size, method='thumbnail')
-        else:
-            url = self.url
-        return info.context.build_absolute_uri(url)
 
 
 class Product(CountableDjangoObjectType):
@@ -413,16 +406,26 @@ class Collection(CountableDjangoObjectType):
         PrefetchingConnectionField(
             Product, description='List of products in this collection.'),
         prefetch_related=prefetch_products)
-    background_image = graphene.Field(Image)
+    background_image = graphene.Field(
+        Image, size=graphene.Int(description='Size of the image'))
 
     class Meta:
         description = "Represents a collection of products."
-        exclude_fields = ['voucher_set', 'sale_set', 'menuitem_set']
+        exclude_fields = [
+            'voucher_set', 'sale_set', 'menuitem_set', 'background_image_alt']
         interfaces = [relay.Node]
         model = models.Collection
 
-    def resolve_background_image(self, info, **kwargs):
-        return self.background_image or None
+    def resolve_background_image(self, info, size=None, **kwargs):
+        if self.background_image:
+            if size:
+                url = get_thumbnail(
+                    self.background_image, size, method='thumbnail')
+            else:
+                url = self.background_image.url
+            url = info.context.build_absolute_uri(url)
+            return Image(url, self.background_image_alt)
+        return None
 
     def resolve_products(self, info, **kwargs):
         if hasattr(self, 'prefetched_products'):

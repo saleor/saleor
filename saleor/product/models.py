@@ -452,6 +452,7 @@ class Collection(SeoModel):
         Product, blank=True, related_name='collections')
     background_image = VersatileImageField(
         upload_to='collection-backgrounds', blank=True, null=True)
+    background_image_alt = models.CharField(max_length=128, blank=True)
     is_published = models.BooleanField(default=False)
     description = models.TextField(blank=True)
 
