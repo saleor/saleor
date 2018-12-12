@@ -1820,7 +1820,7 @@ input StaffCreateInput {
   email: String
   isActive: Boolean
   note: String
-  permissions: [String]
+  permissions: [PermissionEnum]
   sendPasswordEmail: Boolean
 }
 
@@ -1833,7 +1833,7 @@ input StaffInput {
   email: String
   isActive: Boolean
   note: String
-  permissions: [String]
+  permissions: [PermissionEnum]
 }
 
 type StaffUpdate {
