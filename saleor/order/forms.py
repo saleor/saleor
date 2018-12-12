@@ -4,6 +4,7 @@ from django.utils.translation import pgettext_lazy
 
 from ..account.forms import SignupForm
 from ..payment.models import Payment
+from ..payment.utils import gateway_void
 from .models import Order
 
 PAYMENT_CHOICES = [
@@ -44,7 +45,7 @@ class PaymentDeleteForm(forms.Form):
 
     def save(self):
         payment = self.cleaned_data['payment']
-        payment.void()
+        gateway_void(payment)
 
 
 class PasswordForm(SignupForm):

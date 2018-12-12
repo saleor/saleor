@@ -19,8 +19,22 @@ def get_client_token(**connection_params):
     return str(uuid.uuid4())
 
 
+def get_template():
+    return 'order/payment/dummy.html'
+
+
 def get_form_class():
     return DummyPaymentForm
+
+
+def process_payment(
+        payment: Payment, payment_token: str, amount: Decimal,
+        **connection_params):
+    authorize(payment_token)
+    capture_success, capture_response, capture_errors = capture(
+        payment, payment_token)
+
+    return capture_success, capture_response, capture_errors
 
 
 def authorize(payment: Payment, payment_token: str, **connection_params):
@@ -28,15 +42,7 @@ def authorize(payment: Payment, payment_token: str, **connection_params):
     error = None
     if not success:
         error = 'Unable to authorize transaction'
-    txn = create_transaction(
-        payment=payment,
-        kind=TransactionKind.AUTH,
-        amount=payment.total,
-        currency=payment.currency,
-        gateway_response={},
-        token=payment_token,
-        is_success=success)
-    return txn, error
+    return success, {}, error
 
 
 def void(payment: Payment, **connection_params: Dict):
@@ -44,53 +50,30 @@ def void(payment: Payment, **connection_params: Dict):
     success = dummy_success()
     if not success:
         error = 'Unable to void the transaction.'
-    txn = create_transaction(
-        payment=payment,
-        kind=TransactionKind.VOID,
-        amount=payment.total,
-        currency=payment.currency,
-        gateway_response={},
-        token=str(uuid.uuid4()),
-        is_success=success)
-    return txn, error
+    return success, {}, error
 
 
-def capture(payment: Payment, amount: Decimal):
+def capture(payment: Payment, amount: Decimal, **connection_params: Dict):
     error = None
     success = dummy_success()
     if not success:
         error = 'Unable to process capture'
-    txn = create_transaction(
-        payment=payment,
-        kind=TransactionKind.CAPTURE,
-        amount=amount,
-        currency=payment.currency,
-        token=str(uuid.uuid4()),
-        is_success=success)
-    return txn, error
+    return success, {}, error
 
 
-def refund(payment: Payment, amount: Decimal):
+def refund(payment: Payment, amount: Decimal, **connection_params: Dict):
     error = None
     success = dummy_success()
     if not success:
         error = 'Unable to process refund'
-    txn = create_transaction(
-        payment=payment,
-        kind=TransactionKind.REFUND,
-        amount=amount,
-        currency=payment.currency,
-        token=str(uuid.uuid4()),
-        is_success=success)
-    return txn, error
+    return success, {}, error
 
 
 def charge(
         payment: Payment, payment_token: str, amount: Decimal,
         **connection_params):
     """Performs Authorize and Capture transactions in a single run."""
-    txn, error = authorize(payment, payment_token)
+    is_success, response, error = authorize(payment, payment_token)
     if error:
-        return txn, error
-    capture_txn, capture_error = capture(payment, amount)
-    return capture_txn, capture_error
+        return is_success, response, error
+    return capture(payment, amount)

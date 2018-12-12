@@ -131,35 +131,6 @@ class Payment(models.Model):
         """Retrieve the maximum capture possible."""
         return self.total - self.captured_amount
 
-    def authorize(self, payment_token):
-        from . import utils
-        return utils.gateway_authorize(
-            payment=self, payment_token=payment_token)
-
-    def charge(self, payment_token, amount=None):
-        from . import utils
-        if amount is None:
-            amount = self.get_charge_amount()
-        return utils.gateway_charge(
-            payment=self, payment_token=payment_token, amount=amount)
-
-    def void(self):
-        from . import utils
-        return utils.gateway_void(payment=self)
-
-    def capture(self, amount=None):
-        from . import utils
-        if amount is None:
-            amount = self.get_charge_amount()
-        return utils.gateway_capture(payment=self, amount=amount)
-
-    def refund(self, amount=None):
-        from . import utils
-        if amount is None:
-            # If no amount is specified, refund the maximum possible
-            amount = self.captured_amount
-        return utils.gateway_refund(payment=self, amount=amount)
-
     @property
     def is_authorized(self):
         return any([

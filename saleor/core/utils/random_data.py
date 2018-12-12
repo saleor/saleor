@@ -31,7 +31,9 @@ from ...order.models import Fulfillment, Order
 from ...order.utils import update_order_status
 from ...page.models import Page
 from ...payment.models import Payment
-from ...payment.utils import get_billing_data
+from ...payment.utils import (
+    get_billing_data, gateway_authorize, gateway_capture, gateway_refund,
+    gateway_void)
 from ...product.models import (
     Attribute, AttributeValue, Category, Collection, Product, ProductImage,
     ProductType, ProductVariant)
@@ -323,19 +325,19 @@ def create_payment(mock_email_confirmation, order):
         **get_billing_data(order))
 
     # Create authorization transaction
-    payment.authorize(payment.token)
+    gateway_authorize(payment, payment.token)
     # 20% chance to void the transaction at this stage
     if random.choice([0, 0, 0, 0, 1]):
-        payment.void()
+        gateway_void(payment)
         return payment
     # 25% to end the payment at the authorization stage
     if not random.choice([1, 1, 1, 0]):
         return payment
     # Create capture transaction
-    payment.capture()
+    gateway_capture(payment)
     # 25% to refund the payment
     if random.choice([0, 0, 0, 1]):
-        payment.refund()
+        gateway_refund(payment)
     return payment
 
 

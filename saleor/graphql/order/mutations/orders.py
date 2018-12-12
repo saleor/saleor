@@ -7,7 +7,7 @@ from ....order import OrderEvents, models
 from ....order.utils import cancel_order
 from ....payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from ....payment.models import Payment
-from ....payment.utils import get_billing_data
+from ....payment.utils import get_billing_data, gateway_void
 from ....shipping.models import ShippingMethod as ShippingMethodModel
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation
@@ -43,9 +43,9 @@ def clean_order_update_shipping(order, method, errors):
     return errors
 
 
-def try_payment_action(action, amount, errors):
+def try_payment_action(action, payment, amount, errors):
     try:
-        action(amount)
+        action(payment, amount)
     except (PaymentError, ValueError) as e:
         errors.append(Error(field='payment', message=str(e)))
 
@@ -91,7 +91,7 @@ def clean_void_payment(payment, errors):
             Error(field='payment',
                   message='Only pre-authorized payments can be voided'))
     try:
-        payment.void()
+        gateway_void(payment)
     except (PaymentError, ValueError) as e:
         errors.append(Error(field='payment', message=str(e)))
     return errors
@@ -383,7 +383,7 @@ class OrderRefund(BaseMutation):
         if order:
             payment = order.get_last_payment()
             clean_refund_payment(payment, amount, errors)
-            try_payment_action(payment.refund, amount, errors)
+            try_payment_action(gateway_refund, payment, amount, errors)
         if errors:
             return OrderRefund(errors=errors)
 

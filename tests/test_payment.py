@@ -381,7 +381,7 @@ def test_gateway_charge_failed(
     payment = payment_txn_preauth
     amount = payment.total
 
-    mock_charge = Mock(return_value=(txn, EXAMPLE_ERROR))
+    mock_charge = Mock(return_value=(False, {}, EXAMPLE_ERROR))
     mock_get_payment_gateway.return_value = (
         Mock(charge=mock_charge), gateway_params)
     with pytest.raises(PaymentError) as exc:
@@ -419,12 +419,13 @@ def test_gateway_void(mock_get_payment_gateway, payment_txn_preauth, gateway_par
     payment = payment_txn_preauth
     assert payment.is_active
 
-    mock_void = Mock(return_value=(txn, ''))
+    mock_void = Mock(return_value=(True, {}, ''))
     mock_get_payment_gateway.return_value = (Mock(void=mock_void), gateway_params)
 
     gateway_void(payment)
     mock_get_payment_gateway.assert_called_once_with(payment.gateway)
-    mock_void.assert_called_once_with(payment=payment, **gateway_params)
+    mock_void.assert_called_once_with(
+        payment_token=txn.transaction_id, **gateway_params)
 
     payment.refresh_from_db()
     assert payment.is_active == False
@@ -437,7 +438,7 @@ def test_gateway_void_failed(
     txn.is_success = False
     payment = payment_txn_preauth
 
-    mock_void = Mock(return_value=(txn, EXAMPLE_ERROR))
+    mock_void = Mock(return_value=(False, {}, EXAMPLE_ERROR))
     mock_get_payment_gateway.return_value = (Mock(void=mock_void), gateway_params)
     with pytest.raises(PaymentError) as exc:
         gateway_void(payment)
@@ -461,7 +462,7 @@ def test_gateway_refund(
     payment = payment_txn_captured
     amount = payment.total
 
-    mock_refund = Mock(return_value=(txn, ''))
+    mock_refund = Mock(return_value=(True, {}, ''))
     mock_get_payment_gateway.return_value = (
         Mock(refund=mock_refund), gateway_params)
 
@@ -484,7 +485,7 @@ def test_gateway_refund_partial_refund(
     txn.amount = amount
     txn.currency = settings.DEFAULT_CURRENCY
 
-    mock_refund = Mock(return_value=(txn, ''))
+    mock_refund = Mock(return_value=(True, {}, ''))
     mock_get_payment_gateway.return_value = (
         Mock(refund=mock_refund), gateway_params)
 
@@ -503,7 +504,7 @@ def test_gateway_refund_failed(
     captured_before = payment.captured_amount
     txn.is_success = False
 
-    mock_refund = Mock(return_value=(txn, EXAMPLE_ERROR))
+    mock_refund = Mock(return_value=(False, {}, EXAMPLE_ERROR))
     mock_get_payment_gateway.return_value = (
         Mock(refund=mock_refund), gateway_params)
 
