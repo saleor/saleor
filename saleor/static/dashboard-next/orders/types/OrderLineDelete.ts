@@ -231,7 +231,7 @@ export interface OrderLineDelete_draftOrderLineDelete_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderLineDelete_draftOrderLineDelete_order_billingAddress | null;
-  canFinalize: boolean | null;
+  canFinalize: boolean;
   created: any;
   customerNote: string;
   events: (OrderLineDelete_draftOrderLineDelete_order_events | null)[] | null;

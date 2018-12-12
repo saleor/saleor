@@ -231,7 +231,7 @@ export interface OrderCreateFulfillment_orderFulfillmentCreate_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderCreateFulfillment_orderFulfillmentCreate_order_billingAddress | null;
-  canFinalize: boolean | null;
+  canFinalize: boolean;
   created: any;
   customerNote: string;
   events: (OrderCreateFulfillment_orderFulfillmentCreate_order_events | null)[] | null;

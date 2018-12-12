@@ -231,7 +231,7 @@ export interface OrderDraftFinalize_draftOrderComplete_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderDraftFinalize_draftOrderComplete_order_billingAddress | null;
-  canFinalize: boolean | null;
+  canFinalize: boolean;
   created: any;
   customerNote: string;
   events: (OrderDraftFinalize_draftOrderComplete_order_events | null)[] | null;

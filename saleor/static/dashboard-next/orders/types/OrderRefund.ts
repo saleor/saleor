@@ -231,7 +231,7 @@ export interface OrderRefund_orderRefund_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderRefund_orderRefund_order_billingAddress | null;
-  canFinalize: boolean | null;
+  canFinalize: boolean;
   created: any;
   customerNote: string;
   events: (OrderRefund_orderRefund_order_events | null)[] | null;

@@ -225,7 +225,7 @@ export interface OrderDetailsFragment {
   __typename: "Order";
   id: string;
   billingAddress: OrderDetailsFragment_billingAddress | null;
-  canFinalize: boolean | null;
+  canFinalize: boolean;
   created: any;
   customerNote: string;
   events: (OrderDetailsFragment_events | null)[] | null;

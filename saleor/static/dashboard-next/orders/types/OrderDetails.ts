@@ -225,7 +225,7 @@ export interface OrderDetails_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderDetails_order_billingAddress | null;
-  canFinalize: boolean | null;
+  canFinalize: boolean;
   created: any;
   customerNote: string;
   events: (OrderDetails_order_events | null)[] | null;
