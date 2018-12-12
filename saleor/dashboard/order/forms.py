@@ -20,7 +20,8 @@ from ...order.utils import (
     change_order_line_quantity, recalculate_order)
 from ...payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from ...payment.models import Payment
-from ...payment.utils import get_billing_data
+from ...payment.utils import (
+    get_billing_data, gateway_capture, gateway_refund, gateway_void)
 from ...product.models import Product, ProductVariant
 from ...product.utils import allocate_stock, deallocate_stock
 from ...shipping.models import ShippingMethod
@@ -274,7 +275,7 @@ class ManagePaymentForm(forms.Form):
     def try_payment_action(self, action):
         amount = self.cleaned_data['amount']
         try:
-            action(amount)
+            action(self.payment, amount)
         except (PaymentError, ValueError) as e:
             self.payment_error(str(e))
             return False
@@ -288,7 +289,7 @@ class CapturePaymentForm(ManagePaymentForm):
                                 'Only pre-authorized payments can be captured')
 
     def capture(self):
-        return self.try_payment_action(self.payment.capture)
+        return self.try_payment_action(gateway_capture)
 
 
 class RefundPaymentForm(ManagePaymentForm):
@@ -306,7 +307,7 @@ class RefundPaymentForm(ManagePaymentForm):
                     'Manual payments can not be refunded'))
 
     def refund(self):
-        return self.try_payment_action(self.payment.refund)
+        return self.try_payment_action(gateway_refund)
 
 
 class VoidPaymentForm(forms.Form):
@@ -329,7 +330,7 @@ class VoidPaymentForm(forms.Form):
 
     def void(self):
         try:
-            self.payment.void()
+            gateway_void(self.payment)
         except (PaymentError, ValueError) as e:
             self.payment_error(str(e))
             return False

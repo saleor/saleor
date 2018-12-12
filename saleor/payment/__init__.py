@@ -12,6 +12,10 @@ class PaymentError(Exception):
         self.message = message
 
 
+class GatewayError(Exception):
+    pass
+
+
 class CustomPaymentChoices:
     MANUAL = 'manual'
 
