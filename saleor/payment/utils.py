@@ -5,9 +5,10 @@ from typing import Dict, Optional
 
 from django.conf import settings
 from django.db import transaction
+from django.forms.models import model_to_dict
 from prices import Money
 
-from . import ChargeStatus, PaymentError, get_payment_gateway
+from . import ChargeStatus, PaymentError, get_payment_gateway, TransactionKind
 from ..core import analytics
 from ..order import OrderEvents, OrderEventsEmails
 from ..order.emails import send_payment_confirmation
@@ -130,21 +131,38 @@ def gateway_charge(
     clean_capture(payment, amount)
 
     gateway, gateway_params = get_payment_gateway(payment.gateway)
-    with transaction.atomic():
-        txn, error = gateway.charge(
+    try:
+        is_success, gateway_response, error = gateway.charge(
+            payment=model_to_dict(payment), payment_token=payment_token,
+            amount=amount, **gateway_params)
+    except Exception as e:
+        return create_transaction(
             payment=payment,
-            payment_token=payment_token,
-            amount=amount,
-            **gateway_params)
-        if txn.is_success:
-            payment.charge_status = ChargeStatus.CHARGED
-            payment.captured_amount += txn.amount
-            payment.save(update_fields=['charge_status', 'captured_amount'])
-            order = payment.order
-            if order and order.is_fully_paid():
-                handle_fully_paid_order(order)
-    if not txn.is_success:
+            kind=TransactionKind.CHARGE,
+            currency=payment.currency,
+            amount=payment.total,
+            token=payment_token,
+            is_success=False)
+
+    txn = create_transaction(
+        payment=payment,
+        kind=TransactionKind.AUTH,
+        amount=gateway_response.get('amount', payment.total),
+        currency=gateway_response.get('currency', payment.currency),
+        gateway_response=gateway_response,
+        token=gateway_response.get('transaction_id', ''),
+        is_success=is_success)
+
+    if txn.is_success:
+        payment.charge_status = ChargeStatus.CHARGED
+        payment.captured_amount += txn.amount
+        payment.save(update_fields=['charge_status', 'captured_amount'])
+        order = payment.order
+        if order and order.is_fully_paid():
+            handle_fully_paid_order(order)
+    else:
         raise PaymentError(error)
+
     return txn
 
 
@@ -158,11 +176,43 @@ def gateway_authorize(payment: Payment, payment_token: str) -> Transaction:
     clean_authorize(payment)
 
     gateway, gateway_params = get_payment_gateway(payment.gateway)
-    with transaction.atomic():
-        txn, error = gateway.authorize(
-            payment=payment, payment_token=payment_token, **gateway_params)
+    try:
+        is_success, gateway_response, error = gateway.authorize(
+            payment=model_to_dict(payment), payment_token=payment_token,
+            **gateway_params)
+    except Exception as e:
+        return create_transaction(
+            payment=payment,
+            kind=TransactionKind.AUTH,
+            currency=payment.currency,
+            amount=payment.total,
+            token=payment_token,
+            is_success=False)
+
+    # this is braintree related only for now
+    # credit_card_details = gateway_response.get('credit_card')
+    # if credit_card_details:
+    #     payment.cc_first_digits = credit_card_details.bin
+    #     payment.cc_last_digits = credit_card_details.last_4
+    #     payment.cc_brand = credit_card_details.card_type
+    #     payment.cc_exp_month = credit_card_details.expiration_month
+    #     payment.cc_exp_year = credit_card_details.expiration_year
+    #     payment.save(update_fields=[
+    #         'cc_first_digits', 'cc_last_digits', 'cc_brand',
+    #         'cc_exp_month', 'cc_exp_year'])
+
+    txn = create_transaction(
+        payment=payment,
+        kind=TransactionKind.AUTH,
+        amount=gateway_response.get('amount', payment.total),
+        currency=gateway_response.get('currency', payment.currency),
+        gateway_response=gateway_response,
+        token=gateway_response.get('transaction_id', ''),
+        is_success=is_success)
+
     if not txn.is_success:
         raise PaymentError(error)
+
     return txn
 
 
@@ -171,19 +221,43 @@ def gateway_capture(payment: Payment, amount: Decimal) -> Transaction:
     """Captures the money that was reserved during the authorization stage."""
     clean_capture(payment, amount)
 
+    auth_transaction = payment.transactions.filter(
+        kind=TransactionKind.AUTH, is_success=True).first()
+    payment_token = auth_transaction.token
+
     gateway, gateway_params = get_payment_gateway(payment.gateway)
-    with transaction.atomic():
-        txn, error = gateway.capture(
-            payment=payment, amount=amount, **gateway_params)
-        if txn.is_success:
-            payment.charge_status = ChargeStatus.CHARGED
-            payment.captured_amount += txn.amount
-            payment.save(update_fields=['charge_status', 'captured_amount'])
-            order = payment.order
-            if order and order.is_fully_paid():
-                handle_fully_paid_order(order)
-    if not txn.is_success:
+    try:
+        is_success, gateway_response, error = gateway.capture(
+            payment=payment, payment_token=payment_token,
+            amount=amount, **gateway_params)
+    except:
+        return create_transaction(
+            payment=payment,
+            kind=TransactionKind.CAPTURE,
+            currency=payment.currency,
+            amount=amount,
+            token=payment_token,
+            is_success=False)
+
+    txn = create_transaction(
+        payment=payment,
+        kind=TransactionKind.CAPTURE,
+        amount=gateway_response.get('amount', amount),
+        currency=gateway_response.get('currency', payment.currency),
+        gateway_response=gateway_response,
+        token=gateway_response.get('transaction_id'),
+        is_success=is_success)
+
+    if txn.is_success:
+        payment.charge_status = ChargeStatus.CHARGED
+        payment.captured_amount += txn.amount
+        payment.save(update_fields=['charge_status', 'captured_amount'])
+        order = payment.order
+        if order and order.is_fully_paid():
+            handle_fully_paid_order(order)
+    else:
         raise PaymentError(error)
+
     return txn
 
 
@@ -191,14 +265,39 @@ def gateway_capture(payment: Payment, amount: Decimal) -> Transaction:
 def gateway_void(payment) -> Transaction:
     if not payment.can_void():
         raise PaymentError('Only pre-authorized transactions can be voided.')
+
+    auth_transaction = payment.transactions.filter(
+        kind=TransactionKind.AUTH, is_success=True).first()
+    payment_token = auth_transaction.token
+
     gateway, gateway_params = get_payment_gateway(payment.gateway)
-    with transaction.atomic():
-        txn, error = gateway.void(payment=payment, **gateway_params)
-        if txn.is_success:
-            payment.is_active = False
-            payment.save(update_fields=['is_active'])
-    if not txn.is_success:
+    try:
+        is_success, gateway_response, error = gateway.void(
+            payment=payment, payment_token=payment_token,**gateway_params)
+    except:
+        return create_transaction(
+            payment=payment,
+            kind=TransactionKind.VOID,
+            currency=payment.currency,
+            amount=payment.total,
+            token=payment_token,
+            is_success=False)
+
+    txn = create_transaction(
+        payment=payment,
+        kind=TransactionKind.CAPTURE,
+        amount=gateway_response.get('amount', payment.total),
+        currency=gateway_response.get('currency', payment.currency),
+        gateway_response=gateway_response,
+        token=gateway_response.get('transaction_id'),
+        is_success=is_success)
+
+    if txn.is_success:
+        payment.is_active = False
+        payment.save(update_fields=['is_active'])
+    else:
         raise PaymentError(error)
+
     return txn
 
 
@@ -207,25 +306,51 @@ def gateway_refund(payment, amount: Decimal) -> Transaction:
     """Refunds the charged funds back to the customer.
     Refunds can be total or partial.
     """
-    if amount <= 0:
-        raise PaymentError('Amount should be a positive number.')
-    if amount > payment.captured_amount:
-        raise PaymentError('Cannot refund more than captured')
     if not payment.can_refund():
         raise PaymentError('This payment cannot be refunded.')
 
+    if amount <= 0:
+        raise PaymentError('Amount should be a positive number.')
+    elif amount > payment.captured_amount:
+        raise PaymentError('Cannot refund more than captured')
+
+    transaction = payment.transactions.filter(
+        kind__in=[TransactionKind.CAPTURE, TransactionKind.CHARGE],
+        is_success=True).first()
+    payment_token = capture_transaction.token
+
     gateway, gateway_params = get_payment_gateway(payment.gateway)
-    with transaction.atomic():
-        txn, error = gateway.refund(
-            payment=payment, amount=amount, **gateway_params)
-        if txn.is_success:
-            changed_fields = ['captured_amount']
-            payment.captured_amount -= txn.amount
-            if not payment.captured_amount:
-                payment.charge_status = ChargeStatus.FULLY_REFUNDED
-                payment.is_active = False
-                changed_fields += ['charge_status', 'is_active']
-            payment.save(update_fields=changed_fields)
-    if not txn.is_success:
+    try:
+        is_success, gateway_response, error = gateway.refund(
+            payment=payment,payment_token=payment_token,
+            amount=amount, **gateway_params)
+    except:
+        return create_transaction(
+            payment=payment,
+            kind=TransactionKind.REFUND,
+            currency=payment.currency,
+            amount=amount,
+            token=payment_token,
+            is_success=False)
+
+    txn = create_transaction(
+        payment=payment,
+        kind=TransactionKind.REFUND,
+        amount=gateway_response.get('amount', amount),
+        currency=gateway_response.get('currency', payment.currency),
+        gateway_response=gateway_response,
+        token=gateway_response.get('transaction_id'),
+        is_success=is_success)
+
+    if txn.is_success:
+        changed_fields = ['captured_amount']
+        payment.captured_amount -= txn.amount
+        if not payment.captured_amount:
+            payment.charge_status = ChargeStatus.FULLY_REFUNDED
+            payment.is_active = False
+            changed_fields += ['charge_status', 'is_active']
+        payment.save(update_fields=changed_fields)
+    else:
         raise PaymentError(error)
+
     return txn
