@@ -28,5 +28,5 @@ CHECKOUT_PAYMENT_GATEWAYS = {
     DUMMY: 'Dummy gateway',
     BRAINTREE: 'Braintree',
     RAZORPAY: 'Razorpay',
-    STRIPE: 'Stripe',
+    STRIPE: 'Stripe'
 }
