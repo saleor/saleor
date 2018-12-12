@@ -231,7 +231,7 @@ export interface OrderLineUpdate_draftOrderLineUpdate_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderLineUpdate_draftOrderLineUpdate_order_billingAddress | null;
-  canFinalize: boolean | null;
+  canFinalize: boolean;
   created: any;
   customerNote: string;
   events: (OrderLineUpdate_draftOrderLineUpdate_order_events | null)[] | null;

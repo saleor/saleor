@@ -231,7 +231,7 @@ export interface OrderCapture_orderCapture_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderCapture_orderCapture_order_billingAddress | null;
-  canFinalize: boolean | null;
+  canFinalize: boolean;
   created: any;
   customerNote: string;
   events: (OrderCapture_orderCapture_order_events | null)[] | null;

@@ -231,7 +231,7 @@ export interface OrderCancel_orderCancel_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderCancel_orderCancel_order_billingAddress | null;
-  canFinalize: boolean | null;
+  canFinalize: boolean;
   created: any;
   customerNote: string;
   events: (OrderCancel_orderCancel_order_events | null)[] | null;

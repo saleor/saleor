@@ -231,7 +231,7 @@ export interface OrderMarkAsPaid_orderMarkAsPaid_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderMarkAsPaid_orderMarkAsPaid_order_billingAddress | null;
-  canFinalize: boolean | null;
+  canFinalize: boolean;
   created: any;
   customerNote: string;
   events: (OrderMarkAsPaid_orderMarkAsPaid_order_events | null)[] | null;

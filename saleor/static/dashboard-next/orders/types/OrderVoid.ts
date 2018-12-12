@@ -231,7 +231,7 @@ export interface OrderVoid_orderVoid_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderVoid_orderVoid_order_billingAddress | null;
-  canFinalize: boolean | null;
+  canFinalize: boolean;
   created: any;
   customerNote: string;
   events: (OrderVoid_orderVoid_order_events | null)[] | null;
