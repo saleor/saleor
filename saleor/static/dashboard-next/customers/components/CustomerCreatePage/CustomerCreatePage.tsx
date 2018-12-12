@@ -29,7 +29,10 @@ const initialForm: CustomerCreatePageFormData = {
   city: "",
   cityArea: "",
   companyName: "",
-  country: "",
+  country: {
+    label: "",
+    value: ""
+  },
   countryArea: "",
   email: "",
   firstName: "",
