@@ -1385,7 +1385,7 @@ exports[`Storyshots Generics / MultiAutocompleteSelectField with loaded data 1`]
         <div
           aria-autocomplete="list"
           aria-expanded="false"
-          class="MuiInputBase-root-id MuiInput-root-id MultiAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedStart-id MuiInputBase-adornedEnd-id"
+          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedStart-id MuiInputBase-adornedEnd-id"
           role="combobox"
         >
           <div
@@ -1457,7 +1457,7 @@ exports[`Storyshots Generics / MultiAutocompleteSelectField with loading data 1`
         <div
           aria-autocomplete="list"
           aria-expanded="false"
-          class="MuiInputBase-root-id MuiInput-root-id MultiAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedStart-id MuiInputBase-adornedEnd-id"
+          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedStart-id MuiInputBase-adornedEnd-id"
           role="combobox"
         >
           <div
@@ -3384,7 +3384,7 @@ exports[`Storyshots Generics / SingleAutocompleteSelectField with custom option 
         <div
           aria-autocomplete="list"
           aria-expanded="false"
-          class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
           role="combobox"
         >
           <input
@@ -3435,7 +3435,7 @@ exports[`Storyshots Generics / SingleAutocompleteSelectField with loaded data 1`
         <div
           aria-autocomplete="list"
           aria-expanded="false"
-          class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
           role="combobox"
         >
           <input
@@ -3486,7 +3486,7 @@ exports[`Storyshots Generics / SingleAutocompleteSelectField with loading data 1
         <div
           aria-autocomplete="list"
           aria-expanded="false"
-          class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
           role="combobox"
         >
           <input
@@ -42033,7 +42033,7 @@ exports[`Storyshots Views / Products / Create product When loading 1`] = `
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -42108,11 +42108,9 @@ exports[`Storyshots Views / Products / Create product When loading 1`] = `
                   </div>
                 </div>
               </div>
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id ProductOrganization-cardSubtitle-id"
-              >
-                Attributes
-              </p>
+              <div
+                class="FormSpacer-spacer-id"
+              />
               <hr
                 class="ProductOrganization-hr-id"
               />
@@ -42131,7 +42129,7 @@ exports[`Storyshots Views / Products / Create product When loading 1`] = `
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -42182,7 +42180,7 @@ exports[`Storyshots Views / Products / Create product When loading 1`] = `
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id MultiAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedStart-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedStart-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -42694,7 +42692,7 @@ exports[`Storyshots Views / Products / Create product default 1`] = `
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -42768,11 +42766,9 @@ exports[`Storyshots Views / Products / Create product default 1`] = `
                   </div>
                 </div>
               </div>
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id ProductOrganization-cardSubtitle-id"
-              >
-                Attributes
-              </p>
+              <div
+                class="FormSpacer-spacer-id"
+              />
               <hr
                 class="ProductOrganization-hr-id"
               />
@@ -42791,7 +42787,7 @@ exports[`Storyshots Views / Products / Create product default 1`] = `
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -42841,7 +42837,7 @@ exports[`Storyshots Views / Products / Create product default 1`] = `
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id MultiAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedStart-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedStart-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -43176,7 +43172,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -44034,7 +44030,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -44939,7 +44935,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -45034,7 +45030,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -45081,7 +45077,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -45131,7 +45127,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -45181,7 +45177,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id MultiAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedStart-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedStart-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <div
@@ -45874,7 +45870,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -45949,11 +45945,9 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
                   </div>
                 </div>
               </div>
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id ProductOrganization-cardSubtitle-id"
-              >
-                Attributes
-              </p>
+              <div
+                class="FormSpacer-spacer-id"
+              />
               <hr
                 class="ProductOrganization-hr-id"
               />
@@ -45972,7 +45966,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -46023,7 +46017,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id MultiAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedStart-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedStart-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -46751,7 +46745,7 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -46846,7 +46840,7 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -46893,7 +46887,7 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -46943,7 +46937,7 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -46993,7 +46987,7 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id MultiAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedStart-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedStart-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <div
@@ -47759,7 +47753,7 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -47854,7 +47848,7 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -47901,7 +47895,7 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -47951,7 +47945,7 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -48001,7 +47995,7 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id MultiAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedStart-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedStart-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <div
@@ -50959,7 +50953,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -51006,7 +51000,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
@@ -55463,7 +55457,7 @@ exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
                   <div
                     aria-autocomplete="list"
                     aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id SingleAutocompleteSelectField-inputRoot-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                     role="combobox"
                   >
                     <input
