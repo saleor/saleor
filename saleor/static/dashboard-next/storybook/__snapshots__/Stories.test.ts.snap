@@ -1414,7 +1414,6 @@ exports[`Storyshots Generics / MultiAutocompleteSelectField with loaded data 1`]
             aria-invalid="false"
             autocomplete="off"
             class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedStart-id MuiInputBase-inputAdornedEnd-id"
-            id="downshift-1-input"
             placeholder="Select country"
             type="text"
           />
@@ -1486,7 +1485,6 @@ exports[`Storyshots Generics / MultiAutocompleteSelectField with loading data 1`
             aria-invalid="false"
             autocomplete="off"
             class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedStart-id MuiInputBase-inputAdornedEnd-id"
-            id="downshift-0-input"
             placeholder="Select country"
             type="text"
           />
@@ -3391,7 +3389,6 @@ exports[`Storyshots Generics / SingleAutocompleteSelectField with custom option 
             aria-invalid="false"
             autocomplete="off"
             class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
-            id="downshift-4-input"
             placeholder="Select country"
             type="text"
             value="Afghanistan"
@@ -3442,7 +3439,6 @@ exports[`Storyshots Generics / SingleAutocompleteSelectField with loaded data 1`
             aria-invalid="false"
             autocomplete="off"
             class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
-            id="downshift-3-input"
             placeholder="Select country"
             type="text"
             value="Afghanistan"
@@ -3493,7 +3489,6 @@ exports[`Storyshots Generics / SingleAutocompleteSelectField with loading data 1
             aria-invalid="false"
             autocomplete="off"
             class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
-            id="downshift-2-input"
             placeholder="Select country"
             type="text"
             value="Afghanistan"
@@ -42278,7 +42273,6 @@ exports[`Storyshots Views / Products / Create product When loading 1`] = `
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputAdornedEnd-id"
                       disabled=""
-                      id="downshift-8-input"
                       type="text"
                       value=""
                     />
@@ -42374,7 +42368,6 @@ exports[`Storyshots Views / Products / Create product When loading 1`] = `
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputAdornedEnd-id"
                       disabled=""
-                      id="downshift-9-input"
                       type="text"
                       value=""
                     />
@@ -42424,7 +42417,6 @@ exports[`Storyshots Views / Products / Create product When loading 1`] = `
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedStart-id MuiInputBase-inputAdornedEnd-id"
-                      id="downshift-10-input"
                       type="text"
                     />
                     <svg
@@ -42936,7 +42928,6 @@ exports[`Storyshots Views / Products / Create product default 1`] = `
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
-                      id="downshift-5-input"
                       type="text"
                       value=""
                     />
@@ -43031,7 +43022,6 @@ exports[`Storyshots Views / Products / Create product default 1`] = `
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
-                      id="downshift-6-input"
                       type="text"
                       value=""
                     />
@@ -43081,7 +43071,6 @@ exports[`Storyshots Views / Products / Create product default 1`] = `
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedStart-id MuiInputBase-inputAdornedEnd-id"
-                      id="downshift-7-input"
                       type="text"
                     />
                     <svg
@@ -43416,7 +43405,6 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
-                      id="downshift-29-input"
                       type="text"
                       value=""
                     />
@@ -44274,7 +44262,6 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
-                      id="downshift-30-input"
                       type="text"
                       value=""
                     />
@@ -45180,7 +45167,6 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputAdornedEnd-id"
                       disabled=""
-                      id="downshift-11-input"
                       type="text"
                       value="Versatile"
                     />
@@ -45274,7 +45260,6 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
-                      id="downshift-12-input"
                       type="text"
                       value="portals"
                     />
@@ -45321,7 +45306,6 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
-                      id="downshift-13-input"
                       type="text"
                       value="Auto Loan Account"
                     />
@@ -45371,7 +45355,6 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
-                      id="downshift-14-input"
                       type="text"
                       value="Apparel"
                     />
@@ -45443,7 +45426,6 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedStart-id MuiInputBase-inputAdornedEnd-id"
-                      id="downshift-15-input"
                       type="text"
                     />
                     <svg
@@ -46115,7 +46097,6 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputAdornedEnd-id"
                       disabled=""
-                      id="downshift-26-input"
                       type="text"
                       value=""
                     />
@@ -46211,7 +46192,6 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputAdornedEnd-id"
                       disabled=""
-                      id="downshift-27-input"
                       type="text"
                       value=""
                     />
@@ -46261,7 +46241,6 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedStart-id MuiInputBase-inputAdornedEnd-id"
-                      id="downshift-28-input"
                       type="text"
                     />
                     <svg
@@ -46990,7 +46969,6 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputAdornedEnd-id"
                       disabled=""
-                      id="downshift-16-input"
                       type="text"
                       value="Versatile"
                     />
@@ -47084,7 +47062,6 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
-                      id="downshift-17-input"
                       type="text"
                       value="portals"
                     />
@@ -47131,7 +47108,6 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
-                      id="downshift-18-input"
                       type="text"
                       value="Auto Loan Account"
                     />
@@ -47181,7 +47157,6 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
-                      id="downshift-19-input"
                       type="text"
                       value="Apparel"
                     />
@@ -47253,7 +47228,6 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedStart-id MuiInputBase-inputAdornedEnd-id"
-                      id="downshift-20-input"
                       type="text"
                     />
                     <svg
@@ -47998,7 +47972,6 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputAdornedEnd-id"
                       disabled=""
-                      id="downshift-21-input"
                       type="text"
                       value="Versatile"
                     />
@@ -48092,7 +48065,6 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
-                      id="downshift-22-input"
                       type="text"
                       value="portals"
                     />
@@ -48139,7 +48111,6 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
-                      id="downshift-23-input"
                       type="text"
                       value="Auto Loan Account"
                     />
@@ -48189,7 +48160,6 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
-                      id="downshift-24-input"
                       type="text"
                       value="Apparel"
                     />
@@ -48261,7 +48231,6 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedStart-id MuiInputBase-inputAdornedEnd-id"
-                      id="downshift-25-input"
                       type="text"
                     />
                     <svg
@@ -51197,7 +51166,6 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
-                      id="downshift-31-input"
                       type="text"
                       value="portals"
                     />
@@ -51244,7 +51212,6 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
-                      id="downshift-32-input"
                       type="text"
                       value="Auto Loan Account"
                     />
@@ -55701,7 +55668,6 @@ exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
-                      id="downshift-33-input"
                       type="text"
                       value="Gorgeous Wooden Tuna"
                     />
