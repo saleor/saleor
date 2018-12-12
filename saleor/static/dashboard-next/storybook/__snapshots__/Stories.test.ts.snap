@@ -1062,46 +1062,44 @@ exports[`Storyshots Generics / AddressEdit default 1`] = `
     >
       <div>
         <div
-          class="MuiFormControl-root-id SingleSelectField-formControl-id"
+          class="SingleAutocompleteSelectField-container-id"
         >
-          <label
-            class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-            data-shrink="true"
-          >
-            Country
-          </label>
           <div
-            class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
           >
-            <div
-              class="MuiSelect-root-id"
+            <label
+              class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+              data-shrink="true"
             >
-              <div
-                aria-haspopup="true"
-                aria-pressed="false"
-                class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
-                role="button"
-                tabindex="0"
-              >
-                <span>
-                  ​
-                </span>
-              </div>
+              Country
+            </label>
+            <div
+              aria-autocomplete="list"
+              aria-expanded="false"
+              class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+              role="combobox"
+            >
               <input
-                name="country"
-                type="hidden"
-                value="SE"
+                aria-invalid="false"
+                autocomplete="off"
+                class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
+                type="text"
+                value="Szwecja"
               />
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                class="MuiSvgIcon-root-id"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
               >
-                <path
-                  d="M7 10l5 5 5-5z"
-                />
+                <g
+                  style="fill-rule:evenodd"
+                >
+                  <path
+                    d="M7 10l5 5 5-5z"
+                  />
+                </g>
               </svg>
             </div>
           </div>
@@ -13851,7 +13849,7 @@ exports[`Storyshots Views / Customers / Create customer default 1`] = `
             class="CardSpacer-spacer-id"
           />
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id CustomerCreateAddress-overflow-id"
           >
             <div
               class="CardTitle-root-id"
@@ -13872,7 +13870,7 @@ exports[`Storyshots Views / Customers / Create customer default 1`] = `
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id"
+              class="MuiCardContent-root-id CustomerCreateAddress-overflow-id"
             >
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
@@ -14094,46 +14092,44 @@ exports[`Storyshots Views / Customers / Create customer default 1`] = `
               >
                 <div>
                   <div
-                    class="MuiFormControl-root-id SingleSelectField-formControl-id"
+                    class="SingleAutocompleteSelectField-container-id"
                   >
-                    <label
-                      class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                      data-shrink="false"
-                    >
-                      Country
-                    </label>
                     <div
-                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                      class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                     >
-                      <div
-                        class="MuiSelect-root-id"
+                      <label
+                        class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                        data-shrink="false"
                       >
-                        <div
-                          aria-haspopup="true"
-                          aria-pressed="false"
-                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
-                          role="button"
-                          tabindex="0"
-                        >
-                          <span>
-                            ​
-                          </span>
-                        </div>
+                        Country
+                      </label>
+                      <div
+                        aria-autocomplete="list"
+                        aria-expanded="false"
+                        class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                        role="combobox"
+                      >
                         <input
-                          name="country"
-                          type="hidden"
+                          aria-invalid="false"
+                          autocomplete="off"
+                          class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
+                          type="text"
                           value=""
                         />
                         <svg
                           aria-hidden="true"
-                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          class="MuiSvgIcon-root-id"
                           focusable="false"
                           role="presentation"
                           viewBox="0 0 24 24"
                         >
-                          <path
-                            d="M7 10l5 5 5-5z"
-                          />
+                          <g
+                            style="fill-rule:evenodd"
+                          >
+                            <path
+                              d="M7 10l5 5 5-5z"
+                            />
+                          </g>
                         </svg>
                       </div>
                     </div>
@@ -14169,7 +14165,7 @@ exports[`Storyshots Views / Customers / Create customer default 1`] = `
             class="CardSpacer-spacer-id"
           />
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id CustomerCreateAddress-overflow-id"
           >
             <div
               class="CardTitle-root-id"
@@ -14190,7 +14186,7 @@ exports[`Storyshots Views / Customers / Create customer default 1`] = `
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id"
+              class="MuiCardContent-root-id CustomerCreateAddress-overflow-id"
             >
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
@@ -14706,54 +14702,52 @@ exports[`Storyshots Views / Customers / Create customer form errors 1`] = `
               >
                 <div>
                   <div
-                    class="MuiFormControl-root-id SingleSelectField-formControl-id"
+                    class="SingleAutocompleteSelectField-container-id"
                   >
-                    <label
-                      class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                      data-shrink="false"
-                    >
-                      Country
-                    </label>
                     <div
-                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                      class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                     >
-                      <div
-                        class="MuiSelect-root-id"
+                      <label
+                        class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                        data-shrink="false"
                       >
-                        <div
-                          aria-haspopup="true"
-                          aria-pressed="false"
-                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
-                          role="button"
-                          tabindex="0"
-                        >
-                          <span>
-                            ​
-                          </span>
-                        </div>
+                        Country
+                      </label>
+                      <div
+                        aria-autocomplete="list"
+                        aria-expanded="false"
+                        class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                        role="combobox"
+                      >
                         <input
-                          name="country"
-                          type="hidden"
+                          aria-invalid="true"
+                          autocomplete="off"
+                          class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
+                          type="text"
                           value=""
                         />
                         <svg
                           aria-hidden="true"
-                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          class="MuiSvgIcon-root-id"
                           focusable="false"
                           role="presentation"
                           viewBox="0 0 24 24"
                         >
-                          <path
-                            d="M7 10l5 5 5-5z"
-                          />
+                          <g
+                            style="fill-rule:evenodd"
+                          >
+                            <path
+                              d="M7 10l5 5 5-5z"
+                            />
+                          </g>
                         </svg>
                       </div>
+                      <p
+                        class="MuiFormHelperText-root-id"
+                      >
+                        Generic form error
+                      </p>
                     </div>
-                    <p
-                      class="MuiFormHelperText-root-id MuiFormHelperText-error-id"
-                    >
-                      Generic form error
-                    </p>
                   </div>
                 </div>
                 <div>
@@ -14791,7 +14785,7 @@ exports[`Storyshots Views / Customers / Create customer form errors 1`] = `
             class="CardSpacer-spacer-id"
           />
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id CustomerCreateAddress-overflow-id"
           >
             <div
               class="CardTitle-root-id"
@@ -14812,7 +14806,7 @@ exports[`Storyshots Views / Customers / Create customer form errors 1`] = `
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id"
+              class="MuiCardContent-root-id CustomerCreateAddress-overflow-id"
             >
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
@@ -15297,45 +15291,45 @@ exports[`Storyshots Views / Customers / Create customer loading 1`] = `
               >
                 <div>
                   <div
-                    class="MuiFormControl-root-id SingleSelectField-formControl-id"
+                    class="SingleAutocompleteSelectField-container-id"
                   >
-                    <label
-                      class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                      data-shrink="false"
-                    >
-                      Country
-                    </label>
                     <div
-                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                      class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                     >
-                      <div
-                        class="MuiSelect-root-id"
+                      <label
+                        class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                        data-shrink="false"
                       >
-                        <div
-                          aria-haspopup="true"
-                          aria-pressed="false"
-                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiSelect-disabled-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id"
-                          role="button"
-                        >
-                          <span>
-                            ​
-                          </span>
-                        </div>
+                        Country
+                      </label>
+                      <div
+                        aria-autocomplete="list"
+                        aria-expanded="false"
+                        class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                        role="combobox"
+                      >
                         <input
-                          name="country"
-                          type="hidden"
+                          aria-invalid="false"
+                          autocomplete="off"
+                          class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputAdornedEnd-id"
+                          disabled=""
+                          type="text"
                           value=""
                         />
                         <svg
                           aria-hidden="true"
-                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          class="MuiSvgIcon-root-id"
                           focusable="false"
                           role="presentation"
                           viewBox="0 0 24 24"
                         >
-                          <path
-                            d="M7 10l5 5 5-5z"
-                          />
+                          <g
+                            style="fill-rule:evenodd"
+                          >
+                            <path
+                              d="M7 10l5 5 5-5z"
+                            />
+                          </g>
                         </svg>
                       </div>
                     </div>
