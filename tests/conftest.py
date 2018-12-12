@@ -333,16 +333,19 @@ def product_list(product_type, category):
     attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
 
     product_1 = Product.objects.create(
-        name='Test product 1', price=Money('10.00', 'USD'), category=category,
-        product_type=product_type, attributes=attributes, is_published=True)
+        pk=1486, name='Test product 1', price=Money('10.00', 'USD'),
+        category=category, product_type=product_type, attributes=attributes,
+        is_published=True)
 
     product_2 = Product.objects.create(
-        name='Test product 2', price=Money('20.00', 'USD'), category=category,
-        product_type=product_type, attributes=attributes, is_published=False)
+        pk=1487, name='Test product 2', price=Money('20.00', 'USD'),
+        category=category, product_type=product_type, attributes=attributes,
+        is_published=False)
 
     product_3 = Product.objects.create(
-        name='Test product 3', price=Money('20.00', 'USD'), category=category,
-        product_type=product_type, attributes=attributes, is_published=True)
+        pk=1489, name='Test product 3', price=Money('20.00', 'USD'),
+        category=category, product_type=product_type, attributes=attributes,
+        is_published=True)
 
     return [product_1, product_2, product_3]
 
