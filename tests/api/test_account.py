@@ -12,6 +12,7 @@ from tests.api.utils import get_graphql_content
 from saleor.account.models import Address, User
 from saleor.graphql.account.mutations import (
     CustomerDelete, SetPassword, StaffDelete, StaffUpdate, UserDelete)
+from saleor.graphql.core.types import PermissionEnum
 
 from .utils import assert_no_permission, convert_dict_keys_to_camel_case
 
@@ -569,7 +570,7 @@ def test_staff_create(
         send_password_reset_mock, staff_api_client,
         permission_manage_staff, permission_manage_products, staff_user):
     query = """
-    mutation CreateStaff($email: String, $permissions: [String], $send_mail: Boolean) {
+    mutation CreateStaff($email: String, $permissions: [PermissionEnum], $send_mail: Boolean) {
         staffCreate(input: {email: $email, permissions: $permissions, sendPasswordEmail: $send_mail}) {
             errors {
                 field
@@ -588,14 +589,10 @@ def test_staff_create(
     }
     """
 
-    permission_manage_products_codename = '%s.%s' % (
-        permission_manage_products.content_type.app_label,
-        permission_manage_products.codename)
-
     email = 'api_user@example.com'
     variables = {
         'email': email,
-        'permissions': [permission_manage_products_codename],
+        'permissions': [PermissionEnum.MANAGE_PRODUCTS.name],
         'send_mail': True}
 
     response = staff_api_client.post_graphql(
@@ -620,7 +617,7 @@ def test_staff_create(
 def test_staff_update(staff_api_client, permission_manage_staff):
     query = """
     mutation UpdateStaff(
-            $id: ID!, $permissions: [String], $is_active: Boolean) {
+            $id: ID!, $permissions: [PermissionEnum], $is_active: Boolean) {
         staffUpdate(
                 id: $id,
                 input: {permissions: $permissions, isActive: $is_active}) {
