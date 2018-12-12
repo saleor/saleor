@@ -16,6 +16,7 @@ export interface CollectionDetailsFragment {
   isPublished: boolean;
   name: string;
   backgroundImage: CollectionDetailsFragment_backgroundImage | null;
+  description: string;
   seoDescription: string | null;
   seoTitle: string | null;
 }
