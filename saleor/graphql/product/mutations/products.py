@@ -25,6 +25,8 @@ class CategoryInput(graphene.InputObjectType):
     slug = graphene.String(description='Category slug')
     seo = SeoInput(description='Search engine optimization fields.')
     background_image = Upload(description='Background image file.')
+    background_image_alt = graphene.String(
+        description='Alt text for an image.')
 
 
 class CategoryCreate(ModelMutation):
@@ -109,6 +111,8 @@ class CollectionInput(graphene.InputObjectType):
     slug = graphene.String(description='Slug of the collection.')
     description = graphene.String(description='Description of the collection.')
     background_image = Upload(description='Background image file.')
+    background_image_alt = graphene.String(
+        description='Alt text for an image.')
     seo = SeoInput(description='Search engine optimization fields.')
 
 

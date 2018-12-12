@@ -56,15 +56,18 @@ def test_create_collection(
         monkeypatch, staff_api_client, product_list, permission_manage_products):
     query = """
         mutation createCollection(
-            $name: String!, $slug: String!, $description: String, $products: [ID], $backgroundImage: Upload!, $isPublished: Boolean!) {
+            $name: String!, $slug: String!, $description: String, $products: [ID], $backgroundImage: Upload!, $backgroundImageAlt: String, $isPublished: Boolean!) {
             collectionCreate(
-                input: {name: $name, slug: $slug, description: $description, products: $products, backgroundImage: $backgroundImage, isPublished: $isPublished}) {
+                input: {name: $name, slug: $slug, description: $description, products: $products, backgroundImage: $backgroundImage, backgroundImageAlt: $backgroundImageAlt, isPublished: $isPublished}) {
                 collection {
                     name
                     slug
                     description
                     products {
                         totalCount
+                    }
+                    backgroundImage{
+                        alt
                     }
                 }
             }
@@ -80,13 +83,14 @@ def test_create_collection(
     product_ids = [
         to_global_id('Product', product.pk) for product in product_list]
     image_file, image_name = create_image()
+    image_alt = 'Alt text for an image.'
     name = 'test-name'
     slug = 'test-slug'
     description = 'test-description'
     variables = {
         'name': name, 'slug': slug, 'description': description,
         'products': product_ids, 'backgroundImage': image_name,
-        'isPublished': True}
+        'backgroundImageAlt': image_alt, 'isPublished': True}
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products])
@@ -99,6 +103,7 @@ def test_create_collection(
     collection = Collection.objects.get(slug=slug)
     assert collection.background_image.file
     mock_create_thumbnails.assert_called_once_with(collection.pk)
+    assert data['backgroundImage']['alt'] == image_alt
 
 
 def test_create_collection_without_background_image(
@@ -171,17 +176,21 @@ def test_update_collection_with_background_image(
         monkeypatch, staff_api_client, collection, permission_manage_products):
     query = """
         mutation updateCollection(
-            $name: String!, $slug: String!, $id: ID!, $backgroundImage: Upload, $isPublished: Boolean!) {
+            $name: String!, $slug: String!, $id: ID!, $backgroundImage: Upload, $backgroundImageAlt: String, $isPublished: Boolean!) {
             collectionUpdate(
                 id: $id, input: {
-                    name: $name, 
+                    name: $name,
                     slug: $slug,
-                    backgroundImage: $backgroundImage, 
+                    backgroundImage: $backgroundImage,
+                    backgroundImageAlt: $backgroundImageAlt,
                     isPublished: $isPublished
                 }
             ) {
                 collection {
                     slug
+                    backgroundImage{
+                        alt
+                    }
                 }
                 errors {
                     field
@@ -198,11 +207,13 @@ def test_update_collection_with_background_image(
         mock_create_thumbnails)
 
     image_file, image_name = create_image()
+    image_alt = 'Alt text for an image.'
     variables = {
         'name': 'new-name',
         'slug': 'new-slug',
         'id': to_global_id('Collection', collection.id),
         'backgroundImage': image_name,
+        'backgroundImageAlt': image_alt,
         'isPublished': True}
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = staff_api_client.post_multipart(
@@ -214,6 +225,7 @@ def test_update_collection_with_background_image(
     collection = Collection.objects.get(slug=slug)
     assert collection.background_image
     mock_create_thumbnails.assert_called_once_with(collection.pk)
+    assert data['collection']['backgroundImage']['alt'] == image_alt
 
 
 def test_delete_collection(
