@@ -4,7 +4,7 @@ import { Helmet } from "react-helmet";
 import css from './roadmap.css';
 
 const Roadmap = (props) => (
-	<div id="roadmap" className="container"> 
+  <div id="roadmap" className="container">
     <Helmet>
       <title>Roadmap | Saleor - A GraphQL-first Open Source eCommerce Platform</title>
       <meta name="description" content="Read about the long-term goals for Saleor, as well as the notes from all past and upcoming releases. Find out about all the features we have implemented and how they fit the plan." />
@@ -27,33 +27,72 @@ const Roadmap = (props) => (
           <h2>Long-Term Goals</h2>
           <div className="grid">
             <div className="col-xs-12 col-sm-6 col-md-6">
-              <h4>Storefront 2.0</h4>
-              <p>Mobile-first storefront with full PWA support. Support for browser-based payment methods (Google&nbsp;Pay,&nbsp;Apple&nbsp;Pay).</p>
-              <h4>Architecture changes&nbsp;(Stable core)</h4>
-              <p>Moving storefront and dashboard to separate&nbsp;apps.</p>
-              <h4>Avalara&nbsp;integration</h4>
-              <p>Integration with Avalara for tax&nbsp;calculations.</p>
+              <h4>Data&nbsp;import/export&nbsp;tools</h4>
+              <p>Tools to allow easier migration from other e-commerce platforms such as Magento, PrestaShop, Shopify.</p>
+              <h4>Avalara integration</h4>
+              <p>Integration with Avalara for tax calculations.</p>
             </div>
             <div className="col-xs-12 col-sm-6 col-md-6">
-              <h4>CSV&nbsp;export</h4>
-              <p>Exporting products, orders and customers to CSV&nbsp;files.</p>
-              <h4>Data&nbsp;import</h4>
-              <p>Tools to migrate data from Magento and Shopify to&nbsp;Saleor.</p>
               <h4>Shipping&nbsp;carriers</h4>
-              <p>Integration with shipping carriers&nbsp;APIs.</p>
+              <p>Integration with shipping carriers APIs.</p>
+              <h4>Payment&nbsp;gateways</h4>
+              <p>Support for more payment gateways.</p>
             </div>
           </div>
         </div>
       </div>
       <div className="grid roadmap-item">
         <div className="col-xs-3 col-sm-3 col-md-3 line">
-        <div className="icon lantern"></div>
-        <div className="border-line lantern"></div>
+          <div className="icon lantern"></div>
+          <div className="border-line lantern"></div>
+        </div>
+      </div>
+      <div className="grid roadmap-item">
+        <div className="col-xs-3 col-sm-3 col-md-3 line">
+          <div className="icon"></div>
+          <div className="border-line"></div>
         </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
-          <h2>Upcoming&nbsp;Release</h2>
-          <h4>Dashboard 2.0 - Product&nbsp;Management</h4>
-          <p>A refreshed version of product management views implemented as a single-page&nbsp;application.</p>
+          <h2>November&nbsp;Release</h2>
+          <h4>Playground GraphQL&nbsp;explorer</h4>
+          <h4>Razorpay&nbsp;integration</h4>
+          <h4>Maintenance</h4>
+        </div>
+      </div>
+      <div className="grid roadmap-item">
+        <div className="col-xs-3 col-sm-3 col-md-3 line">
+          <div className="icon"></div>
+          <div className="border-line"></div>
+        </div>
+        <div className="col-xs-8 col-sm-8 col-md-8 text">
+          <h2>Saleor 2.0&nbsp;Release</h2>
+          <h4>PWA Storefront&nbsp;(beta)</h4>
+          <h4>GraphQL API&nbsp;optimizations</h4>
+          <h4>Braintree integration</h4>
+        </div>
+      </div>
+      <div className="grid roadmap-item">
+        <div className="col-xs-3 col-sm-3 col-md-3 line">
+          <div className="icon"></div>
+          <div className="border-line"></div>
+        </div>
+        <div className="col-xs-8 col-sm-8 col-md-8 text">
+          <h2>September&nbsp;Release</h2>
+          <h4>Order management&nbsp;(Dashboard&nbsp;2.0)</h4>
+          <h4>Staff management&nbsp;(Dashboard&nbsp;2.0)</h4>
+          <h4>Order timeline</h4>
+        </div>
+      </div>
+      <div className="grid roadmap-item">
+        <div className="col-xs-3 col-sm-3 col-md-3 line">
+          <div className="icon"></div>
+          <div className="border-line"></div>
+        </div>
+        <div className="col-xs-8 col-sm-8 col-md-8 text">
+          <h2>Summer&nbsp;Release</h2>
+          <h4>Shipping&nbsp;Zones</h4>
+          <h4>Shipping&nbsp;Zones</h4>
+          <h4>Model&nbsp;translations</h4>
         </div>
       </div>
       <div className="grid roadmap-item">
