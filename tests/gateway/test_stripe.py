@@ -255,11 +255,9 @@ def test_get_error_response_from_exc():
     assert _get_error_response_from_exc(invalid_request_error) == dict()
 
 
-def test_create_transaction(
+def test_create_transaction_with_charge_success_response(
         stripe_payment,
-        stripe_charge_success_response,
-        stripe_partial_charge_success_response,
-        stripe_refund_success_response):
+        stripe_charge_success_response):
     txn = _create_transaction(
         payment=stripe_payment, amount=None, kind='ANYKIND',
         response=stripe_charge_success_response)
@@ -268,6 +266,10 @@ def test_create_transaction(
     assert isclose(txn.amount, TRANSACTION_AMOUNT)
     assert txn.currency == TRANSACTION_CURRENCY
 
+
+def test_create_transaction_with_partial_charge_success_response(
+        stripe_payment,
+        stripe_partial_charge_success_response):
     txn = _create_transaction(
         payment=stripe_payment, amount=None, kind='ANYKIND',
         response=stripe_partial_charge_success_response)
@@ -277,6 +279,10 @@ def test_create_transaction(
         txn.amount, TRANSACTION_AMOUNT - TRANSACTION_REFUND_AMOUNT)
     assert txn.currency == TRANSACTION_CURRENCY
 
+
+def test_create_transaction_with_refund_success_response(
+        stripe_payment,
+        stripe_refund_success_response):
     txn = _create_transaction(
         payment=stripe_payment, amount=None, kind='ANYKIND',
         response=stripe_refund_success_response)
@@ -285,14 +291,17 @@ def test_create_transaction(
     assert isclose(txn.amount, TRANSACTION_REFUND_AMOUNT)
     assert txn.currency == TRANSACTION_CURRENCY
 
+
+def test_create_transaction_with_error_response(stripe_payment):
+    payment = stripe_payment
     stripe_error_response = dict()
     txn = _create_transaction(
-        payment=stripe_payment, amount=stripe_payment.total, kind='ANYKIND',
+        payment=payment, amount=payment.total, kind='ANYKIND',
         response=stripe_error_response)
     assert txn.token == ''
     assert txn.is_success is False
-    assert txn.amount == stripe_payment.total
-    assert txn.currency == stripe_payment.currency
+    assert txn.amount == payment.total
+    assert txn.currency == payment.currency
 
 
 @pytest.mark.integration
