@@ -4,3 +4,4 @@ All notable, unreleased changes to this project will be documented in this file.
 ## [Unreleased]
 
 Use `PermissionEnum` as input parameter type for `permissions` field - #3434 by @maarcingebala
+Add `first_name` and `last_name` fields to the `User` model - #3101 by @fowczarek
