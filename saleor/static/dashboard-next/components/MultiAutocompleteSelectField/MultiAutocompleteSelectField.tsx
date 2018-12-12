@@ -133,6 +133,7 @@ export const MultiAutocompleteSelectField = withStyles(styles, {
                         placeholder
                       }),
                       endAdornment: <ArrowDropdownIcon onClick={toggleMenu} />,
+                      id: undefined,
                       startAdornment: selectedItem.map(item => (
                         <Chip
                           key={item.value}
