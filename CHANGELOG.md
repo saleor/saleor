@@ -12,3 +12,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add alt text to `Product` `thumbnail` and `background_image` of `Collection` and `Category` - #3429 by @fowczarek
 - Improve several payment validations - #3418 by @jxltom
 - Fix decimal value argument in GraphQL = #3457 by @fowczarek
+
+Use `PermissionEnum` as input parameter type for `permissions` field - #3434 by @maarcingebala
+Fix minor visual bugs in Dashboard 2.0 - #3433 by @dominik-zeglen
+Use autocomplete fields in country selection - #3443 by @dominik-zeglen
