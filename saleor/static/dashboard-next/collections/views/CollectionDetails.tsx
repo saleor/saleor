@@ -70,7 +70,7 @@ export const CollectionDetails: React.StatelessComponent<
                             context: "notification"
                           })
                         });
-                        navigate(collectionUrl(id))
+                        navigate(collectionUrl(id));
                       }
                     };
 
@@ -140,6 +140,7 @@ export const CollectionDetails: React.StatelessComponent<
                             updateCollection.mutate({
                               id,
                               input: {
+                                description: formData.description,
                                 isPublished: formData.isPublished,
                                 name: formData.name,
                                 seo: {
