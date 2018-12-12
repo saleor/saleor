@@ -115,7 +115,8 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
                         <ArrowDropdownIcon
                           onClick={disabled ? undefined : toggleMenu}
                         />
-                      )
+                      ),
+                      id: undefined
                     }}
                     disabled={disabled}
                     helperText={helperText}
