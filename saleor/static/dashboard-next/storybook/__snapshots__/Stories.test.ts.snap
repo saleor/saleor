@@ -33975,16 +33975,7 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
                 </tr>
                 <tr>
                   <td>
-                    <a
-                      class="MuiTypography-root-id MuiTypography-body1-id Link-root-id Link-primary-id"
-                    >
-                      Add Shipping Carrier
-                    </a>
-                  </td>
-                  <td
-                    class="OrderDraftDetailsSummary-textRight-id"
-                  >
-                    $0.00
+                    No applicable shipping carriers
                   </td>
                 </tr>
                 <tr>
