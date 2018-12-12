@@ -4,6 +4,7 @@ from operator import attrgetter
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from prices import Money
 
@@ -214,7 +215,7 @@ class Transaction(models.Model):
     error = models.CharField(
         choices=[(tag, tag.value) for tag in TransactionError],
         max_length=256, null=True)
-    gateway_response = JSONField()
+    gateway_response = JSONField(encoder=DjangoJSONEncoder)
 
     def __repr__(self):
         return 'Transaction(type=%s, is_success=%s, created=%s)' % (
