@@ -286,7 +286,7 @@ export interface StaffCreateInput {
   email?: string | null;
   isActive?: boolean | null;
   note?: string | null;
-  permissions?: (string | null)[] | null;
+  permissions?: (PermissionEnum | null)[] | null;
   sendPasswordEmail?: boolean | null;
 }
 
@@ -294,7 +294,7 @@ export interface StaffInput {
   email?: string | null;
   isActive?: boolean | null;
   note?: string | null;
-  permissions?: (string | null)[] | null;
+  permissions?: (PermissionEnum | null)[] | null;
 }
 
 export interface UserCreateInput {
