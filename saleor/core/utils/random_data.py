@@ -282,7 +282,11 @@ def create_fake_user():
     address = create_address()
     email = get_email(address.first_name, address.last_name)
 
-    user = User.objects.create_user(email=email, password='password')
+    user = User.objects.create_user(
+        first_name=address.first_name,
+        last_name=address.last_name,
+        email=email,
+        password='password')
 
     user.addresses.add(address)
     user.default_billing_address = address

@@ -124,3 +124,14 @@ class PasswordResetForm(django_forms.PasswordResetForm, FormWithReCaptcha):
         # template, we remove it from the context.
         del context['user']
         emails.send_password_reset_email.delay(context, to_email)
+
+
+class NameForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name']
+        labels = {
+            'first_name': pgettext_lazy(
+                'Customer form: Given name field', 'Given name'),
+            'last_name': pgettext_lazy(
+                'Customer form: Family name field', 'Family name')}
