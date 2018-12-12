@@ -73,7 +73,8 @@ const orderDraftFinalizeWarnings = (order: OrderDetails_order) => {
   if (
     order &&
     order.lines &&
-    order.lines.filter(line => line.isShippingRequired).length > 0
+    order.lines.filter(line => line.isShippingRequired).length > 0 &&
+    order.shippingMethod === null
   ) {
     warnings.push("no-shipping-method");
   }
