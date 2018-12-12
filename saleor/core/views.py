@@ -5,6 +5,7 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 from impersonate.views import impersonate as orig_impersonate
 
+from ..checkout.models import Cart
 from ..account.models import User
 from ..dashboard.views import staff_member_required
 from ..product.utils import products_for_homepage
@@ -18,11 +19,13 @@ def home(request):
     products = list(products_with_availability(
         products, discounts=request.discounts, taxes=request.taxes,
         local_currency=request.currency))
+    carts = Cart.objects.all()
     webpage_schema = get_webpage_schema(request)
     return TemplateResponse(
         request, 'home.html', {
             'parent': None,
             'products': products,
+            'carts': carts,
             'webpage_schema': json.dumps(webpage_schema)})
 
 

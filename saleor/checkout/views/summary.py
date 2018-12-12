@@ -35,7 +35,7 @@ def handle_order_placement(request, cart):
         messages.warning(request, msg)
         return redirect('checkout:summary')
 
-    cart.delete()
+    # cart.delete()
     order.events.create(type=OrderEvents.PLACED.value)
     send_order_confirmation.delay(order.pk)
     order.events.create(
