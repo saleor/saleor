@@ -112,7 +112,11 @@ class Payment(models.Model):
                 transaction.amount, self.currency or settings.DEFAULT_CURRENCY)
 
         # The authorized amount should exclude the already captured amount
-        money -= self.get_captured_amount()
+        for transaction in self.transactions.filter(
+                kind=TransactionKind.CAPTURE, is_success=True).all():
+            money -= Money(
+                transaction.amount, self.currency or settings.DEFAULT_CURRENCY)
+
         return money
 
     def get_captured_amount(self):
