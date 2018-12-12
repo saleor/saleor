@@ -460,7 +460,7 @@ class Category(CountableDjangoObjectType):
         be used for navigation in the storefront.""")
         exclude_fields = [
             'lft', 'rght', 'tree_id', 'voucher_set', 'sale_set',
-            'menuitem_set']
+            'menuitem_set', 'background_image_alt']
         interfaces = [relay.Node]
         model = models.Category
 

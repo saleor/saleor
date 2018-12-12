@@ -50,13 +50,14 @@ def test_category_query(user_api_client, product):
 def test_category_create_mutation(
         monkeypatch, staff_api_client, permission_manage_products):
     query = """
-        mutation($name: String, $slug: String, $description: String, $backgroundImage: Upload, $parentId: ID) {
+        mutation($name: String, $slug: String, $description: String, $backgroundImage: Upload, $backgroundImageAlt: String, $parentId: ID) {
             categoryCreate(
                 input: {
                     name: $name
                     slug: $slug
                     description: $description
                     backgroundImage: $backgroundImage
+                    backgroundImageAlt: $backgroundImageAlt
                 },
                 parent: $parentId
             ) {
@@ -68,6 +69,9 @@ def test_category_create_mutation(
                     parent {
                         name
                         id
+                    }
+                    backgroundImage{
+                        alt
                     }
                 }
                 errors {
@@ -88,11 +92,13 @@ def test_category_create_mutation(
     category_slug = slugify(category_name)
     category_description = 'Test description'
     image_file, image_name = create_image()
+    image_alt = 'Alt text for an image.'
 
     # test creating root category
     variables = {
         'name': category_name, 'description': category_description,
-        'backgroundImage': image_name, 'slug': category_slug}
+        'backgroundImage': image_name, 'backgroundImageAlt': image_alt,
+        'slug': category_slug}
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products])
@@ -105,6 +111,7 @@ def test_category_create_mutation(
     category = Category.objects.get(name=category_name)
     assert category.background_image.file
     mock_create_thumbnails.assert_called_once_with(category.pk)
+    assert data['category']['backgroundImage']['alt'] == image_alt
 
     # test creating subcategory
     parent_id = data['category']['id']
@@ -161,13 +168,14 @@ def test_category_create_mutation_without_background_image(
 def test_category_update_mutation(
         monkeypatch, staff_api_client, category, permission_manage_products):
     query = """
-        mutation($id: ID!, $name: String, $slug: String, $backgroundImage: Upload, $description: String) {
+        mutation($id: ID!, $name: String, $slug: String, $backgroundImage: Upload, $backgroundImageAlt: String, $description: String) {
             categoryUpdate(
                 id: $id
                 input: {
                     name: $name
                     description: $description
                     backgroundImage: $backgroundImage
+                    backgroundImageAlt: $backgroundImageAlt
                     slug: $slug
                 }
             ) {
@@ -177,6 +185,9 @@ def test_category_update_mutation(
                     description
                     parent {
                         id
+                    }
+                    backgroundImage{
+                        alt
                     }
                 }
                 errors {
@@ -201,12 +212,13 @@ def test_category_update_mutation(
     category_slug = slugify(category_name)
     category_description = 'Updated description'
     image_file, image_name = create_image()
+    image_alt = 'Alt text for an image.'
 
     category_id = graphene.Node.to_global_id('Category', child_category.pk)
     variables = {
         'name': category_name, 'description': category_description,
-        'backgroundImage': image_name, 'id': category_id,
-        'slug': category_slug}
+        'backgroundImage': image_name, 'backgroundImageAlt': image_alt,
+        'id': category_id, 'slug': category_slug}
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products])
@@ -222,6 +234,7 @@ def test_category_update_mutation(
     category = Category.objects.get(name=category_name)
     assert category.background_image.file
     mock_create_thumbnails.assert_called_once_with(category.pk)
+    assert data['category']['backgroundImage']['alt'] == image_alt
 
 
 def test_category_update_mutation_without_background_image(
