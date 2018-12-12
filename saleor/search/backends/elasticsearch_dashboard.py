@@ -23,7 +23,8 @@ def _search_users(phrase):
 
 def _search_orders(phrase):
     order_query = MultiMatch(
-        fields=['user', 'discount_name'], query=phrase)
+        fields=['user', 'first_name', 'last_name', 'discount_name'],
+        query=phrase)
     return OrderDocument.search().query(order_query).source(False)
 
 

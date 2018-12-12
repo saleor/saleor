@@ -199,6 +199,9 @@
               </span>
               {% if order.user %}
                 <a href="{% url 'dashboard:customer-details' pk=order.user.pk %}">{{ order.user }}</a>
+                {% if order.user.get_full_name != order.user.email %}
+                  <p>{{ order.user.get_full_name|truncatechars:80 }}</p>
+                {% endif %}
                 {% if order.user.note %}
                   <p>{{ order.user.note|truncatechars:80 }}</p>
                 {% endif %}
