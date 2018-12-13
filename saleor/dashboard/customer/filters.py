@@ -9,7 +9,7 @@ from ...core.filters import SortedFilterSet
 
 SORT_BY_FIELDS = (
     ('email', 'email'),
-    ('default_billing_address__first_name', 'name'),
+    ('first_name', 'name'),
     ('default_billing_address__city', 'location'))
 
 SORT_BY_FIELDS_LABELS = {
@@ -48,6 +48,8 @@ class UserFilter(SortedFilterSet):
 
     def filter_by_customer(self, queryset, name, value):
         return queryset.filter(
+            Q(first_name__icontains=value) |
+            Q(last_name__icontains=value) |
             Q(email__icontains=value) |
             Q(default_billing_address__first_name__icontains=value) |
             Q(default_billing_address__last_name__icontains=value))
