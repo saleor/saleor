@@ -216,11 +216,11 @@ export const customers = [
   {
     dateJoined: "2018-05-31T06:55:23.938Z",
     defaultBillingAddress: {
-      city: "New Eugenia",
-      cityArea: "Michigan",
+      city: "Reykjavik",
+      cityArea: "Höfuðborgarsvæði",
       companyName: null,
       country: {
-        code: "IC",
+        code: "IS",
         country: "Iceland"
       },
       countryArea: null,

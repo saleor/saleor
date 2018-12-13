@@ -67,7 +67,12 @@ const SiteSettingsPage = withStyles(styles, { name: "SiteSettingsPage" })(
       name: maybe(() => shop.name, "")
     };
     return (
-      <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
+      <Form
+        errors={errors}
+        initial={initialForm}
+        onSubmit={onSubmit}
+        confirmLeave
+      >
         {({ change, data, errors: formErrors, hasChanged, submit }) => (
           <Container width="md">
             <PageHeader

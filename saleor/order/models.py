@@ -191,7 +191,8 @@ class Order(models.Model):
     def is_pre_authorized(self):
         return self.payments.filter(
             is_active=True,
-            transactions__kind=TransactionKind.AUTH).exists()
+            transactions__kind=TransactionKind.AUTH).filter(
+                transactions__is_success=True).exists()
 
     @property
     def quantity_fulfilled(self):
@@ -256,7 +257,7 @@ class Order(models.Model):
     def total_authorized(self):
         payment = self.get_last_payment()
         if payment:
-            return Money(payment.total, payment.currency)
+            return payment.get_authorized_amount()
         return zero_money()
 
     @property

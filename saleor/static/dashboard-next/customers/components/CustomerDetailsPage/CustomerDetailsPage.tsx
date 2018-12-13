@@ -66,10 +66,11 @@ const CustomerDetailsPage = withStyles(styles, { name: "CustomerDetailsPage" })(
       errors={errors}
       initial={{
         email: maybe(() => customer.email),
-        isActive: maybe(() => customer.isActive),
+        isActive: maybe(() => customer.isActive, false),
         note: maybe(() => customer.note)
       }}
       onSubmit={onSubmit}
+      confirmLeave
     >
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container width="md">

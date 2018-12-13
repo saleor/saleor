@@ -11,7 +11,7 @@ import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
 import { FormSpacer } from "../../../components/FormSpacer";
-import MultiSelectField from "../../../components/MultiSelectField";
+import MultiAutocompleteSelectField from "../../../components/MultiAutocompleteSelectField";
 import SingleAutocompleteSelectField from "../../../components/SingleAutocompleteSelectField";
 import SingleSelectField from "../../../components/SingleSelectField";
 import Skeleton from "../../../components/Skeleton";
@@ -19,6 +19,10 @@ import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { ProductCreateData_productTypes_edges_node_productAttributes } from "../../types/ProductCreateData";
 
+interface ChoiceType {
+  label: string;
+  value: string;
+}
 interface ProductType {
   hasVariants: boolean;
   id: string;
@@ -46,13 +50,13 @@ const styles = (theme: Theme) =>
 interface ProductOrganizationProps extends WithStyles<typeof styles> {
   categories?: Array<{ value: string; label: string }>;
   collections?: Array<{ value: string; label: string }>;
-  category: string;
-  productCollections: string[];
   data: {
     attributes: Array<{
       slug: string;
       value: string;
     }>;
+    category: ChoiceType;
+    collections: ChoiceType[];
     productType: {
       label: string;
       value: {
@@ -72,20 +76,21 @@ interface ProductOrganizationProps extends WithStyles<typeof styles> {
     };
   };
   productTypes?: ProductType[];
-  onChange: (event: React.ChangeEvent<any>) => void;
+  fetchCategories: (query: string) => void;
+  fetchCollections: (query: string) => void;
+  onChange: (event: React.ChangeEvent<any>, cb?: () => void) => void;
 }
 
 const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
   ({
-    category,
     categories,
     classes,
     collections,
     data,
     disabled,
-    errors,
+    fetchCategories,
+    fetchCollections,
     product,
-    productCollections,
     productTypes,
     onChange
   }: ProductOrganizationProps) => {
@@ -123,18 +128,21 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
         };
       }>
     ) => {
-      onChange(event);
-      onChange({
-        ...event,
-        target: {
-          ...event.target,
-          name: "attributes",
-          value: event.target.value.value.productAttributes.map(attribute => ({
-            slug: attribute.slug,
-            value: ""
-          }))
-        }
-      });
+      onChange(event, () =>
+        onChange({
+          ...event,
+          target: {
+            ...event.target,
+            name: "attributes",
+            value: event.target.value.value.productAttributes.map(
+              attribute => ({
+                slug: attribute.slug,
+                value: ""
+              })
+            )
+          }
+        })
+      );
     };
     const handleAttributeValueSelect = (
       event: React.ChangeEvent<{
@@ -198,9 +206,13 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
             }
             onChange={onChange}
           />
-          <Typography className={classes.cardSubtitle}>
-            {i18n.t("Attributes")}
-          </Typography>
+          {!(data && data.attributes && data.attributes.length === 0) ? (
+            <Typography className={classes.cardSubtitle}>
+              {i18n.t("Attributes")}
+            </Typography>
+          ) : (
+            <FormSpacer />
+          )}
           {data.attributes ? (
             data.attributes.map((item, index) => {
               return (
@@ -215,7 +227,6 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
                       label: v.name,
                       value: v.slug
                     }))}
-                    key={index}
                     custom
                   />
                   <FormSpacer />
@@ -226,27 +237,24 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
             <Skeleton />
           )}
           <hr className={classes.hr} />
-          <SingleSelectField
+          <SingleAutocompleteSelectField
             disabled={disabled}
-            error={!!errors.category}
-            hint={errors.category}
             label={i18n.t("Category")}
             choices={disabled ? [] : categories}
             name="category"
-            value={category}
+            value={data.category}
             onChange={onChange}
+            fetchChoices={fetchCategories}
           />
           <FormSpacer />
           <hr className={classes.hr} />
-          <MultiSelectField
-            disabled={disabled}
-            error={!!errors.collections}
-            hint={errors.collections}
+          <MultiAutocompleteSelectField
             label={i18n.t("Collections")}
             choices={disabled ? [] : collections}
             name="collections"
-            value={productCollections}
+            value={data.collections}
             onChange={onChange}
+            fetchChoices={fetchCollections}
           />
         </CardContent>
       </Card>

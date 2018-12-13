@@ -13,6 +13,7 @@ import * as React from "react";
 
 import i18n from "../../i18n";
 import ArrowDropdownIcon from "../../icons/ArrowDropdown";
+import Debounce, { DebounceProps } from "../Debounce";
 
 interface ChoiceType {
   label: string;
@@ -27,9 +28,6 @@ const styles = (theme: Theme) =>
     container: {
       flexGrow: 1,
       position: "relative"
-    },
-    inputRoot: {
-      flexWrap: "wrap"
     },
     paper: {
       left: 0,
@@ -51,6 +49,10 @@ interface MultiAutocompleteSelectFieldProps extends WithStyles<typeof styles> {
   fetchChoices(value: string);
   onChange(event);
 }
+
+const DebounceAutocomplete: React.ComponentType<
+  DebounceProps<string>
+> = Debounce;
 
 export const MultiAutocompleteSelectField = withStyles(styles, {
   name: "MultiAutocompleteSelectField"
@@ -75,8 +77,12 @@ export const MultiAutocompleteSelectField = withStyles(styles, {
       onChange({ target: { name, value: [...value, item] } });
     };
     const handleDelete = (item: ChoiceType) => () => {
-      value.splice(value.indexOf(item), 1);
-      onChange({ target: { name, value } });
+      const newValue = value.slice();
+      newValue.splice(
+        value.findIndex(listItem => listItem.value === item.value),
+        1
+      );
+      onChange({ target: { name, value: newValue } });
     };
     const handleKeyDown = (inputValue: string | null) => (
       event: React.KeyboardEvent<any>
@@ -101,78 +107,80 @@ export const MultiAutocompleteSelectField = withStyles(styles, {
     );
 
     return (
-      <Downshift
-        selectedItem={value}
-        itemToString={item => (item ? item.label : "")}
-        onSelect={handleSelect}
-        onInputValueChange={fetchChoices}
-      >
-        {({
-          getInputProps,
-          getItemProps,
-          isOpen,
-          inputValue,
-          selectedItem,
-          highlightedIndex
-        }) => {
-          return (
-            <div className={classes.container}>
-              <TextField
-                InputProps={{
-                  classes: {
-                    root: classes.inputRoot
-                  },
-                  ...getInputProps({
-                    onKeyDown: handleKeyDown(inputValue),
-                    placeholder
-                  }),
-                  endAdornment: <ArrowDropdownIcon />,
-                  startAdornment: selectedItem.map(item => (
-                    <Chip
-                      key={item.value}
-                      tabIndex={-1}
-                      label={item.label}
-                      className={classes.chip}
-                      onDelete={handleDelete(item)}
-                    />
-                  ))
-                }}
-                helperText={helperText}
-                label={label}
-                fullWidth={true}
-              />
-              {isOpen && (
-                <Paper className={classes.paper} square>
-                  {loading ? (
-                    <MenuItem disabled={true} component="div">
-                      {i18n.t("Loading...")}
-                    </MenuItem>
-                  ) : (
-                    <>
-                      {filteredChoices.length > 0
-                        ? filteredChoices.map((suggestion, index) => (
-                            <MenuItem
-                              key={suggestion.value}
-                              selected={highlightedIndex === index}
-                              component="div"
-                              {...getItemProps({ item: suggestion })}
-                            >
-                              {suggestion.label}
-                            </MenuItem>
-                          ))
-                        : !loading && (
-                            <MenuItem disabled={true} component="div">
-                              {i18n.t("No results found")}
-                            </MenuItem>
-                          )}
-                    </>
+      <DebounceAutocomplete debounceFn={fetchChoices}>
+        {debounce => (
+          <Downshift
+            selectedItem={value}
+            itemToString={item => (item ? item.label : "")}
+            onSelect={handleSelect}
+            onInputValueChange={value => debounce(value)}
+          >
+            {({
+              getInputProps,
+              getItemProps,
+              isOpen,
+              inputValue,
+              selectedItem,
+              toggleMenu,
+              highlightedIndex
+            }) => {
+              return (
+                <div className={classes.container}>
+                  <TextField
+                    InputProps={{
+                      ...getInputProps({
+                        onKeyDown: handleKeyDown(inputValue),
+                        placeholder
+                      }),
+                      endAdornment: <ArrowDropdownIcon onClick={toggleMenu} />,
+                      startAdornment: selectedItem.map(item => (
+                        <Chip
+                          key={item.value}
+                          tabIndex={-1}
+                          label={item.label}
+                          className={classes.chip}
+                          onDelete={handleDelete(item)}
+                        />
+                      ))
+                    }}
+                    helperText={helperText}
+                    label={label}
+                    fullWidth={true}
+                  />
+                  {isOpen && (
+                    <Paper className={classes.paper} square>
+                      {loading ? (
+                        <MenuItem disabled={true} component="div">
+                          {i18n.t("Loading...")}
+                        </MenuItem>
+                      ) : (
+                        <>
+                          {filteredChoices.length > 0
+                            ? filteredChoices.map((suggestion, index) => (
+                                <MenuItem
+                                  key={suggestion.value}
+                                  selected={highlightedIndex === index}
+                                  component="div"
+                                  {...getItemProps({ item: suggestion })}
+                                >
+                                  {suggestion.label}
+                                </MenuItem>
+                              ))
+                            : !loading && (
+                                <MenuItem disabled={true} component="div">
+                                  {i18n.t("No results found")}
+                                </MenuItem>
+                              )}
+                        </>
+                      )}
+                    </Paper>
                   )}
-                </Paper>
-              )}
-            </div>
-          );
-        }}
-      </Downshift>
+                </div>
+              );
+            }}
+          </Downshift>
+        )}
+      </DebounceAutocomplete>
     );
   }
 );

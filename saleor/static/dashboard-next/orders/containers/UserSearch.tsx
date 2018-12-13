@@ -4,14 +4,12 @@ import { TypedUserSearch } from "../queries";
 import { UserSearch, UserSearchVariables } from "../types/UserSearch";
 
 interface UserSearchProviderProps {
-  children:
-    | ((
-        props: {
-          search: (query: string) => void;
-          searchOpts: QueryResult<UserSearch, UserSearchVariables>;
-        }
-      ) => React.ReactElement<any>)
-    | React.ReactNode;
+  children: ((
+    props: {
+      search: (query: string) => void;
+      searchOpts: QueryResult<UserSearch, UserSearchVariables>;
+    }
+  ) => React.ReactElement<any>);
 }
 interface UserSearchProviderState {
   query: string;
@@ -27,16 +25,13 @@ export class UserSearchProvider extends React.Component<
 
   render() {
     const { children } = this.props;
-    if (typeof children === "function") {
-      return (
-        <TypedUserSearch
-          variables={{ search: this.state.query }}
-          skip={!this.state.query}
-        >
-          {searchOpts => children({ search: this.search, searchOpts })}
-        </TypedUserSearch>
-      );
-    }
-    return this.props.children;
+    return (
+      <TypedUserSearch
+        variables={{ search: this.state.query }}
+        skip={!this.state.query}
+      >
+        {searchOpts => children({ search: this.search, searchOpts })}
+      </TypedUserSearch>
+    );
   }
 }

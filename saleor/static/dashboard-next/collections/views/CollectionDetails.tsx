@@ -28,7 +28,8 @@ import {
   collectionListUrl,
   collectionRemovePath,
   collectionRemoveUrl,
-  collectionUrl
+  collectionUrl,
+  collectionImageRemovePath
 } from "../urls";
 
 export type CollectionDetailsQueryParams = Partial<{
@@ -69,6 +70,7 @@ export const CollectionDetails: React.StatelessComponent<
                             context: "notification"
                           })
                         });
+                        navigate(collectionUrl(id));
                       }
                     };
 
@@ -138,6 +140,7 @@ export const CollectionDetails: React.StatelessComponent<
                             updateCollection.mutate({
                               id,
                               input: {
+                                description: formData.description,
                                 isPublished: formData.isPublished,
                                 name: formData.name,
                                 seo: {
@@ -185,6 +188,16 @@ export const CollectionDetails: React.StatelessComponent<
                                   .errors
                             )
                           );
+                          const imageRemoveTransitionState = getMutationState(
+                            updateCollection.opts.called,
+                            updateCollection.opts.loading,
+                            maybe(
+                              () =>
+                                updateCollection.opts.data.collectionUpdate
+                                  .errors
+                            )
+                          );
+
                           return (
                             <>
                               <WindowTitle
@@ -315,6 +328,38 @@ export const CollectionDetails: React.StatelessComponent<
                                         )
                                       }}
                                     />
+                                  </ActionDialog>
+                                )}
+                              />
+                              <Route
+                                path={collectionImageRemovePath(":id")}
+                                render={({ match }) => (
+                                  <ActionDialog
+                                    confirmButtonState={
+                                      imageRemoveTransitionState
+                                    }
+                                    onClose={() =>
+                                      navigate(collectionUrl(id), true, true)
+                                    }
+                                    onConfirm={() =>
+                                      updateCollection.mutate({
+                                        id,
+                                        input: {
+                                          backgroundImage: null
+                                        }
+                                      })
+                                    }
+                                    open={!!match}
+                                    title={i18n.t("Remove collection", {
+                                      context: "modal title"
+                                    })}
+                                    variant="delete"
+                                  >
+                                    <DialogContentText>
+                                      {i18n.t(
+                                        "Are you sure you want to remove collection's image?"
+                                      )}
+                                    </DialogContentText>
                                   </ActionDialog>
                                 )}
                               />

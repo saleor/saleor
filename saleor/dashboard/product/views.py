@@ -192,7 +192,7 @@ def product_bulk_update(request):
             'Dashboard message',
             '%(count)d product has been updated',
             '%(count)d products have been updated',
-            number=count) % {'count': count}
+            number='count') % {'count': count}
         messages.success(request, msg)
     return redirect('dashboard:product-list')
 
