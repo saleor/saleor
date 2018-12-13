@@ -8,7 +8,8 @@ from graphene import relay
 from graphql.error import GraphQLError
 
 from ...product import models
-from ...product.templatetags.product_images import get_thumbnail
+from ...product.templatetags.product_images import (
+    get_thumbnail, get_product_image_thumbnail)
 from ...product.utils import calculate_revenue_for_variant
 from ...product.utils.availability import get_availability
 from ...product.utils.costs import (
@@ -313,7 +314,8 @@ class Product(CountableDjangoObjectType):
     def resolve_thumbnail_url(self, info, *, size=None):
         if not size:
             size = 255
-        url = get_thumbnail(self.get_first_image(), size, method='thumbnail')
+        url = get_product_image_thumbnail(
+            self.get_first_image(), size, method='thumbnail')
         return info.context.build_absolute_uri(url)
 
     def resolve_url(self, info):

@@ -174,7 +174,7 @@ class Product(SeoModel):
 
     def get_first_image(self):
         images = list(self.images.all())
-        return images[0].image if images else None
+        return images[0] if images else None
 
     def get_price_range(self, discounts=None, taxes=None):
         if self.variants.all():
@@ -296,7 +296,7 @@ class ProductVariant(models.Model):
     def get_first_image(self):
         images = list(self.images.all())
         if images:
-            return images[0].image
+            return images[0]
         return self.product.get_first_image()
 
     def get_ajax_label(self, discounts=None):
