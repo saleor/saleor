@@ -43,7 +43,12 @@ export const CategoryCreatePage: React.StatelessComponent<
   errors: userErrors,
   saveButtonBarState
 }) => (
-  <Form onSubmit={onSubmit} initial={initialData} errors={userErrors}>
+  <Form
+    onSubmit={onSubmit}
+    initial={initialData}
+    errors={userErrors}
+    confirmLeave
+  >
     {({ data, change, errors, submit, hasChanged }) => (
       <Container width="md">
         <PageHeader title={i18n.t("Add Category")} onBack={onBack} />

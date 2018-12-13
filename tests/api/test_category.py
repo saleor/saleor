@@ -1,12 +1,13 @@
-import pytest
-
-import graphene
-from django.template.defaultfilters import slugify
 from unittest.mock import Mock
 
-from saleor.product.models import Category
-from tests.utils import create_image
+import graphene
+import pytest
+from django.template.defaultfilters import slugify
+from graphql_relay import to_global_id
 from tests.api.utils import get_graphql_content, get_multipart_request_body
+from tests.utils import create_image
+
+from saleor.product.models import Category
 
 
 def test_category_query(user_api_client, product):
@@ -361,3 +362,37 @@ def test_category_image_query_without_associated_file(
     data = content['data']['category']
     assert data['name'] == category.name
     assert data['backgroundImage'] is None
+
+
+def test_update_category_mutation_remove_background_image(
+        staff_api_client, category_with_image, permission_manage_products):
+    query = """
+        mutation updateCategory($id: ID!, $backgroundImage: Upload) {
+            categoryUpdate(
+                id: $id, input: {
+                    backgroundImage: $backgroundImage
+                }
+            ) {
+                category {
+                    backgroundImage{
+                        url
+                    }
+                }
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+    assert category_with_image.background_image
+    variables = {
+        'id': to_global_id('Category', category_with_image.id),
+        'backgroundImage': None}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    content = get_graphql_content(response)
+    data = content['data']['categoryUpdate']['category']
+    assert not data['backgroundImage']
+    category_with_image.refresh_from_db()
+    assert not category_with_image.background_image
