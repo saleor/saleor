@@ -32,8 +32,9 @@ def get_product_data(line, organization):
     product_url = build_absolute_uri(product.get_absolute_url())
     product_data['itemOffered']['url'] = product_url
 
-    image = product.get_first_image()
-    if image:
+    product_image = product.get_first_image()
+    if product_image:
+        image = product_image.image
         product_data['itemOffered']['image'] = build_absolute_uri(
             location=image.url)
     return product_data

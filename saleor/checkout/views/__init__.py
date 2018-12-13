@@ -222,6 +222,8 @@ def cart_summary(request, cart):
 
     def prepare_line_data(line):
         first_image = line.variant.get_first_image()
+        if first_image:
+            first_image = first_image.image
         return {
             'product': line.variant.product,
             'variant': line.variant,
