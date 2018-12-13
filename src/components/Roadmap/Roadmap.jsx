@@ -91,7 +91,7 @@ const Roadmap = (props) => (
         <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>Summer&nbsp;Release</h2>
           <h4>Shipping&nbsp;Zones</h4>
-          <h4>Shipping&nbsp;Zones</h4>
+          <h4>Product management views&nbsp;(Dashboard&nbsp;2.0)</h4>
           <h4>Model&nbsp;translations</h4>
         </div>
       </div>
