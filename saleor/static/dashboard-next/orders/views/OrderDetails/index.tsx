@@ -78,6 +78,14 @@ const orderDraftFinalizeWarnings = (order: OrderDetails_order) => {
   ) {
     warnings.push("no-shipping-method");
   }
+  if (
+    order &&
+    order.lines &&
+    order.lines.filter(line => line.isShippingRequired).length === 0 &&
+    order.shippingMethod !== null
+  ) {
+    warnings.push("unnecessary-shipping-method");
+  }
   return warnings;
 };
 
