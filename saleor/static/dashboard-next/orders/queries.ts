@@ -47,6 +47,7 @@ export const fragmentAddress = gql`
 export const fragmentOrderLine = gql`
   fragment OrderLineFragment on OrderLine {
     id
+    isShippingRequired
     productName
     productSku
     quantity
@@ -74,6 +75,7 @@ export const fragmentOrderDetails = gql`
     billingAddress {
       ...AddressFragment
     }
+    canFinalize
     created
     customerNote
     events {

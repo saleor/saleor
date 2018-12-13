@@ -155,7 +155,7 @@ const OrderDraftPage = withStyles(styles, { name: "OrderDraftPage" })(
       </div>
       <SaveButtonBar
         state={saveButtonBarState}
-        disabled={disabled || maybe(() => order.lines.length === 0)}
+        disabled={disabled || !maybe(() => order.canFinalize)}
         onCancel={onBack}
         onSave={onDraftFinalize}
         labels={{ save: i18n.t("Finalize", { context: "button" }) }}
