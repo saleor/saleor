@@ -111,16 +111,8 @@ class Payment(models.Model):
             money += Money(
                 transaction.amount, self.currency or settings.DEFAULT_CURRENCY)
 
-        # The authorized amount should exclude the already captured amount
-        for transaction in self.transactions.filter(
-                kind=TransactionKind.CAPTURE, is_success=True).all():
-            # This code actually won't run since multiple partial capture is
-            # not supported and zero money will return directly. It is put here
-            # intently to prove the correct logic in case
-            # multiple partial capture is supported later though it's unlikely
-            money -= Money(
-                transaction.amount, self.currency or settings.DEFAULT_CURRENCY)
-
+        # If multiple partial capture is supported later though it's unlikely,
+        # the authorized amount should exclude the already captured amount here
         return money
 
     def get_captured_amount(self):
