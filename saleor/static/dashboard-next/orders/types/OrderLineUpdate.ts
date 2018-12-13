@@ -74,6 +74,7 @@ export interface OrderLineUpdate_draftOrderLineUpdate_order_fulfillments_lines_o
 export interface OrderLineUpdate_draftOrderLineUpdate_order_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -119,6 +120,7 @@ export interface OrderLineUpdate_draftOrderLineUpdate_order_lines_unitPrice {
 export interface OrderLineUpdate_draftOrderLineUpdate_order_lines {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -229,6 +231,7 @@ export interface OrderLineUpdate_draftOrderLineUpdate_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderLineUpdate_draftOrderLineUpdate_order_billingAddress | null;
+  canFinalize: boolean;
   created: any;
   customerNote: string;
   events: (OrderLineUpdate_draftOrderLineUpdate_order_events | null)[] | null;

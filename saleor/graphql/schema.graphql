@@ -286,7 +286,7 @@ type Checkout implements Node {
   lines: [CheckoutLine]
   id: ID!
   availableShippingMethods: [ShippingMethod]
-  isShippingRequired: Boolean
+  isShippingRequired: Boolean!
   shippingPrice: TaxedMoney
   subtotalPrice: TaxedMoney
   totalPrice: TaxedMoney
@@ -975,11 +975,11 @@ type Order implements Node {
   paymentStatusDisplay: String
   subtotal: TaxedMoney
   statusDisplay: String
-  canFinalize: Boolean
+  canFinalize: Boolean!
   totalAuthorized: Money
   totalCaptured: Money
   totalBalance: Money!
-  isShippingRequired: Boolean
+  isShippingRequired: Boolean!
 }
 
 enum OrderAction {
