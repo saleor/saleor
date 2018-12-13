@@ -23,6 +23,7 @@ import CollectionProducts from "../CollectionProducts/CollectionProducts";
 import CollectionStatus from "../CollectionStatus/CollectionStatus";
 
 export interface CollectionDetailsPageFormData {
+  description: string;
   name: string;
   seoDescription: string;
   seoTitle: string;
@@ -71,6 +72,7 @@ const CollectionDetailsPage = withStyles(styles, {
   }: CollectionDetailsPageProps) => (
     <Form
       initial={{
+        description: maybe(() => collection.description),
         isFeatured,
         isPublished: maybe(() => collection.isPublished),
         name: maybe(() => collection.name),
