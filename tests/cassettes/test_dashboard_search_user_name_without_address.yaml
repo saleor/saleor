@@ -1,0 +1,46 @@
+interactions:
+- request:
+    body: '{"query": {"multi_match": {"fields": ["name", "title", "description"],
+      "query": "Brett", "type": "cross_fields"}}, "sort": ["_score"], "_source": {"excludes":
+      ["*"]}}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: GET
+    uri: http://search:9200/storefront/doc/_search
+  response:
+    body: {string: '{"took":2,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":0,"max_score":null,"hits":[]}}'}
+    headers:
+      content-length: ['122']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: '{"query": {"multi_match": {"fields": ["user", "email", "first_name", "last_name"],
+      "query": "Brett", "type": "cross_fields", "operator": "and"}}, "_source": {"excludes":
+      ["*"]}}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: GET
+    uri: http://search:9200/users/doc/_search
+  response:
+    body: {string: '{"took":23,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":1,"max_score":2.730029,"hits":[{"_index":"users","_type":"doc","_id":"122","_score":2.730029,"_source":{}}]}}'}
+    headers:
+      content-length: ['212']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: '{"query": {"multi_match": {"fields": ["user", "discount_name"], "query":
+      "Brett"}}, "_source": {"excludes": ["*"]}}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: GET
+    uri: http://search:9200/orders/doc/_search
+  response:
+    body: {string: '{"took":1,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":0,"max_score":null,"hits":[]}}'}
+    headers:
+      content-length: ['122']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+version: 1

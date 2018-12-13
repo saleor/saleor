@@ -29,9 +29,6 @@ const styles = (theme: Theme) =>
       flexGrow: 1,
       position: "relative"
     },
-    inputRoot: {
-      flexWrap: "wrap"
-    },
     paper: {
       left: 0,
       marginTop: theme.spacing.unit,
@@ -131,9 +128,6 @@ export const MultiAutocompleteSelectField = withStyles(styles, {
                 <div className={classes.container}>
                   <TextField
                     InputProps={{
-                      classes: {
-                        root: classes.inputRoot
-                      },
                       ...getInputProps({
                         onKeyDown: handleKeyDown(inputValue),
                         placeholder
