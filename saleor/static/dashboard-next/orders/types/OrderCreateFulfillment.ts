@@ -74,6 +74,7 @@ export interface OrderCreateFulfillment_orderFulfillmentCreate_order_fulfillment
 export interface OrderCreateFulfillment_orderFulfillmentCreate_order_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -119,6 +120,7 @@ export interface OrderCreateFulfillment_orderFulfillmentCreate_order_lines_unitP
 export interface OrderCreateFulfillment_orderFulfillmentCreate_order_lines {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -229,6 +231,7 @@ export interface OrderCreateFulfillment_orderFulfillmentCreate_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderCreateFulfillment_orderFulfillmentCreate_order_billingAddress | null;
+  canFinalize: boolean;
   created: any;
   customerNote: string;
   events: (OrderCreateFulfillment_orderFulfillmentCreate_order_events | null)[] | null;
