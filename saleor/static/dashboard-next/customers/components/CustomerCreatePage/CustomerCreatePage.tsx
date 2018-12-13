@@ -69,7 +69,12 @@ const CustomerCreatePage = withStyles(styles, { name: "CustomerCreatePage" })(
     onBack,
     onSubmit
   }: CustomerCreatePageProps) => (
-    <Form initial={initialForm} onSubmit={onSubmit} errors={errors}>
+    <Form
+      initial={initialForm}
+      onSubmit={onSubmit}
+      errors={errors}
+      confirmLeave
+    >
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container width="md">
           <PageHeader title={i18n.t("Add customer")} onBack={onBack} />

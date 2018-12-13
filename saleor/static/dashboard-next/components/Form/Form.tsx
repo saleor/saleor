@@ -7,12 +7,13 @@ export interface FormProps<T extends {}> {
       data: T;
       hasChanged: boolean;
       errors: { [key: string]: string };
-      change(event: React.ChangeEvent<any>);
+      change(event: React.ChangeEvent<any>, cb?: () => void);
       submit(event?: React.FormEvent<any>);
     }
   ) => React.ReactElement<any>);
   errors?: UserError[];
   initial?: T;
+  confirmLeave?: boolean;
   useForm?: boolean;
   onSubmit?(data: T);
 }
@@ -37,7 +38,8 @@ class FormComponent<T extends {} = {}> extends React.Component<
   ): FormState<T> {
     const changedFields = Object.keys(nextProps.initial).filter(
       nextFieldName =>
-        nextProps.initial[nextFieldName] !== prevState.initial[nextFieldName]
+        JSON.stringify(nextProps.initial[nextFieldName]) !==
+        JSON.stringify(prevState.initial[nextFieldName])
     );
     if (changedFields.length > 0) {
       const swapFields = changedFields.reduce((prev, curr) => {
@@ -65,39 +67,42 @@ class FormComponent<T extends {} = {}> extends React.Component<
   };
 
   componentDidUpdate() {
-    const { hasChanged, toggleFormChangeState } = this.props;
-    if (this.hasChanged() !== hasChanged) {
+    const { hasChanged, confirmLeave, toggleFormChangeState } = this.props;
+    if (this.hasChanged() !== hasChanged && confirmLeave) {
       toggleFormChangeState();
     }
   }
 
   componentDidMount() {
-    const { hasChanged, toggleFormChangeState } = this.props;
-    if (this.hasChanged() !== hasChanged) {
+    const { hasChanged, confirmLeave, toggleFormChangeState } = this.props;
+    if (this.hasChanged() !== hasChanged && confirmLeave) {
       toggleFormChangeState();
     }
   }
 
   componentWillUnmount() {
-    const { hasChanged, toggleFormChangeState } = this.props;
-    if (hasChanged) {
+    const { hasChanged, confirmLeave, toggleFormChangeState } = this.props;
+    if (hasChanged && confirmLeave) {
       toggleFormChangeState();
     }
   }
 
-  handleChange = (event: React.ChangeEvent<any>) => {
+  handleChange = (event: React.ChangeEvent<any>, cb?: () => void) => {
     const { target } = event;
     if (!(target.name in this.state.fields)) {
       console.error(`Unknown form field: ${target.name}`);
       return;
     }
 
-    this.setState({
-      fields: {
-        ...(this.state.fields as any),
-        [target.name]: target.value
-      }
-    });
+    this.setState(
+      {
+        fields: {
+          ...(this.state.fields as any),
+          [target.name]: target.value
+        }
+      },
+      typeof cb === "function" ? cb : undefined
+    );
   };
 
   handleKeyDown = (event: React.KeyboardEvent<any>) => {
@@ -124,7 +129,7 @@ class FormComponent<T extends {} = {}> extends React.Component<
     JSON.stringify(this.state.initial) !== JSON.stringify(this.state.fields);
 
   render() {
-    const { children, errors, hasChanged, useForm = true } = this.props;
+    const { children, errors, useForm = true } = this.props;
 
     const contents = children({
       change: this.handleChange,
@@ -138,7 +143,7 @@ class FormComponent<T extends {} = {}> extends React.Component<
             {}
           )
         : {},
-      hasChanged,
+      hasChanged: this.hasChanged(),
       submit: this.handleSubmit
     });
 

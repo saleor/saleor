@@ -112,11 +112,11 @@ def test_create_address(db):
     assert Address.objects.all().count() == 1
 
 
-def test_create_fake_order(db, monkeypatch, product_image):
+def test_create_fake_order(db, monkeypatch, image):
     # Tests shouldn't depend on images present in placeholder folder
     monkeypatch.setattr(
         'saleor.core.utils.random_data.get_image',
-        Mock(return_value=product_image))
+        Mock(return_value=image))
     for _ in random_data.create_shipping_zones():
         pass
     for _ in random_data.create_users(3):

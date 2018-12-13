@@ -24,6 +24,7 @@ export interface CreateCollection_collectionCreate_collection {
   isPublished: boolean;
   name: string;
   backgroundImage: CreateCollection_collectionCreate_collection_backgroundImage | null;
+  description: string;
   seoDescription: string | null;
   seoTitle: string | null;
 }
