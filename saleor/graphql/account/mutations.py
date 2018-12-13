@@ -55,6 +55,8 @@ class CustomerRegister(ModelMutation):
 
 
 class UserInput(graphene.InputObjectType):
+    first_name = graphene.String(description='Given name.')
+    last_name = graphene.String(description='Family name.')
     email = graphene.String(
         description='The unique email address of the user.')
     is_active = graphene.Boolean(

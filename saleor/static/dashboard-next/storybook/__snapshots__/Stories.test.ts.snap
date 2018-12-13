@@ -9894,6 +9894,54 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                   />
                 </div>
               </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <div
+                class="MuiFormControl-root-id"
+                style="width:100%"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
+                >
+                  Description
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                >
+                  <div
+                    class="MuiPrivateTextarea-root-id"
+                  >
+                    <textarea
+                      aria-hidden="true"
+                      class="MuiPrivateTextarea-textarea-id MuiPrivateTextarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-hidden="true"
+                      class="MuiPrivateTextarea-textarea-id MuiPrivateTextarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-invalid="false"
+                      class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                      name="description"
+                      rows="1"
+                      style="height:19px"
+                    />
+                  </div>
+                </div>
+                <p
+                  class="MuiFormHelperText-root-id"
+                >
+                  Select text to enable text-formatting tools.
+                </p>
+              </div>
             </div>
           </div>
           <div
@@ -10721,6 +10769,55 @@ exports[`Storyshots Views / Collections / Collection details loading 1`] = `
                   />
                 </div>
               </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <div
+                class="MuiFormControl-root-id"
+                style="width:100%"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
+                >
+                  Description
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                >
+                  <div
+                    class="MuiPrivateTextarea-root-id"
+                  >
+                    <textarea
+                      aria-hidden="true"
+                      class="MuiPrivateTextarea-textarea-id MuiPrivateTextarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-hidden="true"
+                      class="MuiPrivateTextarea-textarea-id MuiPrivateTextarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-invalid="false"
+                      class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                      disabled=""
+                      name="description"
+                      rows="1"
+                      style="height:19px"
+                    />
+                  </div>
+                </div>
+                <p
+                  class="MuiFormHelperText-root-id"
+                >
+                  Select text to enable text-formatting tools.
+                </p>
+              </div>
             </div>
           </div>
           <div
@@ -11348,6 +11445,55 @@ exports[`Storyshots Views / Collections / Collection details no products 1`] = `
                     value="Summer collection"
                   />
                 </div>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <div
+                class="MuiFormControl-root-id"
+                style="width:100%"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
+                >
+                  Description
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                >
+                  <div
+                    class="MuiPrivateTextarea-root-id"
+                  >
+                    <textarea
+                      aria-hidden="true"
+                      class="MuiPrivateTextarea-textarea-id MuiPrivateTextarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-hidden="true"
+                      class="MuiPrivateTextarea-textarea-id MuiPrivateTextarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-invalid="false"
+                      class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                      disabled=""
+                      name="description"
+                      rows="1"
+                      style="height:19px"
+                    />
+                  </div>
+                </div>
+                <p
+                  class="MuiFormHelperText-root-id"
+                >
+                  Select text to enable text-formatting tools.
+                </p>
               </div>
             </div>
           </div>
@@ -12318,6 +12464,54 @@ exports[`Storyshots Views / Collections / Create collection default 1`] = `
                   />
                 </div>
               </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <div
+                class="MuiFormControl-root-id"
+                style="width:100%"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
+                >
+                  Description
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                >
+                  <div
+                    class="MuiPrivateTextarea-root-id"
+                  >
+                    <textarea
+                      aria-hidden="true"
+                      class="MuiPrivateTextarea-textarea-id MuiPrivateTextarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-hidden="true"
+                      class="MuiPrivateTextarea-textarea-id MuiPrivateTextarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-invalid="false"
+                      class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                      name="description"
+                      rows="1"
+                      style="height:19px"
+                    />
+                  </div>
+                </div>
+                <p
+                  class="MuiFormHelperText-root-id"
+                >
+                  Select text to enable text-formatting tools.
+                </p>
+              </div>
             </div>
           </div>
           <div
@@ -12666,6 +12860,55 @@ exports[`Storyshots Views / Collections / Create collection loading 1`] = `
                     value=""
                   />
                 </div>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <div
+                class="MuiFormControl-root-id"
+                style="width:100%"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
+                >
+                  Description
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                >
+                  <div
+                    class="MuiPrivateTextarea-root-id"
+                  >
+                    <textarea
+                      aria-hidden="true"
+                      class="MuiPrivateTextarea-textarea-id MuiPrivateTextarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-hidden="true"
+                      class="MuiPrivateTextarea-textarea-id MuiPrivateTextarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-invalid="false"
+                      class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                      disabled=""
+                      name="description"
+                      rows="1"
+                      style="height:19px"
+                    />
+                  </div>
+                </div>
+                <p
+                  class="MuiFormHelperText-root-id"
+                >
+                  Select text to enable text-formatting tools.
+                </p>
               </div>
             </div>
           </div>
