@@ -1,6 +1,14 @@
 import gql from "graphql-tag";
 
 import { TypedQuery } from "../queries";
+import {
+  CategorySearch,
+  CategorySearchVariables
+} from "./types/CategorySearch";
+import {
+  CollectionSearch,
+  CollectionSearchVariables
+} from "./types/CollectionSearch";
 import { ProductCreateData } from "./types/ProductCreateData";
 import {
   ProductDetails,
@@ -233,22 +241,6 @@ const productDetailsQuery = gql`
     product(id: $id) {
       ...Product
     }
-    collections(first: 20) {
-      edges {
-        node {
-          id
-          name
-        }
-      }
-    }
-    categories(first: 20) {
-      edges {
-        node {
-          id
-          name
-        }
-      }
-    }
   }
 `;
 export const TypedProductDetailsQuery = TypedQuery<
@@ -288,22 +280,6 @@ const productCreateQuery = gql`
               slug
             }
           }
-        }
-      }
-    }
-    collections(first: 20) {
-      edges {
-        node {
-          id
-          name
-        }
-      }
-    }
-    categories(first: 20) {
-      edges {
-        node {
-          id
-          name
         }
       }
     }
@@ -373,3 +349,37 @@ export const TypedProductImageQuery = TypedQuery<
   ProductImageById,
   ProductImageByIdVariables
 >(productImageQuery);
+
+const categorySearch = gql`
+  query CategorySearch($query: String) {
+    categories(first: 5, query: $query) {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+export const TypedCategorySearchQuery = TypedQuery<
+  CategorySearch,
+  CategorySearchVariables
+>(categorySearch);
+
+const collectionSearch = gql`
+  query CollectionSearch($query: String) {
+    collections(first: 5, query: $query) {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+export const TypedCollectionSearchQuery = TypedQuery<
+  CollectionSearch,
+  CollectionSearchVariables
+>(collectionSearch);

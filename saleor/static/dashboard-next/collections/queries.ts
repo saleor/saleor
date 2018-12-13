@@ -29,6 +29,7 @@ export const collectionDetailsFragment = gql`
     backgroundImage {
       url
     }
+    description
     seoDescription
     seoTitle
     isPublished

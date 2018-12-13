@@ -50,6 +50,7 @@ export const CollectionCreate: React.StatelessComponent<{}> = () => (
                           variables: {
                             input: {
                               backgroundImage: formData.backgroundImage.value,
+                              description: formData.description,
                               isPublished: formData.isPublished,
                               name: formData.name,
                               seo: {

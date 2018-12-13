@@ -162,42 +162,8 @@ export interface ProductDetails_product {
   url: string;
 }
 
-export interface ProductDetails_collections_edges_node {
-  __typename: "Collection";
-  id: string;
-  name: string;
-}
-
-export interface ProductDetails_collections_edges {
-  __typename: "CollectionCountableEdge";
-  node: ProductDetails_collections_edges_node;
-}
-
-export interface ProductDetails_collections {
-  __typename: "CollectionCountableConnection";
-  edges: ProductDetails_collections_edges[];
-}
-
-export interface ProductDetails_categories_edges_node {
-  __typename: "Category";
-  id: string;
-  name: string;
-}
-
-export interface ProductDetails_categories_edges {
-  __typename: "CategoryCountableEdge";
-  node: ProductDetails_categories_edges_node;
-}
-
-export interface ProductDetails_categories {
-  __typename: "CategoryCountableConnection";
-  edges: ProductDetails_categories_edges[];
-}
-
 export interface ProductDetails {
   product: ProductDetails_product | null;
-  collections: ProductDetails_collections | null;
-  categories: ProductDetails_categories | null;
 }
 
 export interface ProductDetailsVariables {

@@ -43,7 +43,7 @@ class CategoryCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, input, errors):
         cleaned_input = super().clean_input(info, instance, input, errors)
-        if 'slug' not in cleaned_input:
+        if 'slug' not in cleaned_input and 'name' in cleaned_input:
             cleaned_input['slug'] = slugify(cleaned_input['name'])
         parent_id = input['parent_id']
         if parent_id:
@@ -136,7 +136,7 @@ class CollectionCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, input, errors):
         cleaned_input = super().clean_input(info, instance, input, errors)
-        if 'slug' not in cleaned_input:
+        if 'slug' not in cleaned_input and 'name' in cleaned_input:
             cleaned_input['slug'] = slugify(cleaned_input['name'])
         clean_seo_fields(cleaned_input)
         return cleaned_input

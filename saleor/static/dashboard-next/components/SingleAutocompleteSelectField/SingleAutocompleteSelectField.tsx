@@ -22,9 +22,6 @@ const styles = (theme: Theme) =>
       flexGrow: 1,
       position: "relative"
     },
-    inputRoot: {
-      flexWrap: "wrap"
-    },
     paper: {
       left: 0,
       marginTop: theme.spacing.unit,
@@ -99,6 +96,7 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
               isOpen,
               inputValue,
               selectedItem,
+              toggleMenu,
               highlightedIndex
             }) => {
               const isCustom =
@@ -110,13 +108,14 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
                 <div className={classes.container}>
                   <TextField
                     InputProps={{
-                      classes: {
-                        root: classes.inputRoot
-                      },
                       ...getInputProps({
                         placeholder
                       }),
-                      endAdornment: <ArrowDropdownIcon />
+                      endAdornment: (
+                        <ArrowDropdownIcon
+                          onClick={disabled ? undefined : toggleMenu}
+                        />
+                      )
                     }}
                     disabled={disabled}
                     helperText={helperText}

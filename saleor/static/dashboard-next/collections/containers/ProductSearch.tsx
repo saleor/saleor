@@ -7,12 +7,10 @@ import {
 } from "../types/SearchProducts";
 
 interface SearchProductsProviderProps {
-  children:
-    | ((
-        search: (query: string) => void,
-        searchOpts: QueryResult<SearchProducts, SearchProductsVariables>
-      ) => React.ReactElement<any>)
-    | React.ReactNode;
+  children: ((
+    search: (query: string) => void,
+    searchOpts: QueryResult<SearchProducts, SearchProductsVariables>
+  ) => React.ReactElement<any>);
 }
 interface SearchProductsProviderState {
   query: string;
@@ -28,16 +26,13 @@ export class SearchProductsProvider extends React.Component<
 
   render() {
     const { children } = this.props;
-    if (typeof children === "function") {
-      return (
-        <TypedSearchProductsQuery
-          variables={{ query: this.state.query }}
-          skip={!this.state.query}
-        >
-          {searchOpts => children(this.search, searchOpts)}
-        </TypedSearchProductsQuery>
-      );
-    }
-    return this.props.children;
+    return (
+      <TypedSearchProductsQuery
+        variables={{ query: this.state.query }}
+        skip={!this.state.query}
+      >
+        {searchOpts => children(this.search, searchOpts)}
+      </TypedSearchProductsQuery>
+    );
   }
 }

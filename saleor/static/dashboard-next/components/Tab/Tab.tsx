@@ -30,27 +30,27 @@ const styles = (theme: Theme) =>
     }
   });
 
-interface TabProps extends WithStyles<typeof styles> {
+interface TabProps<T> extends WithStyles<typeof styles> {
   children?: React.ReactNode;
   isActive: boolean;
-  value: number;
-  changeTab: (index: number) => void;
+  changeTab: (index: T) => void;
 }
 
-export const Tab = withStyles(styles, { name: "Tab" })(
-  ({ classes, children, isActive, value, changeTab }: TabProps) => (
-    <Typography
-      component="span"
-      className={classNames({
-        [classes.root]: true,
-        [classes.active]: isActive
-      })}
-      onClick={() => changeTab(value)}
-    >
-      {children}
-    </Typography>
-  )
-);
+export function Tab<T>(value: T) {
+  return withStyles(styles, { name: "Tab" })(
+    ({ classes, children, isActive, changeTab }: TabProps<T>) => (
+      <Typography
+        component="span"
+        className={classNames({
+          [classes.root]: true,
+          [classes.active]: isActive
+        })}
+        onClick={() => changeTab(value)}
+      >
+        {children}
+      </Typography>
+    )
+  );
+}
 
-Tab.displayName = "Tab";
 export default Tab;

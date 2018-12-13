@@ -1,4 +1,5 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
+import { stringify as stringifyQs } from "qs";
 import * as React from "react";
 import { Route } from "react-router-dom";
 
@@ -13,7 +14,10 @@ import { WindowTitle } from "../../../components/WindowTitle";
 import i18n from "../../../i18n";
 import { getMutationState, maybe } from "../../../misc";
 import { productAddUrl, productUrl } from "../../../products/urls";
-import { CategoryUpdatePage } from "../../components/CategoryUpdatePage/CategoryUpdatePage";
+import {
+  CategoryPageTab,
+  CategoryUpdatePage
+} from "../../components/CategoryUpdatePage/CategoryUpdatePage";
 import {
   TypedCategoryDeleteMutation,
   TypedCategoryUpdateMutation
@@ -24,12 +28,19 @@ import { categoryAddUrl, categoryListUrl, categoryUrl } from "../../urls";
 import { categoryDeletePath, categoryDeleteUrl } from "./urls";
 
 export type CategoryDetailsQueryParams = Partial<{
+  activeTab: CategoryPageTab;
   after: string;
   before: string;
 }>;
 export interface CategoryDetailsProps {
   params: CategoryDetailsQueryParams;
   id: string;
+}
+
+export function getActiveTab(tabName: string): CategoryPageTab {
+  return tabName === CategoryPageTab.products
+    ? CategoryPageTab.products
+    : CategoryPageTab.categories;
 }
 
 const PAGINATE_BY = 20;
@@ -54,6 +65,14 @@ export const CategoryDetails: React.StatelessComponent<
               navigate(categoryListUrl);
             }
           };
+
+          const changeTab = (tabName: CategoryPageTab) =>
+            navigate(
+              "?" +
+                stringifyQs({
+                  activeTab: tabName
+                })
+            );
 
           return (
             <TypedCategoryDeleteMutation onCompleted={onCategoryDelete}>
@@ -97,6 +116,8 @@ export const CategoryDetails: React.StatelessComponent<
                                 pageInfo
                               }) => (
                                 <CategoryUpdatePage
+                                  changeTab={changeTab}
+                                  currentTab={params.activeTab}
                                   category={maybe(() => data.category)}
                                   disabled={loading}
                                   errors={maybe(

@@ -401,7 +401,7 @@ class ChangeQuantityForm(forms.ModelForm):
                     'Change quantity form error',
                     'Only %(remaining)d remaining in stock.',
                     'Only %(remaining)d remaining in stock.',
-                    'remaining') % {
+                    number='remaining') % {
                         'remaining': (
                             self.initial_quantity + variant.quantity_available)})  # noqa
         return quantity
@@ -433,7 +433,7 @@ class CancelOrderForm(forms.Form):
             'Cancel order form action',
             'Restock %(quantity)d item',
             'Restock %(quantity)d items',
-            'quantity') % {'quantity': self.order.get_total_quantity()}
+            number='quantity') % {'quantity': self.order.get_total_quantity()}
 
     def clean(self):
         data = super().clean()
@@ -463,7 +463,7 @@ class CancelFulfillmentForm(forms.Form):
             'Cancel fulfillment form action',
             'Restock %(quantity)d item',
             'Restock %(quantity)d items',
-            'quantity') % {'quantity': self.fulfillment.get_total_quantity()}
+            number='quantity') % {'quantity': self.fulfillment.get_total_quantity()}
 
     def clean(self):
         data = super().clean()
@@ -638,7 +638,7 @@ class FulfillmentLineForm(forms.ModelForm):
                 'Fulfill order line form error',
                 '%(quantity)d item remaining to fulfill.',
                 '%(quantity)d items remaining to fulfill.',
-                'quantity') % {
+                number='quantity') % {
                     'quantity': order_line.quantity_unfulfilled,
                     'order_line': order_line})
         return quantity
