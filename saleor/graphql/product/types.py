@@ -269,6 +269,12 @@ class Product(CountableDjangoObjectType):
         description='The storefront URL for the product.', required=True)
     thumbnail_url = graphene.String(
         description='The URL of a main thumbnail for a product.',
+        size=graphene.Argument(graphene.Int, description='Size of thumbnail'),
+        deprecation_reason=dedent("""thumbnailUrl is deprecated, use
+         thumbnail instead"""))
+    thumbnail = graphene.Field(
+        lambda: ProductImage,
+        description='The main thumbnail for a product.',
         size=graphene.Argument(graphene.Int, description='Size of thumbnail'))
     availability = graphene.Field(
         ProductAvailability,
@@ -317,6 +323,19 @@ class Product(CountableDjangoObjectType):
         url = get_product_image_thumbnail(
             self.get_first_image(), size, method='thumbnail')
         return info.context.build_absolute_uri(url)
+
+    def resolve_thumbnail(self, info, *, size=None):
+        if not size:
+            size = 255
+        product_image = self.get_first_image()
+        if product_image:
+            url = get_product_image_thumbnail(
+                product_image, size, method='thumbnail')
+            thumbnail_image = models.ProductImage(
+                alt=product_image.alt, product=product_image.product,
+                sort_order=product_image.sort_order)
+            thumbnail_image.image = Image(url)
+            return thumbnail_image
 
     def resolve_url(self, info):
         return self.get_absolute_url()

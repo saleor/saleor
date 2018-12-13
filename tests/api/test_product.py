@@ -89,6 +89,10 @@ def test_product_query(staff_api_client, product, permission_manage_products):
                         name
                         url
                         thumbnailUrl
+                        thumbnail{
+                            url
+                            alt
+                        }
                         images {
                             url
                         }
