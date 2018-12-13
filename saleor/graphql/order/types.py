@@ -179,7 +179,7 @@ class Order(CountableDjangoObjectType):
     can_finalize = graphene.Boolean(
         description=(
             'Informs whether a draft order can be finalized',
-            '(turned into a regular order).'))
+            '(turned into a regular order).'), required=True)
     total_authorized = graphene.Field(
         Money, description='Amount authorized for the order.')
     total_captured = graphene.Field(
@@ -196,7 +196,8 @@ class Order(CountableDjangoObjectType):
     user_email = graphene.String(
         required=False, description='Email address of the customer.')
     is_shipping_required = graphene.Boolean(
-        description='Returns True, if order requires shipping.')
+        description='Returns True, if order requires shipping.',
+        required=True)
     lines = graphene.List(
         OrderLine, required=True,
         description='List of order lines for the order')
