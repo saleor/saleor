@@ -5399,6 +5399,8 @@ exports[`Storyshots Orders / OrderDraftCancelDialog default 1`] = `<div />`;
 
 exports[`Storyshots Orders / OrderDraftFinalizeDialog default 1`] = `<div />`;
 
+exports[`Storyshots Orders / OrderDraftFinalizeDialog with warnings 1`] = `<div />`;
+
 exports[`Storyshots Orders / OrderFulfillmentCancelDialog default 1`] = `<div />`;
 
 exports[`Storyshots Orders / OrderFulfillmentDialog default 1`] = `<div />`;
@@ -34216,16 +34218,7 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
                 </tr>
                 <tr>
                   <td>
-                    <a
-                      class="MuiTypography-root-id MuiTypography-body1-id Link-root-id Link-primary-id"
-                    >
-                      Add Shipping Carrier
-                    </a>
-                  </td>
-                  <td
-                    class="OrderDraftDetailsSummary-textRight-id"
-                  >
-                    $0.00
+                    No applicable shipping carriers
                   </td>
                 </tr>
                 <tr>
@@ -34509,8 +34502,9 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
         </span>
       </button>
       <button
-        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id undefined"
-        tabindex="0"
+        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
+        disabled=""
+        tabindex="-1"
         type="button"
       >
         <span

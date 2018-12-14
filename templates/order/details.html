@@ -50,7 +50,7 @@
           Order {{ order }}: {{ order_status }}
         {% endblocktrans %}
       </h2>
-      {% if not order.is_fully_paid %}
+      {% if not order.is_partly_paid %}
         {% if order.is_pre_authorized %}
           <a href="{% url "order:payment" token=order.token %}" class="btn btn-link">
             {% trans "Payment details" context "Order details link text" %}
