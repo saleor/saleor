@@ -235,5 +235,5 @@ class Transaction(models.Model):
 
 
 @receiver([post_save, post_delete], sender=Transaction)
-def clear_payment_cached_transactions(sender, instance, **kwargs):
+def clear_payment_cached_transactions(instance, **kwargs):
     instance.payment.clear_cached_transactions()
