@@ -41,7 +41,7 @@ tox==3.5.3
 transifex-client==0.13.5
 typed-ast==1.1.0 ; python_version < '3.7' and implementation_name == 'cpython'
 unidecode==1.0.23
-urllib3==1.22 ; python_version >= '3.4'
+urllib3==1.24.1 ; python_version >= '3.4'
 vcrpy==2.0.1
 virtualenv==16.1.0
 wrapt==1.10.11
