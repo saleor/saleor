@@ -52,6 +52,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                     }) => (
                       <TypedProductDetailsQuery
                         displayLoader
+                        require={["product"]}
                         variables={{ id }}
                       >
                         {({ data, loading }) => {

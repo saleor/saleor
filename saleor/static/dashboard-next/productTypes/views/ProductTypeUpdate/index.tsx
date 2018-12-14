@@ -46,7 +46,11 @@ export const ProductTypeUpdate: React.StatelessComponent<
         {navigate => (
           <ProductTypeUpdateErrors>
             {({ errors, set: setErrors }) => (
-              <TypedProductTypeDetailsQuery displayLoader variables={{ id }}>
+              <TypedProductTypeDetailsQuery
+                displayLoader
+                variables={{ id }}
+                require={["productType"]}
+              >
                 {({ data, loading: dataLoading }) => {
                   const closeModal = () => {
                     navigate(productTypeUrl(id), true);
