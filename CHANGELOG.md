@@ -4,6 +4,8 @@ All notable, unreleased changes to this project will be documented in this file.
 ## [Unreleased]
 Use `PermissionEnum` as input parameter type for `permissions` field - #3434 by @maarcingebala
 Fix minor visual bugs in Dashboard 2.0 - #3433 by @dominik-zeglen
+Display warning if order draft has missing data - #3431 by @dominik-zeglen
 Add `first_name` and `last_name` fields to the `User` model - #3101 by @fowczarek
 Add description field to collections - #3435 by @dominik-zeglen
+Do not show `Pay For Order` if order is partly paid since partial payment is not supported - #3398 by @jxltom
 Improve several payment validations - #3418 by @jxltom
