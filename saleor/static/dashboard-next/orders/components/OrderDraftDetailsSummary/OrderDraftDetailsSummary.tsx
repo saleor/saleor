@@ -51,23 +51,36 @@ const OrderDraftDetailsSummary = withStyles(styles, {
           )}
         </tr>
         <tr>
-          {maybe(() => order.shippingMethod) !== undefined ? (
-            <>
-              <td>
-                <Link onClick={onShippingMethodEdit}>
-                  {maybe(() => order.shippingMethodName)
-                    ? order.shippingMethodName
-                    : i18n.t("Add Shipping Carrier")}
-                </Link>
-              </td>
-              <td className={classes.textRight}>
-                {maybe(() => order.shippingPrice) ? (
-                  <Money money={order.shippingPrice.gross} />
-                ) : (
-                  "---"
-                )}
-              </td>
-            </>
+          {order &&
+          order.shippingMethod !== undefined &&
+          order.shippingMethodName !== undefined ? (
+            order.shippingMethod === null ? (
+              order.availableShippingMethods &&
+              order.availableShippingMethods.length > 0 ? (
+                <td>
+                  <Link onClick={onShippingMethodEdit}>
+                    {i18n.t("Add shipping carrier")}
+                  </Link>
+                </td>
+              ) : (
+                <td>{i18n.t("No applicable shipping carriers")}</td>
+              )
+            ) : (
+              <>
+                <td>
+                  <Link onClick={onShippingMethodEdit}>
+                    {order.shippingMethodName}
+                  </Link>
+                </td>
+                <td className={classes.textRight}>
+                  {maybe(() => order.shippingPrice) ? (
+                    <Money money={order.shippingPrice.gross} />
+                  ) : (
+                    "---"
+                  )}
+                </td>
+              </>
+            )
           ) : (
             <td colSpan={2}>
               <Skeleton />

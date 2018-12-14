@@ -30,6 +30,7 @@ const styles = (theme: Theme) =>
 
 interface ActionDialogProps extends WithStyles<typeof styles> {
   children?: React.ReactNode;
+  confirmButtonLabel?: string;
   confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
   title: string;
@@ -42,6 +43,7 @@ const ActionDialog = withStyles(styles, { name: "ActionDialog" })(
   ({
     children,
     classes,
+    confirmButtonLabel,
     confirmButtonState,
     open,
     title,
@@ -65,9 +67,10 @@ const ActionDialog = withStyles(styles, { name: "ActionDialog" })(
             [classes.deleteButton]: variant === "delete"
           })}
         >
-          {variant === "delete"
-            ? i18n.t("Delete", { context: "button" })
-            : i18n.t("Confirm", { context: "button" })}
+          {confirmButtonLabel ||
+            (variant === "delete"
+              ? i18n.t("Delete", { context: "button" })
+              : i18n.t("Confirm", { context: "button" }))}
         </ConfirmButton>
       </DialogActions>
     </Dialog>
