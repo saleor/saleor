@@ -10,3 +10,4 @@ Add description field to collections - #3435 by @dominik-zeglen
 Add payment authorize and charge mutation - #3426 by @jxltom
 Do not show `Pay For Order` if order is partly paid since partial payment is not supported - #3398 by @jxltom
 Improve several payment validations - #3418 by @jxltom
+Fix decimal value argument in GraphQL = #3457 by @fowczarek
