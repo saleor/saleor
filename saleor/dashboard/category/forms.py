@@ -26,7 +26,9 @@ class CategoryForm(forms.ModelForm):
             'description': pgettext_lazy('Description', 'Description'),
             'background_image': pgettext_lazy(
                 'Category form',
-                'Background Image')}
+                'Background Image'),
+            'background_image_alt': pgettext_lazy(
+                'Description of a category image', 'Image description')}
 
     def save(self, commit=True):
         self.instance.slug = slugify(unidecode(self.instance.name))

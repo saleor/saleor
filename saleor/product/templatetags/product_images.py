@@ -83,15 +83,21 @@ def get_thumbnail_size(size, method, rendition_key_set):
 
 
 @register.simple_tag()
-def get_thumbnail(instance, size, method, rendition_key_set='products'):
-    if instance:
+def get_thumbnail(image_file, size, method, rendition_key_set='products'):
+    if image_file:
         used_size = get_thumbnail_size(size, method, rendition_key_set)
         try:
-            thumbnail = getattr(instance, method)[used_size]
+            thumbnail = getattr(image_file, method)[used_size]
         except Exception:
             logger.exception(
                 'Thumbnail fetch failed',
-                extra={'instance': instance, 'size': size})
+                extra={'image_file': image_file, 'size': size})
         else:
             return thumbnail.url
     return static(choose_placeholder('%sx%s' % (size, size)))
+
+
+@register.simple_tag()
+def get_product_image_thumbnail(instance, size, method):
+    image_file = instance.image if instance else None
+    return get_thumbnail(image_file, size, method)
