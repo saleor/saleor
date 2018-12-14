@@ -97,6 +97,17 @@ def gateway_get_client_token(gateway_name: str):
     return gateway.get_client_token(**gateway_params)
 
 
+def clean_charge(payment: Payment, amount: Decimal):
+    """Checks if payment can be charged."""
+    if amount <= 0:
+        raise PaymentError('Amount should be a positive number.')
+    if not payment.can_charge():
+        raise PaymentError('This payment cannot be charged.')
+    if amount > payment.total or amount > (
+            payment.total - payment.captured_amount):
+        raise PaymentError('Unable to charge more than un-captured amount.')
+
+
 def clean_capture(payment: Payment, amount: Decimal):
     """Checks if payment can be captured."""
     if amount <= 0:
@@ -126,8 +137,7 @@ def gateway_charge(
     it should create two transaction - auth and capture, but only the last one
     is returned.
     """
-    clean_authorize(payment)
-    clean_capture(payment, amount)
+    clean_charge(payment, amount)
 
     gateway, gateway_params = get_payment_gateway(payment.gateway)
     with transaction.atomic():
