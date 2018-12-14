@@ -24,6 +24,13 @@ class Decimal(graphene.Float):
     """
 
     @staticmethod
+    def parse_literal(node):
+        try:
+            return decimal.Decimal(node.value)
+        except decimal.DecimalException:
+            return None
+
+    @staticmethod
     def parse_value(value):
         try:
             # Converting the float to str before parsing it to Decimal is
