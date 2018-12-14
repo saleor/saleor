@@ -17404,14 +17404,7 @@ exports[`Storyshots Views / Customers / Customer details loading 1`] = `
         </button>
         <h2
           class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
-        >
-          <span
-            class="Skeleton-skeleton-id"
-            style="width:10em"
-          >
-            ‌
-          </span>
-        </h2>
+        />
         <div
           class="ExtendedPageHeader-action-id"
         />
