@@ -99,6 +99,8 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
               inputValue,
               selectedItem,
               toggleMenu,
+              openMenu,
+              closeMenu,
               highlightedIndex
             }) => {
               const isCustom =
@@ -119,7 +121,9 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
                         />
                       ),
                       error,
-                      id: undefined
+                      id: undefined,
+                      onBlur: closeMenu,
+                      onFocus: openMenu
                     }}
                     disabled={disabled}
                     helperText={helperText}

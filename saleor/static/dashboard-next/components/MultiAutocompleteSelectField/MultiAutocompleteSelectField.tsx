@@ -122,6 +122,8 @@ export const MultiAutocompleteSelectField = withStyles(styles, {
               inputValue,
               selectedItem,
               toggleMenu,
+              closeMenu,
+              openMenu,
               highlightedIndex
             }) => {
               return (
@@ -134,6 +136,8 @@ export const MultiAutocompleteSelectField = withStyles(styles, {
                       }),
                       endAdornment: <ArrowDropdownIcon onClick={toggleMenu} />,
                       id: undefined,
+                      onBlur: closeMenu,
+                      onFocus: openMenu,
                       startAdornment: selectedItem.map(item => (
                         <Chip
                           key={item.value}
