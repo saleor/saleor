@@ -12,7 +12,7 @@ import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
-import { maybe } from "../../../misc";
+import { getUserName, maybe } from "../../../misc";
 import { UserError } from "../../../types";
 import { CustomerDetails_user } from "../../types/CustomerDetails";
 import CustomerAddresses from "../CustomerAddresses/CustomerAddresses";
@@ -78,10 +78,7 @@ const CustomerDetailsPage = withStyles(styles, { name: "CustomerDetailsPage" })(
     >
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container width="md">
-          <PageHeader
-            onBack={onBack}
-            title={maybe(() => `${customer.firstName} ${customer.lastName}`)}
-          />
+          <PageHeader onBack={onBack} title={getUserName(customer, true)} />
           <div className={classes.root}>
             <div>
               <CustomerDetails
