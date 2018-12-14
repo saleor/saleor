@@ -11,7 +11,7 @@ import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
-import { maybe } from "../../../misc";
+import { getUserName, maybe } from "../../../misc";
 import { PermissionEnum } from "../../../types/globalTypes";
 import {
   StaffMemberDetails_shop_permissions,
@@ -80,12 +80,7 @@ const StaffDetailsPage = withStyles(styles, { name: "StaffDetailsPage" })(
       <Form initial={initialForm} onSubmit={onSubmit} confirmLeave>
         {({ data, change, hasChanged, submit }) => (
           <Container width="md">
-            <PageHeader
-              title={maybe(
-                () => `${staffMember.firstName} ${staffMember.lastName}`
-              )}
-              onBack={onBack}
-            />
+            <PageHeader title={getUserName(staffMember)} onBack={onBack} />
             <div className={classes.root}>
               <div>
                 <StaffProperties

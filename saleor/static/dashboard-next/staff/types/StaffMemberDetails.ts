@@ -17,10 +17,10 @@ export interface StaffMemberDetails_user {
   __typename: "User";
   id: string;
   email: string;
-  isActive: boolean;
-  permissions: (StaffMemberDetails_user_permissions | null)[] | null;
   firstName: string;
+  isActive: boolean;
   lastName: string;
+  permissions: (StaffMemberDetails_user_permissions | null)[] | null;
 }
 
 export interface StaffMemberDetails_shop_permissions {

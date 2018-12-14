@@ -18,7 +18,12 @@ import * as React from "react";
 import Skeleton from "../../../components/Skeleton";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
-import { maybe, renderCollection } from "../../../misc";
+import {
+  getUserInitials,
+  getUserName,
+  maybe,
+  renderCollection
+} from "../../../misc";
 import { ListProps } from "../../../types";
 import { StaffList_staffUsers_edges_node } from "../../types/StaffList";
 
@@ -105,40 +110,30 @@ const StaffList = withStyles(styles, { name: "StaffList" })(
                 key={staffMember ? staffMember.id : "skeleton"}
               >
                 <TableCell>
-                  {staffMember &&
-                  staffMember.firstName &&
-                  staffMember.lastName !== undefined ? (
-                    <>
-                      <div className={classes.avatar}>
-                        <Typography className={classes.avatarText}>
-                          {maybe(
-                            () =>
-                              `${staffMember.firstName[0].toUpperCase()}${staffMember.lastName[0].toUpperCase()}`
-                          ) || ""}
-                        </Typography>
-                      </div>
-                      <Typography>
-                        {`${staffMember.firstName} ${staffMember.lastName}`}
-                      </Typography>
-                      <Typography
-                        variant={"caption"}
-                        className={classes.statusText}
-                      >
-                        {staffMember.isActive
+                  <div className={classes.avatar}>
+                    <Typography className={classes.avatarText}>
+                      {getUserInitials(staffMember)}
+                    </Typography>
+                  </div>
+                  <Typography>
+                    {getUserName(staffMember) || <Skeleton />}
+                  </Typography>
+                  <Typography
+                    variant={"caption"}
+                    className={classes.statusText}
+                  >
+                    {maybe<React.ReactNode>(
+                      () =>
+                        staffMember.isActive
                           ? i18n.t("Active", { context: "status" })
-                          : i18n.t("Inactive", { context: "status" })}
-                      </Typography>
-                    </>
-                  ) : (
-                    <Skeleton style={{ width: "10em" }} />
-                  )}
+                          : i18n.t("Inactive", { context: "status" }),
+                      <Skeleton />
+                    )}
+                  </Typography>
                 </TableCell>
                 <TableCell>
-                  {staffMember ? (
-                    <span onClick={onRowClick(staffMember.id)}>
-                      {staffMember.email}
-                    </span>
-                  ) : (
+                  {maybe<React.ReactNode>(
+                    () => staffMember.email,
                     <Skeleton />
                   )}
                 </TableCell>

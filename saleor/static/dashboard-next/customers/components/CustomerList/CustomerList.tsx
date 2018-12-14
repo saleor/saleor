@@ -11,7 +11,7 @@ import * as React from "react";
 import Skeleton from "../../../components/Skeleton";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
-import { maybe, renderCollection } from "../../../misc";
+import { getUserName, maybe, renderCollection } from "../../../misc";
 import { ListProps } from "../../../types";
 import { ListCustomers_customers_edges_node } from "../../types/ListCustomers";
 
@@ -83,10 +83,7 @@ const CustomerList = withStyles(styles, { name: "CustomerList" })(
                 <TableCell
                   onClick={customer ? onRowClick(customer.id) : undefined}
                 >
-                  {maybe<React.ReactNode>(
-                    () => `${customer.firstName} ${customer.lastName}`,
-                    <Skeleton />
-                  )}
+                  {getUserName(customer)}
                 </TableCell>
                 <TableCell>
                   {maybe<React.ReactNode>(() => customer.email, <Skeleton />)}
