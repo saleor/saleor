@@ -857,9 +857,9 @@ type Mutations {
   productVariantUpdate(id: ID!, input: ProductVariantInput!): ProductVariantUpdate
   variantImageAssign(imageId: ID!, variantId: ID!): VariantImageAssign
   variantImageUnassign(imageId: ID!, variantId: ID!): VariantImageUnassign
-  paymentAuthorize(paymentId: ID!, paymentToken: String): PaymentAuthorize
+  paymentAuthorize(paymentId: ID!, paymentToken: String!): PaymentAuthorize
   paymentCapture(amount: Decimal, paymentId: ID!): PaymentCapture
-  paymentCharge(amount: Decimal, paymentId: ID!, paymentToken: String): PaymentCharge
+  paymentCharge(amount: Decimal, paymentId: ID!, paymentToken: String!): PaymentCharge
   paymentRefund(amount: Decimal, paymentId: ID!): PaymentRefund
   paymentVoid(paymentId: ID!): PaymentVoid
   pageCreate(input: PageInput!): PageCreate
