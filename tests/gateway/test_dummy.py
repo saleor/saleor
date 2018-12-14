@@ -1,5 +1,4 @@
 from decimal import Decimal
-from unittest.mock import patch, Mock
 import pytest
 
 from saleor.payment import (
@@ -7,7 +6,7 @@ from saleor.payment import (
 from saleor.payment.gateways.dummy.forms import DummyPaymentForm
 
 
-def test_charge(payment_dummy):
+def test_charge_success(payment_dummy):
     payment_dummy.charge(
         payment_token='fake-token', amount=payment_dummy.total)
     capture_txn, auth_txn = payment_dummy.transactions.all()
@@ -27,13 +26,56 @@ def test_charge(payment_dummy):
     assert payment_dummy.is_active
 
 
-def test_authorize(payment_dummy):
+def test_charge_gateway_error(payment_dummy, monkeypatch):
+    monkeypatch.setattr(
+        'saleor.payment.gateways.dummy.dummy_success', lambda: False)
+    with pytest.raises(PaymentError):
+        txn = payment_dummy.charge(payment_token='Fake', amount=payment_dummy.total)
+        assert txn.kind == TransactionKind.CHARGE
+        assert not txn.is_success
+        assert txn.payment == payment_dummy
+
+
+@pytest.mark.parametrize(
+    'is_active, charge_status', [
+        (False, ChargeStatus.NOT_CHARGED),
+        (False, ChargeStatus.CHARGED),
+        (False, ChargeStatus.FULLY_REFUNDED),
+        (True, ChargeStatus.FULLY_REFUNDED),])
+def test_charge_failed(is_active, charge_status, payment_dummy):
+    payment = payment_dummy
+    payment.is_active = is_active
+    payment.charge_status = charge_status
+    payment.save()
+    with pytest.raises(PaymentError):
+        txn = payment.charge(payment_token='Fake')
+        assert txn is None
+
+
+def test_authorize_success(payment_dummy):
     txn = payment_dummy.authorize(payment_token='Fake')
     assert txn.is_success
     assert txn.kind == TransactionKind.AUTH
     assert txn.payment == payment_dummy
     payment_dummy.refresh_from_db()
     assert payment_dummy.is_active
+
+
+@pytest.mark.parametrize(
+    'is_active, charge_status', [
+        (False, ChargeStatus.NOT_CHARGED),
+        (False, ChargeStatus.CHARGED),
+        (False, ChargeStatus.FULLY_REFUNDED),
+        (True, ChargeStatus.CHARGED),
+        (True, ChargeStatus.FULLY_REFUNDED),])
+def test_authorize_failed(is_active, charge_status, payment_dummy):
+    payment = payment_dummy
+    payment.is_active = is_active
+    payment.charge_status = charge_status
+    payment.save()
+    with pytest.raises(PaymentError):
+        txn = payment.authorize(payment_token='Fake')
+        assert txn is None
 
 
 def test_authorize_gateway_error(payment_dummy, monkeypatch):
@@ -46,16 +88,16 @@ def test_authorize_gateway_error(payment_dummy, monkeypatch):
         assert txn.payment == payment_dummy
 
 
-def test_void_success(payment_dummy):
-    assert payment_dummy.is_active
-    assert payment_dummy.charge_status == ChargeStatus.NOT_CHARGED
-    txn = payment_dummy.void()
+def test_void_success(payment_txn_preauth):
+    assert payment_txn_preauth.is_active
+    assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
+    txn = payment_txn_preauth.void()
     assert txn.is_success
     assert txn.kind == TransactionKind.VOID
-    assert txn.payment == payment_dummy
-    payment_dummy.refresh_from_db()
-    assert not payment_dummy.is_active
-    assert payment_dummy.charge_status == ChargeStatus.NOT_CHARGED
+    assert txn.payment == payment_txn_preauth
+    payment_txn_preauth.refresh_from_db()
+    assert not payment_txn_preauth.is_active
+    assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
 
 
 @pytest.mark.parametrize(
@@ -74,24 +116,24 @@ def test_void_failed(is_active, charge_status, payment_dummy):
         assert txn is None
 
 
-def test_void_gateway_error(payment_dummy, monkeypatch):
+def test_void_gateway_error(payment_txn_preauth, monkeypatch):
     monkeypatch.setattr(
         'saleor.payment.gateways.dummy.dummy_success', lambda: False)
     with pytest.raises(PaymentError):
-        txn = payment_dummy.void()
+        txn = payment_txn_preauth.void()
         assert txn.kind == TransactionKind.VOID
         assert not txn.is_success
-        assert txn.payment == payment_dummy
+        assert txn.payment == payment_txn_preauth
 
 
 @pytest.mark.parametrize('amount', [80, 70])
-def test_capture_success(amount, payment_dummy):
-    txn = payment_dummy.capture(amount=amount)
+def test_capture_success(amount, payment_txn_preauth):
+    txn = payment_txn_preauth.capture(amount=amount)
     assert txn.is_success
-    assert txn.payment == payment_dummy
-    payment_dummy.refresh_from_db()
-    assert payment_dummy.charge_status == ChargeStatus.CHARGED
-    assert payment_dummy.is_active
+    assert txn.payment == payment_txn_preauth
+    payment_txn_preauth.refresh_from_db()
+    assert payment_txn_preauth.charge_status == ChargeStatus.CHARGED
+    assert payment_txn_preauth.is_active
 
 
 @pytest.mark.parametrize(
@@ -113,14 +155,14 @@ def test_capture_failed(
         assert txn is None
 
 
-def test_capture_gateway_error(payment_dummy, monkeypatch):
+def test_capture_gateway_error(payment_txn_preauth, monkeypatch):
     monkeypatch.setattr(
         'saleor.payment.gateways.dummy.dummy_success', lambda: False)
     with pytest.raises(PaymentError):
-        txn = payment_dummy.capture(80)
+        txn = payment_txn_preauth.capture(80)
         assert txn.kind == TransactionKind.CHARGE
         assert not txn.is_success
-        assert txn.payment == payment_dummy
+        assert txn.payment == payment_txn_preauth
 
 
 @pytest.mark.parametrize(
