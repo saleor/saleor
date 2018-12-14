@@ -4,6 +4,7 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
+import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
 import Button from "@material-ui/core/Button";
@@ -11,10 +12,12 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import AddPhotoIcon from "@material-ui/icons/AddAPhoto";
 import CardTitle from "../../../components/CardTitle";
+import Hr from "../../../components/Hr";
 import ImageTile from "../../../components/ImageTile";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { CollectionDetails_collection_backgroundImage } from "../../types/CollectionDetails";
+import { CollectionDetailsPageFormData } from "../CollectionDetailsPage/CollectionDetailsPage";
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -50,7 +53,9 @@ const styles = (theme: Theme) =>
   });
 
 export interface CollectionImageProps extends WithStyles<typeof styles> {
+  data: CollectionDetailsPageFormData;
   image: CollectionDetails_collection_backgroundImage;
+  onChange: (event: React.ChangeEvent<any>) => void;
   onImageDelete: () => void;
   onImageUpload: (event: React.ChangeEvent<any>) => void;
 }
@@ -65,7 +70,14 @@ export const CollectionImage = withStyles(styles)(
     clickImgInput = () => this.imgInputAnchor.current.click();
 
     render() {
-      const { classes, onImageUpload, image, onImageDelete } = this.props;
+      const {
+        classes,
+        data,
+        onImageUpload,
+        image,
+        onChange,
+        onImageDelete
+      } = this.props;
       return (
         <Card>
           <CardTitle
@@ -104,6 +116,21 @@ export const CollectionImage = withStyles(styles)(
               <ImageTile image={image} onImageDelete={onImageDelete} />
             )}
           </CardContent>
+          {image && (
+            <>
+              <Hr />
+              <CardContent>
+                <TextField
+                  name="backgroundImageAlt"
+                  label={i18n.t("Description")}
+                  helperText={i18n.t("Optional")}
+                  value={data.backgroundImageAlt}
+                  onChange={onChange}
+                  fullWidth
+                />
+              </CardContent>
+            </>
+          )}
         </Card>
       );
     }
