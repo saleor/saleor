@@ -98,7 +98,8 @@ class Payment(models.Model):
     def get_authorized_amount(self):
         money = zero_money()
 
-        # Query all the transactions
+        # Query all the transactions which should be prefetched
+        # to optimize db queries
         transactions = self.transactions.all()
 
         # There is no authorized amount anymore when capture is succeeded
@@ -107,11 +108,15 @@ class Payment(models.Model):
                 and txn.is_success for txn in transactions]):
             return money
 
+        # Filter the succeeded auth transactions
+        authorized_txns = [
+            txn for txn in transactions
+            if txn.kind == TransactionKind.AUTH and txn.is_success]
+
         # Calculate authorized amount from all succeeded auth transactions
-        for txn in transactions:
-            if txn.kind == TransactionKind.AUTH and txn.is_success:
-                money += Money(
-                    txn.amount, self.currency or settings.DEFAULT_CURRENCY)
+        for txn in authorized_txns:
+            money += Money(
+                txn.amount, self.currency or settings.DEFAULT_CURRENCY)
 
         # If multiple partial capture is supported later though it's unlikely,
         # the authorized amount should exclude the already captured amount here
