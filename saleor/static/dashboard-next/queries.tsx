@@ -11,6 +11,7 @@ interface TypedQueryInnerProps<TData, TVariables> {
   displayLoader?: boolean;
   skip?: boolean;
   variables?: TVariables;
+  require?: Array<keyof TData>;
 }
 
 interface QueryProgressProps {
@@ -49,7 +50,8 @@ export function TypedQuery<TData, TVariables>(query: DocumentNode) {
     children,
     displayLoader,
     skip,
-    variables
+    variables,
+    require
   }: TypedQueryInnerProps<TData, TVariables>) => (
     <AppProgress>
       {({ funcs: changeProgressState }) => (
@@ -70,6 +72,18 @@ export function TypedQuery<TData, TVariables>(query: DocumentNode) {
                   pushMessage({ text: msg });
                 }
 
+                let childrenOrNotFound = children(queryData);
+                if (
+                  !queryData.loading &&
+                  require &&
+                  !require.reduce(
+                    (acc, key) => acc && !!queryData.data[key],
+                    true
+                  )
+                ) {
+                  childrenOrNotFound = <>Not found</>;
+                }
+
                 if (displayLoader) {
                   return (
                     <QueryProgress
@@ -77,12 +91,12 @@ export function TypedQuery<TData, TVariables>(query: DocumentNode) {
                       onCompleted={changeProgressState.disable}
                       onLoading={changeProgressState.enable}
                     >
-                      {children(queryData)}
+                      {childrenOrNotFound}
                     </QueryProgress>
                   );
                 }
 
-                return children(queryData);
+                return childrenOrNotFound;
               }}
             </StrictTypedQuery>
           )}
