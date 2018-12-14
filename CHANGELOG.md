@@ -11,3 +11,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Do not show `Pay For Order` if order is partly paid since partial payment is not supported - #3398 by @jxltom
 - Add alt text to `Product` `thumbnail` and `background_image` of `Collection` and `Category` - #3429 by @fowczarek
 - Improve several payment validations - #3418 by @jxltom
+- Fix decimal value argument in GraphQL = #3457 by @fowczarek
