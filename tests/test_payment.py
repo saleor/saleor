@@ -712,22 +712,3 @@ def test_payment_get_authorized_amount(payment_txn_preauth):
 
     payment.transactions.all().delete()
     assert payment.get_authorized_amount().amount == Decimal(0)
-
-
-def test_payment_cached_transactions(payment_dummy):
-    payment = payment_dummy
-
-    transactions = payment.cached_transactions
-    assert len(transactions) == 0
-
-    payment.transactions.create(
-        amount=payment.total,
-        kind=TransactionKind.CAPTURE,
-        gateway_response={},
-        is_success=True)
-    transactions = payment.cached_transactions
-    assert len(transactions) == 1
-
-    payment.transactions.all().delete()
-    transactions = payment.cached_transactions
-    assert len(transactions) == 0
