@@ -5,7 +5,9 @@ from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django_prices.models import MoneyField
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
+from django.utils.functional import cached_property
 from prices import Money
 
 from . import (
@@ -83,6 +85,11 @@ class Payment(models.Model):
     cc_exp_year = models.PositiveIntegerField(
         validators=[MinValueValidator(1000)], null=True, blank=True)
 
+    # Cached transactions to optimize db queries
+    @cached_property
+    def cached_transactions(self):
+        return self.transactions.all()
+
     class Meta:
         ordering = ['pk']
 
@@ -101,15 +108,15 @@ class Payment(models.Model):
 
         # There is no authorized amount anymore when capture is succeeded
         # since capture can only be made once, even it is a partial capture
-        if self.transactions.filter(
-                kind=TransactionKind.CAPTURE, is_success=True).exists():
+        if any([txn.kind == TransactionKind.CAPTURE
+                and txn.is_success for txn in self.cached_transactions]):
             return money
 
         # Calculate authorized amount from all succeeded auth transactions
-        for transaction in self.transactions.filter(
-                kind=TransactionKind.AUTH, is_success=True).all():
-            money += Money(
-                transaction.amount, self.currency or settings.DEFAULT_CURRENCY)
+        for txn in self.cached_transactions:
+            if txn.kind == TransactionKind.AUTH and txn.is_success:
+                money += Money(
+                    txn.amount, self.currency or settings.DEFAULT_CURRENCY)
 
         # If multiple partial capture is supported later though it's unlikely,
         # the authorized amount should exclude the already captured amount here
@@ -158,8 +165,10 @@ class Payment(models.Model):
 
     def can_capture(self):
         not_charged = self.charge_status == ChargeStatus.NOT_CHARGED
-        is_authorized = self.transactions.filter(
-            kind=TransactionKind.AUTH, is_success=True).exists()
+        is_authorized = any([
+            txn.kind == TransactionKind.AUTH
+            and txn.is_success for txn in self.cached_transactions])
+
         return self.is_active and is_authorized and not_charged
 
     def can_charge(self):
@@ -170,8 +179,10 @@ class Payment(models.Model):
         return self.is_active and (not_charged or not_fully_charged)
 
     def can_void(self):
-        is_authorized = self.transactions.filter(
-            kind=TransactionKind.AUTH, is_success=True).exists()
+        is_authorized = any([
+            txn.kind == TransactionKind.AUTH
+            and txn.is_success for txn in self.cached_transactions])
+
         return (
             self.is_active
             and self.charge_status == ChargeStatus.NOT_CHARGED
@@ -181,6 +192,12 @@ class Payment(models.Model):
         return (
             self.is_active and self.charge_status == ChargeStatus.CHARGED
             and self.gateway != CustomPaymentChoices.MANUAL)
+
+    def clear_cached_transactions(self):
+        try:
+            del self.cached_transactions
+        except AttributeError:
+            pass
 
 
 class Transaction(models.Model):
@@ -215,3 +232,8 @@ class Transaction(models.Model):
 
     def get_amount(self):
         return Money(self.amount, self.currency or settings.DEFAULT_CURRENCY)
+
+
+@receiver([post_save, post_delete], sender=Transaction)
+def clear_payment_cached_transactions(sender, instance, **kwargs):
+    instance.payment.clear_cached_transactions()
