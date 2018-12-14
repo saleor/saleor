@@ -171,6 +171,7 @@ export interface CategoryInput {
   slug?: string | null;
   seo?: SeoInput | null;
   backgroundImage?: any | null;
+  backgroundImageAlt?: string | null;
 }
 
 export interface CollectionCreateInput {
@@ -179,6 +180,7 @@ export interface CollectionCreateInput {
   slug?: string | null;
   description?: string | null;
   backgroundImage?: any | null;
+  backgroundImageAlt?: string | null;
   seo?: SeoInput | null;
   products?: (string | null)[] | null;
 }
@@ -189,6 +191,7 @@ export interface CollectionInput {
   slug?: string | null;
   description?: string | null;
   backgroundImage?: any | null;
+  backgroundImageAlt?: string | null;
   seo?: SeoInput | null;
 }
 
