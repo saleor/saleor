@@ -46,12 +46,6 @@ const Roadmap = (props) => (
           <div className="icon lantern"></div>
           <div className="border-line lantern"></div>
         </div>
-      </div>
-      <div className="grid roadmap-item">
-        <div className="col-xs-3 col-sm-3 col-md-3 line">
-          <div className="icon"></div>
-          <div className="border-line"></div>
-        </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>November&nbsp;Release</h2>
           <h4>Playground GraphQL&nbsp;explorer</h4>
