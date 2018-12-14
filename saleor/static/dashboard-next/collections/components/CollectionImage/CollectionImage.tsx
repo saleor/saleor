@@ -127,6 +127,7 @@ export const CollectionImage = withStyles(styles)(
                   value={data.backgroundImageAlt}
                   onChange={onChange}
                   fullWidth
+                  multiline
                 />
               </CardContent>
             </>
