@@ -117,6 +117,73 @@ def test_checkout_add_payment(
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
 
 
+AUTHORIZE_QUERY = """
+    mutation PaymentAuthorize($paymentId: ID!, $paymentToken: String!) {
+        paymentAuthorize(paymentId: $paymentId, paymentToken: $paymentToken) {
+            payment {
+                id,
+                chargeStatus
+            }
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+def test_payment_authorize_success(
+        staff_api_client, permission_manage_orders, payment_dummy):
+    payment = payment_dummy
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+
+    payment_id = graphene.Node.to_global_id(
+        'Payment', payment.pk)
+    variables = {
+        'paymentId': payment_id,
+        'paymentToken': 'Fake'}
+    response = staff_api_client.post_graphql(
+        AUTHORIZE_QUERY, variables, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+    data = content['data']['paymentAuthorize']
+    assert not data['errors']
+    payment.refresh_from_db()
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment.transactions.count() == 1
+    txn = payment.transactions.first()
+    assert txn.kind == TransactionKind.AUTH
+
+
+def test_payment_authorize_gateway_error(
+        staff_api_client, permission_manage_orders, payment_dummy,
+        monkeypatch):
+    payment = payment_dummy
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+
+    payment_id = graphene.Node.to_global_id(
+        'Payment', payment.pk)
+    variables = {
+        'paymentId': payment_id,
+        'paymentToken': 'Fake'}
+    monkeypatch.setattr(
+        'saleor.payment.gateways.dummy.dummy_success', lambda: False)
+    response = staff_api_client.post_graphql(
+        AUTHORIZE_QUERY, variables, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+    data = content['data']['paymentAuthorize']
+    assert data['errors']
+    assert data['errors'][0]['field'] is None
+    assert data['errors'][0]['message']
+
+    payment.refresh_from_db()
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment.transactions.count() == 1
+    txn = payment.transactions.first()
+    assert txn.kind == TransactionKind.AUTH
+    assert not txn.is_success
+
+
 CAPTURE_QUERY = """
     mutation PaymentCapture($paymentId: ID!, $amount: Decimal!) {
         paymentCapture(paymentId: $paymentId, amount: $amount) {
@@ -180,6 +247,75 @@ def test_payment_capture_gateway_error(
     assert payment.transactions.count() == 2
     txn = payment.transactions.last()
     assert txn.kind == TransactionKind.CAPTURE
+    assert not txn.is_success
+
+
+CHARGE_QUERY = """
+    mutation PaymentCharge($paymentId: ID!, $paymentToken: String!, $amount: Decimal!) {
+        paymentCharge(paymentId: $paymentId, paymentToken: $paymentToken, amount: $amount) {
+            payment {
+                id,
+                chargeStatus
+            }
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+def test_payment_charge_success(
+        staff_api_client, permission_manage_orders, payment_dummy):
+    payment = payment_dummy
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+
+    payment_id = graphene.Node.to_global_id(
+        'Payment', payment.pk)
+    variables = {
+        'paymentId': payment_id,
+        'paymentToken': 'Fake',
+        'amount': str(payment.total)}
+    response = staff_api_client.post_graphql(
+        CHARGE_QUERY, variables, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+    data = content['data']['paymentCharge']
+    assert not data['errors']
+    payment.refresh_from_db()
+    assert payment.charge_status == ChargeStatus.CHARGED
+    assert payment.transactions.count() == 2
+    txn = payment.transactions.last()
+    assert txn.kind == TransactionKind.CAPTURE
+
+
+def test_payment_charge_gateway_error(
+        staff_api_client, permission_manage_orders, payment_dummy,
+        monkeypatch):
+    payment = payment_dummy
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+
+    payment_id = graphene.Node.to_global_id(
+        'Payment', payment.pk)
+    variables = {
+        'paymentId': payment_id,
+        'paymentToken': 'Fake',
+        'amount': str(payment.total)}
+    monkeypatch.setattr(
+        'saleor.payment.gateways.dummy.dummy_success', lambda: False)
+    response = staff_api_client.post_graphql(
+        CHARGE_QUERY, variables, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+    data = content['data']['paymentCharge']
+    assert data['errors']
+    assert data['errors'][0]['field'] is None
+    assert data['errors'][0]['message']
+
+    payment.refresh_from_db()
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment.transactions.count() == 1
+    txn = payment.transactions.last()
+    assert txn.kind == TransactionKind.AUTH
     assert not txn.is_success
 
 
