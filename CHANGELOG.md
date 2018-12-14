@@ -7,4 +7,5 @@ Fix minor visual bugs in Dashboard 2.0 - #3433 by @dominik-zeglen
 Display warning if order draft has missing data - #3431 by @dominik-zeglen
 Add `first_name` and `last_name` fields to the `User` model - #3101 by @fowczarek
 Add description field to collections - #3435 by @dominik-zeglen
+Add payment authorize and charge mutation - #3426 by @jxltom
 Do not show `Pay For Order` if order is partly paid since partial payment is not supported - #3398 by @jxltom
