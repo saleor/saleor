@@ -73,13 +73,13 @@ const CollectionDetailsPage = withStyles(styles, {
   }: CollectionDetailsPageProps) => (
     <Form
       initial={{
-        backgroundImageAlt: maybe(() => collection.backgroundImage.alt),
-        description: maybe(() => collection.description),
+        backgroundImageAlt: maybe(() => collection.backgroundImage.alt, ""),
+        description: maybe(() => collection.description, ""),
         isFeatured,
-        isPublished: maybe(() => collection.isPublished),
-        name: maybe(() => collection.name),
-        seoDescription: maybe(() => collection.seoDescription),
-        seoTitle: maybe(() => collection.seoTitle)
+        isPublished: maybe(() => collection.isPublished, false),
+        name: maybe(() => collection.name, ""),
+        seoDescription: maybe(() => collection.seoDescription, ""),
+        seoTitle: maybe(() => collection.seoTitle, "")
       }}
       onSubmit={onSubmit}
       confirmLeave
