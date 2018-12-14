@@ -34,7 +34,11 @@ export const StaffDetails: React.StatelessComponent<OrderListProps> = ({
     {navigate => (
       <Messages>
         {pushMessage => (
-          <TypedStaffMemberDetailsQuery displayLoader variables={{ id }}>
+          <TypedStaffMemberDetailsQuery
+            displayLoader
+            variables={{ id }}
+            require={["user"]}
+          >
             {({ data, loading }) => {
               const handleStaffMemberUpdate = (data: StaffMemberUpdate) => {
                 if (!maybe(() => data.staffUpdate.errors.length !== 0)) {

@@ -97,6 +97,7 @@ export const CategoryDetails: React.StatelessComponent<
                       <TypedCategoryDetailsQuery
                         displayLoader
                         variables={{ ...paginationState, id }}
+                        require={["category"]}
                       >
                         {({ data, loading }) => (
                           <>
