@@ -611,8 +611,10 @@ class ProductImageUpdate(BaseMutation):
             info, id, errors, 'id', only_type=ProductImage)
         product = image.product
         if not errors:
-            image.alt = input.get('alt', '')
-            image.save()
+            alt = input.get('alt')
+            if alt is not None:
+                image.alt = alt
+                image.save(update_fields=['alt'])
         return ProductImageUpdate(product=product, image=image, errors=errors)
 
 
