@@ -12,3 +12,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add alt text to `Product` `thumbnail` and `background_image` of `Collection` and `Category` - #3429 by @fowczarek
 - Improve several payment validations - #3418 by @jxltom
 - Fix decimal value argument in GraphQL = #3457 by @fowczarek
+- Bump `urllib3` and `elasticsearch` to latest versions - #3460 by @maarcingebala
