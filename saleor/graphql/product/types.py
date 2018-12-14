@@ -9,7 +9,7 @@ from graphql.error import GraphQLError
 
 from ...product import models
 from ...product.templatetags.product_images import (
-    get_thumbnail, get_product_image_thumbnail)
+    get_product_image_thumbnail, get_thumbnail)
 from ...product.utils import calculate_revenue_for_variant
 from ...product.utils.availability import get_availability
 from ...product.utils.costs import (
@@ -101,14 +101,12 @@ def resolve_attribute_value_type(attribute_value):
 
 
 def resolve_background_image(background_image, alt, size, info):
-    if background_image:
-        if size:
-            url = get_thumbnail(background_image, size, method='thumbnail')
-        else:
-            url = background_image.url
-        url = info.context.build_absolute_uri(url)
-        return Image(url, alt)
-    return None
+    if size:
+        url = get_thumbnail(background_image, size, method='thumbnail')
+    else:
+        url = background_image.url
+    url = info.context.build_absolute_uri(url)
+    return Image(url, alt)
 
 
 class AttributeValue(CountableDjangoObjectType):
@@ -273,12 +271,10 @@ class Product(CountableDjangoObjectType):
         deprecation_reason=dedent("""thumbnailUrl is deprecated, use
          thumbnail instead"""))
     thumbnail = graphene.Field(
-        lambda: ProductImage,
-        description='The main thumbnail for a product.',
+        Image, description='The main thumbnail for a product.',
         size=graphene.Argument(graphene.Int, description='Size of thumbnail'))
     availability = graphene.Field(
-        ProductAvailability,
-        description=dedent("""Informs about product's availability in the
+        ProductAvailability, description=dedent("""Informs about product's availability in the
         storefront, current price and discounts."""))
     price = graphene.Field(
         Money,
@@ -325,17 +321,13 @@ class Product(CountableDjangoObjectType):
         return info.context.build_absolute_uri(url)
 
     def resolve_thumbnail(self, info, *, size=None):
+        image = self.get_first_image()
         if not size:
             size = 255
-        product_image = self.get_first_image()
-        if product_image:
-            url = get_product_image_thumbnail(
-                product_image, size, method='thumbnail')
-            thumbnail_image = models.ProductImage(
-                alt=product_image.alt, product=product_image.product,
-                sort_order=product_image.sort_order)
-            thumbnail_image.image = Image(url)
-            return thumbnail_image
+        url = get_product_image_thumbnail(image, size, method='thumbnail')
+        url = info.context.build_absolute_uri(url)
+        alt = image.alt if image else None
+        return Image(alt=alt, url=url)
 
     def resolve_url(self, info):
         return self.get_absolute_url()
@@ -449,6 +441,8 @@ class Collection(CountableDjangoObjectType):
         model = models.Collection
 
     def resolve_background_image(self, info, size=None, **kwargs):
+        if not self.background_image:
+            return None
         return resolve_background_image(
             self.background_image, self.background_image_alt, size, info)
 
@@ -490,6 +484,8 @@ class Category(CountableDjangoObjectType):
         return gql_optimizer.query(qs, info)
 
     def resolve_background_image(self, info, size=None, **kwargs):
+        if not self.background_image:
+            return None
         return resolve_background_image(
             self.background_image, self.background_image_alt, size, info)
 

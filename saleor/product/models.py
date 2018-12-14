@@ -295,9 +295,7 @@ class ProductVariant(models.Model):
 
     def get_first_image(self):
         images = list(self.images.all())
-        if images:
-            return images[0]
-        return self.product.get_first_image()
+        return images[0] if images else self.product.get_first_image()
 
     def get_ajax_label(self, discounts=None):
         price = self.get_price(discounts).gross
