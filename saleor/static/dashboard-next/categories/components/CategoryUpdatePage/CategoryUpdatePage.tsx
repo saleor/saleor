@@ -19,10 +19,11 @@ import {
   CategoryDetails_category_children_edges_node,
   CategoryDetails_category_products_edges_node
 } from "../../types/CategoryDetails";
-// import CategoryBackground from "../CategoryBackground";
+import CategoryBackground from "../CategoryBackground";
 import CategoryProductsCard from "../CategoryProductsCard";
 
-interface FormData {
+export interface FormData {
+  backgroundImageAlt: string;
   description: string;
   name: string;
   seoTitle: string;
@@ -45,7 +46,6 @@ export interface CategoryUpdatePageProps extends WithStyles<typeof styles> {
   currentTab: CategoryPageTab;
   errors: UserError[];
   disabled: boolean;
-  placeholderImage: string;
   category: CategoryDetails_category;
   products: CategoryDetails_category_products_edges_node[];
   subcategories: CategoryDetails_category_children_edges_node[];
@@ -92,16 +92,20 @@ export const CategoryUpdatePage = withStyles(styles, {
     onNextPage,
     onPreviousPage,
     onProductClick,
-    onSubmit
+    onSubmit,
+    onImageDelete,
+    onImageUpload
   }: CategoryUpdatePageProps) => {
-    const initialData = category
+    const initialData: FormData = category
       ? {
+          backgroundImageAlt: maybe(() => category.backgroundImage.alt, ""),
           description: category.description || "",
-          name: category.name,
+          name: category.name || "",
           seoDescription: category.seoDescription || "",
           seoTitle: category.seoTitle || ""
         }
       : {
+          backgroundImageAlt: "",
           description: "",
           name: "",
           seoDescription: "",
@@ -127,13 +131,13 @@ export const CategoryUpdatePage = withStyles(styles, {
               onChange={change}
             />
             <CardSpacer />
-            {/* TODO: Uncomment this section after API fixes */}
-            {/* <CategoryBackground
+            <CategoryBackground
+              data={data}
               onImageUpload={onImageUpload}
               onImageDelete={onImageDelete}
-              backgroundImage={maybe(() => category.backgroundImage)}
-              placeholderImage={placeholderImage}
-            /> */}
+              image={maybe(() => category.backgroundImage)}
+              onChange={change}
+            />
             <CardSpacer />
             <SeoForm
               helperText={i18n.t(
