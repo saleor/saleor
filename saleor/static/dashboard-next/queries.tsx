@@ -56,6 +56,7 @@ export function TypedQuery<TData, TVariables>(query: DocumentNode) {
         <Messages>
           {pushMessage => (
             <StrictTypedQuery
+              context={{ useBatching: true }}
               fetchPolicy="cache-and-network"
               query={query}
               variables={variables}
