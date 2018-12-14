@@ -118,6 +118,7 @@ class PaymentAuthorize(BaseMutation):
     class Arguments:
         payment_id = graphene.ID(required=True, description='Payment ID')
         payment_token = graphene.String(
+            required=True,
             description='One-time-use reference to payment information')
 
     class Meta:
@@ -175,6 +176,7 @@ class PaymentCharge(BaseMutation):
     class Arguments:
         payment_id = graphene.ID(required=True, description='Payment ID')
         payment_token = graphene.String(
+            required=True,
             description='One-time-use reference to payment information')
         amount = Decimal(description='Transaction amount')
 
