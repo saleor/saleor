@@ -12,7 +12,7 @@ import * as React from "react";
 import CardTitle from "../../../components/CardTitle";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
+import { getUserInitials, maybe } from "../../../misc";
 import { StaffMemberDetails_user } from "../../types/StaffMemberDetails";
 
 const styles = (theme: Theme) =>
@@ -63,10 +63,7 @@ const StaffProperties = withStyles(styles, { name: "StaffProperties" })(
           <div>
             <div className={classes.avatar}>
               <Typography className={classes.avatarText}>
-                {maybe(
-                  () =>
-                    `${staffMember.firstName[0].toUpperCase()}${staffMember.lastName[0].toUpperCase()}`
-                ) || ""}
+                {getUserInitials(staffMember)}
               </Typography>
             </div>
           </div>
@@ -74,18 +71,30 @@ const StaffProperties = withStyles(styles, { name: "StaffProperties" })(
             <div className={classes.propGrid}>
               <div className={classes.prop}>
                 <Typography variant="body2">{i18n.t("First Name")}</Typography>
-                {maybe(() => staffMember.firstName) === undefined ? (
+                {maybe<React.ReactNode>(
+                  () =>
+                    staffMember.firstName ? (
+                      <Typography>{staffMember.firstName}</Typography>
+                    ) : (
+                      <Typography color="textSecondary">
+                        {i18n.t("No info")}
+                      </Typography>
+                    ),
                   <Skeleton />
-                ) : (
-                  <Typography>{staffMember.firstName}</Typography>
                 )}
               </div>
               <div className={classes.prop}>
                 <Typography variant="body2">{i18n.t("Last Name")}</Typography>
-                {maybe(() => staffMember.lastName) === undefined ? (
+                {maybe<React.ReactNode>(
+                  () =>
+                    staffMember.lastName ? (
+                      <Typography>{staffMember.lastName}</Typography>
+                    ) : (
+                      <Typography color="textSecondary">
+                        {i18n.t("No info")}
+                      </Typography>
+                    ),
                   <Skeleton />
-                ) : (
-                  <Typography>{staffMember.lastName}</Typography>
                 )}
               </div>
               <div className={classes.prop}>

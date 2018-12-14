@@ -23,7 +23,9 @@ export interface StaffMemberAdd_staffCreate_user {
   __typename: "User";
   id: string;
   email: string;
+  firstName: string;
   isActive: boolean;
+  lastName: string;
   permissions: (StaffMemberAdd_staffCreate_user_permissions | null)[] | null;
 }
 

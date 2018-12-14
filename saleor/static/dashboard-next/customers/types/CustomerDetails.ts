@@ -99,10 +99,10 @@ export interface CustomerDetails_user_lastPlacedOrder {
 
 export interface CustomerDetails_user {
   __typename: "User";
-  firstName: string;
-  lastName: string;
   id: string;
   email: string;
+  firstName: string;
+  lastName: string;
   dateJoined: any;
   lastLogin: any | null;
   defaultShippingAddress: CustomerDetails_user_defaultShippingAddress | null;

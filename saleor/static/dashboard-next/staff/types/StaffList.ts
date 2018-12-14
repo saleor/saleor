@@ -11,8 +11,8 @@ export interface StaffList_staffUsers_edges_node {
   __typename: "User";
   id: string;
   email: string;
-  isActive: boolean;
   firstName: string;
+  isActive: boolean;
   lastName: string;
 }
 
