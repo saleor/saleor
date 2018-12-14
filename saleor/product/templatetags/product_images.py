@@ -99,6 +99,5 @@ def get_thumbnail(image_file, size, method, rendition_key_set='products'):
 
 @register.simple_tag()
 def get_product_image_thumbnail(instance, size, method):
-    if instance:
-        return get_thumbnail(instance.image, size, method)
-    return get_thumbnail(None, size, method)
+    image_file = instance.image if instance else None
+    return get_thumbnail(image_file, size, method)
