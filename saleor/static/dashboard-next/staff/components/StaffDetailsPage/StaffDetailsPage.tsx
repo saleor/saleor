@@ -12,6 +12,7 @@ import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
 import { maybe } from "../../../misc";
+import { PermissionEnum } from "../../../types/globalTypes";
 import {
   StaffMemberDetails_shop_permissions,
   StaffMemberDetails_user
@@ -23,7 +24,7 @@ import StaffStatus from "../StaffStatus/StaffStatus";
 interface FormData {
   hasFullAccess: boolean;
   isActive: boolean;
-  permissions: string[];
+  permissions: PermissionEnum[];
 }
 
 const styles = (theme: Theme) =>
