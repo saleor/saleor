@@ -64,7 +64,7 @@ services:
     networks:
       - saleor-backend-tier
     volumes:
-      - saleor-search:/usr/share/elasticsearch/
+      - saleor-search:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
     # See https://github.com/docker/compose/issues/4513 if updating to version '3'
