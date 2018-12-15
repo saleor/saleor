@@ -10,19 +10,19 @@
 {% endblock %}
 
 {% block collection_published_warning %}
-  {% if not object.is_published %}
+  {% if not object.is_visible %}
     <div class="alert alert-warning" role="alert">
-      {% blocktrans context "Unavailable collection detail text" %}
-        <strong>Warning!</strong>
-        You are previewing a collection that is not published.
-      {% endblocktrans %}
-    </div>
-  {% elif object.published_date is not None %}
-    <div class="alert alert-warning" role="alert">
+    {% if object.published_date %}
       {% blocktrans trimmed with date=object.published_date|date context "Unpublished collection details text" %}
         <strong>Warning!</strong>
         You are previewing a collection that will become visible on <strong>{{ date }}</strong>.
       {% endblocktrans %}
+    {% else %}
+      {% blocktrans context "Unavailable collection detail text" %}
+        <strong>Warning!</strong>
+        You are previewing a collection that is not published.
+      {% endblocktrans %}
+    {% endif %}
     </div>
   {% endif %}
 {% endblock %}
