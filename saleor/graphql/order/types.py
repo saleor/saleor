@@ -3,7 +3,7 @@ import graphene_django_optimizer as gql_optimizer
 from graphene import relay
 
 from ...order import OrderEvents, OrderEventsEmails, models
-from ...product.templatetags.product_images import get_thumbnail
+from ...product.templatetags.product_images import get_product_image_thumbnail
 from ..account.types import User
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
@@ -131,7 +131,7 @@ class OrderLine(CountableDjangoObjectType):
             return None
         if not size:
             size = 255
-        url = get_thumbnail(
+        url = get_product_image_thumbnail(
             self.variant.get_first_image(), size, method='thumbnail')
         return info.context.build_absolute_uri(url)
 
@@ -179,7 +179,7 @@ class Order(CountableDjangoObjectType):
     can_finalize = graphene.Boolean(
         description=(
             'Informs whether a draft order can be finalized',
-            '(turned into a regular order).'))
+            '(turned into a regular order).'), required=True)
     total_authorized = graphene.Field(
         Money, description='Amount authorized for the order.')
     total_captured = graphene.Field(
@@ -196,7 +196,8 @@ class Order(CountableDjangoObjectType):
     user_email = graphene.String(
         required=False, description='Email address of the customer.')
     is_shipping_required = graphene.Boolean(
-        description='Returns True, if order requires shipping.')
+        description='Returns True, if order requires shipping.',
+        required=True)
     lines = graphene.List(
         OrderLine, required=True,
         description='List of order lines for the order')

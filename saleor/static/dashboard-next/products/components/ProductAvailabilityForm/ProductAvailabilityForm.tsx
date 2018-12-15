@@ -1,6 +1,11 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
@@ -8,7 +13,20 @@ import CardTitle from "../../../components/CardTitle";
 import ControlledSwitch from "../../../components/ControlledSwitch";
 import i18n from "../../../i18n";
 
-interface ProductAvailabilityFormProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    date: {
+      marginTop: theme.spacing.unit
+    },
+    expandedSwitchContainer: {
+      marginBottom: 0
+    },
+    switchContainer: {
+      marginBottom: -theme.spacing.unit
+    }
+  });
+
+interface ProductAvailabilityFormProps extends WithStyles<typeof styles> {
   data: {
     available: boolean;
     availableOn: string;
@@ -18,25 +36,16 @@ interface ProductAvailabilityFormProps {
   onChange(event: any);
 }
 
-const decorate = withStyles(theme => ({
-  date: {
-    marginTop: theme.spacing.unit
-  },
-  expandedSwitchContainer: {
-    marginBottom: 0
-  },
-  switchContainer: {
-    marginBottom: -theme.spacing.unit
-  }
-}));
-export const ProductAvailabilityForm = decorate<ProductAvailabilityFormProps>(
+export const ProductAvailabilityForm = withStyles(styles, {
+  name: "ProductAvailabilityForm"
+})(
   ({
     classes,
     data: { available, availableOn },
     errors,
     loading,
     onChange
-  }) => (
+  }: ProductAvailabilityFormProps) => (
     <Card>
       <CardTitle title={i18n.t("Availability")} />
       <CardContent>

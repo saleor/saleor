@@ -1,4 +1,9 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
@@ -17,7 +22,20 @@ import ProductVariantNavigation from "../ProductVariantNavigation";
 import ProductVariantPrice from "../ProductVariantPrice";
 import ProductVariantStock from "../ProductVariantStock";
 
-interface ProductVariantPageProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      display: "grid",
+      gridGap: `${theme.spacing.unit * 2}px`,
+      gridTemplateColumns: "4fr 9fr",
+      [theme.breakpoints.down("sm")]: {
+        gridGap: `${theme.spacing.unit}px`,
+        gridTemplateColumns: "1fr"
+      }
+    }
+  });
+
+interface ProductVariantPageProps extends WithStyles<typeof styles> {
   variant?: ProductVariant;
   errors: UserError[];
   saveButtonBarState: ConfirmButtonTransitionState;
@@ -31,19 +49,7 @@ interface ProductVariantPageProps {
   onVariantClick(variantId: string);
 }
 
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid",
-    gridGap: `${theme.spacing.unit * 2}px`,
-    gridTemplateColumns: "4fr 9fr",
-    [theme.breakpoints.down("sm")]: {
-      gridGap: `${theme.spacing.unit}px`,
-      gridTemplateColumns: "1fr"
-    }
-  }
-}));
-
-const ProductVariantPage = decorate<ProductVariantPageProps>(
+const ProductVariantPage = withStyles(styles, { name: "ProductVariantPage" })(
   ({
     classes,
     errors: formErrors,
@@ -57,7 +63,7 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
     onImageSelect,
     onSubmit,
     onVariantClick
-  }) => {
+  }: ProductVariantPageProps) => {
     const variantImages = variant ? variant.images.map(image => image.id) : [];
     const productImages = variant
       ? variant.product.images.sort((prev, next) =>
@@ -97,7 +103,7 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                 }}
                 errors={formErrors}
                 onSubmit={onSubmit}
-                key={variant ? JSON.stringify(variant) : "novariant"}
+                confirmLeave
               >
                 {({ change, data, errors, hasChanged, submit }) => (
                   <>

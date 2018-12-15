@@ -236,8 +236,22 @@ def size_attribute(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def image():
+    img_data = BytesIO()
+    image = Image.new('RGB', size=(1, 1))
+    image.save(img_data, format='JPEG')
+    return SimpleUploadedFile('product.jpg', img_data.getvalue())
+
+
+@pytest.fixture
 def category(db):  # pylint: disable=W0613
     return Category.objects.create(name='Default', slug='default')
+
+
+@pytest.fixture
+def category_with_image(db, image):  # pylint: disable=W0613
+    return Category.objects.create(
+        name='Default', slug='default', background_image=image)
 
 
 @pytest.fixture
@@ -318,16 +332,19 @@ def product_list(product_type, category):
     attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
 
     product_1 = Product.objects.create(
-        name='Test product 1', price=Money('10.00', 'USD'), category=category,
-        product_type=product_type, attributes=attributes, is_published=True)
+        pk=1486, name='Test product 1', price=Money('10.00', 'USD'),
+        category=category, product_type=product_type, attributes=attributes,
+        is_published=True)
 
     product_2 = Product.objects.create(
-        name='Test product 2', price=Money('20.00', 'USD'), category=category,
-        product_type=product_type, attributes=attributes, is_published=False)
+        pk=1487, name='Test product 2', price=Money('20.00', 'USD'),
+        category=category, product_type=product_type, attributes=attributes,
+        is_published=False)
 
     product_3 = Product.objects.create(
-        name='Test product 3', price=Money('20.00', 'USD'), category=category,
-        product_type=product_type, attributes=attributes, is_published=True)
+        pk=1489, name='Test product 3', price=Money('20.00', 'USD'),
+        category=category, product_type=product_type, attributes=attributes,
+        is_published=True)
 
     return [product_1, product_2, product_3]
 
@@ -346,16 +363,8 @@ def order_list(customer_user):
 
 
 @pytest.fixture
-def product_image():
-    img_data = BytesIO()
-    image = Image.new('RGB', size=(1, 1))
-    image.save(img_data, format='JPEG')
-    return SimpleUploadedFile('product.jpg', img_data.getvalue())
-
-
-@pytest.fixture
-def product_with_image(product, product_image):
-    ProductImage.objects.create(product=product, image=product_image)
+def product_with_image(product, image):
+    ProductImage.objects.create(product=product, image=image)
     return product
 
 
@@ -594,6 +603,14 @@ def collection(db):
     collection = Collection.objects.create(
         name='Collection', slug='collection', is_published=True,
         description='Test description')
+    return collection
+
+
+@pytest.fixture
+def collection_with_image(db, image):
+    collection = Collection.objects.create(
+        name='Collection', slug='collection', is_published=True,
+        description='Test description', background_image=image)
     return collection
 
 

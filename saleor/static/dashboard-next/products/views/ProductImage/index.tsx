@@ -54,7 +54,7 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
                   >
                     {(updateImage, updateResult) => (
                       <TypedProductImageDeleteMutation onCompleted={handleBack}>
-                        {deleteImage => {
+                        {(deleteImage, deleteResult) => {
                           const handleDelete = () =>
                             deleteImage({ variables: { id: imageId } });
                           const handleImageClick = (id: string) => () =>
@@ -78,6 +78,11 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
                             maybe(
                               () => updateResult.data.productImageUpdate.errors
                             )
+                          );
+                          const deleteTransitionState = getMutationState(
+                            deleteResult.called,
+                            deleteResult.loading,
+                            []
                           );
                           return (
                             <>
@@ -113,10 +118,11 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
                                       context: "modal title"
                                     })}
                                     variant="delete"
+                                    confirmButtonState={deleteTransitionState}
                                   >
                                     <DialogContentText>
                                       {i18n.t(
-                                        "Are you sure you want o remove this image?",
+                                        "Are you sure you want to remove this image?",
                                         {
                                           context: "modal content"
                                         }

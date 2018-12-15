@@ -3,9 +3,12 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import { withStyles } from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
+import ConfirmButton, {
+  ConfirmButtonTransitionState
+} from "../../../components/ConfirmButton";
 import Form from "../../../components/Form";
 import { SingleAutocompleteSelectField } from "../../../components/SingleAutocompleteSelectField";
 import i18n from "../../../i18n";
@@ -18,7 +21,14 @@ export interface FormData {
   };
 }
 
-interface OrderProductAddDialogProps {
+const styles = createStyles({
+  overflow: {
+    overflowY: "visible"
+  }
+});
+
+interface OrderProductAddDialogProps extends WithStyles<typeof styles> {
+  confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
   variants?: Array<{
     id: string;
@@ -32,14 +42,6 @@ interface OrderProductAddDialogProps {
   onSubmit: (data: FormData) => void;
 }
 
-const decorate = withStyles(
-  {
-    overflow: {
-      overflowY: "visible" as "visible"
-    }
-  },
-  { name: "OrderProductAddDialog" }
-);
 const initialForm: FormData = {
   quantity: 1,
   variant: {
@@ -47,8 +49,20 @@ const initialForm: FormData = {
     value: ""
   }
 };
-const OrderProductAddDialog = decorate<OrderProductAddDialogProps>(
-  ({ classes, open, loading, variants, fetchVariants, onClose, onSubmit }) => (
+
+const OrderProductAddDialog = withStyles(styles, {
+  name: "OrderProductAddDialog"
+})(
+  ({
+    classes,
+    confirmButtonState,
+    open,
+    loading,
+    variants,
+    fetchVariants,
+    onClose,
+    onSubmit
+  }: OrderProductAddDialogProps) => (
     <Dialog
       open={open}
       classes={{ paper: classes.overflow }}
@@ -81,9 +95,14 @@ const OrderProductAddDialog = decorate<OrderProductAddDialogProps>(
                 <Button onClick={onClose}>
                   {i18n.t("Cancel", { context: "button" })}
                 </Button>
-                <Button color="primary" variant="contained" type="submit">
+                <ConfirmButton
+                  transitionState={confirmButtonState}
+                  color="primary"
+                  variant="contained"
+                  type="submit"
+                >
                   {i18n.t("Confirm", { context: "button" })}
-                </Button>
+                </ConfirmButton>
               </DialogActions>
             </>
           );

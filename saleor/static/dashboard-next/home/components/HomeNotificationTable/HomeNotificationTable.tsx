@@ -1,5 +1,10 @@
 import Card from "@material-ui/core/Card";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -11,7 +16,17 @@ import * as React from "react";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 
-interface HomeNotificationTableProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    arrowIcon: {
+      width: theme.spacing.unit * 4
+    },
+    tableRow: {
+      cursor: "pointer"
+    }
+  });
+
+interface HomeNotificationTableProps extends WithStyles<typeof styles> {
   ordersToCapture: number;
   ordersToFulfill: number;
   productsOutOfStock: number;
@@ -20,15 +35,9 @@ interface HomeNotificationTableProps {
   onProductsOutOfStockClick: () => void;
 }
 
-const decorate = withStyles(theme => ({
-  arrowIcon: {
-    width: theme.spacing.unit * 4
-  },
-  tableRow: {
-    cursor: "pointer" as "pointer"
-  }
-}));
-const HomeNotificationTable = decorate<HomeNotificationTableProps>(
+const HomeNotificationTable = withStyles(styles, {
+  name: "HomeNotificationTable"
+})(
   ({
     classes,
     onOrdersToCaptureClick,
@@ -37,7 +46,7 @@ const HomeNotificationTable = decorate<HomeNotificationTableProps>(
     ordersToCapture,
     ordersToFulfill,
     productsOutOfStock
-  }) => {
+  }: HomeNotificationTableProps) => {
     return (
       <Card>
         <Table>

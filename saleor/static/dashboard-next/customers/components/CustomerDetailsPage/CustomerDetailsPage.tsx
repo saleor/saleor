@@ -1,4 +1,9 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
 import { CardSpacer } from "../../../components/CardSpacer";
@@ -21,7 +26,16 @@ export interface CustomerDetailsPageFormData {
   note: string;
 }
 
-export interface CustomerDetailsPageProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 3 + "px",
+      gridTemplateColumns: "9fr 4fr"
+    }
+  });
+
+export interface CustomerDetailsPageProps extends WithStyles<typeof styles> {
   customer: CustomerDetails_user;
   disabled: boolean;
   errors: UserError[];
@@ -34,14 +48,7 @@ export interface CustomerDetailsPageProps {
   onDelete: () => void;
 }
 
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 3 + "px",
-    gridTemplateColumns: "9fr 4fr"
-  }
-}));
-const CustomerDetailsPage = decorate<CustomerDetailsPageProps>(
+const CustomerDetailsPage = withStyles(styles, { name: "CustomerDetailsPage" })(
   ({
     classes,
     customer,
@@ -54,15 +61,16 @@ const CustomerDetailsPage = decorate<CustomerDetailsPageProps>(
     onRowClick,
     onAddressManageClick,
     onDelete
-  }) => (
+  }: CustomerDetailsPageProps) => (
     <Form
       errors={errors}
       initial={{
         email: maybe(() => customer.email),
-        isActive: maybe(() => customer.isActive),
+        isActive: maybe(() => customer.isActive, false),
         note: maybe(() => customer.note)
       }}
       onSubmit={onSubmit}
+      confirmLeave
     >
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container width="md">

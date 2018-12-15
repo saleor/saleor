@@ -1,3 +1,6 @@
+from io import StringIO
+
+from django.apps import apps
 from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
@@ -34,6 +37,12 @@ class Command(BaseCommand):
             dest='withoutsearch',
             default=False,
             help='Don\'t update search index')
+        parser.add_argument(
+            '--skipsequencereset',
+            action='store_true',
+            dest='skipsequencereset',
+            default=False,
+            help='Don\'t reset SQL sequences that are out of sync.')
 
     def make_database_faster(self):
         """Sacrifice some of the safeguards of sqlite3 for speed.
@@ -49,6 +58,22 @@ class Command(BaseCommand):
     def populate_search_index(self):
         if settings.ES_URL:
             call_command('search_index', '--rebuild', force=True)
+
+    def sequence_reset(self):
+        """Runs SQL sequence reset on all saleor.* apps.
+
+        When a value is manually assigned to an auto-incrementing field
+        it doesn't update the field's sequence, which might cause a conflict
+        later on.
+        """
+        commands = StringIO()
+        for app in apps.get_app_configs():
+            if 'saleor' in app.name:
+                call_command(
+                    'sqlsequencereset', app.label,
+                    stdout=commands, no_color=True)
+        with connection.cursor() as cursor:
+            cursor.execute(commands.getvalue())
 
     def handle(self, *args, **options):
         self.make_database_faster()
@@ -81,3 +106,5 @@ class Command(BaseCommand):
             add_address_to_admin(credentials['email'])
         if not options['withoutsearch']:
             self.populate_search_index()
+        if not options['skipsequencereset']:
+            self.sequence_reset()

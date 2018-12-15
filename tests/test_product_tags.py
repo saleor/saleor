@@ -1,11 +1,11 @@
 from unittest.mock import Mock, patch
-import pytest
 
+import pytest
 from django.templatetags.static import static
 from django.test import override_settings
 
 from saleor.product.templatetags.product_images import (
-    choose_placeholder, get_thumbnail)
+    choose_placeholder, get_product_image_thumbnail, get_thumbnail)
 
 
 @override_settings(
@@ -26,7 +26,15 @@ def test_get_thumbnail_no_instance(monkeypatch):
     monkeypatch.setattr(
         'saleor.product.templatetags.product_images.choose_placeholder',
         lambda x: 'placeholder')
-    output = get_thumbnail(instance=None, size=10, method='crop')
+    output = get_thumbnail(image_file=None, size=10, method='crop')
+    assert output == static('placeholder')
+
+
+def test_get_product_image_thumbnail_no_instance(monkeypatch):
+    monkeypatch.setattr(
+        'saleor.product.templatetags.product_images.choose_placeholder',
+        lambda x: 'placeholder')
+    output = get_product_image_thumbnail(instance=None, size=10, method='crop')
     assert output == static('placeholder')
 
 

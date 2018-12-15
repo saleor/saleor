@@ -226,7 +226,7 @@ type Category implements Node {
   slug: String!
   description: String!
   parent: Category
-  backgroundImage: Image
+  backgroundImage(size: Int): Image
   level: Int!
   children(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
@@ -261,6 +261,7 @@ input CategoryInput {
   slug: String
   seo: SeoInput
   backgroundImage: Upload
+  backgroundImageAlt: String
 }
 
 type CategoryUpdate {
@@ -286,7 +287,7 @@ type Checkout implements Node {
   lines: [CheckoutLine]
   id: ID!
   availableShippingMethods: [ShippingMethod]
-  isShippingRequired: Boolean
+  isShippingRequired: Boolean!
   shippingPrice: TaxedMoney
   subtotalPrice: TaxedMoney
   totalPrice: TaxedMoney
@@ -405,7 +406,7 @@ type Collection implements Node {
   name: String!
   slug: String!
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
-  backgroundImage: Image
+  backgroundImage(size: Int): Image
   isPublished: Boolean!
   description: String!
   publishedDate: Date
@@ -438,6 +439,7 @@ input CollectionCreateInput {
   slug: String
   description: String
   backgroundImage: Upload
+  backgroundImageAlt: String
   seo: SeoInput
   publishedDate: Date
   products: [ID]
@@ -454,6 +456,7 @@ input CollectionInput {
   slug: String
   description: String
   backgroundImage: Upload
+  backgroundImageAlt: String
   seo: SeoInput
   publishedDate: Date
 }
@@ -471,6 +474,7 @@ type CollectionUpdate {
 type CountryDisplay {
   code: String!
   country: String!
+  vat: VAT
 }
 
 type CreateToken {
@@ -500,6 +504,8 @@ type CustomerDelete {
 input CustomerInput {
   defaultBillingAddress: AddressInput
   defaultShippingAddress: AddressInput
+  firstName: String
+  lastName: String
   email: String
   isActive: Boolean
   note: String
@@ -686,7 +692,8 @@ type HomepageCollectionUpdate {
 }
 
 type Image {
-  url(size: Int): String!
+  url: String!
+  alt: String
 }
 
 scalar JSONString
@@ -857,7 +864,9 @@ type Mutations {
   productVariantUpdate(id: ID!, input: ProductVariantInput!): ProductVariantUpdate
   variantImageAssign(imageId: ID!, variantId: ID!): VariantImageAssign
   variantImageUnassign(imageId: ID!, variantId: ID!): VariantImageUnassign
+  paymentAuthorize(paymentId: ID!, paymentToken: String!): PaymentAuthorize
   paymentCapture(amount: Decimal, paymentId: ID!): PaymentCapture
+  paymentCharge(amount: Decimal, paymentId: ID!, paymentToken: String!): PaymentCharge
   paymentRefund(amount: Decimal, paymentId: ID!): PaymentRefund
   paymentVoid(paymentId: ID!): PaymentVoid
   pageCreate(input: PageInput!): PageCreate
@@ -973,11 +982,11 @@ type Order implements Node {
   paymentStatusDisplay: String
   subtotal: TaxedMoney
   statusDisplay: String
-  canFinalize: Boolean
+  canFinalize: Boolean!
   totalAuthorized: Money
   totalCaptured: Money
   totalBalance: Money!
-  isShippingRequired: Boolean
+  isShippingRequired: Boolean!
 }
 
 enum OrderAction {
@@ -1232,7 +1241,17 @@ type Payment implements Node {
   creditCard: CreditCard
 }
 
+type PaymentAuthorize {
+  errors: [Error]
+  payment: Payment
+}
+
 type PaymentCapture {
+  errors: [Error]
+  payment: Payment
+}
+
+type PaymentCharge {
   errors: [Error]
   payment: Payment
 }
@@ -1310,7 +1329,8 @@ type Product implements Node {
   images: [ProductImage]
   collections: [Collection]
   url: String!
-  thumbnailUrl(size: Int): String
+  thumbnailUrl(size: Int): String @deprecated(reason: "thumbnailUrl is deprecated, use\\n         thumbnail instead")
+  thumbnail(size: Int): Image
   availability: ProductAvailability
   purchaseCost: MoneyRange
   margin: Margin
@@ -1595,6 +1615,11 @@ type Query {
   node(id: ID!): Node
 }
 
+type ReducedRate {
+  rate: Float!
+  rateType: String!
+}
+
 type Refresh {
   token: String
   payload: GenericScalar
@@ -1814,10 +1839,12 @@ type StaffCreate {
 }
 
 input StaffCreateInput {
+  firstName: String
+  lastName: String
   email: String
   isActive: Boolean
   note: String
-  permissions: [String]
+  permissions: [PermissionEnum]
   sendPasswordEmail: Boolean
 }
 
@@ -1827,10 +1854,12 @@ type StaffDelete {
 }
 
 input StaffInput {
+  firstName: String
+  lastName: String
   email: String
   isActive: Boolean
   note: String
-  permissions: [String]
+  permissions: [PermissionEnum]
 }
 
 type StaffUpdate {
@@ -1923,6 +1952,8 @@ type User implements Node {
   id: ID!
   lastLogin: DateTime
   email: String!
+  firstName: String!
+  lastName: String!
   addresses: [Address]
   isStaff: Boolean!
   token: UUID!
@@ -1954,10 +1985,18 @@ type UserCountableEdge {
 input UserCreateInput {
   defaultBillingAddress: AddressInput
   defaultShippingAddress: AddressInput
+  firstName: String
+  lastName: String
   email: String
   isActive: Boolean
   note: String
   sendPasswordEmail: Boolean
+}
+
+type VAT {
+  countryCode: String!
+  standardRate: Float
+  reducedRates: [ReducedRate]
 }
 
 type VariantImageAssign {

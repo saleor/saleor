@@ -1,4 +1,9 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
@@ -18,7 +23,20 @@ export interface ProductTypeForm {
   taxRate: TaxRateType;
   weight: number;
 }
-export interface ProductTypeCreatePageProps {
+
+const styles = (theme: Theme) =>
+  createStyles({
+    cardContainer: {
+      marginTop: theme.spacing.unit * 2
+    },
+    root: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "2fr 1fr"
+    }
+  });
+
+export interface ProductTypeCreatePageProps extends WithStyles<typeof styles> {
   errors: Array<{
     field: string;
     message: string;
@@ -31,17 +49,9 @@ export interface ProductTypeCreatePageProps {
   onSubmit: (data: ProductTypeForm) => void;
 }
 
-const decorate = withStyles(theme => ({
-  cardContainer: {
-    marginTop: theme.spacing.unit * 2
-  },
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "2fr 1fr"
-  }
-}));
-const ProductTypeCreatePage = decorate<ProductTypeCreatePageProps>(
+const ProductTypeCreatePage = withStyles(styles, {
+  name: "ProductTypeCreatePage"
+})(
   ({
     classes,
     defaultWeightUnit,
@@ -51,7 +61,7 @@ const ProductTypeCreatePage = decorate<ProductTypeCreatePageProps>(
     saveButtonBarState,
     onBack,
     onSubmit
-  }) => {
+  }: ProductTypeCreatePageProps) => {
     const formInitialData: ProductTypeForm = {
       chargeTaxes: true,
       isShippingRequired: false,
@@ -60,7 +70,12 @@ const ProductTypeCreatePage = decorate<ProductTypeCreatePageProps>(
       weight: 0
     };
     return (
-      <Form errors={errors} initial={formInitialData} onSubmit={onSubmit}>
+      <Form
+        errors={errors}
+        initial={formInitialData}
+        onSubmit={onSubmit}
+        confirmLeave
+      >
         {({ change, data, hasChanged, submit }) => (
           <Container width="md">
             <PageHeader title={pageTitle} onBack={onBack} />

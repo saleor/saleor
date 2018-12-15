@@ -25,6 +25,8 @@ class CategoryInput(graphene.InputObjectType):
     slug = graphene.String(description='Category slug')
     seo = SeoInput(description='Search engine optimization fields.')
     background_image = Upload(description='Background image file.')
+    background_image_alt = graphene.String(
+        description='Alt text for an image.')
 
 
 class CategoryCreate(ModelMutation):
@@ -43,7 +45,7 @@ class CategoryCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, input, errors):
         cleaned_input = super().clean_input(info, instance, input, errors)
-        if 'slug' not in cleaned_input:
+        if 'slug' not in cleaned_input and 'name' in cleaned_input:
             cleaned_input['slug'] = slugify(cleaned_input['name'])
         parent_id = input['parent_id']
         if parent_id:
@@ -109,6 +111,8 @@ class CollectionInput(graphene.InputObjectType):
     slug = graphene.String(description='Slug of the collection.')
     description = graphene.String(description='Description of the collection.')
     background_image = Upload(description='Background image file.')
+    background_image_alt = graphene.String(
+        description='Alt text for an image.')
     seo = SeoInput(description='Search engine optimization fields.')
     published_date = graphene.Date(
         description='Publication date. ISO 8601 standard.')
@@ -138,7 +142,7 @@ class CollectionCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, input, errors):
         cleaned_input = super().clean_input(info, instance, input, errors)
-        if 'slug' not in cleaned_input:
+        if 'slug' not in cleaned_input and 'name' in cleaned_input:
             cleaned_input['slug'] = slugify(cleaned_input['name'])
         clean_seo_fields(cleaned_input)
         return cleaned_input
@@ -609,8 +613,10 @@ class ProductImageUpdate(BaseMutation):
             info, id, errors, 'id', only_type=ProductImage)
         product = image.product
         if not errors:
-            image.alt = input.get('alt', '')
-            image.save()
+            alt = input.get('alt')
+            if alt is not None:
+                image.alt = alt
+                image.save(update_fields=['alt'])
         return ProductImageUpdate(product=product, image=image, errors=errors)
 
 

@@ -29,7 +29,7 @@ interface PaginatorProps {
       loadPreviousPage: () => void;
       pageInfo: PageInfo;
     }
-  ) => React.ReactNode;
+  ) => React.ReactElement<any>;
   pageInfo: PageInfo;
   paginationState: PaginationState;
   queryString: QueryString;

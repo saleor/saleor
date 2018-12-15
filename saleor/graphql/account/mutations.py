@@ -13,7 +13,7 @@ from ...dashboard.staff.utils import remove_staff_member
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, User
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.types.common import Error
+from ..core.types import Error, PermissionEnum
 
 
 def send_user_password_reset_email(user, site):
@@ -55,6 +55,8 @@ class CustomerRegister(ModelMutation):
 
 
 class UserInput(graphene.InputObjectType):
+    first_name = graphene.String(description='Given name.')
+    last_name = graphene.String(description='Family name.')
     email = graphene.String(
         description='The unique email address of the user.')
     is_active = graphene.Boolean(
@@ -80,7 +82,7 @@ class UserCreateInput(CustomerInput):
 
 class StaffInput(UserInput):
     permissions = graphene.List(
-        graphene.String,
+        PermissionEnum,
         description='List of permission code names to assign to this user.')
 
 

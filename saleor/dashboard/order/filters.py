@@ -64,6 +64,8 @@ class OrderFilter(SortedFilterSet):
     def filter_by_order_customer(self, queryset, name, value):
         return queryset.filter(
             Q(user__email__icontains=value) |
+            Q(user__first_name__icontains=value) |
+            Q(user__last_name__icontains=value) |
             Q(user__default_billing_address__first_name__icontains=value) |
             Q(user__default_billing_address__last_name__icontains=value))
 

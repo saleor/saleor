@@ -58,7 +58,7 @@ export const CategoryCreateView: React.StatelessComponent<
                                 title: formData.seoTitle
                               }
                             },
-                            parent: parentId
+                            parent: parentId || null
                           }
                         })
                       }

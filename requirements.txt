@@ -83,14 +83,14 @@ purl==1.4
 pycodestyle==2.4.0
 pycparser==2.19
 pygments==2.3.0
-pyjwt==1.6.4
+pyjwt==1.7.0
 pyphen==0.9.5
 python-dateutil==2.7.5 ; python_version >= '2.7'
 python3-openid==3.1.0 ; python_version >= '3.0'
 pytz==2018.7
 raven==6.9.0
 razorpay==1.1.1
-redis==3.0.1
+redis==2.10.6
 requests-oauthlib==1.0.0
 requests==2.20.1
 rx==1.6.1

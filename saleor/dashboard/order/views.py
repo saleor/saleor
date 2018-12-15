@@ -609,7 +609,7 @@ def fulfill_order_lines(request, order_pk):
                 'Dashboard message related to an order',
                 'Fulfilled %(quantity_fulfilled)d item',
                 'Fulfilled %(quantity_fulfilled)d items',
-                'quantity_fulfilled') % {
+                number='quantity_fulfilled') % {
                     'quantity_fulfilled': quantity_fulfilled}
             order.events.create(
                 parameters={'quantity': quantity_fulfilled},

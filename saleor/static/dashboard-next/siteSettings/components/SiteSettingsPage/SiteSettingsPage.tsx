@@ -1,4 +1,9 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
@@ -20,7 +25,17 @@ export interface SiteSettingsPageFormData {
   name: string;
 }
 
-export interface SiteSettingsPageProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridRowGap: theme.spacing.unit * 3 + "px",
+      gridTemplateColumns: "4fr 9fr"
+    }
+  });
+
+export interface SiteSettingsPageProps extends WithStyles<typeof styles> {
   disabled: boolean;
   errors: Array<{
     field: string;
@@ -34,15 +49,7 @@ export interface SiteSettingsPageProps {
   onSubmit: (data: SiteSettingsPageFormData) => void;
 }
 
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridRowGap: theme.spacing.unit * 3 + "px",
-    gridTemplateColumns: "4fr 9fr"
-  }
-}));
-const SiteSettingsPage = decorate<SiteSettingsPageProps>(
+const SiteSettingsPage = withStyles(styles, { name: "SiteSettingsPage" })(
   ({
     classes,
     disabled,
@@ -53,14 +60,19 @@ const SiteSettingsPage = decorate<SiteSettingsPageProps>(
     onKeyAdd,
     onKeyRemove,
     onSubmit
-  }) => {
+  }: SiteSettingsPageProps) => {
     const initialForm: SiteSettingsPageFormData = {
       description: maybe(() => shop.description, ""),
       domain: maybe(() => shop.domain.host, ""),
       name: maybe(() => shop.name, "")
     };
     return (
-      <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
+      <Form
+        errors={errors}
+        initial={initialForm}
+        onSubmit={onSubmit}
+        confirmLeave
+      >
         {({ change, data, errors: formErrors, hasChanged, submit }) => (
           <Container width="md">
             <PageHeader

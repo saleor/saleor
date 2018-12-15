@@ -1,6 +1,6 @@
 import { DocumentNode } from "graphql";
 import * as React from "react";
-import { Query, QueryProps, QueryResult } from "react-apollo";
+import { Query, QueryResult } from "react-apollo";
 
 import AppProgress from "./components/AppProgress";
 import Messages from "./components/messages";
@@ -44,9 +44,7 @@ class QueryProgress extends React.Component<QueryProgressProps, {}> {
 }
 
 export function TypedQuery<TData, TVariables>(query: DocumentNode) {
-  const StrictTypedQuery: React.ComponentType<
-    QueryProps<TData, TVariables>
-  > = Query;
+  class StrictTypedQuery extends Query<TData, TVariables> {}
   return ({
     children,
     displayLoader,

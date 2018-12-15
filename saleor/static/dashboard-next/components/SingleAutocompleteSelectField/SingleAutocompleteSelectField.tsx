@@ -1,6 +1,12 @@
+import { Omit } from "@material-ui/core";
 import MenuItem from "@material-ui/core/MenuItem";
 import Paper from "@material-ui/core/Paper";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import Downshift from "downshift";
 import * as React from "react";
@@ -10,7 +16,22 @@ import i18n from "../../i18n";
 import ArrowDropdownIcon from "../../icons/ArrowDropdown";
 import Debounce, { DebounceProps } from "../Debounce";
 
-interface SingleAutocompleteSelectFieldProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    container: {
+      flexGrow: 1,
+      position: "relative"
+    },
+    paper: {
+      left: 0,
+      marginTop: theme.spacing.unit,
+      position: "absolute",
+      right: 0,
+      zIndex: 1
+    }
+  });
+
+interface SingleAutocompleteSelectFieldProps extends WithStyles<typeof styles> {
   name: string;
   choices: Array<{
     label: string;
@@ -37,30 +58,13 @@ interface SingleAutocompleteSelectFieldState {
   }>;
 }
 
-const decorate = withStyles(theme => ({
-  container: {
-    flexGrow: 1,
-    position: "relative" as "relative"
-  },
-  inputRoot: {
-    flexWrap: "wrap" as "wrap"
-  },
-  paper: {
-    left: 0,
-    marginTop: theme.spacing.unit,
-    position: "absolute" as "absolute",
-    right: 0,
-    zIndex: 1
-  }
-}));
-
 const DebounceAutocomplete: React.ComponentType<
   DebounceProps<string>
 > = Debounce;
 
-const SingleAutocompleteSelectFieldComponent = decorate<
-  SingleAutocompleteSelectFieldProps
->(
+const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
+  name: "SingleAutocompleteSelectField"
+})(
   ({
     choices,
     classes,
@@ -74,7 +78,7 @@ const SingleAutocompleteSelectFieldComponent = decorate<
     value,
     fetchChoices,
     onChange
-  }) => {
+  }: SingleAutocompleteSelectFieldProps) => {
     const handleChange = item => onChange({ target: { name, value: item } });
 
     return (
@@ -92,6 +96,7 @@ const SingleAutocompleteSelectFieldComponent = decorate<
               isOpen,
               inputValue,
               selectedItem,
+              toggleMenu,
               highlightedIndex
             }) => {
               const isCustom =
@@ -103,13 +108,14 @@ const SingleAutocompleteSelectFieldComponent = decorate<
                 <div className={classes.container}>
                   <TextField
                     InputProps={{
-                      classes: {
-                        root: classes.inputRoot
-                      },
                       ...getInputProps({
                         placeholder
                       }),
-                      endAdornment: <ArrowDropdownIcon />
+                      endAdornment: (
+                        <ArrowDropdownIcon
+                          onClick={disabled ? undefined : toggleMenu}
+                        />
+                      )
                     }}
                     disabled={disabled}
                     helperText={helperText}
@@ -163,8 +169,9 @@ const SingleAutocompleteSelectFieldComponent = decorate<
     );
   }
 );
+
 export class SingleAutocompleteSelectField extends React.Component<
-  SingleAutocompleteSelectFieldProps,
+  Omit<SingleAutocompleteSelectFieldProps, "classes">,
   SingleAutocompleteSelectFieldState
 > {
   state = { choices: this.props.choices };

@@ -12,6 +12,7 @@ storiesOf("Orders / OrderAddressEditDialog", module)
   .addDecorator(Decorator)
   .add("shipping address", () => (
     <OrderAddressEditDialog
+      confirmButtonState="default"
       address={transformAddressToForm(order.shippingAddress)}
       countries={countries}
       errors={[]}
@@ -23,6 +24,7 @@ storiesOf("Orders / OrderAddressEditDialog", module)
   ))
   .add("billing address", () => (
     <OrderAddressEditDialog
+      confirmButtonState="default"
       address={transformAddressToForm(order.billingAddress)}
       countries={countries}
       errors={[]}

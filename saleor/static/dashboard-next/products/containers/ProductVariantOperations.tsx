@@ -8,7 +8,7 @@ import {
   TypedVariantImageUnassignMutation,
   TypedVariantUpdateMutation
 } from "../mutations";
-import { VariantDelete } from "../types/VariantDelete";
+import { VariantDelete, VariantDeleteVariables } from "../types/VariantDelete";
 import {
   VariantImageAssign,
   VariantImageAssignVariables
@@ -22,7 +22,10 @@ import { VariantUpdate, VariantUpdateVariables } from "../types/VariantUpdate";
 interface VariantDeleteOperationsProps {
   children: (
     props: {
-      deleteVariant: PartialMutationProviderOutput;
+      deleteVariant: PartialMutationProviderOutput<
+        VariantDelete,
+        VariantDeleteVariables
+      >;
       updateVariant: PartialMutationProviderOutput<
         VariantUpdate,
         VariantUpdateVariables

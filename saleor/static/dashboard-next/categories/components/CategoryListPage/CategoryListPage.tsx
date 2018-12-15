@@ -1,13 +1,14 @@
 import Button from "@material-ui/core/Button";
-import { withStyles } from "@material-ui/core/styles";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
+
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
+import { PageListProps } from "../../../types";
 import CategoryList from "../CategoryList";
 
-export interface CategoryTableProps {
+export interface CategoryTableProps extends PageListProps {
   categories: Array<{
     id: string;
     name: string;
@@ -18,36 +19,34 @@ export interface CategoryTableProps {
       totalCount: number;
     };
   }>;
-  onAddCategory();
-  onCategoryClick(id: string): () => void;
 }
 
-const decorate = withStyles({});
-
-export const CategoryListPage = decorate<CategoryTableProps>(
-  ({ categories, onAddCategory, onCategoryClick }) => {
-    return (
-      <>
-        <Container width="md">
-          <PageHeader title={i18n.t("Category")}>
-            <Button
-              color="secondary"
-              variant="contained"
-              onClick={onAddCategory}
-            >
-              {i18n.t("Add category")} <AddIcon />
-            </Button>
-          </PageHeader>
-          <CategoryList
-            categories={categories}
-            onAdd={onAddCategory}
-            onRowClick={onCategoryClick}
-            isRoot={true}
-          />
-        </Container>
-      </>
-    );
-  }
+export const CategoryListPage: React.StatelessComponent<CategoryTableProps> = ({
+  categories,
+  disabled,
+  onAdd,
+  onNextPage,
+  onPreviousPage,
+  onRowClick,
+  pageInfo
+}) => (
+  <Container width="md">
+    <PageHeader title={i18n.t("Category")}>
+      <Button color="secondary" variant="contained" onClick={onAdd}>
+        {i18n.t("Add category")} <AddIcon />
+      </Button>
+    </PageHeader>
+    <CategoryList
+      categories={categories}
+      onAdd={onAdd}
+      onRowClick={onRowClick}
+      disabled={disabled}
+      isRoot={true}
+      onNextPage={onNextPage}
+      onPreviousPage={onPreviousPage}
+      pageInfo={pageInfo}
+    />
+  </Container>
 );
 CategoryListPage.displayName = "CategoryListPage";
 export default CategoryListPage;

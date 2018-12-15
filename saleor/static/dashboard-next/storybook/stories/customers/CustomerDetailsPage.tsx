@@ -1,3 +1,4 @@
+import { Omit } from "@material-ui/core";
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
@@ -8,7 +9,7 @@ import { customer } from "../../../customers/fixtures";
 import Decorator from "../../Decorator";
 import { formError } from "../../misc";
 
-const props: CustomerDetailsPageProps = {
+const props: Omit<CustomerDetailsPageProps, "classes"> = {
   customer,
   disabled: false,
   errors: [],

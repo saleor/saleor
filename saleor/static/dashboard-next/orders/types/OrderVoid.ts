@@ -7,6 +7,12 @@ import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusE
 // GraphQL mutation operation: OrderVoid
 // ====================================================
 
+export interface OrderVoid_orderVoid_errors {
+  __typename: "Error";
+  field: string | null;
+  message: string | null;
+}
+
 export interface OrderVoid_orderVoid_order_billingAddress_country {
   __typename: "CountryDisplay";
   code: string;
@@ -68,6 +74,7 @@ export interface OrderVoid_orderVoid_order_fulfillments_lines_orderLine_unitPric
 export interface OrderVoid_orderVoid_order_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -113,6 +120,7 @@ export interface OrderVoid_orderVoid_order_lines_unitPrice {
 export interface OrderVoid_orderVoid_order_lines {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -223,6 +231,7 @@ export interface OrderVoid_orderVoid_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderVoid_orderVoid_order_billingAddress | null;
+  canFinalize: boolean;
   created: any;
   customerNote: string;
   events: (OrderVoid_orderVoid_order_events | null)[] | null;
@@ -247,6 +256,7 @@ export interface OrderVoid_orderVoid_order {
 
 export interface OrderVoid_orderVoid {
   __typename: "OrderVoid";
+  errors: (OrderVoid_orderVoid_errors | null)[] | null;
   order: OrderVoid_orderVoid_order | null;
 }
 

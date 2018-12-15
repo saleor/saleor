@@ -1,4 +1,9 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
 import Form from "../../../components/Form";
@@ -103,22 +108,21 @@ const getEventMessage = (event: OrderDetails_order_events) => {
   }
 };
 
-interface OrderHistoryProps {
-  history: OrderDetails_order_events[];
-  onNoteAdd: (data: FormData) => void;
-}
-
-const decorate = withStyles(
-  theme => ({
+const styles = (theme: Theme) =>
+  createStyles({
     root: { marginTop: theme.spacing.unit * 2 },
     user: {
       marginBottom: theme.spacing.unit
     }
-  }),
-  { name: "OrderHistory" }
-);
-const OrderHistory = decorate<OrderHistoryProps>(
-  ({ classes, history, onNoteAdd }) => (
+  });
+
+interface OrderHistoryProps extends WithStyles<typeof styles> {
+  history: OrderDetails_order_events[];
+  onNoteAdd: (data: FormData) => void;
+}
+
+const OrderHistory = withStyles(styles, { name: "OrderHistory" })(
+  ({ classes, history, onNoteAdd }: OrderHistoryProps) => (
     <div className={classes.root}>
       <PageHeader
         title={i18n.t("Order timeline", {

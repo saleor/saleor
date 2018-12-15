@@ -1,17 +1,21 @@
-import { withStyles } from "@material-ui/core/styles";
-import * as React from "react";
-
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
+import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
 import FormSpacer from "../../../components/FormSpacer";
 import { RichTextEditor } from "../../../components/RichTextEditor";
-
 import i18n from "../../../i18n";
 
-interface CategoryDetailsFormProps {
+const styles = createStyles({
+  root: {
+    width: "50%"
+  }
+});
+
+interface CategoryDetailsFormProps extends WithStyles<typeof styles> {
   data: {
     name: string;
     description: string;
@@ -21,14 +25,10 @@ interface CategoryDetailsFormProps {
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
-const decorate = withStyles({
-  root: {
-    width: "50%"
-  }
-});
-
-export const CategoryDetailsForm = decorate<CategoryDetailsFormProps>(
-  ({ classes, disabled, data, onChange, errors }) => {
+export const CategoryDetailsForm = withStyles(styles, {
+  name: "CategoryDetailsForm"
+})(
+  ({ classes, disabled, data, onChange, errors }: CategoryDetailsFormProps) => {
     return (
       <Card>
         <CardTitle title={i18n.t("General information")} />

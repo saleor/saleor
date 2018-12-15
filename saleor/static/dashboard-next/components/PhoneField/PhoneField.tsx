@@ -1,10 +1,24 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
 import SingleSelectField from "../../components/SingleSelectField";
 
-interface PhoneFieldProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      display: "grid",
+      gridColumnGap: `${theme.spacing.unit * 2}px`,
+      gridTemplateColumns: "5rem 1fr"
+    }
+  });
+
+interface PhoneFieldProps extends WithStyles<typeof styles> {
   name: string;
   prefix: string;
   number: string;
@@ -13,14 +27,7 @@ interface PhoneFieldProps {
   onChange(event: React.ChangeEvent<any>);
 }
 
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid",
-    gridColumnGap: `${theme.spacing.unit * 2}px`,
-    gridTemplateColumns: "5rem 1fr"
-  }
-}));
-const PhoneField = decorate<PhoneFieldProps>(
+const PhoneField = withStyles(styles, { name: "PhoneField" })(
   ({
     classes,
     name,
@@ -29,7 +36,7 @@ const PhoneField = decorate<PhoneFieldProps>(
     prefixes,
     label,
     onChange
-  }) => (
+  }: PhoneFieldProps) => (
     <div className={classes.root}>
       <SingleSelectField
         name={name + "_prefix"}
