@@ -1,12 +1,14 @@
+from unittest.mock import Mock
+
 import graphene
 import pytest
 from datetime import date
 from django.utils.text import slugify
 from graphql_relay import to_global_id
-from unittest.mock import Mock
+from tests.utils import create_image
 
 from saleor.product.models import Collection
-from tests.utils import create_image
+
 from .utils import get_graphql_content, get_multipart_request_body
 
 
@@ -42,6 +44,7 @@ def test_collections_query(
     assert collection_data['slug'] == collection.slug
     assert collection_data['description'] == collection.description
     assert collection_data['products']['totalCount'] == collection.products.count()
+
     # query all collections only as a staff user with proper permissions
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query)
@@ -54,9 +57,9 @@ def test_create_collection(
         monkeypatch, staff_api_client, product_list, permission_manage_products):
     query = """
         mutation createCollection(
-            $name: String!, $slug: String!, $description: String, $products: [ID], $backgroundImage: Upload!, $isPublished: Boolean!, $publishedDate: Date) {
+            $name: String!, $slug: String!, $description: String, $products: [ID], $backgroundImage: Upload!, $backgroundImageAlt: String, $isPublished: Boolean!, $publishedDate: Date) {
             collectionCreate(
-                input: {name: $name, slug: $slug, description: $description, products: $products, backgroundImage: $backgroundImage, isPublished: $isPublished, publishedDate: $publishedDate}) {
+                input: {name: $name, slug: $slug, description: $description, products: $products, backgroundImage: $backgroundImage, backgroundImageAlt: $backgroundImageAlt, isPublished: $isPublished, publishedDate: $publishedDate}) {
                 collection {
                     name
                     slug
@@ -65,10 +68,9 @@ def test_create_collection(
                         totalCount
                     }
                     publishedDate
-                }
-                errors {
-                    field
-                    message
+                    backgroundImage{
+                        alt
+                    }
                 }
             }
         }
@@ -83,6 +85,7 @@ def test_create_collection(
     product_ids = [
         to_global_id('Product', product.pk) for product in product_list]
     image_file, image_name = create_image()
+    image_alt = 'Alt text for an image.'
     name = 'test-name'
     slug = 'test-slug'
     description = 'test-description'
@@ -90,7 +93,8 @@ def test_create_collection(
     variables = {
         'name': name, 'slug': slug, 'description': description,
         'products': product_ids, 'backgroundImage': image_name,
-        'isPublished': True, 'publishedDate': published_date}
+        'backgroundImageAlt': image_alt, 'isPublished': True,
+        'publishedDate': published_date}
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products])
@@ -104,6 +108,7 @@ def test_create_collection(
     collection = Collection.objects.get(slug=slug)
     assert collection.background_image.file
     mock_create_thumbnails.assert_called_once_with(collection.pk)
+    assert data['backgroundImage']['alt'] == image_alt
 
 
 def test_create_collection_without_background_image(
@@ -128,7 +133,7 @@ def test_create_collection_without_background_image(
         mock_create_thumbnails)
 
     variables = {
-        'name': 'test-name', 'slug': 'test-slug', 'isPublished': True}
+        'name': 'test-name', 'slug': 'test-slug', 'isPublished': True,}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     get_graphql_content(response)
@@ -179,17 +184,21 @@ def test_update_collection_with_background_image(
         monkeypatch, staff_api_client, collection, permission_manage_products):
     query = """
         mutation updateCollection(
-            $name: String!, $slug: String!, $id: ID!, $backgroundImage: Upload, $isPublished: Boolean!) {
+            $name: String!, $slug: String!, $id: ID!, $backgroundImage: Upload, $backgroundImageAlt: String, $isPublished: Boolean!) {
             collectionUpdate(
                 id: $id, input: {
-                    name: $name, 
-                    slug: $slug, 
-                    backgroundImage: $backgroundImage, 
+                    name: $name,
+                    slug: $slug,
+                    backgroundImage: $backgroundImage,
+                    backgroundImageAlt: $backgroundImageAlt,
                     isPublished: $isPublished
                 }
             ) {
                 collection {
                     slug
+                    backgroundImage{
+                        alt
+                    }
                 }
                 errors {
                     field
@@ -206,11 +215,13 @@ def test_update_collection_with_background_image(
         mock_create_thumbnails)
 
     image_file, image_name = create_image()
+    image_alt = 'Alt text for an image.'
     variables = {
         'name': 'new-name',
         'slug': 'new-slug',
         'id': to_global_id('Collection', collection.id),
         'backgroundImage': image_name,
+        'backgroundImageAlt': image_alt,
         'isPublished': True}
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = staff_api_client.post_multipart(
@@ -222,6 +233,7 @@ def test_update_collection_with_background_image(
     collection = Collection.objects.get(slug=slug)
     assert collection.background_image
     mock_create_thumbnails.assert_called_once_with(collection.pk)
+    assert data['collection']['backgroundImage']['alt'] == image_alt
 
 
 def test_delete_collection(
@@ -331,8 +343,9 @@ FETCH_COLLECTION_QUERY = """
     query fetchCollection($id: ID!){
         collection(id: $id) {
             name
-            backgroundImage {
+            backgroundImage(size: 120) {
                url
+               alt
             }
         }
     }
@@ -340,44 +353,61 @@ FETCH_COLLECTION_QUERY = """
 
 
 def test_collection_image_query(user_api_client, collection):
-    query = """
-        query fetchCollection($id: ID!){
-            collection(id: $id) {
-                backgroundImage {
-                   url(size: 120)
-                }
-            }
-        }
-    """
+    alt_text = 'Alt text for an image.'
     image_file, image_name = create_image()
     collection.background_image = image_file
+    collection.background_image_alt = alt_text
     collection.save()
     collection_id = graphene.Node.to_global_id('Collection', collection.pk)
     variables = {'id': collection_id}
-    response = user_api_client.post_graphql(query, variables)
+    response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
     content = get_graphql_content(response)
     data = content['data']['collection']
     thumbnail_url = collection.background_image.thumbnail['120x120'].url
     assert thumbnail_url in data['backgroundImage']['url']
+    assert data['backgroundImage']['alt'] == alt_text
 
 
 def test_collection_image_query_without_associated_file(
         user_api_client, collection):
-    query = """
-        query fetchCollection($id: ID!){
-            collection(id: $id) {
-                name
-                backgroundImage {
-                   url
-                }
-            }
-        }
-    """
     collection_id = graphene.Node.to_global_id('Collection', collection.pk)
     variables = {'id': collection_id}
-    response = user_api_client.post_graphql(query, variables)
+    response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
     content = get_graphql_content(response)
     data = content['data']['collection']
     assert data['name'] == collection.name
     assert data['backgroundImage'] is None
 
+
+def test_update_collection_mutation_remove_background_image(
+        staff_api_client, collection_with_image, permission_manage_products):
+    query = """
+        mutation updateCollection($id: ID!, $backgroundImage: Upload) {
+            collectionUpdate(
+                id: $id, input: {
+                    backgroundImage: $backgroundImage
+                }
+            ) {
+                collection {
+                    backgroundImage{
+                        url
+                    }
+                }
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+    assert collection_with_image.background_image
+    variables = {
+        'id': to_global_id('Collection', collection_with_image.id),
+        'backgroundImage': None}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    content = get_graphql_content(response)
+    data = content['data']['collectionUpdate']['collection']
+    assert not data['backgroundImage']
+    collection_with_image.refresh_from_db()
+    assert not collection_with_image.background_image
