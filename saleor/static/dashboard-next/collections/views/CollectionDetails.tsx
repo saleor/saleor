@@ -28,7 +28,8 @@ import {
   collectionListUrl,
   collectionRemovePath,
   collectionRemoveUrl,
-  collectionUrl
+  collectionUrl,
+  collectionImageRemovePath
 } from "../urls";
 
 export type CollectionDetailsQueryParams = Partial<{
@@ -69,6 +70,7 @@ export const CollectionDetails: React.StatelessComponent<
                             context: "notification"
                           })
                         });
+                        navigate(collectionUrl(id));
                       }
                     };
 
@@ -138,6 +140,7 @@ export const CollectionDetails: React.StatelessComponent<
                             updateCollection.mutate({
                               id,
                               input: {
+                                description: formData.description,
                                 isPublished: formData.isPublished,
                                 name: formData.name,
                                 seo: {
@@ -167,6 +170,34 @@ export const CollectionDetails: React.StatelessComponent<
                                   .errors
                             )
                           );
+                          const assignTransitionState = getMutationState(
+                            assignProduct.opts.called,
+                            assignProduct.opts.loading,
+                            maybe(
+                              () =>
+                                assignProduct.opts.data.collectionAddProducts
+                                  .errors
+                            )
+                          );
+                          const removeTransitionState = getMutationState(
+                            removeCollection.opts.called,
+                            removeCollection.opts.loading,
+                            maybe(
+                              () =>
+                                removeCollection.opts.data.collectionDelete
+                                  .errors
+                            )
+                          );
+                          const imageRemoveTransitionState = getMutationState(
+                            updateCollection.opts.called,
+                            updateCollection.opts.loading,
+                            maybe(
+                              () =>
+                                updateCollection.opts.data.collectionUpdate
+                                  .errors
+                            )
+                          );
+
                           return (
                             <>
                               <WindowTitle
@@ -245,6 +276,7 @@ export const CollectionDetails: React.StatelessComponent<
                                 path={collectionAddProductPath(":id")}
                                 render={({ match }) => (
                                   <CollectionAssignProductDialog
+                                    confirmButtonState={assignTransitionState}
                                     open={!!match}
                                     fetch={searchProducts}
                                     loading={searchProductsOpts.loading}
@@ -270,6 +302,7 @@ export const CollectionDetails: React.StatelessComponent<
                                 path={collectionRemovePath(":id")}
                                 render={({ match }) => (
                                   <ActionDialog
+                                    confirmButtonState={removeTransitionState}
                                     onClose={() =>
                                       navigate(collectionUrl(id), true, true)
                                     }
@@ -295,6 +328,38 @@ export const CollectionDetails: React.StatelessComponent<
                                         )
                                       }}
                                     />
+                                  </ActionDialog>
+                                )}
+                              />
+                              <Route
+                                path={collectionImageRemovePath(":id")}
+                                render={({ match }) => (
+                                  <ActionDialog
+                                    confirmButtonState={
+                                      imageRemoveTransitionState
+                                    }
+                                    onClose={() =>
+                                      navigate(collectionUrl(id), true, true)
+                                    }
+                                    onConfirm={() =>
+                                      updateCollection.mutate({
+                                        id,
+                                        input: {
+                                          backgroundImage: null
+                                        }
+                                      })
+                                    }
+                                    open={!!match}
+                                    title={i18n.t("Remove collection", {
+                                      context: "modal title"
+                                    })}
+                                    variant="delete"
+                                  >
+                                    <DialogContentText>
+                                      {i18n.t(
+                                        "Are you sure you want to remove collection's image?"
+                                      )}
+                                    </DialogContentText>
                                   </ActionDialog>
                                 )}
                               />

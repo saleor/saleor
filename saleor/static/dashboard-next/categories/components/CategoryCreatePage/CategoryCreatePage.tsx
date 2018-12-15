@@ -1,4 +1,3 @@
-import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
 import { CardSpacer } from "../../../components/CardSpacer";
@@ -34,52 +33,58 @@ export interface CategoryCreatePageProps {
   onSubmit(data: FormData);
   onBack();
 }
-const decorate = withStyles({});
 
-export const CategoryCreatePage = decorate<CategoryCreatePageProps>(
-  ({ disabled, onSubmit, onBack, errors: userErrors, saveButtonBarState }) => {
-    return (
-      <Form onSubmit={onSubmit} initial={initialData} errors={userErrors}>
-        {({ data, change, errors, submit, hasChanged }) => (
-          <>
-            <Container width="md">
-              <PageHeader title={i18n.t("Add Category")} onBack={onBack} />
-              <div>
-                <CategoryDetailsForm
-                  disabled={disabled}
-                  data={data}
-                  onChange={change}
-                  errors={errors}
-                />
-                <CardSpacer />
-                <SeoForm
-                  helperText={i18n.t(
-                    "Add search engine title and description to make this product easier to find"
-                  )}
-                  title={data.seoTitle}
-                  titlePlaceholder={data.name}
-                  description={data.seoDescription}
-                  descriptionPlaceholder={data.description}
-                  loading={disabled}
-                  onChange={change}
-                  disabled={disabled}
-                />
-                <SaveButtonBar
-                  onCancel={onBack}
-                  onSave={submit}
-                  labels={{
-                    save: i18n.t("Save category")
-                  }}
-                  state={saveButtonBarState}
-                  disabled={disabled || !hasChanged}
-                />
-              </div>
-            </Container>
-          </>
-        )}
-      </Form>
-    );
-  }
+export const CategoryCreatePage: React.StatelessComponent<
+  CategoryCreatePageProps
+> = ({
+  disabled,
+  onSubmit,
+  onBack,
+  errors: userErrors,
+  saveButtonBarState
+}) => (
+  <Form
+    onSubmit={onSubmit}
+    initial={initialData}
+    errors={userErrors}
+    confirmLeave
+  >
+    {({ data, change, errors, submit, hasChanged }) => (
+      <Container width="md">
+        <PageHeader title={i18n.t("Add Category")} onBack={onBack} />
+        <div>
+          <CategoryDetailsForm
+            disabled={disabled}
+            data={data}
+            onChange={change}
+            errors={errors}
+          />
+          <CardSpacer />
+          <SeoForm
+            helperText={i18n.t(
+              "Add search engine title and description to make this product easier to find"
+            )}
+            title={data.seoTitle}
+            titlePlaceholder={data.name}
+            description={data.seoDescription}
+            descriptionPlaceholder={data.description}
+            loading={disabled}
+            onChange={change}
+            disabled={disabled}
+          />
+          <SaveButtonBar
+            onCancel={onBack}
+            onSave={submit}
+            labels={{
+              save: i18n.t("Save category")
+            }}
+            state={saveButtonBarState}
+            disabled={disabled || !hasChanged}
+          />
+        </div>
+      </Container>
+    )}
+  </Form>
 );
 CategoryCreatePage.displayName = "CategoryCreatePage";
 export default CategoryCreatePage;

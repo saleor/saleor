@@ -11,9 +11,16 @@ const props: OrderDraftFinalizeDialogProps = {
   onClose: () => undefined,
   onConfirm: () => undefined,
   open: true,
-  orderNumber: "5"
+  orderNumber: "5",
+  warnings: []
 };
 
 storiesOf("Orders / OrderDraftFinalizeDialog", module)
   .addDecorator(Decorator)
-  .add("default", () => <OrderDraftFinalize {...props} />);
+  .add("default", () => <OrderDraftFinalize {...props} />)
+  .add("with warnings", () => (
+    <OrderDraftFinalize
+      {...props}
+      warnings={["no-shipping-method", "no-shipping", "no-billing", "no-user"]}
+    />
+  ));

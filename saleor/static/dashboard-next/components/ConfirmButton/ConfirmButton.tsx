@@ -1,6 +1,12 @@
+import { Omit } from "@material-ui/core";
 import Button, { ButtonProps } from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import { withStyles, WithStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import CheckIcon from "@material-ui/icons/Check";
 import classNames from "classnames";
 import * as React from "react";
@@ -13,50 +19,55 @@ export type ConfirmButtonTransitionState =
   | "error"
   | "default";
 
-export interface ConfirmButtonProps extends ButtonProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    error: {
+      "&:hover": {
+        backgroundColor: theme.palette.error.main
+      },
+      backgroundColor: theme.palette.error.main,
+      color: theme.palette.error.contrastText
+    },
+    icon: {
+      marginLeft: "0 !important",
+      position: "absolute",
+      transitionDuration: theme.transitions.duration.standard + "ms"
+    },
+    invisible: {
+      opacity: 0
+    },
+    label: {
+      transitionDuration: theme.transitions.duration.standard + "ms"
+    },
+    progress: {
+      "& svg": {
+        color: theme.palette.common.white,
+        margin: 0
+      },
+      position: "absolute",
+      transitionDuration: theme.transitions.duration.standard + "ms"
+    },
+    success: {
+      "&:hover": {
+        backgroundColor: theme.palette.primary.main
+      },
+      backgroundColor: theme.palette.primary.main,
+      color: theme.palette.primary.contrastText
+    }
+  });
+
+export interface ConfirmButtonProps
+  extends Omit<ButtonProps, "classes">,
+    WithStyles<typeof styles> {
   children: string;
   transitionState: ConfirmButtonTransitionState;
 }
+
 interface ConfirmButtonState {
   displayCompletedActionState: boolean;
 }
 
-const decorate = withStyles(theme => ({
-  error: {
-    "&:hover": {
-      backgroundColor: theme.palette.error.main
-    },
-    backgroundColor: theme.palette.error.main,
-    color: theme.palette.error.contrastText
-  },
-  icon: {
-    marginLeft: "0 !important",
-    position: "absolute" as "absolute",
-    transitionDuration: theme.transitions.duration.standard + "ms"
-  },
-  invisible: {
-    opacity: 0
-  },
-  label: {
-    transitionDuration: theme.transitions.duration.standard + "ms"
-  },
-  progress: {
-    "& svg": {
-      color: theme.palette.common.white,
-      margin: 0
-    },
-    position: "absolute" as "absolute",
-    transitionDuration: theme.transitions.duration.standard + "ms"
-  },
-  success: {
-    "&:hover": {
-      backgroundColor: theme.palette.primary.main
-    },
-    backgroundColor: theme.palette.primary.main,
-    color: theme.palette.primary.contrastText
-  }
-}));
-const ConfirmButton = decorate<ConfirmButtonProps>(
+const ConfirmButton = withStyles(styles)(
   class ConfirmButtonComponent extends React.Component<
     ConfirmButtonProps &
       WithStyles<

@@ -1,5 +1,5 @@
 import Card from "@material-ui/core/Card";
-import { withStyles } from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -16,11 +16,7 @@ import { maybe, renderCollection } from "../../../misc";
 import { ListProps } from "../../../types";
 import { CollectionList_collections_edges_node } from "../../types/CollectionList";
 
-interface CollectionListProps extends ListProps {
-  collections: CollectionList_collections_edges_node[];
-}
-
-const decorate = withStyles({
+const styles = createStyles({
   name: {
     width: "50%"
   },
@@ -34,7 +30,12 @@ const decorate = withStyles({
     textAlign: "left" as "left"
   }
 });
-const CollectionList = decorate<CollectionListProps>(
+
+interface CollectionListProps extends ListProps, WithStyles<typeof styles> {
+  collections: CollectionList_collections_edges_node[];
+}
+
+const CollectionList = withStyles(styles, { name: "CollectionList" })(
   ({
     classes,
     collections,
@@ -43,7 +44,7 @@ const CollectionList = decorate<CollectionListProps>(
     onPreviousPage,
     onRowClick,
     pageInfo
-  }) => (
+  }: CollectionListProps) => (
     <Card>
       <Table>
         <TableHead>

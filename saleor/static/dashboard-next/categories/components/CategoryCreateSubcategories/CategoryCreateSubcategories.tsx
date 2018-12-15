@@ -1,4 +1,9 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as classNames from "classnames";
 import * as React from "react";
 
@@ -17,39 +22,40 @@ import Toggle from "../../../components/Toggle";
 
 import i18n from "../../../i18n";
 
-interface CategoryCreateSubcategoriesProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    addSubCat: {
+      marginTop: ".5rem",
+      padding: "0"
+    },
+    deleteIcon: {
+      alignSelf: "end",
+      justifySelf: "center"
+    },
+    helperText: {
+      marginBottom: theme.spacing.unit * 4
+    },
+    inputGrid: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "5fr 8fr 30px",
+      marginBottom: "1rem"
+    },
+    root: {
+      "&:last-child": {
+        paddingBottom: ".5rem"
+      },
+      paddingBottom: "0px"
+    }
+  });
+
+interface CategoryCreateSubcategoriesProps extends WithStyles<typeof styles> {
   disabled: boolean;
 }
 
-const decorate = withStyles(theme => ({
-  addSubCat: {
-    marginTop: ".5rem",
-    padding: "0"
-  },
-  deleteIcon: {
-    alignSelf: "end",
-    justifySelf: "center"
-  },
-  helperText: {
-    marginBottom: theme.spacing.unit * 4
-  },
-  inputGrid: {
-    display: "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "5fr 8fr 30px",
-    marginBottom: "1rem"
-  },
-  root: {
-    "&:last-child": {
-      paddingBottom: ".5rem"
-    },
-    paddingBottom: "0px"
-  }
-}));
-
-export const CategoryCreateSubcategories = decorate<
-  CategoryCreateSubcategoriesProps
->(({ classes, disabled }) => {
+export const CategoryCreateSubcategories = withStyles(styles, {
+  name: "CategoryCreateSubcategories"
+})(({ classes, disabled }: CategoryCreateSubcategoriesProps) => {
   return (
     <Toggle>
       {(toggled, { toggle }) => (
@@ -59,7 +65,7 @@ export const CategoryCreateSubcategories = decorate<
             toolbar={
               <Button
                 color={toggled ? "default" : "secondary"}
-                variant="flat"
+                variant="text"
                 onClick={toggle}
                 disabled={disabled}
               >
@@ -85,7 +91,7 @@ export const CategoryCreateSubcategories = decorate<
 
                 <Hr />
                 <Button
-                  variant="flat"
+                  variant="text"
                   color="secondary"
                   className={classes.addSubCat}
                 >

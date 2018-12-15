@@ -1,4 +1,9 @@
-import { withStyles, WithStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
 import Button from "@material-ui/core/Button";
@@ -11,53 +16,48 @@ import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { CollectionDetails_collection_backgroundImage } from "../../types/CollectionDetails";
 
-export interface CollectionImageProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    PhotosIcon: {
+      height: "64px",
+      margin: "0 auto",
+      width: "64px"
+    },
+    PhotosIconContainer: {
+      margin: `${theme.spacing.unit * 5}px 0`,
+      textAlign: "center"
+    },
+    fileField: {
+      display: "none"
+    },
+    image: {
+      height: "100%",
+      objectFit: "contain",
+      userSelect: "none",
+      width: "100%"
+    },
+    imageContainer: {
+      background: "#ffffff",
+      border: "1px solid #eaeaea",
+      borderRadius: theme.spacing.unit,
+      height: 148,
+      justifySelf: "start",
+      overflow: "hidden",
+      padding: theme.spacing.unit * 2,
+      position: "relative",
+      width: 148
+    }
+  });
+
+export interface CollectionImageProps extends WithStyles<typeof styles> {
   image: CollectionDetails_collection_backgroundImage;
   onImageDelete: () => void;
   onImageUpload: (event: React.ChangeEvent<any>) => void;
 }
 
-const decorate = withStyles(theme => ({
-  PhotosIcon: {
-    height: "64px",
-    margin: "0 auto",
-    width: "64px"
-  },
-  PhotosIconContainer: {
-    margin: `${theme.spacing.unit * 5}px 0`,
-    textAlign: "center" as "center"
-  },
-  fileField: {
-    display: "none"
-  },
-  image: {
-    height: "100%",
-    objectFit: "contain" as "contain",
-    userSelect: "none" as "none",
-    width: "100%"
-  },
-  imageContainer: {
-    background: "#ffffff",
-    border: "1px solid #eaeaea",
-    borderRadius: theme.spacing.unit,
-    height: 148,
-    justifySelf: "start",
-    overflow: "hidden" as "hidden",
-    padding: theme.spacing.unit * 2,
-    position: "relative" as "relative",
-    width: 148
-  }
-}));
-export const CollectionImage = decorate(
+export const CollectionImage = withStyles(styles)(
   class CollectionImageComponent extends React.Component<
-    CollectionImageProps &
-      WithStyles<
-        | "PhotosIcon"
-        | "PhotosIconContainer"
-        | "fileField"
-        | "image"
-        | "imageContainer"
-      >,
+    CollectionImageProps,
     {}
   > {
     imgInputAnchor = React.createRef<HTMLInputElement>();
@@ -73,7 +73,7 @@ export const CollectionImage = decorate(
             toolbar={
               <>
                 <Button
-                  variant="flat"
+                  variant="text"
                   color="secondary"
                   onClick={this.clickImgInput}
                 >

@@ -1,6 +1,11 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
 import { CardSpacer } from "../../../components/CardSpacer";
@@ -22,13 +27,23 @@ export interface CollectionCreatePageFormData {
     url: string;
     value: string;
   };
+  description: string;
   name: string;
   isPublished: boolean;
   seoDescription: string;
   seoTitle: string;
 }
 
-export interface CollectionCreatePageProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "9fr 4fr"
+    }
+  });
+
+export interface CollectionCreatePageProps extends WithStyles<typeof styles> {
   disabled: boolean;
   errors: UserError[];
   saveButtonBarState: ConfirmButtonTransitionState;
@@ -41,21 +56,24 @@ const initialForm: CollectionCreatePageFormData = {
     url: null,
     value: null
   },
+  description: "",
   isPublished: false,
   name: "",
   seoDescription: "",
   seoTitle: ""
 };
 
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "9fr 4fr"
-  }
-}));
-const CollectionCreatePage = decorate<CollectionCreatePageProps>(
-  ({ classes, disabled, errors, saveButtonBarState, onBack, onSubmit }) => (
+const CollectionCreatePage = withStyles(styles, {
+  name: "CollectionCreatePage"
+})(
+  ({
+    classes,
+    disabled,
+    errors,
+    saveButtonBarState,
+    onBack,
+    onSubmit
+  }: CollectionCreatePageProps) => (
     <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container width="md">

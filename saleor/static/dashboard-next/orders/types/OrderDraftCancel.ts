@@ -7,6 +7,12 @@ import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusE
 // GraphQL mutation operation: OrderDraftCancel
 // ====================================================
 
+export interface OrderDraftCancel_draftOrderDelete_errors {
+  __typename: "Error";
+  field: string | null;
+  message: string | null;
+}
+
 export interface OrderDraftCancel_draftOrderDelete_order_billingAddress_country {
   __typename: "CountryDisplay";
   code: string;
@@ -68,6 +74,7 @@ export interface OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_orde
 export interface OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -113,6 +120,7 @@ export interface OrderDraftCancel_draftOrderDelete_order_lines_unitPrice {
 export interface OrderDraftCancel_draftOrderDelete_order_lines {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -223,6 +231,7 @@ export interface OrderDraftCancel_draftOrderDelete_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderDraftCancel_draftOrderDelete_order_billingAddress | null;
+  canFinalize: boolean;
   created: any;
   customerNote: string;
   events: (OrderDraftCancel_draftOrderDelete_order_events | null)[] | null;
@@ -247,6 +256,7 @@ export interface OrderDraftCancel_draftOrderDelete_order {
 
 export interface OrderDraftCancel_draftOrderDelete {
   __typename: "DraftOrderDelete";
+  errors: (OrderDraftCancel_draftOrderDelete_errors | null)[] | null;
   order: OrderDraftCancel_draftOrderDelete_order | null;
 }
 

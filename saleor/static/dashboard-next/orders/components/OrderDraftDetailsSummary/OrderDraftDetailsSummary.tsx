@@ -1,4 +1,9 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
 import Link from "../../../components/Link";
@@ -8,23 +13,27 @@ import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { OrderDetails_order } from "../../types/OrderDetails";
 
-interface OrderDraftDetailsSummaryProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      ...theme.typography.body1,
+      lineHeight: 1.9,
+      width: "100%"
+    },
+    textRight: {
+      textAlign: "right"
+    }
+  });
+
+interface OrderDraftDetailsSummaryProps extends WithStyles<typeof styles> {
   order: OrderDetails_order;
   onShippingMethodEdit: () => void;
 }
 
-const decorate = withStyles(theme => ({
-  root: {
-    ...theme.typography.body1,
-    lineHeight: 1.9,
-    width: "100%"
-  },
-  textRight: {
-    textAlign: "right" as "right"
-  }
-}));
-const OrderDraftDetailsSummary = decorate<OrderDraftDetailsSummaryProps>(
-  ({ classes, order, onShippingMethodEdit }) => (
+const OrderDraftDetailsSummary = withStyles(styles, {
+  name: "OrderDraftDetailsSummary"
+})(
+  ({ classes, order, onShippingMethodEdit }: OrderDraftDetailsSummaryProps) => (
     <table className={classes.root}>
       <tbody>
         <tr>
@@ -42,23 +51,36 @@ const OrderDraftDetailsSummary = decorate<OrderDraftDetailsSummaryProps>(
           )}
         </tr>
         <tr>
-          {maybe(() => order.shippingMethod) !== undefined ? (
-            <>
-              <td>
-                <Link onClick={onShippingMethodEdit}>
-                  {maybe(() => order.shippingMethodName)
-                    ? order.shippingMethodName
-                    : i18n.t("Add Shipping Carrier")}
-                </Link>
-              </td>
-              <td className={classes.textRight}>
-                {maybe(() => order.shippingPrice) ? (
-                  <Money money={order.shippingPrice.gross} />
-                ) : (
-                  "---"
-                )}
-              </td>
-            </>
+          {order &&
+          order.shippingMethod !== undefined &&
+          order.shippingMethodName !== undefined ? (
+            order.shippingMethod === null ? (
+              order.availableShippingMethods &&
+              order.availableShippingMethods.length > 0 ? (
+                <td>
+                  <Link onClick={onShippingMethodEdit}>
+                    {i18n.t("Add shipping carrier")}
+                  </Link>
+                </td>
+              ) : (
+                <td>{i18n.t("No applicable shipping carriers")}</td>
+              )
+            ) : (
+              <>
+                <td>
+                  <Link onClick={onShippingMethodEdit}>
+                    {order.shippingMethodName}
+                  </Link>
+                </td>
+                <td className={classes.textRight}>
+                  {maybe(() => order.shippingPrice) ? (
+                    <Money money={order.shippingPrice.gross} />
+                  ) : (
+                    "---"
+                  )}
+                </td>
+              </>
+            )
           ) : (
             <td colSpan={2}>
               <Skeleton />

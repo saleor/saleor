@@ -1,4 +1,9 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
@@ -19,7 +24,26 @@ import OrderDraftDetails from "../OrderDraftDetails/OrderDraftDetails";
 import { FormData as OrderDraftDetailsProductsFormData } from "../OrderDraftDetailsProducts";
 import OrderHistory, { FormData as HistoryFormData } from "../OrderHistory";
 
-export interface OrderDraftPageProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    date: {
+      marginBottom: theme.spacing.unit * 3,
+      marginLeft: theme.spacing.unit * 7
+    },
+    header: {
+      marginBottom: 0
+    },
+    menu: {
+      marginRight: -theme.spacing.unit
+    },
+    root: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "9fr 4fr"
+    }
+  });
+
+export interface OrderDraftPageProps extends WithStyles<typeof styles> {
   disabled: boolean;
   order: OrderDetails_order;
   users: UserSearch_customers_edges_node[];
@@ -55,24 +79,7 @@ export interface OrderDraftPageProps {
   onShippingMethodEdit: () => void;
 }
 
-const decorate = withStyles(theme => ({
-  date: {
-    marginBottom: theme.spacing.unit * 3,
-    marginLeft: theme.spacing.unit * 7
-  },
-  header: {
-    marginBottom: 0
-  },
-  menu: {
-    marginRight: -theme.spacing.unit
-  },
-  root: {
-    display: "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "9fr 4fr"
-  }
-}));
-const OrderDraftPage = decorate<OrderDraftPageProps>(
+const OrderDraftPage = withStyles(styles, { name: "OrderDraftPage" })(
   ({
     classes,
     disabled,
@@ -92,7 +99,7 @@ const OrderDraftPage = decorate<OrderDraftPageProps>(
     order,
     users,
     usersLoading
-  }) => (
+  }: OrderDraftPageProps) => (
     <Container width="md">
       <PageHeader
         className={classes.header}
@@ -148,7 +155,7 @@ const OrderDraftPage = decorate<OrderDraftPageProps>(
       </div>
       <SaveButtonBar
         state={saveButtonBarState}
-        disabled={disabled || maybe(() => order.lines.length === 0)}
+        disabled={disabled || !maybe(() => order.canFinalize)}
         onCancel={onBack}
         onSave={onDraftFinalize}
         labels={{ save: i18n.t("Finalize", { context: "button" }) }}

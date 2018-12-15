@@ -139,3 +139,59 @@ def test_total_count_query(api_client, product):
     response = api_client.post_graphql(query)
     content = get_graphql_content(response)
     assert content['data']['products']['totalCount'] == Product.objects.count()
+
+
+def test_mutation_decimal_input(
+        staff_api_client, variant, permission_manage_products):
+    query = """
+    mutation decimalInput($id: ID!, $cost: Decimal) {
+        productVariantUpdate(id: $id,
+        input: {costPrice: $cost}) {
+            errors {
+                field
+                message
+            }
+            productVariant {
+                costPrice{
+                    amount
+                }
+            }
+        }
+    }
+    """
+    variables = {
+        'id': graphene.Node.to_global_id('ProductVariant', variant.id),
+        'cost': 12.12}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    content = get_graphql_content(response)
+    data = content['data']['productVariantUpdate']
+    assert data['errors'] == []
+
+
+def test_mutation_decimal_input_without_arguments(
+        staff_api_client, variant, permission_manage_products):
+    query = """
+    mutation {
+        productVariantUpdate(id: "%(variant_id)s",
+        input: {costPrice: "%(cost)s"}) {
+            errors {
+                field
+                message
+            }
+            productVariant {
+                costPrice{
+                    amount
+                }
+            }
+        }
+    }
+    """ % {
+        'variant_id': graphene.Node.to_global_id('ProductVariant', variant.id),
+        'cost': 12.12
+    }
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_products])
+    content = get_graphql_content(response)
+    data = content['data']['productVariantUpdate']
+    assert data['errors'] == []

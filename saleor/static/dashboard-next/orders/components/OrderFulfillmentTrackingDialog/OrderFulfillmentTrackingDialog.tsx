@@ -6,6 +6,9 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
+import ConfirmButton, {
+  ConfirmButtonTransitionState
+} from "../../../components/ConfirmButton";
 import Form from "../../../components/Form";
 import i18n from "../../../i18n";
 
@@ -14,6 +17,7 @@ export interface FormData {
 }
 
 interface OrderFulfillmentTrackingDialogProps {
+  confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
   trackingNumber: string;
   onClose();
@@ -22,7 +26,7 @@ interface OrderFulfillmentTrackingDialogProps {
 
 const OrderFulfillmentTrackingDialog: React.StatelessComponent<
   OrderFulfillmentTrackingDialogProps
-> = ({ open, trackingNumber, onConfirm, onClose }) => (
+> = ({ confirmButtonState, open, trackingNumber, onConfirm, onClose }) => (
   <Dialog open={open}>
     <Form initial={{ trackingNumber }} onSubmit={onConfirm}>
       {({ change, data, submit }) => (
@@ -43,9 +47,14 @@ const OrderFulfillmentTrackingDialog: React.StatelessComponent<
             <Button onClick={onClose}>
               {i18n.t("Cancel", { context: "button" })}
             </Button>
-            <Button color="primary" variant="raised" onClick={submit}>
+            <ConfirmButton
+              transitionState={confirmButtonState}
+              color="primary"
+              variant="contained"
+              onClick={submit}
+            >
               {i18n.t("Confirm", { context: "button" })}
-            </Button>
+            </ConfirmButton>
           </DialogActions>
         </>
       )}

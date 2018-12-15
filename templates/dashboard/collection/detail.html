@@ -60,6 +60,9 @@
             <div class="row">
               {{ form.background_image|materializecss }}
             </div>
+            <div class="row">
+              {{ form.background_image_alt|materializecss }}
+            </div>
             <span class="card-title">{% trans 'Availability' context 'Collection form card title: availability sub form' %}</span>
             <div class="row">
               {{ form.is_published|materializecss }}

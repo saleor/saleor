@@ -4,6 +4,7 @@ import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.conf import settings
 from django_countries import countries
+from django_prices_vatlayer.models import VAT
 from graphql_jwt.decorators import permission_required
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
@@ -117,8 +118,10 @@ class Shop(graphene.ObjectType):
         return site_models.AuthorizationKey.objects.all()
 
     def resolve_countries(self, info):
+        taxes = {vat.country_code: vat for vat in VAT.objects.all()}
         return [
-            CountryDisplay(code=country[0], country=country[1])
+            CountryDisplay(
+                code=country[0], country=country[1], vat=taxes.get(country[0]))
             for country in countries]
 
     def resolve_currencies(self, info):
@@ -195,8 +198,11 @@ class Shop(graphene.ObjectType):
         default_country_code = settings.DEFAULT_COUNTRY
         default_country_name = countries.countries.get(default_country_code)
         if default_country_name:
+            vat = VAT.objects.filter(country_code=default_country_code).first()
             default_country = CountryDisplay(
-                code=default_country_code, country=default_country_name)
+                code=default_country_code,
+                country=default_country_name,
+                vat=vat)
         else:
             default_country = None
         return default_country

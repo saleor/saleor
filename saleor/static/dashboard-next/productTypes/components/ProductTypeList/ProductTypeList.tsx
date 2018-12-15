@@ -1,5 +1,5 @@
 import Card from "@material-ui/core/Card";
-import { withStyles } from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -16,22 +16,23 @@ import { maybe, renderCollection, translatedTaxRates } from "../../../misc";
 import { ListProps } from "../../../types";
 import { ProductTypeList_productTypes_edges_node } from "../../types/ProductTypeList";
 
-interface ProductTypeListProps extends ListProps {
-  productTypes: ProductTypeList_productTypes_edges_node[];
-}
-
-const decorate = withStyles({
+const styles = createStyles({
   leftText: {
-    textAlign: "left" as "left"
+    textAlign: "left"
   },
   link: {
-    cursor: "pointer" as "pointer"
+    cursor: "pointer"
   },
   wideCell: {
     width: "60%"
   }
 });
-const ProductTypeList = decorate<ProductTypeListProps>(
+
+interface ProductTypeListProps extends ListProps, WithStyles<typeof styles> {
+  productTypes: ProductTypeList_productTypes_edges_node[];
+}
+
+const ProductTypeList = withStyles(styles, { name: "ProductTypeList" })(
   ({
     classes,
     disabled,
@@ -40,7 +41,7 @@ const ProductTypeList = decorate<ProductTypeListProps>(
     onNextPage,
     onPreviousPage,
     onRowClick
-  }) => (
+  }: ProductTypeListProps) => (
     <Card>
       <Table>
         <TableHead>

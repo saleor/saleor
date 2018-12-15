@@ -1,12 +1,13 @@
-import pytest
-
-import graphene
-from django.template.defaultfilters import slugify
 from unittest.mock import Mock
 
-from saleor.product.models import Category
-from tests.utils import create_image
+import graphene
+import pytest
+from django.template.defaultfilters import slugify
+from graphql_relay import to_global_id
 from tests.api.utils import get_graphql_content, get_multipart_request_body
+from tests.utils import create_image
+
+from saleor.product.models import Category
 
 
 def test_category_query(user_api_client, product):
@@ -49,13 +50,14 @@ def test_category_query(user_api_client, product):
 def test_category_create_mutation(
         monkeypatch, staff_api_client, permission_manage_products):
     query = """
-        mutation($name: String, $slug: String, $description: String, $backgroundImage: Upload, $parentId: ID) {
+        mutation($name: String, $slug: String, $description: String, $backgroundImage: Upload, $backgroundImageAlt: String, $parentId: ID) {
             categoryCreate(
                 input: {
                     name: $name
                     slug: $slug
                     description: $description
                     backgroundImage: $backgroundImage
+                    backgroundImageAlt: $backgroundImageAlt
                 },
                 parent: $parentId
             ) {
@@ -67,6 +69,9 @@ def test_category_create_mutation(
                     parent {
                         name
                         id
+                    }
+                    backgroundImage{
+                        alt
                     }
                 }
                 errors {
@@ -87,11 +92,13 @@ def test_category_create_mutation(
     category_slug = slugify(category_name)
     category_description = 'Test description'
     image_file, image_name = create_image()
+    image_alt = 'Alt text for an image.'
 
     # test creating root category
     variables = {
         'name': category_name, 'description': category_description,
-        'backgroundImage': image_name, 'slug': category_slug}
+        'backgroundImage': image_name, 'backgroundImageAlt': image_alt,
+        'slug': category_slug}
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products])
@@ -104,6 +111,7 @@ def test_category_create_mutation(
     category = Category.objects.get(name=category_name)
     assert category.background_image.file
     mock_create_thumbnails.assert_called_once_with(category.pk)
+    assert data['category']['backgroundImage']['alt'] == image_alt
 
     # test creating subcategory
     parent_id = data['category']['id']
@@ -160,13 +168,14 @@ def test_category_create_mutation_without_background_image(
 def test_category_update_mutation(
         monkeypatch, staff_api_client, category, permission_manage_products):
     query = """
-        mutation($id: ID!, $name: String, $slug: String, $backgroundImage: Upload, $description: String) {
+        mutation($id: ID!, $name: String, $slug: String, $backgroundImage: Upload, $backgroundImageAlt: String, $description: String) {
             categoryUpdate(
                 id: $id
                 input: {
                     name: $name
                     description: $description
                     backgroundImage: $backgroundImage
+                    backgroundImageAlt: $backgroundImageAlt
                     slug: $slug
                 }
             ) {
@@ -176,6 +185,9 @@ def test_category_update_mutation(
                     description
                     parent {
                         id
+                    }
+                    backgroundImage{
+                        alt
                     }
                 }
                 errors {
@@ -200,12 +212,13 @@ def test_category_update_mutation(
     category_slug = slugify(category_name)
     category_description = 'Updated description'
     image_file, image_name = create_image()
+    image_alt = 'Alt text for an image.'
 
     category_id = graphene.Node.to_global_id('Category', child_category.pk)
     variables = {
         'name': category_name, 'description': category_description,
-        'backgroundImage': image_name, 'id': category_id,
-        'slug': category_slug}
+        'backgroundImage': image_name, 'backgroundImageAlt': image_alt,
+        'id': category_id, 'slug': category_slug}
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products])
@@ -221,6 +234,7 @@ def test_category_update_mutation(
     category = Category.objects.get(name=category_name)
     assert category.background_image.file
     mock_create_thumbnails.assert_called_once_with(category.pk)
+    assert data['category']['backgroundImage']['alt'] == image_alt
 
 
 def test_category_update_mutation_without_background_image(
@@ -329,8 +343,9 @@ FETCH_CATEGORY_QUERY = """
 query fetchCategory($id: ID!){
     category(id: $id) {
         name
-        backgroundImage {
-           url(size: 120)
+        backgroundImage(size: 120) {
+           url
+           alt
         }
     }
 }
@@ -338,9 +353,11 @@ query fetchCategory($id: ID!){
 
 
 def test_category_image_query(user_api_client, non_default_category):
+    alt_text = 'Alt text for an image.'
     category = non_default_category
     image_file, image_name = create_image()
     category.background_image = image_file
+    category.background_image_alt = alt_text
     category.save()
     category_id = graphene.Node.to_global_id('Category', category.pk)
     variables = {'id': category_id}
@@ -349,6 +366,7 @@ def test_category_image_query(user_api_client, non_default_category):
     data = content['data']['category']
     thumbnail_url = category.background_image.thumbnail['120x120'].url
     assert thumbnail_url in data['backgroundImage']['url']
+    assert data['backgroundImage']['alt'] == alt_text
 
 
 def test_category_image_query_without_associated_file(
@@ -361,3 +379,37 @@ def test_category_image_query_without_associated_file(
     data = content['data']['category']
     assert data['name'] == category.name
     assert data['backgroundImage'] is None
+
+
+def test_update_category_mutation_remove_background_image(
+        staff_api_client, category_with_image, permission_manage_products):
+    query = """
+        mutation updateCategory($id: ID!, $backgroundImage: Upload) {
+            categoryUpdate(
+                id: $id, input: {
+                    backgroundImage: $backgroundImage
+                }
+            ) {
+                category {
+                    backgroundImage{
+                        url
+                    }
+                }
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+    assert category_with_image.background_image
+    variables = {
+        'id': to_global_id('Category', category_with_image.id),
+        'backgroundImage': None}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    content = get_graphql_content(response)
+    data = content['data']['categoryUpdate']['category']
+    assert not data['backgroundImage']
+    category_with_image.refresh_from_db()
+    assert not category_with_image.background_image

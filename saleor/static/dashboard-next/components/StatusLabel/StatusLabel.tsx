@@ -1,17 +1,15 @@
 import yellow from "@material-ui/core/colors/yellow";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Typography, { TypographyProps } from "@material-ui/core/Typography";
 import * as classNames from "classnames";
 import * as React from "react";
 
-interface StatusLabelProps {
-  className?: string;
-  label: string | React.ReactNode;
-  status: "success" | "neutral" | "error" | string;
-  typographyProps?: TypographyProps;
-}
-
-const decorate = withStyles(theme => {
+const styles = (theme: Theme) => {
   const dot = {
     borderRadius: "100%",
     content: "''",
@@ -22,7 +20,7 @@ const decorate = withStyles(theme => {
     top: "calc(50% - 5px)",
     width: 8
   };
-  return {
+  return createStyles({
     errorDot: {
       "&:before": { backgroundColor: theme.palette.error.main, ...dot }
     },
@@ -32,7 +30,7 @@ const decorate = withStyles(theme => {
     root: {
       display: "inline-block",
       marginLeft: theme.spacing.unit + 8,
-      position: "relative" as "relative"
+      position: "relative"
     },
     span: {
       display: "inline"
@@ -40,10 +38,24 @@ const decorate = withStyles(theme => {
     successDot: {
       "&:before": { backgroundColor: theme.palette.primary.main, ...dot }
     }
-  };
-});
-const StatusLabel = decorate<StatusLabelProps>(
-  ({ classes, className, label, status, typographyProps }) => (
+  });
+};
+
+interface StatusLabelProps extends WithStyles<typeof styles> {
+  className?: string;
+  label: string | React.ReactNode;
+  status: "success" | "neutral" | "error" | string;
+  typographyProps?: TypographyProps;
+}
+
+const StatusLabel = withStyles(styles, { name: "StatusLabel" })(
+  ({
+    classes,
+    className,
+    label,
+    status,
+    typographyProps
+  }: StatusLabelProps) => (
     <div
       className={classNames({
         [classes.root]: true,

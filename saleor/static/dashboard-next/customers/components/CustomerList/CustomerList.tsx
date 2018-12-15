@@ -1,5 +1,5 @@
 import Card from "@material-ui/core/Card";
-import { withStyles } from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -15,22 +15,25 @@ import { maybe, renderCollection } from "../../../misc";
 import { ListProps } from "../../../types";
 import { ListCustomers_customers_edges_node } from "../../types/ListCustomers";
 
-export interface CustomerListProps extends ListProps {
-  customers: ListCustomers_customers_edges_node[];
-}
-
-const decorate = withStyles({
+const styles = createStyles({
   tableRow: {
-    cursor: "pointer" as "pointer"
+    cursor: "pointer"
   },
   textRight: {
-    textAlign: "right" as "right"
+    textAlign: "right"
   },
   wideCell: {
     width: "60%"
   }
 });
-const CustomerList = decorate<CustomerListProps>(
+
+export interface CustomerListProps
+  extends ListProps,
+    WithStyles<typeof styles> {
+  customers: ListCustomers_customers_edges_node[];
+}
+
+const CustomerList = withStyles(styles, { name: "CustomerList" })(
   ({
     classes,
     disabled,
@@ -39,7 +42,7 @@ const CustomerList = decorate<CustomerListProps>(
     onNextPage,
     onPreviousPage,
     onRowClick
-  }) => (
+  }: CustomerListProps) => (
     <Card>
       <Table>
         <TableHead>

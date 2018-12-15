@@ -3,12 +3,14 @@ import * as React from "react";
 
 import CategoryListPage from "../../../categories/components/CategoryListPage";
 import { categories } from "../../../categories/fixtures";
+import { pageListProps } from "../../../fixtures";
 import Decorator from "../../Decorator";
 
 const categoryTableProps = {
   categories,
   onAddCategory: undefined,
-  onCategoryClick: () => undefined
+  onCategoryClick: () => undefined,
+  ...pageListProps.default
 };
 
 storiesOf("Views / Categories / Category list", module)

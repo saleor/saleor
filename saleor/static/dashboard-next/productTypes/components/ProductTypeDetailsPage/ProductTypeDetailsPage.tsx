@@ -1,15 +1,17 @@
-import DialogContentText from "@material-ui/core/DialogContentText";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
-import ActionDialog from "../../../components/ActionDialog";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import { ControlledCheckbox } from "../../../components/ControlledCheckbox";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
-import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import {
@@ -27,6 +29,7 @@ interface ChoiceType {
   label: string;
   value: string;
 }
+
 export interface ProductTypeForm {
   name: string;
   hasVariants: boolean;
@@ -36,7 +39,20 @@ export interface ProductTypeForm {
   variantAttributes: ChoiceType[];
   weight: number;
 }
-export interface ProductTypeDetailsPageProps {
+
+const styles = (theme: Theme) =>
+  createStyles({
+    cardContainer: {
+      marginTop: theme.spacing.unit * 2
+    },
+    root: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "2fr 1fr"
+    }
+  });
+
+export interface ProductTypeDetailsPageProps extends WithStyles<typeof styles> {
   errors: Array<{
     field: string;
     message: string;
@@ -54,17 +70,9 @@ export interface ProductTypeDetailsPageProps {
   onSubmit: (data: ProductTypeForm) => void;
 }
 
-const decorate = withStyles(theme => ({
-  cardContainer: {
-    marginTop: theme.spacing.unit * 2
-  },
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "2fr 1fr"
-  }
-}));
-const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
+const ProductTypeDetailsPage = withStyles(styles, {
+  name: "ProductTypeDetailsPage"
+})(
   ({
     classes,
     defaultWeightUnit,
@@ -79,7 +87,7 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
     onBack,
     onDelete,
     onSubmit
-  }) => {
+  }: ProductTypeDetailsPageProps) => {
     const formInitialData: ProductTypeForm = {
       hasVariants:
         maybe(() => productType.hasVariants) !== undefined
@@ -111,100 +119,78 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
       weight: maybe(() => productType.weight.value)
     };
     return (
-      <Toggle>
-        {(openedDeleteDialog, { toggle: toggleDeleteDialog }) => (
-          <>
-            <Form errors={errors} initial={formInitialData} onSubmit={onSubmit}>
-              {({ change, data, hasChanged, submit }) => (
-                <Container width="md">
-                  <PageHeader title={pageTitle} onBack={onBack} />
-                  <div className={classes.root}>
-                    <div>
-                      <ProductTypeDetails
-                        data={data}
-                        disabled={disabled}
-                        onChange={change}
-                      />
-                      <div className={classes.cardContainer}>
-                        <ProductTypeAttributes
-                          attributes={maybe(
-                            () => productType.productAttributes
-                          )}
-                          type={AttributeTypeEnum.PRODUCT}
-                          onAttributeAdd={onAttributeAdd}
-                          onAttributeDelete={onAttributeDelete}
-                          onAttributeUpdate={onAttributeUpdate}
-                        />
-                      </div>
-                      <div className={classes.cardContainer}>
-                        <ControlledCheckbox
-                          checked={data.hasVariants}
-                          disabled={disabled}
-                          label={i18n.t("This product type has variants")}
-                          name="hasVariants"
-                          onChange={change}
-                        />
-                      </div>
-                      {data.hasVariants && (
-                        <div className={classes.cardContainer}>
-                          <ProductTypeAttributes
-                            attributes={maybe(
-                              () => productType.variantAttributes
-                            )}
-                            type={AttributeTypeEnum.VARIANT}
-                            onAttributeAdd={onAttributeAdd}
-                            onAttributeDelete={onAttributeDelete}
-                            onAttributeUpdate={onAttributeUpdate}
-                          />
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <ProductTypeShipping
-                        disabled={disabled}
-                        data={data}
-                        defaultWeightUnit={defaultWeightUnit}
-                        onChange={change}
-                      />
-                      <div className={classes.cardContainer}>
-                        <ProductTypeTaxes
-                          disabled={disabled}
-                          data={data}
-                          onChange={change}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <SaveButtonBar
-                    onCancel={onBack}
-                    onDelete={toggleDeleteDialog}
-                    onSave={submit}
-                    disabled={disabled || !hasChanged}
-                    state={saveButtonBarState}
+      <Form
+        errors={errors}
+        initial={formInitialData}
+        onSubmit={onSubmit}
+        confirmLeave
+      >
+        {({ change, data, hasChanged, submit }) => (
+          <Container width="md">
+            <PageHeader title={pageTitle} onBack={onBack} />
+            <div className={classes.root}>
+              <div>
+                <ProductTypeDetails
+                  data={data}
+                  disabled={disabled}
+                  onChange={change}
+                />
+                <div className={classes.cardContainer}>
+                  <ProductTypeAttributes
+                    attributes={maybe(() => productType.productAttributes)}
+                    type={AttributeTypeEnum.PRODUCT}
+                    onAttributeAdd={onAttributeAdd}
+                    onAttributeDelete={onAttributeDelete}
+                    onAttributeUpdate={onAttributeUpdate}
                   />
-                </Container>
-              )}
-            </Form>
-
-            <ActionDialog
-              open={openedDeleteDialog}
-              onClose={toggleDeleteDialog}
-              onConfirm={onDelete}
-              title={i18n.t("Remove product type")}
-              variant="delete"
-            >
-              <DialogContentText
-                dangerouslySetInnerHTML={{
-                  __html: i18n.t(
-                    "Are you sure you want to remove <strong>{{ name }}</strong>?",
-                    { name: maybe(() => productType.name) }
-                  )
-                }}
-              />
-            </ActionDialog>
-          </>
+                </div>
+                <div className={classes.cardContainer}>
+                  <ControlledCheckbox
+                    checked={data.hasVariants}
+                    disabled={disabled}
+                    label={i18n.t("This product type has variants")}
+                    name="hasVariants"
+                    onChange={change}
+                  />
+                </div>
+                {data.hasVariants && (
+                  <div className={classes.cardContainer}>
+                    <ProductTypeAttributes
+                      attributes={maybe(() => productType.variantAttributes)}
+                      type={AttributeTypeEnum.VARIANT}
+                      onAttributeAdd={onAttributeAdd}
+                      onAttributeDelete={onAttributeDelete}
+                      onAttributeUpdate={onAttributeUpdate}
+                    />
+                  </div>
+                )}
+              </div>
+              <div>
+                <ProductTypeShipping
+                  disabled={disabled}
+                  data={data}
+                  defaultWeightUnit={defaultWeightUnit}
+                  onChange={change}
+                />
+                <div className={classes.cardContainer}>
+                  <ProductTypeTaxes
+                    disabled={disabled}
+                    data={data}
+                    onChange={change}
+                  />
+                </div>
+              </div>
+            </div>
+            <SaveButtonBar
+              onCancel={onBack}
+              onDelete={onDelete}
+              onSave={submit}
+              disabled={disabled || !hasChanged}
+              state={saveButtonBarState}
+            />
+          </Container>
         )}
-      </Toggle>
+      </Form>
     );
   }
 );

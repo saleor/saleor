@@ -2,7 +2,7 @@ import * as React from "react";
 import Debounce from "./Debounce";
 
 export interface DebounceFormProps {
-  change: (event: React.ChangeEvent<any>) => void;
+  change: (event: React.ChangeEvent<any>, cb?: () => void) => void;
   children: ((
     props: (event: React.ChangeEvent<any>) => void
   ) => React.ReactNode);
@@ -19,8 +19,7 @@ export const DebounceForm: React.StatelessComponent<DebounceFormProps> = ({
   <Debounce debounceFn={submit} time={time}>
     {debounceFn =>
       children(event => {
-        change(event);
-        debounceFn();
+        change(event, debounceFn);
       })
     }
   </Debounce>

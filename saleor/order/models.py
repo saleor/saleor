@@ -137,15 +137,23 @@ class Order(models.Model):
         return super().save(*args, **kwargs)
 
     def is_fully_paid(self):
+        total_paid = self._total_paid()
+        return total_paid.gross >= self.total.gross
+
+    def is_partly_paid(self):
+        total_paid = self._total_paid()
+        return total_paid.gross.amount > 0
+
+    def get_user_current_email(self):
+        return self.user.email if self.user else self.user_email
+
+    def _total_paid(self):
         payments = self.payments.filter(
             charge_status=ChargeStatus.CHARGED)
         total_captured = [
             payment.get_captured_amount() for payment in payments]
         total_paid = sum(total_captured, ZERO_TAXED_MONEY)
-        return total_paid.gross >= self.total.gross
-
-    def get_user_current_email(self):
-        return self.user.email if self.user else self.user_email
+        return total_paid
 
     def _index_billing_phone(self):
         return self.billing_address.phone
@@ -183,7 +191,8 @@ class Order(models.Model):
     def is_pre_authorized(self):
         return self.payments.filter(
             is_active=True,
-            transactions__kind=TransactionKind.AUTH).exists()
+            transactions__kind=TransactionKind.AUTH).filter(
+                transactions__is_success=True).exists()
 
     @property
     def quantity_fulfilled(self):
@@ -248,7 +257,7 @@ class Order(models.Model):
     def total_authorized(self):
         payment = self.get_last_payment()
         if payment:
-            return Money(payment.total, payment.currency)
+            return payment.get_authorized_amount()
         return zero_money()
 
     @property
