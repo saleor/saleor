@@ -63,7 +63,7 @@ weasyprint = ">=0.42.2"
 graphene-django-optimizer = "*"
 braintree = "==3.49.0"
 razorpay = ">=1.1.1"
-"urllib3" = "==1.24.1"
+"urllib3" = "*"
 
 [dev-packages]
 pytest = "*"
