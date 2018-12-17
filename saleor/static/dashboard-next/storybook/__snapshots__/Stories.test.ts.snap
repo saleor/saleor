@@ -14165,7 +14165,7 @@ exports[`Storyshots Views / Customers / Create customer default 1`] = `
             class="CardSpacer-spacer-id"
           />
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id CustomerCreateAddress-overflow-id"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
               class="CardTitle-root-id"
@@ -14186,7 +14186,7 @@ exports[`Storyshots Views / Customers / Create customer default 1`] = `
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id CustomerCreateAddress-overflow-id"
+              class="MuiCardContent-root-id"
             >
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
@@ -14419,7 +14419,7 @@ exports[`Storyshots Views / Customers / Create customer form errors 1`] = `
             class="CardSpacer-spacer-id"
           />
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id CustomerCreateAddress-overflow-id"
           >
             <div
               class="CardTitle-root-id"
@@ -14440,7 +14440,7 @@ exports[`Storyshots Views / Customers / Create customer form errors 1`] = `
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id"
+              class="MuiCardContent-root-id CustomerCreateAddress-overflow-id"
             >
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
@@ -14785,7 +14785,7 @@ exports[`Storyshots Views / Customers / Create customer form errors 1`] = `
             class="CardSpacer-spacer-id"
           />
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id CustomerCreateAddress-overflow-id"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
               class="CardTitle-root-id"
@@ -14806,7 +14806,7 @@ exports[`Storyshots Views / Customers / Create customer form errors 1`] = `
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id CustomerCreateAddress-overflow-id"
+              class="MuiCardContent-root-id"
             >
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
@@ -15040,7 +15040,7 @@ exports[`Storyshots Views / Customers / Create customer loading 1`] = `
             class="CardSpacer-spacer-id"
           />
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id CustomerCreateAddress-overflow-id"
           >
             <div
               class="CardTitle-root-id"
@@ -15061,7 +15061,7 @@ exports[`Storyshots Views / Customers / Create customer loading 1`] = `
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id"
+              class="MuiCardContent-root-id CustomerCreateAddress-overflow-id"
             >
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
