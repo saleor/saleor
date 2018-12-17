@@ -76,6 +76,7 @@ export function TypedQuery<TData, TVariables>(query: DocumentNode) {
                 if (
                   !queryData.loading &&
                   require &&
+                  queryData.data &&
                   !require.reduce(
                     (acc, key) => acc && queryData.data[key] !== null,
                     true
