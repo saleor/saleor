@@ -14,4 +14,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix decimal value argument in GraphQL = #3457 by @fowczarek
 - Add query batching - #3443 by @dominik-zeglen
 - Use autocomplete fields in country selection - #3443 by @dominik-zeglen
+- Add alt text to categories and collections - #3461 by @dominik-zeglen
+- Use first and last name of a customer or staff member in UI - #3247 by @Bonifacy1, @dominik-zeglen
 - Bump `urllib3` and `elasticsearch` to latest versions - #3460 by @maarcingebala
+- Resort imports in tests - #3471 by @jxltom

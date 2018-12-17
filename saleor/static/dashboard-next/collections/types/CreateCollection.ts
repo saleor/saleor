@@ -15,6 +15,7 @@ export interface CreateCollection_collectionCreate_errors {
 
 export interface CreateCollection_collectionCreate_collection_backgroundImage {
   __typename: "Image";
+  alt: string | null;
   url: string;
 }
 
