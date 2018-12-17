@@ -1,7 +1,7 @@
 import graphene
+import graphene_django_optimizer as gql_optimizer
 from django_countries.fields import Country
 from graphene import relay
-import graphene_django_optimizer as gql_optimizer
 
 from ...payment import GATEWAYS_ENUM, ChargeStatus, models
 from ..account.types import Address

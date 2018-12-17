@@ -108,12 +108,13 @@ class Payment(models.Model):
                 and txn.is_success for txn in transactions]):
             return money
 
-        # Calculate authorized amount from all succeeded auth transactions
-        for txn in transactions:
-            # Bypass non-authorized transactions
-            if not (txn.kind == TransactionKind.AUTH and txn.is_success):
-                continue
+        # Filter the succeeded auth transactions
+        authorized_txns = [
+            txn for txn in transactions
+            if txn.kind == TransactionKind.AUTH and txn.is_success]
 
+        # Calculate authorized amount from all succeeded auth transactions
+        for txn in authorized_txns:
             money += Money(
                 txn.amount, self.currency or settings.DEFAULT_CURRENCY)
 
