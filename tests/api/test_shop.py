@@ -1,6 +1,7 @@
 import graphene
 from django_countries import countries
 from django_prices_vatlayer.models import VAT
+
 from saleor.core.permissions import MODELS_PERMISSIONS
 from saleor.graphql.core.utils import str_to_enum
 from saleor.site import AuthenticationBackends
