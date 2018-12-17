@@ -226,7 +226,7 @@ type Category implements Node {
   slug: String!
   description: String!
   parent: Category
-  backgroundImage: Image
+  backgroundImage(size: Int): Image
   level: Int!
   children(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
@@ -261,6 +261,7 @@ input CategoryInput {
   slug: String
   seo: SeoInput
   backgroundImage: Upload
+  backgroundImageAlt: String
 }
 
 type CategoryUpdate {
@@ -405,7 +406,7 @@ type Collection implements Node {
   name: String!
   slug: String!
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
-  backgroundImage: Image
+  backgroundImage(size: Int): Image
   isPublished: Boolean!
   description: String!
 }
@@ -437,6 +438,7 @@ input CollectionCreateInput {
   slug: String
   description: String
   backgroundImage: Upload
+  backgroundImageAlt: String
   seo: SeoInput
   products: [ID]
 }
@@ -452,6 +454,7 @@ input CollectionInput {
   slug: String
   description: String
   backgroundImage: Upload
+  backgroundImageAlt: String
   seo: SeoInput
 }
 
@@ -687,7 +690,8 @@ type HomepageCollectionUpdate {
 }
 
 type Image {
-  url(size: Int): String!
+  url: String!
+  alt: String
 }
 
 scalar JSONString
@@ -1323,7 +1327,8 @@ type Product implements Node {
   images: [ProductImage]
   collections: [Collection]
   url: String!
-  thumbnailUrl(size: Int): String
+  thumbnailUrl(size: Int): String @deprecated(reason: "thumbnailUrl is deprecated, use\\n         thumbnail instead")
+  thumbnail(size: Int): Image
   availability: ProductAvailability
   purchaseCost: MoneyRange
   margin: Margin
