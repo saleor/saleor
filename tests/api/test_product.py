@@ -356,9 +356,9 @@ def test_sort_products(user_api_client, product):
     date_1 = content['data']['products']['edges'][1]['node']['updatedAt']
     assert parse_datetime(date_0) < parse_datetime(date_1)
 
-    desc_price_query = query % {
-        'sort_by_product_order': '{field: PRICE, direction:DESC}'}
-    response = user_api_client.post_graphql(desc_price_query)
+    desc_date_query = query % {
+        'sort_by_product_order': '{field: DATE, direction:DESC}'}
+    response = user_api_client.post_graphql(desc_date_query)
     content = get_graphql_content(response)
     date_0 = content['data']['products']['edges'][0]['node']['updatedAt']
     date_1 = content['data']['products']['edges'][1]['node']['updatedAt']
