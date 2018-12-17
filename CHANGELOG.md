@@ -14,3 +14,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix decimal value argument in GraphQL = #3457 by @fowczarek
 - Add query batching - #3443 by @dominik-zeglen
 - Use autocomplete fields in country selection - #3443 by @dominik-zeglen
+- Bump `urllib3` and `elasticsearch` to latest versions - #3460 by @maarcingebala
