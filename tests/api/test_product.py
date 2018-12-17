@@ -5,8 +5,6 @@ import pytest
 from django.utils.text import slugify
 from graphql_relay import to_global_id
 from prices import Money
-from tests.api.utils import get_graphql_content
-from tests.utils import create_image, create_pdf_file_with_image_ext
 
 from saleor.graphql.core.types import ReportingPeriod
 from saleor.graphql.product.types import (
@@ -15,6 +13,8 @@ from saleor.product.models import (
     Attribute, AttributeValue, Category, Product, ProductImage, ProductType,
     ProductVariant)
 from saleor.product.tasks import update_variants_names
+from tests.api.utils import get_graphql_content
+from tests.utils import create_image, create_pdf_file_with_image_ext
 
 from .utils import assert_no_permission, get_multipart_request_body
 

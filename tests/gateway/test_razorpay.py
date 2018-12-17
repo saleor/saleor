@@ -2,13 +2,13 @@ from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
-
 from razorpay.errors import BadRequestError, ServerError
+
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.gateways.razorpay import (
-    charge, clean_razorpay_response, errors, get_amount_for_razorpay,
-    get_client, get_client_token, get_form_class, logger, refund,
-    check_payment_supported)
+    charge, check_payment_supported, clean_razorpay_response, errors,
+    get_amount_for_razorpay, get_client, get_client_token, get_form_class,
+    logger, refund)
 from saleor.payment.gateways.razorpay.forms import (
     RazorPayCheckoutWidget, RazorPaymentForm)
 

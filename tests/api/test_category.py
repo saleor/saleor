@@ -4,10 +4,10 @@ import graphene
 import pytest
 from django.template.defaultfilters import slugify
 from graphql_relay import to_global_id
-from tests.api.utils import get_graphql_content, get_multipart_request_body
-from tests.utils import create_image
 
 from saleor.product.models import Category
+from tests.api.utils import get_graphql_content, get_multipart_request_body
+from tests.utils import create_image
 
 
 def test_category_query(user_api_client, product):

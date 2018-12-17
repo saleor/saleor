@@ -2,7 +2,6 @@ from io import BytesIO
 from unittest.mock import MagicMock, Mock
 
 import pytest
-
 from django.contrib.auth.models import Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
@@ -15,6 +14,7 @@ from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
 from PIL import Image
 from prices import Money
+
 from saleor.account.backends import BaseBackend
 from saleor.account.models import Address, User
 from saleor.checkout import utils
@@ -24,7 +24,7 @@ from saleor.dashboard.menu.utils import update_menu
 from saleor.dashboard.order.utils import fulfill_order_line
 from saleor.discount.models import Sale, Voucher, VoucherTranslation
 from saleor.menu.models import Menu, MenuItem
-from saleor.order import OrderStatus, OrderEvents
+from saleor.order import OrderEvents, OrderStatus
 from saleor.order.models import Order, OrderEvent
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page

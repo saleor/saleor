@@ -12,6 +12,7 @@ from django.http import QueryDict
 from django.template import Context, Template
 from django.urls import reverse
 from django_countries.fields import Country
+
 from saleor.account import forms, i18n
 from saleor.account.forms import FormWithReCaptcha, NameForm
 from saleor.account.models import User
