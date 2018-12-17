@@ -3,10 +3,10 @@ amqp==2.3.2
 aniso8601==3.0.2
 autopep8==1.4.3
 babel==2.6.0
-billiard==3.5.0.4
+billiard==3.5.0.5
 bleach==2.1.4
-boto3==1.9.57
-botocore==1.12.57
+boto3==1.9.66
+botocore==1.12.66
 braintree==3.49.0
 cairocffi==0.9.0
 cairosvg==2.2.1
@@ -25,7 +25,7 @@ django-cache-url==3.0.0
 django-celery-results==1.0.4
 django-countries==5.3.2
 django-debug-toolbar-request-history==0.0.9
-django-debug-toolbar==1.10.1
+django-debug-toolbar==1.11
 django-elasticsearch-dsl==0.5.1
 django-filter==2.0.0
 django-fsm==2.6.0
@@ -46,11 +46,11 @@ django-storages==1.7.1
 django-templated-email==2.2.0
 django-versatileimagefield==1.10
 django-webpack-loader==0.6.0
-django==2.1.3
+django==2.1.4
 docutils==0.14
 elasticsearch-dsl==6.0.1
-elasticsearch==6.0.0
-faker==1.0.0
+elasticsearch==6.3.1
+faker==1.0.1
 freezegun==0.3.11
 google-i18n-address==2.3.3
 google-measurement-protocol==1.0.0
@@ -61,20 +61,20 @@ graphene==2.1.3
 graphql-core==2.1
 graphql-relay==0.4.5
 html5lib==1.0.1
-idna==2.7
+idna==2.8
 ipaddress==1.0.22
 jinja2==2.10
 jmespath==0.9.3
 jsonfield==2.0.2
-kombu==4.2.1
+kombu==4.2.2
 markdown==3.0.1
 markupsafe==1.1.0
 maxminddb-geolite2==2018.703
 maxminddb==1.4.1
 measurement==2.0.1
-mpmath==1.0.0
+mpmath==1.1.0
 oauthlib==2.1.0
-phonenumberslite==8.10.1
+phonenumberslite==8.10.2
 pillow==5.3.0
 prices==1.0.0
 promise==2.2.1
@@ -83,7 +83,7 @@ purl==1.4
 pycodestyle==2.4.0
 pycparser==2.19
 pygments==2.3.0
-pyjwt==1.7.0
+pyjwt==1.7.1
 pyphen==0.9.5
 python-dateutil==2.7.5 ; python_version >= '2.7'
 python3-openid==3.1.0 ; python_version >= '3.0'
@@ -92,11 +92,11 @@ raven==6.9.0
 razorpay==1.1.1
 redis==2.10.6
 requests-oauthlib==1.0.0
-requests==2.20.1
+requests==2.21.0
 rx==1.6.1
 s3transfer==0.1.13
 singledispatch==3.4.0.3
-six==1.11.0
+six==1.12.0
 social-auth-app-django==3.1.0
 social-auth-core==2.0.0
 sqlparse==0.2.4
@@ -104,7 +104,7 @@ sympy==1.3
 text-unidecode==1.2
 tinycss2==0.6.1
 typing==3.6.6
-urllib3==1.22 ; python_version >= '3.4'
+urllib3==1.24.1
 uwsgi==2.0.17.1 ; platform_system != 'Windows'
 vine==1.1.4
 weasyprint==43

@@ -13,3 +13,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Improve several payment validations - #3418 by @jxltom
 - Fix decimal value argument in GraphQL = #3457 by @fowczarek
 - Use first and last name of a customer or staff member in UI - #3247 by @Bonifacy1, @dominik-zeglen
+- Bump `urllib3` and `elasticsearch` to latest versions - #3460 by @maarcingebala
