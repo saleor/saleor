@@ -85,7 +85,10 @@ export const StaffDetails: React.StatelessComponent<OrderListProps> = ({
                                   variables: {
                                     id,
                                     input: {
+                                      email: variables.email,
+                                      firstName: variables.firstName,
                                       isActive: variables.isActive,
+                                      lastName: variables.lastName,
                                       permissions: variables.permissions
                                     }
                                   }
