@@ -4,9 +4,9 @@ import graphene
 import pytest
 from django.utils.text import slugify
 from graphql_relay import to_global_id
-from tests.utils import create_image
 
 from saleor.product.models import Collection
+from tests.utils import create_image
 
 from .utils import get_graphql_content, get_multipart_request_body
 

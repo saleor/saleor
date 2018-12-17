@@ -1,6 +1,6 @@
+import graphene
 import pytest
 
-import graphene
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.models import FulfillmentStatus
 from tests.api.utils import get_graphql_content

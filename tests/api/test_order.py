@@ -2,7 +2,6 @@ from unittest.mock import MagicMock, Mock
 
 import graphene
 import pytest
-from tests.api.utils import get_graphql_content
 
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.graphql.core.types import ReportingPeriod
@@ -17,6 +16,7 @@ from saleor.order.models import Order, OrderEvent
 from saleor.payment import CustomPaymentChoices
 from saleor.payment.models import Payment
 from saleor.shipping.models import ShippingMethod
+from tests.api.utils import get_graphql_content
 
 from .utils import assert_no_permission
 

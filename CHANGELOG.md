@@ -12,5 +12,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add alt text to `Product` `thumbnail` and `background_image` of `Collection` and `Category` - #3429 by @fowczarek
 - Improve several payment validations - #3418 by @jxltom
 - Fix decimal value argument in GraphQL = #3457 by @fowczarek
+- Use first and last name of a customer or staff member in UI - #3247 by @Bonifacy1, @dominik-zeglen
 - Bump `urllib3` and `elasticsearch` to latest versions - #3460 by @maarcingebala
+- Resort imports in tests - #3471 by @jxltom
 - Support sorting products by update date - #3470 by @jxltom
