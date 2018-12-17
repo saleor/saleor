@@ -3,7 +3,7 @@ import pytest
 from django.test import override_settings
 
 from .conftest import API_PATH
-from .utils import get_graphql_content, _get_graphql_content_from_response
+from .utils import _get_graphql_content_from_response, get_graphql_content
 
 
 def test_batch_queries(category, product, api_client):

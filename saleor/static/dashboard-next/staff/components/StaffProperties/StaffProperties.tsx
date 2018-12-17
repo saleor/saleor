@@ -12,7 +12,7 @@ import * as React from "react";
 import CardTitle from "../../../components/CardTitle";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
+import { getUserInitials, maybe } from "../../../misc";
 import { StaffMemberDetails_user } from "../../types/StaffMemberDetails";
 
 const styles = (theme: Theme) =>
@@ -32,12 +32,15 @@ const styles = (theme: Theme) =>
       pointerEvents: "none"
     },
     prop: {
-      marginBottom: theme.spacing.unit * 0
+      marginBottom: theme.spacing.unit * 2 + "px"
     },
     propGrid: {
       display: "grid",
       gridColumnGap: theme.spacing.unit * 2 + "px",
-      gridTemplateColumns: "1fr 1fr"
+      gridTemplateColumns: "1fr 1fr",
+      [theme.breakpoints.down("xs")]: {
+        gridTemplateColumns: "1fr"
+      }
     },
     root: {
       display: "grid",
@@ -60,22 +63,47 @@ const StaffProperties = withStyles(styles, { name: "StaffProperties" })(
           <div>
             <div className={classes.avatar}>
               <Typography className={classes.avatarText}>
-                {maybe(() => staffMember.email.slice(0, 2).toUpperCase()) || ""}
+                {getUserInitials(staffMember)}
               </Typography>
             </div>
           </div>
           <div>
             <div className={classes.propGrid}>
-              <div>
-                <div className={classes.prop}>
-                  <Typography variant="body2">{i18n.t("E-mail")}</Typography>
-                  {maybe(() => staffMember.email) === undefined ? (
-                    <Skeleton />
-                  ) : (
-                    <Typography>{staffMember.email}</Typography>
-                  )}
-                </div>
-                <div />
+              <div className={classes.prop}>
+                <Typography variant="body2">{i18n.t("First Name")}</Typography>
+                {maybe<React.ReactNode>(
+                  () =>
+                    staffMember.firstName ? (
+                      <Typography>{staffMember.firstName}</Typography>
+                    ) : (
+                      <Typography color="textSecondary">
+                        {i18n.t("No info")}
+                      </Typography>
+                    ),
+                  <Skeleton />
+                )}
+              </div>
+              <div className={classes.prop}>
+                <Typography variant="body2">{i18n.t("Last Name")}</Typography>
+                {maybe<React.ReactNode>(
+                  () =>
+                    staffMember.lastName ? (
+                      <Typography>{staffMember.lastName}</Typography>
+                    ) : (
+                      <Typography color="textSecondary">
+                        {i18n.t("No info")}
+                      </Typography>
+                    ),
+                  <Skeleton />
+                )}
+              </div>
+              <div className={classes.prop}>
+                <Typography variant="body2">{i18n.t("E-mail")}</Typography>
+                {maybe(() => staffMember.email) === undefined ? (
+                  <Skeleton />
+                ) : (
+                  <Typography>{staffMember.email}</Typography>
+                )}
               </div>
             </div>
           </div>
