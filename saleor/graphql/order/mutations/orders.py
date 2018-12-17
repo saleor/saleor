@@ -161,7 +161,7 @@ class OrderUpdateShipping(BaseMutation):
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
 
         if not input['shipping_method']:
-            if order.is_shipping_required():
+            if not order.is_draft() and order.is_shipping_required():
                 cls.add_error(
                     errors, 'shippingMethod',
                     'Shipping method is required for this order.')

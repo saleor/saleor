@@ -2,7 +2,6 @@ from unittest.mock import MagicMock, Mock
 
 import graphene
 import pytest
-from tests.api.utils import get_graphql_content
 
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.graphql.core.types import ReportingPeriod
@@ -17,6 +16,7 @@ from saleor.order.models import Order, OrderEvent
 from saleor.payment import CustomPaymentChoices
 from saleor.payment.models import Payment
 from saleor.shipping.models import ShippingMethod
+from tests.api.utils import get_graphql_content
 
 from .utils import assert_no_permission
 
@@ -1262,6 +1262,23 @@ def test_order_update_shipping_incorrect_shipping_method(
     assert data['errors'][0]['field'] == 'shippingMethod'
     assert data['errors'][0]['message'] == (
         'Shipping method cannot be used with this order.')
+
+
+def test_draft_order_clear_shipping_method(
+        staff_api_client, draft_order, permission_manage_orders):
+    assert draft_order.shipping_method
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id('Order', draft_order.id)
+    variables = {'order': order_id, 'shippingMethod': None}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+    data = content['data']['orderUpdateShipping']
+    assert data['order']['id'] == order_id
+    draft_order.refresh_from_db()
+    assert draft_order.shipping_method is None
+    assert draft_order.shipping_price == ZERO_TAXED_MONEY
+    assert draft_order.shipping_method_name is None
 
 
 def test_orders_total(

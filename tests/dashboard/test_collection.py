@@ -1,13 +1,13 @@
 import json
 from unittest import mock
+from unittest.mock import Mock
 
 from django.urls import reverse
-from unittest.mock import Mock
 
 from saleor.dashboard.collection.forms import CollectionForm
 from saleor.product.models import Collection
 
-from ..utils import get_redirect_location, create_image
+from ..utils import create_image, get_redirect_location
 
 
 def test_list_view(admin_client, collection):
