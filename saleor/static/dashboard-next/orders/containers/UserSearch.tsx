@@ -26,10 +26,7 @@ export class UserSearchProvider extends React.Component<
   render() {
     const { children } = this.props;
     return (
-      <TypedUserSearch
-        variables={{ search: this.state.query }}
-        skip={!this.state.query}
-      >
+      <TypedUserSearch variables={{ search: this.state.query }}>
         {searchOpts => children({ search: this.search, searchOpts })}
       </TypedUserSearch>
     );
