@@ -1,12 +1,12 @@
+from datetime import datetime
 from unittest.mock import Mock, patch
 
 import graphene
 import pytest
+from django.utils.dateparse import parse_datetime
 from django.utils.text import slugify
 from graphql_relay import to_global_id
 from prices import Money
-from tests.api.utils import get_graphql_content
-from tests.utils import create_image, create_pdf_file_with_image_ext
 
 from saleor.graphql.core.types import ReportingPeriod
 from saleor.graphql.product.types import (
@@ -15,6 +15,8 @@ from saleor.product.models import (
     Attribute, AttributeValue, Category, Product, ProductImage, ProductType,
     ProductVariant)
 from saleor.product.tasks import update_variants_names
+from tests.api.utils import get_graphql_content
+from tests.utils import create_image, create_pdf_file_with_image_ext
 
 from .utils import assert_no_permission, get_multipart_request_body
 
@@ -304,13 +306,15 @@ def test_filter_products_by_collections(
 
 
 def test_sort_products(user_api_client, product):
-    # set price of the first product
+    # set price and update date of the first product
     product.price = Money('10.00', 'USD')
+    product.updated_at = datetime.utcnow()
     product.save()
 
-    # create the second product with higher price
+    # Create the second product with higher price and date
     product.pk = None
     product.price = Money('20.00', 'USD')
+    product.updated_at = datetime.utcnow()
     product.save()
 
     query = """
@@ -321,6 +325,7 @@ def test_sort_products(user_api_client, product):
                     price {
                         amount
                     }
+                    updatedAt
                 }
             }
         }
@@ -342,6 +347,22 @@ def test_sort_products(user_api_client, product):
     price_0 = content['data']['products']['edges'][0]['node']['price']['amount']
     price_1 = content['data']['products']['edges'][1]['node']['price']['amount']
     assert price_0 > price_1
+
+    asc_date_query = query % {
+        'sort_by_product_order': '{field: DATE, direction:ASC}'}
+    response = user_api_client.post_graphql(asc_date_query)
+    content = get_graphql_content(response)
+    date_0 = content['data']['products']['edges'][0]['node']['updatedAt'] ## parse_datetime
+    date_1 = content['data']['products']['edges'][1]['node']['updatedAt']
+    assert parse_datetime(date_0) < parse_datetime(date_1)
+
+    desc_price_query = query % {
+        'sort_by_product_order': '{field: PRICE, direction:DESC}'}
+    response = user_api_client.post_graphql(desc_price_query)
+    content = get_graphql_content(response)
+    date_0 = content['data']['products']['edges'][0]['node']['updatedAt']
+    date_1 = content['data']['products']['edges'][1]['node']['updatedAt']
+    assert parse_datetime(date_0) > parse_datetime(date_1)
 
 
 def test_create_product(
