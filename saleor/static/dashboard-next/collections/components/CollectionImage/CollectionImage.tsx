@@ -17,7 +17,6 @@ import ImageTile from "../../../components/ImageTile";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { CollectionDetails_collection_backgroundImage } from "../../types/CollectionDetails";
-import { CollectionDetailsPageFormData } from "../CollectionDetailsPage/CollectionDetailsPage";
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -53,7 +52,9 @@ const styles = (theme: Theme) =>
   });
 
 export interface CollectionImageProps extends WithStyles<typeof styles> {
-  data: CollectionDetailsPageFormData;
+  data: {
+    backgroundImageAlt: string;
+  };
   image: CollectionDetails_collection_backgroundImage;
   onChange: (event: React.ChangeEvent<any>) => void;
   onImageDelete: () => void;
