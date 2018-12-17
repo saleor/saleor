@@ -115,7 +115,9 @@ export const CustomerDetailsView: React.StatelessComponent<
                                     id,
                                     input: {
                                       email: formData.email,
+                                      firstName: formData.firstName,
                                       isActive: formData.isActive,
+                                      lastName: formData.lastName,
                                       note: formData.note
                                     }
                                   }

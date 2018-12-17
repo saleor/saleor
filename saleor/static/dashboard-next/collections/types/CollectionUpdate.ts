@@ -15,6 +15,7 @@ export interface CollectionUpdate_collectionUpdate_errors {
 
 export interface CollectionUpdate_collectionUpdate_collection_backgroundImage {
   __typename: "Image";
+  alt: string | null;
   url: string;
 }
 

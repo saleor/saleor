@@ -32,6 +32,7 @@ const styles = (theme: Theme) =>
   });
 
 interface SingleAutocompleteSelectFieldProps extends WithStyles<typeof styles> {
+  error?: boolean;
   name: string;
   choices: Array<{
     label: string;
@@ -70,6 +71,7 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
     classes,
     custom,
     disabled,
+    error,
     helperText,
     label,
     loading,
@@ -97,6 +99,8 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
               inputValue,
               selectedItem,
               toggleMenu,
+              openMenu,
+              closeMenu,
               highlightedIndex
             }) => {
               const isCustom =
@@ -115,7 +119,11 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
                         <ArrowDropdownIcon
                           onClick={disabled ? undefined : toggleMenu}
                         />
-                      )
+                      ),
+                      error,
+                      id: undefined,
+                      onBlur: closeMenu,
+                      onFocus: openMenu
                     }}
                     disabled={disabled}
                     helperText={helperText}
@@ -176,21 +184,22 @@ export class SingleAutocompleteSelectField extends React.Component<
 > {
   state = { choices: this.props.choices };
 
-  handleInputChange = (value: string) => {
-    this.setState({
-      choices: this.props.choices.sort((a, b) => {
-        const ratingA = compareTwoStrings(value || "", a.label);
-        const ratingB = compareTwoStrings(value || "", b.label);
-        if (ratingA > ratingB) {
-          return -1;
-        }
-        if (ratingA < ratingB) {
-          return 1;
-        }
-        return 0;
-      })
-    });
-  };
+  handleInputChange = (value: string) =>
+    this.setState((_, props) => ({
+      choices: props.choices
+        .sort((a, b) => {
+          const ratingA = compareTwoStrings(value || "", a.label);
+          const ratingB = compareTwoStrings(value || "", b.label);
+          if (ratingA > ratingB) {
+            return -1;
+          }
+          if (ratingA < ratingB) {
+            return 1;
+          }
+          return 0;
+        })
+        .slice(0, 5)
+    }));
 
   render() {
     if (!!this.props.fetchChoices) {
