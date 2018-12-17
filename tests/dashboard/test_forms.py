@@ -1,7 +1,7 @@
 from django import forms
 
-from saleor.product.models import Category
 from saleor.dashboard.product.forms import ModelChoiceOrCreationField
+from saleor.product.models import Category
 
 
 def test_model_choice_or_creation_field(category):

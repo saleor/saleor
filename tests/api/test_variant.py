@@ -1,6 +1,6 @@
+import graphene
 import pytest
 
-import graphene
 from tests.api.utils import get_graphql_content
 
 

@@ -4,9 +4,9 @@ from decimal import Decimal
 from unittest.mock import Mock
 
 import pytest
-
 from django.urls import reverse
 from prices import Money, TaxedMoney
+
 from saleor.dashboard.order.utils import get_voucher_discount_for_order
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Sale, Voucher
