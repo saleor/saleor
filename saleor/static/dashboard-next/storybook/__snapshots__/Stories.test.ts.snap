@@ -46929,11 +46929,16 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
                         aria-invalid="false"
                         class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputType-id MuiInput-inputType-id"
                         disabled=""
-                        name="stockInventory"
+                        name="stockQuantity"
                         type="number"
                         value="0"
                       />
                     </div>
+                    <p
+                      class="MuiFormHelperText-root-id MuiFormHelperText-disabled-id MuiFormHelperText-filled-id"
+                    >
+                      Allocated: 
+                    </p>
                   </div>
                 </div>
               </div>
@@ -48793,8 +48798,8 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                     class="MuiFormControl-root-id"
                   >
                     <label
-                      class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                      data-shrink="true"
+                      class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                      data-shrink="false"
                     >
                       Inventory
                     </label>
@@ -48804,11 +48809,15 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                       <input
                         aria-invalid="false"
                         class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id"
-                        name="stockInventory"
+                        name="stockQuantity"
                         type="number"
-                        value="48"
                       />
                     </div>
+                    <p
+                      class="MuiFormHelperText-root-id"
+                    >
+                      Allocated: 
+                    </p>
                   </div>
                 </div>
               </div>
