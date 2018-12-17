@@ -20,3 +20,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Resort imports in tests - #3471 by @jxltom
 - Support sorting products by update date - #3470 by @jxltom
 - Draft order should be able to clear its shipping method - #3472 by @fowczarek
+- Prefetch payment and payment transaction to optimize db queries - #3455 by @jxltom
