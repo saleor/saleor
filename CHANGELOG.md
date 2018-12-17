@@ -15,3 +15,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Use first and last name of a customer or staff member in UI - #3247 by @Bonifacy1, @dominik-zeglen
 - Bump `urllib3` and `elasticsearch` to latest versions - #3460 by @maarcingebala
 - Resort imports in tests - #3471 by @jxltom
+- Enable staff member's data editing = #3475 by @dominik-zeglen
