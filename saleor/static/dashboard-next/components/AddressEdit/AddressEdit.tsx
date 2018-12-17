@@ -11,7 +11,7 @@ import { AddressTypeInput } from "../../customers/types";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
 import FormSpacer from "../FormSpacer";
-import SingleSelectField from "../SingleSelectField";
+import SingleAutocompleteSelectField from "../SingleAutocompleteSelectField";
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -149,10 +149,10 @@ const AddressEdit = withStyles(styles, { name: "AddressEdit" })(
       <FormSpacer />
       <div className={classes.root}>
         <div>
-          <SingleSelectField
+          <SingleAutocompleteSelectField
             disabled={disabled}
             error={!!errors.country}
-            hint={errors.country}
+            helperText={errors.country}
             label={i18n.t("Country")}
             name="country"
             onChange={onChange}
