@@ -680,8 +680,10 @@ export const customers = [
 export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
-    email: "curtis.bailey@example.com",
+    email: "Curtis.bailey@example.com",
+    firstName: "curtis",
     id: "VXNlcjox",
+    lastName: "Bailey",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 2
@@ -690,7 +692,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "curtis.bailey@example.com",
+    firstName: "Curtis",
     id: "VXNlcjox",
+    lastName: "Bailey",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 2
@@ -699,7 +703,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "elizabeth.vaughn@example.com",
+    firstName: "Elizabeth",
     id: "VXNlcjoy",
+    lastName: "Vaughn",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 1
@@ -708,7 +714,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "michael.martinez@example.com",
+    firstName: "Michael",
     id: "VXNlcjoz",
+    lastName: "Martinez",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 1
@@ -717,7 +725,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "kayla.griffin@example.com",
+    firstName: "Kayla",
     id: "VXNlcjo0",
+    lastName: "Griffin",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 0
@@ -726,7 +736,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "donna.robinson@example.com",
+    firstName: "Donna",
     id: "VXNlcjo1",
+    lastName: "Robinson",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 0
@@ -735,7 +747,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "james.ball@example.com",
+    firstName: "James",
     id: "VXNlcjo2",
+    lastName: "Bqall",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 1
@@ -744,7 +758,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "anthony.gonzalez@example.com",
+    firstName: "Anthony",
     id: "VXNlcjo3",
+    lastName: "Gonzalez",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 2
@@ -753,7 +769,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "anthony.gonzalez@example.com",
+    firstName: "Anthony",
     id: "VXNlcjo3",
+    lastName: "Gonzalez",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 2
@@ -762,7 +780,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "wesley.davis@example.com",
+    firstName: "Wesley",
     id: "VXNlcjo4",
+    lastName: "Davis",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 1
@@ -771,7 +791,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "laura.stone@example.com",
+    firstName: "Laura",
     id: "VXNlcjo5",
+    lastName: "Stone",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 1
@@ -780,7 +802,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "william.miller@example.com",
+    firstName: "William",
     id: "VXNlcjoxMA==",
+    lastName: "Miller",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 0
@@ -789,7 +813,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "donald.solomon@example.com",
+    firstName: "Donald",
     id: "VXNlcjoxMQ==",
+    lastName: "Solomon",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 0
@@ -798,7 +824,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "anthony.young@example.com",
+    firstName: "Anthony",
     id: "VXNlcjoxMg==",
+    lastName: "Young",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 0
@@ -807,7 +835,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "sharon.hanson@example.com",
+    firstName: "Hanson",
     id: "VXNlcjoxMw==",
+    lastName: "Sharon",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 0
@@ -816,7 +846,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "laura.jensen@example.com",
+    firstName: "Laura",
     id: "VXNlcjoxNA==",
+    lastName: "Jensen",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 1
@@ -825,7 +857,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "mark.lee@example.com",
+    firstName: "Mark",
     id: "VXNlcjoxNQ==",
+    lastName: "Lee",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 1
@@ -834,7 +868,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "david.lawson@example.com",
+    firstName: "David",
     id: "VXNlcjoxNg==",
+    lastName: "Lawson",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 2
@@ -843,7 +879,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "david.lawson@example.com",
+    firstName: "David",
     id: "VXNlcjoxNg==",
+    lastName: "Lawson",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 2
@@ -852,7 +890,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "faith.smith@example.com",
+    firstName: "Faith",
     id: "VXNlcjoxNw==",
+    lastName: "Smith",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 0
@@ -861,7 +901,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "john.jones@example.com",
+    firstName: "John",
     id: "VXNlcjoxOA==",
+    lastName: "Jones",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 0
@@ -870,7 +912,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "ronald.fisher@example.com",
+    firstName: "Ronald",
     id: "VXNlcjoxOQ==",
+    lastName: "Fisher",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 0
@@ -879,7 +923,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "jason.gray@example.com",
+    firstName: "Jason",
     id: "VXNlcjoyMA==",
+    lastName: "Gray",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 0
@@ -888,7 +934,9 @@ export const customerList: ListCustomers_customers_edges_node[] = [
   {
     __typename: "User",
     email: "admin@example.com",
+    firstName: "Tom",
     id: "VXNlcjoyMQ==",
+    lastName: "Cooper",
     orders: {
       __typename: "OrderCountableConnection",
       totalCount: 6
@@ -898,6 +946,8 @@ export const customerList: ListCustomers_customers_edges_node[] = [
 export const customer: CustomerDetails_user = {
   __typename: "User",
   dateJoined: "2017-05-07T09:37:30.124154+00:00",
+  firstName: "Tom",
+
   defaultBillingAddress: {
     __typename: "Address",
     city: "Port Danielshire",
@@ -940,6 +990,7 @@ export const customer: CustomerDetails_user = {
   id: "VXNlcjoy",
   isActive: true,
   lastLogin: "2018-05-07T09:37:30.124154+00:00",
+  lastName: "Cooper",
   lastPlacedOrder: {
     __typename: "OrderCountableConnection",
     edges: [

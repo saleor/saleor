@@ -13835,7 +13835,49 @@ exports[`Storyshots Views / Customers / Create customer default 1`] = `
                     class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
                     data-shrink="false"
                   >
-                    E-mail
+                    First Name
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInputBase-input-id MuiInput-input-id"
+                      name="firstName"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                </div>
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                    data-shrink="false"
+                  >
+                    Last Name
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInputBase-input-id MuiInput-input-id"
+                      name="lastName"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                </div>
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                    data-shrink="false"
+                  >
+                    Email address
                   </label>
                   <div
                     class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
@@ -14402,7 +14444,59 @@ exports[`Storyshots Views / Customers / Create customer form errors 1`] = `
                     class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
                     data-shrink="false"
                   >
-                    E-mail
+                    First Name
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="true"
+                      class="MuiInputBase-input-id MuiInput-input-id"
+                      name="firstName"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                  <p
+                    class="MuiFormHelperText-root-id MuiFormHelperText-error-id"
+                  >
+                    Generic form error
+                  </p>
+                </div>
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                    data-shrink="false"
+                  >
+                    Last Name
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="true"
+                      class="MuiInputBase-input-id MuiInput-input-id"
+                      name="lastName"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                  <p
+                    class="MuiFormHelperText-root-id MuiFormHelperText-error-id"
+                  >
+                    Generic form error
+                  </p>
+                </div>
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                    data-shrink="false"
+                  >
+                    Email address
                   </label>
                   <div
                     class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
@@ -15029,7 +15123,51 @@ exports[`Storyshots Views / Customers / Create customer loading 1`] = `
                     class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
                     data-shrink="false"
                   >
-                    E-mail
+                    First Name
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id"
+                      disabled=""
+                      name="firstName"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                </div>
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                    data-shrink="false"
+                  >
+                    Last Name
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id"
+                      disabled=""
+                      name="lastName"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                </div>
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                    data-shrink="false"
+                  >
+                    Email address
                   </label>
                   <div
                     class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
@@ -15562,7 +15700,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
         <h2
           class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
         >
-          elizabeth.vaughn@example.com
+          Tom Cooper
         </h2>
         <div
           class="ExtendedPageHeader-action-id"
@@ -15636,6 +15774,55 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   User account active
                 </span>
               </label>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <div
+                class="CustomerDetails-root-id"
+              >
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                    data-shrink="true"
+                  >
+                    First Name
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInputBase-input-id MuiInput-input-id"
+                      name="firstName"
+                      type="text"
+                      value="Tom"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                    data-shrink="true"
+                  >
+                    Last Name
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInputBase-input-id MuiInput-input-id"
+                      name="lastName"
+                      type="text"
+                      value="Cooper"
+                    />
+                  </div>
+                </div>
+              </div>
               <div
                 class="FormSpacer-spacer-id"
               />
@@ -16064,7 +16251,7 @@ exports[`Storyshots Views / Customers / Customer details different addresses 1`]
         <h2
           class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
         >
-          elizabeth.vaughn@example.com
+          Tom Cooper
         </h2>
         <div
           class="ExtendedPageHeader-action-id"
@@ -16138,6 +16325,55 @@ exports[`Storyshots Views / Customers / Customer details different addresses 1`]
                   User account active
                 </span>
               </label>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <div
+                class="CustomerDetails-root-id"
+              >
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                    data-shrink="true"
+                  >
+                    First Name
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInputBase-input-id MuiInput-input-id"
+                      name="firstName"
+                      type="text"
+                      value="Tom"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                    data-shrink="true"
+                  >
+                    Last Name
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInputBase-input-id MuiInput-input-id"
+                      name="lastName"
+                      type="text"
+                      value="Cooper"
+                    />
+                  </div>
+                </div>
+              </div>
               <div
                 class="FormSpacer-spacer-id"
               />
@@ -16603,7 +16839,7 @@ exports[`Storyshots Views / Customers / Customer details form errors 1`] = `
         <h2
           class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
         >
-          elizabeth.vaughn@example.com
+          Tom Cooper
         </h2>
         <div
           class="ExtendedPageHeader-action-id"
@@ -16681,6 +16917,65 @@ exports[`Storyshots Views / Customers / Customer details form errors 1`] = `
                 class="FormSpacer-spacer-id"
               />
               <div
+                class="CustomerDetails-root-id"
+              >
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                    data-shrink="true"
+                  >
+                    First Name
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="true"
+                      class="MuiInputBase-input-id MuiInput-input-id"
+                      name="firstName"
+                      type="text"
+                      value="Tom"
+                    />
+                  </div>
+                  <p
+                    class="MuiFormHelperText-root-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
+                  >
+                    Generic form error
+                  </p>
+                </div>
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                    data-shrink="true"
+                  >
+                    Last Name
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="true"
+                      class="MuiInputBase-input-id MuiInput-input-id"
+                      name="lastName"
+                      type="text"
+                      value="Cooper"
+                    />
+                  </div>
+                  <p
+                    class="MuiFormHelperText-root-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
+                  >
+                    Generic form error
+                  </p>
+                </div>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <div
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
@@ -16713,13 +17008,13 @@ exports[`Storyshots Views / Customers / Customer details form errors 1`] = `
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
                   data-shrink="false"
                 >
                   Note
                 </label>
                 <div
-                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
                 >
                   <div
                     class="MuiPrivateTextarea-root-id"
@@ -16739,7 +17034,7 @@ exports[`Storyshots Views / Customers / Customer details form errors 1`] = `
                       tabindex="-1"
                     />
                     <textarea
-                      aria-invalid="true"
+                      aria-invalid="false"
                       class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
                       name="note"
                       rows="1"
@@ -16747,11 +17042,6 @@ exports[`Storyshots Views / Customers / Customer details form errors 1`] = `
                     />
                   </div>
                 </div>
-                <p
-                  class="MuiFormHelperText-root-id MuiFormHelperText-error-id"
-                >
-                  Generic form error
-                </p>
               </div>
             </div>
           </div>
@@ -17114,14 +17404,7 @@ exports[`Storyshots Views / Customers / Customer details loading 1`] = `
         </button>
         <h2
           class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
-        >
-          <span
-            class="Skeleton-skeleton-id"
-            style="width:10em"
-          >
-            ‌
-          </span>
-        </h2>
+        />
         <div
           class="ExtendedPageHeader-action-id"
         />
@@ -17196,6 +17479,55 @@ exports[`Storyshots Views / Customers / Customer details loading 1`] = `
                   User account active
                 </span>
               </label>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <div
+                class="CustomerDetails-root-id"
+              >
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                    data-shrink="false"
+                  >
+                    First Name
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id"
+                      disabled=""
+                      name="firstName"
+                      type="text"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                    data-shrink="false"
+                  >
+                    Last Name
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id"
+                      disabled=""
+                      name="lastName"
+                      type="text"
+                    />
+                  </div>
+                </div>
+              </div>
               <div
                 class="FormSpacer-spacer-id"
               />
@@ -17599,7 +17931,7 @@ exports[`Storyshots Views / Customers / Customer details never logged 1`] = `
         <h2
           class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
         >
-          elizabeth.vaughn@example.com
+          Tom Cooper
         </h2>
         <div
           class="ExtendedPageHeader-action-id"
@@ -17673,6 +18005,55 @@ exports[`Storyshots Views / Customers / Customer details never logged 1`] = `
                   User account active
                 </span>
               </label>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <div
+                class="CustomerDetails-root-id"
+              >
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                    data-shrink="true"
+                  >
+                    First Name
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInputBase-input-id MuiInput-input-id"
+                      name="firstName"
+                      type="text"
+                      value="Tom"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                    data-shrink="true"
+                  >
+                    Last Name
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInputBase-input-id MuiInput-input-id"
+                      name="lastName"
+                      type="text"
+                      value="Cooper"
+                    />
+                  </div>
+                </div>
+              </div>
               <div
                 class="FormSpacer-spacer-id"
               />
@@ -18095,7 +18476,7 @@ exports[`Storyshots Views / Customers / Customer details never placed order 1`] 
         <h2
           class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
         >
-          elizabeth.vaughn@example.com
+          Tom Cooper
         </h2>
         <div
           class="ExtendedPageHeader-action-id"
@@ -18169,6 +18550,55 @@ exports[`Storyshots Views / Customers / Customer details never placed order 1`] 
                   User account active
                 </span>
               </label>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <div
+                class="CustomerDetails-root-id"
+              >
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                    data-shrink="true"
+                  >
+                    First Name
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInputBase-input-id MuiInput-input-id"
+                      name="firstName"
+                      type="text"
+                      value="Tom"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                    data-shrink="true"
+                  >
+                    Last Name
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInputBase-input-id MuiInput-input-id"
+                      name="lastName"
+                      type="text"
+                      value="Cooper"
+                    />
+                  </div>
+                </div>
+              </div>
               <div
                 class="FormSpacer-spacer-id"
               />
@@ -18611,13 +19041,19 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
             <th
+              class="MuiTableCell-root-id MuiTableCell-head-id"
+              scope="col"
+            >
+              Customer Name
+            </th>
+            <th
               class="MuiTableCell-root-id MuiTableCell-head-id CustomerList-wideCell-id"
               scope="col"
             >
               Customer e-mail
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id CustomerList-textCenter-id"
               scope="col"
             >
               Orders
@@ -18632,7 +19068,7 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
-              colspan="2"
+              colspan="3"
             >
               <div
                 class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
@@ -18700,10 +19136,15 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              curtis.bailey@example.com
+              curtis Bailey
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Curtis.bailey@example.com
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               2
             </td>
@@ -18714,10 +19155,15 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
+              Curtis Bailey
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
               curtis.bailey@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               2
             </td>
@@ -18725,13 +19171,18 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id CustomerList-tableRow-id"
           >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Elizabeth Vaughn
+            </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               elizabeth.vaughn@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               1
             </td>
@@ -18739,13 +19190,18 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id CustomerList-tableRow-id"
           >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Michael Martinez
+            </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               michael.martinez@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               1
             </td>
@@ -18753,13 +19209,18 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id CustomerList-tableRow-id"
           >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Kayla Griffin
+            </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               kayla.griffin@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               0
             </td>
@@ -18767,13 +19228,18 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id CustomerList-tableRow-id"
           >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Donna Robinson
+            </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               donna.robinson@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               0
             </td>
@@ -18781,13 +19247,18 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id CustomerList-tableRow-id"
           >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              James Bqall
+            </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               james.ball@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               1
             </td>
@@ -18798,10 +19269,15 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
+              Anthony Gonzalez
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
               anthony.gonzalez@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               2
             </td>
@@ -18812,10 +19288,15 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
+              Anthony Gonzalez
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
               anthony.gonzalez@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               2
             </td>
@@ -18823,13 +19304,18 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id CustomerList-tableRow-id"
           >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Wesley Davis
+            </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               wesley.davis@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               1
             </td>
@@ -18837,13 +19323,18 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id CustomerList-tableRow-id"
           >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Laura Stone
+            </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               laura.stone@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               1
             </td>
@@ -18851,13 +19342,18 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id CustomerList-tableRow-id"
           >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              William Miller
+            </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               william.miller@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               0
             </td>
@@ -18865,13 +19361,18 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id CustomerList-tableRow-id"
           >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Donald Solomon
+            </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               donald.solomon@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               0
             </td>
@@ -18879,13 +19380,18 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id CustomerList-tableRow-id"
           >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Anthony Young
+            </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               anthony.young@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               0
             </td>
@@ -18893,13 +19399,18 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id CustomerList-tableRow-id"
           >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Hanson Sharon
+            </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               sharon.hanson@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               0
             </td>
@@ -18907,13 +19418,18 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id CustomerList-tableRow-id"
           >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Laura Jensen
+            </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               laura.jensen@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               1
             </td>
@@ -18921,13 +19437,18 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id CustomerList-tableRow-id"
           >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Mark Lee
+            </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               mark.lee@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               1
             </td>
@@ -18938,10 +19459,15 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
+              David Lawson
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
               david.lawson@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               2
             </td>
@@ -18952,10 +19478,15 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
+              David Lawson
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
               david.lawson@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               2
             </td>
@@ -18963,13 +19494,18 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id CustomerList-tableRow-id"
           >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Faith Smith
+            </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               faith.smith@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               0
             </td>
@@ -18977,13 +19513,18 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id CustomerList-tableRow-id"
           >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              John Jones
+            </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               john.jones@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               0
             </td>
@@ -18991,13 +19532,18 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id CustomerList-tableRow-id"
           >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Ronald Fisher
+            </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               ronald.fisher@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               0
             </td>
@@ -19005,13 +19551,18 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id CustomerList-tableRow-id"
           >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Jason Gray
+            </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               jason.gray@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               0
             </td>
@@ -19022,10 +19573,15 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
+              Tom Cooper
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
               admin@example.com
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               6
             </td>
@@ -19095,13 +19651,19 @@ exports[`Storyshots Views / Customers / Customer list loading 1`] = `
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
             <th
+              class="MuiTableCell-root-id MuiTableCell-head-id"
+              scope="col"
+            >
+              Customer Name
+            </th>
+            <th
               class="MuiTableCell-root-id MuiTableCell-head-id CustomerList-wideCell-id"
               scope="col"
             >
               Customer e-mail
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id CustomerList-textCenter-id"
               scope="col"
             >
               Orders
@@ -19116,7 +19678,7 @@ exports[`Storyshots Views / Customers / Customer list loading 1`] = `
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
-              colspan="2"
+              colspan="3"
             >
               <div
                 class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
@@ -19184,6 +19746,9 @@ exports[`Storyshots Views / Customers / Customer list loading 1`] = `
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
+            />
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -19192,7 +19757,7 @@ exports[`Storyshots Views / Customers / Customer list loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id CustomerList-textCenter-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -19265,13 +19830,19 @@ exports[`Storyshots Views / Customers / Customer list no data 1`] = `
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
             <th
+              class="MuiTableCell-root-id MuiTableCell-head-id"
+              scope="col"
+            >
+              Customer Name
+            </th>
+            <th
               class="MuiTableCell-root-id MuiTableCell-head-id CustomerList-wideCell-id"
               scope="col"
             >
               Customer e-mail
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id CustomerList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id CustomerList-textCenter-id"
               scope="col"
             >
               Orders
@@ -19286,7 +19857,7 @@ exports[`Storyshots Views / Customers / Customer list no data 1`] = `
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
-              colspan="2"
+              colspan="3"
             >
               <div
                 class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
@@ -19353,7 +19924,7 @@ exports[`Storyshots Views / Customers / Customer list no data 1`] = `
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
-              colspan="2"
+              colspan="3"
             >
               No customers found
             </td>
@@ -53061,7 +53632,7 @@ exports[`Storyshots Views / Staff / Staff member details default 1`] = `
         <h2
           class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
         >
-          admin@example.com
+          Jacob Smith
         </h2>
         <div
           class="ExtendedPageHeader-action-id"
@@ -53105,7 +53676,7 @@ exports[`Storyshots Views / Staff / Staff member details default 1`] = `
                     <p
                       class="MuiTypography-root-id MuiTypography-body1-id StaffProperties-avatarText-id"
                     >
-                      AD
+                      JACOBSMITH
                     </p>
                   </div>
                 </div>
@@ -53113,22 +53684,47 @@ exports[`Storyshots Views / Staff / Staff member details default 1`] = `
                   <div
                     class="StaffProperties-propGrid-id"
                   >
-                    <div>
-                      <div
-                        class="StaffProperties-prop-id"
+                    <div
+                      class="StaffProperties-prop-id"
+                    >
+                      <p
+                        class="MuiTypography-root-id MuiTypography-body2-id"
                       >
-                        <p
-                          class="MuiTypography-root-id MuiTypography-body2-id"
-                        >
-                          E-mail
-                        </p>
-                        <p
-                          class="MuiTypography-root-id MuiTypography-body1-id"
-                        >
-                          admin@example.com
-                        </p>
-                      </div>
-                      <div />
+                        First Name
+                      </p>
+                      <p
+                        class="MuiTypography-root-id MuiTypography-body1-id"
+                      >
+                        Jacob
+                      </p>
+                    </div>
+                    <div
+                      class="StaffProperties-prop-id"
+                    >
+                      <p
+                        class="MuiTypography-root-id MuiTypography-body2-id"
+                      >
+                        Last Name
+                      </p>
+                      <p
+                        class="MuiTypography-root-id MuiTypography-body1-id"
+                      >
+                        Smith
+                      </p>
+                    </div>
+                    <div
+                      class="StaffProperties-prop-id"
+                    >
+                      <p
+                        class="MuiTypography-root-id MuiTypography-body2-id"
+                      >
+                        E-mail
+                      </p>
+                      <p
+                        class="MuiTypography-root-id MuiTypography-body1-id"
+                      >
+                        admin@example.com
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -53399,14 +53995,7 @@ exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
         </button>
         <h2
           class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
-        >
-          <span
-            class="Skeleton-skeleton-id"
-            style="width:10em"
-          >
-            ‌
-          </span>
-        </h2>
+        />
         <div
           class="ExtendedPageHeader-action-id"
         />
@@ -53455,22 +54044,47 @@ exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
                   <div
                     class="StaffProperties-propGrid-id"
                   >
-                    <div>
-                      <div
-                        class="StaffProperties-prop-id"
+                    <div
+                      class="StaffProperties-prop-id"
+                    >
+                      <p
+                        class="MuiTypography-root-id MuiTypography-body2-id"
                       >
-                        <p
-                          class="MuiTypography-root-id MuiTypography-body2-id"
-                        >
-                          E-mail
-                        </p>
-                        <span
-                          class="Skeleton-skeleton-id"
-                        >
-                          ‌
-                        </span>
-                      </div>
-                      <div />
+                        First Name
+                      </p>
+                      <span
+                        class="Skeleton-skeleton-id"
+                      >
+                        ‌
+                      </span>
+                    </div>
+                    <div
+                      class="StaffProperties-prop-id"
+                    >
+                      <p
+                        class="MuiTypography-root-id MuiTypography-body2-id"
+                      >
+                        Last Name
+                      </p>
+                      <span
+                        class="Skeleton-skeleton-id"
+                      >
+                        ‌
+                      </span>
+                    </div>
+                    <div
+                      class="StaffProperties-prop-id"
+                    >
+                      <p
+                        class="MuiTypography-root-id MuiTypography-body2-id"
+                      >
+                        E-mail
+                      </p>
+                      <span
+                        class="Skeleton-skeleton-id"
+                      >
+                        ‌
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -54111,7 +54725,7 @@ exports[`Storyshots Views / Staff / Staff member details not admin 1`] = `
         <h2
           class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
         >
-          admin@example.com
+          Jacob Smith
         </h2>
         <div
           class="ExtendedPageHeader-action-id"
@@ -54155,7 +54769,7 @@ exports[`Storyshots Views / Staff / Staff member details not admin 1`] = `
                     <p
                       class="MuiTypography-root-id MuiTypography-body1-id StaffProperties-avatarText-id"
                     >
-                      AD
+                      JACOBSMITH
                     </p>
                   </div>
                 </div>
@@ -54163,22 +54777,47 @@ exports[`Storyshots Views / Staff / Staff member details not admin 1`] = `
                   <div
                     class="StaffProperties-propGrid-id"
                   >
-                    <div>
-                      <div
-                        class="StaffProperties-prop-id"
+                    <div
+                      class="StaffProperties-prop-id"
+                    >
+                      <p
+                        class="MuiTypography-root-id MuiTypography-body2-id"
                       >
-                        <p
-                          class="MuiTypography-root-id MuiTypography-body2-id"
-                        >
-                          E-mail
-                        </p>
-                        <p
-                          class="MuiTypography-root-id MuiTypography-body1-id"
-                        >
-                          admin@example.com
-                        </p>
-                      </div>
-                      <div />
+                        First Name
+                      </p>
+                      <p
+                        class="MuiTypography-root-id MuiTypography-body1-id"
+                      >
+                        Jacob
+                      </p>
+                    </div>
+                    <div
+                      class="StaffProperties-prop-id"
+                    >
+                      <p
+                        class="MuiTypography-root-id MuiTypography-body2-id"
+                      >
+                        Last Name
+                      </p>
+                      <p
+                        class="MuiTypography-root-id MuiTypography-body1-id"
+                      >
+                        Smith
+                      </p>
+                    </div>
+                    <div
+                      class="StaffProperties-prop-id"
+                    >
+                      <p
+                        class="MuiTypography-root-id MuiTypography-body2-id"
+                      >
+                        E-mail
+                      </p>
+                      <p
+                        class="MuiTypography-root-id MuiTypography-body1-id"
+                      >
+                        admin@example.com
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -54825,16 +55464,16 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id StaffList-wideColumn-id"
               scope="col"
             >
-              E-mail
+              Name
             </th>
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id"
               scope="col"
             >
-              Status
+              Email Address
             </th>
           </tr>
         </thead>
@@ -54914,18 +55553,30 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span>
-                admin@example.com
+              <div
+                class="StaffList-avatar-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
+                >
+                  CHRISCOOPER
+                </p>
+              </div>
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Chris Cooper
+              </p>
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id StaffList-statusText-id"
+              >
+                Active
               </span>
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <div
-                class="StatusLabel-root-id undefined StatusLabel-successDot-id"
-              >
-                Active
-              </div>
+              admin@example.com
             </td>
           </tr>
           <tr
@@ -54934,18 +55585,30 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span>
-                admin@example.com
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
               <div
-                class="StatusLabel-root-id undefined StatusLabel-errorDot-id"
+                class="StaffList-avatar-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
+                >
+                  JACOBSMITH
+                </p>
+              </div>
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Jacob Smith
+              </p>
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id StaffList-statusText-id"
               >
                 Inactive
-              </div>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              admin@example.com
             </td>
           </tr>
           <tr
@@ -54954,18 +55617,30 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span>
-                admin@example.com
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
               <div
-                class="StatusLabel-root-id undefined StatusLabel-successDot-id"
+                class="StaffList-avatar-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
+                >
+                  JACOBSMITH
+                </p>
+              </div>
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Jacob Smith
+              </p>
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id StaffList-statusText-id"
               >
                 Active
-              </div>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              admin@example.com
             </td>
           </tr>
           <tr
@@ -54974,18 +55649,30 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span>
-                admin@example.com
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
               <div
-                class="StatusLabel-root-id undefined StatusLabel-successDot-id"
+                class="StaffList-avatar-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
+                >
+                  JACOBSMITH
+                </p>
+              </div>
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Jacob Smith
+              </p>
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id StaffList-statusText-id"
               >
                 Active
-              </div>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              admin@example.com
             </td>
           </tr>
           <tr
@@ -54994,18 +55681,30 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span>
-                admin@example.com
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
               <div
-                class="StatusLabel-root-id undefined StatusLabel-successDot-id"
+                class="StaffList-avatar-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
+                >
+                  JACOBSMITH
+                </p>
+              </div>
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Jacob Smith
+              </p>
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id StaffList-statusText-id"
               >
                 Active
-              </div>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              admin@example.com
             </td>
           </tr>
           <tr
@@ -55014,18 +55713,30 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span>
-                admin@example.com
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
               <div
-                class="StatusLabel-root-id undefined StatusLabel-successDot-id"
+                class="StaffList-avatar-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
+                >
+                  JACOBSMITH
+                </p>
+              </div>
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Jacob Smith
+              </p>
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id StaffList-statusText-id"
               >
                 Active
-              </div>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              admin@example.com
             </td>
           </tr>
           <tr
@@ -55034,18 +55745,30 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span>
-                admin@example.com
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
               <div
-                class="StatusLabel-root-id undefined StatusLabel-errorDot-id"
+                class="StaffList-avatar-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
+                >
+                  JACOBSMITH
+                </p>
+              </div>
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Jacob Smith
+              </p>
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id StaffList-statusText-id"
               >
                 Inactive
-              </div>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              admin@example.com
             </td>
           </tr>
           <tr
@@ -55054,18 +55777,30 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span>
-                admin@example.com
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
               <div
-                class="StatusLabel-root-id undefined StatusLabel-successDot-id"
+                class="StaffList-avatar-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
+                >
+                  JACOBSMITH
+                </p>
+              </div>
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Jacob Smith
+              </p>
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id StaffList-statusText-id"
               >
                 Active
-              </div>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              admin@example.com
             </td>
           </tr>
           <tr
@@ -55074,18 +55809,30 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span>
-                admin@example.com
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
               <div
-                class="StatusLabel-root-id undefined StatusLabel-successDot-id"
+                class="StaffList-avatar-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
+                >
+                  JACOBSMITH
+                </p>
+              </div>
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Jacob Smith
+              </p>
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id StaffList-statusText-id"
               >
                 Active
-              </div>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              admin@example.com
             </td>
           </tr>
           <tr
@@ -55094,18 +55841,30 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span>
-                admin@example.com
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
               <div
-                class="StatusLabel-root-id undefined StatusLabel-errorDot-id"
+                class="StaffList-avatar-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
+                >
+                  JACOBSMITH
+                </p>
+              </div>
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Jacob Smith
+              </p>
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id StaffList-statusText-id"
               >
                 Inactive
-              </div>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              admin@example.com
             </td>
           </tr>
           <tr
@@ -55114,18 +55873,30 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span>
-                admin@example.com
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
               <div
-                class="StatusLabel-root-id undefined StatusLabel-errorDot-id"
+                class="StaffList-avatar-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
+                >
+                  JACOBSMITH
+                </p>
+              </div>
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Jacob Smith
+              </p>
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id StaffList-statusText-id"
               >
                 Inactive
-              </div>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              admin@example.com
             </td>
           </tr>
           <tr
@@ -55134,18 +55905,30 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span>
-                admin@example.com
+              <div
+                class="StaffList-avatar-id"
+              >
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
+                >
+                  JACOBSMITH
+                </p>
+              </div>
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Jacob Smith
+              </p>
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id StaffList-statusText-id"
+              >
+                Active
               </span>
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <div
-                class="StatusLabel-root-id undefined StatusLabel-successDot-id"
-              >
-                Active
-              </div>
+              admin@example.com
             </td>
           </tr>
         </tbody>
@@ -55213,16 +55996,16 @@ exports[`Storyshots Views / Staff / Staff members when loading 1`] = `
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id StaffList-wideColumn-id"
               scope="col"
             >
-              E-mail
+              Name
             </th>
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id"
               scope="col"
             >
-              Status
+              Email Address
             </th>
           </tr>
         </thead>
@@ -55303,10 +56086,30 @@ exports[`Storyshots Views / Staff / Staff members when loading 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span
-                class="Skeleton-skeleton-id"
+              <div
+                class="StaffList-avatar-id"
               >
-                ‌
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
+                />
+              </div>
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                <span
+                  class="Skeleton-skeleton-id"
+                >
+                  ‌
+                </span>
+              </p>
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id StaffList-statusText-id"
+              >
+                <span
+                  class="Skeleton-skeleton-id"
+                >
+                  ‌
+                </span>
               </span>
             </td>
             <td
