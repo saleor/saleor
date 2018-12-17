@@ -39,6 +39,7 @@ class Category(MPTTModel, SeoModel):
         on_delete=models.CASCADE)
     background_image = VersatileImageField(
         upload_to='category-backgrounds', blank=True, null=True)
+    background_image_alt = models.CharField(max_length=128, blank=True)
 
     objects = models.Manager()
     tree = TreeManager()
@@ -173,7 +174,7 @@ class Product(SeoModel):
 
     def get_first_image(self):
         images = list(self.images.all())
-        return images[0].image if images else None
+        return images[0] if images else None
 
     def get_price_range(self, discounts=None, taxes=None):
         if self.variants.all():
@@ -294,9 +295,7 @@ class ProductVariant(models.Model):
 
     def get_first_image(self):
         images = list(self.images.all())
-        if images:
-            return images[0].image
-        return self.product.get_first_image()
+        return images[0] if images else self.product.get_first_image()
 
     def get_ajax_label(self, discounts=None):
         price = self.get_price(discounts).gross
@@ -452,6 +451,7 @@ class Collection(SeoModel):
         Product, blank=True, related_name='collections')
     background_image = VersatileImageField(
         upload_to='collection-backgrounds', blank=True, null=True)
+    background_image_alt = models.CharField(max_length=128, blank=True)
     is_published = models.BooleanField(default=False)
     description = models.TextField(blank=True)
 

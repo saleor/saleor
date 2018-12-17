@@ -3,7 +3,7 @@ import graphene_django_optimizer as gql_optimizer
 from graphene import relay
 
 from ...order import OrderEvents, OrderEventsEmails, models
-from ...product.templatetags.product_images import get_thumbnail
+from ...product.templatetags.product_images import get_product_image_thumbnail
 from ..account.types import User
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
@@ -131,7 +131,7 @@ class OrderLine(CountableDjangoObjectType):
             return None
         if not size:
             size = 255
-        url = get_thumbnail(
+        url = get_product_image_thumbnail(
             self.variant.get_first_image(), size, method='thumbnail')
         return info.context.build_absolute_uri(url)
 

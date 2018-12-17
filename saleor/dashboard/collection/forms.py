@@ -25,6 +25,8 @@ class CollectionForm(forms.ModelForm):
             'background_image': pgettext_lazy(
                 'Background image of a collection',
                 'Background image'),
+            'background_image_alt': pgettext_lazy(
+                'Description of a collection image', 'Image description'),
             'is_published': pgettext_lazy(
                 'Collection published toggle',
                 'Published'),

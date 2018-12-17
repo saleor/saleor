@@ -4,6 +4,7 @@
 {% load build_absolute_uri from urls %}
 {% load get_object_properties from attributes %}
 {% load get_thumbnail from product_images %}
+{% load get_product_image_thumbnail from product_images %}
 {% load i18n %}
 {% load markdown from markdown %}
 {% load placeholder %}
@@ -27,7 +28,7 @@
   <meta property="og:url" content="{{ product_url }}">
   <link rel="canonical" href="{{ product_url }}">
 
-  {% get_thumbnail product.get_first_image size=510 method="thumbnail" as product_image %}
+  {% get_product_image_thumbnail product.get_first_image size=510 method="thumbnail" as product_image %}
   {% if product_image %}
     <meta property="og:image" content="{{ product_image }}" />
     <meta property="og:image:width" content="510">
