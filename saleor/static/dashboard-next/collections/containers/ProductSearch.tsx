@@ -27,10 +27,7 @@ export class SearchProductsProvider extends React.Component<
   render() {
     const { children } = this.props;
     return (
-      <TypedSearchProductsQuery
-        variables={{ query: this.state.query }}
-        skip={!this.state.query}
-      >
+      <TypedSearchProductsQuery variables={{ query: this.state.query }}>
         {searchOpts => children(this.search, searchOpts)}
       </TypedSearchProductsQuery>
     );

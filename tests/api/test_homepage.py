@@ -1,4 +1,5 @@
 from saleor.order import OrderEvents
+
 from .utils import get_graphql_content
 
 

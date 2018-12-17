@@ -46,12 +46,18 @@ class StockAvailability(graphene.Enum):
 class ProductOrderField(graphene.Enum):
     NAME = 'name'
     PRICE = 'price'
+    DATE = 'updated_at'
 
     @property
     def description(self):
         if self == ProductOrderField.NAME:
             return 'Sort products by name.'
-        return 'Sort products by price.'
+
+        if self == ProductOrderField.PRICE:
+            return 'Sort products by price.'
+
+        if self == ProductOrderField.DATE:
+            return 'Sort products by update date.'
 
 
 class OrderDirection(graphene.Enum):

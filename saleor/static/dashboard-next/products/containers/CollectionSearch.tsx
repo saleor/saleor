@@ -28,10 +28,7 @@ export class CollectionSearchProvider extends React.Component<
 
   render() {
     return (
-      <TypedCollectionSearchQuery
-        variables={{ query: this.state.query }}
-        skip={!this.state.query}
-      >
+      <TypedCollectionSearchQuery variables={{ query: this.state.query }}>
         {searchOpts => this.props.children({ search: this.search, searchOpts })}
       </TypedCollectionSearchQuery>
     );

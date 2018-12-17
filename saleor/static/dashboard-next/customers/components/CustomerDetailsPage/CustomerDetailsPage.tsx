@@ -12,7 +12,7 @@ import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
-import { maybe } from "../../../misc";
+import { getUserName, maybe } from "../../../misc";
 import { UserError } from "../../../types";
 import { CustomerDetails_user } from "../../types/CustomerDetails";
 import CustomerAddresses from "../CustomerAddresses/CustomerAddresses";
@@ -21,6 +21,8 @@ import CustomerOrders from "../CustomerOrders/CustomerOrders";
 import CustomerStats from "../CustomerStats/CustomerStats";
 
 export interface CustomerDetailsPageFormData {
+  firstName: string;
+  lastName: string;
   email: string;
   isActive: boolean;
   note: string;
@@ -66,7 +68,9 @@ const CustomerDetailsPage = withStyles(styles, { name: "CustomerDetailsPage" })(
       errors={errors}
       initial={{
         email: maybe(() => customer.email),
+        firstName: maybe(() => customer.firstName),
         isActive: maybe(() => customer.isActive, false),
+        lastName: maybe(() => customer.lastName),
         note: maybe(() => customer.note)
       }}
       onSubmit={onSubmit}
@@ -74,7 +78,7 @@ const CustomerDetailsPage = withStyles(styles, { name: "CustomerDetailsPage" })(
     >
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container width="md">
-          <PageHeader onBack={onBack} title={maybe(() => customer.email)} />
+          <PageHeader onBack={onBack} title={getUserName(customer, true)} />
           <div className={classes.root}>
             <div>
               <CustomerDetails

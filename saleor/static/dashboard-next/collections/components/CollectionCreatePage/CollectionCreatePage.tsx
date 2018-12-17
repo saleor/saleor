@@ -27,6 +27,7 @@ export interface CollectionCreatePageFormData {
     url: string;
     value: string;
   };
+  backgroundImageAlt: string;
   description: string;
   name: string;
   isPublished: boolean;
@@ -56,6 +57,7 @@ const initialForm: CollectionCreatePageFormData = {
     url: null,
     value: null
   },
+  backgroundImageAlt: "",
   description: "",
   isPublished: false,
   name: "",
@@ -95,7 +97,11 @@ const CollectionCreatePage = withStyles(styles, {
               <CollectionImage
                 image={
                   data.backgroundImage.url
-                    ? { __typename: "Image", url: data.backgroundImage.url }
+                    ? {
+                        __typename: "Image",
+                        alt: data.backgroundImageAlt,
+                        url: data.backgroundImage.url
+                      }
                     : null
                 }
                 onImageDelete={() =>
@@ -120,6 +126,8 @@ const CollectionCreatePage = withStyles(styles, {
                     }
                   } as any)
                 }
+                onChange={change}
+                data={data}
               />
               <CardSpacer />
               <SeoForm
