@@ -108,13 +108,12 @@ class Payment(models.Model):
                 and txn.is_success for txn in transactions]):
             return money
 
-        # Filter the succeeded auth transactions
-        authorized_txns = [
-            txn for txn in transactions
-            if txn.kind == TransactionKind.AUTH and txn.is_success]
-
         # Calculate authorized amount from all succeeded auth transactions
-        for txn in authorized_txns:
+        for txn in transactions:
+            # Bypass non-authorized transactions
+            if not (txn.kind == TransactionKind.AUTH and txn.is_success):
+                continue
+
             money += Money(
                 txn.amount, self.currency or settings.DEFAULT_CURRENCY)
 
@@ -159,34 +158,30 @@ class Payment(models.Model):
             amount = self.captured_amount
         return utils.gateway_refund(payment=self, amount=amount)
 
-    def can_authorize(self):
-        return (
-            self.is_active and self.charge_status == ChargeStatus.NOT_CHARGED)
-
-    def can_capture(self):
-        not_charged = self.charge_status == ChargeStatus.NOT_CHARGED
-        is_authorized = any([
+    @property
+    def is_authorized(self):
+        return any([
             txn.kind == TransactionKind.AUTH
             and txn.is_success for txn in self.transactions.all()])
 
-        return self.is_active and is_authorized and not_charged
+    @property
+    def not_charged(self):
+        return self.charge_status == ChargeStatus.NOT_CHARGED
+
+    def can_authorize(self):
+        return self.is_active and self.not_charged
+
+    def can_capture(self):
+        return self.is_active and self.not_charged and self.is_authorized
 
     def can_charge(self):
-        not_charged = (self.charge_status == ChargeStatus.NOT_CHARGED)
         not_fully_charged = (
             self.charge_status == ChargeStatus.CHARGED
             and self.get_total() > self.get_captured_amount())
-        return self.is_active and (not_charged or not_fully_charged)
+        return self.is_active and (self.not_charged or not_fully_charged)
 
     def can_void(self):
-        is_authorized = any([
-            txn.kind == TransactionKind.AUTH
-            and txn.is_success for txn in self.transactions.all()])
-
-        return (
-            self.is_active
-            and self.charge_status == ChargeStatus.NOT_CHARGED
-            and is_authorized)
+        return self.is_active and self.not_charged and self.is_authorized
 
     def can_refund(self):
         return (
