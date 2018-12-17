@@ -7713,6 +7713,60 @@ exports[`Storyshots Views / Categories / Update category default 1`] = `
         class="CardSpacer-spacer-id"
       />
       <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+      >
+        <div
+          class="CardTitle-root-id"
+        >
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+          >
+            Background image (optional)
+          </span>
+          <div
+            class="CardTitle-toolbar-id"
+          >
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Upload image
+              </span>
+            </button>
+            <input
+              class="CategoryBackgroundComponent-fileField-id"
+              id="fileUpload"
+              type="file"
+            />
+          </div>
+        </div>
+        <div
+          class="CardTitle-children-id"
+        />
+        <hr
+          class="CardTitle-hr-id"
+        />
+        <div
+          class="MuiCardContent-root-id"
+        >
+          <div>
+            <div
+              class="CategoryBackgroundComponent-imageContainer-id"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
         class="CardSpacer-spacer-id"
       />
       <div
@@ -8156,6 +8210,60 @@ exports[`Storyshots Views / Categories / Update category loading 1`] = `
       <div
         class="CardSpacer-spacer-id"
       />
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+      >
+        <div
+          class="CardTitle-root-id"
+        >
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+          >
+            Background image (optional)
+          </span>
+          <div
+            class="CardTitle-toolbar-id"
+          >
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Upload image
+              </span>
+            </button>
+            <input
+              class="CategoryBackgroundComponent-fileField-id"
+              id="fileUpload"
+              type="file"
+            />
+          </div>
+        </div>
+        <div
+          class="CardTitle-children-id"
+        />
+        <hr
+          class="CardTitle-hr-id"
+        />
+        <div
+          class="MuiCardContent-root-id"
+        >
+          <div>
+            <div
+              class="CategoryBackgroundComponent-imageContainer-id"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
       <div
         class="CardSpacer-spacer-id"
       />
@@ -8621,6 +8729,60 @@ exports[`Storyshots Views / Categories / Update category no background 1`] = `
         class="CardSpacer-spacer-id"
       />
       <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+      >
+        <div
+          class="CardTitle-root-id"
+        >
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+          >
+            Background image (optional)
+          </span>
+          <div
+            class="CardTitle-toolbar-id"
+          >
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Upload image
+              </span>
+            </button>
+            <input
+              class="CategoryBackgroundComponent-fileField-id"
+              id="fileUpload"
+              type="file"
+            />
+          </div>
+        </div>
+        <div
+          class="CardTitle-children-id"
+        />
+        <hr
+          class="CardTitle-hr-id"
+        />
+        <div
+          class="MuiCardContent-root-id"
+        >
+          <div>
+            <div
+              class="CategoryBackgroundComponent-imageContainer-id"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
         class="CardSpacer-spacer-id"
       />
       <div
@@ -9061,6 +9223,60 @@ exports[`Storyshots Views / Categories / Update category no products 1`] = `
       <div
         class="CardSpacer-spacer-id"
       />
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+      >
+        <div
+          class="CardTitle-root-id"
+        >
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+          >
+            Background image (optional)
+          </span>
+          <div
+            class="CardTitle-toolbar-id"
+          >
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Upload image
+              </span>
+            </button>
+            <input
+              class="CategoryBackgroundComponent-fileField-id"
+              id="fileUpload"
+              type="file"
+            />
+          </div>
+        </div>
+        <div
+          class="CardTitle-children-id"
+        />
+        <hr
+          class="CardTitle-hr-id"
+        />
+        <div
+          class="MuiCardContent-root-id"
+        >
+          <div>
+            <div
+              class="CategoryBackgroundComponent-imageContainer-id"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
       <div
         class="CardSpacer-spacer-id"
       />
@@ -9508,6 +9724,60 @@ exports[`Storyshots Views / Categories / Update category no subcategories 1`] = 
       <div
         class="CardSpacer-spacer-id"
       />
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+      >
+        <div
+          class="CardTitle-root-id"
+        >
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+          >
+            Background image (optional)
+          </span>
+          <div
+            class="CardTitle-toolbar-id"
+          >
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Upload image
+              </span>
+            </button>
+            <input
+              class="CategoryBackgroundComponent-fileField-id"
+              id="fileUpload"
+              type="file"
+            />
+          </div>
+        </div>
+        <div
+          class="CardTitle-children-id"
+        />
+        <hr
+          class="CardTitle-hr-id"
+        />
+        <div
+          class="MuiCardContent-root-id"
+        >
+          <div>
+            <div
+              class="CategoryBackgroundComponent-imageContainer-id"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
       <div
         class="CardSpacer-spacer-id"
       />
@@ -10028,6 +10298,57 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                   class="ImageTile-image-id"
                   src="block1.jpg"
                 />
+              </div>
+            </div>
+            <hr
+              class="Hr-root-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
+                >
+                  Description
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                >
+                  <div
+                    class="MuiPrivateTextarea-root-id"
+                  >
+                    <textarea
+                      aria-hidden="true"
+                      class="MuiPrivateTextarea-textarea-id MuiPrivateTextarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-hidden="true"
+                      class="MuiPrivateTextarea-textarea-id MuiPrivateTextarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-invalid="false"
+                      class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                      name="backgroundImageAlt"
+                      rows="1"
+                      style="height:19px"
+                    />
+                  </div>
+                </div>
+                <p
+                  class="MuiFormHelperText-root-id"
+                >
+                  Optional
+                </p>
               </div>
             </div>
           </div>
@@ -10766,6 +11087,7 @@ exports[`Storyshots Views / Collections / Collection details loading 1`] = `
                     disabled=""
                     name="name"
                     type="text"
+                    value=""
                   />
                 </div>
               </div>
@@ -11581,6 +11903,57 @@ exports[`Storyshots Views / Collections / Collection details no products 1`] = `
                   class="ImageTile-image-id"
                   src="block1.jpg"
                 />
+              </div>
+            </div>
+            <hr
+              class="Hr-root-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
+                >
+                  Description
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                >
+                  <div
+                    class="MuiPrivateTextarea-root-id"
+                  >
+                    <textarea
+                      aria-hidden="true"
+                      class="MuiPrivateTextarea-textarea-id MuiPrivateTextarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-hidden="true"
+                      class="MuiPrivateTextarea-textarea-id MuiPrivateTextarea-shadow-id"
+                      readonly=""
+                      rows="1"
+                      tabindex="-1"
+                    />
+                    <textarea
+                      aria-invalid="false"
+                      class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                      name="backgroundImageAlt"
+                      rows="1"
+                      style="height:19px"
+                    />
+                  </div>
+                </div>
+                <p
+                  class="MuiFormHelperText-root-id"
+                >
+                  Optional
+                </p>
               </div>
             </div>
           </div>
