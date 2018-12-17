@@ -1,12 +1,12 @@
 import uuid
-from unittest.mock import patch, ANY
+from unittest.mock import ANY, patch
 
 import graphene
 import pytest
-from tests.api.utils import get_graphql_content
 
 from saleor.checkout.models import Cart
 from saleor.order.models import Order
+from tests.api.utils import get_graphql_content
 
 
 def test_checkout_create(user_api_client, variant, graphql_address_data):
