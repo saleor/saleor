@@ -21,3 +21,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Support sorting products by update date - #3470 by @jxltom
 - Draft order should be able to clear its shipping method - #3472 by @fowczarek
 - Prefetch payment and payment transaction to optimize db queries - #3455 by @jxltom
+- Fix simple product's inventory data saving bug - #3474 by @dominik-zeglen
