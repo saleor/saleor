@@ -1,7 +1,7 @@
-import pytest
-
 import graphene
+import pytest
 from django.template.defaultfilters import slugify
+
 from saleor.graphql.product.types import (
     AttributeTypeEnum, AttributeValueType, resolve_attribute_value_type)
 from saleor.graphql.product.utils import attributes_to_hstore
