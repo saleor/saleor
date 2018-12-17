@@ -86,7 +86,8 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                                 deleteProduct,
                                 deleteProductImage,
                                 reorderProductImages,
-                                updateProduct
+                                updateProduct,
+                                updateSimpleProduct
                               }) => {
                                 const handleImageDelete = (id: string) => () =>
                                   deleteProductImage.mutate({ id });
@@ -96,23 +97,49 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                                   navigate(productImageUrl(id, imageId));
                                 const handleSubmit = (data: FormData) => {
                                   if (product) {
-                                    updateProduct.mutate({
-                                      attributes: data.attributes,
-                                      availableOn:
-                                        data.availableOn !== ""
-                                          ? data.availableOn
-                                          : null,
-                                      category: data.category.value,
-                                      chargeTaxes: data.chargeTaxes,
-                                      collections: data.collections.map(
-                                        collection => collection.value
-                                      ),
-                                      description: data.description,
-                                      id: product.id,
-                                      isPublished: data.available,
-                                      name: data.name,
-                                      price: decimal(data.price)
-                                    });
+                                    if (product.productType.hasVariants) {
+                                      updateProduct.mutate({
+                                        attributes: data.attributes,
+                                        availableOn:
+                                          data.availableOn !== ""
+                                            ? data.availableOn
+                                            : null,
+                                        category: data.category.value,
+                                        chargeTaxes: data.chargeTaxes,
+                                        collections: data.collections.map(
+                                          collection => collection.value
+                                        ),
+                                        description: data.description,
+                                        id: product.id,
+                                        isPublished: data.available,
+                                        name: data.name,
+                                        price: decimal(data.price)
+                                      });
+                                    } else {
+                                      updateSimpleProduct.mutate({
+                                        attributes: data.attributes,
+                                        availableOn:
+                                          data.availableOn !== ""
+                                            ? data.availableOn
+                                            : null,
+                                        category: data.category.value,
+                                        chargeTaxes: data.chargeTaxes,
+                                        collections: data.collections.map(
+                                          collection => collection.value
+                                        ),
+                                        description: data.description,
+                                        id: product.id,
+                                        isPublished: data.available,
+                                        name: data.name,
+                                        price: decimal(data.price),
+                                        productVariantId:
+                                          product.variants[0].id,
+                                        productVariantInput: {
+                                          quantity: data.stockQuantity,
+                                          sku: data.sku
+                                        }
+                                      });
+                                    }
                                   }
                                 };
 
