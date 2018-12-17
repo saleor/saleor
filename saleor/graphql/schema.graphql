@@ -1445,6 +1445,7 @@ input ProductOrder {
 enum ProductOrderField {
   NAME
   PRICE
+  DATE
 }
 
 type ProductType implements Node {
