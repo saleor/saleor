@@ -25,3 +25,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Update Pipfile.lock - #3480 by @maarcingebala
 - Add Stripe payment gateway - #3408 by @jxltom
 - Remove Elasticsearch from `docker-compose.yml` - #3482 by @maarcingebala
+- Add error page if object was not found - #3463 by @dominik-zeglen
