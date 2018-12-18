@@ -214,6 +214,7 @@ class Order(CountableDjangoObjectType):
     def resolve_shipping_price(self, info):
         return self.shipping_price
 
+    @gql_optimizer.resolver_hints(prefetch_related='payments__transactions')
     def resolve_actions(self, info):
         actions = []
         payment = self.get_last_payment()
@@ -236,7 +237,7 @@ class Order(CountableDjangoObjectType):
         return self.total
 
     @staticmethod
-    @gql_optimizer.resolver_hints(prefetch_related='payments')
+    @gql_optimizer.resolver_hints(prefetch_related='payments__transactions')
     def resolve_total_authorized(self, info):
         # FIXME adjust to multiple payments in the future
         return self.total_authorized

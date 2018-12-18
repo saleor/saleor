@@ -24,12 +24,12 @@ import { UnassignCollectionProduct } from "../types/UnassignCollectionProduct";
 import {
   collectionAddProductPath,
   collectionAddProductUrl,
+  collectionImageRemovePath,
   collectionImageRemoveUrl,
   collectionListUrl,
   collectionRemovePath,
   collectionRemoveUrl,
-  collectionUrl,
-  collectionImageRemovePath
+  collectionUrl
 } from "../urls";
 
 export type CollectionDetailsQueryParams = Partial<{
@@ -140,6 +140,7 @@ export const CollectionDetails: React.StatelessComponent<
                             updateCollection.mutate({
                               id,
                               input: {
+                                backgroundImageAlt: formData.backgroundImageAlt,
                                 description: formData.description,
                                 isPublished: formData.isPublished,
                                 name: formData.name,

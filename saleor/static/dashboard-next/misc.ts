@@ -72,7 +72,10 @@ export const transformAddressToForm = (data: AddressType) => ({
   city: maybe(() => data.city, ""),
   cityArea: maybe(() => data.cityArea, ""),
   companyName: maybe(() => data.companyName, ""),
-  country: maybe(() => data.country.code, ""),
+  country: {
+    label: maybe(() => data.country.country, ""),
+    value: maybe(() => data.country.code, "")
+  },
   countryArea: maybe(() => data.countryArea, ""),
   firstName: maybe(() => data.firstName, ""),
   lastName: maybe(() => data.lastName, ""),
@@ -169,4 +172,29 @@ export function getMutationProviderData<TData, TVariables>(
     mutate: variables => mutateFn({ variables }),
     opts
   };
+}
+
+interface User {
+  email: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+export function getUserName(user?: User, returnEmail?: boolean) {
+  return user && (user.email || (user.firstName && user.lastName))
+    ? user.firstName && user.lastName
+      ? [user.firstName, user.lastName].join(" ")
+      : returnEmail
+      ? user.email
+      : user.email.split("@")[0]
+    : null;
+}
+
+export function getUserInitials(user?: User) {
+  return user && (user.email || (user.firstName && user.lastName))
+    ? (user.firstName && user.lastName
+        ? user.firstName + user.lastName
+        : user.email.slice(0, 2)
+      ).toUpperCase()
+    : null;
 }

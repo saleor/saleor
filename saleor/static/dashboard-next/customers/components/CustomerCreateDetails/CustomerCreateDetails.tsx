@@ -17,6 +17,7 @@ const styles = (theme: Theme) =>
     root: {
       display: "grid",
       gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridRowGap: theme.spacing.unit * 3 + "px",
       gridTemplateColumns: "1fr 1fr"
     }
   });
@@ -24,10 +25,14 @@ const styles = (theme: Theme) =>
 export interface CustomerCreateDetailsProps extends WithStyles<typeof styles> {
   data: {
     email: string;
+    firstName: string;
+    lastName: string;
   };
   disabled: boolean;
   errors: Partial<{
     email: string;
+    firstName: string;
+    lastName: string;
   }>;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
@@ -48,10 +53,32 @@ const CustomerCreateDetails = withStyles(styles, {
         <div className={classes.root}>
           <TextField
             disabled={disabled}
+            error={!!errors.firstName}
+            fullWidth
+            name="firstName"
+            label={i18n.t("First Name")}
+            helperText={errors.firstName}
+            type="text"
+            value={data.email}
+            onChange={onChange}
+          />
+          <TextField
+            disabled={disabled}
+            error={!!errors.lastName}
+            fullWidth
+            name="lastName"
+            label={i18n.t("Last Name")}
+            helperText={errors.lastName}
+            type="text"
+            value={data.lastName}
+            onChange={onChange}
+          />
+          <TextField
+            disabled={disabled}
             error={!!errors.email}
             fullWidth
             name="email"
-            label={i18n.t("E-mail")}
+            label={i18n.t("Email address")}
             helperText={errors.email}
             type="email"
             value={data.email}

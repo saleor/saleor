@@ -3,7 +3,6 @@ from unittest.mock import MagicMock, Mock
 from uuid import uuid4
 
 import pytest
-
 from django.contrib.auth.models import AnonymousUser
 from django.core import signing
 from django.core.exceptions import ObjectDoesNotExist
@@ -11,6 +10,7 @@ from django.http import HttpResponse
 from django.urls import reverse
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
+
 from saleor.checkout import forms, utils
 from saleor.checkout.context_processors import cart_counter
 from saleor.checkout.models import Cart

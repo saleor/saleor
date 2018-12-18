@@ -5,14 +5,14 @@ from django.forms import HiddenInput
 from django.forms.models import model_to_dict
 from django.urls import reverse
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
-from tests.utils import get_redirect_location
 
 from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import ProductForm, ProductVariantForm
 from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
-    AttributeValue, Collection, Product, Attribute, ProductImage,
-    ProductType, ProductVariant)
+    Attribute, AttributeValue, Collection, Product, ProductImage, ProductType,
+    ProductVariant)
+from tests.utils import get_redirect_location
 
 from ..utils import create_image
 
