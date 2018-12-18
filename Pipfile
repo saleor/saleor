@@ -56,8 +56,8 @@ raven = "==6.9.0"
 requests = ">=1.2.0"
 social-auth-app-django = ">=2.0.0"
 text-unidecode = "*"
-uwsgi = {version = ">=2.0.0", platform_system = "!= 'Windows'"}
-celery = {version = "*", extras = ["redis"]}
+uwsgi = {version = ">=2.0.0",platform_system = "!= 'Windows'"}
+celery = {version = "*",extras = ["redis"]}
 redis = "<3.0.0"  # this can be safely removed after Celery v4.2.2 is released
 weasyprint = ">=0.42.2"
 graphene-django-optimizer = "*"
@@ -79,9 +79,9 @@ pycodestyle = "*"
 pydocstyle = "*"
 pylint = "*"
 pylint_celery = "*"
-pylint_django = "*"
 isort = "*"
 yapf = "*"
 django-extensions = "*"
 pylint-plugin-utils = "*"
 transifex-client = "*"
+pylint-django = "*"
