@@ -21,6 +21,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Support sorting products by update date - #3470 by @jxltom
 - Draft order should be able to clear its shipping method - #3472 by @fowczarek
 - Prefetch payment and payment transaction to optimize db queries - #3455 by @jxltom
-- Add Stripe payment gateway - #3408 by @jxltom
 - Change filed type to choice field of tax rate in product - #3478 by @fowczarek
 - Update Pipfile.lock - #3480 by @maarcingebala
+- Add Stripe payment gateway - #3408 by @jxltom
