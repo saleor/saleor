@@ -7,11 +7,11 @@ Elasticsearch
 Installation
 ------------
 
-Elasticsearch search backend requires an Elasticsearch server. For development purposes docker-compose will create a Docker container running an Elasticsearch server instance.
+Elasticsearch search backend requires an Elasticsearch server. For the installation guide, please refer to `the official documentation <https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html>`.
 
 Integration can be configured with set of environment variables.
 When you're deploying on Heroku - you can use add-on that provides Elasticsearch as a service.
-By default Saleor uses Elasticsearch 5.4.3.
+By default Saleor uses Elasticsearch 6.3.
 
 If you're deploying somewhere else, you can use one of following services:
 
