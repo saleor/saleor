@@ -15,7 +15,7 @@ import * as React from "react";
 import { CategoryDetails_category_products_edges_node } from "../../categories/types/CategoryDetails";
 import TableCellAvatar from "../../components/TableCellAvatar";
 import i18n from "../../i18n";
-import { renderCollection } from "../../misc";
+import { maybe, renderCollection } from "../../misc";
 import { ListProps } from "../../types";
 import Money from "../Money";
 import Skeleton from "../Skeleton";
@@ -91,7 +91,7 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
               onClick={product && onRowClick(product.id)}
               className={classes.link}
             >
-              <TableCellAvatar thumbnail={product && product.thumbnailUrl} />
+              <TableCellAvatar thumbnail={maybe(() => product.thumbnail.url)} />
               <TableCell className={classes.textLeft}>
                 {product ? product.name : <Skeleton />}
               </TableCell>

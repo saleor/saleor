@@ -68,7 +68,7 @@ export const HomeProductList = withStyles(styles, { name: "HomeProductList" })(
               >
                 <TableCellAvatar
                   className={classes.avatarSpacing}
-                  thumbnail={maybe(() => variant.product.thumbnailUrl)}
+                  thumbnail={maybe(() => variant.product.thumbnail.url)}
                   avatarProps={classes.avatarProps}
                 />
 

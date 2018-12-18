@@ -57,6 +57,11 @@ export interface CategoryDetails_category_products_edges_node_availability {
   available: boolean | null;
 }
 
+export interface CategoryDetails_category_products_edges_node_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface CategoryDetails_category_products_edges_node_price {
   __typename: "Money";
   amount: number;
@@ -74,7 +79,7 @@ export interface CategoryDetails_category_products_edges_node {
   id: string;
   name: string;
   availability: CategoryDetails_category_products_edges_node_availability | null;
-  thumbnailUrl: string | null;
+  thumbnail: CategoryDetails_category_products_edges_node_thumbnail | null;
   price: CategoryDetails_category_products_edges_node_price | null;
   productType: CategoryDetails_category_products_edges_node_productType;
 }

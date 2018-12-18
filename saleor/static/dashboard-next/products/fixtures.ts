@@ -233,7 +233,7 @@ export const product: (
   seoDescription: "Seo description",
   seoTitle: "Seo title",
   sku: "59661-34207",
-  thumbnailUrl: placeholderImage,
+  thumbnail: { __typename: "Image", url: placeholderImage },
   url: "/example-url",
   variants: [
     {
@@ -441,7 +441,7 @@ export const products = (placeholderImage: string) => [
       "Autem odit tempora nesciunt quaerat enim reprehenderit eius. Excepturi nemo quos veritatis laboriosam aperiam atque natus soluta",
     seoTitle: "Generic Rubber Pants",
     sku: "57599-97473",
-    thumbnailUrl: placeholderImage,
+    thumbnail: { __typename: "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -597,7 +597,7 @@ export const products = (placeholderImage: string) => [
     seoDescription: "enim est recusandae soluta aperiam",
     seoTitle: "Handcrafted Wooden Towels",
     sku: "6526-89350",
-    thumbnailUrl: placeholderImage,
+    thumbnail: { __typename: "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -794,7 +794,7 @@ export const products = (placeholderImage: string) => [
     seoDescription: "quas minima error repudiandae corrupti",
     seoTitle: "Handcrafted Metal Cheese",
     sku: "9937-5954",
-    thumbnailUrl: placeholderImage,
+    thumbnail: { __typename: "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -1003,7 +1003,7 @@ export const products = (placeholderImage: string) => [
       "Veniam quasi temporibus ab similique. Praesentium vero repudiandae",
     seoTitle: "Awesome Granite Car",
     sku: "96777-48145",
-    thumbnailUrl: placeholderImage,
+    thumbnail: { __typename: "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -1220,7 +1220,7 @@ export const products = (placeholderImage: string) => [
       "Minima quaerat error incidunt qui quis vitae maxime. Est ab et",
     seoTitle: "Gorgeous Metal Gloves",
     sku: "60799-40023",
-    thumbnailUrl: placeholderImage,
+    thumbnail: { __typename: "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -1476,7 +1476,7 @@ export const products = (placeholderImage: string) => [
       "Esse quia voluptates veniam eveniet. Velit laborum possimus eveniet consequuntur magnam eveniet provident et voluptatem",
     seoTitle: "Unbranded Rubber Ball",
     sku: "2840-48373",
-    thumbnailUrl: placeholderImage,
+    thumbnail: { __typename: "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -1671,7 +1671,7 @@ export const products = (placeholderImage: string) => [
       "Sed tempore autem voluptas voluptas aut sit et. Molestiae rem quo cupiditate consectetur",
     seoTitle: "Fantastic Cotton Tuna",
     sku: "63913-27946",
-    thumbnailUrl: placeholderImage,
+    thumbnail: { __typename: "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -1780,7 +1780,7 @@ export const products = (placeholderImage: string) => [
       "Voluptatem veniam aut rerum. Illum veniam asperiores ut et iusto enim vel sapiente quia",
     seoTitle: "Tasty Steel Pants",
     sku: "4110-47925",
-    thumbnailUrl: placeholderImage,
+    thumbnail: { __typename: "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -1987,7 +1987,7 @@ export const products = (placeholderImage: string) => [
       "Sapiente qui error. Placeat hic nulla repudiandae delectus et",
     seoTitle: "Ergonomic Cotton Shoes",
     sku: "9207-4523",
-    thumbnailUrl: placeholderImage,
+    thumbnail: { __typename: "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -2118,7 +2118,7 @@ export const products = (placeholderImage: string) => [
     seoDescription: "adipisci laboriosam autem vel soluta",
     seoTitle: "Unbranded Steel Tuna",
     sku: "84653-71539",
-    thumbnailUrl: placeholderImage,
+    thumbnail: { __typename: "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -2352,7 +2352,7 @@ export const variant = (placeholderImage: string): ProductVariant => ({
       }
     ],
     name: "Our Awesome Book",
-    thumbnailUrl: placeholderImage,
+    thumbnail: { __typename: "Image", url: placeholderImage },
     variants: [
       {
         __typename: "ProductVariant",
