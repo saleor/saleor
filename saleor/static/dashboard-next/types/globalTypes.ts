@@ -268,6 +268,16 @@ export interface ProductTypeInput {
   taxRate?: TaxRateType | null;
 }
 
+export interface ProductVariantInput {
+  attributes?: (AttributeValueInput | null)[] | null;
+  costPrice?: any | null;
+  priceOverride?: any | null;
+  sku?: string | null;
+  quantity?: number | null;
+  trackInventory?: boolean | null;
+  weight?: any | null;
+}
+
 export interface SeoInput {
   title?: string | null;
   description?: string | null;

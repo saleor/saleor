@@ -843,6 +843,63 @@ exports[`Storyshots Categories / CategoryProducts without initial data 1`] = `
 </div>
 `;
 
+exports[`Storyshots Components / ErrorPage default 1`] = `
+<div>
+  <div
+    class="NotFoundPage-root-id"
+  >
+    <div
+      class="NotFoundPage-container-id"
+    >
+      <div
+        class="NotFoundPage-innerContainer-id"
+      >
+        <div>
+          <h1
+            class="MuiTypography-root-id MuiTypography-display1-id NotFoundPage-upperHeader-id"
+          >
+            Ooops!...
+          </h1>
+          <h1
+            class="MuiTypography-root-id MuiTypography-display2-id NotFoundPage-bottomHeader-id"
+          >
+            Error
+          </h1>
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id"
+          >
+            We've encountered a problem...
+          </p>
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id"
+          >
+            Don't worry, everything is gonna be fine
+          </p>
+        </div>
+        <div>
+          <button
+            class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id NotFoundPage-button-id"
+            tabindex="0"
+            type="button"
+          >
+            <span
+              class="MuiButton-label-id"
+            >
+              Back to home
+            </span>
+          </button>
+        </div>
+      </div>
+      <div>
+        <span
+          class="isvg pending NotFoundPage-notFoundImage-id"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Generics / ActionDialog default 1`] = `<div />`;
 
 exports[`Storyshots Generics / AddressEdit default 1`] = `
@@ -46937,11 +46994,16 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
                         aria-invalid="false"
                         class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputType-id MuiInput-inputType-id"
                         disabled=""
-                        name="stockInventory"
+                        name="stockQuantity"
                         type="number"
                         value="0"
                       />
                     </div>
+                    <p
+                      class="MuiFormHelperText-root-id MuiFormHelperText-disabled-id MuiFormHelperText-filled-id"
+                    >
+                      Allocated: 
+                    </p>
                   </div>
                 </div>
               </div>
@@ -48801,8 +48863,8 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                     class="MuiFormControl-root-id"
                   >
                     <label
-                      class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                      data-shrink="true"
+                      class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                      data-shrink="false"
                     >
                       Inventory
                     </label>
@@ -48812,11 +48874,15 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                       <input
                         aria-invalid="false"
                         class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id"
-                        name="stockInventory"
+                        name="stockQuantity"
                         type="number"
-                        value="48"
                       />
                     </div>
+                    <p
+                      class="MuiFormHelperText-root-id"
+                    >
+                      Allocated: 
+                    </p>
                   </div>
                 </div>
               </div>
