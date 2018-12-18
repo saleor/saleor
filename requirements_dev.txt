@@ -21,7 +21,7 @@ py==1.7.0
 pycodestyle==2.4.0
 pydocstyle==3.0.0
 pylint-celery==0.3
-pylint-django==2.0.4
+pylint-django==2.0.5
 pylint-plugin-utils==0.4
 pylint==2.2.2
 pytest-cov==2.6.0
