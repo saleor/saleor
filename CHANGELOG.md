@@ -24,3 +24,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Change filed type to choice field of tax rate in product - #3478 by @fowczarek
 - Update Pipfile.lock - #3480 by @maarcingebala
 - Add Stripe payment gateway - #3408 by @jxltom
+- Remove Elasticsearch from `docker-compose.yml` - #3482 by @maarcingebala
