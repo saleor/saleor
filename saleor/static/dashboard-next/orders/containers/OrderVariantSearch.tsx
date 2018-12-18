@@ -34,10 +34,7 @@ export class OrderVariantSearchProvider extends React.Component<
   render() {
     const { children } = this.props;
     return (
-      <TypedOrderVariantSearch
-        variables={{ search: this.state.query }}
-        skip={!this.state.query}
-      >
+      <TypedOrderVariantSearch variables={{ search: this.state.query }}>
         {searchOpts =>
           children({ variants: { search: this.search, searchOpts } })
         }

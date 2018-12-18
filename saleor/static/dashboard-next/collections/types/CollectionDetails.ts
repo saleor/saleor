@@ -7,6 +7,7 @@
 
 export interface CollectionDetails_collection_backgroundImage {
   __typename: "Image";
+  alt: string | null;
   url: string;
 }
 

@@ -1264,6 +1264,23 @@ def test_order_update_shipping_incorrect_shipping_method(
         'Shipping method cannot be used with this order.')
 
 
+def test_draft_order_clear_shipping_method(
+        staff_api_client, draft_order, permission_manage_orders):
+    assert draft_order.shipping_method
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id('Order', draft_order.id)
+    variables = {'order': order_id, 'shippingMethod': None}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+    data = content['data']['orderUpdateShipping']
+    assert data['order']['id'] == order_id
+    draft_order.refresh_from_db()
+    assert draft_order.shipping_method is None
+    assert draft_order.shipping_price == ZERO_TAXED_MONEY
+    assert draft_order.shipping_method_name is None
+
+
 def test_orders_total(
         staff_api_client, permission_manage_orders, order_with_lines):
     query = """

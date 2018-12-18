@@ -7,6 +7,7 @@
 
 export interface CollectionDetailsFragment_backgroundImage {
   __typename: "Image";
+  alt: string | null;
   url: string;
 }
 

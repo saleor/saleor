@@ -675,6 +675,7 @@ enum GatewaysEnum {
   DUMMY
   BRAINTREE
   RAZORPAY
+  STRIPE
 }
 
 scalar GenericScalar
@@ -1320,7 +1321,7 @@ type Product implements Node {
   attributes: [SelectedAttribute!]!
   updatedAt: DateTime
   chargeTaxes: Boolean!
-  taxRate: String!
+  taxRate: TaxRateType
   weight: Weight
   variants: [ProductVariant]
   images: [ProductImage]
@@ -1445,6 +1446,7 @@ input ProductOrder {
 enum ProductOrderField {
   NAME
   PRICE
+  DATE
 }
 
 type ProductType implements Node {

@@ -10,6 +10,12 @@ export interface CategoryDetails_category_parent {
   id: string;
 }
 
+export interface CategoryDetails_category_backgroundImage {
+  __typename: "Image";
+  alt: string | null;
+  url: string;
+}
+
 export interface CategoryDetails_category_children_edges_node_children {
   __typename: "CategoryCountableConnection";
   totalCount: number | null;
@@ -98,6 +104,7 @@ export interface CategoryDetails_category {
   seoDescription: string | null;
   seoTitle: string | null;
   parent: CategoryDetails_category_parent | null;
+  backgroundImage: CategoryDetails_category_backgroundImage | null;
   children: CategoryDetails_category_children | null;
   products: CategoryDetails_category_products | null;
 }
