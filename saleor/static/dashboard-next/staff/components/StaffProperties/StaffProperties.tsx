@@ -6,13 +6,13 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
+import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
-import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
-import { getUserInitials, maybe } from "../../../misc";
+import { getUserInitials } from "../../../misc";
 import { StaffMemberDetails_user } from "../../types/StaffMemberDetails";
 
 const styles = (theme: Theme) =>
@@ -37,6 +37,7 @@ const styles = (theme: Theme) =>
     propGrid: {
       display: "grid",
       gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridRowGap: theme.spacing.unit + "px",
       gridTemplateColumns: "1fr 1fr",
       [theme.breakpoints.down("xs")]: {
         gridTemplateColumns: "1fr"
@@ -51,11 +52,24 @@ const styles = (theme: Theme) =>
 
 interface StaffPropertiesProps extends WithStyles<typeof styles> {
   className?: string;
+  data: {
+    email: string;
+    firstName: string;
+    lastName: string;
+  };
+  disabled: boolean;
   staffMember: StaffMemberDetails_user;
+  onChange: (event: React.ChangeEvent<any>) => void;
 }
 
 const StaffProperties = withStyles(styles, { name: "StaffProperties" })(
-  ({ classes, className, staffMember }: StaffPropertiesProps) => (
+  ({
+    classes,
+    className,
+    data,
+    staffMember,
+    onChange
+  }: StaffPropertiesProps) => (
     <Card className={className}>
       <CardTitle title={i18n.t("Staff Member Information")} />
       <CardContent>
@@ -70,40 +84,31 @@ const StaffProperties = withStyles(styles, { name: "StaffProperties" })(
           <div>
             <div className={classes.propGrid}>
               <div className={classes.prop}>
-                <Typography variant="body2">{i18n.t("First Name")}</Typography>
-                {maybe<React.ReactNode>(
-                  () =>
-                    staffMember.firstName ? (
-                      <Typography>{staffMember.firstName}</Typography>
-                    ) : (
-                      <Typography color="textSecondary">
-                        {i18n.t("No info")}
-                      </Typography>
-                    ),
-                  <Skeleton />
-                )}
+                <TextField
+                  label={i18n.t("First Name")}
+                  value={data.firstName}
+                  name="firstName"
+                  onChange={onChange}
+                  fullWidth
+                />
               </div>
               <div className={classes.prop}>
-                <Typography variant="body2">{i18n.t("Last Name")}</Typography>
-                {maybe<React.ReactNode>(
-                  () =>
-                    staffMember.lastName ? (
-                      <Typography>{staffMember.lastName}</Typography>
-                    ) : (
-                      <Typography color="textSecondary">
-                        {i18n.t("No info")}
-                      </Typography>
-                    ),
-                  <Skeleton />
-                )}
+                <TextField
+                  label={i18n.t("Last Name")}
+                  value={data.lastName}
+                  name="lastName"
+                  onChange={onChange}
+                  fullWidth
+                />
               </div>
               <div className={classes.prop}>
-                <Typography variant="body2">{i18n.t("E-mail")}</Typography>
-                {maybe(() => staffMember.email) === undefined ? (
-                  <Skeleton />
-                ) : (
-                  <Typography>{staffMember.email}</Typography>
-                )}
+                <TextField
+                  label={i18n.t("E-mail")}
+                  value={data.email}
+                  name="email"
+                  onChange={onChange}
+                  fullWidth
+                />
               </div>
             </div>
           </div>

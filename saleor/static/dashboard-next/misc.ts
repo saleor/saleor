@@ -195,7 +195,7 @@ export function getUserName(user?: User, returnEmail?: boolean) {
 export function getUserInitials(user?: User) {
   return user && (user.email || (user.firstName && user.lastName))
     ? (user.firstName && user.lastName
-        ? user.firstName + user.lastName
+        ? user.firstName[0] + user.lastName[0]
         : user.email.slice(0, 2)
       ).toUpperCase()
     : null;
