@@ -593,7 +593,7 @@ PAYMENT_GATEWAYS = {
             'store_image': os.environ.get('STRIPE_STORE_IMAGE', None),
             'prefill': get_bool_from_env('STRIPE_PREFILL', True),
             'remember_me': os.environ.get('STRIPE_REMEMBER_ME', True),
-            'local': os.environ.get('STRIPE_LOCAL', 'auto'),
+            'locale': os.environ.get('STRIPE_LOCALE', 'auto'),
             'enable_billing_address': os.environ.get(
                 'STRIPE_ENABLE_BILLING_ADDRESS', False),
             'enable_shipping_address': os.environ.get(

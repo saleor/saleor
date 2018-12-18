@@ -33,7 +33,7 @@ def gateway_params():
         'store_image': 'image.gif',
         'prefill': True,
         'remember_me': True,
-        'local': 'auto',
+        'locale': 'auto',
         'enable_billing_address': False,
         'enable_shipping_address': False}
 
