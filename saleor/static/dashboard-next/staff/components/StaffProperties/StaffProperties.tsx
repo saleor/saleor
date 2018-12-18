@@ -11,9 +11,8 @@ import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
-import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
-import { getUserInitials, maybe } from "../../../misc";
+import { getUserInitials } from "../../../misc";
 import { StaffMemberDetails_user } from "../../types/StaffMemberDetails";
 
 const styles = (theme: Theme) =>
