@@ -23,3 +23,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Prefetch payment and payment transaction to optimize db queries - #3455 by @jxltom
 - Change filed type to choice field of tax rate in product - #3478 by @fowczarek
 - Update Pipfile.lock - #3480 by @maarcingebala
+- Add Stripe payment gateway - #3408 by @jxltom
