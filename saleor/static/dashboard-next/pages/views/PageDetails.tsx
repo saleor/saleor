@@ -30,7 +30,11 @@ export class PageUpdateForm extends React.Component<
   render() {
     const { id } = this.props;
     return (
-      <TypedPageDetailsQuery displayLoader variables={{ id }}>
+      <TypedPageDetailsQuery
+        displayLoader
+        variables={{ id }}
+        require={["page"]}
+      >
         {({ data, loading }) => (
           <TypedPageDeleteMutation>
             {(
