@@ -307,7 +307,10 @@ export const shop: (placeholderImage: string) => Home = (
               amount: 37.65,
               currency: "USD"
             },
-            thumbnailUrl: placeholderImage
+            thumbnail: {
+              __typename: "Image",
+              url: placeholderImage
+            }
           },
           quantityOrdered: 1,
           revenue: {

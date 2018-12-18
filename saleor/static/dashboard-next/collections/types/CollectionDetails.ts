@@ -16,13 +16,18 @@ export interface CollectionDetails_collection_products_edges_node_productType {
   name: string;
 }
 
+export interface CollectionDetails_collection_products_edges_node_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface CollectionDetails_collection_products_edges_node {
   __typename: "Product";
   id: string;
   isPublished: boolean;
   name: string;
   productType: CollectionDetails_collection_products_edges_node_productType;
-  thumbnailUrl: string | null;
+  thumbnail: CollectionDetails_collection_products_edges_node_thumbnail | null;
 }
 
 export interface CollectionDetails_collection_products_edges {

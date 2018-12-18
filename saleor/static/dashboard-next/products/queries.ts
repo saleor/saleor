@@ -171,7 +171,9 @@ export const fragmentVariant = gql`
         ...ProductImageFragment
       }
       name
-      thumbnailUrl
+      thumbnail {
+        url
+      }
       variants {
         id
         name
@@ -208,7 +210,9 @@ const productListQuery = gql`
         node {
           id
           name
-          thumbnailUrl
+          thumbnail {
+            url
+          }
           availability {
             available
           }

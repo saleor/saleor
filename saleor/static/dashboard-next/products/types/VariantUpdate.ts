@@ -67,6 +67,11 @@ export interface VariantUpdate_productVariantUpdate_productVariant_product_image
   url: string;
 }
 
+export interface VariantUpdate_productVariantUpdate_productVariant_product_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface VariantUpdate_productVariantUpdate_productVariant_product_variants_images {
   __typename: "ProductImage";
   id: string;
@@ -86,7 +91,7 @@ export interface VariantUpdate_productVariantUpdate_productVariant_product {
   id: string;
   images: (VariantUpdate_productVariantUpdate_productVariant_product_images | null)[] | null;
   name: string;
-  thumbnailUrl: string | null;
+  thumbnail: VariantUpdate_productVariantUpdate_productVariant_product_thumbnail | null;
   variants: (VariantUpdate_productVariantUpdate_productVariant_product_variants | null)[] | null;
 }
 

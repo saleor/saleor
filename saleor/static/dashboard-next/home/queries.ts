@@ -43,7 +43,9 @@ const home = gql`
           product {
             id
             name
-            thumbnailUrl
+            thumbnail {
+              url
+            }
           }
           quantityOrdered
         }
