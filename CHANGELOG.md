@@ -22,3 +22,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Draft order should be able to clear its shipping method - #3472 by @fowczarek
 - Prefetch payment and payment transaction to optimize db queries - #3455 by @jxltom
 - Change filed type to choice field of tax rate in product - #3478 by @fowczarek
+- Update favicons to the new style - #3483 by @dominik-zeglen
