@@ -150,12 +150,24 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                                   updateProduct.opts.loading ||
                                   loading;
                                 const formTransitionState = getMutationState(
-                                  updateProduct.opts.called,
-                                  updateProduct.opts.loading,
+                                  updateProduct.opts.called ||
+                                    updateSimpleProduct.opts.called,
+                                  updateProduct.opts.loading ||
+                                    updateSimpleProduct.opts.loading,
                                   maybe(
                                     () =>
                                       updateProduct.opts.data.productUpdate
                                         .errors
+                                  ),
+                                  maybe(
+                                    () =>
+                                      updateSimpleProduct.opts.data
+                                        .productUpdate.errors
+                                  ),
+                                  maybe(
+                                    () =>
+                                      updateSimpleProduct.opts.data
+                                        .productVariantUpdate.errors
                                   )
                                 );
                                 const deleteTransitionState = getMutationState(
