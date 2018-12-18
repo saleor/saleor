@@ -467,7 +467,7 @@ def test_create_product(
     assert data['product']['description'] == product_description
     assert data['product']['isPublished'] == product_is_published
     assert data['product']['chargeTaxes'] == product_charge_taxes
-    assert data['product']['taxRate'] == product_tax_rate.lower()
+    assert data['product']['taxRate'] == product_tax_rate
     assert data['product']['productType']['name'] == product_type.name
     assert data['product']['category']['name'] == category.name
     values = (
@@ -563,7 +563,7 @@ def test_update_product(
     assert data['product']['description'] == product_description
     assert data['product']['isPublished'] == product_isPublished
     assert data['product']['chargeTaxes'] == product_chargeTaxes
-    assert data['product']['taxRate'] == product_taxRate.lower()
+    assert data['product']['taxRate'] == product_taxRate
     assert not data['product']['category']['name'] == category.name
 
 

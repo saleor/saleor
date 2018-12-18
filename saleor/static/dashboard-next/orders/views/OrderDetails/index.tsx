@@ -98,7 +98,11 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
 }) => (
   <Navigator>
     {navigate => (
-      <TypedOrderDetailsQuery displayLoader variables={{ id }}>
+      <TypedOrderDetailsQuery
+        displayLoader
+        variables={{ id }}
+        require={["order"]}
+      >
         {({ data, error, loading }) => {
           if (error) {
             return <ErrorMessageCard message="Something went wrong" />;

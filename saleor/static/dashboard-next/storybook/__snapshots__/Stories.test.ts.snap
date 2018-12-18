@@ -843,6 +843,63 @@ exports[`Storyshots Categories / CategoryProducts without initial data 1`] = `
 </div>
 `;
 
+exports[`Storyshots Components / ErrorPage default 1`] = `
+<div>
+  <div
+    class="NotFoundPage-root-id"
+  >
+    <div
+      class="NotFoundPage-container-id"
+    >
+      <div
+        class="NotFoundPage-innerContainer-id"
+      >
+        <div>
+          <h1
+            class="MuiTypography-root-id MuiTypography-display1-id NotFoundPage-upperHeader-id"
+          >
+            Ooops!...
+          </h1>
+          <h1
+            class="MuiTypography-root-id MuiTypography-display2-id NotFoundPage-bottomHeader-id"
+          >
+            Error
+          </h1>
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id"
+          >
+            We've encountered a problem...
+          </p>
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id"
+          >
+            Don't worry, everything is gonna be fine
+          </p>
+        </div>
+        <div>
+          <button
+            class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id NotFoundPage-button-id"
+            tabindex="0"
+            type="button"
+          >
+            <span
+              class="MuiButton-label-id"
+            >
+              Back to home
+            </span>
+          </button>
+        </div>
+      </div>
+      <div>
+        <span
+          class="isvg pending NotFoundPage-notFoundImage-id"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Generics / ActionDialog default 1`] = `<div />`;
 
 exports[`Storyshots Generics / AddressEdit default 1`] = `
