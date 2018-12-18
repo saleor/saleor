@@ -28,10 +28,7 @@ export class AttributeSearchProvider extends React.Component<
     const { children } = this.props;
     if (typeof children === "function") {
       return (
-        <TypedSearchAttributeQuery
-          variables={{ search: this.state.query }}
-          skip={!this.state.query}
-        >
+        <TypedSearchAttributeQuery variables={{ search: this.state.query }}>
           {props => children(this.search, props)}
         </TypedSearchAttributeQuery>
       );

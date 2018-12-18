@@ -23,6 +23,7 @@ import CollectionProducts from "../CollectionProducts/CollectionProducts";
 import CollectionStatus from "../CollectionStatus/CollectionStatus";
 
 export interface CollectionDetailsPageFormData {
+  backgroundImageAlt: string;
   description: string;
   name: string;
   seoDescription: string;
@@ -72,12 +73,13 @@ const CollectionDetailsPage = withStyles(styles, {
   }: CollectionDetailsPageProps) => (
     <Form
       initial={{
-        description: maybe(() => collection.description),
+        backgroundImageAlt: maybe(() => collection.backgroundImage.alt, ""),
+        description: maybe(() => collection.description, ""),
         isFeatured,
-        isPublished: maybe(() => collection.isPublished),
-        name: maybe(() => collection.name),
-        seoDescription: maybe(() => collection.seoDescription),
-        seoTitle: maybe(() => collection.seoTitle)
+        isPublished: maybe(() => collection.isPublished, false),
+        name: maybe(() => collection.name, ""),
+        seoDescription: maybe(() => collection.seoDescription, ""),
+        seoTitle: maybe(() => collection.seoTitle, "")
       }}
       onSubmit={onSubmit}
       confirmLeave
@@ -95,9 +97,11 @@ const CollectionDetailsPage = withStyles(styles, {
               />
               <CardSpacer />
               <CollectionImage
+                data={data}
                 image={maybe(() => collection.backgroundImage)}
                 onImageDelete={onImageDelete}
                 onImageUpload={onImageUpload}
+                onChange={change}
               />
               <CardSpacer />
               <CollectionProducts
