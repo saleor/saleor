@@ -29,7 +29,8 @@ Payments Gateways
 
   - ``DUMMY`` (for tests purposes only!);
   - ``BRAINTREE``;
-  - ``RAZORPAY``.
+  - ``RAZORPAY``;
+  - ``STRIPE``.
 
 
 ``PAYMENT_GATEWAYS``
