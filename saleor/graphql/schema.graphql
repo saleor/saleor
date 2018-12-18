@@ -675,6 +675,7 @@ enum GatewaysEnum {
   DUMMY
   BRAINTREE
   RAZORPAY
+  STRIPE
 }
 
 scalar GenericScalar
