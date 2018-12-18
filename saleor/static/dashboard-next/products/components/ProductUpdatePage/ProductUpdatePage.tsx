@@ -18,7 +18,7 @@ import {
   ProductDetails_product,
   ProductDetails_product_attributes_attribute,
   ProductDetails_product_images,
-  ProductDetails_product_variants_priceOverride
+  ProductDetails_product_variants
 } from "../../types/ProductDetails";
 import ProductAvailabilityForm from "../ProductAvailabilityForm";
 import ProductDetailsForm from "../ProductDetailsForm";
@@ -65,14 +65,7 @@ interface ProductUpdateProps extends WithStyles<typeof styles> {
     id: string;
     name: string;
   }>;
-  variants?: Array<{
-    id: string;
-    sku: string;
-    name: string;
-    priceOverride?: ProductDetails_product_variants_priceOverride;
-    stockQuantity: number;
-    margin: number;
-  }>;
+  variants: ProductDetails_product_variants[];
   images?: ProductDetails_product_images[];
   product?: ProductDetails_product;
   header: string;
@@ -205,7 +198,7 @@ export const ProductUpdate = withStyles(styles, { name: "ProductUpdate" })(
             product.productType && product.productType.hasVariants
               ? undefined
               : variants && variants[0]
-              ? variants[0].stockQuantity
+              ? variants[0].quantity
               : undefined
         }
       : {
@@ -293,6 +286,7 @@ export const ProductUpdate = withStyles(styles, { name: "ProductUpdate" })(
                       <ProductStock
                         data={data}
                         disabled={disabled}
+                        product={product}
                         onChange={change}
                       />
                     )}

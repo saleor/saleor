@@ -120,8 +120,10 @@ export const fragmentProduct = gql`
       priceOverride {
         ...Money
       }
-      stockQuantity
       margin
+      quantity
+      quantityAllocated
+      stockQuantity
     }
     productType {
       id

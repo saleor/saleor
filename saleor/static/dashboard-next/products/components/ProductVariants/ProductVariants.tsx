@@ -23,6 +23,7 @@ import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
+import { ProductDetails_product_variants } from "../../types/ProductDetails";
 import { ProductVariant_costPrice } from "../../types/ProductVariant";
 
 const styles = (theme: Theme) =>
@@ -45,14 +46,7 @@ const styles = (theme: Theme) =>
 
 interface ProductVariantsProps extends WithStyles<typeof styles> {
   disabled?: boolean;
-  variants?: Array<{
-    id: string;
-    sku: string;
-    name: string;
-    priceOverride?: ProductVariant_costPrice;
-    stockQuantity: number;
-    margin: number;
-  }>;
+  variants: ProductDetails_product_variants[];
   fallbackPrice?: ProductVariant_costPrice;
   onAttributesEdit: () => void;
   onRowClick: (id: string) => () => void;

@@ -136,8 +136,10 @@ export interface ProductCreate_productCreate_product_variants {
   sku: string;
   name: string;
   priceOverride: ProductCreate_productCreate_product_variants_priceOverride | null;
-  stockQuantity: number;
   margin: number | null;
+  quantity: number;
+  quantityAllocated: number;
+  stockQuantity: number;
 }
 
 export interface ProductCreate_productCreate_product_productType {

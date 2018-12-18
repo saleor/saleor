@@ -70,7 +70,11 @@ export const CustomerDetailsView: React.StatelessComponent<
                   onCompleted={handleCustomerUpdateSuccess}
                 >
                   {(updateCustomer, updateCustomerOpts) => (
-                    <TypedCustomerDetailsQuery displayLoader variables={{ id }}>
+                    <TypedCustomerDetailsQuery
+                      displayLoader
+                      variables={{ id }}
+                      require={["user"]}
+                    >
                       {customerDetails => {
                         const formTransitionState = getMutationState(
                           updateCustomerOpts.called,
