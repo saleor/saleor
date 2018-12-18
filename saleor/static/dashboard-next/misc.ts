@@ -153,13 +153,15 @@ export function hasErrors(errorList: UserError[] | null): boolean {
 export function getMutationState(
   called: boolean,
   loading: boolean,
-  errorList: UserError[]
+  ...errorList: UserError[][]
 ): ConfirmButtonTransitionState {
   if (loading) {
     return "loading";
   }
   if (called) {
-    return hasErrors(errorList) ? "error" : "success";
+    return errorList.map(hasErrors).reduce((acc, curr) => acc || curr, false)
+      ? "error"
+      : "success";
   }
   return "default";
 }
