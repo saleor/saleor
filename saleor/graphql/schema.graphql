@@ -1320,7 +1320,7 @@ type Product implements Node {
   attributes: [SelectedAttribute!]!
   updatedAt: DateTime
   chargeTaxes: Boolean!
-  taxRate: String!
+  taxRate: ProductTaxRate!
   weight: Weight
   variants: [ProductVariant]
   images: [ProductImage]
@@ -1446,6 +1446,33 @@ enum ProductOrderField {
   NAME
   PRICE
   DATE
+}
+
+enum ProductTaxRate {
+  ACCOMMODATION
+  ADMISSION_TO_CULTURAL_EVENTS
+  ADMISSION_TO_ENTERTAINMENT_EVENTS
+  ADMISSION_TO_SPORTING_EVENTS
+  ADVERTISING
+  AGRICULTURAL_SUPPLIES
+  BABY_FOODSTUFFS
+  BIKES
+  BOOKS
+  CHILDRENS_CLOTHING
+  DOMESTIC_FUEL
+  DOMESTIC_SERVICES
+  E_BOOKS
+  FOODSTUFFS
+  HOTELS
+  MEDICAL
+  NEWSPAPERS
+  PASSENGER_TRANSPORT
+  PHARMACEUTICALS
+  PROPERTY_RENOVATIONS
+  RESTAURANTS
+  SOCIAL_HOUSING
+  STANDARD
+  WATER
 }
 
 type ProductType implements Node {
