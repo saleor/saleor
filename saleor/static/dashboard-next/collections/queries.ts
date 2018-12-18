@@ -27,6 +27,7 @@ export const collectionDetailsFragment = gql`
   fragment CollectionDetailsFragment on Collection {
     ...CollectionFragment
     backgroundImage {
+      alt
       url
     }
     description
