@@ -1321,7 +1321,7 @@ type Product implements Node {
   attributes: [SelectedAttribute!]!
   updatedAt: DateTime
   chargeTaxes: Boolean!
-  taxRate: String!
+  taxRate: TaxRateType
   weight: Weight
   variants: [ProductVariant]
   images: [ProductImage]
