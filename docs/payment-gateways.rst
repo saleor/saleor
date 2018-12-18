@@ -11,6 +11,7 @@ and their configuration guide.
 
    payment-gateways/braintree.rst
    payment-gateways/razorpay.rst
+   payment-gateways/stripe.rst
 
 The default configuration only uses the `dummy` backend
 (see :ref:`how to enable/disable payment gateways <payment_gateways_configuration>`).
