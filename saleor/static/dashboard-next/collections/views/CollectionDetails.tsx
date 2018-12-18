@@ -58,6 +58,7 @@ export const CollectionDetails: React.StatelessComponent<
                 <TypedCollectionDetailsQuery
                   displayLoader
                   variables={{ id, ...paginationState }}
+                  require={["collection"]}
                 >
                   {({ data, loading }) => {
                     const handleCollectionUpdate = (data: CollectionUpdate) => {
