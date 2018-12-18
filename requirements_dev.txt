@@ -39,6 +39,7 @@ snowballstemmer==1.2.1
 toml==0.10.0
 tox==3.6.0
 transifex-client==0.13.5
+typed-ast==1.1.1 ; python_version < '3.7' and implementation_name == 'cpython'
 unidecode==1.0.23
 urllib3==1.24.1
 vcrpy==2.0.1
