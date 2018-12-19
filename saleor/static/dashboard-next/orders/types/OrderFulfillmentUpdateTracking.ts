@@ -256,7 +256,7 @@ export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_o
 
 export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking {
   __typename: "FulfillmentUpdateTracking";
-  errors: (OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_errors | null)[] | null;
+  errors: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_errors[] | null;
   order: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order | null;
 }
 

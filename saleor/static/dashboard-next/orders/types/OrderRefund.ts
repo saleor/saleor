@@ -256,7 +256,7 @@ export interface OrderRefund_orderRefund_order {
 
 export interface OrderRefund_orderRefund {
   __typename: "OrderRefund";
-  errors: (OrderRefund_orderRefund_errors | null)[] | null;
+  errors: OrderRefund_orderRefund_errors[] | null;
   order: OrderRefund_orderRefund_order | null;
 }
 

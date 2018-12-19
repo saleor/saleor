@@ -18,7 +18,7 @@ export interface VariantDelete_productVariantDelete_productVariant {
 
 export interface VariantDelete_productVariantDelete {
   __typename: "ProductVariantDelete";
-  errors: (VariantDelete_productVariantDelete_errors | null)[] | null;
+  errors: VariantDelete_productVariantDelete_errors[] | null;
   productVariant: VariantDelete_productVariantDelete_productVariant | null;
 }
 

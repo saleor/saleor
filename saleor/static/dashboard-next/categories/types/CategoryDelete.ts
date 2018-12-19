@@ -13,7 +13,7 @@ export interface CategoryDelete_categoryDelete_errors {
 
 export interface CategoryDelete_categoryDelete {
   __typename: "CategoryDelete";
-  errors: (CategoryDelete_categoryDelete_errors | null)[] | null;
+  errors: CategoryDelete_categoryDelete_errors[] | null;
 }
 
 export interface CategoryDelete {
