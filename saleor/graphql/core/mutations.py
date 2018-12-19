@@ -44,7 +44,7 @@ class ModelMutationOptions(MutationOptions):
 
 class BaseMutation(graphene.Mutation):
     errors = graphene.List(
-        Error,
+        graphene.NonNull(Error),
         description='List of errors that occurred executing the mutation.')
 
     class Meta:
