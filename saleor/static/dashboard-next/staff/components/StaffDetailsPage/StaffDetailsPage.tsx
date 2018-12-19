@@ -11,7 +11,7 @@ import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
-import { maybe } from "../../../misc";
+import { getUserName, maybe } from "../../../misc";
 import { PermissionEnum } from "../../../types/globalTypes";
 import {
   StaffMemberDetails_shop_permissions,
@@ -25,6 +25,9 @@ interface FormData {
   hasFullAccess: boolean;
   isActive: boolean;
   permissions: PermissionEnum[];
+  firstName: string;
+  lastName: string;
+  email: string;
 }
 
 const styles = (theme: Theme) =>
@@ -61,6 +64,8 @@ const StaffDetailsPage = withStyles(styles, { name: "StaffDetailsPage" })(
     onSubmit
   }: StaffDetailsPageProps) => {
     const initialForm: FormData = {
+      email: maybe(() => staffMember.email),
+      firstName: maybe(() => staffMember.firstName),
       hasFullAccess: maybe(
         () =>
           permissions.filter(
@@ -72,6 +77,7 @@ const StaffDetailsPage = withStyles(styles, { name: "StaffDetailsPage" })(
         false
       ),
       isActive: maybe(() => staffMember.isActive, false),
+      lastName: maybe(() => staffMember.lastName),
       permissions: maybe(() => staffMember.permissions, []).map(
         perm => perm.code
       )
@@ -80,15 +86,15 @@ const StaffDetailsPage = withStyles(styles, { name: "StaffDetailsPage" })(
       <Form initial={initialForm} onSubmit={onSubmit} confirmLeave>
         {({ data, change, hasChanged, submit }) => (
           <Container width="md">
-            <PageHeader
-              title={maybe(() => staffMember.email)}
-              onBack={onBack}
-            />
+            <PageHeader title={getUserName(staffMember)} onBack={onBack} />
             <div className={classes.root}>
               <div>
                 <StaffProperties
                   className={classes.card}
+                  data={data}
+                  disabled={disabled}
                   staffMember={staffMember}
+                  onChange={change}
                 />
               </div>
               <div>

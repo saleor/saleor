@@ -10,6 +10,10 @@ import { RootCategories } from "./types/RootCategories";
 export const categoryDetailsFragment = gql`
   fragment CategoryDetailsFragment on Category {
     id
+    backgroundImage {
+      alt
+      url
+    }
     name
     description
     seoDescription
@@ -99,7 +103,9 @@ export const categoryDetails = gql`
             availability {
               available
             }
-            thumbnailUrl
+            thumbnail {
+              url
+            }
             price {
               amount
               currency

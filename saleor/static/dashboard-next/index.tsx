@@ -2,6 +2,8 @@ import CssBaseline from "@material-ui/core/CssBaseline";
 import MuiThemeProvider from "@material-ui/core/styles/MuiThemeProvider";
 import { defaultDataIdFromObject, InMemoryCache } from "apollo-cache-inmemory";
 import { ApolloClient } from "apollo-client";
+import { ApolloLink } from "apollo-link";
+import { BatchHttpLink } from "apollo-link-batch-http";
 import { setContext } from "apollo-link-context";
 import { ErrorResponse, onError } from "apollo-link-error";
 import { createUploadLink } from "apollo-upload-client";
@@ -67,13 +69,21 @@ const authLink = setContext((_, context) => {
   };
 });
 
-const uploadLink = createUploadLink({
+const linkOptions = {
   credentials: "same-origin",
   headers: {
     "X-CSRFToken": cookies.get("csrftoken")
   },
   uri: "/graphql/"
-});
+};
+const uploadLink = createUploadLink(linkOptions);
+const batchLink = new BatchHttpLink(linkOptions);
+
+const link = ApolloLink.split(
+  operation => operation.getContext().useBatching,
+  batchLink,
+  uploadLink
+);
 
 const apolloClient = new ApolloClient({
   cache: new InMemoryCache({
@@ -86,7 +96,7 @@ const apolloClient = new ApolloClient({
       return defaultDataIdFromObject(obj);
     }
   }),
-  link: invalidTokenLink.concat(authLink.concat(uploadLink))
+  link: invalidTokenLink.concat(authLink.concat(link))
 });
 
 export const appMountPoint = "/dashboard/next/";

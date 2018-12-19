@@ -136,8 +136,10 @@ export interface ProductUpdate_productUpdate_product_variants {
   sku: string;
   name: string;
   priceOverride: ProductUpdate_productUpdate_product_variants_priceOverride | null;
-  stockQuantity: number;
   margin: number | null;
+  quantity: number;
+  quantityAllocated: number;
+  stockQuantity: number;
 }
 
 export interface ProductUpdate_productUpdate_product_productType {
@@ -172,7 +174,7 @@ export interface ProductUpdate_productUpdate_product {
 
 export interface ProductUpdate_productUpdate {
   __typename: "ProductUpdate";
-  errors: (ProductUpdate_productUpdate_errors | null)[] | null;
+  errors: ProductUpdate_productUpdate_errors[] | null;
   product: ProductUpdate_productUpdate_product | null;
 }
 

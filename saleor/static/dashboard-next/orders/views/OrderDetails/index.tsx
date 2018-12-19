@@ -98,7 +98,11 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
 }) => (
   <Navigator>
     {navigate => (
-      <TypedOrderDetailsQuery displayLoader variables={{ id }}>
+      <TypedOrderDetailsQuery
+        displayLoader
+        variables={{ id }}
+        require={["order"]}
+      >
         {({ data, error, loading }) => {
           if (error) {
             return <ErrorMessageCard message="Something went wrong" />;
@@ -796,7 +800,10 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                         orderUpdate.mutate({
                                           id,
                                           input: {
-                                            shippingAddress: variables
+                                            shippingAddress: {
+                                              ...variables,
+                                              country: variables.country.value
+                                            }
                                           }
                                         })
                                       }
@@ -839,7 +846,10 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                         orderUpdate.mutate({
                                           id,
                                           input: {
-                                            billingAddress: variables
+                                            billingAddress: {
+                                              ...variables,
+                                              country: variables.country.value
+                                            }
                                           }
                                         })
                                       }

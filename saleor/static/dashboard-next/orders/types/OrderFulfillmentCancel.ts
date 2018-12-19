@@ -256,7 +256,7 @@ export interface OrderFulfillmentCancel_orderFulfillmentCancel_order {
 
 export interface OrderFulfillmentCancel_orderFulfillmentCancel {
   __typename: "FulfillmentCancel";
-  errors: (OrderFulfillmentCancel_orderFulfillmentCancel_errors | null)[] | null;
+  errors: OrderFulfillmentCancel_orderFulfillmentCancel_errors[] | null;
   order: OrderFulfillmentCancel_orderFulfillmentCancel_order | null;
 }
 

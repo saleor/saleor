@@ -13,6 +13,8 @@ export const customerFragment = gql`
   fragment CustomerFragment on User {
     id
     email
+    firstName
+    lastName
   }
 `;
 

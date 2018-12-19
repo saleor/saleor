@@ -97,6 +97,7 @@ export const CategoryDetails: React.StatelessComponent<
                       <TypedCategoryDetailsQuery
                         displayLoader
                         variables={{ ...paginationState, id }}
+                        require={["category"]}
                       >
                         {({ data, loading }) => (
                           <>
@@ -124,7 +125,6 @@ export const CategoryDetails: React.StatelessComponent<
                                     () =>
                                       updateResult.data.categoryUpdate.errors
                                   )}
-                                  placeholderImage={""}
                                   onAddCategory={() =>
                                     navigate(categoryAddUrl(id))
                                   }
@@ -143,8 +143,26 @@ export const CategoryDetails: React.StatelessComponent<
                                   onDelete={() =>
                                     navigate(categoryDeleteUrl(id))
                                   }
-                                  onImageDelete={() => undefined}
-                                  onImageUpload={() => undefined}
+                                  onImageDelete={() =>
+                                    updateCategory({
+                                      variables: {
+                                        id,
+                                        input: {
+                                          backgroundImage: null
+                                        }
+                                      }
+                                    })
+                                  }
+                                  onImageUpload={event =>
+                                    updateCategory({
+                                      variables: {
+                                        id,
+                                        input: {
+                                          backgroundImage: event.target.files[0]
+                                        }
+                                      }
+                                    })
+                                  }
                                   onNextPage={loadNextPage}
                                   onPreviousPage={loadPreviousPage}
                                   pageInfo={pageInfo}
@@ -155,6 +173,8 @@ export const CategoryDetails: React.StatelessComponent<
                                       variables: {
                                         id,
                                         input: {
+                                          backgroundImageAlt:
+                                            formData.backgroundImageAlt,
                                           description: formData.description,
                                           name: formData.name,
                                           seo: {
