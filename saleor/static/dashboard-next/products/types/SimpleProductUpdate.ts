@@ -174,7 +174,7 @@ export interface SimpleProductUpdate_productUpdate_product {
 
 export interface SimpleProductUpdate_productUpdate {
   __typename: "ProductUpdate";
-  errors: (SimpleProductUpdate_productUpdate_errors | null)[] | null;
+  errors: SimpleProductUpdate_productUpdate_errors[] | null;
   product: SimpleProductUpdate_productUpdate_product | null;
 }
 
@@ -238,6 +238,11 @@ export interface SimpleProductUpdate_productVariantUpdate_productVariant_product
   url: string;
 }
 
+export interface SimpleProductUpdate_productVariantUpdate_productVariant_product_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface SimpleProductUpdate_productVariantUpdate_productVariant_product_variants_images {
   __typename: "ProductImage";
   id: string;
@@ -257,7 +262,7 @@ export interface SimpleProductUpdate_productVariantUpdate_productVariant_product
   id: string;
   images: (SimpleProductUpdate_productVariantUpdate_productVariant_product_images | null)[] | null;
   name: string;
-  thumbnailUrl: string | null;
+  thumbnail: SimpleProductUpdate_productVariantUpdate_productVariant_product_thumbnail | null;
   variants: (SimpleProductUpdate_productVariantUpdate_productVariant_product_variants | null)[] | null;
 }
 
@@ -277,7 +282,7 @@ export interface SimpleProductUpdate_productVariantUpdate_productVariant {
 
 export interface SimpleProductUpdate_productVariantUpdate {
   __typename: "ProductVariantUpdate";
-  errors: (SimpleProductUpdate_productVariantUpdate_errors | null)[] | null;
+  errors: SimpleProductUpdate_productVariantUpdate_errors[] | null;
   productVariant: SimpleProductUpdate_productVariantUpdate_productVariant | null;
 }
 
