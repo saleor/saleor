@@ -33,7 +33,7 @@ export const collectionDetailsFragment = gql`
     description
     seoDescription
     seoTitle
-    isPublisheds
+    isPublished
   }
 `;
 

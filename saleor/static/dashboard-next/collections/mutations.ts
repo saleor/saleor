@@ -87,17 +87,20 @@ const assignCollectionProduct = gql`
   ${collectionProductFragment}
   mutation CollectionAssignProduct(
     $collectionId: ID!
-    $productId: ID!
-    $first: Int!
+    $productIds: [ID!]!
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
   ) {
-    collectionAddProducts(collectionId: $collectionId, products: [$productId]) {
+    collectionAddProducts(collectionId: $collectionId, products: $productIds) {
       errors {
         field
         message
       }
       collection {
         id
-        products(first: $first) {
+        products(first: $first, after: $after, before: $before, last: $last) {
           edges {
             node {
               ...CollectionProductFragment
