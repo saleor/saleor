@@ -103,7 +103,6 @@ export const CollectionDetails: React.StatelessComponent<
                             context: "notification"
                           })
                         });
-                        navigate(collectionUrl(id), true);
                       }
                     };
 
