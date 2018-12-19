@@ -25,6 +25,9 @@ interface FormData {
   hasFullAccess: boolean;
   isActive: boolean;
   permissions: PermissionEnum[];
+  firstName: string;
+  lastName: string;
+  email: string;
 }
 
 const styles = (theme: Theme) =>
@@ -61,6 +64,8 @@ const StaffDetailsPage = withStyles(styles, { name: "StaffDetailsPage" })(
     onSubmit
   }: StaffDetailsPageProps) => {
     const initialForm: FormData = {
+      email: maybe(() => staffMember.email),
+      firstName: maybe(() => staffMember.firstName),
       hasFullAccess: maybe(
         () =>
           permissions.filter(
@@ -72,6 +77,7 @@ const StaffDetailsPage = withStyles(styles, { name: "StaffDetailsPage" })(
         false
       ),
       isActive: maybe(() => staffMember.isActive, false),
+      lastName: maybe(() => staffMember.lastName),
       permissions: maybe(() => staffMember.permissions, []).map(
         perm => perm.code
       )
@@ -85,7 +91,10 @@ const StaffDetailsPage = withStyles(styles, { name: "StaffDetailsPage" })(
               <div>
                 <StaffProperties
                   className={classes.card}
+                  data={data}
+                  disabled={disabled}
                   staffMember={staffMember}
+                  onChange={change}
                 />
               </div>
               <div>

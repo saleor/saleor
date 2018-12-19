@@ -3,7 +3,9 @@ import * as React from "react";
 import { Query, QueryResult } from "react-apollo";
 
 import AppProgress from "./components/AppProgress";
+import ErrorPage from "./components/ErrorPage/ErrorPage";
 import Messages from "./components/messages";
+import Navigator from "./components/Navigator";
 import i18n from "./i18n";
 
 interface TypedQueryInnerProps<TData, TVariables> {
@@ -11,6 +13,7 @@ interface TypedQueryInnerProps<TData, TVariables> {
   displayLoader?: boolean;
   skip?: boolean;
   variables?: TVariables;
+  require?: Array<keyof TData>;
 }
 
 interface QueryProgressProps {
@@ -49,44 +52,67 @@ export function TypedQuery<TData, TVariables>(query: DocumentNode) {
     children,
     displayLoader,
     skip,
-    variables
+    variables,
+    require
   }: TypedQueryInnerProps<TData, TVariables>) => (
     <AppProgress>
       {({ funcs: changeProgressState }) => (
-        <Messages>
-          {pushMessage => (
-            <StrictTypedQuery
-              context={{ useBatching: true }}
-              fetchPolicy="cache-and-network"
-              query={query}
-              variables={variables}
-              skip={skip}
-            >
-              {queryData => {
-                if (queryData.error) {
-                  const msg = i18n.t("Something went wrong: {{ message }}", {
-                    message: queryData.error.message
-                  });
-                  pushMessage({ text: msg });
-                }
+        <Navigator>
+          {navigate => (
+            <Messages>
+              {pushMessage => (
+                <StrictTypedQuery
+                  fetchPolicy="cache-and-network"
+                  query={query}
+                  variables={variables}
+                  skip={skip}
+                  context={{ useBatching: true }}
+                >
+                  {queryData => {
+                    if (queryData.error) {
+                      const msg = i18n.t(
+                        "Something went wrong: {{ message }}",
+                        {
+                          message: queryData.error.message
+                        }
+                      );
+                      pushMessage({ text: msg });
+                    }
 
-                if (displayLoader) {
-                  return (
-                    <QueryProgress
-                      loading={queryData.loading}
-                      onCompleted={changeProgressState.disable}
-                      onLoading={changeProgressState.enable}
-                    >
-                      {children(queryData)}
-                    </QueryProgress>
-                  );
-                }
+                    let childrenOrNotFound = children(queryData);
+                    if (
+                      !queryData.loading &&
+                      require &&
+                      queryData.data &&
+                      !require.reduce(
+                        (acc, key) => acc && queryData.data[key] !== null,
+                        true
+                      )
+                    ) {
+                      childrenOrNotFound = (
+                        <ErrorPage onBack={() => navigate("/")} />
+                      );
+                    }
 
-                return children(queryData);
-              }}
-            </StrictTypedQuery>
+                    if (displayLoader) {
+                      return (
+                        <QueryProgress
+                          loading={queryData.loading}
+                          onCompleted={changeProgressState.disable}
+                          onLoading={changeProgressState.enable}
+                        >
+                          {childrenOrNotFound}
+                        </QueryProgress>
+                      );
+                    }
+
+                    return childrenOrNotFound;
+                  }}
+                </StrictTypedQuery>
+              )}
+            </Messages>
           )}
-        </Messages>
+        </Navigator>
       )}
     </AppProgress>
   );
