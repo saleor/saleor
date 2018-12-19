@@ -32,3 +32,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix simple product's inventory data saving bug - #3474 by @dominik-zeglen
 - Replace `thumbnailUrl` with `thumbnail { url }` - #3484 by @dominik-zeglen
 - Change mutation errors field from [Error] to [Error!] - #3489 by @fowczarek
+- Update favicons to the new style - #3483 by @dominik-zeglen
