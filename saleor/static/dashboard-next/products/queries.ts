@@ -120,8 +120,10 @@ export const fragmentProduct = gql`
       priceOverride {
         ...Money
       }
-      stockQuantity
       margin
+      quantity
+      quantityAllocated
+      stockQuantity
     }
     productType {
       id
@@ -171,7 +173,9 @@ export const fragmentVariant = gql`
         ...ProductImageFragment
       }
       name
-      thumbnailUrl
+      thumbnail {
+        url
+      }
       variants {
         id
         name
@@ -208,7 +212,9 @@ const productListQuery = gql`
         node {
           id
           name
-          thumbnailUrl
+          thumbnail {
+            url
+          }
           availability {
             available
           }

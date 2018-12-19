@@ -5,6 +5,12 @@
 // GraphQL fragment: CategoryDetailsFragment
 // ====================================================
 
+export interface CategoryDetailsFragment_backgroundImage {
+  __typename: "Image";
+  alt: string | null;
+  url: string;
+}
+
 export interface CategoryDetailsFragment_parent {
   __typename: "Category";
   id: string;
@@ -13,6 +19,7 @@ export interface CategoryDetailsFragment_parent {
 export interface CategoryDetailsFragment {
   __typename: "Category";
   id: string;
+  backgroundImage: CategoryDetailsFragment_backgroundImage | null;
   name: string;
   description: string;
   seoDescription: string | null;

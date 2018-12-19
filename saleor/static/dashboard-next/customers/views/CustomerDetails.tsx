@@ -70,7 +70,11 @@ export const CustomerDetailsView: React.StatelessComponent<
                   onCompleted={handleCustomerUpdateSuccess}
                 >
                   {(updateCustomer, updateCustomerOpts) => (
-                    <TypedCustomerDetailsQuery displayLoader variables={{ id }}>
+                    <TypedCustomerDetailsQuery
+                      displayLoader
+                      variables={{ id }}
+                      require={["user"]}
+                    >
                       {customerDetails => {
                         const formTransitionState = getMutationState(
                           updateCustomerOpts.called,
@@ -115,7 +119,9 @@ export const CustomerDetailsView: React.StatelessComponent<
                                     id,
                                     input: {
                                       email: formData.email,
+                                      firstName: formData.firstName,
                                       isActive: formData.isActive,
+                                      lastName: formData.lastName,
                                       note: formData.note
                                     }
                                   }

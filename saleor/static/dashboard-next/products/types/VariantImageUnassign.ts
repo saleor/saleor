@@ -65,6 +65,11 @@ export interface VariantImageUnassign_variantImageUnassign_productVariant_produc
   url: string;
 }
 
+export interface VariantImageUnassign_variantImageUnassign_productVariant_product_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface VariantImageUnassign_variantImageUnassign_productVariant_product_variants_images {
   __typename: "ProductImage";
   id: string;
@@ -84,7 +89,7 @@ export interface VariantImageUnassign_variantImageUnassign_productVariant_produc
   id: string;
   images: (VariantImageUnassign_variantImageUnassign_productVariant_product_images | null)[] | null;
   name: string;
-  thumbnailUrl: string | null;
+  thumbnail: VariantImageUnassign_variantImageUnassign_productVariant_product_thumbnail | null;
   variants: (VariantImageUnassign_variantImageUnassign_productVariant_product_variants | null)[] | null;
 }
 
@@ -104,7 +109,7 @@ export interface VariantImageUnassign_variantImageUnassign_productVariant {
 
 export interface VariantImageUnassign_variantImageUnassign {
   __typename: "VariantImageUnassign";
-  errors: (VariantImageUnassign_variantImageUnassign_errors | null)[] | null;
+  errors: VariantImageUnassign_variantImageUnassign_errors[] | null;
   productVariant: VariantImageUnassign_variantImageUnassign_productVariant | null;
 }
 

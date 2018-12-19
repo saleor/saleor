@@ -256,7 +256,7 @@ export interface OrderCapture_orderCapture_order {
 
 export interface OrderCapture_orderCapture {
   __typename: "OrderCapture";
-  errors: (OrderCapture_orderCapture_errors | null)[] | null;
+  errors: OrderCapture_orderCapture_errors[] | null;
   order: OrderCapture_orderCapture_order | null;
 }
 

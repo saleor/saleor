@@ -61,6 +61,8 @@ export interface UpdateCustomer_customerUpdate_user {
   __typename: "User";
   id: string;
   email: string;
+  firstName: string;
+  lastName: string;
   dateJoined: any;
   lastLogin: any | null;
   defaultShippingAddress: UpdateCustomer_customerUpdate_user_defaultShippingAddress | null;
@@ -71,7 +73,7 @@ export interface UpdateCustomer_customerUpdate_user {
 
 export interface UpdateCustomer_customerUpdate {
   __typename: "CustomerUpdate";
-  errors: (UpdateCustomer_customerUpdate_errors | null)[] | null;
+  errors: UpdateCustomer_customerUpdate_errors[] | null;
   user: UpdateCustomer_customerUpdate_user | null;
 }
 

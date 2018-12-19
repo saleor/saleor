@@ -1,6 +1,11 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import * as moment from "moment-timezone";
@@ -13,21 +18,32 @@ import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { CustomerDetails_user } from "../../types/CustomerDetails";
 
-const styles = createStyles({
-  cardTitle: {
-    height: 64
-  }
-});
+const styles = (theme: Theme) =>
+  createStyles({
+    cardTitle: {
+      height: 64
+    },
+    root: {
+      display: "grid" as "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridRowGap: theme.spacing.unit * 3 + "px",
+      gridTemplateColumns: "1fr 1fr"
+    }
+  });
 
 export interface CustomerDetailsProps extends WithStyles<typeof styles> {
   customer: CustomerDetails_user;
   data: {
+    firstName: string;
+    lastName: string;
     email: string;
     isActive: boolean;
     note: string;
   };
   disabled: boolean;
   errors: {
+    firstName?: string;
+    lastName?: string;
     email?: string;
     note?: string;
   };
@@ -72,6 +88,31 @@ const CustomerDetails = withStyles(styles, { name: "CustomerDetails" })(
           name="isActive"
           onChange={onChange}
         />
+        <FormSpacer />
+        <div className={classes.root}>
+          <TextField
+            disabled={disabled}
+            error={!!errors.firstName}
+            fullWidth
+            helperText={errors.firstName}
+            name="firstName"
+            type="text"
+            label={i18n.t("First Name")}
+            value={data.firstName}
+            onChange={onChange}
+          />
+          <TextField
+            disabled={disabled}
+            error={!!errors.lastName}
+            fullWidth
+            helperText={errors.lastName}
+            name="lastName"
+            type="text"
+            label={i18n.t("Last Name")}
+            value={data.lastName}
+            onChange={onChange}
+          />
+        </div>
         <FormSpacer />
         <TextField
           disabled={disabled}

@@ -256,7 +256,7 @@ export interface OrderLineDelete_draftOrderLineDelete_order {
 
 export interface OrderLineDelete_draftOrderLineDelete {
   __typename: "DraftOrderLineDelete";
-  errors: (OrderLineDelete_draftOrderLineDelete_errors | null)[] | null;
+  errors: OrderLineDelete_draftOrderLineDelete_errors[] | null;
   order: OrderLineDelete_draftOrderLineDelete_order | null;
 }
 

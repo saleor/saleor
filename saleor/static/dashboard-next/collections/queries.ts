@@ -27,6 +27,7 @@ export const collectionDetailsFragment = gql`
   fragment CollectionDetailsFragment on Collection {
     ...CollectionFragment
     backgroundImage {
+      alt
       url
     }
     description
@@ -88,7 +89,9 @@ export const collectionDetails = gql`
               id
               name
             }
-            thumbnailUrl
+            thumbnail {
+              url
+            }
           }
         }
         pageInfo {

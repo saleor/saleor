@@ -121,7 +121,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
                 key={product ? product.id : "skeleton"}
               >
                 <TableCellAvatar
-                  thumbnail={maybe(() => product.thumbnailUrl)}
+                  thumbnail={maybe(() => product.thumbnail.url)}
                 />
                 <TableCell>
                   {maybe<React.ReactNode>(() => product.name, <Skeleton />)}

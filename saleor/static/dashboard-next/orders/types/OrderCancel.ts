@@ -256,7 +256,7 @@ export interface OrderCancel_orderCancel_order {
 
 export interface OrderCancel_orderCancel {
   __typename: "OrderCancel";
-  errors: (OrderCancel_orderCancel_errors | null)[] | null;
+  errors: OrderCancel_orderCancel_errors[] | null;
   order: OrderCancel_orderCancel_order | null;
 }
 

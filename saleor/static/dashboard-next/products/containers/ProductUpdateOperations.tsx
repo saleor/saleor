@@ -6,7 +6,8 @@ import {
   TypedProductDeleteMutation,
   TypedProductImageCreateMutation,
   TypedProductImageDeleteMutation,
-  TypedProductUpdateMutation
+  TypedProductUpdateMutation,
+  TypedSimpleProductUpdateMutation
 } from "../mutations";
 import { ProductDelete, ProductDeleteVariables } from "../types/ProductDelete";
 import { ProductDetails_product } from "../types/ProductDetails";
@@ -23,6 +24,10 @@ import {
   ProductImageReorderVariables
 } from "../types/ProductImageReorder";
 import { ProductUpdate, ProductUpdateVariables } from "../types/ProductUpdate";
+import {
+  SimpleProductUpdate,
+  SimpleProductUpdateVariables
+} from "../types/SimpleProductUpdate";
 import ProductImagesReorderProvider from "./ProductImagesReorder";
 
 interface ProductUpdateOperationsProps {
@@ -48,6 +53,10 @@ interface ProductUpdateOperationsProps {
       updateProduct: PartialMutationProviderOutput<
         ProductUpdate,
         ProductUpdateVariables
+      >;
+      updateSimpleProduct: PartialMutationProviderOutput<
+        SimpleProductUpdate,
+        SimpleProductUpdateVariables
       >;
     }
   ) => React.ReactNode;
@@ -86,25 +95,34 @@ const ProductUpdateOperations: React.StatelessComponent<
                     <TypedProductImageDeleteMutation
                       onCompleted={onImageDelete}
                     >
-                      {(...deleteProductImage) =>
-                        children({
-                          createProductImage: getMutationProviderData(
-                            ...createProductImage
-                          ),
-                          deleteProduct: getMutationProviderData(
-                            ...deleteProduct
-                          ),
-                          deleteProductImage: getMutationProviderData(
-                            ...deleteProductImage
-                          ),
-                          reorderProductImages: getMutationProviderData(
-                            ...reorderProductImages
-                          ),
-                          updateProduct: getMutationProviderData(
-                            ...updateProduct
-                          )
-                        })
-                      }
+                      {(...deleteProductImage) => (
+                        <TypedSimpleProductUpdateMutation
+                          onCompleted={onUpdate}
+                        >
+                          {(...updateSimpleProduct) =>
+                            children({
+                              createProductImage: getMutationProviderData(
+                                ...createProductImage
+                              ),
+                              deleteProduct: getMutationProviderData(
+                                ...deleteProduct
+                              ),
+                              deleteProductImage: getMutationProviderData(
+                                ...deleteProductImage
+                              ),
+                              reorderProductImages: getMutationProviderData(
+                                ...reorderProductImages
+                              ),
+                              updateProduct: getMutationProviderData(
+                                ...updateProduct
+                              ),
+                              updateSimpleProduct: getMutationProviderData(
+                                ...updateSimpleProduct
+                              )
+                            })
+                          }
+                        </TypedSimpleProductUpdateMutation>
+                      )}
                     </TypedProductImageDeleteMutation>
                   )}
                 </TypedProductDeleteMutation>

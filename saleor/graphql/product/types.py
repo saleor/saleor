@@ -46,12 +46,18 @@ class StockAvailability(graphene.Enum):
 class ProductOrderField(graphene.Enum):
     NAME = 'name'
     PRICE = 'price'
+    DATE = 'updated_at'
 
     @property
     def description(self):
         if self == ProductOrderField.NAME:
             return 'Sort products by name.'
-        return 'Sort products by price.'
+
+        if self == ProductOrderField.PRICE:
+            return 'Sort products by price.'
+
+        if self == ProductOrderField.DATE:
+            return 'Sort products by update date.'
 
 
 class OrderDirection(graphene.Enum):
@@ -280,6 +286,7 @@ class Product(CountableDjangoObjectType):
         Money,
         description=dedent("""The product's base price (without any discounts
         applied)."""))
+    tax_rate = TaxRateType(description='A type of tax rate.')
     attributes = graphene.List(
         graphene.NonNull(SelectedAttribute), required=True,
         description='List of attributes assigned to this product.')
