@@ -127,7 +127,6 @@ const CollectionAssignProductDialog = withStyles(styles, {
                             className={classes.checkboxCell}
                           >
                             <Checkbox
-                              className={classes.checkbox}
                               checked={
                                 !!data.products.find(
                                   selectedProduct =>
