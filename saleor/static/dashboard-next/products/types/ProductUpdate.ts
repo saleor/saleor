@@ -174,7 +174,7 @@ export interface ProductUpdate_productUpdate_product {
 
 export interface ProductUpdate_productUpdate {
   __typename: "ProductUpdate";
-  errors: (ProductUpdate_productUpdate_errors | null)[] | null;
+  errors: ProductUpdate_productUpdate_errors[] | null;
   product: ProductUpdate_productUpdate_product | null;
 }
 

@@ -111,7 +111,7 @@ export interface VariantCreate_productVariantCreate_productVariant {
 
 export interface VariantCreate_productVariantCreate {
   __typename: "ProductVariantCreate";
-  errors: (VariantCreate_productVariantCreate_errors | null)[] | null;
+  errors: VariantCreate_productVariantCreate_errors[] | null;
   productVariant: VariantCreate_productVariantCreate_productVariant | null;
 }
 
