@@ -20,7 +20,7 @@ export interface CreateCustomer_customerCreate_user {
 
 export interface CreateCustomer_customerCreate {
   __typename: "CustomerCreate";
-  errors: (CreateCustomer_customerCreate_errors | null)[] | null;
+  errors: CreateCustomer_customerCreate_errors[] | null;
   user: CreateCustomer_customerCreate_user | null;
 }
 

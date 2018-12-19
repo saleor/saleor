@@ -32,7 +32,7 @@ export interface CollectionUpdate_collectionUpdate_collection {
 
 export interface CollectionUpdate_collectionUpdate {
   __typename: "CollectionUpdate";
-  errors: (CollectionUpdate_collectionUpdate_errors | null)[] | null;
+  errors: CollectionUpdate_collectionUpdate_errors[] | null;
   collection: CollectionUpdate_collectionUpdate_collection | null;
 }
 

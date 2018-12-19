@@ -256,7 +256,7 @@ export interface OrderDraftCancel_draftOrderDelete_order {
 
 export interface OrderDraftCancel_draftOrderDelete {
   __typename: "DraftOrderDelete";
-  errors: (OrderDraftCancel_draftOrderDelete_errors | null)[] | null;
+  errors: OrderDraftCancel_draftOrderDelete_errors[] | null;
   order: OrderDraftCancel_draftOrderDelete_order | null;
 }
 

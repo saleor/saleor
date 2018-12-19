@@ -111,7 +111,7 @@ export interface VariantUpdate_productVariantUpdate_productVariant {
 
 export interface VariantUpdate_productVariantUpdate {
   __typename: "ProductVariantUpdate";
-  errors: (VariantUpdate_productVariantUpdate_errors | null)[] | null;
+  errors: VariantUpdate_productVariantUpdate_errors[] | null;
   productVariant: VariantUpdate_productVariantUpdate_productVariant | null;
 }
 
