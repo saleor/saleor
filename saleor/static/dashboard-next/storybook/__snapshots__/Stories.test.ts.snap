@@ -843,6 +843,63 @@ exports[`Storyshots Categories / CategoryProducts without initial data 1`] = `
 </div>
 `;
 
+exports[`Storyshots Components / ErrorPage default 1`] = `
+<div>
+  <div
+    class="NotFoundPage-root-id"
+  >
+    <div
+      class="NotFoundPage-container-id"
+    >
+      <div
+        class="NotFoundPage-innerContainer-id"
+      >
+        <div>
+          <h1
+            class="MuiTypography-root-id MuiTypography-display1-id NotFoundPage-upperHeader-id"
+          >
+            Ooops!...
+          </h1>
+          <h1
+            class="MuiTypography-root-id MuiTypography-display2-id NotFoundPage-bottomHeader-id"
+          >
+            Error
+          </h1>
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id"
+          >
+            We've encountered a problem...
+          </p>
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id"
+          >
+            Don't worry, everything is gonna be fine
+          </p>
+        </div>
+        <div>
+          <button
+            class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id NotFoundPage-button-id"
+            tabindex="0"
+            type="button"
+          >
+            <span
+              class="MuiButton-label-id"
+            >
+              Back to home
+            </span>
+          </button>
+        </div>
+      </div>
+      <div>
+        <span
+          class="isvg pending NotFoundPage-notFoundImage-id"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Generics / ActionDialog default 1`] = `<div />`;
 
 exports[`Storyshots Generics / AddressEdit default 1`] = `
@@ -10165,8 +10222,8 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                 style="width:100%"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                  data-shrink="false"
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
                 >
                   Description
                 </label>
@@ -10189,18 +10246,22 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                       readonly=""
                       rows="1"
                       tabindex="-1"
-                    />
+                    >
+                      Lorem ipsum dolor sit amet
+                    </textarea>
                     <textarea
                       aria-invalid="false"
                       class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
                       name="description"
                       rows="1"
                       style="height:19px"
-                    />
+                    >
+                      Lorem ipsum dolor sit amet
+                    </textarea>
                   </div>
                 </div>
                 <p
-                  class="MuiFormHelperText-root-id"
+                  class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
                 >
                   Select text to enable text-formatting tools.
                 </p>
@@ -11769,8 +11830,8 @@ exports[`Storyshots Views / Collections / Collection details no products 1`] = `
                 style="width:100%"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                  data-shrink="false"
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
                 >
                   Description
                 </label>
@@ -11793,7 +11854,9 @@ exports[`Storyshots Views / Collections / Collection details no products 1`] = `
                       readonly=""
                       rows="1"
                       tabindex="-1"
-                    />
+                    >
+                      Lorem ipsum dolor sit amet
+                    </textarea>
                     <textarea
                       aria-invalid="false"
                       class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
@@ -11801,11 +11864,13 @@ exports[`Storyshots Views / Collections / Collection details no products 1`] = `
                       name="description"
                       rows="1"
                       style="height:19px"
-                    />
+                    >
+                      Lorem ipsum dolor sit amet
+                    </textarea>
                   </div>
                 </div>
                 <p
-                  class="MuiFormHelperText-root-id"
+                  class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
                 >
                   Select text to enable text-formatting tools.
                 </p>
@@ -46929,11 +46994,16 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
                         aria-invalid="false"
                         class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputType-id MuiInput-inputType-id"
                         disabled=""
-                        name="stockInventory"
+                        name="stockQuantity"
                         type="number"
                         value="0"
                       />
                     </div>
+                    <p
+                      class="MuiFormHelperText-root-id MuiFormHelperText-disabled-id MuiFormHelperText-filled-id"
+                    >
+                      Allocated: 
+                    </p>
                   </div>
                 </div>
               </div>
@@ -48793,8 +48863,8 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                     class="MuiFormControl-root-id"
                   >
                     <label
-                      class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                      data-shrink="true"
+                      class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                      data-shrink="false"
                     >
                       Inventory
                     </label>
@@ -48804,11 +48874,15 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                       <input
                         aria-invalid="false"
                         class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id"
-                        name="stockInventory"
+                        name="stockQuantity"
                         type="number"
-                        value="48"
                       />
                     </div>
+                    <p
+                      class="MuiFormHelperText-root-id"
+                    >
+                      Allocated: 
+                    </p>
                   </div>
                 </div>
               </div>
@@ -54010,7 +54084,7 @@ exports[`Storyshots Views / Staff / Staff member details default 1`] = `
                     <p
                       class="MuiTypography-root-id MuiTypography-body1-id StaffProperties-avatarText-id"
                     >
-                      JACOBSMITH
+                      JS
                     </p>
                   </div>
                 </div>
@@ -54021,44 +54095,77 @@ exports[`Storyshots Views / Staff / Staff member details default 1`] = `
                     <div
                       class="StaffProperties-prop-id"
                     >
-                      <p
-                        class="MuiTypography-root-id MuiTypography-body2-id"
+                      <div
+                        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                       >
-                        First Name
-                      </p>
-                      <p
-                        class="MuiTypography-root-id MuiTypography-body1-id"
-                      >
-                        Jacob
-                      </p>
+                        <label
+                          class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                          data-shrink="true"
+                        >
+                          First Name
+                        </label>
+                        <div
+                          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                        >
+                          <input
+                            aria-invalid="false"
+                            class="MuiInputBase-input-id MuiInput-input-id"
+                            name="firstName"
+                            type="text"
+                            value="Jacob"
+                          />
+                        </div>
+                      </div>
                     </div>
                     <div
                       class="StaffProperties-prop-id"
                     >
-                      <p
-                        class="MuiTypography-root-id MuiTypography-body2-id"
+                      <div
+                        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                       >
-                        Last Name
-                      </p>
-                      <p
-                        class="MuiTypography-root-id MuiTypography-body1-id"
-                      >
-                        Smith
-                      </p>
+                        <label
+                          class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                          data-shrink="true"
+                        >
+                          Last Name
+                        </label>
+                        <div
+                          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                        >
+                          <input
+                            aria-invalid="false"
+                            class="MuiInputBase-input-id MuiInput-input-id"
+                            name="lastName"
+                            type="text"
+                            value="Smith"
+                          />
+                        </div>
+                      </div>
                     </div>
                     <div
                       class="StaffProperties-prop-id"
                     >
-                      <p
-                        class="MuiTypography-root-id MuiTypography-body2-id"
+                      <div
+                        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                       >
-                        E-mail
-                      </p>
-                      <p
-                        class="MuiTypography-root-id MuiTypography-body1-id"
-                      >
-                        admin@example.com
-                      </p>
+                        <label
+                          class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                          data-shrink="true"
+                        >
+                          E-mail
+                        </label>
+                        <div
+                          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                        >
+                          <input
+                            aria-invalid="false"
+                            class="MuiInputBase-input-id MuiInput-input-id"
+                            name="email"
+                            type="text"
+                            value="admin@example.com"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -54381,44 +54488,74 @@ exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
                     <div
                       class="StaffProperties-prop-id"
                     >
-                      <p
-                        class="MuiTypography-root-id MuiTypography-body2-id"
+                      <div
+                        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                       >
-                        First Name
-                      </p>
-                      <span
-                        class="Skeleton-skeleton-id"
-                      >
-                        ‌
-                      </span>
+                        <label
+                          class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                          data-shrink="false"
+                        >
+                          First Name
+                        </label>
+                        <div
+                          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                        >
+                          <input
+                            aria-invalid="false"
+                            class="MuiInputBase-input-id MuiInput-input-id"
+                            name="firstName"
+                            type="text"
+                          />
+                        </div>
+                      </div>
                     </div>
                     <div
                       class="StaffProperties-prop-id"
                     >
-                      <p
-                        class="MuiTypography-root-id MuiTypography-body2-id"
+                      <div
+                        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                       >
-                        Last Name
-                      </p>
-                      <span
-                        class="Skeleton-skeleton-id"
-                      >
-                        ‌
-                      </span>
+                        <label
+                          class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                          data-shrink="false"
+                        >
+                          Last Name
+                        </label>
+                        <div
+                          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                        >
+                          <input
+                            aria-invalid="false"
+                            class="MuiInputBase-input-id MuiInput-input-id"
+                            name="lastName"
+                            type="text"
+                          />
+                        </div>
+                      </div>
                     </div>
                     <div
                       class="StaffProperties-prop-id"
                     >
-                      <p
-                        class="MuiTypography-root-id MuiTypography-body2-id"
+                      <div
+                        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                       >
-                        E-mail
-                      </p>
-                      <span
-                        class="Skeleton-skeleton-id"
-                      >
-                        ‌
-                      </span>
+                        <label
+                          class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                          data-shrink="false"
+                        >
+                          E-mail
+                        </label>
+                        <div
+                          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                        >
+                          <input
+                            aria-invalid="false"
+                            class="MuiInputBase-input-id MuiInput-input-id"
+                            name="email"
+                            type="text"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -55103,7 +55240,7 @@ exports[`Storyshots Views / Staff / Staff member details not admin 1`] = `
                     <p
                       class="MuiTypography-root-id MuiTypography-body1-id StaffProperties-avatarText-id"
                     >
-                      JACOBSMITH
+                      JS
                     </p>
                   </div>
                 </div>
@@ -55114,44 +55251,77 @@ exports[`Storyshots Views / Staff / Staff member details not admin 1`] = `
                     <div
                       class="StaffProperties-prop-id"
                     >
-                      <p
-                        class="MuiTypography-root-id MuiTypography-body2-id"
+                      <div
+                        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                       >
-                        First Name
-                      </p>
-                      <p
-                        class="MuiTypography-root-id MuiTypography-body1-id"
-                      >
-                        Jacob
-                      </p>
+                        <label
+                          class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                          data-shrink="true"
+                        >
+                          First Name
+                        </label>
+                        <div
+                          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                        >
+                          <input
+                            aria-invalid="false"
+                            class="MuiInputBase-input-id MuiInput-input-id"
+                            name="firstName"
+                            type="text"
+                            value="Jacob"
+                          />
+                        </div>
+                      </div>
                     </div>
                     <div
                       class="StaffProperties-prop-id"
                     >
-                      <p
-                        class="MuiTypography-root-id MuiTypography-body2-id"
+                      <div
+                        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                       >
-                        Last Name
-                      </p>
-                      <p
-                        class="MuiTypography-root-id MuiTypography-body1-id"
-                      >
-                        Smith
-                      </p>
+                        <label
+                          class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                          data-shrink="true"
+                        >
+                          Last Name
+                        </label>
+                        <div
+                          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                        >
+                          <input
+                            aria-invalid="false"
+                            class="MuiInputBase-input-id MuiInput-input-id"
+                            name="lastName"
+                            type="text"
+                            value="Smith"
+                          />
+                        </div>
+                      </div>
                     </div>
                     <div
                       class="StaffProperties-prop-id"
                     >
-                      <p
-                        class="MuiTypography-root-id MuiTypography-body2-id"
+                      <div
+                        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                       >
-                        E-mail
-                      </p>
-                      <p
-                        class="MuiTypography-root-id MuiTypography-body1-id"
-                      >
-                        admin@example.com
-                      </p>
+                        <label
+                          class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                          data-shrink="true"
+                        >
+                          E-mail
+                        </label>
+                        <div
+                          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                        >
+                          <input
+                            aria-invalid="false"
+                            class="MuiInputBase-input-id MuiInput-input-id"
+                            name="email"
+                            type="text"
+                            value="admin@example.com"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -55893,7 +56063,7 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
                 >
-                  CHRISCOOPER
+                  CC
                 </p>
               </div>
               <p
@@ -55925,7 +56095,7 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
                 >
-                  JACOBSMITH
+                  JS
                 </p>
               </div>
               <p
@@ -55957,7 +56127,7 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
                 >
-                  JACOBSMITH
+                  JS
                 </p>
               </div>
               <p
@@ -55989,7 +56159,7 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
                 >
-                  JACOBSMITH
+                  JS
                 </p>
               </div>
               <p
@@ -56021,7 +56191,7 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
                 >
-                  JACOBSMITH
+                  JS
                 </p>
               </div>
               <p
@@ -56053,7 +56223,7 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
                 >
-                  JACOBSMITH
+                  JS
                 </p>
               </div>
               <p
@@ -56085,7 +56255,7 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
                 >
-                  JACOBSMITH
+                  JS
                 </p>
               </div>
               <p
@@ -56117,7 +56287,7 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
                 >
-                  JACOBSMITH
+                  JS
                 </p>
               </div>
               <p
@@ -56149,7 +56319,7 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
                 >
-                  JACOBSMITH
+                  JS
                 </p>
               </div>
               <p
@@ -56181,7 +56351,7 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
                 >
-                  JACOBSMITH
+                  JS
                 </p>
               </div>
               <p
@@ -56213,7 +56383,7 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
                 >
-                  JACOBSMITH
+                  JS
                 </p>
               </div>
               <p
@@ -56245,7 +56415,7 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id StaffList-avatarText-id"
                 >
-                  JACOBSMITH
+                  JS
                 </p>
               </div>
               <p

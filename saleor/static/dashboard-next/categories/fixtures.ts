@@ -102,7 +102,7 @@ export const category: (
             id: "UHJvZHVjdFR5cGU6Mw==",
             name: "Coffee"
           },
-          thumbnailUrl: placeholderImage
+          thumbnail: { __typename: "Image", url: placeholderImage }
         }
       },
       {
@@ -126,7 +126,7 @@ export const category: (
             id: "UHJvZHVjdFR5cGU6Mw==",
             name: "Coffee"
           },
-          thumbnailUrl: placeholderImage
+          thumbnail: { __typename: "Image", url: placeholderImage }
         }
       },
       {
@@ -150,7 +150,7 @@ export const category: (
             id: "UHJvZHVjdFR5cGU6Mw==",
             name: "Coffee"
           },
-          thumbnailUrl: placeholderImage
+          thumbnail: { __typename: "Image", url: placeholderImage }
         }
       },
       {
@@ -174,7 +174,7 @@ export const category: (
             id: "UHJvZHVjdFR5cGU6Mw==",
             name: "Coffee"
           },
-          thumbnailUrl: placeholderImage
+          thumbnail: { __typename: "Image", url: placeholderImage }
         }
       },
       {
@@ -198,7 +198,7 @@ export const category: (
             id: "UHJvZHVjdFR5cGU6Mw==",
             name: "Coffee"
           },
-          thumbnailUrl: placeholderImage
+          thumbnail: { __typename: "Image", url: placeholderImage }
         }
       },
       {
@@ -222,7 +222,7 @@ export const category: (
             id: "UHJvZHVjdFR5cGU6Mw==",
             name: "Coffee"
           },
-          thumbnailUrl: placeholderImage
+          thumbnail: { __typename: "Image", url: placeholderImage }
         }
       },
       {
@@ -246,7 +246,7 @@ export const category: (
             id: "UHJvZHVjdFR5cGU6Mw==",
             name: "Coffee"
           },
-          thumbnailUrl: placeholderImage
+          thumbnail: { __typename: "Image", url: placeholderImage }
         }
       },
       {
@@ -270,7 +270,7 @@ export const category: (
             id: "UHJvZHVjdFR5cGU6Mw==",
             name: "Coffee"
           },
-          thumbnailUrl: placeholderImage
+          thumbnail: { __typename: "Image", url: placeholderImage }
         }
       },
       {
@@ -294,7 +294,7 @@ export const category: (
             id: "UHJvZHVjdFR5cGU6Mw==",
             name: "Coffee"
           },
-          thumbnailUrl: placeholderImage
+          thumbnail: { __typename: "Image", url: placeholderImage }
         }
       },
       {
@@ -318,7 +318,7 @@ export const category: (
             id: "UHJvZHVjdFR5cGU6Mw==",
             name: "Coffee"
           },
-          thumbnailUrl: placeholderImage
+          thumbnail: { __typename: "Image", url: placeholderImage }
         }
       }
     ],

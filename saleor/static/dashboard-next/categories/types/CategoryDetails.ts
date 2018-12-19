@@ -5,15 +5,15 @@
 // GraphQL query operation: CategoryDetails
 // ====================================================
 
-export interface CategoryDetails_category_parent {
-  __typename: "Category";
-  id: string;
-}
-
 export interface CategoryDetails_category_backgroundImage {
   __typename: "Image";
   alt: string | null;
   url: string;
+}
+
+export interface CategoryDetails_category_parent {
+  __typename: "Category";
+  id: string;
 }
 
 export interface CategoryDetails_category_children_edges_node_children {
@@ -57,6 +57,11 @@ export interface CategoryDetails_category_products_edges_node_availability {
   available: boolean | null;
 }
 
+export interface CategoryDetails_category_products_edges_node_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface CategoryDetails_category_products_edges_node_price {
   __typename: "Money";
   amount: number;
@@ -74,7 +79,7 @@ export interface CategoryDetails_category_products_edges_node {
   id: string;
   name: string;
   availability: CategoryDetails_category_products_edges_node_availability | null;
-  thumbnailUrl: string | null;
+  thumbnail: CategoryDetails_category_products_edges_node_thumbnail | null;
   price: CategoryDetails_category_products_edges_node_price | null;
   productType: CategoryDetails_category_products_edges_node_productType;
 }
@@ -94,12 +99,12 @@ export interface CategoryDetails_category_products {
 export interface CategoryDetails_category {
   __typename: "Category";
   id: string;
+  backgroundImage: CategoryDetails_category_backgroundImage | null;
   name: string;
   description: string;
   seoDescription: string | null;
   seoTitle: string | null;
   parent: CategoryDetails_category_parent | null;
-  backgroundImage: CategoryDetails_category_backgroundImage | null;
   children: CategoryDetails_category_children | null;
   products: CategoryDetails_category_products | null;
 }

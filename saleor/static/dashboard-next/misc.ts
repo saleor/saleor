@@ -153,13 +153,15 @@ export function hasErrors(errorList: UserError[] | null): boolean {
 export function getMutationState(
   called: boolean,
   loading: boolean,
-  errorList: UserError[]
+  ...errorList: UserError[][]
 ): ConfirmButtonTransitionState {
   if (loading) {
     return "loading";
   }
   if (called) {
-    return hasErrors(errorList) ? "error" : "success";
+    return errorList.map(hasErrors).reduce((acc, curr) => acc || curr, false)
+      ? "error"
+      : "success";
   }
   return "default";
 }
@@ -193,7 +195,7 @@ export function getUserName(user?: User, returnEmail?: boolean) {
 export function getUserInitials(user?: User) {
   return user && (user.email || (user.firstName && user.lastName))
     ? (user.firstName && user.lastName
-        ? user.firstName + user.lastName
+        ? user.firstName[0] + user.lastName[0]
         : user.email.slice(0, 2)
       ).toUpperCase()
     : null;

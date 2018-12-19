@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-10-05 06:34-0500\n"
+"POT-Creation-Date: 2018-12-03 09:23-0600\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
 "Last-Translator: Mikkel Scheike <scheike@outlook.com>, 2018\n"
 "Language-Team: Danish (https://www.transifex.com/mirumee/teams/34782/da/)\n"
@@ -20,6 +20,14 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: da\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:75
+msgid "Missing source"
+msgstr "Manglende kilde"
+
+#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:136
+msgid "\n"
+msgstr "\n"
 
 #: saleor/static/dashboard/js/components/bulk-actions.js:89
 msgid "item selected"
@@ -287,62 +295,62 @@ msgctxt "Datepicker option"
 msgid "Close"
 msgstr "Tæt"
 
-#: saleor/static/dashboard/js/components/editor.js:24
+#: saleor/static/dashboard/js/components/editor.js:27
 msgctxt "Rich text editor option"
 msgid "Bold text"
 msgstr "Fed skrift"
 
-#: saleor/static/dashboard/js/components/editor.js:28
+#: saleor/static/dashboard/js/components/editor.js:31
 msgctxt "Rich text editor option"
 msgid "Italic text"
 msgstr "Kursiv skrift"
 
-#: saleor/static/dashboard/js/components/editor.js:32
+#: saleor/static/dashboard/js/components/editor.js:35
 msgctxt "Rich text editor option"
 msgid "Header"
 msgstr "Header"
 
-#: saleor/static/dashboard/js/components/editor.js:39
+#: saleor/static/dashboard/js/components/editor.js:42
 msgctxt "Rich text editor option"
 msgid "Subheader"
 msgstr "Underheader"
 
-#: saleor/static/dashboard/js/components/editor.js:46
+#: saleor/static/dashboard/js/components/editor.js:49
 msgctxt "Rich text editor option"
 msgid "Quote"
 msgstr "Citat"
 
-#: saleor/static/dashboard/js/components/editor.js:51
+#: saleor/static/dashboard/js/components/editor.js:54
 msgctxt "Rich text editor option"
 msgid "Link"
 msgstr "Link"
 
-#: saleor/static/dashboard/js/components/editor.js:58
+#: saleor/static/dashboard/js/components/editor.js:61
 msgctxt "Rich text editor option"
 msgid "Image (converts selected text to an image tag)"
 msgstr "Billede (konvetere valgte tekst til et billedetag)"
 
-#: saleor/static/dashboard/js/components/editor.js:63
+#: saleor/static/dashboard/js/components/editor.js:66
 msgctxt "Rich text editor option"
 msgid "Left align"
 msgstr "Venstrejuster"
 
-#: saleor/static/dashboard/js/components/editor.js:68
+#: saleor/static/dashboard/js/components/editor.js:71
 msgctxt "Rich text editor option"
 msgid "Center align"
 msgstr "Centreret"
 
-#: saleor/static/dashboard/js/components/editor.js:73
+#: saleor/static/dashboard/js/components/editor.js:76
 msgctxt "Rich text editor option"
 msgid "Right align"
 msgstr "Højrejuster"
 
-#: saleor/static/dashboard/js/components/editor.js:78
+#: saleor/static/dashboard/js/components/editor.js:81
 msgctxt "Rich text editor option"
 msgid "Justify"
 msgstr "Lige magener"
 
-#: saleor/static/dashboard/js/components/editor.js:83
+#: saleor/static/dashboard/js/components/editor.js:86
 msgctxt "Rich text editor option"
 msgid "Remove formatting"
 msgstr "Fjern formatering"

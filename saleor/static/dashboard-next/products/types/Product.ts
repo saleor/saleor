@@ -128,8 +128,10 @@ export interface Product_variants {
   sku: string;
   name: string;
   priceOverride: Product_variants_priceOverride | null;
-  stockQuantity: number;
   margin: number | null;
+  quantity: number;
+  quantityAllocated: number;
+  stockQuantity: number;
 }
 
 export interface Product_productType {
