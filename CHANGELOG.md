@@ -36,5 +36,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add publication date to collections - #3369 by @k-brk
 - Resolve to `None` when empty object ID was passed as mutation argument - #3497 by @maarcingebala
 - Fix simple product's inventory data saving bug - #3474 by @dominik-zeglen
-- Fix simple product's inventory data saving bug - #3474 by @dominik-zeglen
 - Change "Feature on Homepage" switch behavior - #3481 by @dominik-zeglen
