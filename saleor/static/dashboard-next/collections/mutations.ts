@@ -3,10 +3,6 @@ import gql from "graphql-tag";
 import { TypedMutation } from "../mutations";
 import { collectionDetailsFragment } from "./queries";
 import {
-  AssignHomepageCollection,
-  AssignHomepageCollectionVariables
-} from "./types/AssignHomepageCollection";
-import {
   CollectionAssignProduct,
   CollectionAssignProductVariables
 } from "./types/CollectionAssignProduct";
@@ -14,6 +10,10 @@ import {
   CollectionUpdate,
   CollectionUpdateVariables
 } from "./types/CollectionUpdate";
+import {
+  CollectionUpdateWithHomepage,
+  CollectionUpdateWithHomepageVariables
+} from "./types/CollectionUpdateWithHomepage";
 import {
   CreateCollection,
   CreateCollectionVariables
@@ -46,9 +46,14 @@ export const TypedCollectionUpdateMutation = TypedMutation<
   CollectionUpdateVariables
 >(collectionUpdate);
 
-const assignHomepageCollection = gql`
-  mutation AssignHomepageCollection($id: ID) {
-    homepageCollectionUpdate(collection: $id) {
+const collectionUpdateWithHomepage = gql`
+  ${collectionDetailsFragment}
+  mutation CollectionUpdateWithHomepage(
+    $id: ID!
+    $input: CollectionInput!
+    $homepageId: ID
+  ) {
+    homepageCollectionUpdate(collection: $homepageId) {
       errors {
         field
         message
@@ -59,12 +64,21 @@ const assignHomepageCollection = gql`
         }
       }
     }
+    collectionUpdate(id: $id, input: $input) {
+      errors {
+        field
+        message
+      }
+      collection {
+        ...CollectionDetailsFragment
+      }
+    }
   }
 `;
-export const TypedAssignHomepageCollectionMutation = TypedMutation<
-  AssignHomepageCollection,
-  AssignHomepageCollectionVariables
->(assignHomepageCollection);
+export const TypedCollectionUpdateWithHomepageMutation = TypedMutation<
+  CollectionUpdateWithHomepage,
+  CollectionUpdateWithHomepageVariables
+>(collectionUpdateWithHomepage);
 
 const assignCollectionProduct = gql`
   mutation CollectionAssignProduct(
