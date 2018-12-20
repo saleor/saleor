@@ -80,6 +80,9 @@ class BaseMutation(graphene.Mutation):
 
     @classmethod
     def get_node_or_error(cls, info, global_id, errors, field, only_type=None):
+        if not global_id:
+            return None
+
         node = None
         try:
             node = graphene.Node.get_node_from_global_id(
