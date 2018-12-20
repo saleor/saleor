@@ -3,16 +3,12 @@ import * as React from "react";
 import { getMutationProviderData } from "../../misc";
 import { PartialMutationProviderOutput } from "../../types";
 import {
-  TypedAssignHomepageCollectionMutation,
   TypedCollectionAssignProductMutation,
   TypedCollectionRemoveMutation,
   TypedCollectionUpdateMutation,
+  TypedCollectionUpdateWithHomepageMutation,
   TypedUnassignCollectionProductMutation
 } from "../mutations";
-import {
-  AssignHomepageCollection,
-  AssignHomepageCollectionVariables
-} from "../types/AssignHomepageCollection";
 import {
   CollectionAssignProduct,
   CollectionAssignProductVariables
@@ -21,6 +17,10 @@ import {
   CollectionUpdate,
   CollectionUpdateVariables
 } from "../types/CollectionUpdate";
+import {
+  CollectionUpdateWithHomepage,
+  CollectionUpdateWithHomepageVariables
+} from "../types/CollectionUpdateWithHomepage";
 import {
   RemoveCollection,
   RemoveCollectionVariables
@@ -33,9 +33,9 @@ import {
 interface CollectionUpdateOperationsProps {
   children: (
     props: {
-      assignHomepageCollection: PartialMutationProviderOutput<
-        AssignHomepageCollection,
-        AssignHomepageCollectionVariables
+      updateCollectionWithHomepage: PartialMutationProviderOutput<
+        CollectionUpdateWithHomepage,
+        CollectionUpdateWithHomepageVariables
       >;
       assignProduct: PartialMutationProviderOutput<
         CollectionAssignProduct,
@@ -55,7 +55,6 @@ interface CollectionUpdateOperationsProps {
       >;
     }
   ) => React.ReactNode;
-  onHomepageCollectionAssign: (data: AssignHomepageCollection) => void;
   onUpdate: (data: CollectionUpdate) => void;
   onProductAssign: (data: CollectionAssignProduct) => void;
   onProductUnassign: (data: UnassignCollectionProduct) => void;
@@ -64,32 +63,20 @@ interface CollectionUpdateOperationsProps {
 
 const CollectionOperations: React.StatelessComponent<
   CollectionUpdateOperationsProps
-> = ({
-  children,
-  onHomepageCollectionAssign,
-  onUpdate,
-  onProductAssign,
-  onProductUnassign,
-  onRemove
-}) => (
+> = ({ children, onUpdate, onProductAssign, onProductUnassign, onRemove }) => (
   <TypedCollectionUpdateMutation onCompleted={onUpdate}>
     {(...updateCollection) => (
       <TypedCollectionRemoveMutation onCompleted={onRemove}>
         {(...removeCollection) => (
           <TypedCollectionAssignProductMutation onCompleted={onProductAssign}>
             {(...assignProduct) => (
-              <TypedAssignHomepageCollectionMutation
-                onCompleted={onHomepageCollectionAssign}
-              >
-                {(...assignHomepageCollection) => (
+              <TypedCollectionUpdateWithHomepageMutation onCompleted={onUpdate}>
+                {(...updateWithHomepage) => (
                   <TypedUnassignCollectionProductMutation
                     onCompleted={onProductUnassign}
                   >
                     {(...unassignProduct) =>
                       children({
-                        assignHomepageCollection: getMutationProviderData(
-                          ...assignHomepageCollection
-                        ),
                         assignProduct: getMutationProviderData(
                           ...assignProduct
                         ),
@@ -101,12 +88,15 @@ const CollectionOperations: React.StatelessComponent<
                         ),
                         updateCollection: getMutationProviderData(
                           ...updateCollection
+                        ),
+                        updateCollectionWithHomepage: getMutationProviderData(
+                          ...updateWithHomepage
                         )
                       })
                     }
                   </TypedUnassignCollectionProductMutation>
                 )}
-              </TypedAssignHomepageCollectionMutation>
+              </TypedCollectionUpdateWithHomepageMutation>
             )}
           </TypedCollectionAssignProductMutation>
         )}

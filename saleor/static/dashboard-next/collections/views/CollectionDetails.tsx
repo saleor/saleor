@@ -122,7 +122,6 @@ export const CollectionDetails: React.StatelessComponent<
                     };
                     return (
                       <CollectionOperations
-                        onHomepageCollectionAssign={() => undefined}
                         onUpdate={handleCollectionUpdate}
                         onProductAssign={handleProductAssign}
                         onProductUnassign={handleProductUnassign}
@@ -130,7 +129,7 @@ export const CollectionDetails: React.StatelessComponent<
                       >
                         {({
                           updateCollection,
-                          assignHomepageCollection,
+                          updateCollectionWithHomepage,
                           assignProduct,
                           unassignProduct,
                           removeCollection
@@ -138,38 +137,54 @@ export const CollectionDetails: React.StatelessComponent<
                           const handleSubmit = (
                             formData: CollectionDetailsPageFormData
                           ) => {
-                            updateCollection.mutate({
-                              id,
-                              input: {
-                                backgroundImageAlt: formData.backgroundImageAlt,
-                                description: formData.description,
-                                isPublished: formData.isPublished,
-                                name: formData.name,
-                                seo: {
-                                  description: formData.seoDescription,
-                                  title: formData.seoTitle
-                                }
+                            const input = {
+                              backgroundImageAlt: formData.backgroundImageAlt,
+                              description: formData.description,
+                              isPublished: formData.isPublished,
+                              name: formData.name,
+                              seo: {
+                                description: formData.seoDescription,
+                                title: formData.seoTitle
                               }
-                            });
-                            if (
-                              data.shop.homepageCollection !== null &&
-                              formData.isFeatured !==
-                                (data.shop.homepageCollection.id ===
-                                  data.collection.id)
-                            ) {
-                              assignHomepageCollection.mutate({
-                                id: formData.isFeatured ? id : null
+                            };
+                            const isFeatured = data.shop.homepageCollection
+                              ? data.shop.homepageCollection.id ===
+                                data.collection.id
+                              : false;
+
+                            if (formData.isFeatured !== isFeatured) {
+                              updateCollectionWithHomepage.mutate({
+                                homepageId: formData.isFeatured ? id : null,
+                                id,
+                                input
+                              });
+                            } else {
+                              updateCollection.mutate({
+                                id,
+                                input
                               });
                             }
                           };
 
                           const formTransitionState = getMutationState(
-                            updateCollection.opts.called,
-                            updateCollection.opts.loading,
+                            updateCollection.opts.called ||
+                              updateCollectionWithHomepage.opts.called,
+                            updateCollection.opts.loading ||
+                              updateCollectionWithHomepage.opts.loading,
                             maybe(
                               () =>
                                 updateCollection.opts.data.collectionUpdate
                                   .errors
+                            ),
+                            maybe(
+                              () =>
+                                updateCollectionWithHomepage.opts.data
+                                  .collectionUpdate.errors
+                            ),
+                            maybe(
+                              () =>
+                                updateCollectionWithHomepage.opts.data
+                                  .homepageCollectionUpdate.errors
                             )
                           );
                           const assignTransitionState = getMutationState(

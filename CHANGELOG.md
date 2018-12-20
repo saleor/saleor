@@ -35,4 +35,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Update favicons to the new style - #3483 by @dominik-zeglen
 - Add publication date to collections - #3369 by @k-brk
 - Resolve to `None` when empty object ID was passed as mutation argument - #3497 by @maarcingebala
-- Improve shipping methods generator - #3500 by @maarcingebala
+- Change "Feature on Homepage" switch behavior - #3481 by @dominik-zeglen
