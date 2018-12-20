@@ -147,13 +147,12 @@ export const CollectionDetails: React.StatelessComponent<
                                 title: formData.seoTitle
                               }
                             };
+                            const isFeatured = data.shop.homepageCollection
+                              ? data.shop.homepageCollection.id ===
+                                data.collection.id
+                              : false;
 
-                            if (
-                              data.shop.homepageCollection !== null &&
-                              formData.isFeatured !==
-                                (data.shop.homepageCollection.id ===
-                                  data.collection.id)
-                            ) {
+                            if (formData.isFeatured !== isFeatured) {
                               updateCollectionWithHomepage.mutate({
                                 homepageId: formData.isFeatured ? id : null,
                                 id,
