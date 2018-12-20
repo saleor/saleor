@@ -442,8 +442,8 @@ def create_shipping_zone(
             type=(
                 ShippingMethodType.PRICE_BASED if random.randint(0, 1)
                 else ShippingMethodType.WEIGHT_BASED),
-            minimum_order_price=fake.money(), maximum_order_price=None,
-            minimum_order_weight=fake.weight(), maximum_order_weight=None)
+            minimum_order_price=0, maximum_order_price=None,
+            minimum_order_weight=0, maximum_order_weight=None)
         for name in shipping_methods_names])
     return 'Shipping Zone: %s' % shipping_zone
 
