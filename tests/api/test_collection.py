@@ -2,6 +2,7 @@ from unittest.mock import Mock
 
 import graphene
 import pytest
+from datetime import date
 from django.utils.text import slugify
 from graphql_relay import to_global_id
 
@@ -56,9 +57,9 @@ def test_create_collection(
         monkeypatch, staff_api_client, product_list, permission_manage_products):
     query = """
         mutation createCollection(
-            $name: String!, $slug: String!, $description: String, $products: [ID], $backgroundImage: Upload!, $backgroundImageAlt: String, $isPublished: Boolean!) {
+            $name: String!, $slug: String!, $description: String, $products: [ID], $backgroundImage: Upload!, $backgroundImageAlt: String, $isPublished: Boolean!, $publishedDate: Date) {
             collectionCreate(
-                input: {name: $name, slug: $slug, description: $description, products: $products, backgroundImage: $backgroundImage, backgroundImageAlt: $backgroundImageAlt, isPublished: $isPublished}) {
+                input: {name: $name, slug: $slug, description: $description, products: $products, backgroundImage: $backgroundImage, backgroundImageAlt: $backgroundImageAlt, isPublished: $isPublished, publishedDate: $publishedDate}) {
                 collection {
                     name
                     slug
@@ -66,6 +67,7 @@ def test_create_collection(
                     products {
                         totalCount
                     }
+                    publishedDate
                     backgroundImage{
                         alt
                     }
@@ -87,10 +89,12 @@ def test_create_collection(
     name = 'test-name'
     slug = 'test-slug'
     description = 'test-description'
+    published_date = date.today()
     variables = {
         'name': name, 'slug': slug, 'description': description,
         'products': product_ids, 'backgroundImage': image_name,
-        'backgroundImageAlt': image_alt, 'isPublished': True}
+        'backgroundImageAlt': image_alt, 'isPublished': True,
+        'publishedDate': published_date}
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products])
@@ -99,6 +103,7 @@ def test_create_collection(
     assert data['name'] == name
     assert data['slug'] == slug
     assert data['description'] == description
+    assert data['publishedDate'] == published_date.isoformat()
     assert data['products']['totalCount'] == len(product_ids)
     collection = Collection.objects.get(slug=slug)
     assert collection.background_image.file
@@ -128,7 +133,7 @@ def test_create_collection_without_background_image(
         mock_create_thumbnails)
 
     variables = {
-        'name': 'test-name', 'slug': 'test-slug', 'isPublished': True}
+        'name': 'test-name', 'slug': 'test-slug', 'isPublished': True,}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     get_graphql_content(response)
@@ -139,13 +144,14 @@ def test_update_collection(
         monkeypatch, staff_api_client, collection, permission_manage_products):
     query = """
         mutation updateCollection(
-            $name: String!, $slug: String!, $description: String, $id: ID!, $isPublished: Boolean!) {
+            $name: String!, $slug: String!, $description: String, $id: ID!, $isPublished: Boolean!, $publishedDate: Date) {
             collectionUpdate(
-                id: $id, input: {name: $name, slug: $slug, description: $description, isPublished: $isPublished}) {
+                id: $id, input: {name: $name, slug: $slug, description: $description, isPublished: $isPublished, publishedDate: $publishedDate}) {
                 collection {
                     name
                     slug
                     description
+                    publishedDate
                 }
             }
         }
@@ -160,15 +166,17 @@ def test_update_collection(
     name = 'new-name'
     slug = 'new-slug'
     description = 'new-description'
+    published_date = date.today()
     variables = {
         'name': name, 'slug': slug, 'description': description,
-        'id': to_global_id('Collection', collection.id), 'isPublished': True}
+        'id': to_global_id('Collection', collection.id), 'isPublished': True, 'publishedDate': published_date}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     data = content['data']['collectionUpdate']['collection']
     assert data['name'] == name
     assert data['slug'] == slug
+    assert data['publishedDate'] == published_date.isoformat()
     assert mock_create_thumbnails.call_count == 0
 
 

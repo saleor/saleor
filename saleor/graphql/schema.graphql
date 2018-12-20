@@ -409,6 +409,7 @@ type Collection implements Node {
   backgroundImage(size: Int): Image
   isPublished: Boolean!
   description: String!
+  publishedDate: Date
 }
 
 type CollectionAddProducts {
@@ -440,6 +441,7 @@ input CollectionCreateInput {
   backgroundImage: Upload
   backgroundImageAlt: String
   seo: SeoInput
+  publishedDate: Date
   products: [ID]
 }
 
@@ -456,6 +458,7 @@ input CollectionInput {
   backgroundImage: Upload
   backgroundImageAlt: String
   seo: SeoInput
+  publishedDate: Date
 }
 
 type CollectionRemoveProducts {

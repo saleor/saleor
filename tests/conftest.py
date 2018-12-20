@@ -1,6 +1,5 @@
 from io import BytesIO
 from unittest.mock import MagicMock, Mock
-
 import pytest
 from django.contrib.auth.models import Permission
 from django.contrib.sites.models import Site

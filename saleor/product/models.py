@@ -435,7 +435,10 @@ class VariantImage(models.Model):
 class CollectionQuerySet(models.QuerySet):
 
     def public(self):
-        return self.filter(is_published=True)
+        return self.filter(
+            Q(is_published=True),
+            Q(published_date__isnull=True)
+            | Q(published_date__lte=datetime.date.today()))
 
     def visible_to_user(self, user):
         has_access_to_all = (
@@ -455,7 +458,7 @@ class Collection(SeoModel):
     background_image_alt = models.CharField(max_length=128, blank=True)
     is_published = models.BooleanField(default=False)
     description = models.TextField(blank=True)
-
+    published_date = models.DateField(blank=True, null=True)
     objects = CollectionQuerySet.as_manager()
     translated = TranslationProxy()
 
@@ -469,6 +472,12 @@ class Collection(SeoModel):
         return reverse(
             'product:collection',
             kwargs={'pk': self.id, 'slug': self.slug})
+
+    @property
+    def is_visible(self):
+        return self.is_published and (
+            self.published_date is None or
+            self.published_date <= datetime.date.today())
 
 
 class CollectionTranslation(SeoModelTranslation):
