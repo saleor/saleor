@@ -12,7 +12,7 @@ import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
 import { Hr } from "../../../components/Hr";
-import Money from "../../../components/Money";
+import Money, { subtractMoney } from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import i18n from "../../../i18n";
@@ -145,6 +145,50 @@ const OrderPayment = withStyles(styles, { name: "OrderPayment" })(
                     <Skeleton />
                   ) : (
                     <Money money={order.total.gross} />
+                  )}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </CardContent>
+        <Hr />
+        <CardContent>
+          <table className={classes.root}>
+            <tbody>
+              <tr>
+                <td>{i18n.t("Preauthorized amount")}</td>
+                <td className={classes.textRight}>
+                  {maybe(() => order.totalAuthorized.amount) === undefined ? (
+                    <Skeleton />
+                  ) : (
+                    <Money money={order.totalAuthorized} />
+                  )}
+                </td>
+              </tr>
+              <tr>
+                <td>{i18n.t("Captured amount")}</td>
+                <td className={classes.textRight}>
+                  {maybe(() => order.totalCaptured.amount) === undefined ? (
+                    <Skeleton />
+                  ) : (
+                    <Money money={order.totalCaptured} />
+                  )}
+                </td>
+              </tr>
+              <tr className={classes.totalRow}>
+                <td>{i18n.t("Balance")}</td>
+                <td className={classes.textRight}>
+                  {maybe(
+                    () => order.total.gross.amount && order.totalCaptured.amount
+                  ) === undefined ? (
+                    <Skeleton />
+                  ) : (
+                    <Money
+                      money={subtractMoney(
+                        order.totalCaptured,
+                        order.total.gross
+                      )}
+                    />
                   )}
                 </td>
               </tr>
