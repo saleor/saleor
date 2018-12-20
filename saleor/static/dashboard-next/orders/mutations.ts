@@ -397,8 +397,8 @@ export const TypedOrderLineDeleteMutation = TypedMutation<
 
 const orderLineAddMutation = gql`
   ${fragmentOrderDetails}
-  mutation OrderLineAdd($id: ID!, $input: OrderLineCreateInput!) {
-    draftOrderLineCreate(id: $id, input: $input) {
+  mutation OrderLineAdd($id: ID!, $input: [OrderLineCreateInput]!) {
+    draftOrderLinesCreate(id: $id, input: $input) {
       errors {
         field
         message
