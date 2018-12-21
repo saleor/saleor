@@ -39,9 +39,7 @@ export interface FormData {
 const styles = (theme: Theme) =>
   createStyles({
     avatar: {
-      "&:first-child": {
-        paddingLeft: 0
-      }
+      paddingLeft: 0
     },
     content: {
       maxHeight: 600,
@@ -62,7 +60,9 @@ const styles = (theme: Theme) =>
     textRight: {
       textAlign: "right"
     },
-    variantCheckboxCell: {},
+    variantCheckbox: {
+      paddingLeft: theme.spacing.unit
+    },
     wideCell: {
       width: "100%"
     }
@@ -209,8 +209,9 @@ const OrderProductAddDialog = withStyles(styles, {
                         {product.variants.map(variant => (
                           <TableRow key={variant.id}>
                             <TableCell />
-                            <TableCell className={classes.variantCheckboxCell}>
+                            <TableCell>
                               <Checkbox
+                                className={classes.variantCheckbox}
                                 checked={
                                   !!data.variants.find(
                                     selectedVariant =>
