@@ -273,16 +273,18 @@ class ProductInput(graphene.InputObjectType):
     seo = SeoInput(description='Search engine optimization fields.')
     weight = WeightScalar(
         description='Weight of the Product.', required=False)
-    sku = graphene.String(description=dedent("""Stock keeping unit. Note: this
-    field is required only used for products without variants."""))
+    sku = graphene.String(
+        description=dedent("""Stock keeping unit of a product. Note: this
+        field is only used if a product doesn't use variants."""))
     quantity = graphene.Int(
-        description=dedent("""The total quantity of this variant availablefor
-        sale. Note: this field is only used for products without variants."""))
+        description=dedent("""The total quantity of a product available for
+        sale. Note: this field is only used if a product doesn't
+        use variants."""))
     track_inventory = graphene.Boolean(
-        description=dedent("""Determines if the inventory of this variant
+        description=dedent("""Determines if the inventory of this product
         should be tracked. If false, the quantity won't change when customers
-        buy this item. Note: this field is only used for products
-        without variants."""))
+        buy this item. Note: this field is only used if a product doesn't
+        use variants."""))
 
 
 class ProductCreateInput(ProductInput):
@@ -367,13 +369,18 @@ class ProductUpdate(ProductCreate):
         instance.save()
         if not instance.product_type.has_variants:
             variant = instance.variants.first()
+            update_fields = []
             if 'track_inventory' in cleaned_input:
                 variant.track_inventory = cleaned_input.get('track_inventory')
+                update_fields.append('track_inventory')
             if 'quantity' in cleaned_input:
                 variant.quantity = cleaned_input.get('quantity')
+                update_fields.append('track_inventory')
             if 'sku' in cleaned_input:
                 variant.sku = cleaned_input.get('sku')
-            variant.save()
+                update_fields.append('track_inventory')
+            if update_fields:
+                variant.save(update_fields=update_fields)
 
 
 class ProductDelete(ModelDeleteMutation):
