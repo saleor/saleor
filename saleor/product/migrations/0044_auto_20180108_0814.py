@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 from decimal import Decimal
 
 import django.contrib.postgres.fields.hstore
+from django.conf import settings
 import django.core.validators
 from django.db import migrations, models
 import django.db.models.deletion
@@ -92,7 +93,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='product',
             name='price',
-            field=django_prices.models.MoneyField(currency='USD', decimal_places=2, max_digits=12),
+            field=django_prices.models.MoneyField(currency=settings.DEFAULT_CURRENCY, decimal_places=2, max_digits=12),
         ),
         migrations.AlterField(
             model_name='product',
@@ -182,7 +183,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='productvariant',
             name='price_override',
-            field=django_prices.models.MoneyField(blank=True, currency='USD', decimal_places=2, max_digits=12, null=True),
+            field=django_prices.models.MoneyField(blank=True, currency=settings.DEFAULT_CURRENCY, decimal_places=2, max_digits=12, null=True),
         ),
         migrations.AlterField(
             model_name='productvariant',
@@ -192,7 +193,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='stock',
             name='cost_price',
-            field=django_prices.models.MoneyField(blank=True, currency='USD', decimal_places=2, max_digits=12, null=True),
+            field=django_prices.models.MoneyField(blank=True, currency=settings.DEFAULT_CURRENCY, decimal_places=2, max_digits=12, null=True),
         ),
         migrations.AlterField(
             model_name='stock',
