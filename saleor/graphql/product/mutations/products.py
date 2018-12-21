@@ -347,10 +347,9 @@ class ProductCreate(ModelMutation):
                 'track_inventory', site_settings.track_inventory_by_default)
             quantity = cleaned_input.get('quantity', 0)
             sku = cleaned_input.get('sku')
-            variant = models.ProductVariant(
+            models.ProductVariant.objects.create(
                 product=instance, track_inventory=track_inventory,
                 sku=sku, quantity=quantity)
-            variant.save()
 
     @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):
