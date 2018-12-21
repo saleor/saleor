@@ -324,7 +324,18 @@ class ProductCreate(ModelMutation):
             else:
                 cleaned_input['attributes'] = attributes
         clean_seo_fields(cleaned_input)
+        cls.clean_sku(product_type, cleaned_input, errors)
         return cleaned_input
+
+    @classmethod
+    def clean_sku(cls, product_type, cleaned_input, errors):
+        """Check if mutation have sku when ProductType without Variants.
+
+        We must ensure that the Product without Variant has the necessary
+        fields to create the default variant only in create mutation.
+        """
+        if not product_type.has_variants and not cleaned_input.get('sku'):
+            cls.add_error(errors, 'sku', 'This field cannot be blank.')
 
     @classmethod
     @transaction.atomic
@@ -362,6 +373,10 @@ class ProductUpdate(ProductCreate):
     class Meta:
         description = 'Updates an existing product.'
         model = models.Product
+
+    @classmethod
+    def clean_sku(cls, product_type, cleaned_input, errors):
+        pass
 
     @classmethod
     @transaction.atomic
