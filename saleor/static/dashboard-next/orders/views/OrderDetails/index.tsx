@@ -548,22 +548,6 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                         })
                                       }
                                       fetchVariants={variantSearch}
-                                      variants={maybe(() =>
-                                        variantSearchOpts.data.products.edges
-                                          .map(edge => edge.node)
-                                          .map(product =>
-                                            product.variants.map(variant => ({
-                                              ...variant,
-                                              name: `${product.name}(${
-                                                variant.name
-                                              })`
-                                            }))
-                                          )
-                                          .reduce(
-                                            (prev, curr) => prev.concat(curr),
-                                            []
-                                          )
-                                      )}
                                       users={maybe(
                                         () =>
                                           users.searchOpts.data.customers.edges.map(
@@ -723,40 +707,27 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                             maybe(
                                               () =>
                                                 orderLineAdd.opts.data
-                                                  .draftOrderLineCreate.errors
+                                                  .draftOrderLinesCreate.errors
                                             )
                                           )}
                                           loading={variantSearchOpts.loading}
                                           open={!!match}
-                                          variants={maybe(() =>
-                                            variantSearchOpts.data.products.edges
-                                              .map(edge => edge.node)
-                                              .map(product =>
-                                                product.variants.map(
-                                                  variant => ({
-                                                    ...variant,
-                                                    name: `${product.name}(${
-                                                      variant.name
-                                                    })`
-                                                  })
-                                                )
-                                              )
-                                              .reduce(
-                                                (prev, curr) =>
-                                                  prev.concat(curr),
-                                                []
-                                              )
+                                          products={maybe(() =>
+                                            variantSearchOpts.data.products.edges.map(
+                                              edge => edge.node
+                                            )
                                           )}
-                                          fetchVariants={variantSearch}
                                           onClose={onModalClose}
-                                          onSubmit={variables =>
+                                          onFetch={variantSearch}
+                                          onSubmit={formData =>
                                             orderLineAdd.mutate({
                                               id,
-                                              input: {
-                                                quantity: variables.quantity,
-                                                variantId:
-                                                  variables.variant.value
-                                              }
+                                              input: formData.variants.map(
+                                                variant => ({
+                                                  quantity: 1,
+                                                  variantId: variant.id
+                                                })
+                                              )
                                             })
                                           }
                                         />
