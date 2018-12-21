@@ -117,6 +117,7 @@ export const OrderDetailsMessages: React.StatelessComponent<
                   context: "notification"
                 })
               });
+              navigate(orderUrl(data.orderMarkAsPaid.order.id), true);
             } else {
               pushMessage({
                 text: i18n.t("Could not mark order as paid", {
