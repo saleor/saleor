@@ -37,3 +37,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Resolve to `None` when empty object ID was passed as mutation argument - #3497 by @maarcingebala
 - Change "Feature on Homepage" switch behavior - #3481 by @dominik-zeglen
 - Expand payment section in order view - #3502 by @dominik-zeglen
+- Fixed migrations for default currency - #3235 by @bykof
