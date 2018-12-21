@@ -1,6 +1,6 @@
+from textwrap import dedent
 import graphene
 from graphql_jwt.decorators import permission_required
-from textwrap import dedent
 
 from ..core.fields import PrefetchingConnectionField
 from ..core.types import ReportingPeriod
@@ -66,9 +66,12 @@ class ProductQueries(graphene.ObjectType):
         collections=graphene.List(
             graphene.ID, description='Filter products by collections.'),
         price_lte=graphene.Float(
-            description='Filter by price less than or equal to the given value.'),
+            description=dedent(
+                '''Filter by price less than or equal to the given value.''')),
         price_gte=graphene.Float(
-            description='Filter by price greater than or equal to the given value.'),
+            description=dedent(
+                '''
+                Filter by price greater than or equal to the given value.''')),
         sort_by=graphene.Argument(
             ProductOrder, description='Sort products.'),
         stock_availability=graphene.Argument(
@@ -94,7 +97,8 @@ class ProductQueries(graphene.ObjectType):
         description='List of top selling products.')
 
     def resolve_attributes(
-            self, info, in_category=None, in_collection=None, query=None, **kwargs):
+            self, info, in_category=None, in_collection=None, query=None,
+            **kwargs):
         return resolve_attributes(info, in_category, in_collection, query)
 
     def resolve_categories(self, info, level=None, query=None, **kwargs):
