@@ -1,5 +1,6 @@
 import graphene
 import pytest
+from django.db.models import Q
 from django.template.defaultfilters import slugify
 
 from saleor.graphql.product.types import (
@@ -85,6 +86,37 @@ def test_attributes_in_category_query(user_api_client, product):
     content = get_graphql_content(response)
     attributes_data = content['data']['attributes']['edges']
     assert len(attributes_data) == Attribute.objects.count()
+
+
+def test_attributes_in_collection_query(user_api_client, sale):
+    product_types = set(
+        sale.products.all().values_list('product_type_id', flat=True))
+    expected_attrs = Attribute.objects.filter(
+        Q(product_type__in=product_types)
+        | Q(product_variant_type__in=product_types))
+
+    query = """
+    query {
+        attributes(inCollection: "%(collection_id)s", first: 20) {
+            edges {
+                node {
+                    id
+                    name
+                    slug
+                    values {
+                        id
+                        name
+                        slug
+                    }
+                }
+            }
+        }
+    }
+    """ % {'collection_id': graphene.Node.to_global_id('Collection', sale.id)}
+    response = user_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    attributes_data = content['data']['attributes']['edges']
+    assert len(attributes_data) == len(expected_attrs)
 
 
 CREATE_ATTRIBUTES_QUERY = """
