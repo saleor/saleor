@@ -5,18 +5,30 @@
 // GraphQL query operation: OrderVariantSearch
 // ====================================================
 
+export interface OrderVariantSearch_products_edges_node_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
+export interface OrderVariantSearch_products_edges_node_variants_price {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
 export interface OrderVariantSearch_products_edges_node_variants {
   __typename: "ProductVariant";
   id: string;
   name: string;
   sku: string;
-  stockQuantity: number;
+  price: OrderVariantSearch_products_edges_node_variants_price | null;
 }
 
 export interface OrderVariantSearch_products_edges_node {
   __typename: "Product";
   id: string;
   name: string;
+  thumbnail: OrderVariantSearch_products_edges_node_thumbnail | null;
   variants: (OrderVariantSearch_products_edges_node_variants | null)[] | null;
 }
 

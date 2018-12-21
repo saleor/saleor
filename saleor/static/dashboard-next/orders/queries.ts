@@ -232,11 +232,17 @@ export const orderVariantSearchQuery = gql`
         node {
           id
           name
+          thumbnail {
+            url
+          }
           variants {
             id
             name
             sku
-            stockQuantity
+            price {
+              amount
+              currency
+            }
           }
         }
       }
