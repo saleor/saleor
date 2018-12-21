@@ -79,104 +79,100 @@ const CollectionAssignProductDialog = withStyles(styles, {
       maxWidth="sm"
     >
       <Form initial={initialForm} onSubmit={onSubmit}>
-        {({ data, change }) => {
-          return (
-            <>
-              <DialogTitle>
-                {i18n.t("Assign Product to Collection")}
-              </DialogTitle>
-              <DialogContent className={classes.overflow}>
-                <Debounce debounceFn={onFetch}>
-                  {fetch => (
-                    <TextField
-                      name="query"
-                      value={data.query}
-                      onChange={event => change(event, () => fetch(data.query))}
-                      label={i18n.t("Search Products", {
-                        context: "product search input label"
-                      })}
-                      placeholder={i18n.t(
-                        "Search by product name, attribute, product type etc...",
-                        {
-                          context: "product search input placeholder"
-                        }
-                      )}
-                      fullWidth
-                      InputProps={{
-                        autoComplete: "off",
-                        endAdornment: loading && <CircularProgress size={16} />
-                      }}
-                    />
-                  )}
-                </Debounce>
-                <FormSpacer />
-                <Table>
-                  <TableBody>
-                    {products &&
-                      products.map(product => (
-                        <TableRow key={product.id}>
-                          <TableCellAvatar
-                            className={classes.avatar}
-                            thumbnail={product.thumbnail.url}
+        {({ data, change }) => (
+          <>
+            <DialogTitle>{i18n.t("Assign Product to Collection")}</DialogTitle>
+            <DialogContent className={classes.overflow}>
+              <Debounce debounceFn={onFetch}>
+                {fetch => (
+                  <TextField
+                    name="query"
+                    value={data.query}
+                    onChange={event => change(event, () => fetch(data.query))}
+                    label={i18n.t("Search Products", {
+                      context: "product search input label"
+                    })}
+                    placeholder={i18n.t(
+                      "Search by product name, attribute, product type etc...",
+                      {
+                        context: "product search input placeholder"
+                      }
+                    )}
+                    fullWidth
+                    InputProps={{
+                      autoComplete: "off",
+                      endAdornment: loading && <CircularProgress size={16} />
+                    }}
+                  />
+                )}
+              </Debounce>
+              <FormSpacer />
+              <Table>
+                <TableBody>
+                  {products &&
+                    products.map(product => (
+                      <TableRow key={product.id}>
+                        <TableCellAvatar
+                          className={classes.avatar}
+                          thumbnail={product.thumbnail.url}
+                        />
+                        <TableCell className={classes.wideCell}>
+                          {product.name}
+                        </TableCell>
+                        <TableCell
+                          padding="checkbox"
+                          className={classes.checkboxCell}
+                        >
+                          <Checkbox
+                            checked={
+                              !!data.products.find(
+                                selectedProduct =>
+                                  selectedProduct.id === product.id
+                              )
+                            }
+                            onChange={() =>
+                              data.products.find(
+                                selectedProduct =>
+                                  selectedProduct.id === product.id
+                              )
+                                ? change({
+                                    target: {
+                                      name: "products",
+                                      value: data.products.filter(
+                                        selectedProduct =>
+                                          selectedProduct.id !== product.id
+                                      )
+                                    }
+                                  } as any)
+                                : change({
+                                    target: {
+                                      name: "products",
+                                      value: [...data.products, product]
+                                    }
+                                  } as any)
+                            }
                           />
-                          <TableCell className={classes.wideCell}>
-                            {product.name}
-                          </TableCell>
-                          <TableCell
-                            padding="checkbox"
-                            className={classes.checkboxCell}
-                          >
-                            <Checkbox
-                              checked={
-                                !!data.products.find(
-                                  selectedProduct =>
-                                    selectedProduct.id === product.id
-                                )
-                              }
-                              onChange={() =>
-                                data.products.find(
-                                  selectedProduct =>
-                                    selectedProduct.id === product.id
-                                )
-                                  ? change({
-                                      target: {
-                                        name: "products",
-                                        value: data.products.filter(
-                                          selectedProduct =>
-                                            selectedProduct.id !== product.id
-                                        )
-                                      }
-                                    } as any)
-                                  : change({
-                                      target: {
-                                        name: "products",
-                                        value: [...data.products, product]
-                                      }
-                                    } as any)
-                              }
-                            />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={onClose}>
-                  {i18n.t("Cancel", { context: "button" })}
-                </Button>
-                <ConfirmButton
-                  transitionState={confirmButtonState}
-                  color="primary"
-                  variant="contained"
-                  type="submit"
-                >
-                  {i18n.t("Assign products", { context: "button" })}
-                </ConfirmButton>
-              </DialogActions>
-            </>
-          );
-        }}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={onClose}>
+                {i18n.t("Cancel", { context: "button" })}
+              </Button>
+              <ConfirmButton
+                transitionState={confirmButtonState}
+                color="primary"
+                variant="contained"
+                type="submit"
+              >
+                {i18n.t("Assign products", { context: "button" })}
+              </ConfirmButton>
+            </DialogActions>
+          </>
+        )}
       </Form>
     </Dialog>
   )
