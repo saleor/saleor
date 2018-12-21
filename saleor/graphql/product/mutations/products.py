@@ -1,6 +1,7 @@
 from textwrap import dedent
 
 import graphene
+from django.db import transaction
 from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
@@ -272,6 +273,16 @@ class ProductInput(graphene.InputObjectType):
     seo = SeoInput(description='Search engine optimization fields.')
     weight = WeightScalar(
         description='Weight of the Product.', required=False)
+    sku = graphene.String(description=dedent("""Stock keeping unit. Note: this
+    field is required only used for products without variants."""))
+    quantity = graphene.Int(
+        description=dedent("""The total quantity of this variant availablefor
+        sale. Note: this field is only used for products without variants."""))
+    track_inventory = graphene.Boolean(
+        description=dedent("""Determines if the inventory of this variant
+        should be tracked. If false, the quantity won't change when customers
+        buy this item. Note: this field is only used for products
+        without variants."""))
 
 
 class ProductCreateInput(ProductInput):
@@ -314,6 +325,21 @@ class ProductCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
+    @transaction.atomic
+    def save(cls, info, instance, cleaned_input):
+        instance.save()
+        if not instance.product_type.has_variants:
+            site_settings = info.context.site.settings
+            track_inventory = cleaned_input.get(
+                'track_inventory', site_settings.track_inventory_by_default)
+            quantity = cleaned_input.get('quantity', 0)
+            sku = cleaned_input.get('sku')
+            variant = models.ProductVariant(
+                product=instance, track_inventory=track_inventory,
+                sku=sku, quantity=quantity)
+            variant.save()
+
+    @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):
         collections = cleaned_data.get('collections', None)
         if collections is not None:
@@ -334,6 +360,20 @@ class ProductUpdate(ProductCreate):
     class Meta:
         description = 'Updates an existing product.'
         model = models.Product
+
+    @classmethod
+    @transaction.atomic
+    def save(cls, info, instance, cleaned_input):
+        instance.save()
+        if not instance.product_type.has_variants:
+            variant = instance.variants.first()
+            if 'track_inventory' in cleaned_input:
+                variant.track_inventory = cleaned_input.get('track_inventory')
+            if 'quantity' in cleaned_input:
+                variant.quantity = cleaned_input.get('quantity')
+            if 'sku' in cleaned_input:
+                variant.sku = cleaned_input.get('sku')
+            variant.save()
 
 
 class ProductDelete(ModelDeleteMutation):
