@@ -329,10 +329,12 @@ class ProductCreate(ModelMutation):
 
     @classmethod
     def clean_sku(cls, product_type, cleaned_input, errors):
-        """Check if mutation have sku when ProductType without Variants.
+        """Validate SKU input field.
 
-        We must ensure that the Product without Variant has the necessary
-        fields to create the default variant only in create mutation.
+        When creating products that don't use variants, SKU is required in
+        the input in order to create the default variant underneath.
+        See the documentation for `has_variants` field for details:
+        http://docs.getsaleor.com/en/latest/architecture/products.html#product-types
         """
         if not product_type.has_variants and not cleaned_input.get('sku'):
             cls.add_error(errors, 'sku', 'This field cannot be blank.')
@@ -375,6 +377,8 @@ class ProductUpdate(ProductCreate):
 
     @classmethod
     def clean_sku(cls, product_type, cleaned_input, errors):
+        # SKU is an optional field in the product update mutation,
+        # so we explicitly skip the validation.
         pass
 
     @classmethod
@@ -385,14 +389,14 @@ class ProductUpdate(ProductCreate):
             variant = instance.variants.first()
             update_fields = []
             if 'track_inventory' in cleaned_input:
-                variant.track_inventory = cleaned_input.get('track_inventory')
+                variant.track_inventory = cleaned_input['track_inventory']
                 update_fields.append('track_inventory')
             if 'quantity' in cleaned_input:
-                variant.quantity = cleaned_input.get('quantity')
-                update_fields.append('track_inventory')
+                variant.quantity = cleaned_input['quantity']
+                update_fields.append('quantity')
             if 'sku' in cleaned_input:
-                variant.sku = cleaned_input.get('sku')
-                update_fields.append('track_inventory')
+                variant.sku = cleaned_input['sku']
+                update_fields.append('sku')
             if update_fields:
                 variant.save(update_fields=update_fields)
 
