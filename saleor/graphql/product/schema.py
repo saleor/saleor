@@ -1,5 +1,6 @@
 import graphene
 from graphql_jwt.decorators import permission_required
+from textwrap import dedent
 
 from ..core.fields import PrefetchingConnectionField
 from ..core.types import ReportingPeriod
@@ -28,9 +29,16 @@ from .types import (
 class ProductQueries(graphene.ObjectType):
     attributes = PrefetchingConnectionField(
         Attribute,
+        description='List of the shop\'s attributes.',
         query=graphene.String(description=DESCRIPTIONS['attributes']),
-        in_category=graphene.Argument(graphene.ID),
-        description='List of the shop\'s attributes.')
+        in_category=graphene.Argument(
+            graphene.ID, description=dedent(
+                '''Return attributes for products belonging to the given
+                category.''')),
+        in_collection=graphene.Argument(
+            graphene.ID, description=dedent(
+                '''Return attributes for products belonging to the given
+                collection.''')),)
     categories = PrefetchingConnectionField(
         Category, query=graphene.String(
             description=DESCRIPTIONS['category']),
@@ -85,8 +93,9 @@ class ProductQueries(graphene.ObjectType):
             ReportingPeriod, required=True, description='Span of time.'),
         description='List of top selling products.')
 
-    def resolve_attributes(self, info, in_category=None, query=None, **kwargs):
-        return resolve_attributes(info, in_category, query)
+    def resolve_attributes(
+            self, info, in_category=None, in_collection=None, query=None, **kwargs):
+        return resolve_attributes(info, in_category, in_collection, query)
 
     def resolve_categories(self, info, level=None, query=None, **kwargs):
         return resolve_categories(info, level=level, query=query)
