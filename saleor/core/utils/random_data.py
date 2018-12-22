@@ -183,6 +183,8 @@ def create_products(products_data, placeholder_dir, create_images):
         defaults['weight'] = get_weight(defaults['weight'])
         defaults['category_id'] = defaults.pop('category')
         defaults['product_type_id'] = defaults.pop('product_type')
+        defaults['price'] = get_in_default_currency(
+            defaults, 'price', settings.DEFAULT_CURRENCY)
         defaults['attributes'] = json.loads(defaults['attributes'])
         product, _ = Product.objects.update_or_create(pk=pk, defaults=defaults)
 
@@ -203,7 +205,17 @@ def create_product_variants(variants_data):
             continue
         defaults['product_id'] = product_id
         defaults['attributes'] = json.loads(defaults['attributes'])
+        defaults['price_override'] = get_in_default_currency(
+            defaults, 'price_override', settings.DEFAULT_CURRENCY)
+        defaults['cost_price'] = get_in_default_currency(
+            defaults, 'cost_price', settings.DEFAULT_CURRENCY)
         ProductVariant.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def get_in_default_currency(defaults, field, currency):
+    if field in defaults and defaults[field] is not None:
+        return Money(defaults[field].amount, currency)
+    return None
 
 
 def create_products_by_schema(placeholder_dir, create_images):
