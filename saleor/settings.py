@@ -209,6 +209,7 @@ INSTALLED_APPS = [
     'saleor.account',
     'saleor.discount',
     'saleor.product',
+    'saleor.product_review',
     'saleor.checkout',
     'saleor.core',
     'saleor.graphql',
@@ -608,3 +609,10 @@ GRAPHENE = {
     'RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST': True,
     'RELAY_CONNECTION_MAX_LIMIT': 100
 }
+
+# Set product review minimum and maximum score
+PRODUCT_REVIEW_MIN_SCORE = 0
+PRODUCT_REVIEW_MAX_SCORE = 5
+
+# Set maximum numbers of allowed reviews per user per product
+MAX_REVIEW_PER_USER = 1
