@@ -38,3 +38,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Change "Feature on Homepage" switch behavior - #3481 by @dominik-zeglen
 - Expand payment section in order view - #3502 by @dominik-zeglen
 - Fixed migrations for default currency - #3235 by @bykof
+- Filter attributes by collection in API - #3508 by @maarcingebala
