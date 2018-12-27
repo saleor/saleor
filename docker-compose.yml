@@ -51,8 +51,6 @@ services:
     restart: unless-stopped
     networks:
       - saleor-backend-tier
-    volumes:
-      - .:/app:Z
     env_file: common.env
     depends_on:
       - redis
