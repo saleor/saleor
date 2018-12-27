@@ -1,0 +1,30 @@
+version: '2'
+
+services:
+  web:
+    volumes:
+      - .:/app:Z
+    ports:
+      - 8000:8000
+
+  db:
+    volumes:
+      - saleor-db:/var/lib/postgresql
+    ports:
+      - 5432:5432
+
+  redis:
+    volumes:
+      - saleor-redis:/data
+    ports:
+      - 6379:6379
+
+  celery:
+    volumes:
+      - .:/app:Z
+
+volumes:
+  saleor-db:
+    driver: local
+  saleor-redis:
+    driver: local

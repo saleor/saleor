@@ -10,8 +10,6 @@ services:
     restart: unless-stopped
     networks:
       - saleor-backend-tier
-    ports:
-      - 8000:8000
     env_file: common.env
     depends_on:
       - db
@@ -23,10 +21,6 @@ services:
     restart: unless-stopped
     networks:
       - saleor-backend-tier
-    volumes:
-      - saleor-db:/var/lib/postgresql
-    ports:
-      - 5432:5432
     environment:
       - POSTGRES_USER=saleor
       - POSTGRES_PASSWORD=saleor
@@ -36,10 +30,6 @@ services:
     restart: unless-stopped
     networks:
       - saleor-backend-tier
-    volumes:
-      - saleor-redis:/data
-    ports:
-      - 6379:6379
 
   celery:
     build:
@@ -54,12 +44,6 @@ services:
     env_file: common.env
     depends_on:
       - redis
-
-volumes:
-  saleor-db:
-    driver: local
-  saleor-redis:
-    driver: local
 
 networks:
   saleor-backend-tier:
