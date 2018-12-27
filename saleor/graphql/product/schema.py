@@ -1,4 +1,5 @@
 from textwrap import dedent
+
 import graphene
 from graphql_jwt.decorators import permission_required
 
