@@ -1,4 +1,5 @@
 import decimal
+
 import graphene
 from measurement.measures import Weight
 

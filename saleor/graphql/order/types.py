@@ -9,7 +9,7 @@ from ..core.connection import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
 from ..shipping.types import ShippingMethod
-from .enums import OrderEventsEnum, OrderEventsEmailsEnum
+from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import can_finalize_draft_order
 
 

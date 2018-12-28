@@ -3,8 +3,8 @@ from textwrap import dedent
 import graphene
 from graphql_jwt.decorators import login_required, permission_required
 
-from ..core.fields import PrefetchingConnectionField
 from ..core.enums import ReportingPeriod
+from ..core.fields import PrefetchingConnectionField
 from ..core.types import TaxedMoney
 from ..descriptions import DESCRIPTIONS
 from .enums import OrderStatusFilter

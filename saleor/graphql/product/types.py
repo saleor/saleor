@@ -18,12 +18,10 @@ from ..core.connection import CountableDjangoObjectType
 from ..core.decorators import permission_required
 from ..core.enums import ReportingPeriod, TaxRateType
 from ..core.fields import PrefetchingConnectionField
-from ..core.types import (
-    Money, MoneyRange, TaxedMoney, TaxedMoneyRange)
+from ..core.types import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 from ..utils import get_database_id, reporting_period_to_date
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeValueType, OrderDirection, ProductOrderField
-
 
 COLOR_PATTERN = r'^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$'  # noqa
 color_pattern = re.compile(COLOR_PATTERN)

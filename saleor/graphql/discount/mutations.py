@@ -1,6 +1,6 @@
 import graphene
 
-from ...discount import models, VoucherType
+from ...discount import VoucherType, models
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.scalars import Decimal
 from .enums import DiscountValueTypeEnum, VoucherTypeEnum

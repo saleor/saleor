@@ -1,7 +1,7 @@
 import graphene
 from graphene import Field, List, NonNull, ObjectType, String
-from graphene_django import DjangoObjectType
 from graphene.relay.connection import Connection
+from graphene_django import DjangoObjectType
 
 
 class NonNullConnection(Connection):

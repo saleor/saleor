@@ -2,7 +2,6 @@ import graphene
 
 from ...order import OrderEvents, OrderEventsEmails
 
-
 OrderEventsEnum = graphene.Enum.from_enum(OrderEvents)
 OrderEventsEmailsEnum = graphene.Enum.from_enum(OrderEventsEmails)
 
