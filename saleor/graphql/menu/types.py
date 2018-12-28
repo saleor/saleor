@@ -6,7 +6,7 @@ from django.db.models import Prefetch
 from graphene import relay
 
 from ...menu import models
-from ..core.types.common import CountableDjangoObjectType
+from ..core.connection import CountableDjangoObjectType
 
 
 def prefetch_menus(info, *args, **kwargs):

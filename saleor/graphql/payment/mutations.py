@@ -13,7 +13,7 @@ from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..checkout.types import Checkout
 from ..core.mutations import BaseMutation
-from ..core.types.common import Decimal
+from ..core.scalars import Decimal
 from .types import Payment, PaymentGatewayEnum
 
 

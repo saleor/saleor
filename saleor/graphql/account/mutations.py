@@ -13,7 +13,8 @@ from ...dashboard.staff.utils import remove_staff_member
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, User
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.types import Error, PermissionEnum
+from ..core.enums import PermissionEnum
+from ..core.types import Error
 
 
 def send_user_password_reset_email(user, site):

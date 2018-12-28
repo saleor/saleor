@@ -14,11 +14,12 @@ from ...product.utils import calculate_revenue_for_variant
 from ...product.utils.availability import get_availability
 from ...product.utils.costs import (
     get_margin_for_variant, get_product_costs_data)
+from ..core.connection import CountableDjangoObjectType
 from ..core.decorators import permission_required
+from ..core.enums import ReportingPeriod, TaxRateType
 from ..core.fields import PrefetchingConnectionField
 from ..core.types import (
-    CountableDjangoObjectType, Money, MoneyRange, ReportingPeriod, TaxedMoney,
-    TaxedMoneyRange, TaxRateType)
+    Money, MoneyRange, TaxedMoney, TaxedMoneyRange)
 from ..utils import get_database_id, reporting_period_to_date
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 
