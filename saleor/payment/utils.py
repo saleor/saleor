@@ -133,7 +133,8 @@ def call_gateway(
 
     try:
         gateway_response = getattr(gateway, func_name)(
-            payment=payment, payment_token=payment_token, **extra_params)
+            payment=payment, payment_token=payment_token,
+            **extra_params, **gateway_params)
         validate_gateway_response(gateway_response)
     except AttributeError:
         logger.exception('Gateway doesn\'t implement %s', func_name)
@@ -142,11 +143,16 @@ def call_gateway(
     except Exception:
         logger.exception('Gateway encountered an error')
     finally:
-        return create_transaction(
+        transaction = create_transaction(
             payment=payment,
             kind=transaction_kind,
             payment_token=payment_token,
             gateway_response=gateway_response)
+
+    if not transaction.is_success:
+        # attempt to get errors from response, if none raise a generic one
+        raise PaymentError(gateway_response.get(
+            'errors', GENERIC_TRANSACTION_ERROR))
 
 
 def validate_gateway_response(response):
@@ -162,7 +168,7 @@ def validate_gateway_response(response):
 
 @validate_payment
 def gateway_process_payment(
-    payment: Payment, payment_token: str, **kwargs) -> Transaction:
+        payment: Payment, payment_token: str) -> Transaction:
     """Performs whole payment process on a gateway."""
     transaction = call_gateway(
         func_name='process_payment', transaction_kind=TransactionKind.CAPTURE,
@@ -175,17 +181,13 @@ def gateway_process_payment(
         order = payment.order
         if order and order.is_fully_paid():
             handle_fully_paid_order(order)
-    else:
-        # attempt to get errors from response, if none raise a generic one
-        raise PaymentError(transaction.gateway_response.get(
-            'errors', GENERIC_TRANSACTION_ERROR))
 
     return transaction
 
 
 @validate_payment
-def gateway_charge(
-        payment: Payment, payment_token: str, amount: Decimal=None) -> Transaction:
+def gateway_charge(payment: Payment, payment_token: str,
+        amount: Decimal=None) -> Transaction:
     """Performs authorization and capture in a single run.
 
     For gateways not supporting the authorization it should be a
@@ -199,40 +201,19 @@ def gateway_charge(
         amount = payment.get_charge_amount()
     clean_charge(payment, amount)
 
-    gateway, gateway_params = get_payment_gateway(payment.gateway)
-    try:
-        is_success, gateway_response, error = gateway.charge(
-            payment=model_to_dict(payment), payment_token=payment_token,
-            amount=amount, **gateway_params)
-    except Exception as e:
-        return create_transaction(
-            payment=payment,
-            kind=TransactionKind.CHARGE,
-            currency=payment.currency,
-            amount=payment.total,
-            token=payment_token,
-            is_success=False)
+    transaction = call_gateway('charge',
+        transaction_kind=TransactionKind.CHARGE, payment=payment,
+        payment_token=payment_token, amount=amount)
 
-    txn = create_transaction(
-        payment=payment,
-        kind=TransactionKind.AUTH,
-        amount=gateway_response.get('amount', payment.total),
-        currency=gateway_response.get('currency', payment.currency),
-        gateway_response=gateway_response,
-        token=gateway_response.get('transaction_id', ''),
-        is_success=is_success)
-
-    if txn.is_success:
+    if transaction.is_success:
         payment.charge_status = ChargeStatus.CHARGED
-        payment.captured_amount += txn.amount
+        payment.captured_amount += transaction.amount
         payment.save(update_fields=['charge_status', 'captured_amount'])
         order = payment.order
         if order and order.is_fully_paid():
             handle_fully_paid_order(order)
-    else:
-        raise PaymentError(error)
 
-    return txn
+    return transaction
 
 
 @validate_payment
@@ -244,33 +225,9 @@ def gateway_authorize(payment: Payment, payment_token: str) -> Transaction:
     """
     clean_authorize(payment)
 
-    gateway, gateway_params = get_payment_gateway(payment.gateway)
-    try:
-        is_success, gateway_response, error = gateway.authorize(
-            payment=model_to_dict(payment), payment_token=payment_token,
-            **gateway_params)
-    except Exception as e:
-        return create_transaction(
-            payment=payment,
-            kind=TransactionKind.AUTH,
-            currency=payment.currency,
-            amount=payment.total,
-            token=payment_token,
-            is_success=False)
-
-    txn = create_transaction(
-        payment=payment,
-        kind=TransactionKind.AUTH,
-        amount=gateway_response.get('amount', payment.total),
-        currency=gateway_response.get('currency', payment.currency),
-        gateway_response=gateway_response,
-        token=gateway_response.get('transaction_id', ''),
-        is_success=is_success)
-
-    if not txn.is_success:
-        raise PaymentError(error)
-
-    return txn
+    return call_gateway('authorize',
+        transaction_kind=TransactionKind.AUTH, payment=payment,
+        payment_token=payment_token)
 
 
 @validate_payment
@@ -284,39 +241,19 @@ def gateway_capture(payment: Payment, amount: Decimal=None) -> Transaction:
         kind=TransactionKind.AUTH, is_success=True).first()
     payment_token = auth_transaction.token
 
-    gateway, gateway_params = get_payment_gateway(payment.gateway)
-    try:
-        is_success, gateway_response, error = gateway.capture(
-            payment_token=payment_token, amount=amount, **gateway_params)
-    except:
-        return create_transaction(
-            payment=payment,
-            kind=TransactionKind.CAPTURE,
-            currency=payment.currency,
-            amount=amount,
-            token=payment_token,
-            is_success=False)
+    transaction = call_gateway('capture',
+        transaction_kind=TransactionKind.CAPTURE, payment=payment,
+        payment_token=payment_token, amount=amount)
 
-    txn = create_transaction(
-        payment=payment,
-        kind=TransactionKind.CAPTURE,
-        amount=gateway_response.get('amount', amount),
-        currency=gateway_response.get('currency', payment.currency),
-        gateway_response=gateway_response,
-        token=gateway_response.get('transaction_id'),
-        is_success=is_success)
-
-    if txn.is_success:
+    if transaction.is_success:
         payment.charge_status = ChargeStatus.CHARGED
-        payment.captured_amount += txn.amount
+        payment.captured_amount += transaction.amount
         payment.save(update_fields=['charge_status', 'captured_amount'])
         order = payment.order
         if order and order.is_fully_paid():
             handle_fully_paid_order(order)
-    else:
-        raise PaymentError(error)
 
-    return txn
+    return transaction
 
 
 @validate_payment
@@ -328,35 +265,14 @@ def gateway_void(payment) -> Transaction:
         kind=TransactionKind.AUTH, is_success=True).first()
     payment_token = auth_transaction.token
 
-    gateway, gateway_params = get_payment_gateway(payment.gateway)
-    try:
-        is_success, gateway_response, error = gateway.void(
-            payment_token=payment_token, **gateway_params)
-    except:
-        return create_transaction(
-            payment=payment,
-            kind=TransactionKind.VOID,
-            currency=payment.currency,
-            amount=payment.total,
-            token=payment_token,
-            is_success=False)
+    transaction = call_gateway('void', transaction_kind=TransactionKind.VOID,
+        payment=payment, payment_token=payment_token)
 
-    txn = create_transaction(
-        payment=payment,
-        kind=TransactionKind.CAPTURE,
-        amount=gateway_response.get('amount', payment.total),
-        currency=gateway_response.get('currency', payment.currency),
-        gateway_response=gateway_response,
-        token=payment_token,
-        is_success=is_success)
-
-    if txn.is_success:
+    if transaction.is_success:
         payment.is_active = False
         payment.save(update_fields=['is_active'])
-    else:
-        raise PaymentError(error)
 
-    return txn
+    return transaction
 
 
 @validate_payment
@@ -381,37 +297,17 @@ def gateway_refund(payment, amount: Decimal=None) -> Transaction:
         is_success=True).first()
     payment_token = transaction.token
 
-    gateway, gateway_params = get_payment_gateway(payment.gateway)
-    try:
-        is_success, gateway_response, error = gateway.refund(
-            payment_token=payment_token, amount=amount, **gateway_params)
-    except:
-        return create_transaction(
-            payment=payment,
-            kind=TransactionKind.REFUND,
-            currency=payment.currency,
-            amount=amount,
-            token=payment_token,
-            is_success=False)
+    transaction = call_gateway('refund',
+        transaction_kind=TransactionKind.REFUND, payment=payment,
+        payment_token=payment_token, amount=amount)
 
-    txn = create_transaction(
-        payment=payment,
-        kind=TransactionKind.REFUND,
-        amount=gateway_response.get('amount', amount),
-        currency=gateway_response.get('currency', payment.currency),
-        gateway_response=gateway_response,
-        token=payment_token,
-        is_success=is_success)
-
-    if txn.is_success:
+    if transaction.is_success:
         changed_fields = ['captured_amount']
-        payment.captured_amount -= txn.amount
+        payment.captured_amount -= transaction.amount
         if not payment.captured_amount:
             payment.charge_status = ChargeStatus.FULLY_REFUNDED
             payment.is_active = False
             changed_fields += ['charge_status', 'is_active']
         payment.save(update_fields=changed_fields)
-    else:
-        raise PaymentError(error)
 
-    return txn
+    return transaction
