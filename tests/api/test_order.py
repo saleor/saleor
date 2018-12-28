@@ -8,7 +8,7 @@ from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel, clean_order_capture, clean_order_mark_as_paid,
     clean_refund_payment, clean_void_payment)
-from saleor.graphql.order.types import OrderEventsEmailsEnum, OrderStatusFilter
+from saleor.graphql.order.enums import OrderEventsEmailsEnum, OrderStatusFilter
 from saleor.graphql.order.utils import can_finalize_draft_order
 from saleor.graphql.payment.types import PaymentChargeStatusEnum
 from saleor.order import OrderEvents, OrderEventsEmails, OrderStatus
