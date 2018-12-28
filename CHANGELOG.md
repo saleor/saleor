@@ -39,3 +39,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Expand payment section in order view - #3502 by @dominik-zeglen
 - Fixed migrations for default currency - #3235 by @bykof
 - Filter attributes by collection in API - #3508 by @maarcingebala
+- Extract enums to separate files - #3523 by @maarcingebala
