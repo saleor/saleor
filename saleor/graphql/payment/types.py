@@ -5,7 +5,8 @@ from graphene import relay
 
 from ...payment import GATEWAYS_ENUM, ChargeStatus, models
 from ..account.types import Address
-from ..core.types import CountableDjangoObjectType, Money
+from ..core.connection import CountableDjangoObjectType
+from ..core.types import Money
 from ..core.utils import str_to_enum
 
 PaymentGatewayEnum = graphene.Enum.from_enum(GATEWAYS_ENUM)

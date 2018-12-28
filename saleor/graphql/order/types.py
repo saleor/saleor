@@ -5,7 +5,7 @@ from graphene import relay
 from ...order import OrderEvents, OrderEventsEmails, models
 from ...product.templatetags.product_images import get_product_image_thumbnail
 from ..account.types import User
-from ..core.types.common import CountableDjangoObjectType
+from ..core.connection import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
 from ..shipping.types import ShippingMethod

@@ -3,7 +3,6 @@ from textwrap import dedent
 import graphene
 from django_prices.templatetags import prices_i18n
 
-from ....core import TaxRateType as TaxRates
 from ..utils import str_to_enum
 
 
@@ -85,8 +84,3 @@ class ReducedRate(graphene.ObjectType):
     class Meta:
         description = dedent('''
         Represents a reduced VAT rate for a particular type of goods.''')
-
-
-TaxRateType = graphene.Enum(
-    'TaxRateType',
-    [(str_to_enum(rate[0]), rate[0]) for rate in TaxRates.CHOICES])

@@ -7,8 +7,8 @@ from graphql_jwt.decorators import permission_required
 from ...account import models
 from ...core.permissions import get_permissions
 from ..core.fields import PrefetchingConnectionField
-from ..core.types import (
-    CountableDjangoObjectType, CountryDisplay, PermissionDisplay)
+from ..core.connection import CountableDjangoObjectType
+from ..core.types import CountryDisplay, PermissionDisplay
 from ..utils import format_permissions_for_display
 
 

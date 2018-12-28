@@ -9,8 +9,8 @@ from measurement.measures import Weight
 
 from ...core.weight import convert_weight, get_default_weight_unit
 from ...shipping import ShippingMethodType, models
-from ..core.types.common import CountableDjangoObjectType, CountryDisplay
-from ..core.types.money import MoneyRange
+from ..core.connection import CountableDjangoObjectType
+from ..core.types import CountryDisplay, MoneyRange
 
 ShippingMethodTypeEnum = graphene.Enum(
     'ShippingMethodTypeEnum',

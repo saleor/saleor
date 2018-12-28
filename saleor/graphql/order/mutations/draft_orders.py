@@ -13,7 +13,7 @@ from ....order.utils import (
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.types.common import Decimal
+from ...core.scalars import Decimal
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
 from ..utils import can_finalize_draft_order

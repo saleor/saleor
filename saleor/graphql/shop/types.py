@@ -13,8 +13,9 @@ from ...core.utils import get_client_ip, get_country_by_ip
 from ...menu import models as menu_models
 from ...product import models as product_models
 from ...site import AuthenticationBackends, models as site_models
+from ..core.enums import WeightUnitsEnum
 from ..core.types.common import (
-    CountryDisplay, LanguageDisplay, PermissionDisplay, WeightUnitsEnum)
+    CountryDisplay, LanguageDisplay, PermissionDisplay)
 from ..core.utils import str_to_enum
 from ..menu.types import Menu
 from ..product.types import Collection

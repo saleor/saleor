@@ -4,7 +4,8 @@ import graphene
 from graphql_jwt.decorators import login_required, permission_required
 
 from ..core.fields import PrefetchingConnectionField
-from ..core.types import ReportingPeriod, TaxedMoney
+from ..core.enums import ReportingPeriod
+from ..core.types import TaxedMoney
 from ..descriptions import DESCRIPTIONS
 from .mutations.draft_orders import (
     DraftOrderComplete, DraftOrderCreate, DraftOrderDelete,
