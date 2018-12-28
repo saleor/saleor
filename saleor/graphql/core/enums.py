@@ -1,7 +1,7 @@
 import graphene
 
+from ...core import TaxRateType as CoreTaxRateType, weight
 from ...core.permissions import MODELS_PERMISSIONS
-from ...core import weight, TaxRateType as CoreTaxRateType
 from .utils import str_to_enum
 
 

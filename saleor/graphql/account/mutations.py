@@ -12,8 +12,8 @@ from ...core.permissions import MODELS_PERMISSIONS, get_permissions
 from ...dashboard.staff.utils import remove_staff_member
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, User
-from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.enums import PermissionEnum
+from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import Error
 
 

@@ -1,5 +1,6 @@
 import graphene
 
+
 class NavigationType(graphene.Enum):
     MAIN = 'main'
     SECONDARY = 'secondary'

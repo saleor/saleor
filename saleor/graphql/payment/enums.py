@@ -3,7 +3,6 @@ import graphene
 from ...payment import GATEWAYS_ENUM, ChargeStatus
 from ..core.utils import str_to_enum
 
-
 PaymentChargeStatusEnum = graphene.Enum(
     'PaymentChargeStatusEnum',
     [(str_to_enum(code.upper()), code) for code, name in ChargeStatus.CHOICES])

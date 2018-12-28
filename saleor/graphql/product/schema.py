@@ -3,8 +3,8 @@ from textwrap import dedent
 import graphene
 from graphql_jwt.decorators import permission_required
 
-from ..core.fields import PrefetchingConnectionField
 from ..core.enums import ReportingPeriod
+from ..core.fields import PrefetchingConnectionField
 from ..descriptions import DESCRIPTIONS
 from .enums import StockAvailability
 from .mutations.attributes import (
