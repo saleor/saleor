@@ -22,54 +22,11 @@ from ..core.types import (
     Money, MoneyRange, TaxedMoney, TaxedMoneyRange)
 from ..utils import get_database_id, reporting_period_to_date
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
+from .enums import AttributeValueType, OrderDirection, ProductOrderField
+
 
 COLOR_PATTERN = r'^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$'  # noqa
 color_pattern = re.compile(COLOR_PATTERN)
-
-
-class AttributeTypeEnum(graphene.Enum):
-    PRODUCT = 'PRODUCT'
-    VARIANT = 'VARIANT'
-
-
-class AttributeValueType(graphene.Enum):
-    COLOR = 'COLOR'
-    GRADIENT = 'GRADIENT'
-    URL = 'URL'
-    STRING = 'STRING'
-
-
-class StockAvailability(graphene.Enum):
-    IN_STOCK = 'AVAILABLE'
-    OUT_OF_STOCK = 'OUT_OF_STOCK'
-
-
-class ProductOrderField(graphene.Enum):
-    NAME = 'name'
-    PRICE = 'price'
-    DATE = 'updated_at'
-
-    @property
-    def description(self):
-        if self == ProductOrderField.NAME:
-            return 'Sort products by name.'
-
-        if self == ProductOrderField.PRICE:
-            return 'Sort products by price.'
-
-        if self == ProductOrderField.DATE:
-            return 'Sort products by update date.'
-
-
-class OrderDirection(graphene.Enum):
-    ASC = ''
-    DESC = '-'
-
-    @property
-    def description(self):
-        if self == OrderDirection.ASC:
-            return 'Specifies an ascending sort order.'
-        return 'Specifies a descending sort order.'
 
 
 def resolve_attribute_list(attributes_hstore, attributes_qs):
