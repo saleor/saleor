@@ -14,7 +14,8 @@ from ..account.types import AddressInput
 from ..checkout.types import Checkout
 from ..core.mutations import BaseMutation
 from ..core.scalars import Decimal
-from .types import Payment, PaymentGatewayEnum
+from .enums import PaymentGatewayEnum
+from .types import Payment
 
 
 class PaymentInput(graphene.InputObjectType):
