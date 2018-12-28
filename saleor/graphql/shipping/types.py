@@ -1,20 +1,13 @@
-import decimal
 from textwrap import dedent
 
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from graphene import relay
-from graphene.types import Scalar
-from measurement.measures import Weight
 
-from ...core.weight import convert_weight, get_default_weight_unit
-from ...shipping import ShippingMethodType, models
+from ...shipping import models
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import CountryDisplay, MoneyRange
-
-ShippingMethodTypeEnum = graphene.Enum(
-    'ShippingMethodTypeEnum',
-    [(code.upper(), code) for code, name in ShippingMethodType.CHOICES])
+from .enums import ShippingMethodTypeEnum
 
 
 class ShippingMethod(CountableDjangoObjectType):
@@ -62,30 +55,3 @@ class ShippingZone(CountableDjangoObjectType):
 
     def resolve_shipping_methods(self, info):
         return self.shipping_methods.all()
-
-
-class WeightScalar(Scalar):
-    @staticmethod
-    def parse_value(value):
-        """Excepts value to be a string "amount unit"
-        separated by a single space.
-        """
-        try:
-            value = decimal.Decimal(value)
-        except decimal.DecimalException:
-            return None
-        default_unit = get_default_weight_unit()
-        return Weight(**{default_unit: value})
-
-    @staticmethod
-    def serialize(weight):
-        if isinstance(weight, Weight):
-            default_unit = get_default_weight_unit()
-            if weight.unit != default_unit:
-                weight = convert_weight(weight, default_unit)
-            return str(weight)
-        return None
-
-    @staticmethod
-    def parse_literal(node):
-        return node
