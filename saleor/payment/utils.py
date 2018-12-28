@@ -18,6 +18,8 @@ from .models import Payment, Transaction
 
 logger = logging.getLogger(__name__)
 
+GENERIC_TRANSACTION_ERROR = 'Transaction was unsuccessful'
+
 
 def get_billing_data(order):
     """Extracts order's billing address into payment-friendly billing data."""
@@ -71,13 +73,14 @@ def create_payment(**payment_data):
     return payment
 
 
-def create_transaction(
-    payment: Payment, kind: str, gateway_response: Dict) -> Transaction:
+def create_transaction(payment: Payment, kind: str, payment_token: str,
+        gateway_response: Dict) -> Transaction:
+    """Creates a Transaction based on transaction kind and gateway response."""
     txn, _ = Transaction.objects.get_or_create(
         payment=payment,
         kind=kind,
-        token=gateway_response['transaction_id'],
-        is_success=gateway_response['is_success'],
+        token=gateway_response.get('transaction_id', payment_token),
+        is_success=gateway_response.get('is_success', False),
         amount=payment.total,
         currency=payment.currency,
         gateway_response=gateway_response)
@@ -120,50 +123,64 @@ def clean_authorize(payment: Payment):
         raise PaymentError('Charged transactions cannot be authorized again.')
 
 
+def call_gateway(
+        func_name, transaction_kind, payment, payment_token, **extra_params):
+    """Helper that calls the passed gateway function and handles exceptions.
+
+    Additionally does validation of the returned gateway response."""
+    gateway, gateway_params = get_payment_gateway(payment.gateway)
+    gateway_response = dict()
+
+    try:
+        gateway_response = getattr(gateway, func_name)(
+            payment=payment, payment_token=payment_token, **extra_params)
+        validate_gateway_response(gateway_response)
+    except AttributeError:
+        logger.exception('Gateway doesn\'t implement %s', func_name)
+    except GatewayError:
+        logger.exception('Gateway response validation failed')
+    except Exception:
+        logger.exception('Gateway encountered an error')
+    finally:
+        return create_transaction(
+            payment=payment,
+            kind=transaction_kind,
+            payment_token=payment_token,
+            gateway_response=gateway_response)
+
+
 def validate_gateway_response(response):
     """Validates response to be a correct format for Saleor to process."""
     if not isinstance(response, dict):
-        raise GatewayError('gateway needs to return a dictionary')
-    # TODO: check if required fields are in the dictionary
+        raise GatewayError('Gateway needs to return a dictionary')
+    required_fields = {'transaction_id', 'is_success'}
+    if not required_fields.issubset(response):
+        raise GatewayError(
+            'Gateway response needs to contain following keys: '.format(
+                required_fields - response.keys()))
 
 
 @validate_payment
 def gateway_process_payment(
     payment: Payment, payment_token: str, **kwargs) -> Transaction:
     """Performs whole payment process on a gateway."""
-    gateway, gateway_params = get_payment_gateway(payment.gateway)
+    transaction = call_gateway(
+        func_name='process_payment', transaction_kind=TransactionKind.CAPTURE,
+        payment=payment, payment_token=payment_token)
 
-    try:
-        gateway_response = gateway.process_payment(
-            payment=model_to_dict(payment), payment_token=payment_token,
-            amount=payment.total, **gateway_params)
-    except Exception as e:
-        return create_transaction(
-            payment=payment,
-            kind=TransactionKind.CAPTURE,
-            currency=payment.currency,
-            amount=payment.total,
-            token=payment_token,
-            is_success=False)
-
-    validate_gateway_response(gateway_response)
-
-    txn = create_transaction(
-        payment=payment,
-        kind=TransactionKind.CAPTURE,
-        gateway_response=gateway_response)
-
-    if txn.is_success:
+    if transaction.is_success:
         payment.charge_status = ChargeStatus.CHARGED
-        payment.captured_amount += txn.amount
+        payment.captured_amount += transaction.amount
         payment.save(update_fields=['charge_status', 'captured_amount'])
         order = payment.order
         if order and order.is_fully_paid():
             handle_fully_paid_order(order)
     else:
-        raise PaymentError(error)
+        # attempt to get errors from response, if none raise a generic one
+        raise PaymentError(transaction.gateway_response.get(
+            'errors', GENERIC_TRANSACTION_ERROR))
 
-    return txn
+    return transaction
 
 
 @validate_payment
