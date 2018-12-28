@@ -9,4 +9,6 @@ class NavigationType(graphene.Enum):
     def description(self):
         if self == NavigationType.MAIN:
             return 'Main storefront\'s navigation.'
-        return 'Secondary storefront\'s navigation.'
+        if self == NavigationType.SECONDARY:
+            return 'Secondary storefront\'s navigation.'
+        raise ValueError('Unsupported enum value: %s' % self.value)

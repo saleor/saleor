@@ -3,8 +3,6 @@ from textwrap import dedent
 import graphene
 from django_prices.templatetags import prices_i18n
 
-from ..utils import str_to_enum
-
 
 class Money(graphene.ObjectType):
     currency = graphene.String(description='Currency code.', required=True)
