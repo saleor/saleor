@@ -3,7 +3,7 @@ from unittest.mock import patch
 import graphene
 
 from saleor.core.utils import get_country_name_by_code
-from saleor.graphql.payment.types import (
+from saleor.graphql.payment.enums import (
     OrderAction, PaymentChargeStatusEnum, PaymentGatewayEnum)
 from saleor.payment.models import ChargeStatus, Payment, TransactionKind
 from tests.api.utils import get_graphql_content
