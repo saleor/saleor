@@ -25,3 +25,4 @@ class OrderAction(graphene.Enum):
             return 'Represents a refund action.'
         if self == OrderAction.VOID:
             return 'Represents a void action.'
+        raise ValueError('Unsupported enum value: %s' % self.value)
