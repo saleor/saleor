@@ -9,7 +9,8 @@ from ..utils import (
 from .filters import (
     filter_products_by_attributes, filter_products_by_categories,
     filter_products_by_collections, filter_products_by_price, sort_qs)
-from .types import Category, Collection, ProductVariant, StockAvailability
+from .enums import StockAvailability
+from .types import Category, Collection, ProductVariant
 
 PRODUCT_SEARCH_FIELDS = ('name', 'description', 'category__name')
 CATEGORY_SEARCH_FIELDS = ('name', 'slug', 'description', 'parent__name')
