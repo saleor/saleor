@@ -96,7 +96,7 @@ All commands need to be performed in either PowerShell or a Command Shell.
 
    Use the **pgAdmin** tool that came with your PostgreSQL installation to create a database user for your store.
 
-   Unless configured otherwise the store will use ``saleor`` as both username and password. Remeber to give your user the ``SUPERUSER`` privilege so it can create databases and database extensions.
+   Unless configured otherwise the store will use ``saleor`` as both username and password. Remember to give your user the ``SUPERUSER`` privilege so it can create databases and database extensions.
 
 #. Create a PostgreSQL database
 
