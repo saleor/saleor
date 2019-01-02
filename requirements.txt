@@ -5,8 +5,8 @@ autopep8==1.4.3
 babel==2.6.0
 billiard==3.5.0.5
 bleach==2.1.4
-boto3==1.9.67
-botocore==1.12.67
+boto3==1.9.71
+botocore==1.12.71
 braintree==3.49.0
 cairocffi==0.9.0
 cairosvg==2.2.1
@@ -52,7 +52,7 @@ elasticsearch-dsl==6.0.1
 elasticsearch==6.3.1
 faker==1.0.1
 freezegun==0.3.11
-google-i18n-address==2.3.3
+google-i18n-address==2.3.4
 google-measurement-protocol==1.0.0
 gprof2dot==2016.10.13
 graphene-django-optimizer==0.3.5
@@ -66,7 +66,7 @@ ipaddress==1.0.22
 jinja2==2.10
 jmespath==0.9.3
 jsonfield==2.0.2
-kombu==4.2.2
+kombu==4.2.2.post1
 markdown==3.0.1
 markupsafe==1.1.0
 maxminddb-geolite2==2018.703
@@ -75,7 +75,7 @@ measurement==2.0.1
 mpmath==1.1.0
 oauthlib==2.1.0
 phonenumberslite==8.10.2
-pillow==5.3.0
+pillow==5.4.0
 prices==1.0.0
 promise==2.2.1
 psycopg2-binary==2.7.6.1
@@ -100,7 +100,7 @@ six==1.12.0
 social-auth-app-django==3.1.0
 social-auth-core==2.0.0
 sqlparse==0.2.4
-stripe==2.16.0
+stripe==2.17.0
 sympy==1.3
 text-unidecode==1.2
 tinycss2==0.6.1
@@ -108,5 +108,5 @@ typing==3.6.6
 urllib3==1.24.1
 uwsgi==2.0.17.1 ; platform_system != 'Windows'
 vine==1.1.4
-weasyprint==43
+weasyprint==44
 webencodings==0.5.1
