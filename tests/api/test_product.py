@@ -477,6 +477,128 @@ def test_create_product(
     assert color_value_slug in values
 
 
+QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS = """
+    mutation createProduct(
+        $productTypeId: ID!,
+        $categoryId: ID!
+        $name: String!,
+        $description: String!,
+        $price: Decimal!,
+        $sku: String,
+        $quantity: Int,
+        $trackInventory: Boolean)
+    {
+        productCreate(
+            input: {
+                category: $categoryId,
+                productType: $productTypeId,
+                name: $name,
+                description: $description,
+                price: $price,
+                sku: $sku,
+                quantity: $quantity,
+                trackInventory: $trackInventory
+            })
+        {
+            product {
+                id
+                name
+                variants{
+                    id
+                    sku
+                    quantity
+                    trackInventory
+                }
+                category {
+                    name
+                }
+                productType {
+                    name
+                }
+            }
+            errors {
+                message
+                field
+            }
+        }
+    }
+    """
+
+
+def test_create_product_without_variants(
+        staff_api_client, product_type_without_variant, category,
+        permission_manage_products):
+    query = QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS
+
+    product_type = product_type_without_variant
+    product_type_id = graphene.Node.to_global_id(
+        'ProductType', product_type.pk)
+    category_id = graphene.Node.to_global_id(
+        'Category', category.pk)
+    product_name = 'test name'
+    product_description = 'description'
+    product_price = 10
+    sku = 'sku'
+    quantity = 1
+    track_inventory = True
+
+    variables = {
+        'productTypeId': product_type_id,
+        'categoryId': category_id,
+        'name': product_name,
+        'description': product_description,
+        'price': product_price,
+        'sku': sku,
+        'quantity': quantity,
+        'trackInventory': track_inventory}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    content = get_graphql_content(response)
+    data = content['data']['productCreate']
+    assert data['errors'] == []
+    assert data['product']['name'] == product_name
+    assert data['product']['productType']['name'] == product_type.name
+    assert data['product']['category']['name'] == category.name
+    assert data['product']['variants'][0]['sku'] == sku
+    assert data['product']['variants'][0]['quantity'] == quantity
+    assert data['product']['variants'][0]['trackInventory'] == track_inventory
+
+
+def test_create_product_without_variants_sku_validation(
+        staff_api_client, product_type_without_variant, category,
+        permission_manage_products):
+    query = QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS
+
+    product_type = product_type_without_variant
+    product_type_id = graphene.Node.to_global_id(
+        'ProductType', product_type.pk)
+    category_id = graphene.Node.to_global_id(
+        'Category', category.pk)
+    product_name = 'test name'
+    product_description = 'description'
+    product_price = 10
+    quantity = 1
+    track_inventory = True
+
+    variables = {
+        'productTypeId': product_type_id,
+        'categoryId': category_id,
+        'name': product_name,
+        'description': product_description,
+        'price': product_price,
+        'sku': None,
+        'quantity': quantity,
+        'trackInventory': track_inventory}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    content = get_graphql_content(response)
+    data = content['data']['productCreate']
+    assert data['errors'][0]['field'] == 'sku'
+    assert data['errors'][0]['message'] == 'This field cannot be blank.'
+
+
 def test_update_product(
         staff_api_client, category, non_default_category, product,
         permission_manage_products):
@@ -565,6 +687,68 @@ def test_update_product(
     assert data['product']['chargeTaxes'] == product_chargeTaxes
     assert data['product']['taxRate'] == product_taxRate
     assert not data['product']['category']['name'] == category.name
+
+
+def test_update_product_without_variants(
+        staff_api_client, product_with_default_variant,
+        permission_manage_products):
+    query = """
+    mutation updateProduct(
+        $productId: ID!,
+        $sku: String,
+        $quantity: Int,
+        $trackInventory: Boolean,
+        $description: String)
+    {
+        productUpdate(
+            id: $productId,
+            input: {
+                sku: $sku,
+                quantity: $quantity,
+                trackInventory: $trackInventory,
+                description: $description
+            })
+        {
+            product {
+                id
+                variants{
+                    id
+                    sku
+                    quantity
+                    trackInventory
+                }
+            }
+            errors {
+                message
+                field
+            }
+        }
+    }
+    """
+
+    product = product_with_default_variant
+    product_id = graphene.Node.to_global_id('Product', product.pk)
+    product_sku = "test_sku"
+    product_quantity = 10
+    product_track_inventory = False
+    product_description = "test description"
+
+    variables = {
+        'productId': product_id,
+        'sku': product_sku,
+        'quantity': product_quantity,
+        'trackInventory': product_track_inventory,
+        'description': product_description}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    content = get_graphql_content(response)
+    data = content['data']['productUpdate']
+    assert data['errors'] == []
+    product = data['product']['variants'][0]
+    assert product['sku'] == product_sku
+    assert product['quantity'] == product_quantity
+    assert product['trackInventory'] == product_track_inventory
 
 
 def test_delete_product(staff_api_client, product, permission_manage_products):
