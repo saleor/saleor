@@ -21,7 +21,7 @@ class DiscountQueries(graphene.ObjectType):
         Voucher, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup a voucher by ID.')
     vouchers = PrefetchingConnectionField(
-        Voucher, query=graphene.String(description=DESCRIPTIONS['product']),
+        Voucher, query=graphene.String(description=DESCRIPTIONS['voucher']),
         description="List of the shop\'s vouchers.")
 
     @permission_required('discount.manage_discounts')
