@@ -2,12 +2,14 @@ import graphene
 from graphql_jwt.decorators import permission_required
 
 from ..core.fields import PrefetchingConnectionField
-from ..descriptions import DESCRIPTIONS
+# FIXME: Types are imported before mutations on purpose. Otherwise these types
+# are missing in Graphene's type registry and mutations cannot be created
+# properly. This happens only in the `saleor.graphql.discount` module.
+from .types import Sale, Voucher
 from .mutations import (
     SaleCreate, SaleDelete, SaleUpdate, VoucherCreate, VoucherDelete,
     VoucherUpdate)
 from .resolvers import resolve_sales, resolve_vouchers
-from .types import Sale, Voucher
 
 
 class DiscountQueries(graphene.ObjectType):
@@ -15,14 +17,16 @@ class DiscountQueries(graphene.ObjectType):
         Sale, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup a sale by ID.')
     sales = PrefetchingConnectionField(
-        Sale, query=graphene.String(description=DESCRIPTIONS['sale']),
-        description="List of the shop\'s sales.")
+        Sale, query=graphene.String(
+            description='Search sales by name, value or type.'),
+        description='List of the shop\'s sales.')
     voucher = graphene.Field(
         Voucher, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup a voucher by ID.')
     vouchers = PrefetchingConnectionField(
-        Voucher, query=graphene.String(description=DESCRIPTIONS['product']),
-        description="List of the shop\'s vouchers.")
+        Voucher, query=graphene.String(
+            description='Search vouchers by name or code.'),
+        description='List of the shop\'s vouchers.')
 
     @permission_required('discount.manage_discounts')
     def resolve_sale(self, info, id):

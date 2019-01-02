@@ -5,8 +5,9 @@ import graphene
 from ...dashboard.shipping.forms import default_shipping_zone_exists
 from ...shipping import models
 from ..core.mutations import ModelDeleteMutation, ModelMutation
-from ..core.types.common import Decimal
-from .types import ShippingMethodTypeEnum, ShippingZone, WeightScalar
+from ..core.scalars import Decimal, WeightScalar
+from .enums import ShippingMethodTypeEnum
+from .types import ShippingZone
 
 
 class ShippingPriceInput(graphene.InputObjectType):

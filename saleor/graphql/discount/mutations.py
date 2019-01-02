@@ -2,8 +2,8 @@ import graphene
 
 from ...discount import VoucherType, models
 from ..core.mutations import ModelDeleteMutation, ModelMutation
-from ..core.types.common import Decimal
-from .types import DiscountValueTypeEnum, VoucherTypeEnum
+from ..core.scalars import Decimal
+from .enums import DiscountValueTypeEnum, VoucherTypeEnum
 
 
 def validate_voucher(voucher_data):

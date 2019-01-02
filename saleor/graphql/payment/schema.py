@@ -2,11 +2,12 @@ import graphene
 from graphql_jwt.decorators import permission_required
 
 from ..core.fields import PrefetchingConnectionField
+from .enums import PaymentGatewayEnum
 from .mutations import (
     PaymentAuthorize, PaymentCapture, PaymentCharge, PaymentRefund,
     PaymentVoid)
 from .resolvers import resolve_payment_client_token, resolve_payments
-from .types import Payment, PaymentGatewayEnum
+from .types import Payment
 
 
 class PaymentQueries(graphene.ObjectType):
