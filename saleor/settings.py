@@ -43,7 +43,7 @@ MANAGERS = ADMINS
 
 INTERNAL_IPS = get_list(os.environ.get('INTERNAL_IPS', '127.0.0.1'))
 
-# Some cloud providers like Heroku export REDIS_URL variable instead of CACHE_URL
+# Some cloud providers (Heroku) export REDIS_URL variable instead of CACHE_URL
 REDIS_URL = os.environ.get('REDIS_URL')
 if REDIS_URL:
     CACHE_URL = os.environ.setdefault('CACHE_URL', REDIS_URL)
@@ -58,29 +58,36 @@ DATABASES = {
 TIME_ZONE = 'America/Chicago'
 LANGUAGE_CODE = 'en'
 LANGUAGES = [
+    ('ar', _('Arabic')),
     ('bg', _('Bulgarian')),
+    ('bn', _('Bengali')),
+    ('ca', _('Catalan')),
     ('cs', _('Czech')),
+    ('da', _('Danish')),
     ('de', _('German')),
     ('en', _('English')),
     ('es', _('Spanish')),
-    ('fa-ir', _('Persian (Iran)')),
+    ('fa', _('Persian')),
     ('fr', _('French')),
     ('hu', _('Hungarian')),
     ('it', _('Italian')),
     ('ja', _('Japanese')),
     ('ko', _('Korean')),
+    ('mn', _('Mongolian')),
     ('nb', _('Norwegian')),
     ('nl', _('Dutch')),
     ('pl', _('Polish')),
-    ('pt-br', _('Portuguese (Brazil)')),
+    ('pt-br', _('Brazilian Portuguese')),
     ('ro', _('Romanian')),
     ('ru', _('Russian')),
     ('sk', _('Slovak')),
+    ('sr', _('Serbian')),
+    ('sv', _('Swedish')),
     ('tr', _('Turkish')),
     ('uk', _('Ukrainian')),
     ('vi', _('Vietnamese')),
-    ('zh-hans', _('Chinese')),
-    ('zh-tw', _('Chinese (Taiwan)'))]
+    ('zh-hans', _('Simplified Chinese')),
+    ('zh-hant', _('Traditional Chinese'))]
 LOCALE_PATHS = [os.path.join(PROJECT_ROOT, 'locale')]
 USE_I18N = True
 USE_L10N = True
@@ -122,7 +129,8 @@ STATICFILES_DIRS = [
     ('assets', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'assets')),
     ('favicons', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'favicons')),
     ('images', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'images')),
-    ('dashboard', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'dashboard'))]
+    ('dashboard/images', os.path.join(
+        PROJECT_ROOT, 'saleor', 'static', 'dashboard', 'images'))]
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder']
@@ -205,7 +213,7 @@ INSTALLED_APPS = [
     'saleor.core',
     'saleor.graphql',
     'saleor.menu',
-    'saleor.order.OrderAppConfig',
+    'saleor.order',
     'saleor.dashboard',
     'saleor.seo',
     'saleor.shipping',
@@ -213,6 +221,7 @@ INSTALLED_APPS = [
     'saleor.site',
     'saleor.data_feeds',
     'saleor.page',
+    'saleor.payment',
 
     # External apps
     'versatileimagefield',
@@ -224,7 +233,6 @@ INSTALLED_APPS = [
     'django_prices_vatlayer',
     'graphene_django',
     'mptt',
-    'payments',
     'webpack_loader',
     'social_django',
     'django_countries',
@@ -257,7 +265,7 @@ if DEBUG:
         'debug_toolbar.panels.profiling.ProfilingPanel',
     ]
     DEBUG_TOOLBAR_CONFIG = {
-        'RESULTS_STORE_SIZE': 100}
+        'RESULTS_CACHE_SIZE': 100}
 
 ENABLE_SILK = get_bool_from_env('ENABLE_SILK', False)
 if ENABLE_SILK:
@@ -310,6 +318,7 @@ LOGIN_URL = '/account/login/'
 DEFAULT_COUNTRY = os.environ.get('DEFAULT_COUNTRY', 'US')
 DEFAULT_CURRENCY = os.environ.get('DEFAULT_CURRENCY', 'USD')
 DEFAULT_DECIMAL_PLACES = get_currency_fraction(DEFAULT_CURRENCY)
+DEFAULT_MAX_DIGITS = 12
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
 COUNTRIES_OVERRIDE = {
     'EU': pgettext_lazy(
@@ -340,18 +349,12 @@ PAYMENT_HOST = get_host
 
 PAYMENT_MODEL = 'order.Payment'
 
-PAYMENT_VARIANTS = {
-    'default': ('payments.dummy.DummyProvider', {})}
-
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 
 # Do not use cached session if locmem cache backend is used but fallback to use
 # default django.contrib.sessions.backends.db instead
 if not CACHES['default']['BACKEND'].endswith('LocMemCache'):
     SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
-
-CHECKOUT_PAYMENT_CHOICES = [
-    ('default', 'Dummy provider')]
 
 MESSAGE_TAGS = {
     messages.ERROR: 'danger'}
@@ -370,10 +373,11 @@ bootstrap4 = {
     'form_renderers': {
         'default': 'saleor.core.utils.form_renderer.FormRenderer'}}
 
-TEST_RUNNER = ''
+TEST_RUNNER = 'tests.runner.PytestTestRunner'
 
 ALLOWED_HOSTS = get_list(
     os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1'))
+ALLOWED_GRAPHQL_ORIGINS = os.environ.get('ALLOWED_GRAPHQL_ORIGINS', '*')
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
@@ -384,8 +388,10 @@ AWS_MEDIA_BUCKET_NAME = os.environ.get('AWS_MEDIA_BUCKET_NAME')
 AWS_MEDIA_CUSTOM_DOMAIN = os.environ.get('AWS_MEDIA_CUSTOM_DOMAIN')
 AWS_QUERYSTRING_AUTH = get_bool_from_env('AWS_QUERYSTRING_AUTH', False)
 AWS_S3_CUSTOM_DOMAIN = os.environ.get('AWS_STATIC_CUSTOM_DOMAIN')
+AWS_S3_ENDPOINT_URL = os.environ.get('AWS_S3_ENDPOINT_URL', None)
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+AWS_DEFAULT_ACL = os.environ.get('AWS_DEFAULT_ACL', None)
 
 if AWS_STORAGE_BUCKET_NAME:
     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
@@ -403,7 +409,9 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
         ('product_small', 'thumbnail__60x60'),
         ('product_small_2x', 'thumbnail__120x120'),
         ('product_list', 'thumbnail__255x255'),
-        ('product_list_2x', 'thumbnail__510x510')]}
+        ('product_list_2x', 'thumbnail__510x510')],
+    'background_images': [
+        ('header_image', 'thumbnail__1080x440')]}
 
 VERSATILEIMAGEFIELD_SETTINGS = {
     # Images should be pre-generated on Production environment
@@ -437,8 +445,10 @@ LOGOUT_ON_PASSWORD_CHANGE = False
 DB_SEARCH_ENABLED = True
 
 # support deployment-dependant elastic enviroment variable
-ES_URL = (os.environ.get('ELASTICSEARCH_URL') or
-          os.environ.get('SEARCHBOX_URL') or os.environ.get('BONSAI_URL'))
+ES_URL = (
+    os.environ.get('ELASTICSEARCH_URL')
+    or os.environ.get('SEARCHBOX_URL')
+    or os.environ.get('BONSAI_URL'))
 
 ENABLE_SEARCH = bool(ES_URL) or DB_SEARCH_ENABLED  # global search disabling
 
@@ -479,7 +489,7 @@ SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
 # CELERY SETTINGS
 CELERY_BROKER_URL = os.environ.get(
     'CELERY_BROKER_URL', os.environ.get('CLOUDAMQP_URL')) or ''
-CELERY_TASK_ALWAYS_EAGER = False if CELERY_BROKER_URL else True
+CELERY_TASK_ALWAYS_EAGER = not CELERY_BROKER_URL
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -542,3 +552,59 @@ if SENTRY_DSN:
 
 SERIALIZATION_MODULES = {
     'json': 'saleor.core.utils.json_serializer'}
+
+
+DUMMY = 'dummy'
+BRAINTREE = 'braintree'
+RAZORPAY = 'razorpay'
+STRIPE = 'stripe'
+
+CHECKOUT_PAYMENT_GATEWAYS = {
+    DUMMY: pgettext_lazy('Payment method name', 'Dummy gateway')}
+
+PAYMENT_GATEWAYS = {
+    DUMMY: {
+        'module': 'saleor.payment.gateways.dummy',
+        'connection_params': {}},
+    BRAINTREE: {
+        'module': 'saleor.payment.gateways.braintree',
+        'connection_params': {
+            'sandbox_mode': get_bool_from_env('BRAINTREE_SANDBOX_MODE', True),
+            'merchant_id': os.environ.get('BRAINTREE_MERCHANT_ID'),
+            'public_key': os.environ.get('BRAINTREE_PUBLIC_KEY'),
+            'private_key': os.environ.get('BRAINTREE_PRIVATE_KEY')
+        }
+    },
+    RAZORPAY: {
+        'module': 'saleor.payment.gateways.razorpay',
+        'connection_params': {
+            'public_key': os.environ.get('RAZORPAY_PUBLIC_KEY'),
+            'secret_key': os.environ.get('RAZORPAY_SECRET_KEY'),
+            'prefill': get_bool_from_env('RAZORPAY_PREFILL', True),
+            'store_name': os.environ.get('RAZORPAY_STORE_NAME'),
+            'store_image': os.environ.get('RAZORPAY_STORE_IMAGE')
+        }
+    },
+    STRIPE: {
+        'module': 'saleor.payment.gateways.stripe',
+        'connection_params': {
+            'public_key': os.environ.get('STRIPE_PUBLIC_KEY'),
+            'secret_key': os.environ.get('STRIPE_SECRET_KEY'),
+            'store_name': os.environ.get(
+                'STRIPE_STORE_NAME', 'Saleor'),
+            'store_image': os.environ.get('STRIPE_STORE_IMAGE', None),
+            'prefill': get_bool_from_env('STRIPE_PREFILL', True),
+            'remember_me': os.environ.get('STRIPE_REMEMBER_ME', True),
+            'locale': os.environ.get('STRIPE_LOCALE', 'auto'),
+            'enable_billing_address': os.environ.get(
+                'STRIPE_ENABLE_BILLING_ADDRESS', False),
+            'enable_shipping_address': os.environ.get(
+                'STRIPE_ENABLE_SHIPPING_ADDRESS', False)
+        }
+    }
+}
+
+GRAPHENE = {
+    'RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST': True,
+    'RELAY_CONNECTION_MAX_LIMIT': 100
+}

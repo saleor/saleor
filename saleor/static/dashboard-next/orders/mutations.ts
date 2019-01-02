@@ -13,11 +13,27 @@ import {
   OrderCreateFulfillment,
   OrderCreateFulfillmentVariables
 } from "./types/OrderCreateFulfillment";
+import {
+  OrderDraftCancel,
+  OrderDraftCancelVariables
+} from "./types/OrderDraftCancel";
 import { OrderDraftCreate } from "./types/OrderDraftCreate";
+import {
+  OrderDraftFinalize,
+  OrderDraftFinalizeVariables
+} from "./types/OrderDraftFinalize";
 import {
   OrderDraftUpdate,
   OrderDraftUpdateVariables
 } from "./types/OrderDraftUpdate";
+import {
+  OrderFulfillmentCancel,
+  OrderFulfillmentCancelVariables
+} from "./types/OrderFulfillmentCancel";
+import {
+  OrderFulfillmentUpdateTracking,
+  OrderFulfillmentUpdateTrackingVariables
+} from "./types/OrderFulfillmentUpdateTracking";
 import { OrderLineAdd, OrderLineAddVariables } from "./types/OrderLineAdd";
 import {
   OrderLineDelete,
@@ -27,18 +43,26 @@ import {
   OrderLineUpdate,
   OrderLineUpdateVariables
 } from "./types/OrderLineUpdate";
+import {
+  OrderMarkAsPaid,
+  OrderMarkAsPaidVariables
+} from "./types/OrderMarkAsPaid";
 import { OrderRefund, OrderRefundVariables } from "./types/OrderRefund";
-import { OrderRelease, OrderReleaseVariables } from "./types/OrderRelease";
 import {
   OrderShippingMethodUpdate,
   OrderShippingMethodUpdateVariables
 } from "./types/OrderShippingMethodUpdate";
 import { OrderUpdate, OrderUpdateVariables } from "./types/OrderUpdate";
+import { OrderVoid, OrderVoidVariables } from "./types/OrderVoid";
 
 const orderCancelMutation = gql`
   ${fragmentOrderDetails}
   mutation OrderCancel($id: ID!, $restock: Boolean!) {
     orderCancel(id: $id, restock: $restock) {
+      errors {
+        field
+        message
+      }
       order {
         ...OrderDetailsFragment
       }
@@ -49,6 +73,44 @@ export const TypedOrderCancelMutation = TypedMutation<
   OrderCancel,
   OrderCancelVariables
 >(orderCancelMutation);
+
+const orderDraftCancelMutation = gql`
+  ${fragmentOrderDetails}
+  mutation OrderDraftCancel($id: ID!) {
+    draftOrderDelete(id: $id) {
+      errors {
+        field
+        message
+      }
+      order {
+        ...OrderDetailsFragment
+      }
+    }
+  }
+`;
+export const TypedOrderDraftCancelMutation = TypedMutation<
+  OrderDraftCancel,
+  OrderDraftCancelVariables
+>(orderDraftCancelMutation);
+
+const orderDraftFinalizeMutation = gql`
+  ${fragmentOrderDetails}
+  mutation OrderDraftFinalize($id: ID!) {
+    draftOrderComplete(id: $id) {
+      errors {
+        field
+        message
+      }
+      order {
+        ...OrderDetailsFragment
+      }
+    }
+  }
+`;
+export const TypedOrderDraftFinalizeMutation = TypedMutation<
+  OrderDraftFinalize,
+  OrderDraftFinalizeVariables
+>(orderDraftFinalizeMutation);
 
 const orderRefundMutation = gql`
   ${fragmentOrderDetails}
@@ -69,20 +131,43 @@ export const TypedOrderRefundMutation = TypedMutation<
   OrderRefundVariables
 >(orderRefundMutation);
 
-const orderReleaseMutation = gql`
+const orderVoidMutation = gql`
   ${fragmentOrderDetails}
-  mutation OrderRelease($id: ID!) {
-    orderRelease(id: $id) {
+  mutation OrderVoid($id: ID!) {
+    orderVoid(id: $id) {
+      errors {
+        field
+        message
+      }
       order {
         ...OrderDetailsFragment
       }
     }
   }
 `;
-export const TypedOrderReleaseMutation = TypedMutation<
-  OrderRelease,
-  OrderReleaseVariables
->(orderReleaseMutation);
+export const TypedOrderVoidMutation = TypedMutation<
+  OrderVoid,
+  OrderVoidVariables
+>(orderVoidMutation);
+
+const orderMarkAsPaidMutation = gql`
+  ${fragmentOrderDetails}
+  mutation OrderMarkAsPaid($id: ID!) {
+    orderMarkAsPaid(id: $id) {
+      errors {
+        field
+        message
+      }
+      order {
+        ...OrderDetailsFragment
+      }
+    }
+  }
+`;
+export const TypedOrderMarkAsPaidMutation = TypedMutation<
+  OrderMarkAsPaid,
+  OrderMarkAsPaidVariables
+>(orderMarkAsPaidMutation);
 
 const orderCaptureMutation = gql`
   ${fragmentOrderDetails}
@@ -104,6 +189,7 @@ export const TypedOrderCaptureMutation = TypedMutation<
 >(orderCaptureMutation);
 
 const orderCreateFulfillmentMutation = gql`
+  ${fragmentOrderDetails}
   mutation OrderCreateFulfillment(
     $order: ID!
     $input: FulfillmentCreateInput!
@@ -113,6 +199,9 @@ const orderCreateFulfillmentMutation = gql`
         field
         message
       }
+      order {
+        ...OrderDetailsFragment
+      }
     }
   }
 `;
@@ -120,6 +209,47 @@ export const TypedOrderCreateFulfillmentMutation = TypedMutation<
   OrderCreateFulfillment,
   OrderCreateFulfillmentVariables
 >(orderCreateFulfillmentMutation);
+
+const orderFulfillmentUpdateTrackingMutation = gql`
+  ${fragmentOrderDetails}
+  mutation OrderFulfillmentUpdateTracking(
+    $id: ID!
+    $input: FulfillmentUpdateTrackingInput!
+  ) {
+    orderFulfillmentUpdateTracking(id: $id, input: $input) {
+      errors {
+        field
+        message
+      }
+      order {
+        ...OrderDetailsFragment
+      }
+    }
+  }
+`;
+export const TypedOrderFulfillmentUpdateTrackingMutation = TypedMutation<
+  OrderFulfillmentUpdateTracking,
+  OrderFulfillmentUpdateTrackingVariables
+>(orderFulfillmentUpdateTrackingMutation);
+
+const orderFulfillmentCancelMutation = gql`
+  ${fragmentOrderDetails}
+  mutation OrderFulfillmentCancel($id: ID!, $input: FulfillmentCancelInput!) {
+    orderFulfillmentCancel(id: $id, input: $input) {
+      errors {
+        field
+        message
+      }
+      order {
+        ...OrderDetailsFragment
+      }
+    }
+  }
+`;
+export const TypedOrderFulfillmentCancelMutation = TypedMutation<
+  OrderFulfillmentCancel,
+  OrderFulfillmentCancelVariables
+>(orderFulfillmentCancelMutation);
 
 const orderAddNoteMutation = gql`
   ${fragmentOrderEvent}
@@ -199,6 +329,10 @@ const orderShippingMethodUpdateMutation = gql`
         message
       }
       order {
+        availableShippingMethods {
+          id
+          name
+        }
         id
         shippingMethod {
           id
@@ -227,6 +361,10 @@ export const TypedOrderShippingMethodUpdateMutation = TypedMutation<
 const orderDraftCreateMutation = gql`
   mutation OrderDraftCreate {
     draftOrderCreate(input: {}) {
+      errors {
+        field
+        message
+      }
       order {
         id
       }

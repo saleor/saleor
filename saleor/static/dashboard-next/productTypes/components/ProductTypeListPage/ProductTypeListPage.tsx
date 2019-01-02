@@ -2,24 +2,15 @@ import Button from "@material-ui/core/Button";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
-import { PageListProps } from "../../..";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
-import {
-  ProductTypeList_productTypes_edges_node_productAttributes,
-  ProductTypeList_productTypes_edges_node_variantAttributes
-} from "../../types/ProductTypeList";
+import { PageListProps } from "../../../types";
+import { ProductTypeList_productTypes_edges_node } from "../../types/ProductTypeList";
 import ProductTypeList from "../ProductTypeList";
 
 interface ProductTypeListPageProps extends PageListProps {
-  productTypes?: Array<{
-    id: string;
-    name?: string;
-    hasVariants?: boolean;
-    productAttributes?: ProductTypeList_productTypes_edges_node_productAttributes[];
-    variantAttributes?: ProductTypeList_productTypes_edges_node_variantAttributes[];
-  }>;
+  productTypes: ProductTypeList_productTypes_edges_node[];
 }
 
 const ProductTypeListPage: React.StatelessComponent<

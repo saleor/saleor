@@ -1,6 +1,11 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import TableCell from "@material-ui/core/TableCell";
 import TextField, { TextFieldProps } from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
@@ -10,7 +15,35 @@ import * as React from "react";
 import Form from "../../components/Form";
 import Toggle from "../../components/Toggle";
 
-interface EditableTableCellProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    container: {
+      position: "relative"
+    },
+    overlay: {
+      cursor: "pointer",
+      height: "100vh",
+      left: 0,
+      position: "fixed",
+      top: 0,
+      width: "100vw",
+      zIndex: 1
+    },
+    root: {
+      left: 0,
+      minWidth: theme.spacing.unit * 20,
+      position: "absolute",
+      top: 0,
+      width: `calc(100% + ${4 * theme.spacing.unit}px)`,
+      zIndex: 2
+    },
+    text: {
+      cursor: "pointer",
+      fontSize: "0.8125rem"
+    }
+  });
+
+interface EditableTableCellProps extends WithStyles<typeof styles> {
   className?: string;
   defaultValue?: string;
   focused?: boolean;
@@ -19,32 +52,9 @@ interface EditableTableCellProps {
   onConfirm(value: string): any;
 }
 
-const decorate = withStyles(theme => ({
-  container: {
-    position: "relative" as "relative"
-  },
-  overlay: {
-    cursor: "pointer",
-    height: "100vh",
-    left: 0,
-    position: "fixed" as "fixed",
-    top: 0,
-    width: "100vw",
-    zIndex: 1
-  },
-  root: {
-    left: 0,
-    minWidth: theme.spacing.unit * 20,
-    position: "absolute" as "absolute",
-    top: 0,
-    width: `calc(100% + ${4 * theme.spacing.unit}px)`,
-    zIndex: 2
-  },
-  text: {
-    cursor: "pointer"
-  }
-}));
-export const EditableTableCell = decorate<EditableTableCellProps>(
+export const EditableTableCell = withStyles(styles, {
+  name: "EditableTableCell"
+})(
   ({
     classes,
     className,
@@ -53,7 +63,7 @@ export const EditableTableCell = decorate<EditableTableCellProps>(
     InputProps,
     value,
     onConfirm
-  }) => (
+  }: EditableTableCellProps) => (
     <TableCell className={classNames(classes.container, className)}>
       <Toggle initial={focused}>
         {(opened, { enable, disable }) => {
@@ -104,4 +114,5 @@ export const EditableTableCell = decorate<EditableTableCellProps>(
     </TableCell>
   )
 );
+EditableTableCell.displayName = "EditableTableCell";
 export default EditableTableCell;

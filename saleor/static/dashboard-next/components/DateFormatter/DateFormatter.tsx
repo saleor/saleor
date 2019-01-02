@@ -14,6 +14,13 @@ interface DateFormatterProps {
 const DateFormatter: React.StatelessComponent<DateFormatterProps> = ({
   date
 }) => {
+  const getTitle = (value: string, locale?: string, tz?: string) => {
+    let date = moment(value).locale(locale);
+    if (tz !== undefined) {
+      date = date.tz(tz);
+    }
+    return date.toLocaleString();
+  };
   return (
     <LocaleConsumer>
       {locale => (
@@ -21,12 +28,7 @@ const DateFormatter: React.StatelessComponent<DateFormatterProps> = ({
           {tz => (
             <Consumer>
               {currentDate => (
-                <Tooltip
-                  title={moment(date)
-                    .locale(locale)
-                    .tz(tz)
-                    .toLocaleString()}
-                >
+                <Tooltip title={getTitle(date, locale, tz)}>
                   <ReactMoment from={currentDate} locale={locale} tz={tz}>
                     {date}
                   </ReactMoment>
@@ -39,5 +41,5 @@ const DateFormatter: React.StatelessComponent<DateFormatterProps> = ({
     </LocaleConsumer>
   );
 };
-
+DateFormatter.displayName = "DateFormatter";
 export default DateFormatter;

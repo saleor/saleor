@@ -10,9 +10,11 @@ from graphql_jwt.exceptions import PermissionDenied
 from ...account import emails, models
 from ...core.permissions import MODELS_PERMISSIONS, get_permissions
 from ...dashboard.staff.utils import remove_staff_member
+from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, User
+from ..core.enums import PermissionEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.types.common import Error
+from ..core.types import Error
 
 
 def send_user_password_reset_email(user, site):
@@ -24,10 +26,6 @@ def send_user_password_reset_email(user, site):
         'domain': site.domain,
         'protocol': 'https' if settings.ENABLE_SSL else 'http'}
     emails.send_password_reset_email.delay(context, user.email)
-
-
-BILLING_ADDRESS_FIELD = 'default_billing_address'
-SHIPPING_ADDRESS_FIELD = 'default_shipping_address'
 
 
 BILLING_ADDRESS_FIELD = 'default_billing_address'
@@ -58,16 +56,24 @@ class CustomerRegister(ModelMutation):
 
 
 class UserInput(graphene.InputObjectType):
+    first_name = graphene.String(description='Given name.')
+    last_name = graphene.String(description='Family name.')
     email = graphene.String(
         description='The unique email address of the user.')
+    is_active = graphene.Boolean(
+        required=False, description='User account is active.')
     note = graphene.String(description='A note about the user.')
 
 
-class CustomerInput(UserInput):
+class UserAddressInput(graphene.InputObjectType):
     default_billing_address = AddressInput(
         description='Billing address of the customer.')
     default_shipping_address = AddressInput(
         description='Shipping address of the customer.')
+
+
+class CustomerInput(UserInput, UserAddressInput):
+    pass
 
 
 class UserCreateInput(CustomerInput):
@@ -76,10 +82,8 @@ class UserCreateInput(CustomerInput):
 
 
 class StaffInput(UserInput):
-    is_active = graphene.Boolean(
-        required=False, description='User account is activated.')
     permissions = graphene.List(
-        graphene.String,
+        PermissionEnum,
         description='List of permission code names to assign to this user.')
 
 
@@ -88,7 +92,7 @@ class StaffCreateInput(StaffInput):
         description='Send an email with a link to set a password')
 
 
-class CustomerCreate(ModelMutation):
+class CustomerCreate(ModelMutation, I18nMixin):
     class Arguments:
         input = UserCreateInput(
             description='Fields required to create a customer.', required=True)
@@ -103,36 +107,21 @@ class CustomerCreate(ModelMutation):
         return user.has_perm('account.manage_users')
 
     @classmethod
-    def construct_address(
-            cls, address_field_name, address_input, user_instance, errors):
-        if address_field_name not in [
-                BILLING_ADDRESS_FIELD, SHIPPING_ADDRESS_FIELD]:
-            raise AssertionError(
-                'Wrong address_field_name: %s' % address_field_name)
-
-        address_instance = getattr(user_instance, address_field_name)
-        if not address_instance:
-            address_instance = models.Address()
-
-        cls.construct_instance(address_instance, address_input)
-        cls.clean_instance(address_instance, errors)
-        return address_instance
-
-    @classmethod
     def clean_input(cls, info, instance, input, errors):
-        shipping_address_input = input.pop(SHIPPING_ADDRESS_FIELD, None)
-        billing_address_input = input.pop(BILLING_ADDRESS_FIELD, None)
+        shipping_address_data = input.pop(SHIPPING_ADDRESS_FIELD, None)
+        billing_address_data = input.pop(BILLING_ADDRESS_FIELD, None)
         cleaned_input = super().clean_input(info, instance, input, errors)
 
-        if shipping_address_input:
-            shipping_address = cls.construct_address(
-                SHIPPING_ADDRESS_FIELD, shipping_address_input, instance,
-                errors)
+        if shipping_address_data:
+            shipping_address, errors = cls.validate_address(
+                shipping_address_data, errors, SHIPPING_ADDRESS_FIELD,
+                instance=getattr(instance, SHIPPING_ADDRESS_FIELD))
             cleaned_input[SHIPPING_ADDRESS_FIELD] = shipping_address
 
-        if billing_address_input:
-            billing_address = cls.construct_address(
-                BILLING_ADDRESS_FIELD, billing_address_input, instance, errors)
+        if billing_address_data:
+            billing_address, errors = cls.validate_address(
+                billing_address_data, errors, BILLING_ADDRESS_FIELD,
+                instance=getattr(instance, BILLING_ADDRESS_FIELD))
             cleaned_input[BILLING_ADDRESS_FIELD] = billing_address
         return cleaned_input
 
@@ -166,53 +155,62 @@ class CustomerUpdate(CustomerCreate):
         model = models.User
 
 
-class StaffDelete(ModelMutation):
+class LoggedUserUpdate(CustomerCreate):
+    class Arguments:
+        input = UserAddressInput(
+            description='Fields required to update logged in user.',
+            required=True)
+
     class Meta:
-        description = 'Deletes a staff user.'
+        description = 'Updates data of the logged in user.'
+        exclude = ['password']
+        model = models.User
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.is_authenticated
+
+    @classmethod
+    def mutate(cls, root, info, **data):
+        user = info.context.user
+        data['id'] = graphene.Node.to_global_id('User', user.id)
+        return super().mutate(root, info, **data)
+
+
+class UserDelete(ModelDeleteMutation):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def clean_instance(cls, info, instance, errors):
+        user = info.context.user
+        if instance == user:
+            cls.add_error(
+                errors, 'id', 'You cannot delete your own account.')
+        elif instance.is_superuser:
+            cls.add_error(
+                errors, 'id', 'Only superuser can delete his own account.')
+        return errors
+
+
+class CustomerDelete(UserDelete):
+    class Meta:
+        description = 'Deletes a customer.'
         model = models.User
 
     class Arguments:
         id = graphene.ID(
-            required=True, description='ID of a staff user to delete.')
+            required=True, description='ID of a customer to delete.')
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('account.manage_staff')
+        return user.has_perm('account.manage_users')
 
     @classmethod
-    def mutate(cls, root, info, **data):
-        if not cls.user_is_allowed(info.context.user, data):
-            raise PermissionDenied()
-
-        errors = []
-        user_id = data.get('id')
-        instance = cls.get_node_or_error(info, user_id, errors, 'id', User)
-        cls.clean_user(instance, info.context.user, errors)
-        if errors:
-            return cls(errors=errors)
-
-        db_id = instance.id
-        remove_staff_member(instance)
-        # After the instance is deleted, set its ID to the original database's
-        # ID so that the success response contains ID of the deleted object.
-        instance.id = db_id
-        return cls.success_response(instance)
-
-    @classmethod
-    def clean_user(cls, instance, user, errors):
-        if not instance:
-            return
-        if not instance.is_staff:
-            cls.add_error(
-                errors, 'id',
-                'Only staff users can be deleted with this mutation.')
-        elif instance == user:
-            cls.add_error(
-                errors, 'id',
-                'You cannot delete your own account via dashboard.')
-        elif instance.is_superuser:
-            cls.add_error(
-                errors, 'id', 'Only superuser can delete his own account.')
+    def clean_instance(cls, info, instance, errors):
+        super().clean_instance(info, instance, errors)
+        if instance.is_staff:
+            cls.add_error(errors, 'id', 'Cannot delete a staff account.')
         return errors
 
 
@@ -296,6 +294,48 @@ class StaffUpdate(StaffCreate):
             cleaned_input.get('is_active'), instance, info.context.user,
             errors)
         return cleaned_input
+
+
+class StaffDelete(UserDelete):
+    class Meta:
+        description = 'Deletes a staff user.'
+        model = models.User
+
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of a staff user to delete.')
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('account.manage_staff')
+
+    @classmethod
+    def clean_instance(cls, info, instance, errors):
+        super().clean_instance(info, instance, errors)
+        if not instance.is_staff:
+            cls.add_error(
+                errors, 'id', 'Cannot delete a non-staff user.')
+        return errors
+
+    @classmethod
+    def mutate(cls, root, info, **data):
+        if not cls.user_is_allowed(info.context.user, data):
+            raise PermissionDenied()
+
+        errors = []
+        user_id = data.get('id')
+        instance = cls.get_node_or_error(info, user_id, errors, 'id', User)
+        if instance:
+            cls.clean_instance(info, instance, errors)
+        if errors:
+            return cls(errors=errors)
+
+        db_id = instance.id
+        remove_staff_member(instance)
+        # After the instance is deleted, set its ID to the original database's
+        # ID so that the success response contains ID of the deleted object.
+        instance.id = db_id
+        return cls.success_response(instance)
 
 
 class SetPasswordInput(graphene.InputObjectType):

@@ -1,12 +1,17 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 import SVG from "react-inlinesvg";
 
-import * as saleorLogo from "../../../../images/logo.svg";
+import * as saleorLogo from "../../../../images/logo-document.svg";
 import Container from "../../../components/Container";
 import { ControlledCheckbox } from "../../../components/ControlledCheckbox";
 import Form from "../../../components/Form";
@@ -19,61 +24,61 @@ export interface FormData {
   password: string;
   rememberMe: boolean;
 }
-export interface LoginCardProps {
+
+const styles = (theme: Theme) =>
+  createStyles({
+    card: {
+      [theme.breakpoints.down("xs")]: {
+        boxShadow: "none" as "none",
+        padding: theme.spacing.unit * 4,
+        width: "100%"
+      },
+      padding: `${theme.spacing.unit * 10.5}px ${theme.spacing.unit * 17}px`,
+      width: "100%"
+    },
+    link: {
+      color: theme.palette.primary.main,
+      cursor: "pointer",
+      textAlign: "center"
+    },
+    loginButton: {
+      width: "100%"
+    },
+    logo: {
+      "& svg": {
+        display: "block",
+        margin: `0 auto ${theme.spacing.unit * 7}px`
+      }
+    },
+    panel: {
+      "& span": {
+        color: theme.palette.error.contrastText
+      },
+      background: theme.palette.error.main,
+      borderRadius: theme.spacing.unit,
+      marginBottom: theme.spacing.unit * 3,
+      padding: theme.spacing.unit * 1.5
+    },
+    root: {
+      [theme.breakpoints.down("xs")]: {
+        background: "#fff",
+        boxShadow: "none"
+      },
+      alignItems: "center",
+      display: "flex",
+      height: "100vh"
+    }
+  });
+
+export interface LoginCardProps extends WithStyles<typeof styles> {
   error: boolean;
   disableLoginButton: boolean;
   onPasswordRecovery: () => void;
   onSubmit?(event: FormData);
 }
 
-const decorate = withStyles(theme => ({
-  card: {
-    [theme.breakpoints.down("xs")]: {
-      boxShadow: "none" as "none",
-      padding: theme.spacing.unit * 4,
-      width: "100%"
-    },
-    padding: `${theme.spacing.unit * 10.5}px ${theme.spacing.unit * 17}px`,
-    width: "100%"
-  },
-  link: {
-    color: theme.palette.primary.main,
-    cursor: "pointer" as "pointer",
-    textAlign: "center" as "center"
-  },
-  loginButton: {
-    width: "100%"
-  },
-  logo: {
-    "& path": {
-      fill: theme.palette.primary.main
-    },
-    "& svg": {
-      display: "block" as "block",
-      margin: `0 auto ${theme.spacing.unit * 7}px`
-    }
-  },
-  panel: {
-    "& span": {
-      color: theme.palette.error.contrastText
-    },
-    background: theme.palette.error.main,
-    borderRadius: theme.spacing.unit,
-    marginBottom: theme.spacing.unit * 3,
-    padding: theme.spacing.unit * 1.5
-  },
-  root: {
-    [theme.breakpoints.down("xs")]: {
-      background: "#fff",
-      boxShadow: "none" as "none"
-    },
-    alignItems: "center" as "center",
-    display: "flex",
-    height: "100vh"
-  }
-}));
-const LoginCard = decorate<LoginCardProps>(
-  ({ classes, error, disableLoginButton, onSubmit }) => {
+const LoginCard = withStyles(styles, { name: "LoginCard" })(
+  ({ classes, error, disableLoginButton, onSubmit }: LoginCardProps) => {
     return (
       <Form
         initial={{ email: "", password: "", rememberMe: false }}
@@ -126,7 +131,7 @@ const LoginCard = decorate<LoginCardProps>(
                 className={classes.loginButton}
                 color="secondary"
                 disabled={disableLoginButton}
-                variant="raised"
+                variant="contained"
                 onClick={handleSubmit}
                 type="submit"
               >
@@ -143,5 +148,5 @@ const LoginCard = decorate<LoginCardProps>(
     );
   }
 );
-
+LoginCard.displayName = "LoginCard";
 export default LoginCard;

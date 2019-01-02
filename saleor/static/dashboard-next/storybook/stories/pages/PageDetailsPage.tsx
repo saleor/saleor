@@ -1,13 +1,17 @@
+import { Omit } from "@material-ui/core";
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import PageDetailsPage from "../../../pages/components/PageDetailsPage";
+import PageDetailsPage, {
+  PageDetailsPageProps
+} from "../../../pages/components/PageDetailsPage";
 import { page } from "../../../pages/fixtures";
 import Decorator from "../../Decorator";
 
-const callbacks = {
+const callbacks: Omit<PageDetailsPageProps, "classes"> = {
   onBack: () => undefined,
-  onSubmit: () => undefined
+  onSubmit: () => undefined,
+  saveButtonBarState: "default"
 };
 
 storiesOf("Views / Pages / Page details", module)

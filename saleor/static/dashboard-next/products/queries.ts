@@ -1,6 +1,14 @@
 import gql from "graphql-tag";
-import { Query, QueryProps } from "react-apollo";
 
+import { TypedQuery } from "../queries";
+import {
+  CategorySearch,
+  CategorySearchVariables
+} from "./types/CategorySearch";
+import {
+  CollectionSearch,
+  CollectionSearchVariables
+} from "./types/CollectionSearch";
 import { ProductCreateData } from "./types/ProductCreateData";
 import {
   ProductDetails,
@@ -28,7 +36,7 @@ export const fragmentMoney = gql`
 `;
 
 export const fragmentProductImage = gql`
-  fragment ProductImage on ProductImage {
+  fragment ProductImageFragment on ProductImage {
     id
     alt
     sortOrder
@@ -50,12 +58,8 @@ export const fragmentProduct = gql`
       name
     }
     collections {
-      edges {
-        node {
-          id
-          name
-        }
-      }
+      id
+      name
     }
     price {
       ...Money
@@ -107,25 +111,19 @@ export const fragmentProduct = gql`
       }
     }
     images {
-      edges {
-        node {
-          ...ProductImage
-        }
-      }
+      ...ProductImageFragment
     }
     variants {
-      edges {
-        node {
-          id
-          sku
-          name
-          priceOverride {
-            ...Money
-          }
-          stockQuantity
-          margin
-        }
+      id
+      sku
+      name
+      priceOverride {
+        ...Money
       }
+      margin
+      quantity
+      quantityAllocated
+      stockQuantity
     }
     productType {
       id
@@ -162,11 +160,8 @@ export const fragmentVariant = gql`
       ...Money
     }
     images {
-      edges {
-        node {
-          id
-        }
-      }
+      id
+      url
     }
     name
     priceOverride {
@@ -175,30 +170,19 @@ export const fragmentVariant = gql`
     product {
       id
       images {
-        edges {
-          node {
-            ...ProductImage
-          }
-        }
+        ...ProductImageFragment
       }
       name
-      thumbnailUrl
+      thumbnail {
+        url
+      }
       variants {
-        totalCount
-        edges {
-          node {
-            id
-            name
-            sku
-            image: images(first: 1) {
-              edges {
-                node {
-                  id
-                  url
-                }
-              }
-            }
-          }
+        id
+        name
+        sku
+        images {
+          id
+          url
         }
       }
     }
@@ -208,19 +192,29 @@ export const fragmentVariant = gql`
   }
 `;
 
-export const TypedProductListQuery = Query as React.ComponentType<
-  QueryProps<ProductList, ProductListVariables>
->;
-
-export const productListQuery = gql`
+const productListQuery = gql`
   ${fragmentMoney}
-  query ProductList($first: Int, $after: String, $last: Int, $before: String) {
-    products(before: $before, after: $after, first: $first, last: $last) {
+  query ProductList(
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
+    $stockAvailability: StockAvailability
+  ) {
+    products(
+      before: $before
+      after: $after
+      first: $first
+      last: $last
+      stockAvailability: $stockAvailability
+    ) {
       edges {
         node {
           id
           name
-          thumbnailUrl
+          thumbnail {
+            url
+          }
           availability {
             available
           }
@@ -242,41 +236,25 @@ export const productListQuery = gql`
     }
   }
 `;
+export const TypedProductListQuery = TypedQuery<
+  ProductList,
+  ProductListVariables
+>(productListQuery);
 
-export const TypedProductDetailsQuery = Query as React.ComponentType<
-  QueryProps<ProductDetails, ProductDetailsVariables>
->;
-
-export const productDetailsQuery = gql`
+const productDetailsQuery = gql`
   ${fragmentProduct}
   query ProductDetails($id: ID!) {
     product(id: $id) {
       ...Product
     }
-    collections {
-      edges {
-        node {
-          id
-          name
-        }
-      }
-    }
-    categories {
-      edges {
-        node {
-          id
-          name
-        }
-      }
-    }
   }
 `;
+export const TypedProductDetailsQuery = TypedQuery<
+  ProductDetails,
+  ProductDetailsVariables
+>(productDetailsQuery);
 
-export const TypedProductVariantQuery = Query as React.ComponentType<
-  QueryProps<ProductVariantDetails, ProductVariantDetailsVariables>
->;
-
-export const productVariantQuery = gql`
+const productVariantQuery = gql`
   ${fragmentVariant}
   query ProductVariantDetails($id: ID!) {
     productVariant(id: $id) {
@@ -284,13 +262,14 @@ export const productVariantQuery = gql`
     }
   }
 `;
+export const TypedProductVariantQuery = TypedQuery<
+  ProductVariantDetails,
+  ProductVariantDetailsVariables
+>(productVariantQuery);
 
-export const TypedProductCreateQuery = Query as React.ComponentType<
-  QueryProps<ProductCreateData>
->;
-export const productCreateQuery = gql`
+const productCreateQuery = gql`
   query ProductCreateData {
-    productTypes {
+    productTypes(first: 20) {
       edges {
         node {
           id
@@ -310,40 +289,20 @@ export const productCreateQuery = gql`
         }
       }
     }
-    collections {
-      edges {
-        node {
-          id
-          name
-        }
-      }
-    }
-    categories {
-      edges {
-        node {
-          id
-          name
-        }
-      }
-    }
   }
 `;
+export const TypedProductCreateQuery = TypedQuery<ProductCreateData, {}>(
+  productCreateQuery
+);
 
-export const TypedProductVariantCreateQuery = Query as React.ComponentType<
-  QueryProps<ProductVariantCreateData, ProductVariantCreateDataVariables>
->;
-export const productVariantCreateQuery = gql`
+const productVariantCreateQuery = gql`
   query ProductVariantCreateData($id: ID!) {
     product(id: $id) {
       id
       images {
-        edges {
-          node {
-            id
-            sortOrder
-            url
-          }
-        }
+        id
+        sortOrder
+        url
       }
       productType {
         id
@@ -360,30 +319,23 @@ export const productVariantCreateQuery = gql`
         }
       }
       variants {
-        edges {
-          node {
-            id
-            name
-            sku
-            image: images(first: 1) {
-              edges {
-                node {
-                  id
-                  url
-                }
-              }
-            }
-          }
+        id
+        name
+        sku
+        images {
+          id
+          url
         }
       }
     }
   }
 `;
+export const TypedProductVariantCreateQuery = TypedQuery<
+  ProductVariantCreateData,
+  ProductVariantCreateDataVariables
+>(productVariantCreateQuery);
 
-export const TypedProductImageQuery = Query as React.ComponentType<
-  QueryProps<ProductImageById, ProductImageByIdVariables>
->;
-export const productImageQuery = gql`
+const productImageQuery = gql`
   query ProductImageById($productId: ID!, $imageId: ID!) {
     product(id: $productId) {
       id
@@ -393,19 +345,47 @@ export const productImageQuery = gql`
         url
       }
       images {
-        edges {
-          node {
-            id
-            url(size: 48)
-          }
-        }
-        pageInfo {
-          hasPreviousPage
-          hasNextPage
-          startCursor
-          endCursor
+        id
+        url(size: 48)
+      }
+    }
+  }
+`;
+export const TypedProductImageQuery = TypedQuery<
+  ProductImageById,
+  ProductImageByIdVariables
+>(productImageQuery);
+
+const categorySearch = gql`
+  query CategorySearch($query: String) {
+    categories(first: 5, query: $query) {
+      edges {
+        node {
+          id
+          name
         }
       }
     }
   }
 `;
+export const TypedCategorySearchQuery = TypedQuery<
+  CategorySearch,
+  CategorySearchVariables
+>(categorySearch);
+
+const collectionSearch = gql`
+  query CollectionSearch($query: String) {
+    collections(first: 5, query: $query) {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+export const TypedCollectionSearchQuery = TypedQuery<
+  CollectionSearch,
+  CollectionSearchVariables
+>(collectionSearch);

@@ -2,25 +2,26 @@ import { parse as parseQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
+import { WindowTitle } from "../components/WindowTitle";
+import i18n from "../i18n";
+import {
+  productTypeAddPath,
+  productTypeListPath,
+  productTypePath
+} from "./urls";
 import ProductTypeCreate from "./views/ProductTypeCreate";
-import ProductTypeListComponent from "./views/ProductTypeList";
+import ProductTypeListComponent, {
+  ProductTypeListQueryParams
+} from "./views/ProductTypeList";
 import ProductTypeUpdateComponent from "./views/ProductTypeUpdate";
-
-export const productTypeAddUrl = "/productTypes/add/";
-export const productTypeDetailsUrl = (id: string) => `/productTypes/${id}/`;
-export const productTypeListUrl = "/productTypes";
 
 const ProductTypeList: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
-  const queryString = parseQs(location.search.substr(1));
-  const params = {
-    after: queryString.after
-      ? decodeURIComponent(queryString.after)
-      : undefined,
-    before: queryString.before
-      ? decodeURIComponent(queryString.before)
-      : undefined
+  const qs = parseQs(location.search.substr(1));
+  const params: ProductTypeListQueryParams = {
+    after: qs.after,
+    before: qs.before
   };
   return <ProductTypeListComponent params={params} />;
 };
@@ -30,16 +31,21 @@ interface ProductTypeUpdateRouteParams {
 }
 const ProductTypeUpdate: React.StatelessComponent<
   RouteComponentProps<ProductTypeUpdateRouteParams>
-> = ({ match }) => <ProductTypeUpdateComponent id={match.params.id} />;
+> = ({ match }) => (
+  <ProductTypeUpdateComponent id={decodeURIComponent(match.params.id)} />
+);
 
 export const ProductTypeRouter: React.StatelessComponent<
   RouteComponentProps<any>
-> = ({ match }) => (
-  <Switch>
-    <Route exact path={match.url} component={ProductTypeList} />
-    <Route exact path={match.url + "/add/"} component={ProductTypeCreate} />
-    <Route exact path={match.url + "/:id/"} component={ProductTypeUpdate} />
-  </Switch>
+> = () => (
+  <>
+    <WindowTitle title={i18n.t("Product types")} />
+    <Switch>
+      <Route exact path={productTypeListPath} component={ProductTypeList} />
+      <Route exact path={productTypeAddPath} component={ProductTypeCreate} />
+      <Route path={productTypePath(":id")} component={ProductTypeUpdate} />
+    </Switch>
+  </>
 );
 ProductTypeRouter.displayName = "ProductTypeRouter";
 export default ProductTypeRouter;

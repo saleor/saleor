@@ -1,91 +1,14 @@
-import { stringify } from "qs";
+import { MutationFn, MutationResult } from "react-apollo";
+import { ConfirmButtonTransitionState } from "./components/ConfirmButton/ConfirmButton";
+import { AddressType } from "./customers/types";
 import i18n from "./i18n";
-import { TaxRateType } from "./types/globalTypes";
-
-export interface PageInfo {
-  endCursor: string;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-  startCursor: string;
-}
-interface PaginationState {
-  after?: string;
-  before?: string;
-  first?: number;
-  last?: number;
-}
-
-interface QueryString {
-  after?: string;
-  before?: string;
-}
-
-export function createPaginationState(
-  paginateBy: number,
-  queryString: QueryString
-): PaginationState {
-  return queryString && (queryString.before || queryString.after)
-    ? queryString.after
-      ? {
-          after: queryString.after,
-          first: paginateBy
-        }
-      : {
-          before: queryString.before,
-          last: paginateBy
-        }
-    : {
-        first: paginateBy
-      };
-}
-
-export function createPaginationData(
-  navigate: ((url: string, push: boolean) => void),
-  paginationState: PaginationState,
-  url: string,
-  pageInfo: PageInfo,
-  loading
-) {
-  const loadNextPage = () => {
-    if (loading) {
-      return;
-    }
-    return navigate(
-      url +
-        "?" +
-        stringify({
-          after: encodeURIComponent(pageInfo.endCursor)
-        }),
-      true
-    );
-  };
-  const loadPreviousPage = () => {
-    if (loading) {
-      return;
-    }
-    return navigate(
-      url +
-        "?" +
-        stringify({
-          before: encodeURIComponent(pageInfo.startCursor)
-        }),
-      true
-    );
-  };
-  const newPageInfo = pageInfo
-    ? {
-        ...pageInfo,
-        hasNextPage: !!paginationState.before || pageInfo.hasNextPage,
-        hasPreviousPage: !!paginationState.after || pageInfo.hasPreviousPage
-      }
-    : undefined;
-
-  return {
-    loadNextPage,
-    loadPreviousPage,
-    pageInfo: newPageInfo
-  };
-}
+import { PartialMutationProviderOutput, UserError } from "./types";
+import {
+  AuthorizationKeyType,
+  OrderStatus,
+  PaymentChargeStatusEnum,
+  TaxRateType
+} from "./types/globalTypes";
 
 export function renderCollection<T>(
   collection: T[],
@@ -94,26 +17,76 @@ export function renderCollection<T>(
     index: number | undefined,
     collection: T[]
   ) => any,
-  renderEmpty: (collection: T[]) => any
+  renderEmpty?: (collection: T[]) => any
 ) {
   if (collection === undefined) {
     return renderItem(undefined, undefined, collection);
   }
   if (collection.length === 0) {
-    return renderEmpty(collection);
+    return !!renderEmpty ? renderEmpty(collection) : null;
   }
   return collection.map(renderItem);
 }
 
-export function decimal(value: string) {
-  return value === "" ? null : value;
+export function decimal(value: string | number) {
+  if (typeof value === "string") {
+    return value === "" ? null : value;
+  }
+  return value;
 }
 
 export const removeDoubleSlashes = (url: string) =>
   url.replace(/([^:]\/)\/+/g, "$1");
 
+export const transformPaymentStatus = (status: string) => {
+  switch (status) {
+    case PaymentChargeStatusEnum.CHARGED:
+      return { localized: i18n.t("Paid"), status: "success" };
+    case PaymentChargeStatusEnum.FULLY_REFUNDED:
+      return { localized: i18n.t("Refunded"), status: "success" };
+    default:
+      return { localized: i18n.t("Unpaid"), status: "error" };
+  }
+};
+
+export const transformOrderStatus = (status: string) => {
+  switch (status) {
+    case OrderStatus.FULFILLED:
+      return { localized: i18n.t("Fulfilled"), status: "success" };
+    case OrderStatus.PARTIALLY_FULFILLED:
+      return { localized: i18n.t("Partially fulfilled"), status: "neutral" };
+    case OrderStatus.UNFULFILLED:
+      return { localized: i18n.t("Unfulfilled"), status: "error" };
+    case OrderStatus.CANCELED:
+      return { localized: i18n.t("Cancelled"), status: "error" };
+    case OrderStatus.DRAFT:
+      return { localized: i18n.t("Draft"), status: "error" };
+  }
+  return {
+    localized: status,
+    status: "error"
+  };
+};
+
+export const transformAddressToForm = (data: AddressType) => ({
+  city: maybe(() => data.city, ""),
+  cityArea: maybe(() => data.cityArea, ""),
+  companyName: maybe(() => data.companyName, ""),
+  country: {
+    label: maybe(() => data.country.country, ""),
+    value: maybe(() => data.country.code, "")
+  },
+  countryArea: maybe(() => data.countryArea, ""),
+  firstName: maybe(() => data.firstName, ""),
+  lastName: maybe(() => data.lastName, ""),
+  phone: maybe(() => data.phone, ""),
+  postalCode: maybe(() => data.postalCode, ""),
+  streetAddress1: maybe(() => data.streetAddress1, ""),
+  streetAddress2: maybe(() => data.streetAddress2, "")
+});
+
 export const translatedTaxRates = () => ({
-  [TaxRateType.ACCOMODATION]: i18n.t("Accomodation"),
+  [TaxRateType.ACCOMMODATION]: i18n.t("Accommodation"),
   [TaxRateType.ADMISSION_TO_CULTURAL_EVENTS]: i18n.t(
     "Admission to cultural events"
   ),
@@ -145,6 +118,11 @@ export const translatedTaxRates = () => ({
   [TaxRateType.WATER]: i18n.t("Water")
 });
 
+export const translatedAuthorizationKeyTypes = () => ({
+  [AuthorizationKeyType.FACEBOOK]: i18n.t("Facebook"),
+  [AuthorizationKeyType.GOOGLE_OAUTH2]: i18n.t("Google OAuth2")
+});
+
 export function maybe<T>(exp: () => T, d?: T) {
   try {
     const result = exp();
@@ -152,4 +130,73 @@ export function maybe<T>(exp: () => T, d?: T) {
   } catch {
     return d;
   }
+}
+
+export function only<T>(obj: T, key: keyof T): boolean {
+  return Object.keys(obj).every(objKey =>
+    objKey === key ? obj[key] !== undefined : obj[key] === undefined
+  );
+}
+
+export function empty(obj: object): boolean {
+  return Object.keys(obj).every(key => obj[key] === undefined);
+}
+
+export function hasErrors(errorList: UserError[] | null): boolean {
+  return !(
+    errorList === undefined ||
+    errorList === null ||
+    errorList.length === 0
+  );
+}
+
+export function getMutationState(
+  called: boolean,
+  loading: boolean,
+  ...errorList: UserError[][]
+): ConfirmButtonTransitionState {
+  if (loading) {
+    return "loading";
+  }
+  if (called) {
+    return errorList.map(hasErrors).reduce((acc, curr) => acc || curr, false)
+      ? "error"
+      : "success";
+  }
+  return "default";
+}
+
+export function getMutationProviderData<TData, TVariables>(
+  mutateFn: MutationFn<TData, TVariables>,
+  opts: MutationResult<TData>
+): PartialMutationProviderOutput<TData, TVariables> {
+  return {
+    mutate: variables => mutateFn({ variables }),
+    opts
+  };
+}
+
+interface User {
+  email: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+export function getUserName(user?: User, returnEmail?: boolean) {
+  return user && (user.email || (user.firstName && user.lastName))
+    ? user.firstName && user.lastName
+      ? [user.firstName, user.lastName].join(" ")
+      : returnEmail
+      ? user.email
+      : user.email.split("@")[0]
+    : null;
+}
+
+export function getUserInitials(user?: User) {
+  return user && (user.email || (user.firstName && user.lastName))
+    ? (user.firstName && user.lastName
+        ? user.firstName[0] + user.lastName[0]
+        : user.email.slice(0, 2)
+      ).toUpperCase()
+    : null;
 }

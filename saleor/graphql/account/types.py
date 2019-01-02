@@ -1,11 +1,14 @@
 import graphene
+import graphene_django_optimizer as gql_optimizer
 from django.contrib.auth import get_user_model
 from graphene import relay
+from graphql_jwt.decorators import permission_required
 
 from ...account import models
 from ...core.permissions import get_permissions
-from ..core.types.common import (
-    CountableDjangoObjectType, CountryDisplay, PermissionDisplay)
+from ..core.connection import CountableDjangoObjectType
+from ..core.fields import PrefetchingConnectionField
+from ..core.types import CountryDisplay, PermissionDisplay
 from ..utils import format_permissions_for_display
 
 
@@ -18,7 +21,7 @@ class AddressInput(graphene.InputObjectType):
     city = graphene.String(description='City.')
     city_area = graphene.String(description='District.')
     postal_code = graphene.String(description='Postal code.')
-    country = graphene.String(description='Country.')
+    country = graphene.String(required=True, description='Country.')
     country_area = graphene.String(description='State or province.')
     phone = graphene.String(description='Phone number.')
 
@@ -39,16 +42,27 @@ class Address(CountableDjangoObjectType):
 
 
 class User(CountableDjangoObjectType):
-    permissions = graphene.List(PermissionDisplay)
+    addresses = gql_optimizer.field(
+        graphene.List(Address, description='List of all user\'s addresses.'),
+        model_field='addresses')
+    note = graphene.String(description='A note about the customer')
+    orders = gql_optimizer.field(
+        PrefetchingConnectionField(
+            'saleor.graphql.order.types.Order',
+            description='List of user\'s orders.'),
+        model_field='orders')
+    permissions = graphene.List(
+        PermissionDisplay, description='List of user\'s permissions.')
 
     class Meta:
         exclude_fields = [
-            'date_joined', 'password', 'is_superuser',
-            'OrderEvent_set', 'last_login']
+            'carts', 'password', 'is_superuser', 'OrderEvent_set']
         description = 'Represents user data.'
         interfaces = [relay.Node]
         model = get_user_model()
-        filter_fields = ['is_staff']
+
+    def resolve_addresses(self, info, **kwargs):
+        return self.addresses.all()
 
     def resolve_permissions(self, info, **kwargs):
         if self.is_superuser:
@@ -57,6 +71,16 @@ class User(CountableDjangoObjectType):
             permissions = self.user_permissions.prefetch_related(
                 'content_type').order_by('codename')
         return format_permissions_for_display(permissions)
+
+    @permission_required('account.manage_users')
+    def resolve_note(self, info):
+        return self.note
+
+    def resolve_orders(self, info, **kwargs):
+        viewer = info.context.user
+        if viewer.has_perm('order.manage_orders'):
+            return self.orders.all()
+        return self.orders.confirmed()
 
 
 class AddressValidationInput(graphene.InputObjectType):

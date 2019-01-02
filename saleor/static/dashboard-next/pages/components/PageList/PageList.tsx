@@ -1,5 +1,10 @@
 import Card from "@material-ui/core/Card";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -8,14 +13,26 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import { ListProps } from "../../..";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
+import { ListProps } from "../../../types";
 
-interface PageListProps extends ListProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    link: {
+      color: theme.palette.secondary.main,
+      cursor: "pointer",
+      textDecoration: "none"
+    },
+    textRight: {
+      textAlign: "right"
+    }
+  });
+
+interface PageListProps extends ListProps, WithStyles<typeof styles> {
   pages?: Array<{
     id: string;
     title: string;
@@ -24,18 +41,7 @@ interface PageListProps extends ListProps {
   }>;
 }
 
-const decorate = withStyles(theme => ({
-  link: {
-    color: theme.palette.secondary.main,
-    cursor: "pointer" as "pointer",
-    textDecoration: "none"
-  },
-  textRight: {
-    textAlign: "right" as "right"
-  }
-}));
-
-export const PageList = decorate<PageListProps>(
+export const PageList = withStyles(styles, { name: "PageList" })(
   ({
     classes,
     disabled,
@@ -44,7 +50,7 @@ export const PageList = decorate<PageListProps>(
     onNextPage,
     onPreviousPage,
     onRowClick
-  }) => (
+  }: PageListProps) => (
     <Card>
       <Table>
         <TableHead>
@@ -106,5 +112,5 @@ export const PageList = decorate<PageListProps>(
     </Card>
   )
 );
-
+PageList.displayName = "PageList";
 export default PageList;

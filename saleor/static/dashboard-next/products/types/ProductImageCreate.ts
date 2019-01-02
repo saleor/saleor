@@ -17,20 +17,10 @@ export interface ProductImageCreate_productImageCreate_product_category {
   name: string;
 }
 
-export interface ProductImageCreate_productImageCreate_product_collections_edges_node {
+export interface ProductImageCreate_productImageCreate_product_collections {
   __typename: "Collection";
   id: string;
   name: string;
-}
-
-export interface ProductImageCreate_productImageCreate_product_collections_edges {
-  __typename: "CollectionCountableEdge";
-  node: ProductImageCreate_productImageCreate_product_collections_edges_node;
-}
-
-export interface ProductImageCreate_productImageCreate_product_collections {
-  __typename: "CollectionCountableConnection";
-  edges: ProductImageCreate_productImageCreate_product_collections_edges[];
 }
 
 export interface ProductImageCreate_productImageCreate_product_price {
@@ -86,8 +76,8 @@ export interface ProductImageCreate_productImageCreate_product_attributes_value 
 
 export interface ProductImageCreate_productImageCreate_product_attributes {
   __typename: "SelectedAttribute";
-  attribute: ProductImageCreate_productImageCreate_product_attributes_attribute | null;
-  value: ProductImageCreate_productImageCreate_product_attributes_value | null;
+  attribute: ProductImageCreate_productImageCreate_product_attributes_attribute;
+  value: ProductImageCreate_productImageCreate_product_attributes_value;
 }
 
 export interface ProductImageCreate_productImageCreate_product_availability_priceRange_start_net {
@@ -124,7 +114,7 @@ export interface ProductImageCreate_productImageCreate_product_availability {
   priceRange: ProductImageCreate_productImageCreate_product_availability_priceRange | null;
 }
 
-export interface ProductImageCreate_productImageCreate_product_images_edges_node {
+export interface ProductImageCreate_productImageCreate_product_images {
   __typename: "ProductImage";
   id: string;
   alt: string;
@@ -132,40 +122,22 @@ export interface ProductImageCreate_productImageCreate_product_images_edges_node
   url: string;
 }
 
-export interface ProductImageCreate_productImageCreate_product_images_edges {
-  __typename: "ProductImageCountableEdge";
-  node: ProductImageCreate_productImageCreate_product_images_edges_node;
-}
-
-export interface ProductImageCreate_productImageCreate_product_images {
-  __typename: "ProductImageCountableConnection";
-  edges: ProductImageCreate_productImageCreate_product_images_edges[];
-}
-
-export interface ProductImageCreate_productImageCreate_product_variants_edges_node_priceOverride {
+export interface ProductImageCreate_productImageCreate_product_variants_priceOverride {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface ProductImageCreate_productImageCreate_product_variants_edges_node {
+export interface ProductImageCreate_productImageCreate_product_variants {
   __typename: "ProductVariant";
   id: string;
   sku: string;
   name: string;
-  priceOverride: ProductImageCreate_productImageCreate_product_variants_edges_node_priceOverride | null;
-  stockQuantity: number;
+  priceOverride: ProductImageCreate_productImageCreate_product_variants_priceOverride | null;
   margin: number | null;
-}
-
-export interface ProductImageCreate_productImageCreate_product_variants_edges {
-  __typename: "ProductVariantCountableEdge";
-  node: ProductImageCreate_productImageCreate_product_variants_edges_node;
-}
-
-export interface ProductImageCreate_productImageCreate_product_variants {
-  __typename: "ProductVariantCountableConnection";
-  edges: ProductImageCreate_productImageCreate_product_variants_edges[];
+  quantity: number;
+  quantityAllocated: number;
+  stockQuantity: number;
 }
 
 export interface ProductImageCreate_productImageCreate_product_productType {
@@ -183,24 +155,24 @@ export interface ProductImageCreate_productImageCreate_product {
   seoTitle: string | null;
   seoDescription: string | null;
   category: ProductImageCreate_productImageCreate_product_category;
-  collections: ProductImageCreate_productImageCreate_product_collections | null;
+  collections: (ProductImageCreate_productImageCreate_product_collections | null)[] | null;
   price: ProductImageCreate_productImageCreate_product_price | null;
   margin: ProductImageCreate_productImageCreate_product_margin | null;
   purchaseCost: ProductImageCreate_productImageCreate_product_purchaseCost | null;
   isPublished: boolean;
   chargeTaxes: boolean;
   availableOn: any | null;
-  attributes: (ProductImageCreate_productImageCreate_product_attributes | null)[] | null;
+  attributes: ProductImageCreate_productImageCreate_product_attributes[];
   availability: ProductImageCreate_productImageCreate_product_availability | null;
-  images: ProductImageCreate_productImageCreate_product_images | null;
-  variants: ProductImageCreate_productImageCreate_product_variants | null;
+  images: (ProductImageCreate_productImageCreate_product_images | null)[] | null;
+  variants: (ProductImageCreate_productImageCreate_product_variants | null)[] | null;
   productType: ProductImageCreate_productImageCreate_product_productType;
   url: string;
 }
 
 export interface ProductImageCreate_productImageCreate {
   __typename: "ProductImageCreate";
-  errors: (ProductImageCreate_productImageCreate_errors | null)[] | null;
+  errors: ProductImageCreate_productImageCreate_errors[] | null;
   product: ProductImageCreate_productImageCreate_product | null;
 }
 

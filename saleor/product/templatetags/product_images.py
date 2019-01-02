@@ -4,7 +4,7 @@ import warnings
 
 from django import template
 from django.conf import settings
-from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.templatetags.static import static
 
 logger = logging.getLogger(__name__)
 register = template.Library()
@@ -12,12 +12,11 @@ register = template.Library()
 
 # cache available sizes at module level
 def get_available_sizes():
-    all_sizes = set()
+    rendition_sizes = {}
     keys = settings.VERSATILEIMAGEFIELD_RENDITION_KEY_SETS
     for dummy_size_group, sizes in keys.items():
-        for dummy_size_name, size in sizes:
-            all_sizes.add(size)
-    return all_sizes
+        rendition_sizes[dummy_size_group] = {size for _, size in sizes}
+    return rendition_sizes
 
 
 AVAILABLE_SIZES = get_available_sizes()
@@ -45,26 +44,30 @@ def choose_placeholder(size=''):
     return placeholder
 
 
-def get_available_sizes_by_method(method):
+def get_available_sizes_by_method(method, rendition_key_set):
     sizes = []
-    for available_size in AVAILABLE_SIZES:
+    for available_size in AVAILABLE_SIZES[rendition_key_set]:
         available_method, avail_size_str = available_size.split('__')
         if available_method == method:
             sizes.append(min([int(s) for s in avail_size_str.split('x')]))
     return sizes
 
 
-def get_thumbnail_size(size, method):
+def get_thumbnail_size(size, method, rendition_key_set):
     """ Return closest larger size if not more than 2 times larger, otherwise
     return closest smaller size
     """
     on_demand = settings.VERSATILEIMAGEFIELD_SETTINGS[
         'create_images_on_demand']
-    size_str = '%sx%s' % (size, size)
+    if isinstance(size, int):
+        size_str = '%sx%s' % (size, size)
+    else:
+        size_str = size
     size_name = '%s__%s' % (method, size_str)
-    if size_name in AVAILABLE_SIZES or on_demand:
+    if size_name in AVAILABLE_SIZES[rendition_key_set] or on_demand:
         return size_str
-    avail_sizes = sorted(get_available_sizes_by_method(method))
+    avail_sizes = sorted(
+        get_available_sizes_by_method(method, rendition_key_set))
     larger = [x for x in avail_sizes if size < x <= size * 2]
     smaller = [x for x in avail_sizes if x <= size]
 
@@ -80,15 +83,21 @@ def get_thumbnail_size(size, method):
 
 
 @register.simple_tag()
-def get_thumbnail(instance, size, method):
-    if instance:
-        used_size = get_thumbnail_size(size, method)
+def get_thumbnail(image_file, size, method, rendition_key_set='products'):
+    if image_file:
+        used_size = get_thumbnail_size(size, method, rendition_key_set)
         try:
-            thumbnail = getattr(instance, method)[used_size]
+            thumbnail = getattr(image_file, method)[used_size]
         except Exception:
             logger.exception(
                 'Thumbnail fetch failed',
-                extra={'instance': instance, 'size': size})
+                extra={'image_file': image_file, 'size': size})
         else:
             return thumbnail.url
     return static(choose_placeholder('%sx%s' % (size, size)))
+
+
+@register.simple_tag()
+def get_product_image_thumbnail(instance, size, method):
+    image_file = instance.image if instance else None
+    return get_thumbnail(image_file, size, method)

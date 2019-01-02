@@ -7,6 +7,7 @@ import {
   OrderVariantSearch,
   OrderVariantSearchVariables
 } from "./types/OrderVariantSearch";
+import { UserSearch, UserSearchVariables } from "./types/UserSearch";
 
 export const fragmentOrderEvent = gql`
   fragment OrderEventFragment on OrderEvent {
@@ -43,53 +44,58 @@ export const fragmentAddress = gql`
     streetAddress2
   }
 `;
+export const fragmentOrderLine = gql`
+  fragment OrderLineFragment on OrderLine {
+    id
+    isShippingRequired
+    productName
+    productSku
+    quantity
+    quantityFulfilled
+    unitPrice {
+      gross {
+        amount
+        currency
+      }
+      net {
+        amount
+        currency
+      }
+    }
+    thumbnailUrl
+  }
+`;
 
 export const fragmentOrderDetails = gql`
   ${fragmentAddress}
   ${fragmentOrderEvent}
+  ${fragmentOrderLine}
   fragment OrderDetailsFragment on Order {
     id
     billingAddress {
       ...AddressFragment
     }
+    canFinalize
     created
+    customerNote
     events {
       ...OrderEventFragment
     }
     fulfillments {
       id
       lines {
-        edges {
-          node {
-            id
-            orderLine {
-              id
-              productName
-            }
-            quantity
-          }
+        id
+        quantity
+        orderLine {
+          ...OrderLineFragment
         }
       }
+      fulfillmentOrder
       status
       trackingNumber
     }
     lines {
-      id
-      productName
-      productSku
-      quantity
-      quantityFulfilled
-      unitPrice {
-        gross {
-          amount
-          currency
-        }
-        net {
-          amount
-          currency
-        }
-      }
-      thumbnailUrl
+      ...OrderLineFragment
     }
     number
     paymentStatus
@@ -123,6 +129,7 @@ export const fragmentOrderDetails = gql`
         currency
       }
     }
+    actions
     totalAuthorized {
       amount
       currency
@@ -135,17 +142,34 @@ export const fragmentOrderDetails = gql`
       id
       email
     }
+    userEmail
     availableShippingMethods {
       id
       name
+      price {
+        amount
+        currency
+      }
     }
   }
 `;
 
 export const orderListQuery = gql`
   ${fragmentAddress}
-  query OrderList($first: Int, $after: String, $last: Int, $before: String) {
-    orders(before: $before, after: $after, first: $first, last: $last) {
+  query OrderList(
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
+    $status: OrderStatusFilter
+  ) {
+    orders(
+      before: $before
+      after: $after
+      first: $first
+      last: $last
+      status: $status
+    ) {
       edges {
         node {
           __typename
@@ -192,6 +216,7 @@ export const orderDetailsQuery = gql`
         code
         country
       }
+      defaultWeightUnit
     }
   }
 `;
@@ -202,20 +227,16 @@ export const TypedOrderDetailsQuery = TypedQuery<
 
 export const orderVariantSearchQuery = gql`
   query OrderVariantSearch($search: String!) {
-    products(query: $search, first: 20) {
+    products(query: $search, first: 5) {
       edges {
         node {
           id
           name
           variants {
-            edges {
-              node {
-                id
-                name
-                sku
-                stockQuantity
-              }
-            }
+            id
+            name
+            sku
+            stockQuantity
           }
         }
       }
@@ -226,3 +247,19 @@ export const TypedOrderVariantSearch = TypedQuery<
   OrderVariantSearch,
   OrderVariantSearchVariables
 >(orderVariantSearchQuery);
+
+export const userSearchQuery = gql`
+  query UserSearch($search: String!) {
+    customers(query: $search, first: 5) {
+      edges {
+        node {
+          id
+          email
+        }
+      }
+    }
+  }
+`;
+export const TypedUserSearch = TypedQuery<UserSearch, UserSearchVariables>(
+  userSearchQuery
+);

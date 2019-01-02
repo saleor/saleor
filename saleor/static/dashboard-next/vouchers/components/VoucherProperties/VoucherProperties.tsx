@@ -4,7 +4,12 @@ import FormControl from "@material-ui/core/FormControl";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Radio from "@material-ui/core/Radio";
 import RadioGroup from "@material-ui/core/RadioGroup";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
 import { VoucherType } from "../..";
@@ -19,7 +24,18 @@ interface Choice {
   label: string;
   value: string;
 }
-interface VoucherPropertiesProps {
+
+const styles = (theme: Theme) =>
+  createStyles({
+    card: {
+      overflow: "visible"
+    },
+    formControl: {
+      margin: `0 ${theme.spacing.unit * 3}px`
+    }
+  });
+
+interface VoucherPropertiesProps extends WithStyles<typeof styles> {
   voucher?: {
     id: string;
     type: VoucherType;
@@ -64,15 +80,7 @@ interface VoucherPropertiesProps {
   onChange?(event: React.ChangeEvent<any>);
 }
 
-const decorate = withStyles(theme => ({
-  card: {
-    overflow: "visible" as "visible"
-  },
-  formControl: {
-    margin: `0 ${theme.spacing.unit * 3}px`
-  }
-}));
-const VoucherProperties = decorate<VoucherPropertiesProps>(
+const VoucherProperties = withStyles(styles, { name: "VoucherProperties" })(
   ({
     classes,
     data,
@@ -86,7 +94,7 @@ const VoucherProperties = decorate<VoucherPropertiesProps>(
     productSearchResults,
     shippingSearchResults,
     onChange
-  }) => (
+  }: VoucherPropertiesProps) => (
     <Card classes={{ root: classes.card }}>
       <CardTitle title={i18n.t("Voucher type")} />
       <FormControl

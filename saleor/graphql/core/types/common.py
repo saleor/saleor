@@ -1,53 +1,22 @@
-import decimal
+from textwrap import dedent
 
 import graphene
-from graphene_django import DjangoObjectType
 
-from ....core import weight
-from ..connection import CountableConnection
-
-
-class Decimal(graphene.Float):
-    """Custom Decimal implementation.
-    Returns Decimal as a float in the API,
-    parses float to the Decimal on the way back.
-    """
-
-    @staticmethod
-    def parse_value(value):
-        try:
-            # Converting the float to str before parsing it to Decimal is
-            # necessary to keep the decimal places as typed
-            value = str(value)
-            return decimal.Decimal(value)
-        except decimal.DecimalException:
-            return None
+from ..enums import PermissionEnum
+from .money import VAT
 
 
 class CountryDisplay(graphene.ObjectType):
     code = graphene.String(description='Country code.', required=True)
-    country = graphene.String(description='Country.', required=True)
-
-
-class CountableDjangoObjectType(DjangoObjectType):
-    class Meta:
-        abstract = True
-
-    @classmethod
-    def __init_subclass_with_meta__(cls, *args, **kwargs):
-        # Force it to use the countable connection
-        countable_conn = CountableConnection.create_type(
-            "{}CountableConnection".format(cls.__name__),
-            node=cls)
-        super().__init_subclass_with_meta__(
-            *args, connection=countable_conn, **kwargs)
+    country = graphene.String(description='Country name.', required=True)
+    vat = graphene.Field(VAT, description='Country tax.')
 
 
 class Error(graphene.ObjectType):
     field = graphene.String(
-        description="""Name of a field that caused the error. A value of
+        description=dedent("""Name of a field that caused the error. A value of
         `null` indicates that the error isn't associated with a particular
-        field.""", required=False)
+        field."""), required=False)
     message = graphene.String(description='The error message.')
 
     class Meta:
@@ -60,7 +29,7 @@ class LanguageDisplay(graphene.ObjectType):
 
 
 class PermissionDisplay(graphene.ObjectType):
-    code = graphene.String(
+    code = PermissionEnum(
         description='Internal code for permission.', required=True)
     name = graphene.String(
         description='Describe action(s) allowed to do by permission.',
@@ -81,6 +50,3 @@ class Weight(graphene.ObjectType):
 
     class Meta:
         description = 'Represents weight value in a specific weight unit.'
-
-
-WeightUnitsEnum = graphene.Enum.from_enum(weight.WeightUnitsEnum)

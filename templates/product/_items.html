@@ -1,7 +1,7 @@
 {% load i18n %}
-{% load staticfiles %}
+{% load static %}
 {% load taxed_prices %}
-{% load get_thumbnail from product_images %}
+{% load get_product_image_thumbnail from product_images %}
 {% load placeholder %}
 
 {% for product, availability in products %}
@@ -11,8 +11,8 @@
         <div>
           <div class="product-image">
             <img class="img-responsive lazyload lazypreload"
-                 data-src="{% get_thumbnail product.get_first_image method="thumbnail" size=255 %}"
-                 data-srcset="{% get_thumbnail product.get_first_image method="thumbnail" size=255 %} 1x, {% get_thumbnail product.get_first_image method="thumbnail" size=510 %} 2x"
+                 data-src="{% get_product_image_thumbnail product.get_first_image method="thumbnail" size=255 %}"
+                 data-srcset="{% get_product_image_thumbnail product.get_first_image method="thumbnail" size=255 %} 1x, {% get_product_image_thumbnail product.get_first_image method="thumbnail" size=510 %} 2x"
                  alt=""
                  src="{% placeholder size=255 %}">
             </div>
@@ -21,7 +21,7 @@
         <div class="panel-footer">
           {% if availability.available %}
             {% price_range availability.price_range %}
-            {% if availability.discount %}
+            {% if availability.on_sale %}
               {% if availability.price_range_undiscounted.start != availability.price_range.start %}
                 <div class="product-list__sale">
                   <svg data-src="{% static "images/sale-bg.svg" %}" />

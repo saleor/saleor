@@ -1,16 +1,20 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
-import { AttributeType, ProductImageType } from "../../";
-import { UserError } from "../../..";
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar, {
-  SaveButtonBarState
-} from "../../../components/SaveButtonBar";
+import SaveButtonBar from "../../../components/SaveButtonBar";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
+import { UserError } from "../../../types";
+import { ProductVariantCreateData_product } from "../../types/ProductVariantCreateData";
 import ProductVariantAttributes from "../ProductVariantAttributes";
 import ProductVariantNavigation from "../ProductVariantNavigation";
 import ProductVariantPrice from "../ProductVariantPrice";
@@ -27,58 +31,38 @@ interface FormData {
   quantity?: number;
   sku?: string;
 }
-interface ProductVariantCreatePageProps {
+
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      display: "grid",
+      gridGap: `${theme.spacing.unit * 2}px`,
+      gridTemplateColumns: "4fr 9fr",
+      [theme.breakpoints.down("sm")]: {
+        gridGap: `${theme.spacing.unit}px`,
+        gridTemplateColumns: "1fr"
+      }
+    }
+  });
+
+interface ProductVariantCreatePageProps extends WithStyles<typeof styles> {
+  currencySymbol: string;
   errors: UserError[];
   header: string;
   loading: boolean;
-  product?: {
-    images?: {
-      edges?: Array<{
-        node: ProductImageType;
-      }>;
-    };
-    productType?: {
-      name?: string;
-      variantAttributes?: AttributeType[];
-    };
-    variants?: {
-      edges?: Array<{
-        node: {
-          id: string;
-          name: string;
-          sku: string;
-          image: {
-            edges: Array<{
-              node: {
-                url: string;
-              };
-            }>;
-          };
-        };
-      }>;
-    };
-  };
-  saveButtonBarState?: SaveButtonBarState;
+  product: ProductVariantCreateData_product;
+  saveButtonBarState: ConfirmButtonTransitionState;
   onBack: () => void;
   onSubmit: (data: FormData) => void;
   onVariantClick: (variantId: string) => void;
 }
 
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid",
-    gridGap: `${theme.spacing.unit * 2}px`,
-    gridTemplateColumns: "4fr 9fr",
-    [theme.breakpoints.down("sm")]: {
-      gridGap: `${theme.spacing.unit}px`,
-      gridTemplateColumns: "1fr"
-    }
-  }
-}));
-
-const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
+const ProductVariantCreatePage = withStyles(styles, {
+  name: "ProductVariantCreatePage"
+})(
   ({
     classes,
+    currencySymbol,
     errors: formErrors,
     loading,
     header,
@@ -87,7 +71,7 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
     onBack,
     onSubmit,
     onVariantClick
-  }) => {
+  }: ProductVariantCreatePageProps) => {
     const initialForm = {
       attributes: maybe(() =>
         product.productType.variantAttributes.map(attribute => ({
@@ -96,7 +80,7 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
         }))
       ),
       costPrice: "",
-      images: maybe(() => product.images.edges.map(edge => edge.node.id)),
+      images: maybe(() => product.images.map(image => image.id)),
       priceOverride: "",
       quantity: 0,
       sku: ""
@@ -116,11 +100,7 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
                 <div className={classes.root}>
                   <div>
                     <ProductVariantNavigation
-                      variants={
-                        product && product.variants && product.variants.edges
-                          ? product.variants.edges.map(edge => edge.node)
-                          : undefined
-                      }
+                      variants={maybe(() => product.variants)}
                       onRowClick={(variantId: string) => {
                         if (product && product.variants) {
                           return onVariantClick(variantId);
@@ -140,8 +120,7 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
                     <ProductVariantPrice
                       errors={errors}
                       priceOverride={data.priceOverride}
-                      // FIXME: currency symbol should be fetched from API
-                      currencySymbol="USD"
+                      currencySymbol={currencySymbol}
                       costPrice={data.costPrice}
                       loading={loading}
                       onChange={change}
@@ -173,4 +152,5 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
     );
   }
 );
+ProductVariantCreatePage.displayName = "ProductVariantCreatePage";
 export default ProductVariantCreatePage;

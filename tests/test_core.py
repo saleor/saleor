@@ -4,14 +4,13 @@ from unittest.mock import Mock, patch
 from urllib.parse import urljoin
 
 import pytest
-
-from django.conf import settings
 from django.db.models import Case, F, When
 from django.shortcuts import reverse
 from django.templatetags.static import static
 from django.urls import translate_url
 from measurement.measures import Weight
 from prices import Money
+
 from saleor.account.models import Address, User
 from saleor.core.storages import S3MediaStorage
 from saleor.core.utils import (
@@ -113,60 +112,16 @@ def test_create_address(db):
     assert Address.objects.all().count() == 1
 
 
-def test_create_attribute(db):
-    data = {'slug': 'best_attribute', 'name': 'Best attribute'}
-    attribute = random_data.create_attribute(**data)
-    assert attribute.name == data['name']
-    assert attribute.slug == data['slug']
-
-
-def test_create_product_types_by_schema(db):
-    product_type = random_data.create_product_types_by_schema(
-        type_schema)[0][0]
-    assert product_type.name == 'Vegetable'
-    assert product_type.product_attributes.count() == 2
-    assert product_type.variant_attributes.count() == 1
-    assert product_type.is_shipping_required
-
-
-@patch('saleor.core.utils.random_data.create_product_thumbnails.delay')
-def test_create_products_by_type(
-        mock_create_thumbnails, db, monkeypatch, product_image):
+def test_create_fake_order(db, monkeypatch, image):
     # Tests shouldn't depend on images present in placeholder folder
     monkeypatch.setattr(
         'saleor.core.utils.random_data.get_image',
-        Mock(return_value=product_image))
-    dummy_file_names = ['example.jpg', 'example2.jpg']
-    monkeypatch.setattr(
-        'saleor.core.utils.random_data.os.listdir',
-        Mock(return_value=dummy_file_names))
-
-    assert Product.objects.all().count() == 0
-    how_many = 5
-    product_type = random_data.create_product_types_by_schema(
-        type_schema)[0][0]
-    random_data.create_products_by_type(
-        product_type, type_schema['Vegetable'], '/',
-        how_many=how_many, create_images=True)
-    assert Product.objects.all().count() == how_many
-    assert mock_create_thumbnails.called
-    assert ProductVariant.objects.annotate(
-        base_price=Case(
-            When(price_override__lt=0, then='price_override'),
-            default='product__price')).\
-        filter(base_price__lt=F('cost_price')).count() == 0
-
-
-def test_create_fake_order(db, monkeypatch, product_image):
-    # Tests shouldn't depend on images present in placeholder folder
-    monkeypatch.setattr(
-        'saleor.core.utils.random_data.get_image',
-        Mock(return_value=product_image))
+        Mock(return_value=image))
     for _ in random_data.create_shipping_zones():
         pass
     for _ in random_data.create_users(3):
         pass
-        random_data.create_products_by_schema('/', 10, False)
+        random_data.create_products_by_schema('/', 10)
     how_many = 5
     for _ in random_data.create_orders(how_many):
         pass
@@ -238,21 +193,18 @@ def test_create_thumbnails(product_with_image, settings):
 
 
 @patch('storages.backends.s3boto3.S3Boto3Storage')
-@patch.object(settings, 'AWS_MEDIA_BUCKET_NAME', 'media-bucket')
-@patch.object(settings, 'AWS_MEDIA_CUSTOM_DOMAIN', 'media-bucket.example.org')
-def test_storages_set_s3_bucket_domain(*_patches):
-    assert settings.AWS_MEDIA_BUCKET_NAME == 'media-bucket'
-    assert settings.AWS_MEDIA_CUSTOM_DOMAIN == 'media-bucket.example.org'
+def test_storages_set_s3_bucket_domain(storage, settings):
+    settings.AWS_MEDIA_BUCKET_NAME = 'media-bucket'
+    settings.AWS_MEDIA_CUSTOM_DOMAIN = 'media-bucket.example.org'
     storage = S3MediaStorage()
     assert storage.bucket_name == 'media-bucket'
     assert storage.custom_domain == 'media-bucket.example.org'
 
 
 @patch('storages.backends.s3boto3.S3Boto3Storage')
-@patch.object(settings, 'AWS_MEDIA_BUCKET_NAME', 'media-bucket')
-def test_storages_not_setting_s3_bucket_domain(*_patches):
-    assert settings.AWS_MEDIA_BUCKET_NAME == 'media-bucket'
-    assert settings.AWS_MEDIA_CUSTOM_DOMAIN is None
+def test_storages_not_setting_s3_bucket_domain(storage, settings):
+    settings.AWS_MEDIA_BUCKET_NAME = 'media-bucket'
+    settings.AWS_MEDIA_CUSTOM_DOMAIN = None
     storage = S3MediaStorage()
     assert storage.bucket_name == 'media-bucket'
     assert storage.custom_domain is None
@@ -303,7 +255,7 @@ def test_convert_weight():
     assert convert_weight(weight, WeightUnits.GRAM) == expected_result
 
 
-def test_build_absolute_uri(site_settings):
+def test_build_absolute_uri(site_settings, settings):
     # Case when we are using external service for storing static files,
     # eg. Amazon s3
     url = 'https://example.com/static/images/image.jpg'

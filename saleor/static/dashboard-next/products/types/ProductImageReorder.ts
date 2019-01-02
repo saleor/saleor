@@ -11,7 +11,7 @@ export interface ProductImageReorder_productImageReorder_errors {
   message: string | null;
 }
 
-export interface ProductImageReorder_productImageReorder_product_images_edges_node {
+export interface ProductImageReorder_productImageReorder_product_images {
   __typename: "ProductImage";
   id: string;
   alt: string;
@@ -19,25 +19,15 @@ export interface ProductImageReorder_productImageReorder_product_images_edges_no
   url: string;
 }
 
-export interface ProductImageReorder_productImageReorder_product_images_edges {
-  __typename: "ProductImageCountableEdge";
-  node: ProductImageReorder_productImageReorder_product_images_edges_node;
-}
-
-export interface ProductImageReorder_productImageReorder_product_images {
-  __typename: "ProductImageCountableConnection";
-  edges: ProductImageReorder_productImageReorder_product_images_edges[];
-}
-
 export interface ProductImageReorder_productImageReorder_product {
   __typename: "Product";
   id: string;
-  images: ProductImageReorder_productImageReorder_product_images | null;
+  images: (ProductImageReorder_productImageReorder_product_images | null)[] | null;
 }
 
 export interface ProductImageReorder_productImageReorder {
   __typename: "ProductImageReorder";
-  errors: (ProductImageReorder_productImageReorder_errors | null)[] | null;
+  errors: ProductImageReorder_productImageReorder_errors[] | null;
   product: ProductImageReorder_productImageReorder_product | null;
 }
 

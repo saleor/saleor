@@ -1,7 +1,6 @@
 from unittest import mock
 
 import pytest
-from django.conf import settings
 from django.templatetags.static import static
 from templated_email import get_connection
 
@@ -57,10 +56,9 @@ def test_collect_data_for_email(order):
 
 @pytest.mark.parametrize('send_email,template', [
     (emails.send_payment_confirmation, emails.CONFIRM_PAYMENT_TEMPLATE),
-    (emails.send_note_confirmation, emails.CONFIRM_NOTE_TEMPLATE),
     (emails.send_order_confirmation, emails.CONFIRM_ORDER_TEMPLATE)])
 @mock.patch('saleor.order.emails.send_templated_mail')
-def test_send_emails(mocked_templated_email, order, template, send_email):
+def test_send_emails(mocked_templated_email, order, template, send_email, settings):
     send_email(order.pk)
     email_data = emails.collect_data_for_email(order.pk, template)
 
@@ -84,7 +82,8 @@ def test_send_emails(mocked_templated_email, order, template, send_email):
     (emails.send_fulfillment_update, emails.UPDATE_FULFILLMENT_TEMPLATE)])
 @mock.patch('saleor.order.emails.send_templated_mail')
 def test_send_fulfillment_emails(
-        mocked_templated_email, template, send_email, fulfilled_order):
+        mocked_templated_email, template, send_email, fulfilled_order,
+        settings):
     fulfillment = fulfilled_order.fulfillments.first()
     send_email(order_pk=fulfilled_order.pk, fulfillment_pk=fulfillment.pk)
     email_data = emails.collect_data_for_fullfillment_email(

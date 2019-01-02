@@ -3,11 +3,9 @@ import * as PropTypes from "prop-types";
 import * as React from "react";
 
 interface NavigatorProps {
-  children:
-    | ((
-        navigate: (url: string, replace?: boolean) => any
-      ) => React.ReactElement<any>)
-    | React.ReactNode;
+  children: ((
+    navigate: (url: string, replace?: boolean, preserveQs?: boolean) => any
+  ) => React.ReactElement<any>);
 }
 
 const Navigator: React.StatelessComponent<NavigatorProps> = (
@@ -15,21 +13,20 @@ const Navigator: React.StatelessComponent<NavigatorProps> = (
   { router }
 ) => {
   invariant(router, "You should not use <Navigator> outside a <Router>");
-  const { history } = router;
-  const navigate = (url, replace = false) => {
-    replace ? history.replace(url) : history.push(url);
+  const {
+    history,
+    route: {
+      location: { search }
+    }
+  } = router;
+  const navigate = (url, replace = false, preserveQs = false) => {
+    const targetUrl = preserveQs ? url + search : url;
+    replace ? history.replace(targetUrl) : history.push(targetUrl);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  if (typeof children === "function") {
-    return children(navigate);
-  }
-  if (React.Children.count(children) > 0) {
-    return React.Children.only(children);
-  }
-  return null;
+  return children(navigate);
 };
-
 Navigator.contextTypes = {
   router: PropTypes.shape({
     history: PropTypes.shape({
@@ -38,11 +35,12 @@ Navigator.contextTypes = {
     }).isRequired
   })
 };
+Navigator.displayName = "Navigator";
 
 interface NavigatorLinkProps {
   replace?: boolean;
   to: string;
-  children: ((navigate: () => any) => React.ReactNode) | React.ReactNode;
+  children: ((navigate: () => any) => React.ReactElement<any>);
 }
 
 export const NavigatorLink: React.StatelessComponent<NavigatorLinkProps> = ({
@@ -50,17 +48,8 @@ export const NavigatorLink: React.StatelessComponent<NavigatorLinkProps> = ({
   replace,
   to
 }) => (
-  <Navigator>
-    {navigate => {
-      if (typeof children === "function") {
-        return children(() => navigate(to, replace));
-      }
-      if (React.Children.count(children) > 0) {
-        return React.Children.only(children);
-      }
-      return null;
-    }}
-  </Navigator>
+  <Navigator>{navigate => children(() => navigate(to, replace))}</Navigator>
 );
+NavigatorLink.displayName = "NavigatorLink";
 
 export default Navigator;

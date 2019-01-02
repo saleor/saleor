@@ -35,8 +35,8 @@ export interface VariantImageUnassign_variantImageUnassign_productVariant_attrib
 
 export interface VariantImageUnassign_variantImageUnassign_productVariant_attributes {
   __typename: "SelectedAttribute";
-  attribute: VariantImageUnassign_variantImageUnassign_productVariant_attributes_attribute | null;
-  value: VariantImageUnassign_variantImageUnassign_productVariant_attributes_value | null;
+  attribute: VariantImageUnassign_variantImageUnassign_productVariant_attributes_attribute;
+  value: VariantImageUnassign_variantImageUnassign_productVariant_attributes_value;
 }
 
 export interface VariantImageUnassign_variantImageUnassign_productVariant_costPrice {
@@ -45,19 +45,10 @@ export interface VariantImageUnassign_variantImageUnassign_productVariant_costPr
   currency: string;
 }
 
-export interface VariantImageUnassign_variantImageUnassign_productVariant_images_edges_node {
+export interface VariantImageUnassign_variantImageUnassign_productVariant_images {
   __typename: "ProductImage";
   id: string;
-}
-
-export interface VariantImageUnassign_variantImageUnassign_productVariant_images_edges {
-  __typename: "ProductImageCountableEdge";
-  node: VariantImageUnassign_variantImageUnassign_productVariant_images_edges_node;
-}
-
-export interface VariantImageUnassign_variantImageUnassign_productVariant_images {
-  __typename: "ProductImageCountableConnection";
-  edges: VariantImageUnassign_variantImageUnassign_productVariant_images_edges[];
+  url: string;
 }
 
 export interface VariantImageUnassign_variantImageUnassign_productVariant_priceOverride {
@@ -66,7 +57,7 @@ export interface VariantImageUnassign_variantImageUnassign_productVariant_priceO
   currency: string;
 }
 
-export interface VariantImageUnassign_variantImageUnassign_productVariant_product_images_edges_node {
+export interface VariantImageUnassign_variantImageUnassign_productVariant_product_images {
   __typename: "ProductImage";
   id: string;
   alt: string;
@@ -74,66 +65,40 @@ export interface VariantImageUnassign_variantImageUnassign_productVariant_produc
   url: string;
 }
 
-export interface VariantImageUnassign_variantImageUnassign_productVariant_product_images_edges {
-  __typename: "ProductImageCountableEdge";
-  node: VariantImageUnassign_variantImageUnassign_productVariant_product_images_edges_node;
+export interface VariantImageUnassign_variantImageUnassign_productVariant_product_thumbnail {
+  __typename: "Image";
+  url: string;
 }
 
-export interface VariantImageUnassign_variantImageUnassign_productVariant_product_images {
-  __typename: "ProductImageCountableConnection";
-  edges: VariantImageUnassign_variantImageUnassign_productVariant_product_images_edges[];
-}
-
-export interface VariantImageUnassign_variantImageUnassign_productVariant_product_variants_edges_node_image_edges_node {
+export interface VariantImageUnassign_variantImageUnassign_productVariant_product_variants_images {
   __typename: "ProductImage";
   id: string;
   url: string;
 }
 
-export interface VariantImageUnassign_variantImageUnassign_productVariant_product_variants_edges_node_image_edges {
-  __typename: "ProductImageCountableEdge";
-  node: VariantImageUnassign_variantImageUnassign_productVariant_product_variants_edges_node_image_edges_node;
-}
-
-export interface VariantImageUnassign_variantImageUnassign_productVariant_product_variants_edges_node_image {
-  __typename: "ProductImageCountableConnection";
-  edges: VariantImageUnassign_variantImageUnassign_productVariant_product_variants_edges_node_image_edges[];
-}
-
-export interface VariantImageUnassign_variantImageUnassign_productVariant_product_variants_edges_node {
+export interface VariantImageUnassign_variantImageUnassign_productVariant_product_variants {
   __typename: "ProductVariant";
   id: string;
   name: string;
   sku: string;
-  image: VariantImageUnassign_variantImageUnassign_productVariant_product_variants_edges_node_image | null;
-}
-
-export interface VariantImageUnassign_variantImageUnassign_productVariant_product_variants_edges {
-  __typename: "ProductVariantCountableEdge";
-  node: VariantImageUnassign_variantImageUnassign_productVariant_product_variants_edges_node;
-}
-
-export interface VariantImageUnassign_variantImageUnassign_productVariant_product_variants {
-  __typename: "ProductVariantCountableConnection";
-  totalCount: number | null;
-  edges: VariantImageUnassign_variantImageUnassign_productVariant_product_variants_edges[];
+  images: (VariantImageUnassign_variantImageUnassign_productVariant_product_variants_images | null)[] | null;
 }
 
 export interface VariantImageUnassign_variantImageUnassign_productVariant_product {
   __typename: "Product";
   id: string;
-  images: VariantImageUnassign_variantImageUnassign_productVariant_product_images | null;
+  images: (VariantImageUnassign_variantImageUnassign_productVariant_product_images | null)[] | null;
   name: string;
-  thumbnailUrl: string | null;
-  variants: VariantImageUnassign_variantImageUnassign_productVariant_product_variants | null;
+  thumbnail: VariantImageUnassign_variantImageUnassign_productVariant_product_thumbnail | null;
+  variants: (VariantImageUnassign_variantImageUnassign_productVariant_product_variants | null)[] | null;
 }
 
 export interface VariantImageUnassign_variantImageUnassign_productVariant {
   __typename: "ProductVariant";
   id: string;
-  attributes: (VariantImageUnassign_variantImageUnassign_productVariant_attributes | null)[] | null;
+  attributes: VariantImageUnassign_variantImageUnassign_productVariant_attributes[];
   costPrice: VariantImageUnassign_variantImageUnassign_productVariant_costPrice | null;
-  images: VariantImageUnassign_variantImageUnassign_productVariant_images | null;
+  images: (VariantImageUnassign_variantImageUnassign_productVariant_images | null)[] | null;
   name: string;
   priceOverride: VariantImageUnassign_variantImageUnassign_productVariant_priceOverride | null;
   product: VariantImageUnassign_variantImageUnassign_productVariant_product;
@@ -144,7 +109,7 @@ export interface VariantImageUnassign_variantImageUnassign_productVariant {
 
 export interface VariantImageUnassign_variantImageUnassign {
   __typename: "VariantImageUnassign";
-  errors: (VariantImageUnassign_variantImageUnassign_errors | null)[] | null;
+  errors: VariantImageUnassign_variantImageUnassign_errors[] | null;
   productVariant: VariantImageUnassign_variantImageUnassign_productVariant | null;
 }
 

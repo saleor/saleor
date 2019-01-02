@@ -1,3 +1,5 @@
+from textwrap import dedent
+
 import graphene
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from graphql_jwt.decorators import permission_required
@@ -76,7 +78,7 @@ class FulfillmentCreate(BaseMutation):
                     'Fulfill order line mutation error',
                     'Only %(quantity)d item remaining to fulfill.',
                     'Only %(quantity)d items remaining to fulfill.',
-                    'quantity') % {
+                    number='quantity') % {
                         'quantity': order_line.quantity_unfulfilled,
                         'order_line': order_line}
                 cls.add_error(errors, order_line, msg)
@@ -192,8 +194,8 @@ class FulfillmentCancel(BaseMutation):
             description='Fields required to cancel an fulfillment.')
 
     class Meta:
-        description = """Cancels existing fulfillment
-        and optionally restocks items."""
+        description = dedent("""Cancels existing fulfillment
+        and optionally restocks items.""")
 
     @classmethod
     @permission_required('order.manage_orders')

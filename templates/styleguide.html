@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% load staticfiles %}
+{% load static %}
 {% load bootstrap_form from bootstrap4 %}
 
 {% block title %}Style guide — {{ block.super }}{% endblock %}
@@ -11,7 +11,7 @@
 <header class="checkout__header">
   <div class="container">
     <a href="/">
-      <svg data-src="{% static "images/logo.svg" %}" height="38px" width="176px" />
+      <svg data-src="{% static "images/logo-document.svg" %}" height="38px" width="176px" />
     </a>
     <h1>Style guide</h1>
   </div>

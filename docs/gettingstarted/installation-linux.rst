@@ -130,7 +130,7 @@ Installation
 
    .. note::
 
-       Database name is extracted from the ``DATABASE_URL`` environmental variable. If absent it defaults to ``saleor``.
+       Database name is extracted from the ``DATABASE_URL`` environment variable. If absent it defaults to ``saleor``.
 
 
 #. Prepare the database:

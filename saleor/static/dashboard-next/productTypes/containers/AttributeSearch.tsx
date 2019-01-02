@@ -1,18 +1,16 @@
 import * as React from "react";
 import { QueryResult } from "react-apollo";
-import { searchAttributeQuery, TypedSearchAttributeQuery } from "../queries";
+import { TypedSearchAttributeQuery } from "../queries";
 import {
   SearchAttribute,
   SearchAttributeVariables
 } from "../types/SearchAttribute";
 
 interface AttributeSearchProviderProps {
-  children:
-    | ((
-        search: (query: string) => void,
-        props: QueryResult<SearchAttribute, SearchAttributeVariables>
-      ) => React.ReactElement<any>)
-    | React.ReactNode;
+  children: (
+    search: (query: string) => void,
+    props: QueryResult<SearchAttribute, SearchAttributeVariables>
+  ) => React.ReactNode;
 }
 interface AttributeSearchProviderState {
   query: string;
@@ -30,11 +28,7 @@ export class AttributeSearchProvider extends React.Component<
     const { children } = this.props;
     if (typeof children === "function") {
       return (
-        <TypedSearchAttributeQuery
-          query={searchAttributeQuery}
-          variables={{ search: this.state.query }}
-          skip={!this.state.query}
-        >
+        <TypedSearchAttributeQuery variables={{ search: this.state.query }}>
           {props => children(this.search, props)}
         </TypedSearchAttributeQuery>
       );

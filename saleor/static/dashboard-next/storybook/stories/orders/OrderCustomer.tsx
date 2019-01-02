@@ -1,30 +1,39 @@
+import { Omit } from "@material-ui/core";
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import OrderCustomer from "../../../orders/components/OrderCustomer";
-import { order } from "../../../orders/fixtures";
+import OrderCustomer, {
+  OrderCustomerProps
+} from "../../../orders/components/OrderCustomer";
+import { clients, order as orderFixture } from "../../../orders/fixtures";
 import Decorator from "../../Decorator";
 
-const differentAddress = { ...order("").billingAddress, id: "a2" };
+const order = orderFixture("");
+
+const props: Omit<OrderCustomerProps, "classes"> = {
+  canEditAddresses: false,
+  canEditCustomer: true,
+  fetchUsers: () => undefined,
+  onBillingAddressEdit: undefined,
+  onCustomerEdit: undefined,
+  onShippingAddressEdit: undefined,
+  order,
+  users: clients
+};
 
 storiesOf("Orders / OrderCustomer", module)
   .addDecorator(Decorator)
-  .add("when loading data", () => <OrderCustomer />)
-  .add("when loaded data", () => (
-    <OrderCustomer
-      client={order("").client}
-      shippingAddress={order("").shippingAddress}
-      billingAddress={order("").billingAddress}
-      onBillingAddressEdit={undefined}
-      onShippingAddressEdit={undefined}
-    />
-  ))
+  .add("default", () => <OrderCustomer {...props} />)
+  .add("loading", () => <OrderCustomer {...props} order={undefined} />)
   .add("with different addresses", () => (
     <OrderCustomer
-      client={order("").client}
-      shippingAddress={order("").shippingAddress}
-      billingAddress={differentAddress}
-      onBillingAddressEdit={undefined}
-      onShippingAddressEdit={undefined}
+      {...props}
+      order={{
+        ...order,
+        shippingAddress: { ...order.shippingAddress, id: "a2" }
+      }}
     />
+  ))
+  .add("editable", () => (
+    <OrderCustomer {...props} canEditAddresses={true} canEditCustomer={true} />
   ));

@@ -1,14 +1,16 @@
 /* eslint-disable */
-import { configure } from "@storybook/react";
+configure = require("@storybook/react").configure;
 
 function loadStories() {
   // Components
   require("./stories/components/ActionDialog");
   require("./stories/components/AddressEdit");
   require("./stories/components/AddressFormatter");
+  require("./stories/components/CardMenu");
   require("./stories/components/DateFormatter");
   require("./stories/components/EditableTableCell");
   require("./stories/components/ErrorMessageCard");
+  require("./stories/components/ErrorPage");
   require("./stories/components/ExternalLink");
   require("./stories/components/Money");
   require("./stories/components/MultiAutocompleteSelectField");
@@ -27,21 +29,18 @@ function loadStories() {
   require("./stories/components/Timeline");
   require("./stories/components/messages");
 
-  // Attributes
-  require("./stories/attributes/AttributeDetailsPage");
-  require("./stories/attributes/AttributeListPage");
-
   // Authentication
   require("./stories/auth/LoginPage");
   require("./stories/auth/LoginLoading");
 
   // Categories
-  require("./stories/categories/CategoryDeleteDialog");
-  require("./stories/categories/CategoryDetailsPage");
-  require("./stories/categories/CategoryEditPage");
   require("./stories/categories/CategoryProducts");
+  require("./stories/categories/CategoryCreatePage");
+  require("./stories/categories/CategoryUpdatePage");
+  require("./stories/categories/CategoryListPage");
 
   // Collections
+  require("./stories/collections/CollectionCreatePage");
   require("./stories/collections/CollectionDetailsPage");
   require("./stories/collections/CollectionListPage");
 
@@ -49,13 +48,16 @@ function loadStories() {
   require("./stories/configuration/ConfigurationPage");
 
   // Customers
+  require("./stories/customers/CustomerCreatePage");
   require("./stories/customers/CustomerDetailsPage");
-  require("./stories/customers/CustomerEditPage");
   require("./stories/customers/CustomerListPage");
 
+  // Homepage
+  require("./stories/home/HomePage");
+
   // Staff
-  require("./stories/staff/StaffListPage")
-  require("./stories/staff/StaffDetailsPage")
+  require("./stories/staff/StaffListPage");
+  require("./stories/staff/StaffDetailsPage");
 
   // Pages
   require("./stories/pages/PageContent");
@@ -78,24 +80,33 @@ function loadStories() {
   require("./stories/orders/OrderCustomer");
   require("./stories/orders/OrderCustomerEditDialog");
   require("./stories/orders/OrderDetailsPage");
+  require("./stories/orders/OrderDraftCancelDialog");
+  require("./stories/orders/OrderDraftFinalizeDialog");
+  require("./stories/orders/OrderDraftPage");
   require("./stories/orders/OrderFulfillmentCancelDialog");
   require("./stories/orders/OrderFulfillmentDialog");
   require("./stories/orders/OrderFulfillmentTrackingDialog");
   require("./stories/orders/OrderHistory");
   require("./stories/orders/OrderListPage");
+  require("./stories/orders/OrderMarkAsPaidDialog");
   require("./stories/orders/OrderPaymentDialog");
-  require("./stories/orders/OrderPaymentReleaseDialog");
+  require("./stories/orders/OrderPaymentVoidDialog");
   require("./stories/orders/OrderProductAddDialog");
   require("./stories/orders/OrderShippingMethodEditDialog");
-  require("./stories/orders/OrderSummary");
 
   // Vouchers
   require("./stories/vouchers/VoucherDetailsPage");
   require("./stories/vouchers/VoucherListPage");
 
   // Product types
-  require("./stories/productTypes/ProductTypeListPage");
+  require("./stories/productTypes/ProductTypeAttributeEditDialog");
+  require("./stories/productTypes/ProductTypeCreatePage");
   require("./stories/productTypes/ProductTypeDetailsPage");
+  require("./stories/productTypes/ProductTypeListPage");
+
+  // Site settings
+  require("./stories/siteSettings/SiteSettingsKeyDialog");
+  require("./stories/siteSettings/SiteSettingsPage");
 }
 
 configure(loadStories, module);

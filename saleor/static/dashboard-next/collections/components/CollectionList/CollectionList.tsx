@@ -1,67 +1,71 @@
 import Card from "@material-ui/core/Card";
-import { withStyles } from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import * as classNames from "classnames";
 import * as React from "react";
 
-import { ListProps } from "../../..";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
-import { renderCollection } from "../../../misc";
+import { maybe, renderCollection } from "../../../misc";
+import { ListProps } from "../../../types";
+import { CollectionList_collections_edges_node } from "../../types/CollectionList";
 
-interface CollectionListProps extends ListProps {
-  collections?: Array<{
-    id: string;
-    name: string;
-    slug: string;
-    isPublished: boolean;
-    products: {
-      totalCount: number;
-    };
-  }>;
-}
-
-const decorate = withStyles(theme => ({
-  link: {
-    color: theme.palette.secondary.main,
+const styles = createStyles({
+  name: {
+    width: "50%"
+  },
+  tableRow: {
     cursor: "pointer" as "pointer"
   },
-  textRight: {
-    textAlign: "right" as "right"
+  textCenter: {
+    textAlign: "center" as "center"
+  },
+  textLeft: {
+    textAlign: "left" as "left"
   }
-}));
-const CollectionList = decorate<CollectionListProps>(
+});
+
+interface CollectionListProps extends ListProps, WithStyles<typeof styles> {
+  collections: CollectionList_collections_edges_node[];
+}
+
+const CollectionList = withStyles(styles, { name: "CollectionList" })(
   ({
     classes,
-    disabled,
     collections,
-    pageInfo,
-    onRowClick,
+    disabled,
     onNextPage,
-    onPreviousPage
-  }) => (
+    onPreviousPage,
+    onRowClick,
+    pageInfo
+  }: CollectionListProps) => (
     <Card>
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>{i18n.t("Name", { context: "object" })}</TableCell>
-            <TableCell>{i18n.t("Visibility", { context: "object" })}</TableCell>
-            <TableCell className={classes.textRight}>
-              {i18n.t("Products", { context: "object" })}
+            <TableCell className={classes.name}>
+              {i18n.t("Category Name", { context: "table cell" })}
+            </TableCell>
+            <TableCell className={classes.textCenter}>
+              {i18n
+                .t("No. Products", { context: "table cell" })
+                .replace(" ", "\xa0")}
+            </TableCell>
+            <TableCell className={classes.textLeft}>
+              {i18n.t("Availability", { context: "table cell" })}
             </TableCell>
           </TableRow>
         </TableHead>
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={3}
+              colSpan={5}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
               hasPreviousPage={
@@ -75,37 +79,33 @@ const CollectionList = decorate<CollectionListProps>(
           {renderCollection(
             collections,
             collection => (
-              <TableRow key={collection ? collection.id : "skeleton"}>
-                <TableCell
-                  onClick={
-                    collection && onRowClick
-                      ? onRowClick(collection.id)
-                      : undefined
-                  }
-                  className={classNames({
-                    [classes.link]: collection
-                  })}
-                >
-                  {collection ? collection.name : <Skeleton />}
-                </TableCell>
+              <TableRow
+                className={classes.tableRow}
+                hover={!!collection}
+                onClick={collection ? onRowClick(collection.id) : undefined}
+                key={collection ? collection.id : "skeleton"}
+              >
                 <TableCell>
-                  {collection ? (
-                    <StatusLabel
-                      status={collection.isPublished ? "success" : "error"}
-                      label={
-                        collection.isPublished
-                          ? i18n.t("Published")
-                          : i18n.t("Not published")
-                      }
-                    />
-                  ) : (
+                  {maybe<React.ReactNode>(() => collection.name, <Skeleton />)}
+                </TableCell>
+                <TableCell className={classes.textCenter}>
+                  {maybe<React.ReactNode>(
+                    () => collection.products.totalCount,
                     <Skeleton />
                   )}
                 </TableCell>
-                <TableCell className={classes.textRight}>
-                  {collection && collection.products ? (
-                    collection.products.totalCount
-                  ) : (
+                <TableCell className={classes.textLeft}>
+                  {maybe(
+                    () => (
+                      <StatusLabel
+                        status={collection.isPublished ? "success" : "error"}
+                        label={
+                          collection.isPublished
+                            ? i18n.t("Published")
+                            : i18n.t("Not published")
+                        }
+                      />
+                    ),
                     <Skeleton />
                   )}
                 </TableCell>

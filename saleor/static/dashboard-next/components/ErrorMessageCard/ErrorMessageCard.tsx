@@ -21,5 +21,5 @@ const ErrorMessageCard: React.StatelessComponent<ErrorMessageCardProps> = ({
     </CardContent>
   </Card>
 );
-
+ErrorMessageCard.displayName = "ErrorMessageCard";
 export default ErrorMessageCard;

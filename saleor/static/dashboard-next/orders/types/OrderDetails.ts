@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction, WeightUnitsEnum } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL query operation: OrderDetails
@@ -47,33 +47,48 @@ export interface OrderDetails_order_events {
   user: OrderDetails_order_events_user | null;
 }
 
-export interface OrderDetails_order_fulfillments_lines_edges_node_orderLine {
+export interface OrderDetails_order_fulfillments_lines_orderLine_unitPrice_gross {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
+export interface OrderDetails_order_fulfillments_lines_orderLine_unitPrice_net {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
+export interface OrderDetails_order_fulfillments_lines_orderLine_unitPrice {
+  __typename: "TaxedMoney";
+  gross: OrderDetails_order_fulfillments_lines_orderLine_unitPrice_gross;
+  net: OrderDetails_order_fulfillments_lines_orderLine_unitPrice_net;
+}
+
+export interface OrderDetails_order_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
-}
-
-export interface OrderDetails_order_fulfillments_lines_edges_node {
-  __typename: "FulfillmentLine";
-  id: string;
-  orderLine: OrderDetails_order_fulfillments_lines_edges_node_orderLine;
+  productSku: string;
   quantity: number;
-}
-
-export interface OrderDetails_order_fulfillments_lines_edges {
-  __typename: "FulfillmentLineCountableEdge";
-  node: OrderDetails_order_fulfillments_lines_edges_node;
+  quantityFulfilled: number;
+  unitPrice: OrderDetails_order_fulfillments_lines_orderLine_unitPrice | null;
+  thumbnailUrl: string | null;
 }
 
 export interface OrderDetails_order_fulfillments_lines {
-  __typename: "FulfillmentLineCountableConnection";
-  edges: OrderDetails_order_fulfillments_lines_edges[];
+  __typename: "FulfillmentLine";
+  id: string;
+  quantity: number;
+  orderLine: OrderDetails_order_fulfillments_lines_orderLine | null;
 }
 
 export interface OrderDetails_order_fulfillments {
   __typename: "Fulfillment";
   id: string;
-  lines: OrderDetails_order_fulfillments_lines | null;
+  lines: (OrderDetails_order_fulfillments_lines | null)[] | null;
+  fulfillmentOrder: number;
   status: FulfillmentStatus;
   trackingNumber: string;
 }
@@ -99,6 +114,7 @@ export interface OrderDetails_order_lines_unitPrice {
 export interface OrderDetails_order_lines {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -192,22 +208,31 @@ export interface OrderDetails_order_user {
   email: string;
 }
 
+export interface OrderDetails_order_availableShippingMethods_price {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
 export interface OrderDetails_order_availableShippingMethods {
   __typename: "ShippingMethod";
   id: string;
   name: string;
+  price: OrderDetails_order_availableShippingMethods_price | null;
 }
 
 export interface OrderDetails_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderDetails_order_billingAddress | null;
+  canFinalize: boolean;
   created: any;
+  customerNote: string;
   events: (OrderDetails_order_events | null)[] | null;
   fulfillments: (OrderDetails_order_fulfillments | null)[];
   lines: (OrderDetails_order_lines | null)[];
   number: string | null;
-  paymentStatus: PaymentStatusEnum | null;
+  paymentStatus: PaymentChargeStatusEnum | null;
   shippingAddress: OrderDetails_order_shippingAddress | null;
   shippingMethod: OrderDetails_order_shippingMethod | null;
   shippingMethodName: string | null;
@@ -215,9 +240,11 @@ export interface OrderDetails_order {
   status: OrderStatus;
   subtotal: OrderDetails_order_subtotal | null;
   total: OrderDetails_order_total | null;
+  actions: (OrderAction | null)[];
   totalAuthorized: OrderDetails_order_totalAuthorized | null;
   totalCaptured: OrderDetails_order_totalCaptured | null;
   user: OrderDetails_order_user | null;
+  userEmail: string | null;
   availableShippingMethods: (OrderDetails_order_availableShippingMethods | null)[] | null;
 }
 
@@ -230,6 +257,7 @@ export interface OrderDetails_shop_countries {
 export interface OrderDetails_shop {
   __typename: "Shop";
   countries: (OrderDetails_shop_countries | null)[];
+  defaultWeightUnit: WeightUnitsEnum | null;
 }
 
 export interface OrderDetails {

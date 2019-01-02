@@ -37,8 +37,8 @@ export interface VariantUpdate_productVariantUpdate_productVariant_attributes_va
 
 export interface VariantUpdate_productVariantUpdate_productVariant_attributes {
   __typename: "SelectedAttribute";
-  attribute: VariantUpdate_productVariantUpdate_productVariant_attributes_attribute | null;
-  value: VariantUpdate_productVariantUpdate_productVariant_attributes_value | null;
+  attribute: VariantUpdate_productVariantUpdate_productVariant_attributes_attribute;
+  value: VariantUpdate_productVariantUpdate_productVariant_attributes_value;
 }
 
 export interface VariantUpdate_productVariantUpdate_productVariant_costPrice {
@@ -47,19 +47,10 @@ export interface VariantUpdate_productVariantUpdate_productVariant_costPrice {
   currency: string;
 }
 
-export interface VariantUpdate_productVariantUpdate_productVariant_images_edges_node {
+export interface VariantUpdate_productVariantUpdate_productVariant_images {
   __typename: "ProductImage";
   id: string;
-}
-
-export interface VariantUpdate_productVariantUpdate_productVariant_images_edges {
-  __typename: "ProductImageCountableEdge";
-  node: VariantUpdate_productVariantUpdate_productVariant_images_edges_node;
-}
-
-export interface VariantUpdate_productVariantUpdate_productVariant_images {
-  __typename: "ProductImageCountableConnection";
-  edges: VariantUpdate_productVariantUpdate_productVariant_images_edges[];
+  url: string;
 }
 
 export interface VariantUpdate_productVariantUpdate_productVariant_priceOverride {
@@ -68,7 +59,7 @@ export interface VariantUpdate_productVariantUpdate_productVariant_priceOverride
   currency: string;
 }
 
-export interface VariantUpdate_productVariantUpdate_productVariant_product_images_edges_node {
+export interface VariantUpdate_productVariantUpdate_productVariant_product_images {
   __typename: "ProductImage";
   id: string;
   alt: string;
@@ -76,66 +67,40 @@ export interface VariantUpdate_productVariantUpdate_productVariant_product_image
   url: string;
 }
 
-export interface VariantUpdate_productVariantUpdate_productVariant_product_images_edges {
-  __typename: "ProductImageCountableEdge";
-  node: VariantUpdate_productVariantUpdate_productVariant_product_images_edges_node;
+export interface VariantUpdate_productVariantUpdate_productVariant_product_thumbnail {
+  __typename: "Image";
+  url: string;
 }
 
-export interface VariantUpdate_productVariantUpdate_productVariant_product_images {
-  __typename: "ProductImageCountableConnection";
-  edges: VariantUpdate_productVariantUpdate_productVariant_product_images_edges[];
-}
-
-export interface VariantUpdate_productVariantUpdate_productVariant_product_variants_edges_node_image_edges_node {
+export interface VariantUpdate_productVariantUpdate_productVariant_product_variants_images {
   __typename: "ProductImage";
   id: string;
   url: string;
 }
 
-export interface VariantUpdate_productVariantUpdate_productVariant_product_variants_edges_node_image_edges {
-  __typename: "ProductImageCountableEdge";
-  node: VariantUpdate_productVariantUpdate_productVariant_product_variants_edges_node_image_edges_node;
-}
-
-export interface VariantUpdate_productVariantUpdate_productVariant_product_variants_edges_node_image {
-  __typename: "ProductImageCountableConnection";
-  edges: VariantUpdate_productVariantUpdate_productVariant_product_variants_edges_node_image_edges[];
-}
-
-export interface VariantUpdate_productVariantUpdate_productVariant_product_variants_edges_node {
+export interface VariantUpdate_productVariantUpdate_productVariant_product_variants {
   __typename: "ProductVariant";
   id: string;
   name: string;
   sku: string;
-  image: VariantUpdate_productVariantUpdate_productVariant_product_variants_edges_node_image | null;
-}
-
-export interface VariantUpdate_productVariantUpdate_productVariant_product_variants_edges {
-  __typename: "ProductVariantCountableEdge";
-  node: VariantUpdate_productVariantUpdate_productVariant_product_variants_edges_node;
-}
-
-export interface VariantUpdate_productVariantUpdate_productVariant_product_variants {
-  __typename: "ProductVariantCountableConnection";
-  totalCount: number | null;
-  edges: VariantUpdate_productVariantUpdate_productVariant_product_variants_edges[];
+  images: (VariantUpdate_productVariantUpdate_productVariant_product_variants_images | null)[] | null;
 }
 
 export interface VariantUpdate_productVariantUpdate_productVariant_product {
   __typename: "Product";
   id: string;
-  images: VariantUpdate_productVariantUpdate_productVariant_product_images | null;
+  images: (VariantUpdate_productVariantUpdate_productVariant_product_images | null)[] | null;
   name: string;
-  thumbnailUrl: string | null;
-  variants: VariantUpdate_productVariantUpdate_productVariant_product_variants | null;
+  thumbnail: VariantUpdate_productVariantUpdate_productVariant_product_thumbnail | null;
+  variants: (VariantUpdate_productVariantUpdate_productVariant_product_variants | null)[] | null;
 }
 
 export interface VariantUpdate_productVariantUpdate_productVariant {
   __typename: "ProductVariant";
   id: string;
-  attributes: (VariantUpdate_productVariantUpdate_productVariant_attributes | null)[] | null;
+  attributes: VariantUpdate_productVariantUpdate_productVariant_attributes[];
   costPrice: VariantUpdate_productVariantUpdate_productVariant_costPrice | null;
-  images: VariantUpdate_productVariantUpdate_productVariant_images | null;
+  images: (VariantUpdate_productVariantUpdate_productVariant_images | null)[] | null;
   name: string;
   priceOverride: VariantUpdate_productVariantUpdate_productVariant_priceOverride | null;
   product: VariantUpdate_productVariantUpdate_productVariant_product;
@@ -146,7 +111,7 @@ export interface VariantUpdate_productVariantUpdate_productVariant {
 
 export interface VariantUpdate_productVariantUpdate {
   __typename: "ProductVariantUpdate";
-  errors: (VariantUpdate_productVariantUpdate_errors | null)[] | null;
+  errors: VariantUpdate_productVariantUpdate_errors[] | null;
   productVariant: VariantUpdate_productVariantUpdate_productVariant | null;
 }
 

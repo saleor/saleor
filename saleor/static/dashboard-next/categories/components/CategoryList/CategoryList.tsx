@@ -1,19 +1,34 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
-import { withStyles } from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
+import TableFooter from "@material-ui/core/TableFooter";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
 import Skeleton from "../../../components/Skeleton";
+import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
+import { ListProps } from "../../../types";
 
-interface CategoryListProps {
+const styles = createStyles({
+  centerText: {
+    textAlign: "center"
+  },
+  tableRow: {
+    cursor: "pointer"
+  },
+  wideColumn: {
+    width: "100%"
+  }
+});
+
+interface CategoryListProps extends ListProps, WithStyles<typeof styles> {
   categories?: Array<{
     id: string;
     name: string;
@@ -26,29 +41,26 @@ interface CategoryListProps {
   }>;
   isRoot: boolean;
   onAdd?();
-  onRowClick?(id: string): () => void;
 }
 
-const decorate = withStyles({
-  centerText: {
-    textAlign: "center" as "center"
-  },
-  tableRow: {
-    cursor: "pointer" as "pointer"
-  },
-  wideColumn: {
-    width: "100%"
-  }
-});
-
-const CategoryList = decorate<CategoryListProps>(
-  ({ categories, classes, isRoot, onAdd, onRowClick }) => (
+const CategoryList = withStyles(styles, { name: "CategoryList" })(
+  ({
+    categories,
+    classes,
+    disabled,
+    pageInfo,
+    onNextPage,
+    onPreviousPage,
+    isRoot,
+    onAdd,
+    onRowClick
+  }: CategoryListProps) => (
     <Card>
       {!isRoot && (
         <CardTitle
-          title={i18n.t("Subcategories")}
+          title={i18n.t("All Subcategories")}
           toolbar={
-            <Button color="secondary" variant="flat" onClick={onAdd}>
+            <Button color="secondary" variant="text" onClick={onAdd}>
               {i18n.t("Add subcategory")}
             </Button>
           }
@@ -58,9 +70,9 @@ const CategoryList = decorate<CategoryListProps>(
         <TableHead>
           <TableRow>
             <TableCell className={classes.wideColumn}>
-              {i18n.t("Name", { context: "object" })}
+              {i18n.t("Category Name", { context: "object" })}
             </TableCell>
-            <TableCell>
+            <TableCell className={classes.centerText}>
               {i18n.t("Subcategories", { context: "object" })}
             </TableCell>
             <TableCell className={classes.centerText}>
@@ -70,6 +82,19 @@ const CategoryList = decorate<CategoryListProps>(
             </TableCell>
           </TableRow>
         </TableHead>
+        <TableFooter>
+          <TableRow>
+            <TablePagination
+              colSpan={3}
+              hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
+              onNextPage={onNextPage}
+              hasPreviousPage={
+                pageInfo && !disabled ? pageInfo.hasPreviousPage : false
+              }
+              onPreviousPage={onPreviousPage}
+            />
+          </TableRow>
+        </TableFooter>
         <TableBody>
           {renderCollection(
             categories,
@@ -83,7 +108,7 @@ const CategoryList = decorate<CategoryListProps>(
                 <TableCell>
                   {category && category.name ? category.name : <Skeleton />}
                 </TableCell>
-                <TableCell>
+                <TableCell className={classes.centerText}>
                   {category &&
                   category.children &&
                   category.children.totalCount !== undefined ? (

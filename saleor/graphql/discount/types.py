@@ -1,47 +1,78 @@
-import graphene
+from textwrap import dedent
+
+import graphene_django_optimizer as gql_optimizer
 from graphene import relay
 
-from ...discount import DiscountValueType, VoucherType, models
-from ..core.types.common import CountableDjangoObjectType
-
-
-class Voucher(CountableDjangoObjectType):
-    class Meta:
-        description = """A token that can be used to purchase products
-        for discounted price."""
-        interfaces = [relay.Node]
-        filter_fields = {
-            'name': ['icontains'],
-            'type': ['exact'],
-            'discount_value': ['gte', 'lte'],
-            'start_date': ['exact'],
-            'end_date': ['exact'],
-            'min_amount_spent': ['gte', 'lte']}
-        model = models.Voucher
+from ...discount import models
+from ..core.connection import CountableDjangoObjectType
+from ..core.fields import PrefetchingConnectionField
+from ..product.types import Category, Collection, Product
 
 
 class Sale(CountableDjangoObjectType):
+    categories = gql_optimizer.field(
+        PrefetchingConnectionField(
+            Category,
+            description='List of categories this sale applies to.'),
+        model_field='categories')
+    collections = gql_optimizer.field(
+        PrefetchingConnectionField(
+            Collection,
+            description='List of collections this sale applies to.'),
+        model_field='collections')
+    products = gql_optimizer.field(
+        PrefetchingConnectionField(
+            Product,
+            description='List of products this sale applies to.'),
+        model_field='products')
+
     class Meta:
-        description = """A special event featuring discounts
-        for selected products"""
+        description = dedent("""
+        Sales allow creating discounts for categories, collections or
+        products and are visible to all the customers.""")
         interfaces = [relay.Node]
-        filter_fields = {
-            'name': ['icontains'],
-            'type': ['icontains'],
-            'value': ['gte', 'lte'],
-            'start_date': ['exact'],
-            'end_date': ['exact']}
         model = models.Sale
 
+    def resolve_categories(self, info, **kwargs):
+        return self.categories.all()
 
-class VoucherTypeEnum(graphene.Enum):
-    PRODUCT = VoucherType.PRODUCT
-    COLLECTION = VoucherType.COLLECTION
-    CATEGORY = VoucherType.CATEGORY
-    SHIPPING = VoucherType.SHIPPING
-    VALUE = VoucherType.VALUE
+    def resolve_collections(self, info, **kwargs):
+        return self.collections.visible_to_user(info.context.user)
+
+    def resolve_products(self, info, **kwargs):
+        return self.products.visible_to_user(info.context.user)
 
 
-class DiscountValueTypeEnum(graphene.Enum):
-    FIXED = DiscountValueType.FIXED
-    PERCENTAGE = DiscountValueType.PERCENTAGE
+class Voucher(CountableDjangoObjectType):
+    categories = gql_optimizer.field(
+        PrefetchingConnectionField(
+            Category,
+            description='List of categories this voucher applies to.'),
+        model_field='categories')
+    collections = gql_optimizer.field(
+        PrefetchingConnectionField(
+            Collection,
+            description='List of collections this voucher applies to.'),
+        model_field='collections')
+    products = gql_optimizer.field(
+        PrefetchingConnectionField(
+            Product,
+            description='List of products this voucher applies to.'),
+        model_field='products')
+
+    class Meta:
+        description = dedent("""
+        Vouchers allow giving discounts to particular customers on categories,
+        collections or specific products. They can be used during checkout by
+        providing valid voucher codes.""")
+        interfaces = [relay.Node]
+        model = models.Voucher
+
+    def resolve_categories(self, info, **kwargs):
+        return self.categories.all()
+
+    def resolve_collections(self, info, **kwargs):
+        return self.collections.visible_to_user(info.context.user)
+
+    def resolve_products(self, info, **kwargs):
+        return self.products.visible_to_user(info.context.user)

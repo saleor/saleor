@@ -4,7 +4,6 @@ import * as React from "react";
 import {
   Mutation,
   MutationFn,
-  MutationProps,
   MutationResult,
   MutationUpdaterFn
 } from "react-apollo";
@@ -12,7 +11,7 @@ import {
 import Messages from "./components/messages";
 import i18n from "./i18n";
 
-interface TypedMutationInnerProps<TData, TVariables> {
+export interface TypedMutationInnerProps<TData, TVariables> {
   children: (
     mutateFn: MutationFn<TData, TVariables>,
     result: MutationResult<TData>
@@ -26,9 +25,7 @@ export function TypedMutation<TData, TVariables>(
   mutation: DocumentNode,
   update?: MutationUpdaterFn<TData>
 ) {
-  const StrictTypedMutation: React.ComponentType<
-    MutationProps<TData, TVariables>
-  > = Mutation;
+  class StrictTypedMutation extends Mutation<TData, TVariables> {}
   return ({
     children,
     onCompleted,

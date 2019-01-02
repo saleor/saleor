@@ -1,6 +1,8 @@
 from functools import wraps
 
+from django.conf import settings
 from django.shortcuts import get_object_or_404, redirect
+from prices import Money, TaxedMoney
 
 from ..account.utils import store_user_address
 from ..checkout import AddressType
@@ -10,6 +12,7 @@ from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..discount.models import NotApplicable
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import OrderLine
+from ..payment import ChargeStatus
 from ..product.utils import allocate_stock, deallocate_stock, increase_stock
 
 
@@ -104,6 +107,16 @@ def cancel_order(order, restock):
         fulfillment.save(update_fields=['status'])
     order.status = OrderStatus.CANCELED
     order.save(update_fields=['status'])
+
+    payments = order.payments.filter(
+        is_active=True,
+        charge_status__in=[ChargeStatus.NOT_CHARGED, ChargeStatus.CHARGED])
+
+    for payment in payments:
+        if payment.can_refund():
+            payment.refund()
+        elif payment.can_void():
+            payment.void()
 
 
 def update_order_status(order):
@@ -212,3 +225,9 @@ def restock_fulfillment_lines(fulfillment):
         if line.order_line.variant and line.order_line.variant.track_inventory:
             increase_stock(
                 line.order_line.variant, line.quantity, allocate=True)
+
+
+def sum_order_totals(qs):
+    zero = Money(0, currency=settings.DEFAULT_CURRENCY)
+    taxed_zero = TaxedMoney(zero, zero)
+    return sum([order.total for order in qs], taxed_zero)
