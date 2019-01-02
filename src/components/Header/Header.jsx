@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { withRouter } from 'react-router';
 import ReactSVG from 'react-svg';
 import { withCookies, Cookies } from 'react-cookie';
+import { hotjar } from '../HotJar/HotJar'
 
 import { GitHubLink } from '..';
 
@@ -26,6 +27,10 @@ class Header extends Component {
         scrollDirection: 'bottom',
         lastScrollPos: null
       }
+  }
+
+  runHotJar = () => {
+    hotjar.initialize(1143573, 6)
   }
 
   toggleMenu = () => {
@@ -114,12 +119,12 @@ class Header extends Component {
         {this.state.visiblePrivacyPolicyBar ?
           <div className="notification">
             <div className="content">
-              <img className="cookieImg" src={cookieImg} onClick={this.closePrivacyPolicyBar} />
+              <img className="cookieImg" src={cookieImg} />
               <p className="privacyPolicyText">By accepting our usage of third-party software such as HotJar, you help us to deliver a better website experience to all our users. To see our full privacy policy, <a href="https://getsaleor.com/privacy-policy-terms-and-conditions/" target="_blank">click here.</a></p>
-              <h5 className="acceptButton">ACCEPT</h5>
+              <h5 className="acceptButton" onClick={this.closePrivacyPolicyBar}>ACCEPT</h5>
               <img className="cookieAcceptImg" src={cookieAcceptImg} onClick={this.closePrivacyPolicyBar} />
             </div>
-          </div> : null}
+          </div> : this.runHotJar()}
       </header>
     );
   }
