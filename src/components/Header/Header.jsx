@@ -3,10 +3,13 @@ import { NavLink } from 'react-router-dom';
 import { withRouter } from 'react-router';
 import ReactSVG from 'react-svg';
 import { withCookies, Cookies } from 'react-cookie';
+import { hotjar } from '../HotJar/HotJar'
 
 import { GitHubLink } from '..';
 
 import css from './header.css';
+import cookieImg from './../../images/cookie.png'
+import cookieAcceptImg from './../../images/cookie-accept.png'
 
 class Header extends Component {
 
@@ -15,18 +18,23 @@ class Header extends Component {
     const { cookies } = props;
     this.toggleMenu = this.toggleMenu.bind(this);
     this.closeNewsBar = this.closeNewsBar.bind(this);
-    const { cookieValue } = 
-    this.state = { 
-      mobileMenu: false, 
-      visibleNewsBar: cookies.get('newsbar') ? false : true, 
-      sticky: false,
-      scrollDirection: 'bottom',
-      lastScrollPos: null
-    }
+    const { cookieValue } =
+      this.state = {
+        mobileMenu: false,
+        visibleNewsBar: cookies.get('newsbar') ? false : true,
+        visiblePrivacyPolicyBar: cookies.get('privacypolicybar') ? false : true,
+        sticky: false,
+        scrollDirection: 'bottom',
+        lastScrollPos: null
+      }
+  }
+
+  runHotJar = () => {
+    hotjar.initialize(716251, 6)
   }
 
   toggleMenu = () => {
-    this.setState(({ mobileMenu }) => ({ mobileMenu: !mobileMenu}))
+    this.setState(({ mobileMenu }) => ({ mobileMenu: !mobileMenu }))
   };
 
   closeMenu = () => {
@@ -37,7 +45,14 @@ class Header extends Component {
     const { cookies } = this.props;
     const maxAge = 14 * (24 * 3600);
     cookies.set('newsbar', 1, { path: '/', maxAge: maxAge });
-    this.setState({visibleNewsBar: false});
+    this.setState({ visibleNewsBar: false });
+  }
+
+  closePrivacyPolicyBar = () => {
+    const { cookies } = this.props;
+    const maxAge = 30 * (24 * 3600);
+    cookies.set('privacypolicybar', 1, { path: '/', maxAge: maxAge });
+    this.setState({ visiblePrivacyPolicyBar: false });
   }
 
   componentDidMount() {
@@ -50,30 +65,30 @@ class Header extends Component {
 
   handleScroll = (event) => {
     const scrollPosition = window.scrollY;
-    if(this.state.lastScrollPos > scrollPosition) {
+    if (this.state.lastScrollPos > scrollPosition) {
       this.setState({
         scrollDirection: 'top',
         lastScrollPos: scrollPosition
       });
-    } else if(this.state.lastScrollPos < scrollPosition) {
+    } else if (this.state.lastScrollPos < scrollPosition) {
       this.setState({
         scrollDirection: 'bottom',
         lastScrollPos: scrollPosition
       });
     }
-    if (scrollPosition > 120) { this.setState({sticky: true}); } else { this.setState({sticky: false}); }
+    if (scrollPosition > 120) { this.setState({ sticky: true }); } else { this.setState({ sticky: false }); }
   }
 
   render() {
     return (
-      <header className={this.state.sticky ? ('sticky '+ this.state.scrollDirection) : null}>
+      <header className={this.state.sticky ? ('sticky ' + this.state.scrollDirection) : null}>
         {this.state.visibleNewsBar ?
-        <div className="news">
-          <div className="content">
-            <a href="https://medium.com/p/1330f2151585" target="_blank">Saleor 2.0 release is out. <span className="text-underline">Check out what's new!</span></a>
-            <div className="close-icon" onClick={this.closeNewsBar}></div>
-          </div>
-        </div> : null}
+          <div className="news">
+            <div className="content">
+              <a href="https://medium.com/p/1330f2151585" target="_blank">Saleor 2.0 release is out. <span className="text-underline">Check out what's new!</span></a>
+              <div className="close-icon" onClick={this.closeNewsBar}></div>
+            </div>
+          </div> : null}
         <div className="container">
           <div className="grid">
             <div className={this.state.mobileMenu ? 'logo open col-xs-3 col-ls-6 col-sm-6 col-md-3 col-lg-6 col-xlg-8' : 'logo col-xs-3 col-sm-6 col-md-3 col-lg-6 col-xlg-8'}>
@@ -101,6 +116,15 @@ class Header extends Component {
             </nav>
           </div>
         </div>
+        {this.state.visiblePrivacyPolicyBar ?
+          <div className="notification">
+            <div className="content">
+              <img className="cookieImg" src={cookieImg} />
+              <p className="privacyPolicyText">By accepting our usage of third-party software such as HotJar, you help us to deliver a better website experience to all our users. To see our full privacy policy, <a href="https://getsaleor.com/privacy-policy-terms-and-conditions/" target="_blank">click here.</a></p>
+              <h5 className="acceptButton" onClick={this.closePrivacyPolicyBar}>ACCEPT</h5>
+              <img className="cookieAcceptImg" src={cookieAcceptImg} onClick={this.closePrivacyPolicyBar} />
+            </div>
+          </div> : this.runHotJar()}
       </header>
     );
   }
