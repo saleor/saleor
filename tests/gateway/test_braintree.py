@@ -15,8 +15,7 @@ from saleor.payment import TransactionKind, get_payment_gateway
 from saleor.payment.gateways.braintree import (
     CONFIRM_MANUALLY, THREE_D_SECURE_REQUIRED, authorize, capture,
     extract_gateway_response, get_braintree_gateway, get_client_token,
-    get_customer_data, get_error_for_client, refund,
-    transaction_and_incorrect_token_error, void)
+    get_customer_data, get_error_for_client, refund, void)
 from saleor.payment.gateways.braintree.forms import BraintreePaymentForm
 
 INCORRECT_TOKEN_ERROR = (
@@ -450,25 +449,6 @@ def test_void_error_response(
     assert error == DEFAULT_ERROR
 
 
-def test_transaction_and_incorrect_token_error_helper(payment_dummy, settings):
-    amount = Decimal('10.00')
-    txn, error = transaction_and_incorrect_token_error(
-        payment_dummy, 'example-token', TransactionKind.AUTH, amount=amount)
-    assert error == INCORRECT_TOKEN_ERROR
-    assert not txn.is_success
-    assert txn.kind == TransactionKind.AUTH
-    assert txn.token == 'example-token'
-    assert not txn.gateway_response
-    assert txn.amount == amount
-    assert txn.currency == settings.DEFAULT_CURRENCY
-
-
-def test_transaction_and_incorrect_token_error_helper_no_amount(payment_dummy):
-    txn, error = transaction_and_incorrect_token_error(
-        payment_dummy, 'example-token', TransactionKind.AUTH)
-    assert txn.amount == payment_dummy.total
-
-
 def test_braintree_payment_form_incorrect_amount(payment_dummy):
     amount = Decimal('0.01')
     data = {'amount': amount, 'payment_method_nonce': 'fake-nonce'}
@@ -477,8 +457,7 @@ def test_braintree_payment_form_incorrect_amount(payment_dummy):
     payment_gateway, gateway_params = get_payment_gateway(
         payment_dummy.gateway)
     form = BraintreePaymentForm(
-        data=data, payment=payment_dummy, gateway=payment_gateway,
-        gateway_params=gateway_params)
+        data=data, amount=payment_dummy.total, gateway=payment_gateway)
     assert not form.is_valid()
     assert form.non_field_errors
 
@@ -487,11 +466,9 @@ def test_braintree_payment_form(settings, payment_dummy):
     payment = payment_dummy
     payment.gateway = settings.BRAINTREE
     data = {'amount': payment.total, 'payment_method_nonce': 'fake-nonce'}
-    payment_gateway, gateway_params = get_payment_gateway(payment.gateway)
 
     form = BraintreePaymentForm(
-        data=data, payment=payment, gateway=payment_gateway,
-        gateway_params=gateway_params)
+        data=data, amount=payment.total, currency=payment.currency)
     assert form.is_valid()
 
 

@@ -120,28 +120,18 @@ def get_client_token(**connection_params: Dict) -> str:
 
 def process_payment(
         payment: Dict, payment_token: str, amount: Decimal,
-        **connection_params: Dict) -> Tuple[bool, str, Dict, str]:
-    auth_success, auth_response, auth_errors = authorize(
-        payment, payment_token, **connection_params)
-    transaction_token = auth_response['transaction_id']
+        **connection_params: Dict) -> Dict:
+    auth_resp = authorize(payment, payment_token, **connection_params)
+    transaction_token = auth_resp['transaction_id']
 
     try:
-        capture_success, capture_response, capture_errors = capture(
-            transaction_token, amount, **connection_params)
+        return capture(transaction_token, amount, **connection_params)
     except Exception as e:
         void(transaction_token, **connection_params)
 
-    return {
-        'is_successful': capture_success,
-        'transaction_token': capture_response['transaction_id'],
-        'gateway_response': capture_response,
-        'errors': capture_errors}
-
 
 def authorize(
-        payment: Dict,
-        payment_token: str,
-        **connection_params: Dict) -> Tuple[bool, Dict, str]:
+        payment: Dict, payment_token: str, **connection_params: Dict) -> Dict:
     gateway = get_braintree_gateway(**connection_params)
 
     try:
@@ -161,13 +151,17 @@ def authorize(
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
 
-    return result.is_success, gateway_response, error
+    return {
+        'is_success': result.is_success,
+        'transaction_id': gateway_response['transaction_id'],
+        'gateway_response': gateway_response,
+        'errors': error,
+    }
 
 
 def capture(
-        payment_token: str,
-        amount: Decimal,
-        **connection_params: Dict) -> Tuple[bool, Dict, str]:
+        payment: Dict, payment_token: str, amount: Decimal,
+        **connection_params: Dict) -> Dict:
     gateway = get_braintree_gateway(**connection_params)
 
     try:
@@ -180,12 +174,16 @@ def capture(
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
 
-    return result.is_success, gateway_response, error
+    return {
+        'is_success': result.is_success,
+        'transaction_id': gateway_response['transaction_id'],
+        'gateway_response': gateway_response,
+        'errors': error,
+    }
 
 
 def void(
-        payment_token: str,
-        **connection_params: Dict) -> Tuple[bool, Dict, str]:
+        payment: Dict, payment_token: str, **connection_params: Dict) -> Dict:
     gateway = get_braintree_gateway(**connection_params)
 
     try:
@@ -197,13 +195,17 @@ def void(
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
 
-    return result.is_success, gateway_response, error
+    return {
+        'is_success': result.is_success,
+        'transaction_id': gateway_response['transaction_id'],
+        'gateway_response': gateway_response,
+        'errors': error,
+    }
 
 
 def refund(
-        payment_token: str,
-        amount: Decimal,
-        **connection_params: Dict) -> Tuple[bool, Dict, str]:
+        payment: Dict, payment_token: str, amount: Decimal,
+        **connection_params: Dict) -> Dict:
     gateway = get_braintree_gateway(**connection_params)
 
     try:
@@ -217,4 +219,9 @@ def refund(
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
 
-    return result.is_success, gateway_response, error
+    return {
+        'is_success': result.is_success,
+        'transaction_id': gateway_response['transaction_id'],
+        'gateway_response': gateway_response,
+        'errors': error,
+    }

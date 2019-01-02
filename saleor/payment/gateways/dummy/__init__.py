@@ -28,52 +28,75 @@ def get_form_class():
 
 
 def process_payment(
-        payment: Payment, payment_token: str, amount: Decimal,
+        payment: Dict, payment_token: str, amount: Decimal,
         **connection_params):
-    authorize(payment_token)
-    capture_success, capture_response, capture_errors = capture(
-        payment, payment_token)
+    auth_resp = authorize(payment, payment_token)
+    if auth_resp['errors']:
+        return auth_resp
+    return capture(payment, payment_token, amount)
 
-    return capture_success, capture_response, capture_errors
 
-
-def authorize(payment: Payment, payment_token: str, **connection_params):
+def authorize(payment: Dict, payment_token: str, **connection_params):
     success = dummy_success()
     error = None
     if not success:
         error = 'Unable to authorize transaction'
-    return success, {}, error
+    return {
+        'is_success': success,
+        'transaction_id': payment_token,
+        'gateway_response': {},
+        'errors': error,
+    }
 
 
-def void(payment: Payment, **connection_params: Dict):
+def void(payment: Dict, payment_token: str, **connection_params: Dict):
     error = None
     success = dummy_success()
     if not success:
         error = 'Unable to void the transaction.'
-    return success, {}, error
+    return {
+        'is_success': success,
+        'transaction_id': payment_token,
+        'gateway_response': {},
+        'errors': error,
+    }
 
 
-def capture(payment: Payment, amount: Decimal, **connection_params: Dict):
+def capture(
+        payment: Dict, payment_token: str, amount: Decimal,
+        **connection_params: Dict):
     error = None
     success = dummy_success()
     if not success:
         error = 'Unable to process capture'
-    return success, {}, error
+    return {
+        'is_success': success,
+        'transaction_id': payment_token,
+        'gateway_response': {},
+        'errors': error,
+    }
 
 
-def refund(payment: Payment, amount: Decimal, **connection_params: Dict):
+def refund(
+        payment: Dict, payment_token: str, amount: Decimal,
+        **connection_params: Dict):
     error = None
     success = dummy_success()
     if not success:
         error = 'Unable to process refund'
-    return success, {}, error
+    return {
+        'is_success': success,
+        'transaction_id': payment_token,
+        'gateway_response': {},
+        'errors': error,
+    }
 
 
 def charge(
-        payment: Payment, payment_token: str, amount: Decimal,
+        payment: Dict, payment_token: str, amount: Decimal,
         **connection_params):
     """Performs Authorize and Capture transactions in a single run."""
-    is_success, response, error = authorize(payment, payment_token)
-    if error:
-        return is_success, response, error
-    return capture(payment, amount)
+    auth_resp = authorize(payment, payment_token)
+    if auth_resp['errors']:
+        return auth_resp
+    return capture(payment, payment_token, amount)
