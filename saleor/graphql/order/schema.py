@@ -3,9 +3,11 @@ from textwrap import dedent
 import graphene
 from graphql_jwt.decorators import login_required, permission_required
 
+from ..core.enums import ReportingPeriod
 from ..core.fields import PrefetchingConnectionField
-from ..core.types import ReportingPeriod, TaxedMoney
+from ..core.types import TaxedMoney
 from ..descriptions import DESCRIPTIONS
+from .enums import OrderStatusFilter
 from .mutations.draft_orders import (
     DraftOrderComplete, DraftOrderCreate, DraftOrderDelete,
     DraftOrderLineCreate, DraftOrderLineDelete, DraftOrderLineUpdate,
@@ -18,7 +20,7 @@ from .mutations.orders import (
 from .resolvers import (
     resolve_homepage_events, resolve_order, resolve_orders,
     resolve_orders_total)
-from .types import Order, OrderEvent, OrderStatusFilter
+from .types import Order, OrderEvent
 
 
 class OrderQueries(graphene.ObjectType):

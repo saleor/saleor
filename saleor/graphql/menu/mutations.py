@@ -7,6 +7,7 @@ from ...menu import models
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..page.types import Page
 from ..product.types import Category, Collection
+from .enums import NavigationType
 from .types import Menu
 
 
@@ -196,17 +197,6 @@ class MenuItemDelete(ModelDeleteMutation):
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('menu.manage_menus')
-
-
-class NavigationType(graphene.Enum):
-    MAIN = 'main'
-    SECONDARY = 'secondary'
-
-    @property
-    def description(self):
-        if self == NavigationType.MAIN:
-            return 'Main storefront\'s navigation.'
-        return 'Secondary storefront\'s navigation.'
 
 
 class AssignNavigation(BaseMutation):

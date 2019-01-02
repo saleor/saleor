@@ -11,7 +11,8 @@ from ....payment.utils import get_billing_data
 from ....shipping.models import ShippingMethod as ShippingMethodModel
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation
-from ...core.types.common import Decimal, Error
+from ...core.scalars import Decimal
+from ...core.types.common import Error
 from ...order.mutations.draft_orders import DraftOrderUpdate
 from ...order.types import Order, OrderEvent
 from ...shipping.types import ShippingMethod

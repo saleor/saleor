@@ -5,7 +5,8 @@ from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
 from graphql_relay import from_global_id
 
-from .core.types import PermissionDisplay, PermissionEnum, ReportingPeriod
+from .core.enums import PermissionEnum, ReportingPeriod
+from .core.types import PermissionDisplay
 
 registry = get_global_registry()
 

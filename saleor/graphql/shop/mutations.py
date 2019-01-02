@@ -2,8 +2,8 @@ import graphene
 from graphql_jwt.decorators import permission_required
 
 from ...site import models as site_models
+from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation
-from ..core.types.common import WeightUnitsEnum
 from ..product.types import Collection
 from .types import AuthorizationKey, AuthorizationKeyType, Shop
 

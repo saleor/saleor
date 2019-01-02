@@ -8,9 +8,9 @@ from django.utils.text import slugify
 from graphql_relay import to_global_id
 from prices import Money
 
-from saleor.graphql.core.types import ReportingPeriod
-from saleor.graphql.product.types import (
-    StockAvailability, resolve_attribute_list)
+from saleor.graphql.core.enums import ReportingPeriod
+from saleor.graphql.product.enums import StockAvailability
+from saleor.graphql.product.types import resolve_attribute_list
 from saleor.product.models import (
     Attribute, AttributeValue, Category, Product, ProductImage, ProductType,
     ProductVariant)

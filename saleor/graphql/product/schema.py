@@ -3,9 +3,10 @@ from textwrap import dedent
 import graphene
 from graphql_jwt.decorators import permission_required
 
+from ..core.enums import ReportingPeriod
 from ..core.fields import PrefetchingConnectionField
-from ..core.types import ReportingPeriod
 from ..descriptions import DESCRIPTIONS
+from .enums import StockAvailability
 from .mutations.attributes import (
     AttributeCreate, AttributeDelete, AttributeUpdate, AttributeValueCreate,
     AttributeValueDelete, AttributeValueUpdate)
@@ -24,7 +25,7 @@ from .resolvers import (
 from .scalars import AttributeScalar
 from .types import (
     Attribute, Category, Collection, Product, ProductOrder, ProductType,
-    ProductVariant, StockAvailability)
+    ProductVariant)
 
 
 class ProductQueries(graphene.ObjectType):
