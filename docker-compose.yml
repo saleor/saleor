@@ -16,7 +16,23 @@ services:
     depends_on:
       - db
       - redis
+      - migrate
     command: python manage.py runserver 0.0.0.0:8000
+
+  migrate:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args:
+        STATIC_URL: '/static/'
+    command: python manage.py migrate
+    restart: no
+    networks:
+      - saleor-backend-tier
+    env_file: common.env
+    depends_on:
+      - db
+      - redis
 
   db:
     image: library/postgres:latest
