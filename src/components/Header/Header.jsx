@@ -30,7 +30,7 @@ class Header extends Component {
   }
 
   runHotJar = () => {
-    hotjar.initialize(1143573, 6)
+    hotjar.initialize(716251, 6)
   }
 
   toggleMenu = () => {
