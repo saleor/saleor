@@ -25,12 +25,11 @@ EXAMPLE_ERROR = 'Example dummy error'
 def transaction_data(payment_dummy, settings):
     return {
         'payment': payment_dummy,
-        'token': 'token',
+        'payment_token': 'token',
         'kind': TransactionKind.CAPTURE,
         'is_success': True,
-        'amount': Decimal('10.00'),
-        'currency': settings.DEFAULT_CURRENCY,
         'gateway_response': {
+            'is_success': True,
             'credit_cart': '4321'}}
 
 
@@ -234,12 +233,15 @@ def test_gateway_authorize_errors(payment_dummy):
 def test_gateway_capture(
         mock_get_payment_gateway, mock_handle_fully_paid_order, payment_txn_preauth,
         gateway_params):
-    txn = payment_txn_preauth.transactions.first()
     payment = payment_txn_preauth
     assert not payment.captured_amount
     amount = payment.total
 
-    mock_capture = Mock(return_value=(txn, ''))
+    mock_capture = Mock(return_value={
+        'is_success': True,
+        'transaction_id': 'token',
+        'gateway_response': {},
+        'errors': None})
     mock_get_payment_gateway.return_value = (
         Mock(capture=mock_capture), gateway_params)
 
@@ -265,7 +267,11 @@ def test_gateway_capture_partial_capture(
     txn.amount = amount
     txn.currency = settings.DEFAULT_CURRENCY
 
-    mock_capture = Mock(return_value=(txn, ''))
+    mock_capture = Mock(return_value={
+        'is_success': True,
+        'transaction_id': 'token',
+        'gateway_response': {},
+        'errors': None})
     mock_get_payment_gateway.return_value = (
         Mock(capture=mock_capture), gateway_params)
 
@@ -289,7 +295,11 @@ def test_gateway_capture_failed(
     payment = payment_txn_preauth
     amount = payment.total
 
-    mock_capture = Mock(return_value=(txn, EXAMPLE_ERROR))
+    mock_capture = Mock(return_value={
+        'is_success': False,
+        'transaction_id': 'token',
+        'gateway_response': {},
+        'errors': EXAMPLE_ERROR})
     mock_get_payment_gateway.return_value = (
         Mock(capture=mock_capture), gateway_params)
     with pytest.raises(PaymentError) as exc:
@@ -329,7 +339,11 @@ def test_gateway_charge(
     assert not payment.captured_amount
     amount = payment.total
 
-    mock_charge = Mock(return_value=(txn, ''))
+    mock_charge = Mock(return_value={
+        'is_success': True,
+        'transaction_id': 'token',
+        'gateway_response': {},
+        'errors': None})
     mock_get_payment_gateway.return_value = (
         Mock(charge=mock_charge), gateway_params)
 
@@ -356,7 +370,11 @@ def test_gateway_capture_partial_charge(
     txn.amount = amount
     txn.currency = settings.DEFAULT_CURRENCY
 
-    mock_charge = Mock(return_value=(txn, ''))
+    mock_charge = Mock(return_value={
+        'is_success': True,
+        'transaction_id': 'token',
+        'gateway_response': {},
+        'errors': None})
     mock_get_payment_gateway.return_value = (
         Mock(charge=mock_charge), gateway_params)
 
@@ -381,7 +399,11 @@ def test_gateway_charge_failed(
     payment = payment_txn_preauth
     amount = payment.total
 
-    mock_charge = Mock(return_value=(False, {}, EXAMPLE_ERROR))
+    mock_charge = Mock(return_value={
+        'is_success': False,
+        'transaction_id': 'token',
+        'gateway_response': {},
+        'errors': EXAMPLE_ERROR})
     mock_get_payment_gateway.return_value = (
         Mock(charge=mock_charge), gateway_params)
     with pytest.raises(PaymentError) as exc:

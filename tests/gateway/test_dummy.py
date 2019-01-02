@@ -11,18 +11,13 @@ from saleor.payment.gateways.dummy.forms import DummyPaymentForm
 
 
 def test_charge_success(payment_dummy):
-    payment_dummy.charge(
-        payment_token='fake-token', amount=payment_dummy.total)
-    capture_txn, auth_txn = payment_dummy.transactions.all()
+    gateway_charge(payment=payment_dummy, payment_token='fake-token')
+    charge_txn = payment_dummy.transactions.all()
 
-    assert auth_txn.is_success
-    assert auth_txn.kind == TransactionKind.AUTH
-    assert auth_txn.payment == payment_dummy
-
-    assert capture_txn.is_success
-    assert capture_txn.kind == TransactionKind.CAPTURE
-    assert capture_txn.payment == payment_dummy
-    assert capture_txn.amount == payment_dummy.total
+    assert charge_txn.is_success
+    assert charge_txn.kind == TransactionKind.CAPTURE
+    assert charge_txn.payment == payment_dummy
+    assert charge_txn.amount == payment_dummy.total
 
     payment_dummy.refresh_from_db()
     assert payment_dummy.charge_status == ChargeStatus.CHARGED
@@ -228,6 +223,7 @@ def test_refund_gateway_error(payment_txn_captured, monkeypatch):
     assert payment.captured_amount == Decimal('80.00')
 
 
+@pytest.mark.xfail('This is currently not supported')
 @pytest.mark.parametrize(
     'kind, charge_status',
     (

@@ -74,14 +74,14 @@ def create_payment(**payment_data):
 
 
 def create_transaction(payment: Payment, kind: str, payment_token: str,
-        gateway_response: Dict) -> Transaction:
+        gateway_response: Dict, **extra_params) -> Transaction:
     """Creates a Transaction based on transaction kind and gateway response."""
     txn, _ = Transaction.objects.get_or_create(
         payment=payment,
         kind=kind,
         token=gateway_response.get('transaction_id', payment_token),
         is_success=gateway_response.get('is_success', False),
-        amount=payment.total,
+        amount=extra_params.get('amount', payment.total),
         currency=payment.currency,
         gateway_response=gateway_response)
     return txn
@@ -131,9 +131,12 @@ def call_gateway(
     gateway, gateway_params = get_payment_gateway(payment.gateway)
     gateway_response = dict()
 
+    #TODO: improve so only one argument is sent (dict?) instead of passing
+    # multiple kwargs, eventually keep connection params separate
+    #TODO: add additional information to payment data (e.g. shipping/billing)
     try:
         gateway_response = getattr(gateway, func_name)(
-            payment=payment, payment_token=payment_token,
+            payment=model_to_dict(payment), payment_token=payment_token,
             **extra_params, **gateway_params)
         validate_gateway_response(gateway_response)
     except AttributeError:
@@ -147,22 +150,26 @@ def call_gateway(
             payment=payment,
             kind=transaction_kind,
             payment_token=payment_token,
-            gateway_response=gateway_response)
+            gateway_response=gateway_response,
+            **extra_params)
 
     if not transaction.is_success:
         # attempt to get errors from response, if none raise a generic one
         raise PaymentError(gateway_response.get(
             'errors', GENERIC_TRANSACTION_ERROR))
 
+    return transaction
+
 
 def validate_gateway_response(response):
     """Validates response to be a correct format for Saleor to process."""
     if not isinstance(response, dict):
         raise GatewayError('Gateway needs to return a dictionary')
-    required_fields = {'transaction_id', 'is_success'}
+    required_fields = {
+        'transaction_id', 'is_success', 'gateway_response', 'errors'}
     if not required_fields.issubset(response):
         raise GatewayError(
-            'Gateway response needs to contain following keys: '.format(
+            'Gateway response needs to contain following keys: {}'.format(
                 required_fields - response.keys()))
 
 
@@ -172,7 +179,7 @@ def gateway_process_payment(
     """Performs whole payment process on a gateway."""
     transaction = call_gateway(
         func_name='process_payment', transaction_kind=TransactionKind.CAPTURE,
-        payment=payment, payment_token=payment_token)
+        payment=payment, payment_token=payment_token, amount=payment.total)
 
     if transaction.is_success:
         payment.charge_status = ChargeStatus.CHARGED
