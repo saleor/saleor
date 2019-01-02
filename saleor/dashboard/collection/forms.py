@@ -5,6 +5,7 @@ from django.utils.translation import pgettext_lazy
 from text_unidecode import unidecode
 
 from ...product.models import Collection, Product
+from ...product.thumbnails import create_collection_background_image_thumbnails
 from ...site.models import SiteSettings
 from ..forms import AjaxSelect2MultipleChoiceField
 from ..seo.fields import SeoDescriptionField, SeoTitleField
@@ -22,23 +23,38 @@ class CollectionForm(forms.ModelForm):
         labels = {
             'name': pgettext_lazy('Item name', 'Name'),
             'background_image': pgettext_lazy(
-                'Products selection',
-                'Background Image'),
+                'Background image of a collection',
+                'Background image'),
+            'background_image_alt': pgettext_lazy(
+                'Description of a collection image', 'Image description'),
             'is_published': pgettext_lazy(
                 'Collection published toggle',
-                'Published')}
+                'Published'),
+            'published_date': pgettext_lazy(
+                'The publication date field, can be a posterior date for '
+                'a planned publication.',
+                'Published date'),
+            'description': pgettext_lazy(
+                'Description field of a collection',
+                'Description')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance.pk:
             self.fields['products'].set_initial(self.instance.products.all())
-        self.fields['seo_description'] = SeoDescriptionField()
+        self.fields['seo_description'] = SeoDescriptionField(
+            extra_attrs={'data-bind': self['description'].auto_id})
         self.fields['seo_title'] = SeoTitleField(
             extra_attrs={'data-bind': self['name'].auto_id})
 
     def save(self, commit=True):
         self.instance.slug = slugify(unidecode(self.instance.name))
-        return super().save(commit=commit)
+        instance = super().save(commit=commit)
+
+        if instance.pk and 'background_image' in self.changed_data:
+            create_collection_background_image_thumbnails.delay(instance.pk)
+
+        return instance
 
 
 class AssignHomepageCollectionForm(forms.ModelForm):

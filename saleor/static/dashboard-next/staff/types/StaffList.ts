@@ -1,6 +1,8 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
+import { PermissionEnum } from "./../../types/globalTypes";
+
 // ====================================================
 // GraphQL query operation: StaffList
 // ====================================================
@@ -9,7 +11,9 @@ export interface StaffList_staffUsers_edges_node {
   __typename: "User";
   id: string;
   email: string;
+  firstName: string;
   isActive: boolean;
+  lastName: string;
 }
 
 export interface StaffList_staffUsers_edges {
@@ -34,7 +38,7 @@ export interface StaffList_staffUsers {
 
 export interface StaffList_shop_permissions {
   __typename: "PermissionDisplay";
-  code: string;
+  code: PermissionEnum;
   name: string;
 }
 

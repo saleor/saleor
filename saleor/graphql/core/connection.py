@@ -1,6 +1,7 @@
 import graphene
 from graphene import Field, List, NonNull, ObjectType, String
 from graphene.relay.connection import Connection
+from graphene_django import DjangoObjectType
 
 
 class NonNullConnection(Connection):
@@ -13,7 +14,7 @@ class NonNullConnection(Connection):
         super().__init_subclass_with_meta__(node=node, name=name, **options)
 
         # Override the original EdgeBase type to make to `node` field required.
-        class EdgeBase(object):
+        class EdgeBase:
             node = Field(
                 cls._meta.node, description='The item at the end of the edge',
                 required=True)
@@ -41,3 +42,17 @@ class CountableConnection(NonNullConnection):
     @staticmethod
     def resolve_total_count(root, info, *args, **kwargs):
         return root.length
+
+
+class CountableDjangoObjectType(DjangoObjectType):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def __init_subclass_with_meta__(cls, *args, **kwargs):
+        # Force it to use the countable connection
+        countable_conn = CountableConnection.create_type(
+            "{}CountableConnection".format(cls.__name__),
+            node=cls)
+        super().__init_subclass_with_meta__(
+            *args, connection=countable_conn, **kwargs)

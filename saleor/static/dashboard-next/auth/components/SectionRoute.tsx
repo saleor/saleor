@@ -4,10 +4,11 @@ import { Route, RouteProps } from "react-router-dom";
 import { UserContext } from "..";
 import AppRoot from "../../AppRoot";
 import NotFound from "../../NotFound";
+import { PermissionEnum } from '../../types/globalTypes';
 import { hasPermission } from "../misc";
 
 interface SectionRouteProps extends RouteProps {
-  permissions?: string[];
+  permissions?: PermissionEnum[];
 }
 
 export const SectionRoute: React.StatelessComponent<SectionRouteProps> = ({

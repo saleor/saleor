@@ -1,0 +1,18 @@
+# Package manager lock files
+Pipfile.lock linguist-generated -diff -merge
+package-lock.json linguist-generated -diff -merge
+
+# Generated django migration files
+*_auto_*.py linguist-generated
+
+# Generated locale pot files
+*.po -merge
+
+# Software made SVG files
+*.svg linguist-generated
+
+# Precompiled emails templates
+*.mjml linguist-generated
+
+# Automatically resolve changelog conflicts
+CHANGELOG.md merge=union

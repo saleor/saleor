@@ -1,7 +1,7 @@
 import json
-
+from django.core.serializers.json import DjangoJSONEncoder
 import pytest
-
+from django.contrib.auth.models import AnonymousUser
 from django.shortcuts import reverse
 from django.test.client import MULTIPART_CONTENT, Client
 from graphql_jwt.shortcuts import get_token
@@ -17,12 +17,14 @@ class ApiClient(Client):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user')
         self.user = user
-        self.token = get_token(user)
+        if not user.is_anonymous:
+            self.token = get_token(user)
         super().__init__(*args, **kwargs)
 
     def _base_environ(self, **request):
         environ = super()._base_environ(**request)
-        environ.update({'HTTP_AUTHORIZATION': 'JWT %s' % self.token})
+        if not self.user.is_anonymous:
+            environ.update({'HTTP_AUTHORIZATION': 'JWT %s' % self.token})
         return environ
 
     def post(self, data=None, **kwargs):
@@ -33,11 +35,13 @@ class ApiClient(Client):
         handling multipart requests in Graphene.
         """
         if data:
-            data = json.dumps(data)
+            data = json.dumps(data, cls=DjangoJSONEncoder)
         kwargs['content_type'] = 'application/json'
         return super().post(API_PATH, data, **kwargs)
 
-    def post_graphql(self, query, variables=None, permissions=None, **kwargs):
+    def post_graphql(
+            self, query, variables=None, permissions=None,
+            check_no_permissions=True, **kwargs):
         """Dedicated helper for posting GraphQL queries.
 
         Sets the `application/json` content type and json.dumps the variables
@@ -45,14 +49,15 @@ class ApiClient(Client):
         """
         data = {'query': query}
         if variables is not None:
-            data['variables'] = json.dumps(variables)
+            data['variables'] = variables
         if data:
-            data = json.dumps(data)
+            data = json.dumps(data, cls=DjangoJSONEncoder)
         kwargs['content_type'] = 'application/json'
 
         if permissions:
-            response = super().post(API_PATH, data, **kwargs)
-            assert_no_permission(response)
+            if check_no_permissions:
+                response = super().post(API_PATH, data, **kwargs)
+                assert_no_permission(response)
             self.user.user_permissions.add(*permissions)
         return super().post(API_PATH, data, **kwargs)
 
@@ -79,3 +84,8 @@ def staff_api_client(staff_user):
 @pytest.fixture
 def user_api_client(customer_user):
     return ApiClient(user=customer_user)
+
+
+@pytest.fixture
+def api_client():
+    return ApiClient(user=AnonymousUser())

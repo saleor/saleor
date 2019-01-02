@@ -9,6 +9,7 @@ storiesOf("Orders / OrderProductAddDialog", module)
   .addDecorator(Decorator)
   .add("default", () => (
     <OrderProductAddDialog
+      confirmButtonState="default"
       loading={false}
       open={true}
       onClose={undefined}

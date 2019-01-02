@@ -1,120 +1,145 @@
-import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
+import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
+import * as moment from "moment-timezone";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
-import DateFormatter from "../../../components/DateFormatter";
+import { ControlledCheckbox } from "../../../components/ControlledCheckbox";
+import { FormSpacer } from "../../../components/FormSpacer";
 import Skeleton from "../../../components/Skeleton";
-import StatusLabel from "../../../components/StatusLabel";
 import i18n from "../../../i18n";
+import { CustomerDetails_user } from "../../types/CustomerDetails";
 
-interface CustomerDetailsProps {
-  customer?: {
-    id: string;
-    dateJoined: string;
+const styles = (theme: Theme) =>
+  createStyles({
+    cardTitle: {
+      height: 64
+    },
+    root: {
+      display: "grid" as "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridRowGap: theme.spacing.unit * 3 + "px",
+      gridTemplateColumns: "1fr 1fr"
+    }
+  });
+
+export interface CustomerDetailsProps extends WithStyles<typeof styles> {
+  customer: CustomerDetails_user;
+  data: {
+    firstName: string;
+    lastName: string;
     email: string;
     isActive: boolean;
-    isStaff: boolean;
     note: string;
   };
-  onDelete?();
-  onEdit?();
+  disabled: boolean;
+  errors: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    note?: string;
+  };
+  onChange: (event: React.ChangeEvent<any>) => void;
 }
 
-const decorate = withStyles(theme => ({
-  date: {
-    marginBottom: theme.spacing.unit * 2
-  },
-  header: {
-    flex: 1,
-    paddingBottom: theme.spacing.unit * 2,
-    paddingTop: theme.spacing.unit * 2
-  },
-  root: {
-    marginBottom: theme.spacing.unit * 2,
-    [theme.breakpoints.down("md")]: {
-      marginBottom: theme.spacing.unit
-    }
-  },
-  status: {
-    marginLeft: theme.spacing.unit * 2,
-    position: "relative" as "relative",
-    top: -2
-  },
-  title: {
-    display: "inline-block" as "inline-block"
-  },
-  userJoinDate: {
-    display: "inline"
-  }
-}));
-const CustomerDetails = decorate<CustomerDetailsProps>(
-  ({ classes, customer, onDelete, onEdit }) => (
-    <Card className={classes.root}>
+const CustomerDetails = withStyles(styles, { name: "CustomerDetails" })(
+  ({
+    classes,
+    customer,
+    data,
+    disabled,
+    errors,
+    onChange
+  }: CustomerDetailsProps) => (
+    <Card>
       <CardTitle
-        title={i18n.t("User details")}
-        toolbar={
+        className={classes.cardTitle}
+        title={
           <>
-            <Button
-              color="secondary"
-              variant="flat"
-              disabled={!customer}
-              onClick={onEdit}
-            >
-              {i18n.t("Edit customer")}
-            </Button>
-            <Button
-              color="secondary"
-              variant="flat"
-              disabled={!customer}
-              onClick={onDelete}
-            >
-              {i18n.t("Remove customer")}
-            </Button>
-          </>
-        }
-      >
-        {customer ? (
-          <Typography component="span">
-            <StatusLabel
-              className={classes.status}
-              status={customer.isActive ? "success" : "error"}
-              label={customer.isActive ? i18n.t("Active") : i18n.t("Inactive")}
-            />
-          </Typography>
-        ) : (
-          <Skeleton style={{ width: "10rem" }} />
-        )}
-      </CardTitle>
-      <CardContent>
-        {customer ? (
-          <>
-            <div className={classes.date}>
-              <Typography
-                component="span"
-                className={classes.userJoinDate}
-                variant="caption"
-              >
-                {i18n.t("Joined")}
-              </Typography>{" "}
+            {i18n.t("General Information")}
+            {customer && customer.dateJoined ? (
               <Typography variant="caption">
-                <DateFormatter date={customer.dateJoined} />
+                {i18n.t("Customer since: {{ month }} {{ year }}", {
+                  month: moment(customer.dateJoined).format("MMM"),
+                  year: moment(customer.dateJoined).format("YYYY")
+                })}
               </Typography>
-            </div>
-            {customer.note ? (
-              <Typography>{customer.note}</Typography>
             ) : (
-              <Typography color="textSecondary">{i18n.t("No note")}</Typography>
+              <Skeleton style={{ width: "10rem" }} />
             )}
           </>
-        ) : (
-          <Skeleton />
-        )}
+        }
+      />
+      <CardContent>
+        <ControlledCheckbox
+          checked={data.isActive}
+          disabled={disabled}
+          label={i18n.t("User account active", {
+            context: "label"
+          })}
+          name="isActive"
+          onChange={onChange}
+        />
+        <FormSpacer />
+        <div className={classes.root}>
+          <TextField
+            disabled={disabled}
+            error={!!errors.firstName}
+            fullWidth
+            helperText={errors.firstName}
+            name="firstName"
+            type="text"
+            label={i18n.t("First Name")}
+            value={data.firstName}
+            onChange={onChange}
+          />
+          <TextField
+            disabled={disabled}
+            error={!!errors.lastName}
+            fullWidth
+            helperText={errors.lastName}
+            name="lastName"
+            type="text"
+            label={i18n.t("Last Name")}
+            value={data.lastName}
+            onChange={onChange}
+          />
+        </div>
+        <FormSpacer />
+        <TextField
+          disabled={disabled}
+          error={!!errors.email}
+          fullWidth
+          helperText={errors.email}
+          name="email"
+          type="email"
+          label={i18n.t("E-mail")}
+          value={data.email}
+          onChange={onChange}
+        />
+        <FormSpacer />
+        <TextField
+          disabled={disabled}
+          error={!!errors.note}
+          fullWidth
+          multiline
+          helperText={errors.note}
+          name="note"
+          label={i18n.t("Note")}
+          value={data.note}
+          onChange={onChange}
+        />
       </CardContent>
     </Card>
   )
 );
+CustomerDetails.displayName = "CustomerDetails";
 export default CustomerDetails;

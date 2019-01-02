@@ -1,13 +1,33 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
 import PriceField from "../../../components/PriceField";
 import i18n from "../../../i18n";
 
-interface ProductVariantPriceProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    grid: {
+      display: "grid",
+      gridColumnGap: `${theme.spacing.unit * 2}px`,
+      gridTemplateColumns: "1fr 1fr"
+    },
+    root: {
+      marginTop: theme.spacing.unit * 2,
+      [theme.breakpoints.down("sm")]: {
+        marginTop: theme.spacing.unit
+      }
+    }
+  });
+
+interface ProductVariantPriceProps extends WithStyles<typeof styles> {
   currencySymbol?: string;
   priceOverride?: string;
   costPrice?: string;
@@ -16,20 +36,7 @@ interface ProductVariantPriceProps {
   onChange(event: any);
 }
 
-const decorate = withStyles(theme => ({
-  grid: {
-    display: "grid",
-    gridColumnGap: `${theme.spacing.unit * 2}px`,
-    gridTemplateColumns: "1fr 1fr"
-  },
-  root: {
-    marginTop: theme.spacing.unit * 2,
-    [theme.breakpoints.down("sm")]: {
-      marginTop: theme.spacing.unit
-    }
-  }
-}));
-const ProductVariantPrice = decorate<ProductVariantPriceProps>(
+const ProductVariantPrice = withStyles(styles, { name: "ProductVariantPrice" })(
   ({
     classes,
     currencySymbol,
@@ -38,7 +45,7 @@ const ProductVariantPrice = decorate<ProductVariantPriceProps>(
     priceOverride,
     loading,
     onChange
-  }) => (
+  }: ProductVariantPriceProps) => (
     <Card className={classes.root}>
       <CardTitle title={i18n.t("Pricing")} />
       <CardContent>
@@ -76,4 +83,5 @@ const ProductVariantPrice = decorate<ProductVariantPriceProps>(
     </Card>
   )
 );
+ProductVariantPrice.displayName = "ProductVariantPrice";
 export default ProductVariantPrice;

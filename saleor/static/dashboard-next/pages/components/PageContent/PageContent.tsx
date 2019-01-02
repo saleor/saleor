@@ -1,6 +1,11 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as classNames from "classnames";
 import * as React from "react";
@@ -9,7 +14,16 @@ import FormSpacer from "../../../components/FormSpacer";
 import RichTextEditor from "../../../components/RichTextEditor";
 import i18n from "../../../i18n";
 
-interface PageContentProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    addHelperTextPadding: {
+      [theme.breakpoints.up("md")]: {
+        paddingBottom: theme.spacing.unit * 2.5
+      }
+    }
+  });
+
+interface PageContentProps extends WithStyles<typeof styles> {
   content: string;
   errors: {
     content?: string;
@@ -20,15 +34,15 @@ interface PageContentProps {
   onChange?(event: React.ChangeEvent<any>);
 }
 
-const decorate = withStyles(theme => ({
-  addHelperTextPadding: {
-    [theme.breakpoints.up("md")]: {
-      paddingBottom: theme.spacing.unit * 2.5
-    }
-  }
-}));
-const PageContent = decorate<PageContentProps>(
-  ({ classes, content, errors, loading, title, onChange }) => (
+const PageContent = withStyles(styles, { name: "PageContent" })(
+  ({
+    classes,
+    content,
+    errors,
+    loading,
+    title,
+    onChange
+  }: PageContentProps) => (
     <Card>
       <CardContent>
         <TextField
@@ -66,4 +80,5 @@ const PageContent = decorate<PageContentProps>(
     </Card>
   )
 );
+PageContent.displayName = "PageContent";
 export default PageContent;

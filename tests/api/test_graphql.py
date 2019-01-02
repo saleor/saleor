@@ -1,8 +1,7 @@
 from unittest.mock import Mock, patch
 
-import pytest
-
 import graphene
+import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.db.models import Q
 from django.http import HttpResponse
@@ -10,6 +9,7 @@ from django.shortcuts import reverse
 from django.test import RequestFactory
 from graphql_jwt.shortcuts import get_token
 from graphql_relay import to_global_id
+
 from saleor.graphql.middleware import jwt_middleware
 from saleor.graphql.product.types import Product
 from saleor.graphql.utils import (
@@ -45,12 +45,16 @@ def test_real_query(user_api_client, product):
     attr_value = product_attr.values.first()
     filter_by = '%s:%s' % (product_attr.slug, attr_value.slug)
     query = """
-    query Root($categoryId: ID!, $sortBy: String, $first: Int, $attributesFilter: [AttributeScalar], $minPrice: Float, $maxPrice: Float) {
+    query Root($categoryId: ID!, $sortBy: ProductOrder, $first: Int, $attributesFilter: [AttributeScalar], $minPrice: Float, $maxPrice: Float) {
         category(id: $categoryId) {
             ...CategoryPageFragmentQuery
             __typename
         }
-        attributes(inCategory: $categoryId) {
+        products(first: $first, sortBy: $sortBy, categories:[$categoryId], attributes: $attributesFilter, priceGte: $minPrice, priceLte: $maxPrice) {
+            ...ProductListFragmentQuery
+            __typename
+        }
+        attributes(inCategory: $categoryId, first: 20) {
             edges {
                 node {
                     ...ProductFiltersFragmentQuery
@@ -64,7 +68,7 @@ def test_real_query(user_api_client, product):
         id
         name
         url
-        ancestors {
+        ancestors(last: 20) {
             edges {
                 node {
                     name
@@ -74,7 +78,7 @@ def test_real_query(user_api_client, product):
                 }
             }
         }
-        children {
+        children(first: 20) {
             edges {
                 node {
                     name
@@ -84,10 +88,6 @@ def test_real_query(user_api_client, product):
                     __typename
                 }
             }
-        }
-        products(first: $first, sortBy: $sortBy, attributes: $attributesFilter, price_Gte: $minPrice, price_Lte: $maxPrice) {
-            ...ProductListFragmentQuery
-            __typename
         }
         __typename
     }
@@ -178,7 +178,9 @@ def test_real_query(user_api_client, product):
     variables = {
         'categoryId': graphene.Node.to_global_id(
             'Category', category.id),
-        'sortBy': 'name',
+        'sortBy': {
+            'field': 'NAME',
+            'direction': 'ASC'},
         'first': 1,
         'attributesFilter': [filter_by]}
     response = user_api_client.post_graphql(query, variables)

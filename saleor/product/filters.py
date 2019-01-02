@@ -88,10 +88,10 @@ class ProductCategoryFilter(ProductFilter):
         super().__init__(*args, **kwargs)
 
     def _get_product_attributes_lookup(self):
-        return Q(product_types__products__category=self.category)
+        return Q(product_type__products__category=self.category)
 
     def _get_variant_attributes_lookup(self):
-        return Q(product_variant_types__products__category=self.category)
+        return Q(product_variant_type__products__category=self.category)
 
 
 class ProductCollectionFilter(ProductFilter):
@@ -100,7 +100,7 @@ class ProductCollectionFilter(ProductFilter):
         super().__init__(*args, **kwargs)
 
     def _get_product_attributes_lookup(self):
-        return Q(product_types__products__collections=self.collection)
+        return Q(product_type__products__collections=self.collection)
 
     def _get_variant_attributes_lookup(self):
-        return Q(product_variant_types__products__collections=self.collection)
+        return Q(product_variant_type__products__collections=self.collection)

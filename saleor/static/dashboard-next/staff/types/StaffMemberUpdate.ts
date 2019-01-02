@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { StaffInput } from "./../../types/globalTypes";
+import { StaffInput, PermissionEnum } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: StaffMemberUpdate
@@ -15,7 +15,7 @@ export interface StaffMemberUpdate_staffUpdate_errors {
 
 export interface StaffMemberUpdate_staffUpdate_user_permissions {
   __typename: "PermissionDisplay";
-  code: string;
+  code: PermissionEnum;
   name: string;
 }
 
@@ -23,13 +23,15 @@ export interface StaffMemberUpdate_staffUpdate_user {
   __typename: "User";
   id: string;
   email: string;
+  firstName: string;
   isActive: boolean;
+  lastName: string;
   permissions: (StaffMemberUpdate_staffUpdate_user_permissions | null)[] | null;
 }
 
 export interface StaffMemberUpdate_staffUpdate {
   __typename: "StaffUpdate";
-  errors: (StaffMemberUpdate_staffUpdate_errors | null)[] | null;
+  errors: StaffMemberUpdate_staffUpdate_errors[] | null;
   user: StaffMemberUpdate_staffUpdate_user | null;
 }
 

@@ -1,3 +1,4 @@
+import graphene_django_optimizer as gql_optimizer
 from django.db.models import Q
 from i18naddress import get_validation_rules
 
@@ -7,23 +8,29 @@ from ..utils import filter_by_query_param
 from .types import AddressValidationData, ChoiceValue
 
 USER_SEARCH_FIELDS = (
-    'email', 'default_shipping_address__first_name',
+    'email', 'first_name', 'last_name',
+    'default_shipping_address__first_name',
     'default_shipping_address__last_name', 'default_shipping_address__city',
     'default_shipping_address__country')
 
 
 def resolve_customers(info, query):
     qs = models.User.objects.filter(
-        Q(is_staff=False) | (Q(is_staff=True) & Q(orders__isnull=False))
-    ).prefetch_related('addresses')
-    return filter_by_query_param(
+        Q(is_staff=False) | (Q(is_staff=True) & Q(orders__isnull=False)))
+    qs = filter_by_query_param(
         queryset=qs, query=query, search_fields=USER_SEARCH_FIELDS)
+    qs = qs.order_by('email')
+    qs = qs.distinct()
+    return gql_optimizer.query(qs, info)
 
 
 def resolve_staff_users(info, query):
     qs = models.User.objects.filter(is_staff=True)
-    return filter_by_query_param(
+    qs = filter_by_query_param(
         queryset=qs, query=query, search_fields=USER_SEARCH_FIELDS)
+    qs = qs.order_by('email')
+    qs = qs.distinct()
+    return gql_optimizer.query(qs, info)
 
 
 def resolve_address_validator(info, input):
@@ -40,7 +47,6 @@ def resolve_address_validator(info, input):
         'country_area': input['country_area'],
         'city_area': input['city_area']}
     rules = get_validation_rules(params)
-
     return AddressValidationData(
         country_code=rules.country_code,
         country_name=rules.country_name,
@@ -60,5 +66,4 @@ def resolve_address_validator(info, input):
         postal_code_matchers=[
             compiled.pattern for compiled in rules.postal_code_matchers],
         postal_code_examples=rules.postal_code_examples,
-        postal_code_prefix=rules.postal_code_prefix
-    )
+        postal_code_prefix=rules.postal_code_prefix)

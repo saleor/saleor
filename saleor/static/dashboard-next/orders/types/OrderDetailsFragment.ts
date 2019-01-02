@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL fragment: OrderDetailsFragment
@@ -47,33 +47,48 @@ export interface OrderDetailsFragment_events {
   user: OrderDetailsFragment_events_user | null;
 }
 
-export interface OrderDetailsFragment_fulfillments_lines_edges_node_orderLine {
+export interface OrderDetailsFragment_fulfillments_lines_orderLine_unitPrice_gross {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
+export interface OrderDetailsFragment_fulfillments_lines_orderLine_unitPrice_net {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
+export interface OrderDetailsFragment_fulfillments_lines_orderLine_unitPrice {
+  __typename: "TaxedMoney";
+  gross: OrderDetailsFragment_fulfillments_lines_orderLine_unitPrice_gross;
+  net: OrderDetailsFragment_fulfillments_lines_orderLine_unitPrice_net;
+}
+
+export interface OrderDetailsFragment_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
-}
-
-export interface OrderDetailsFragment_fulfillments_lines_edges_node {
-  __typename: "FulfillmentLine";
-  id: string;
-  orderLine: OrderDetailsFragment_fulfillments_lines_edges_node_orderLine;
+  productSku: string;
   quantity: number;
-}
-
-export interface OrderDetailsFragment_fulfillments_lines_edges {
-  __typename: "FulfillmentLineCountableEdge";
-  node: OrderDetailsFragment_fulfillments_lines_edges_node;
+  quantityFulfilled: number;
+  unitPrice: OrderDetailsFragment_fulfillments_lines_orderLine_unitPrice | null;
+  thumbnailUrl: string | null;
 }
 
 export interface OrderDetailsFragment_fulfillments_lines {
-  __typename: "FulfillmentLineCountableConnection";
-  edges: OrderDetailsFragment_fulfillments_lines_edges[];
+  __typename: "FulfillmentLine";
+  id: string;
+  quantity: number;
+  orderLine: OrderDetailsFragment_fulfillments_lines_orderLine | null;
 }
 
 export interface OrderDetailsFragment_fulfillments {
   __typename: "Fulfillment";
   id: string;
-  lines: OrderDetailsFragment_fulfillments_lines | null;
+  lines: (OrderDetailsFragment_fulfillments_lines | null)[] | null;
+  fulfillmentOrder: number;
   status: FulfillmentStatus;
   trackingNumber: string;
 }
@@ -99,6 +114,7 @@ export interface OrderDetailsFragment_lines_unitPrice {
 export interface OrderDetailsFragment_lines {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -192,22 +208,31 @@ export interface OrderDetailsFragment_user {
   email: string;
 }
 
+export interface OrderDetailsFragment_availableShippingMethods_price {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
 export interface OrderDetailsFragment_availableShippingMethods {
   __typename: "ShippingMethod";
   id: string;
   name: string;
+  price: OrderDetailsFragment_availableShippingMethods_price | null;
 }
 
 export interface OrderDetailsFragment {
   __typename: "Order";
   id: string;
   billingAddress: OrderDetailsFragment_billingAddress | null;
+  canFinalize: boolean;
   created: any;
+  customerNote: string;
   events: (OrderDetailsFragment_events | null)[] | null;
   fulfillments: (OrderDetailsFragment_fulfillments | null)[];
   lines: (OrderDetailsFragment_lines | null)[];
   number: string | null;
-  paymentStatus: PaymentStatusEnum | null;
+  paymentStatus: PaymentChargeStatusEnum | null;
   shippingAddress: OrderDetailsFragment_shippingAddress | null;
   shippingMethod: OrderDetailsFragment_shippingMethod | null;
   shippingMethodName: string | null;
@@ -215,8 +240,10 @@ export interface OrderDetailsFragment {
   status: OrderStatus;
   subtotal: OrderDetailsFragment_subtotal | null;
   total: OrderDetailsFragment_total | null;
+  actions: (OrderAction | null)[];
   totalAuthorized: OrderDetailsFragment_totalAuthorized | null;
   totalCaptured: OrderDetailsFragment_totalCaptured | null;
   user: OrderDetailsFragment_user | null;
+  userEmail: string | null;
   availableShippingMethods: (OrderDetailsFragment_availableShippingMethods | null)[] | null;
 }

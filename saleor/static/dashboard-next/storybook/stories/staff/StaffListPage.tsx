@@ -9,7 +9,6 @@ import { staffMembers } from "../../../staff/fixtures";
 import Decorator from "../../Decorator";
 
 const props: StaffListPageProps = {
-  errors: [],
   onAdd: undefined,
   staffMembers,
   ...pageListProps.default

@@ -1,18 +1,22 @@
+from textwrap import dedent
+
 import graphene
 from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
 
-from ....account.models import Address, User
+from ....account.models import User
 from ....core.exceptions import InsufficientStock
 from ....core.utils.taxes import ZERO_TAXED_MONEY
 from ....order import OrderEvents, OrderStatus, models
 from ....order.utils import (
     add_variant_to_order, allocate_stock, recalculate_order)
+from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.types.common import Decimal, Error
+from ...core.scalars import Decimal
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
+from ..utils import can_finalize_draft_order
 
 
 class OrderLineInput(graphene.InputObjectType):
@@ -44,11 +48,11 @@ class DraftOrderInput(InputObjectType):
 class DraftOrderCreateInput(DraftOrderInput):
     lines = graphene.List(
         OrderLineCreateInput,
-        description="""Variant line input consisting of variant ID
-        and quantity of products.""")
+        description=dedent("""Variant line input consisting of variant ID
+        and quantity of products."""))
 
 
-class DraftOrderCreate(ModelMutation):
+class DraftOrderCreate(ModelMutation, I18nMixin):
     class Arguments:
         input = DraftOrderCreateInput(
             required=True,
@@ -86,14 +90,15 @@ class DraftOrderCreate(ModelMutation):
                 'billing_address'] = user.default_billing_address
 
         if shipping_address:
-            shipping_address = Address(**shipping_address)
-            cls.clean_instance(shipping_address, errors)
+            shipping_address, errors = cls.validate_address(
+                shipping_address, errors, 'shipping_address',
+                instance=instance.shipping_address)
             cleaned_input['shipping_address'] = shipping_address
         if billing_address:
-            billing_address = Address(**billing_address)
-            cls.clean_instance(billing_address, errors)
+            billing_address, errors = cls.validate_address(
+                billing_address, errors, 'billing_address',
+                instance=instance.billing_address)
             cleaned_input['billing_address'] = billing_address
-
         return cleaned_input
 
     @classmethod
@@ -149,32 +154,6 @@ class DraftOrderDelete(ModelDeleteMutation):
         return user.has_perm('order.manage_orders')
 
 
-def check_for_draft_order_errors(order, errors):
-    """Return a list of errors associated with the order.
-
-    Checks, if given order has a proper shipping address and method
-    set up and return list of errors if not.
-    """
-    if order.get_total_quantity() == 0:
-        errors.append(
-            Error(
-                field='lines',
-                message='Could not create order without any products.'))
-    if order.is_shipping_required():
-        method = order.shipping_method
-        shipping_address = order.shipping_address
-        shipping_not_valid = (
-            method and shipping_address and
-            shipping_address.country.code not in method.shipping_zone.countries)  # noqa
-        if shipping_not_valid:
-            errors.append(
-                Error(
-                    field='shipping',
-                    message='Shipping method is not valid for chosen shipping '
-                            'address'))
-    return errors
-
-
 class DraftOrderComplete(BaseMutation):
     order = graphene.Field(Order, description='Completed order.')
 
@@ -187,7 +166,7 @@ class DraftOrderComplete(BaseMutation):
         description = 'Completes creating an order.'
 
     @classmethod
-    def update_user_fields(cls, order, errors):
+    def update_user_fields(cls, order):
         if order.user:
             order.user_email = order.user.email
         elif order.user_email:
@@ -195,21 +174,18 @@ class DraftOrderComplete(BaseMutation):
                 order.user = User.objects.get(email=order.user_email)
             except User.DoesNotExist:
                 order.user = None
-        else:
-            cls.add_error(
-                errors, field=None,
-                message='Both user and user_email fields are null')
 
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id):
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
-        errors = check_for_draft_order_errors(order, errors)
-        cls.update_user_fields(order, errors)
+        if order:
+            errors = can_finalize_draft_order(order, errors)
         if errors:
             return cls(errors=errors)
 
+        cls.update_user_fields(order)
         order.status = OrderStatus.UNFULFILLED
         if not order.is_shipping_required():
             order.shipping_method_name = None
@@ -247,9 +223,9 @@ class DraftOrderLineCreate(BaseMutation):
             description='ID of the draft order to add the lines to.')
         input = OrderLineCreateInput(
             required=True,
-            description="""
+            description=dedent("""
             Variant line input consisting of variant ID and quantity of
-            products.""")
+            products."""))
 
     class Meta:
         description = 'Create an order line for a draft order.'

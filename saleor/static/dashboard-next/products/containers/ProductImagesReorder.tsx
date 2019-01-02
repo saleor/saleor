@@ -1,74 +1,55 @@
 import * as React from "react";
 
+import { TypedMutationInnerProps } from "../../mutations";
 import { TypedProductImagesReorder } from "../mutations";
 import {
   ProductImageReorder,
   ProductImageReorderVariables
 } from "../types/ProductImageReorder";
 
-import {
-  PartialMutationProviderProps,
-  PartialMutationProviderRenderProps
-} from "../..";
-
 interface ProductImagesReorderProviderProps
-  extends PartialMutationProviderProps<ProductImageReorder> {
+  extends TypedMutationInnerProps<
+    ProductImageReorder,
+    ProductImageReorderVariables
+  > {
   productId: string;
   productImages: Array<{
     id: string;
     url: string;
   }>;
-  children: PartialMutationProviderRenderProps<
-    ProductImageReorder,
-    ProductImageReorderVariables
-  >;
 }
 
 const ProductImagesReorderProvider: React.StatelessComponent<
   ProductImagesReorderProviderProps
-> = props => (
-  <TypedProductImagesReorder
-    onCompleted={props.onSuccess}
-    onError={props.onError}
-  >
-    {(mutate, { data, error, loading }) =>
-      props.children({
-        data,
-        error,
-        loading,
-        mutate: opts => {
-          const productImagesMap = props.productImages.reduce((prev, curr) => {
-            prev[curr.id] = curr;
-            return prev;
-          }, {});
-          const productImages = opts.variables.imagesIds.map((id, index) => ({
-            __typename: "ProductImage",
-            ...productImagesMap[id],
-            sortOrder: index
-          }));
-          const optimisticResponse = {
-            productImageReorder: {
-              __typename: "ProductImageReorder",
-              errors: null,
-              product: {
-                __typename: "Product",
-                id: props.productId,
-                images: {
-                  __typename: "ProductImageCountableConnection",
-                  edges: productImages.map(image => ({
-                    __typename: "ProductImageCountableEdge",
-                    node: image
-                  }))
-                }
-              }
+> = ({ children, productId, productImages, ...mutationProps }) => (
+  <TypedProductImagesReorder {...mutationProps}>
+    {(mutate, mutationResult) =>
+      children(opts => {
+        const productImagesMap = productImages.reduce((prev, curr) => {
+          prev[curr.id] = curr;
+          return prev;
+        }, {});
+        const newProductImages = opts.variables.imagesIds.map((id, index) => ({
+          __typename: "ProductImage",
+          ...productImagesMap[id],
+          sortOrder: index
+        }));
+        const optimisticResponse: typeof mutationResult["data"] = {
+          productImageReorder: {
+            __typename: "ProductImageReorder",
+            errors: null,
+            product: {
+              __typename: "Product",
+              id: productId,
+              images: newProductImages
             }
-          };
-          return mutate({
-            optimisticResponse,
-            variables: opts.variables
-          });
-        }
-      })
+          }
+        };
+        return mutate({
+          ...opts,
+          optimisticResponse
+        });
+      }, mutationResult)
     }
   </TypedProductImagesReorder>
 );

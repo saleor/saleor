@@ -1,12 +1,10 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
-
-interface PointOfInterestFieldProps {
-  disabled?: boolean;
-  src: string;
-  value: string;
-  onChange(event: any);
-}
 
 function hexToRgb(hex) {
   // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
@@ -25,9 +23,9 @@ function hexToRgb(hex) {
     : null;
 }
 
-const decorate = withStyles(theme => {
+const styles = (theme: Theme) => {
   const color = hexToRgb(theme.palette.secondary.light);
-  return {
+  return createStyles({
     indicator: {
       backgroundColor: `rgba(${color.r}, ${color.g}, ${color.b}, .45)`,
       borderColor: theme.palette.secondary.main,
@@ -41,16 +39,25 @@ const decorate = withStyles(theme => {
     root: {
       position: "relative" as "relative"
     }
-  };
+  });
+};
+
+interface PointOfInterestFieldProps extends WithStyles<typeof styles> {
+  disabled?: boolean;
+  src: string;
+  value: string;
+  onChange(event: any);
+}
+
+const PointOfInterestField = withStyles(styles, {
+  name: "PointOfInterestField"
+})(({ classes, src, value, onChange, disabled }: PointOfInterestFieldProps) => {
+  return (
+    <div className={classes.root}>
+      <img src={src} />
+      <div className={classes.indicator} />
+    </div>
+  );
 });
-const PointOfInterestField = decorate<PointOfInterestFieldProps>(
-  ({ classes, src, value, onChange, disabled }) => {
-    return (
-      <div className={classes.root}>
-        <img src={src} />
-        <div className={classes.indicator} />
-      </div>
-    );
-  }
-);
+PointOfInterestField.displayName = "PointOfInterestField";
 export default PointOfInterestField;

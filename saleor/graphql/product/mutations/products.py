@@ -1,35 +1,43 @@
+from textwrap import dedent
+
 import graphene
 from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
 
 from ....product import models
+from ....product.tasks import update_variants_names
+from ....product.thumbnails import (
+    create_category_background_image_thumbnails,
+    create_collection_background_image_thumbnails, create_product_thumbnails)
 from ....product.utils.attributes import get_name_from_attributes
+from ...core.enums import TaxRateType
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.types.common import Decimal, SeoInput
-from ...core.types.money import TaxRateType
+from ...core.scalars import Decimal, WeightScalar
+from ...core.types import SeoInput, Upload
 from ...core.utils import clean_seo_fields
-from ...file_upload.types import Upload
-from ...shipping.types import WeightScalar
-from ..types import Collection, Product, ProductImage, ProductVariant
-from ..utils import attributes_to_hstore, update_variants_names
+from ..types import Category, Collection, Product, ProductImage, ProductVariant
+from ..utils import attributes_to_hstore
 
 
 class CategoryInput(graphene.InputObjectType):
     description = graphene.String(description='Category description')
     name = graphene.String(description='Category name')
-    parent = graphene.ID(
-        description='''
-        ID of the parent category. If empty, category will be top level
-        category.''', name='parent')
     slug = graphene.String(description='Category slug')
     seo = SeoInput(description='Search engine optimization fields.')
+    background_image = Upload(description='Background image file.')
+    background_image_alt = graphene.String(
+        description='Alt text for an image.')
 
 
 class CategoryCreate(ModelMutation):
     class Arguments:
         input = CategoryInput(
             required=True, description='Fields required to create a category.')
+        parent_id = graphene.ID(
+            description=dedent('''
+                ID of the parent category. If empty, category will be top level
+                category.'''), name='parent')
 
     class Meta:
         description = 'Creates a new category.'
@@ -38,14 +46,31 @@ class CategoryCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, input, errors):
         cleaned_input = super().clean_input(info, instance, input, errors)
-        if 'slug' not in cleaned_input:
+        if 'slug' not in cleaned_input and 'name' in cleaned_input:
             cleaned_input['slug'] = slugify(cleaned_input['name'])
+        parent_id = input['parent_id']
+        if parent_id:
+            parent = cls.get_node_or_error(
+                info, parent_id, errors, field='parent', only_type=Category)
+            cleaned_input['parent'] = parent
         clean_seo_fields(cleaned_input)
         return cleaned_input
 
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('product.manage_products')
+
+    @classmethod
+    def mutate(cls, root, info, **data):
+        parent_id = data.pop('parent_id', None)
+        data['input']['parent_id'] = parent_id
+        return super().mutate(root, info, **data)
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        instance.save()
+        if cleaned_input.get('background_image'):
+            create_category_background_image_thumbnails.delay(instance.pk)
 
 
 class CategoryUpdate(CategoryCreate):
@@ -58,6 +83,12 @@ class CategoryUpdate(CategoryCreate):
     class Meta:
         description = 'Updates a category.'
         model = models.Category
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        if cleaned_input.get('background_image'):
+            create_category_background_image_thumbnails.delay(instance.pk)
+        instance.save()
 
 
 class CategoryDelete(ModelDeleteMutation):
@@ -79,17 +110,25 @@ class CollectionInput(graphene.InputObjectType):
         description='Informs whether a collection is published.')
     name = graphene.String(description='Name of the collection.')
     slug = graphene.String(description='Slug of the collection.')
+    description = graphene.String(description='Description of the collection.')
+    background_image = Upload(description='Background image file.')
+    background_image_alt = graphene.String(
+        description='Alt text for an image.')
+    seo = SeoInput(description='Search engine optimization fields.')
+    published_date = graphene.Date(
+        description='Publication date. ISO 8601 standard.')
+
+
+class CollectionCreateInput(CollectionInput):
     products = graphene.List(
         graphene.ID,
         description='List of products to be added to the collection.',
         name='products')
-    background_image = Upload(description='Background image file.')
-    seo = SeoInput(description='Search engine optimization fields.')
 
 
 class CollectionCreate(ModelMutation):
     class Arguments:
-        input = CollectionInput(
+        input = CollectionCreateInput(
             required=True,
             description='Fields required to create a collection.')
 
@@ -104,8 +143,16 @@ class CollectionCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, input, errors):
         cleaned_input = super().clean_input(info, instance, input, errors)
+        if 'slug' not in cleaned_input and 'name' in cleaned_input:
+            cleaned_input['slug'] = slugify(cleaned_input['name'])
         clean_seo_fields(cleaned_input)
         return cleaned_input
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        instance.save()
+        if cleaned_input.get('background_image'):
+            create_collection_background_image_thumbnails.delay(instance.pk)
 
 
 class CollectionUpdate(CollectionCreate):
@@ -119,6 +166,12 @@ class CollectionUpdate(CollectionCreate):
     class Meta:
         description = 'Updates a collection.'
         model = models.Collection
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        if cleaned_input.get('background_image'):
+            create_collection_background_image_thumbnails.delay(instance.pk)
+        instance.save()
 
 
 class CollectionDelete(ModelDeleteMutation):
@@ -308,9 +361,9 @@ class ProductVariantInput(graphene.InputObjectType):
     quantity = graphene.Int(
         description='The total quantity of this variant available for sale.')
     track_inventory = graphene.Boolean(
-        description="""Determines if the inventory of this variant should
+        description=dedent("""Determines if the inventory of this variant should
         be tracked. If false, the quantity won't change when customers
-        buy this item.""")
+        buy this item."""))
     weight = WeightScalar(
         description='Weight of the Product Variant.', required=False)
 
@@ -415,22 +468,22 @@ class ProductVariantDelete(ModelDeleteMutation):
 class ProductTypeInput(graphene.InputObjectType):
     name = graphene.String(description='Name of the product type.')
     has_variants = graphene.Boolean(
-        description="""Determines if product of this type has multiple
+        description=dedent("""Determines if product of this type has multiple
         variants. This option mainly simplifies product management
         in the dashboard. There is always at least one variant created under
-        the hood.""")
+        the hood."""))
     product_attributes = graphene.List(
         graphene.ID,
         description='List of attributes shared among all product variants.',
         name='productAttributes')
     variant_attributes = graphene.List(
         graphene.ID,
-        description="""List of attributes used to distinguish between
-        different variants of a product.""",
+        description=dedent("""List of attributes used to distinguish between
+        different variants of a product."""),
         name='variantAttributes')
     is_shipping_required = graphene.Boolean(
-        description="""Determines if shipping is required for products
-        of this variant.""")
+        description=dedent("""Determines if shipping is required for products
+        of this variant."""))
     weight = WeightScalar(description='Weight of the ProductType items.')
     tax_rate = TaxRateType(description='A type of goods.')
 
@@ -448,6 +501,14 @@ class ProductTypeCreate(ModelMutation):
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('product.manage_products')
+
+    @classmethod
+    def _save_m2m(cls, info, instance, cleaned_data):
+        super()._save_m2m(info, instance, cleaned_data)
+        if 'product_attributes' in cleaned_data:
+            instance.product_attributes.set(cleaned_data['product_attributes'])
+        if 'variant_attributes' in cleaned_data:
+            instance.variant_attributes.set(cleaned_data['variant_attributes'])
 
 
 class ProductTypeUpdate(ProductTypeCreate):
@@ -467,7 +528,8 @@ class ProductTypeUpdate(ProductTypeCreate):
         variant_attr = cleaned_input.get('variant_attributes')
         if variant_attr:
             variant_attr = set(variant_attr)
-            update_variants_names(instance, variant_attr)
+            variant_attr_ids = [attr.pk for attr in variant_attr]
+            update_variants_names.delay(instance.pk, variant_attr_ids)
         super().save(info, instance, cleaned_input)
 
 
@@ -504,10 +566,10 @@ class ProductImageCreate(BaseMutation):
             description='Fields required to create a product image.')
 
     class Meta:
-        description = '''Create a product image. This mutation must be sent
-        as a `multipart` request. More detailed specs of the upload format can
-        be found here:
-        https://github.com/jaydenseric/graphql-multipart-request-spec'''
+        description = dedent('''Create a product image. This mutation must be
+        sent as a `multipart` request. More detailed specs of the upload format
+        can be found here:
+        https://github.com/jaydenseric/graphql-multipart-request-spec''')
 
     @classmethod
     @permission_required('product.manage_products')
@@ -522,6 +584,7 @@ class ProductImageCreate(BaseMutation):
         if not errors:
             image = product.images.create(
                 image=image_data, alt=input.get('alt', ''))
+            create_product_thumbnails.delay(image.pk)
         return ProductImageCreate(product=product, image=image, errors=errors)
 
 
@@ -551,8 +614,10 @@ class ProductImageUpdate(BaseMutation):
             info, id, errors, 'id', only_type=ProductImage)
         product = image.product
         if not errors:
-            image.alt = input.get('alt', '')
-            image.save()
+            alt = input.get('alt')
+            if alt is not None:
+                image.alt = alt
+                image.save(update_fields=['alt'])
         return ProductImageUpdate(product=product, image=image, errors=errors)
 
 

@@ -1,26 +1,37 @@
 import * as React from "react";
+import { Route } from "react-router-dom";
 
-import { staffListUrl, staffMemberDetailsUrl } from "..";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
+import { createPaginationState, Paginator } from "../../components/Paginator";
 import i18n from "../../i18n";
-import { createPaginationData, createPaginationState, maybe } from "../../misc";
-import { FormData as AddStaffMemberForm } from "../components/StaffAddMemberDialog";
+import { getMutationState, maybe } from "../../misc";
+import StaffAddMemberDialog, {
+  FormData as AddStaffMemberForm
+} from "../components/StaffAddMemberDialog";
 import StaffListPage from "../components/StaffListPage";
 import { TypedStaffMemberAddMutation } from "../mutations";
 import { TypedStaffListQuery } from "../queries";
 import { StaffMemberAdd } from "../types/StaffMemberAdd";
+import {
+  staffListUrl,
+  staffMemberAddPath,
+  staffMemberAddUrl,
+  staffMemberDetailsUrl
+} from "../urls";
 
-interface OrderListProps {
-  params: {
-    after?: string;
-    before?: string;
-  };
+export type StaffListQueryParams = Partial<{
+  after: string;
+  before: string;
+}>;
+
+interface StaffListProps {
+  params: StaffListQueryParams;
 }
 
 const PAGINATE_BY = 20;
 
-export const StaffList: React.StatelessComponent<OrderListProps> = ({
+export const StaffList: React.StatelessComponent<StaffListProps> = ({
   params
 }) => (
   <Navigator>
@@ -29,19 +40,8 @@ export const StaffList: React.StatelessComponent<OrderListProps> = ({
         {pushMessage => {
           const paginationState = createPaginationState(PAGINATE_BY, params);
           return (
-            <TypedStaffListQuery variables={paginationState}>
+            <TypedStaffListQuery displayLoader variables={paginationState}>
               {({ data, loading }) => {
-                const {
-                  loadNextPage,
-                  loadPreviousPage,
-                  pageInfo
-                } = createPaginationData(
-                  navigate,
-                  paginationState,
-                  staffListUrl,
-                  maybe(() => data.staffUsers.pageInfo),
-                  loading
-                );
                 const handleStaffMemberAddSuccess = (data: StaffMemberAdd) => {
                   if (!maybe(() => data.staffCreate.errors.length)) {
                     pushMessage({
@@ -69,23 +69,51 @@ export const StaffList: React.StatelessComponent<OrderListProps> = ({
                             }
                           }
                         });
+                      const addTransitionState = getMutationState(
+                        addStaffMemberData.called,
+                        addStaffMemberData.loading,
+                        maybe(() => addStaffMemberData.data.staffCreate.errors)
+                      );
                       return (
-                        <StaffListPage
-                          disabled={loading || addStaffMemberData.loading}
-                          errors={maybe(
-                            () => addStaffMemberData.data.staffCreate.errors,
-                            []
+                        <Paginator
+                          pageInfo={maybe(() => data.staffUsers.pageInfo)}
+                          paginationState={paginationState}
+                          queryString={params}
+                        >
+                          {({ loadNextPage, loadPreviousPage, pageInfo }) => (
+                            <>
+                              <StaffListPage
+                                disabled={loading || addStaffMemberData.loading}
+                                pageInfo={pageInfo}
+                                staffMembers={maybe(() =>
+                                  data.staffUsers.edges.map(edge => edge.node)
+                                )}
+                                onAdd={() => navigate(staffMemberAddUrl)}
+                                onNextPage={loadNextPage}
+                                onPreviousPage={loadPreviousPage}
+                                onRowClick={id => () =>
+                                  navigate(staffMemberDetailsUrl(id))}
+                              />
+                              <Route
+                                path={staffMemberAddPath}
+                                render={({ match }) => (
+                                  <StaffAddMemberDialog
+                                    confirmButtonState={addTransitionState}
+                                    errors={maybe(
+                                      () =>
+                                        addStaffMemberData.data.staffCreate
+                                          .errors,
+                                      []
+                                    )}
+                                    open={!!match}
+                                    onClose={() => navigate(staffListUrl)}
+                                    onConfirm={handleStaffMemberAdd}
+                                  />
+                                )}
+                              />
+                            </>
                           )}
-                          pageInfo={pageInfo}
-                          staffMembers={maybe(() =>
-                            data.staffUsers.edges.map(edge => edge.node)
-                          )}
-                          onAdd={handleStaffMemberAdd}
-                          onNextPage={loadNextPage}
-                          onPreviousPage={loadPreviousPage}
-                          onRowClick={id => () =>
-                            navigate(staffMemberDetailsUrl(id))}
-                        />
+                        </Paginator>
                       );
                     }}
                   </TypedStaffMemberAddMutation>

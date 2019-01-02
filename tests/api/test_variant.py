@@ -1,6 +1,6 @@
+import graphene
 import pytest
 
-import graphene
 from tests.api.utils import get_graphql_content
 
 
@@ -31,11 +31,7 @@ def test_fetch_variant(staff_api_client, product, permission_manage_products):
                 amount
             }
             images {
-                edges {
-                    node {
-                        id
-                    }
-                }
+                id
             }
             name
             priceOverride {

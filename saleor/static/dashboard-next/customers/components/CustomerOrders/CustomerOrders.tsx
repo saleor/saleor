@@ -1,138 +1,137 @@
+import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
-import blue from "@material-ui/core/colors/blue";
-import { withStyles } from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
-import TableFooter from "@material-ui/core/TableFooter";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
+import CardTitle from "../../../components/CardTitle";
 import DateFormatter from "../../../components/DateFormatter";
 import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
-import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
-import { renderCollection } from "../../../misc";
+import { maybe, renderCollection, transformPaymentStatus } from "../../../misc";
+import { CustomerDetails_user_orders_edges_node } from "../../types/CustomerDetails";
 
-interface CustomerOrdersProps {
-  orders?: Array<{
-    id: string;
-    number: string;
-    orderStatus: {
-      localized: string;
-      status: string;
-    };
-    created: string;
-    total: {
-      gross: {
-        amount: number;
-        currency: string;
-      };
-    };
-  }>;
-  dateNow?: number;
-  hasPreviousPage?: boolean;
-  hasNextPage?: boolean;
-  onPreviousPage?();
-  onNextPage?();
-  onRowClick?(id: string);
-}
-
-const decorate = withStyles({
+const styles = createStyles({
   link: {
-    color: blue[500],
-    cursor: "pointer",
-    textDecoration: "none"
+    cursor: "pointer"
   },
   textRight: {
-    textAlign: "right" as "right"
+    textAlign: "right"
   }
 });
-const CustomerOrders = decorate<CustomerOrdersProps>(
+
+export interface CustomerOrdersProps extends WithStyles<typeof styles> {
+  orders: CustomerDetails_user_orders_edges_node[];
+  onViewAllOrdersClick: () => void;
+  onRowClick: (id: string) => void;
+}
+
+const CustomerOrders = withStyles(styles, { name: "CustomerOrders" })(
   ({
     classes,
-    hasNextPage,
-    hasPreviousPage,
     orders,
-    onNextPage,
-    onPreviousPage,
-    onRowClick
-  }) => (
-    <Card>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>{i18n.t("#", { context: "object" })}</TableCell>
-            <TableCell>{i18n.t("Created", { context: "object" })}</TableCell>
-            <TableCell>{i18n.t("Status", { context: "object" })}</TableCell>
-            <TableCell className={classes.textRight}>
-              {i18n.t("Price", { context: "object" })}
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableFooter>
-          <TableRow>
-            <TablePagination
-              colSpan={4}
-              hasNextPage={hasNextPage || false}
-              onNextPage={onNextPage}
-              hasPreviousPage={hasPreviousPage || false}
-              onPreviousPage={onPreviousPage}
-            />
-          </TableRow>
-        </TableFooter>
-        <TableBody>
-          {renderCollection(
-            orders,
-            order => (
-              <TableRow key={order ? order.id : "skeleton"}>
-                <TableCell
-                  onClick={order && onRowClick && onRowClick(order.id)}
-                  className={classes.link}
+    onRowClick,
+    onViewAllOrdersClick
+  }: CustomerOrdersProps) => {
+    const orderList = orders
+      ? orders.map(order => ({
+          ...order,
+          paymentStatus: transformPaymentStatus(order.paymentStatus)
+        }))
+      : undefined;
+    return (
+      <Card>
+        <CardTitle
+          title={i18n.t("Recent orders")}
+          toolbar={
+            <Button
+              variant="text"
+              color="secondary"
+              onClick={onViewAllOrdersClick}
+            >
+              {i18n.t("View all orders")}
+            </Button>
+          }
+        />
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell padding="dense">
+                {i18n.t("No. of Order", { context: "table header" })}
+              </TableCell>
+              <TableCell padding="dense">
+                {i18n.t("Date", { context: "table header" })}
+              </TableCell>
+              <TableCell padding="dense">
+                {i18n.t("Status", { context: "table header" })}
+              </TableCell>
+              <TableCell className={classes.textRight} padding="dense">
+                {i18n.t("Total", { context: "table header" })}
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {renderCollection(
+              orderList,
+              order => (
+                <TableRow
+                  hover={!!order}
+                  className={!!order ? classes.link : undefined}
+                  onClick={order ? () => onRowClick(order.id) : undefined}
+                  key={order ? order.id : "skeleton"}
                 >
-                  {order ? order.number : <Skeleton />}
-                </TableCell>
-                <TableCell>
-                  {order ? (
-                    <DateFormatter date={order.created} />
-                  ) : (
-                    <Skeleton />
-                  )}
-                </TableCell>
-                <TableCell>
-                  {order && order.orderStatus ? (
-                    <StatusLabel
-                      status={order.orderStatus.status}
-                      label={order.orderStatus.localized}
-                    />
-                  ) : (
-                    <Skeleton />
-                  )}
-                </TableCell>
-                <TableCell className={classes.textRight}>
-                  {order && order.total && order.total.gross ? (
-                    <Money
-                      amount={order.total.gross.amount}
-                      currency={order.total.gross.currency}
-                    />
-                  ) : (
-                    <Skeleton />
-                  )}
-                </TableCell>
-              </TableRow>
-            ),
-            () => (
-              <TableRow>
-                <TableCell colSpan={4}>{i18n.t("No orders found")}</TableCell>
-              </TableRow>
-            )
-          )}
-        </TableBody>
-      </Table>
-    </Card>
-  )
+                  <TableCell padding="dense">
+                    {maybe(() => order.number) ? (
+                      "#" + order.number
+                    ) : (
+                      <Skeleton />
+                    )}
+                  </TableCell>
+                  <TableCell padding="dense">
+                    {maybe(() => order.created) ? (
+                      <DateFormatter date={order.created} />
+                    ) : (
+                      <Skeleton />
+                    )}
+                  </TableCell>
+                  <TableCell padding="dense">
+                    {maybe(() => order.paymentStatus.status) !== undefined ? (
+                      order.paymentStatus.status === null ? null : (
+                        <StatusLabel
+                          status={order.paymentStatus.status}
+                          label={order.paymentStatus.localized}
+                        />
+                      )
+                    ) : (
+                      <Skeleton />
+                    )}
+                  </TableCell>
+                  <TableCell className={classes.textRight} padding="dense">
+                    {maybe(() => order.total.gross) ? (
+                      <Money money={order.total.gross} />
+                    ) : (
+                      <Skeleton />
+                    )}
+                  </TableCell>
+                </TableRow>
+              ),
+              () => (
+                <TableRow>
+                  <TableCell colSpan={6}>{i18n.t("No orders found")}</TableCell>
+                </TableRow>
+              )
+            )}
+          </TableBody>
+        </Table>
+      </Card>
+    );
+  }
 );
+CustomerOrders.displayName = "CustomerOrders";
 export default CustomerOrders;

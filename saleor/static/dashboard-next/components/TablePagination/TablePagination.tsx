@@ -1,14 +1,20 @@
 // @inheritedComponent TableCell
 
-import { withStyles } from "@material-ui/core/styles";
+import { IconButtonProps } from "@material-ui/core/IconButton";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import TableCell from "@material-ui/core/TableCell";
 import Toolbar from "@material-ui/core/Toolbar";
 import * as React from "react";
 
 import TablePaginationActions from "./TablePaginationActions";
 
-const decorate = withStyles(
-  theme => ({
+const styles = (theme: Theme) =>
+  createStyles({
     actions: {
       color: theme.palette.text.secondary,
       flexShrink: 0,
@@ -46,25 +52,21 @@ const decorate = withStyles(
       minHeight: 56,
       paddingRight: 2
     }
-  }),
-  {
-    name: "TablePagination"
-  }
-);
+  });
 
-interface TablePaginationProps {
-  Actions?: string | React.ComponentType;
-  backIconButtonProps?: any;
+interface TablePaginationProps extends WithStyles<typeof styles> {
+  Actions?: typeof TablePaginationActions;
+  backIconButtonProps?: Partial<IconButtonProps>;
   colSpan: number;
-  component?: string | React.ComponentType;
+  component?: string | typeof TableCell;
   hasNextPage: boolean;
   hasPreviousPage: boolean;
-  nextIconButtonProps?: any;
+  nextIconButtonProps?: Partial<IconButtonProps>;
   onNextPage(event);
   onPreviousPage(event);
 }
 
-const TablePagination = decorate<TablePaginationProps>(
+const TablePagination = withStyles(styles, { name: "TablePagination" })(
   ({
     Actions,
     backIconButtonProps,
@@ -77,7 +79,7 @@ const TablePagination = decorate<TablePaginationProps>(
     onNextPage,
     onPreviousPage,
     ...other
-  }) => {
+  }: TablePaginationProps) => {
     let colSpan;
 
     if (Component === TableCell || Component === "td") {
@@ -106,4 +108,5 @@ TablePagination.defaultProps = {
   component: TableCell
 };
 
+TablePagination.displayName = "TablePagination";
 export default TablePagination;

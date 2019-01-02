@@ -4,15 +4,22 @@ import Drawer from "@material-ui/core/Drawer";
 import Grow from "@material-ui/core/Grow";
 import Hidden from "@material-ui/core/Hidden";
 import IconButton from "@material-ui/core/IconButton";
+import LinearProgress from "@material-ui/core/LinearProgress";
 import MenuItem from "@material-ui/core/MenuItem";
 import Menu from "@material-ui/core/MenuList";
 import Paper from "@material-ui/core/Paper";
 import Popper from "@material-ui/core/Popper";
-import { withStyles, WithStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import MenuIcon from "@material-ui/icons/Menu";
-import PersonIcon from "@material-ui/icons/Person";
+import Person from "@material-ui/icons/Person";
+import PersonOutline from "@material-ui/icons/PersonOutline";
 import SettingsIcon from "@material-ui/icons/Settings";
 import * as classNames from "classnames";
 import * as React from "react";
@@ -22,18 +29,23 @@ import { appMountPoint } from ".";
 import * as saleorLogo from "../images/logo.svg";
 import { UserContext } from "./auth";
 import { User } from "./auth/types/User";
-import { categoryListUrl } from "./categories";
+import { categoryListUrl } from "./categories/urls";
+import { collectionListUrl } from "./collections/urls";
+import AppProgress from "./components/AppProgress";
 import MenuToggle from "./components/MenuToggle";
 import Navigator from "./components/Navigator";
 import Toggle from "./components/Toggle";
 import { configurationMenu, configurationMenuUrl } from "./configuration";
+import { customerListUrl } from "./customers/urls";
 import i18n from "./i18n";
 import ArrowDropdown from "./icons/ArrowDropdown";
 import Home from "./icons/Home";
 import Shop from "./icons/Shop";
 import Truck from "./icons/Truck";
 import { removeDoubleSlashes } from "./misc";
-import { productListUrl } from "./products";
+import { orderListUrl } from "./orders/urls";
+import { productListUrl } from "./products/urls";
+import { PermissionEnum } from "./types/globalTypes";
 
 const drawerWidth = 256;
 const navigationBarHeight = 64;
@@ -52,33 +64,46 @@ const menuStructure: IMenuItem[] = [
         ariaLabel: "products",
         icon: <Shop />,
         label: i18n.t("Products", { context: "Menu label" }),
-        url: productListUrl
+        url: productListUrl()
       },
       {
         ariaLabel: "categories",
         icon: <Shop />,
         label: i18n.t("Categories", { context: "Menu label" }),
         url: categoryListUrl
+      },
+      {
+        ariaLabel: "collections",
+        icon: <Shop />,
+        label: i18n.t("Collections", { context: "Menu label" }),
+        url: collectionListUrl
       }
     ],
     icon: <Shop />,
     label: i18n.t("Catalogue", { context: "Menu label" }),
-    permission: "product.manage_products"
+    permission: PermissionEnum.MANAGE_PRODUCTS
   },
   {
     ariaLabel: "orders",
     icon: <Truck />,
     label: i18n.t("Orders", { context: "Menu label" }),
-    permission: "order.manage_orders",
-    url: "/orders/"
+    permission: PermissionEnum.MANAGE_ORDERS,
+    url: orderListUrl()
+  },
+  {
+    ariaLabel: "customers",
+    icon: <PersonOutline />,
+    label: i18n.t("Customers", { context: "Menu label" }),
+    permission: PermissionEnum.MANAGE_USERS,
+    url: customerListUrl
   }
 ];
 
-const decorate = withStyles(
-  theme => ({
+const styles = (theme: Theme) =>
+  createStyles({
     appBar: {
       boxShadow: "none",
-      display: "grid" as "grid",
+      display: "grid",
       gridTemplateColumns: `${drawerWidth}px 1fr`,
       zIndex: theme.zIndex.drawer + 1
     },
@@ -87,14 +112,18 @@ const decorate = withStyles(
       width: "100%",
       zIndex: 1
     },
+    appLoader: {
+      gridColumn: "span 2",
+      height: 2
+    },
     arrow: {
       marginLeft: theme.spacing.unit * 2,
-      position: "relative" as "relative",
+      position: "relative",
       top: 6,
       transition: theme.transitions.duration.standard + "ms"
     },
     container: {
-      textAlign: "right" as "right",
+      textAlign: "right",
       width: "100%"
     },
     content: {
@@ -141,8 +170,8 @@ const decorate = withStyles(
       marginRight: theme.spacing.unit
     },
     menuList: {
-      display: "flex" as "flex",
-      flexDirection: "column" as "column",
+      display: "flex",
+      flexDirection: "column",
       height: "100%",
       marginLeft: theme.spacing.unit * 4,
       marginTop: theme.spacing.unit * 2,
@@ -152,19 +181,19 @@ const decorate = withStyles(
       "&:hover": {
         color: theme.palette.primary.main
       },
-      alignItems: "center" as "center",
+      alignItems: "center",
       color: "#616161",
-      display: "flex" as "flex",
+      display: "flex",
       height: 40,
       paddingLeft: 0,
-      textDecoration: "none" as "none",
+      textDecoration: "none",
       transition: theme.transitions.duration.standard + "ms"
     },
     menuListItemText: {
       "&:hover": {
         color: theme.palette.primary.main
       },
-      cursor: "pointer" as "pointer",
+      cursor: "pointer",
       fontSize: "1rem",
       marginLeft: theme.spacing.unit * 2,
       transition: theme.transitions.duration.standard + "ms"
@@ -192,19 +221,18 @@ const decorate = withStyles(
       marginRight: theme.spacing.unit
     },
     userMenuItem: {
-      textAlign: "right" as "right"
+      textAlign: "right"
     }
-  }),
-  { name: "ResponsiveDrawer" }
-);
+  });
 
-interface ResponsiveDrawerProps {
+interface ResponsiveDrawerProps extends WithStyles<typeof styles> {
+  children?: React.ReactNode;
   open: boolean;
   onClose?();
 }
 
-const ResponsiveDrawer = decorate<ResponsiveDrawerProps>(
-  ({ children, classes, onClose, open }) => (
+const ResponsiveDrawer = withStyles(styles, { name: "ResponsiveDrawer" })(
+  ({ children, classes, onClose, open }: ResponsiveDrawerProps) => (
     <>
       <Hidden smDown>
         <Drawer
@@ -236,16 +264,16 @@ interface IMenuItem {
   children?: IMenuItem[];
   icon: React.ReactNode;
   label: string;
-  permission?: string;
+  permission?: PermissionEnum;
   url?: string;
 }
-interface MenuListProps {
+interface MenuListProps extends WithStyles<typeof styles> {
   menuItems: IMenuItem[];
   user: User;
   onMenuItemClick: (url: string, event: React.MouseEvent<any>) => void;
 }
-const MenuList = decorate<MenuListProps>(
-  ({ classes, menuItems, user, onMenuItemClick }) => (
+const MenuList = withStyles(styles, { name: "MenuList" })(
+  ({ classes, menuItems, user, onMenuItemClick }: MenuListProps) => (
     <div>
       {menuItems.map(menuItem => {
         if (
@@ -307,34 +335,9 @@ interface AppRootState {
   open: boolean;
 }
 
-export const AppRoot = decorate(
+export const AppRoot = withStyles(styles, { name: "AppRoot" })(
   class InnerAppRoot extends React.Component<
-    WithStyles<
-      | "appBar"
-      | "appFrame"
-      | "arrow"
-      | "content"
-      | "contentShift"
-      | "container"
-      | "drawerDesktop"
-      | "drawerMobile"
-      | "email"
-      | "emailLabel"
-      | "hide"
-      | "logo"
-      | "menuButton"
-      | "menuList"
-      | "menuListItem"
-      | "menuListItemText"
-      | "menuListNested"
-      | "root"
-      | "rotate"
-      | "spacer"
-      | "toolBarContent"
-      | "toolBarMenu"
-      | "userIcon"
-      | "userMenuItem"
-    >,
+    WithStyles<typeof styles>,
     AppRootState
   > {
     state = { open: false };
@@ -348,162 +351,185 @@ export const AppRoot = decorate(
       const { children, classes } = this.props;
       const { open } = this.state;
       return (
-        <UserContext.Consumer>
-          {({ logout, user }) => (
-            <Navigator>
-              {navigate => {
-                const handleMenuItemClick = (
-                  url: string,
-                  event: React.MouseEvent<any>
-                ) => {
-                  event.preventDefault();
-                  this.closeDrawer();
-                  navigate(url);
-                };
-                return (
-                  <div className={classes.appFrame}>
-                    <AppBar className={classes.appBar}>
-                      <Toolbar disableGutters className={classes.toolBarMenu}>
-                        <IconButton
-                          color="inherit"
-                          aria-label="open drawer"
-                          onClick={() =>
-                            this.setState(({ open }) => ({
-                              open: !open
-                            }))
-                          }
-                          className={classes.menuButton}
-                        >
-                          <MenuIcon />
-                        </IconButton>
-                        <SVG className={classes.logo} src={saleorLogo} />
-                      </Toolbar>
-                      <Toolbar
-                        disableGutters
-                        className={classes.toolBarContent}
-                      >
-                        <div className={classes.spacer} />
-                        <MenuToggle ariaOwns="user-menu">
-                          {({
-                            open: menuOpen,
-                            actions: { open: openMenu, close: closeMenu }
-                          }) => {
-                            const handleLogout = () => {
-                              close();
-                              logout();
-                            };
-                            return (
-                              <>
-                                <div
-                                  className={classes.email}
-                                  ref={this.anchor}
-                                  onClick={!menuOpen ? openMenu : undefined}
-                                >
-                                  <Hidden smDown>
-                                    <Typography
-                                      className={classes.emailLabel}
-                                      component="span"
-                                      variant="subheading"
-                                    >
-                                      {user.email}
-                                    </Typography>
-                                    <ArrowDropdown
-                                      className={classNames({
-                                        [classes.arrow]: true,
-                                        [classes.rotate]: menuOpen
-                                      })}
-                                    />
-                                  </Hidden>
-                                  <Hidden mdUp>
-                                    <IconButton className={classes.userIcon}>
-                                      <PersonIcon />
-                                    </IconButton>
-                                  </Hidden>
-                                </div>
-                                <Popper
-                                  open={menuOpen}
-                                  anchorEl={this.anchor.current}
-                                  transition
-                                  disablePortal
-                                  placement="bottom-end"
-                                >
-                                  {({ TransitionProps, placement }) => (
-                                    <Grow
-                                      {...TransitionProps}
-                                      style={{
-                                        minWidth: "10rem",
-                                        transformOrigin:
-                                          placement === "bottom"
-                                            ? "right top"
-                                            : "right bottom"
-                                      }}
-                                    >
-                                      <Paper>
-                                        <ClickAwayListener
-                                          onClickAway={closeMenu}
-                                          mouseEvent="onClick"
-                                        >
-                                          <Menu>
-                                            <MenuItem
-                                              className={classes.userMenuItem}
-                                              onClick={handleLogout}
-                                            >
-                                              {i18n.t("Log out", {
-                                                context: "button"
-                                              })}
-                                            </MenuItem>
-                                          </Menu>
-                                        </ClickAwayListener>
-                                      </Paper>
-                                    </Grow>
-                                  )}
-                                </Popper>
-                              </>
-                            );
-                          }}
-                        </MenuToggle>
-                      </Toolbar>
-                    </AppBar>
-                    <ResponsiveDrawer onClose={this.closeDrawer} open={open}>
-                      <div className={classes.menuList}>
-                        <MenuList
-                          menuItems={menuStructure}
-                          user={user}
-                          onMenuItemClick={handleMenuItemClick}
-                        />
-                        <div className={classes.spacer} />
-                        {configurationMenu.filter(menuItem =>
-                          user.permissions
-                            .map(perm => perm.code)
-                            .includes(menuItem.permission)
-                        ).length > 0 && (
-                          <a
-                            className={classes.menuListItem}
-                            href={removeDoubleSlashes(
-                              appMountPoint + configurationMenuUrl
-                            )}
-                            onClick={event =>
-                              handleMenuItemClick(configurationMenuUrl, event)
-                            }
+        <AppProgress>
+          {({ value: isProgressVisible }) => (
+            <UserContext.Consumer>
+              {({ logout, user }) => (
+                <Navigator>
+                  {navigate => {
+                    const handleMenuItemClick = (
+                      url: string,
+                      event: React.MouseEvent<any>
+                    ) => {
+                      event.preventDefault();
+                      this.closeDrawer();
+                      navigate(url);
+                    };
+                    return (
+                      <div className={classes.appFrame}>
+                        <AppBar className={classes.appBar}>
+                          <Toolbar
+                            disableGutters
+                            className={classes.toolBarMenu}
                           >
-                            <SettingsIcon />
-                            <Typography
-                              aria-label="configure"
-                              className={classes.menuListItemText}
+                            <IconButton
+                              color="inherit"
+                              aria-label="open drawer"
+                              onClick={() =>
+                                this.setState(({ open }) => ({
+                                  open: !open
+                                }))
+                              }
+                              className={classes.menuButton}
                             >
-                              {i18n.t("Configure")}
-                            </Typography>
-                          </a>
-                        )}
+                              <MenuIcon />
+                            </IconButton>
+                            <SVG className={classes.logo} src={saleorLogo} />
+                          </Toolbar>
+                          <Toolbar
+                            disableGutters
+                            className={classes.toolBarContent}
+                          >
+                            <div className={classes.spacer} />
+                            <MenuToggle ariaOwns="user-menu">
+                              {({
+                                open: menuOpen,
+                                actions: { open: openMenu, close: closeMenu }
+                              }) => {
+                                const handleLogout = () => {
+                                  close();
+                                  logout();
+                                };
+                                return (
+                                  <>
+                                    <div
+                                      className={classes.email}
+                                      ref={this.anchor}
+                                      onClick={!menuOpen ? openMenu : undefined}
+                                    >
+                                      <Hidden smDown>
+                                        <Typography
+                                          className={classes.emailLabel}
+                                          component="span"
+                                          variant="subheading"
+                                        >
+                                          {user.email}
+                                        </Typography>
+                                        <ArrowDropdown
+                                          className={classNames({
+                                            [classes.arrow]: true,
+                                            [classes.rotate]: menuOpen
+                                          })}
+                                        />
+                                      </Hidden>
+                                      <Hidden mdUp>
+                                        <IconButton
+                                          className={classes.userIcon}
+                                        >
+                                          <Person />
+                                        </IconButton>
+                                      </Hidden>
+                                    </div>
+                                    <Popper
+                                      open={menuOpen}
+                                      anchorEl={this.anchor.current}
+                                      transition
+                                      disablePortal
+                                      placement="bottom-end"
+                                    >
+                                      {({ TransitionProps, placement }) => (
+                                        <Grow
+                                          {...TransitionProps}
+                                          style={{
+                                            minWidth: "10rem",
+                                            transformOrigin:
+                                              placement === "bottom"
+                                                ? "right top"
+                                                : "right bottom"
+                                          }}
+                                        >
+                                          <Paper>
+                                            <ClickAwayListener
+                                              onClickAway={closeMenu}
+                                              mouseEvent="onClick"
+                                            >
+                                              <Menu>
+                                                <MenuItem
+                                                  className={
+                                                    classes.userMenuItem
+                                                  }
+                                                  onClick={handleLogout}
+                                                >
+                                                  {i18n.t("Log out", {
+                                                    context: "button"
+                                                  })}
+                                                </MenuItem>
+                                              </Menu>
+                                            </ClickAwayListener>
+                                          </Paper>
+                                        </Grow>
+                                      )}
+                                    </Popper>
+                                  </>
+                                );
+                              }}
+                            </MenuToggle>
+                          </Toolbar>
+                          {isProgressVisible && (
+                            <LinearProgress
+                              className={classes.appLoader}
+                              color="secondary"
+                            />
+                          )}
+                        </AppBar>
+                        <ResponsiveDrawer
+                          onClose={this.closeDrawer}
+                          open={open}
+                        >
+                          <div className={classes.menuList}>
+                            <MenuList
+                              menuItems={menuStructure}
+                              user={user}
+                              onMenuItemClick={handleMenuItemClick}
+                            />
+                            <div className={classes.spacer} />
+                            {configurationMenu.filter(menuItem =>
+                              user.permissions
+                                .map(perm => perm.code)
+                                .includes(menuItem.permission)
+                            ).length > 0 && (
+                              <a
+                                className={classes.menuListItem}
+                                href={removeDoubleSlashes(
+                                  appMountPoint + configurationMenuUrl
+                                )}
+                                onClick={event =>
+                                  handleMenuItemClick(
+                                    configurationMenuUrl,
+                                    event
+                                  )
+                                }
+                              >
+                                <SettingsIcon />
+                                <Typography
+                                  aria-label="configure"
+                                  className={classes.menuListItemText}
+                                >
+                                  {i18n.t("Configure")}
+                                </Typography>
+                              </a>
+                            )}
+                          </div>
+                        </ResponsiveDrawer>
+                        <main className={classes.content}>{children}</main>
                       </div>
-                    </ResponsiveDrawer>
-                    <main className={classes.content}>{children}</main>
-                  </div>
-                );
-              }}
-            </Navigator>
+                    );
+                  }}
+                </Navigator>
+              )}
+            </UserContext.Consumer>
           )}
-        </UserContext.Consumer>
+        </AppProgress>
       );
     }
   }

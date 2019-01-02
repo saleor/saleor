@@ -1,6 +1,8 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
+import { CategoryInput } from "./../../types/globalTypes";
+
 // ====================================================
 // GraphQL mutation operation: CategoryUpdate
 // ====================================================
@@ -11,6 +13,12 @@ export interface CategoryUpdate_categoryUpdate_errors {
   message: string | null;
 }
 
+export interface CategoryUpdate_categoryUpdate_category_backgroundImage {
+  __typename: "Image";
+  alt: string | null;
+  url: string;
+}
+
 export interface CategoryUpdate_categoryUpdate_category_parent {
   __typename: "Category";
   id: string;
@@ -19,14 +27,17 @@ export interface CategoryUpdate_categoryUpdate_category_parent {
 export interface CategoryUpdate_categoryUpdate_category {
   __typename: "Category";
   id: string;
+  backgroundImage: CategoryUpdate_categoryUpdate_category_backgroundImage | null;
   name: string;
   description: string;
+  seoDescription: string | null;
+  seoTitle: string | null;
   parent: CategoryUpdate_categoryUpdate_category_parent | null;
 }
 
 export interface CategoryUpdate_categoryUpdate {
   __typename: "CategoryUpdate";
-  errors: (CategoryUpdate_categoryUpdate_errors | null)[] | null;
+  errors: CategoryUpdate_categoryUpdate_errors[] | null;
   category: CategoryUpdate_categoryUpdate_category | null;
 }
 
@@ -36,6 +47,5 @@ export interface CategoryUpdate {
 
 export interface CategoryUpdateVariables {
   id: string;
-  name?: string | null;
-  description?: string | null;
+  input: CategoryInput;
 }

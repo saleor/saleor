@@ -2,7 +2,12 @@ import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Hidden from "@material-ui/core/Hidden";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -12,32 +17,17 @@ import Typography from "@material-ui/core/Typography";
 import * as classNames from "classnames";
 import * as React from "react";
 
-import { MoneyType } from "../..";
 import CardTitle from "../../../components/CardTitle";
 import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
+import { ProductDetails_product_variants } from "../../types/ProductDetails";
+import { ProductVariant_costPrice } from "../../types/ProductVariant";
 
-interface ProductVariantsProps {
-  disabled?: boolean;
-  variants?: Array<{
-    id: string;
-    sku: string;
-    name: string;
-    priceOverride?: MoneyType;
-    stockQuantity: number;
-    margin: number;
-  }>;
-  fallbackPrice?: MoneyType;
-  onAttributesEdit: () => void;
-  onRowClick: (id: string) => () => void;
-  onVariantAdd?();
-}
-
-const decorate = withStyles(theme => {
-  return {
+const styles = (theme: Theme) =>
+  createStyles({
     denseTable: {
       "& td, & th": {
         paddingRight: theme.spacing.unit * 3
@@ -52,27 +42,35 @@ const decorate = withStyles(theme => {
     textRight: {
       textAlign: "right" as "right"
     }
-  };
-});
+  });
 
-export const ProductVariants = decorate<ProductVariantsProps>(
+interface ProductVariantsProps extends WithStyles<typeof styles> {
+  disabled?: boolean;
+  variants: ProductDetails_product_variants[];
+  fallbackPrice?: ProductVariant_costPrice;
+  onAttributesEdit: () => void;
+  onRowClick: (id: string) => () => void;
+  onVariantAdd?();
+}
+
+export const ProductVariants = withStyles(styles, { name: "ProductVariants" })(
   ({
     classes,
     variants,
     fallbackPrice,
+    onAttributesEdit,
     onRowClick,
     onVariantAdd
-  }) => (
+  }: ProductVariantsProps) => (
     <Card>
       <CardTitle
         title={i18n.t("Variants")}
         toolbar={
           <>
-            {/* TODO: enable after adding attribute section */}
-            {/* <Button onClick={onAttributesEdit} variant="flat" color="secondary">
+            <Button onClick={onAttributesEdit} variant="text" color="secondary">
               {i18n.t("Edit attributes")}
-            </Button> */}
-            <Button onClick={onVariantAdd} variant="flat" color="secondary">
+            </Button>
+            <Button onClick={onVariantAdd} variant="text" color="secondary">
               {i18n.t("Add variant")}
             </Button>
           </>
@@ -131,15 +129,9 @@ export const ProductVariants = decorate<ProductVariantsProps>(
                   <TableCell className={classes.textRight}>
                     {variant ? (
                       variant.priceOverride ? (
-                        <Money
-                          amount={variant.priceOverride.amount}
-                          currency={variant.priceOverride.currency}
-                        />
+                        <Money money={variant.priceOverride} />
                       ) : fallbackPrice ? (
-                        <Money
-                          amount={fallbackPrice.amount}
-                          currency={fallbackPrice.currency}
-                        />
+                        <Money money={fallbackPrice} />
                       ) : (
                         <Skeleton />
                       )

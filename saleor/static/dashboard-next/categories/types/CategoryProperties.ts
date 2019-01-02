@@ -68,7 +68,6 @@ export interface CategoryProperties_category_products_edges {
 
 export interface CategoryProperties_category_products {
   __typename: "ProductCountableConnection";
-  totalCount: number | null;
   pageInfo: CategoryProperties_category_products_pageInfo;
   edges: CategoryProperties_category_products_edges[];
 }

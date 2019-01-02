@@ -1,7 +1,7 @@
 {% extends 'dashboard/base.html' %}
 {% load materializecss %}
 {% load i18n %}
-{% load staticfiles %}
+{% load static %}
 {% load status %}
 
 {% block title %}
@@ -55,11 +55,20 @@
               {{ form.products|materializecss }}
             </div>
             <div class="row">
+              {{ form.description|materializecss }}
+            </div>
+            <div class="row">
               {{ form.background_image|materializecss }}
+            </div>
+            <div class="row">
+              {{ form.background_image_alt|materializecss }}
             </div>
             <span class="card-title">{% trans 'Availability' context 'Collection form card title: availability sub form' %}</span>
             <div class="row">
               {{ form.is_published|materializecss }}
+            </div>
+            <div class="row">
+              {{ form.published_date|materializecss }}
             </div>
             {% include "dashboard/includes/_google_preview.html" with object=collection form=form %}
           </div>

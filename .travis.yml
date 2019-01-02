@@ -1,4 +1,6 @@
 language: python
+addons:
+  postgresql: "9.4"
 sudo: false
 python:
   - "3.5"
@@ -19,8 +21,8 @@ script:
   - tox
 env:
   global:
-    - DJANGO_SETTINGS_MODULE=tests.settings
-    - DATABASE_URL='postgres://postgres@localhost:5432/saleor'
+    - DATABASE_URL="postgres://postgres@localhost:5432/saleor"
+    - SECRET_KEY="irrelevant"
   matrix:
   - DJANGO="1.11"
   - DJANGO="2.1"

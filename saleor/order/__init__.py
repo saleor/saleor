@@ -1,19 +1,9 @@
 from enum import Enum
 
-from django.apps import AppConfig
 from django.conf import settings
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.templatetags import prices_i18n
 from prices import Money
-
-
-class OrderAppConfig(AppConfig):
-    name = 'saleor.order'
-
-    def ready(self):
-        from payments.signals import status_changed
-        from .signals import order_status_change
-        status_changed.connect(order_status_change)
 
 
 class OrderStatus:
@@ -56,13 +46,6 @@ class FulfillmentStatus:
             'Canceled'))]
 
 
-class CustomPaymentChoices:
-    MANUAL = 'manual'
-
-    CHOICES = [
-        (MANUAL, pgettext_lazy('Custom payment choice type', 'Manual'))]
-
-
 class OrderEvents(Enum):
     PLACED = 'placed'
     PLACED_FROM_DRAFT = 'draft_placed'
@@ -76,7 +59,7 @@ class OrderEvents(Enum):
 
     PAYMENT_CAPTURED = 'captured'
     PAYMENT_REFUNDED = 'refunded'
-    PAYMENT_RELEASED = 'released'
+    PAYMENT_VOIDED = 'voided'
 
     FULFILLMENT_CANCELED = 'fulfillment_canceled'
     FULFILLMENT_RESTOCKED_ITEMS = 'restocked_items'
@@ -106,6 +89,19 @@ EMAIL_CHOICES = {
         'Email type', 'Order confirmation')}
 
 
+def get_money_from_params(amount):
+    """Money serialization changed at one point, as for now it's serialized
+    as a dict. But we keep those settings for the legacy data.
+
+    Can be safely removed after migrating to Dashboard 2.0
+    """
+    if isinstance(amount, Money):
+        return amount
+    if isinstance(amount, dict):
+        return Money(amount=amount['amount'], currency=amount['currency'])
+    return Money(amount, settings.DEFAULT_CURRENCY)
+
+
 def display_order_event(order_event):
     """This function is used to keep the  backwards compatibility
     with the old dashboard and new type of order events
@@ -118,21 +114,19 @@ def display_order_event(order_event):
             'Dashboard message related to an order',
             'Order created from draft order by %(user_name)s' % {
                 'user_name': order_event.user})
-    if event_type == OrderEvents.PAYMENT_RELEASED.value:
+    if event_type == OrderEvents.PAYMENT_VOIDED.value:
         return pgettext_lazy(
             'Dashboard message related to an order',
-            'Payment was released by %(user_name)s' % {
+            'Payment was voided by %(user_name)s' % {
                 'user_name': order_event.user})
     if event_type == OrderEvents.PAYMENT_REFUNDED.value:
-        amount = Money(
-            amount=params['amount'], currency=settings.DEFAULT_CURRENCY)
+        amount = get_money_from_params(params['amount'])
         return pgettext_lazy(
             'Dashboard message related to an order',
             'Successfully refunded: %(amount)s' % {
                 'amount': prices_i18n.amount(amount)})
     if event_type == OrderEvents.PAYMENT_CAPTURED.value:
-        amount = Money(
-            amount=params['amount'], currency=settings.DEFAULT_CURRENCY)
+        amount = get_money_from_params(params['amount'])
         return pgettext_lazy(
             'Dashboard message related to an order',
             'Successfully captured: %(amount)s' % {
@@ -152,7 +146,7 @@ def display_order_event(order_event):
             'Dashboard message related to an order',
             'We restocked %(quantity)d item',
             'We restocked %(quantity)d items',
-            'quantity') % {'quantity': params['quantity']}
+            number='quantity') % {'quantity': params['quantity']}
     if event_type == OrderEvents.NOTE_ADDED.value:
         return pgettext_lazy(
             'Dashboard message related to an order',
@@ -170,7 +164,7 @@ def display_order_event(order_event):
             'Dashboard message related to an order',
             'Fulfilled %(quantity_fulfilled)d item',
             'Fulfilled %(quantity_fulfilled)d items',
-            'quantity_fulfilled') % {
+            number='quantity_fulfilled') % {
                 'quantity_fulfilled': params['quantity']}
     if event_type == OrderEvents.PLACED.value:
         return pgettext_lazy(
@@ -204,7 +198,8 @@ def display_order_event(order_event):
         return npgettext_lazy(
             'Dashboard message related to an order',
             '%(quantity)d line item oversold on this order.',
-            '%(quantity)d line items oversold on this order.') % {
+            '%(quantity)d line items oversold on this order.',
+            number='quantity') % {
                 'quantity': len(params['oversold_items'])}
 
     if event_type == OrderEvents.OTHER.value:

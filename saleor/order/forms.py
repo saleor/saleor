@@ -1,17 +1,21 @@
 from django import forms
 from django.conf import settings
 from django.utils.translation import pgettext_lazy
-from payments import PaymentStatus
 
 from ..account.forms import SignupForm
-from .models import Order, Payment
+from ..payment.models import Payment
+from .models import Order
+
+PAYMENT_CHOICES = [
+    (k, v) for k, v in settings.CHECKOUT_PAYMENT_GATEWAYS.items()]
 
 
-class PaymentMethodsForm(forms.Form):
-    method = forms.ChoiceField(
-        label=pgettext_lazy('Payment methods form label', 'Method'),
-        choices=settings.CHECKOUT_PAYMENT_CHOICES, widget=forms.RadioSelect,
-        initial=settings.CHECKOUT_PAYMENT_CHOICES[0][0])
+class PaymentsForm(forms.Form):
+    gateway = forms.ChoiceField(
+        label=pgettext_lazy('Payments form label', 'Payment Method'),
+        choices=PAYMENT_CHOICES,
+        initial=PAYMENT_CHOICES[0][0],
+        widget=forms.RadioSelect)
 
 
 class PaymentDeleteForm(forms.Form):
@@ -24,23 +28,23 @@ class PaymentDeleteForm(forms.Form):
     def clean(self):
         cleaned_data = super().clean()
         payment_id = cleaned_data.get('payment_id')
-        waiting_payments = self.order.payments.filter(
-            status=PaymentStatus.WAITING)
-        try:
-            payment = waiting_payments.get(id=payment_id)
-        except Payment.DoesNotExist:
+        payment = Payment.objects.filter(is_active=True, id=payment_id).first()
+        if not payment:
+            self._errors['number'] = self.error_class([
+                pgettext_lazy(
+                    'Payment delete form error', 'Payment does not exist')])
+        elif not payment.can_void():
             self._errors['number'] = self.error_class([
                 pgettext_lazy(
                     'Payment delete form error',
-                    'Payment does not exist')])
+                    'Payment cannot be cancelled.')])
         else:
             cleaned_data['payment'] = payment
         return cleaned_data
 
     def save(self):
         payment = self.cleaned_data['payment']
-        payment.status = PaymentStatus.REJECTED
-        payment.save()
+        payment.void()
 
 
 class PasswordForm(SignupForm):

@@ -4,9 +4,17 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
+import ConfirmButton, {
+  ConfirmButtonTransitionState
+} from "../../../components/ConfirmButton/ConfirmButton";
 import ControlledCheckbox from "../../../components/ControlledCheckbox";
 import Form from "../../../components/Form";
 import i18n from "../../../i18n";
@@ -14,15 +22,9 @@ import i18n from "../../../i18n";
 export interface FormData {
   restock: boolean;
 }
-interface OrderCancelDialogProps {
-  number: string;
-  open: boolean;
-  onClose?();
-  onSubmit(data: FormData);
-}
 
-const decorate = withStyles(
-  theme => ({
+const styles = (theme: Theme) =>
+  createStyles({
     deleteButton: {
       "&:hover": {
         backgroundColor: theme.palette.error.main
@@ -30,22 +32,38 @@ const decorate = withStyles(
       backgroundColor: theme.palette.error.main,
       color: theme.palette.error.contrastText
     }
-  }),
-  { name: "OrderCancelDialog" }
-);
-const OrderCancelDialog = decorate<OrderCancelDialogProps>(
-  ({ classes, number: orderNumber, open, onSubmit, onClose }) => (
+  });
+
+interface OrderCancelDialogProps extends WithStyles<typeof styles> {
+  confirmButtonState: ConfirmButtonTransitionState;
+  number: string;
+  open: boolean;
+  onClose?();
+  onSubmit(data: FormData);
+}
+
+const OrderCancelDialog = withStyles(styles, { name: "OrderCancelDialog" })(
+  ({
+    classes,
+    confirmButtonState,
+    number: orderNumber,
+    open,
+    onSubmit,
+    onClose
+  }: OrderCancelDialogProps) => (
     <Dialog open={open}>
       <Form
         initial={{
-          restock: true,
+          restock: true
         }}
         onSubmit={onSubmit}
       >
         {({ data, change }) => {
           return (
             <>
-              <DialogTitle>{i18n.t("Cancel order", { context: "title" })}</DialogTitle>
+              <DialogTitle>
+                {i18n.t("Cancel order", { context: "title" })}
+              </DialogTitle>
               <DialogContent>
                 <DialogContentText
                   dangerouslySetInnerHTML={{
@@ -57,7 +75,7 @@ const OrderCancelDialog = decorate<OrderCancelDialogProps>(
                 />
                 <ControlledCheckbox
                   checked={data.restock}
-                  label={i18n.t("Restock")}
+                  label={i18n.t("Release all stock allocated to this order")}
                   name="restock"
                   onChange={change}
                 />
@@ -66,13 +84,14 @@ const OrderCancelDialog = decorate<OrderCancelDialogProps>(
                 <Button onClick={onClose}>
                   {i18n.t("Back", { context: "button" })}
                 </Button>
-                <Button
+                <ConfirmButton
+                  transitionState={confirmButtonState}
                   className={classes.deleteButton}
-                  variant="raised"
+                  variant="contained"
                   type="submit"
                 >
                   {i18n.t("Cancel order", { context: "button" })}
-                </Button>
+                </ConfirmButton>
               </DialogActions>
             </>
           );
@@ -81,4 +100,5 @@ const OrderCancelDialog = decorate<OrderCancelDialogProps>(
     </Dialog>
   )
 );
+OrderCancelDialog.displayName = "OrderCancelDialog";
 export default OrderCancelDialog;

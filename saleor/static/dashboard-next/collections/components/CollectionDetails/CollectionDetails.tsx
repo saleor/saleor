@@ -1,73 +1,62 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { withStyles } from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
-import Typography from "@material-ui/core/Typography";
-import * as classNames from "classnames";
 import * as React from "react";
 
-import FileUpload from "../../../components/FileUpload";
+import CardTitle from "../../../components/CardTitle";
 import FormSpacer from "../../../components/FormSpacer";
-import Skeleton from "../../../components/Skeleton";
+import RichTextEditor from "../../../components/RichTextEditor";
 import i18n from "../../../i18n";
 
-interface CollectionDetailsProps {
-  collection?: {
-    backgroundImage: string;
-  };
+const styles = createStyles({
+  name: {
+    width: "80%"
+  }
+});
+
+export interface CollectionDetailsProps extends WithStyles<typeof styles> {
   data: {
+    description: string;
     name: string;
-    backgroundImage: string;
   };
   disabled: boolean;
-  onChange(event: React.ChangeEvent<any>);
-  onImageRemove();
+  errors: {
+    description?: string;
+    name?: string;
+  };
+  onChange: (event: React.ChangeEvent<any>) => void;
 }
 
-const decorate = withStyles(theme => ({
-  image: {
-    width: "100%"
-  },
-  link: {
-    color: theme.palette.secondary.main,
-    cursor: "pointer" as "pointer"
-  }
-}));
-const CollectionDetails = decorate<CollectionDetailsProps>(
-  ({ classes, collection, data, disabled, onChange, onImageRemove }) => (
+const CollectionDetails = withStyles(styles, { name: "CollectionDetails" })(
+  ({ classes, disabled, data, onChange, errors }: CollectionDetailsProps) => (
     <Card>
+      <CardTitle title={i18n.t("General information")} />
       <CardContent>
         <TextField
-          disabled={disabled}
-          fullWidth
+          classes={{ root: classes.name }}
           label={i18n.t("Name")}
           name="name"
-          onChange={onChange}
+          disabled={disabled}
           value={data.name}
+          onChange={onChange}
+          error={!!errors.name}
+          helperText={errors.name}
         />
         <FormSpacer />
-        {collection ? (
-          <>
-            <img src={collection.backgroundImage} className={classes.image} />
-            <Typography
-              variant="caption"
-              className={classNames({
-                [classes.link]: !disabled
-              })}
-              onClick={disabled ? undefined : onImageRemove}
-            >
-              {i18n.t("Remove")}
-            </Typography>
-          </>
-        ) : (
-          <Skeleton />
-        )}
-        <FormSpacer />
-        <FileUpload
+        <RichTextEditor
+          label={i18n.t("Description")}
+          name="description"
           disabled={disabled}
-          name="backgroundImage"
+          value={data.description}
           onChange={onChange}
-          value={data.backgroundImage}
+          error={!!errors.name}
+          helperText={
+            !!errors.name
+              ? errors.name
+              : i18n.t("Select text to enable text-formatting tools.")
+          }
+          fullWidth
         />
       </CardContent>
     </Card>

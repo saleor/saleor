@@ -13,6 +13,12 @@ export interface OrderShippingMethodUpdate_orderUpdateShipping_errors {
   message: string | null;
 }
 
+export interface OrderShippingMethodUpdate_orderUpdateShipping_order_availableShippingMethods {
+  __typename: "ShippingMethod";
+  id: string;
+  name: string;
+}
+
 export interface OrderShippingMethodUpdate_orderUpdateShipping_order_shippingMethod_price {
   __typename: "Money";
   amount: number;
@@ -39,6 +45,7 @@ export interface OrderShippingMethodUpdate_orderUpdateShipping_order_shippingPri
 
 export interface OrderShippingMethodUpdate_orderUpdateShipping_order {
   __typename: "Order";
+  availableShippingMethods: (OrderShippingMethodUpdate_orderUpdateShipping_order_availableShippingMethods | null)[] | null;
   id: string;
   shippingMethod: OrderShippingMethodUpdate_orderUpdateShipping_order_shippingMethod | null;
   shippingMethodName: string | null;
@@ -47,7 +54,7 @@ export interface OrderShippingMethodUpdate_orderUpdateShipping_order {
 
 export interface OrderShippingMethodUpdate_orderUpdateShipping {
   __typename: "OrderUpdateShipping";
-  errors: (OrderShippingMethodUpdate_orderUpdateShipping_errors | null)[] | null;
+  errors: OrderShippingMethodUpdate_orderUpdateShipping_errors[] | null;
   order: OrderShippingMethodUpdate_orderUpdateShipping_order | null;
 }
 

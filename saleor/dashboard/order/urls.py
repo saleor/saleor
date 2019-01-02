@@ -34,8 +34,8 @@ urlpatterns = [
 
     url(r'^(?P<order_pk>\d+)/payment/(?P<payment_pk>\d+)/capture/$',
         views.capture_payment, name='capture-payment'),
-    url(r'^(?P<order_pk>\d+)/payment/(?P<payment_pk>\d+)/release/$',
-        views.release_payment, name='release-payment'),
+    url(r'^(?P<order_pk>\d+)/payment/(?P<payment_pk>\d+)/void/$',
+        views.void_payment, name='void-payment'),
     url(r'^(?P<order_pk>\d+)/payment/(?P<payment_pk>\d+)/refund/$',
         views.refund_payment, name='refund-payment'),
 
@@ -58,6 +58,6 @@ urlpatterns = [
     url(r'^(?P<order_pk>\d+)/mark-as-paid/$',
         views.mark_order_as_paid, name='order-mark-as-paid'),
 
-    url('^(?P<order_pk>\d+)/ajax/shipping-methods/$',
+    url(r'^(?P<order_pk>\d+)/ajax/shipping-methods/$',
         views.ajax_order_shipping_methods_list,
         name='ajax-order-shipping-methods')]

@@ -1,18 +1,19 @@
 from itertools import chain
+from textwrap import dedent
 
 import graphene
 from django.core.exceptions import ImproperlyConfigured, ValidationError
+from django.db.models.fields.files import FileField
 from graphene.types.mutation import MutationOptions
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
 from graphql_jwt import ObtainJSONWebToken, Verify
-from graphql_jwt.exceptions import GraphQLJWTError, PermissionDenied
+from graphql_jwt.exceptions import JSONWebTokenError, PermissionDenied
 
 from ...account import models
 from ..account.types import User
-from ..file_upload.types import Upload
 from ..utils import get_nodes
-from .types.common import Error
+from .types import Error, Upload
 from .utils import snake_to_camel_case
 
 registry = get_global_registry()
@@ -27,6 +28,10 @@ def get_model_name(model):
 def get_output_fields(model, return_field_name):
     """Return mutation output field for model instance."""
     model_type = registry.get_type_for_model(model)
+    if not model_type:
+        raise ImproperlyConfigured(
+            'Unable to find type for model %s in graphene registry' %
+            model.__name__)
     fields = {return_field_name: graphene.Field(model_type)}
     return fields
 
@@ -39,11 +44,18 @@ class ModelMutationOptions(MutationOptions):
 
 class BaseMutation(graphene.Mutation):
     errors = graphene.List(
-        Error,
+        graphene.NonNull(Error),
         description='List of errors that occurred executing the mutation.')
 
     class Meta:
         abstract = True
+
+    @classmethod
+    def __init_subclass_with_meta__(cls, description=None, **options):
+        if not description:
+            raise ImproperlyConfigured('No description provided in Meta')
+        description = dedent(description)
+        super().__init_subclass_with_meta__(description=description, **options)
 
     @classmethod
     def _update_mutation_arguments_and_fields(cls, arguments, fields):
@@ -68,6 +80,9 @@ class BaseMutation(graphene.Mutation):
 
     @classmethod
     def get_node_or_error(cls, info, global_id, errors, field, only_type=None):
+        if not global_id:
+            return None
+
         node = None
         try:
             node = graphene.Node.get_node_from_global_id(
@@ -95,19 +110,48 @@ class BaseMutation(graphene.Mutation):
 
         Once a instance is created, this method runs `full_clean()` to perform
         model fields' validation. Returns errors ready to be returned by
-        the GraphQL response (if any occured).
+        the GraphQL response (if any occurred).
         """
         try:
             instance.full_clean()
         except ValidationError as validation_errors:
             message_dict = validation_errors.message_dict
             for field in message_dict:
-                if field in cls._meta.exclude:
+                if hasattr(cls._meta, 'exclude') and field in cls._meta.exclude:
                     continue
                 for message in message_dict[field]:
                     field = snake_to_camel_case(field)
                     cls.add_error(errors, field, message)
         return errors
+
+    @classmethod
+    def construct_instance(cls, instance, cleaned_data):
+        """Fill instance fields with cleaned data.
+
+        The `instance` argument is either an empty instance of a already
+        existing one which was fetched from the database. `cleaned_data` is
+        data to be set in instance fields. Returns `instance` with filled
+        fields, but not saved to the database.
+        """
+        from django.db import models
+        opts = instance._meta
+
+        for f in opts.fields:
+            if any([not f.editable, isinstance(f, models.AutoField),
+                    f.name not in cleaned_data]):
+                continue
+            data = cleaned_data[f.name]
+            if data is None:
+                # We want to reset the file field value when None was passed
+                # in the input, but `FileField.save_form_data` ignores None
+                # values. In that case we manually pass False which clears
+                # the file.
+                if isinstance(f, FileField):
+                    data = False
+                if not f.null:
+                    data = f._get_default()
+            f.save_form_data(instance, data)
+        return instance
 
 
 class ModelMutation(BaseMutation):
@@ -116,8 +160,8 @@ class ModelMutation(BaseMutation):
 
     @classmethod
     def __init_subclass_with_meta__(
-            cls, arguments=None, model=None, exclude=None, _meta=None,
-            **options):
+            cls, arguments=None, model=None, exclude=None,
+            return_field_name=None, _meta=None, **options):
         if not model:
             raise ImproperlyConfigured('model is required for ModelMutation')
         if not _meta:
@@ -126,7 +170,8 @@ class ModelMutation(BaseMutation):
         if exclude is None:
             exclude = []
 
-        return_field_name = get_model_name(model)
+        if not return_field_name:
+            return_field_name = get_model_name(model)
         if arguments is None:
             arguments = {}
         fields = get_output_fields(model, return_field_name)
@@ -144,7 +189,7 @@ class ModelMutation(BaseMutation):
 
         Fields containing IDs or lists of IDs are automatically resolved into
         model instances. `instance` argument is the model instance the mutation
-        is operating on (befor setting the input data). `input` is raw input
+        is operating on (before setting the input data). `input` is raw input
         data the mutation receives. `errors` is a list of errors that occurred
         during mutation's execution.
 
@@ -197,28 +242,6 @@ class ModelMutation(BaseMutation):
                 else:
                     cleaned_input[field_name] = value
         return cleaned_input
-
-    @classmethod
-    def construct_instance(cls, instance, cleaned_data):
-        """Fill instance fields with cleaned data.
-
-        The `instance` argument is either an empty instance of a already
-        existing one which was fetched from the database. `cleaned_data` is
-        data to be set in instance fields. Returns `instance` with filled
-        fields, but not saved to the database.
-        """
-        from django.db import models
-        opts = instance._meta
-
-        for f in opts.fields:
-            if any([not f.editable, isinstance(f, models.AutoField),
-                    f.name not in cleaned_data]):
-                continue
-            data = cleaned_data[f.name]
-            if not f.null and data is None:
-                data = f._get_default()
-            f.save_form_data(instance, data)
-        return instance
 
     @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):
@@ -292,6 +315,15 @@ class ModelDeleteMutation(ModelMutation):
         abstract = True
 
     @classmethod
+    def clean_instance(cls, info, instance, errors):
+        """Perform additional logic before deleting the model instance.
+
+        Override this method to raise custom validation error and abort
+        the deletion process.
+        """
+        pass
+
+    @classmethod
     def mutate(cls, root, info, **data):
         """Perform a mutation that deletes a model instance."""
         if not cls.user_is_allowed(info.context.user, data):
@@ -302,6 +334,9 @@ class ModelDeleteMutation(ModelMutation):
         model_type = registry.get_type_for_model(cls._meta.model)
         instance = cls.get_node_or_error(
             info, node_id, errors, 'id', model_type)
+
+        if instance:
+            cls.clean_instance(info, instance, errors)
 
         if errors:
             return cls(errors=errors)
@@ -330,7 +365,7 @@ class CreateToken(ObtainJSONWebToken):
     def mutate(cls, root, info, **kwargs):
         try:
             result = super().mutate(root, info, **kwargs)
-        except GraphQLJWTError as e:
+        except JSONWebTokenError as e:
             return CreateToken(errors=[Error(message=str(e))])
         else:
             return result

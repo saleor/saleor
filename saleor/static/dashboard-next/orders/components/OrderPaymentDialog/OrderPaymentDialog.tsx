@@ -6,30 +6,43 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
+import ConfirmButton, {
+  ConfirmButtonTransitionState
+} from "../../../components/ConfirmButton";
 import Form from "../../../components/Form";
 import i18n from "../../../i18n";
 
 export interface FormData {
-  amount: string;
+  amount: number;
 }
 
 interface OrderPaymentDialogProps {
+  confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
+  initial: number;
   variant: string;
   onClose: () => void;
   onSubmit: (data: FormData) => void;
 }
 
-const initialForm: FormData = { amount: "0" };
-
 const OrderPaymentDialog: React.StatelessComponent<OrderPaymentDialogProps> = ({
+  confirmButtonState,
   open,
+  initial,
   variant,
   onClose,
   onSubmit
 }) => (
   <Dialog open={open}>
-    <Form initial={initialForm} onSubmit={onSubmit}>
+    <Form
+      initial={{
+        amount: initial
+      }}
+      onSubmit={data => {
+        onSubmit(data);
+        onClose();
+      }}
+    >
       {({ data, change, submit }) => (
         <>
           <DialogTitle>
@@ -44,6 +57,9 @@ const OrderPaymentDialog: React.StatelessComponent<OrderPaymentDialogProps> = ({
               label={i18n.t("Amount")}
               name="amount"
               onChange={change}
+              inputProps={{
+                step: "0.01"
+              }}
               type="number"
               value={data.amount}
             />
@@ -52,20 +68,22 @@ const OrderPaymentDialog: React.StatelessComponent<OrderPaymentDialogProps> = ({
             <Button onClick={onClose}>
               {i18n.t("Cancel", { context: "button" })}
             </Button>
-            <Button
+            <ConfirmButton
+              transitionState={confirmButtonState}
               color="primary"
-              variant="raised"
+              variant="contained"
               onClick={data => {
                 onClose();
                 submit(data);
               }}
             >
               {i18n.t("Confirm", { context: "button" })}
-            </Button>
+            </ConfirmButton>
           </DialogActions>
         </>
       )}
     </Form>
   </Dialog>
 );
+OrderPaymentDialog.displayName = "OrderPaymentDialog";
 export default OrderPaymentDialog;
