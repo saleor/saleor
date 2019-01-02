@@ -30,24 +30,26 @@ Usage
 
     $ docker-compose build
 
+2. Run the containers (migrations are run automatically)
 
-2. Prepare the database
+    .. code-block:: bash
 
-   .. code-block:: bash
+     $ docker-compose up
 
-    $ docker-compose run web python3 manage.py migrate
-    $ docker-compose run web python3 manage.py collectstatic
-    $ docker-compose run web python3 manage.py populatedb --createsuperuser
+3. Collect static assets
 
-   The ``--createsuperuser`` argument creates an admin account for
-   ``admin@example.com`` with the password set to ``admin``.
+    .. code-block:: bash
 
+     $ docker-compose run migrate python3 manage.py collectstatic
 
-3. Run the containers
+4. Optionally add sample data to the database
 
-   .. code-block:: bash
+    .. code-block:: bash
+    
+     $ docker-compose run migrate python3 manage.py populatedb --createsuperuser
 
-    $ docker-compose up
+    The ``--createsuperuser`` argument creates an admin account for
+    ``admin@example.com`` with the password set to ``admin``.
 
 
 By default, the application is started in debug mode and is configured to listen on port ``8000``.
