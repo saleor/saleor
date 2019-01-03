@@ -278,9 +278,16 @@ def permission_manage_orders():
 @pytest.fixture
 def product_type(color_attribute, size_attribute):
     product_type = ProductType.objects.create(
-        name='Default Type', has_variants=False, is_shipping_required=True)
+        name='Default Type', has_variants=True, is_shipping_required=True)
     product_type.product_attributes.add(color_attribute)
     product_type.variant_attributes.add(size_attribute)
+    return product_type
+
+
+@pytest.fixture
+def product_type_without_variant():
+    product_type = ProductType.objects.create(
+        name='Type', has_variants=False, is_shipping_required=True)
     return product_type
 
 
@@ -302,6 +309,17 @@ def product(product_type, category):
     ProductVariant.objects.create(
         product=product, sku='123', attributes=variant_attributes,
         cost_price=Money('1.00', 'USD'), quantity=10, quantity_allocated=1)
+    return product
+
+
+@pytest.fixture
+def product_with_default_variant(product_type_without_variant, category):
+    product = Product.objects.create(
+        name='Test product', price=Money('10.00', 'USD'),
+        product_type=product_type_without_variant, category=category)
+    ProductVariant.objects.create(
+        product=product, sku='123', track_inventory=True,
+        quantity=100)
     return product
 
 

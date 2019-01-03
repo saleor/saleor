@@ -1377,6 +1377,9 @@ input ProductCreateInput {
   taxRate: TaxRateType
   seo: SeoInput
   weight: WeightScalar
+  sku: String
+  quantity: Int
+  trackInventory: Boolean
   productType: ID!
 }
 
@@ -1439,6 +1442,9 @@ input ProductInput {
   taxRate: TaxRateType
   seo: SeoInput
   weight: WeightScalar
+  sku: String
+  quantity: Int
+  trackInventory: Boolean
 }
 
 input ProductOrder {
