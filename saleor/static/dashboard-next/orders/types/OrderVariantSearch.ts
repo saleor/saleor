@@ -37,9 +37,18 @@ export interface OrderVariantSearch_products_edges {
   node: OrderVariantSearch_products_edges_node;
 }
 
+export interface OrderVariantSearch_products_pageInfo {
+  __typename: "PageInfo";
+  endCursor: string | null;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  startCursor: string | null;
+}
+
 export interface OrderVariantSearch_products {
   __typename: "ProductCountableConnection";
   edges: OrderVariantSearch_products_edges[];
+  pageInfo: OrderVariantSearch_products_pageInfo;
 }
 
 export interface OrderVariantSearch {
@@ -48,4 +57,5 @@ export interface OrderVariantSearch {
 
 export interface OrderVariantSearchVariables {
   search: string;
+  after?: string | null;
 }

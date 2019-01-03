@@ -17,6 +17,7 @@ import TableCell from "@material-ui/core/TableCell";
 import TableRow from "@material-ui/core/TableRow";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
+import * as InfiniteScroll from "react-infinite-scroller";
 
 import ConfirmButton, {
   ConfirmButtonTransitionState
@@ -48,6 +49,12 @@ const styles = (theme: Theme) =>
     grayText: {
       color: theme.palette.text.disabled
     },
+    loadMoreLoaderContainer: {
+      alignItems: "center",
+      display: "flex",
+      height: theme.spacing.unit * 3,
+      justifyContent: "center"
+    },
     overflow: {
       overflowY: "visible"
     },
@@ -73,8 +80,10 @@ interface OrderProductAddDialogProps extends WithStyles<typeof styles> {
   open: boolean;
   products: OrderVariantSearch_products_edges_node[];
   loading: boolean;
+  hasMore: boolean;
   onClose: () => void;
   onFetch: (value: string) => void;
+  onFetchMore: () => void;
   onSubmit: (data: FormData) => void;
 }
 
@@ -105,8 +114,10 @@ const OrderProductAddDialog = withStyles(styles, {
     confirmButtonState,
     open,
     loading,
+    hasMore,
     products,
     onFetch,
+    onFetchMore,
     onClose,
     onSubmit
   }: OrderProductAddDialogProps) => (
@@ -146,119 +157,133 @@ const OrderProductAddDialog = withStyles(styles, {
               </Debounce>
             </DialogContent>
             <DialogContent className={classes.content}>
-              <Table>
-                <TableBody>
-                  {products &&
-                    products.map(product => (
-                      <React.Fragment key={product.id}>
-                        <TableRow>
-                          <TableCell
-                            padding="checkbox"
-                            className={classes.productCheckboxCell}
-                          >
-                            <Checkbox
-                              checked={hasAllVariantsSelected(
-                                product.variants,
-                                data.variants
-                              )}
-                              onChange={() =>
-                                hasAllVariantsSelected(
+              <InfiniteScroll
+                pageStart={0}
+                loadMore={onFetchMore}
+                hasMore={hasMore}
+                useWindow={false}
+                loader={
+                  <div className={classes.loadMoreLoaderContainer}>
+                    <CircularProgress size={16} />
+                  </div>
+                }
+              >
+                <Table>
+                  <TableBody>
+                    {products &&
+                      products.map(product => (
+                        <React.Fragment key={product.id}>
+                          <TableRow>
+                            <TableCell
+                              padding="checkbox"
+                              className={classes.productCheckboxCell}
+                            >
+                              <Checkbox
+                                checked={hasAllVariantsSelected(
                                   product.variants,
                                   data.variants
-                                )
-                                  ? change({
-                                      target: {
-                                        name: "variants",
-                                        value: data.variants.filter(
-                                          selectedVariant =>
-                                            !product.variants.find(
-                                              productVariant =>
-                                                productVariant.id ===
-                                                selectedVariant.id
-                                            )
-                                        )
-                                      }
-                                    } as any)
-                                  : change({
-                                      target: {
-                                        name: "variants",
-                                        value: [
-                                          ...data.variants,
-                                          ...product.variants.filter(
-                                            productVariant =>
-                                              !data.variants.find(
-                                                selectedVariant =>
-                                                  selectedVariant.id ===
-                                                  productVariant.id
-                                              )
-                                          )
-                                        ]
-                                      }
-                                    } as any)
-                              }
-                            />
-                          </TableCell>
-                          <TableCellAvatar
-                            className={classes.avatar}
-                            thumbnail={product.thumbnail.url}
-                          />
-                          <TableCell className={classes.wideCell} colSpan={2}>
-                            {product.name}
-                          </TableCell>
-                        </TableRow>
-                        {product.variants.map(variant => (
-                          <TableRow key={variant.id}>
-                            <TableCell />
-                            <TableCell>
-                              <Checkbox
-                                className={classes.variantCheckbox}
-                                checked={
-                                  !!data.variants.find(
-                                    selectedVariant =>
-                                      selectedVariant.id === variant.id
-                                  )
-                                }
+                                )}
                                 onChange={() =>
-                                  data.variants.find(
-                                    selectedVariant =>
-                                      selectedVariant.id === variant.id
+                                  hasAllVariantsSelected(
+                                    product.variants,
+                                    data.variants
                                   )
                                     ? change({
                                         target: {
                                           name: "variants",
                                           value: data.variants.filter(
                                             selectedVariant =>
-                                              selectedVariant.id !== variant.id
+                                              !product.variants.find(
+                                                productVariant =>
+                                                  productVariant.id ===
+                                                  selectedVariant.id
+                                              )
                                           )
                                         }
                                       } as any)
                                     : change({
                                         target: {
                                           name: "variants",
-                                          value: [...data.variants, variant]
+                                          value: [
+                                            ...data.variants,
+                                            ...product.variants.filter(
+                                              productVariant =>
+                                                !data.variants.find(
+                                                  selectedVariant =>
+                                                    selectedVariant.id ===
+                                                    productVariant.id
+                                                )
+                                            )
+                                          ]
                                         }
                                       } as any)
                                 }
                               />
                             </TableCell>
-                            <TableCell>
-                              <div>{variant.name}</div>
-                              <div className={classes.grayText}>
-                                {i18n.t("SKU {{ sku }}", {
-                                  sku: variant.sku
-                                })}
-                              </div>
-                            </TableCell>
-                            <TableCell className={classes.textRight}>
-                              <Money money={variant.price} />
+                            <TableCellAvatar
+                              className={classes.avatar}
+                              thumbnail={product.thumbnail.url}
+                            />
+                            <TableCell className={classes.wideCell} colSpan={2}>
+                              {product.name}
                             </TableCell>
                           </TableRow>
-                        ))}
-                      </React.Fragment>
-                    ))}
-                </TableBody>
-              </Table>
+                          {product.variants.map(variant => (
+                            <TableRow key={variant.id}>
+                              <TableCell />
+                              <TableCell>
+                                <Checkbox
+                                  className={classes.variantCheckbox}
+                                  checked={
+                                    !!data.variants.find(
+                                      selectedVariant =>
+                                        selectedVariant.id === variant.id
+                                    )
+                                  }
+                                  onChange={() =>
+                                    data.variants.find(
+                                      selectedVariant =>
+                                        selectedVariant.id === variant.id
+                                    )
+                                      ? change({
+                                          target: {
+                                            name: "variants",
+                                            value: data.variants.filter(
+                                              selectedVariant =>
+                                                selectedVariant.id !==
+                                                variant.id
+                                            )
+                                          }
+                                        } as any)
+                                      : change({
+                                          target: {
+                                            name: "variants",
+                                            value: [...data.variants, variant]
+                                          }
+                                        } as any)
+                                  }
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <div>{variant.name}</div>
+                                <div className={classes.grayText}>
+                                  {i18n.t("SKU {{ sku }}", {
+                                    sku: variant.sku
+                                  })}
+                                </div>
+                              </TableCell>
+                              <TableCell className={classes.textRight}>
+                                <Money money={variant.price} />
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </React.Fragment>
+                      ))}
+                  </TableBody>
+                </Table>
+              </InfiniteScroll>
             </DialogContent>
+
             <DialogActions>
               <Button onClick={onClose}>
                 {i18n.t("Cancel", { context: "button" })}
