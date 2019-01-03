@@ -659,17 +659,27 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       }) => {
                                         const fetchMore = () =>
                                           variantSearchOpts.loadMore(
-                                            (prev, next) => ({
-                                              ...prev,
-                                              products: {
-                                                ...prev.products,
-                                                edges: [
-                                                  ...prev.products.edges,
-                                                  ...next.products.edges
-                                                ],
-                                                pageInfo: next.products.pageInfo
+                                            (prev, next) => {
+                                              if (
+                                                prev.products.pageInfo
+                                                  .endCursor ===
+                                                next.products.pageInfo.endCursor
+                                              ) {
+                                                return prev;
                                               }
-                                            }),
+                                              return {
+                                                ...prev,
+                                                products: {
+                                                  ...prev.products,
+                                                  edges: [
+                                                    ...prev.products.edges,
+                                                    ...next.products.edges
+                                                  ],
+                                                  pageInfo:
+                                                    next.products.pageInfo
+                                                }
+                                              };
+                                            },
                                             {
                                               after:
                                                 variantSearchOpts.data.products

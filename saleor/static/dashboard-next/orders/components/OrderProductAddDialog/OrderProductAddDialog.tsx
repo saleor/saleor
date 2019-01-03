@@ -27,6 +27,7 @@ import Form from "../../../components/Form";
 import Money from "../../../components/Money";
 import TableCellAvatar from "../../../components/TableCellAvatar";
 import i18n from "../../../i18n";
+import { maybe, renderCollection } from "../../../misc";
 import {
   OrderVariantSearch_products_edges_node,
   OrderVariantSearch_products_edges_node_variants
@@ -128,177 +129,194 @@ const OrderProductAddDialog = withStyles(styles, {
       maxWidth="sm"
     >
       <Form initial={initialForm} onSubmit={onSubmit}>
-        {({ data, change }) => (
-          <>
-            <DialogTitle>{i18n.t("Add product")}</DialogTitle>
-            <DialogContent className={classes.overflow}>
-              <Debounce debounceFn={onFetch}>
-                {fetch => (
-                  <TextField
-                    name="query"
-                    value={data.query}
-                    onChange={event => change(event, () => fetch(data.query))}
-                    label={i18n.t("Search Products", {
-                      context: "product search input label"
-                    })}
-                    placeholder={i18n.t(
-                      "Search by product name, attribute, product type etc...",
-                      {
-                        context: "product search input placeholder"
-                      }
-                    )}
-                    fullWidth
-                    InputProps={{
-                      autoComplete: "off",
-                      endAdornment: loading && <CircularProgress size={16} />
-                    }}
-                  />
-                )}
-              </Debounce>
-            </DialogContent>
-            <DialogContent className={classes.content}>
-              <InfiniteScroll
-                pageStart={0}
-                loadMore={onFetchMore}
-                hasMore={hasMore}
-                useWindow={false}
-                loader={
-                  <div className={classes.loadMoreLoaderContainer}>
-                    <CircularProgress size={16} />
-                  </div>
-                }
-              >
-                <Table>
-                  <TableBody>
-                    {products &&
-                      products.map(product => (
-                        <React.Fragment key={product.id}>
-                          <TableRow>
-                            <TableCell
-                              padding="checkbox"
-                              className={classes.productCheckboxCell}
-                            >
-                              <Checkbox
-                                checked={hasAllVariantsSelected(
-                                  product.variants,
-                                  data.variants
-                                )}
-                                onChange={() =>
-                                  hasAllVariantsSelected(
-                                    product.variants,
-                                    data.variants
-                                  )
-                                    ? change({
-                                        target: {
-                                          name: "variants",
-                                          value: data.variants.filter(
-                                            selectedVariant =>
-                                              !product.variants.find(
-                                                productVariant =>
-                                                  productVariant.id ===
-                                                  selectedVariant.id
-                                              )
-                                          )
-                                        }
-                                      } as any)
-                                    : change({
-                                        target: {
-                                          name: "variants",
-                                          value: [
-                                            ...data.variants,
-                                            ...product.variants.filter(
-                                              productVariant =>
-                                                !data.variants.find(
-                                                  selectedVariant =>
-                                                    selectedVariant.id ===
-                                                    productVariant.id
-                                                )
-                                            )
-                                          ]
-                                        }
-                                      } as any)
-                                }
-                              />
-                            </TableCell>
-                            <TableCellAvatar
-                              className={classes.avatar}
-                              thumbnail={product.thumbnail.url}
-                            />
-                            <TableCell className={classes.wideCell} colSpan={2}>
-                              {product.name}
-                            </TableCell>
-                          </TableRow>
-                          {product.variants.map(variant => (
-                            <TableRow key={variant.id}>
-                              <TableCell />
-                              <TableCell>
+        {({ data, change }) => {
+          const selectedProducts = products
+            ? products.map(product =>
+                hasAllVariantsSelected(product.variants, data.variants)
+              )
+            : [];
+
+          return (
+            <>
+              <DialogTitle>{i18n.t("Add product")}</DialogTitle>
+              <DialogContent className={classes.overflow}>
+                <Debounce debounceFn={onFetch}>
+                  {fetch => (
+                    <TextField
+                      name="query"
+                      value={data.query}
+                      onChange={event => change(event, () => fetch(data.query))}
+                      label={i18n.t("Search Products", {
+                        context: "product search input label"
+                      })}
+                      placeholder={i18n.t(
+                        "Search by product name, attribute, product type etc...",
+                        {
+                          context: "product search input placeholder"
+                        }
+                      )}
+                      fullWidth
+                      InputProps={{
+                        autoComplete: "off",
+                        endAdornment: loading && <CircularProgress size={16} />
+                      }}
+                    />
+                  )}
+                </Debounce>
+              </DialogContent>
+              <DialogContent className={classes.content}>
+                <InfiniteScroll
+                  pageStart={0}
+                  loadMore={onFetchMore}
+                  hasMore={hasMore}
+                  useWindow={false}
+                  loader={
+                    <div className={classes.loadMoreLoaderContainer}>
+                      <CircularProgress size={16} />
+                    </div>
+                  }
+                  threshold={10}
+                >
+                  <Table key="table">
+                    <TableBody>
+                      {renderCollection(
+                        products,
+                        (product, productIndex) => (
+                          <React.Fragment
+                            key={product ? product.id : "skeleton"}
+                          >
+                            <TableRow>
+                              <TableCell
+                                padding="checkbox"
+                                className={classes.productCheckboxCell}
+                              >
                                 <Checkbox
-                                  className={classes.variantCheckbox}
-                                  checked={
-                                    !!data.variants.find(
-                                      selectedVariant =>
-                                        selectedVariant.id === variant.id
-                                    )
-                                  }
+                                  checked={selectedProducts[productIndex]}
+                                  disabled={loading}
                                   onChange={() =>
-                                    data.variants.find(
-                                      selectedVariant =>
-                                        selectedVariant.id === variant.id
-                                    )
+                                    selectedProducts[productIndex]
                                       ? change({
                                           target: {
                                             name: "variants",
                                             value: data.variants.filter(
                                               selectedVariant =>
-                                                selectedVariant.id !==
-                                                variant.id
+                                                !product.variants.find(
+                                                  productVariant =>
+                                                    productVariant.id ===
+                                                    selectedVariant.id
+                                                )
                                             )
                                           }
                                         } as any)
                                       : change({
                                           target: {
                                             name: "variants",
-                                            value: [...data.variants, variant]
+                                            value: [
+                                              ...data.variants,
+                                              ...product.variants.filter(
+                                                productVariant =>
+                                                  !data.variants.find(
+                                                    selectedVariant =>
+                                                      selectedVariant.id ===
+                                                      productVariant.id
+                                                  )
+                                              )
+                                            ]
                                           }
                                         } as any)
                                   }
                                 />
                               </TableCell>
-                              <TableCell>
-                                <div>{variant.name}</div>
-                                <div className={classes.grayText}>
-                                  {i18n.t("SKU {{ sku }}", {
-                                    sku: variant.sku
-                                  })}
-                                </div>
-                              </TableCell>
-                              <TableCell className={classes.textRight}>
-                                <Money money={variant.price} />
+                              <TableCellAvatar
+                                className={classes.avatar}
+                                thumbnail={maybe(() => product.thumbnail.url)}
+                              />
+                              <TableCell
+                                className={classes.wideCell}
+                                colSpan={2}
+                              >
+                                {maybe(() => product.name)}
                               </TableCell>
                             </TableRow>
-                          ))}
-                        </React.Fragment>
-                      ))}
-                  </TableBody>
-                </Table>
-              </InfiniteScroll>
-            </DialogContent>
-
-            <DialogActions>
-              <Button onClick={onClose}>
-                {i18n.t("Cancel", { context: "button" })}
-              </Button>
-              <ConfirmButton
-                transitionState={confirmButtonState}
-                color="primary"
-                variant="contained"
-                type="submit"
-              >
-                {i18n.t("Confirm", { context: "button" })}
-              </ConfirmButton>
-            </DialogActions>
-          </>
-        )}
+                            {maybe(() => product.variants, []).map(variant => (
+                              <TableRow key={variant.id}>
+                                <TableCell />
+                                <TableCell>
+                                  <Checkbox
+                                    className={classes.variantCheckbox}
+                                    checked={
+                                      !!data.variants.find(
+                                        selectedVariant =>
+                                          selectedVariant.id === variant.id
+                                      )
+                                    }
+                                    onChange={() =>
+                                      data.variants.find(
+                                        selectedVariant =>
+                                          selectedVariant.id === variant.id
+                                      )
+                                        ? change({
+                                            target: {
+                                              name: "variants",
+                                              value: data.variants.filter(
+                                                selectedVariant =>
+                                                  selectedVariant.id !==
+                                                  variant.id
+                                              )
+                                            }
+                                          } as any)
+                                        : change({
+                                            target: {
+                                              name: "variants",
+                                              value: [...data.variants, variant]
+                                            }
+                                          } as any)
+                                    }
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <div>{variant.name}</div>
+                                  <div className={classes.grayText}>
+                                    {i18n.t("SKU {{ sku }}", {
+                                      sku: variant.sku
+                                    })}
+                                  </div>
+                                </TableCell>
+                                <TableCell className={classes.textRight}>
+                                  <Money money={variant.price} />
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </React.Fragment>
+                        ),
+                        () => (
+                          <TableRow>
+                            <TableCell colSpan={4}>
+                              {i18n.t("No products matching given query")}
+                            </TableCell>
+                          </TableRow>
+                        )
+                      )}
+                    </TableBody>
+                  </Table>
+                </InfiniteScroll>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={onClose}>
+                  {i18n.t("Cancel", { context: "button" })}
+                </Button>
+                <ConfirmButton
+                  transitionState={confirmButtonState}
+                  color="primary"
+                  variant="contained"
+                  type="submit"
+                >
+                  {i18n.t("Confirm", { context: "button" })}
+                </ConfirmButton>
+              </DialogActions>
+            </>
+          );
+        }}
       </Form>
     </Dialog>
   )
