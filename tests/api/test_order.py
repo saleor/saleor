@@ -1091,17 +1091,9 @@ def test_order_refund(
 def test_clean_order_void_payment():
     payment = MagicMock(spec=Payment)
     payment.is_active = False
-    payment.gateway = 'dummy'
     errors = clean_void_payment(payment, [])
     assert errors[0].field == 'payment'
     assert errors[0].message == 'Only pre-authorized payments can be voided'
-
-    payment.is_active = True
-    error_msg = 'error has happened.'
-    payment.void = Mock(side_effect=ValueError(error_msg))
-    errors = clean_void_payment(payment, [])
-    assert errors[0].field == 'payment'
-    assert errors[0].message == error_msg
 
 
 def test_clean_order_refund_payment():

@@ -7,7 +7,8 @@ from ....order import OrderEvents, models
 from ....order.utils import cancel_order
 from ....payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from ....payment.models import Payment
-from ....payment.utils import get_billing_data, gateway_void
+from ....payment.utils import (
+    gateway_capture, gateway_void, gateway_refund, get_billing_data)
 from ....shipping.models import ShippingMethod as ShippingMethodModel
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation
@@ -321,7 +322,7 @@ class OrderCapture(BaseMutation):
         # FIXME adjust to multiple payments in the future
         payment = order.get_last_payment()
         clean_order_capture(payment, amount, errors)
-        try_payment_action(payment.capture, amount, errors)
+        try_payment_action(gateway_capture, payment, amount, errors)
         if errors:
             return OrderCapture(errors=errors)
 
