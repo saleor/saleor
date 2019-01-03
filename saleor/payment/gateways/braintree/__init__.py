@@ -128,6 +128,7 @@ def process_payment(
         return capture(transaction_token, amount, **connection_params)
     except Exception as e:
         void(transaction_token, **connection_params)
+        raise
 
 
 def authorize(
@@ -154,7 +155,7 @@ def authorize(
     return {
         'is_success': result.is_success,
         'transaction_id': gateway_response['transaction_id'],
-        'gateway_response': gateway_response,
+        'raw_response': gateway_response,
         'errors': error,
     }
 
@@ -177,7 +178,7 @@ def capture(
     return {
         'is_success': result.is_success,
         'transaction_id': gateway_response['transaction_id'],
-        'gateway_response': gateway_response,
+        'raw_response': gateway_response,
         'errors': error,
     }
 
@@ -198,7 +199,7 @@ def void(
     return {
         'is_success': result.is_success,
         'transaction_id': gateway_response['transaction_id'],
-        'gateway_response': gateway_response,
+        'raw_response': gateway_response,
         'errors': error,
     }
 
@@ -222,6 +223,6 @@ def refund(
     return {
         'is_success': result.is_success,
         'transaction_id': gateway_response['transaction_id'],
-        'gateway_response': gateway_response,
+        'raw_response': gateway_response,
         'errors': error,
     }

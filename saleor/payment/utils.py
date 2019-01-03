@@ -74,8 +74,10 @@ def create_payment(**payment_data):
 
 
 def create_transaction(payment: Payment, kind: str, payment_token: str,
-        gateway_response: Dict, **extra_params) -> Transaction:
+        gateway_response: Dict=None, **extra_params) -> Transaction:
     """Creates a Transaction based on transaction kind and gateway response."""
+    if gateway_response is None:
+        gateway_response = {}
     txn, _ = Transaction.objects.get_or_create(
         payment=payment,
         kind=kind,
@@ -129,7 +131,7 @@ def call_gateway(
 
     Additionally does validation of the returned gateway response."""
     gateway, gateway_params = get_payment_gateway(payment.gateway)
-    gateway_response = dict()
+    gateway_response = None
 
     #TODO: improve so only one argument is sent (dict?) instead of passing
     # multiple kwargs, eventually keep connection params separate
@@ -143,6 +145,7 @@ def call_gateway(
         logger.exception('Gateway doesn\'t implement %s', func_name)
     except GatewayError:
         logger.exception('Gateway response validation failed')
+        gateway_response = None  # set response none as the validation failed
     except Exception:
         logger.exception('Gateway encountered an error')
     finally:
@@ -165,8 +168,7 @@ def validate_gateway_response(response):
     """Validates response to be a correct format for Saleor to process."""
     if not isinstance(response, dict):
         raise GatewayError('Gateway needs to return a dictionary')
-    required_fields = {
-        'transaction_id', 'is_success', 'gateway_response', 'errors'}
+    required_fields = {'transaction_id', 'is_success', 'errors'}
     if not required_fields.issubset(response):
         raise GatewayError(
             'Gateway response needs to contain following keys: {}'.format(
@@ -296,7 +298,7 @@ def gateway_refund(payment, amount: Decimal=None) -> Transaction:
 
     if amount <= 0:
         raise PaymentError('Amount should be a positive number.')
-    elif amount > payment.captured_amount:
+    if amount > payment.captured_amount:
         raise PaymentError('Cannot refund more than captured')
 
     transaction = payment.transactions.filter(
