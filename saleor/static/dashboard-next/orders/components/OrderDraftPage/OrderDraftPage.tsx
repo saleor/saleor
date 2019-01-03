@@ -53,8 +53,6 @@ export interface OrderDraftPageProps extends WithStyles<typeof styles> {
     label: string;
   }>;
   saveButtonBarState: ConfirmButtonTransitionState;
-  variantsLoading: boolean;
-  fetchVariants: (value: string) => void;
   fetchUsers: (query: string) => void;
   onBack: () => void;
   onBillingAddressEdit: () => void;
