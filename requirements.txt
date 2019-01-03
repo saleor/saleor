@@ -5,8 +5,8 @@ autopep8==1.4.3
 babel==2.6.0
 billiard==3.5.0.5
 bleach==2.1.4
-boto3==1.9.71
-botocore==1.12.71
+boto3==1.9.72
+botocore==1.12.72
 braintree==3.49.0
 cairocffi==0.9.0
 cairosvg==2.2.1
