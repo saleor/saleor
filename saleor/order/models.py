@@ -126,7 +126,7 @@ class Order(models.Model):
     objects = OrderQueryset.as_manager()
 
     class Meta:
-        ordering = ('-pk',)
+        ordering = ('-pk', )
         permissions = ((
             'manage_orders',
             pgettext_lazy('Permission description', 'Manage orders.')),)
@@ -308,7 +308,7 @@ class OrderLine(models.Model):
         max_digits=5, decimal_places=2, default=Decimal('0.0'))
 
     class Meta:
-        ordering = ('pk',)
+        ordering = ('pk', )
 
     def __str__(self):
         return self.product_name
