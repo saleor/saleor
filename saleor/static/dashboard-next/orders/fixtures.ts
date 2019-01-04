@@ -795,6 +795,7 @@ export const order = (placeholder: string): OrderDetails_order => ({
     streetAddress1: "487 Roberto Shores",
     streetAddress2: ""
   },
+  canFinalize: true,
   created: "2018-09-11T09:37:28.185874+00:00",
   customerNote: "Lorem ipsum dolor sit amet",
   events: [
@@ -826,6 +827,7 @@ export const order = (placeholder: string): OrderDetails_order => ({
           orderLine: {
             __typename: "OrderLine",
             id: "T3JkZXJMaW5lOjIz",
+            isShippingRequired: false,
             productName: "Williams, Garcia and Walker (XS)",
             productSku: "5-1337",
             quantity: 2,
@@ -862,6 +864,7 @@ export const order = (placeholder: string): OrderDetails_order => ({
           orderLine: {
             __typename: "OrderLine",
             id: "T3JkZXJMaW5lOjIz",
+            isShippingRequired: false,
             productName: "Williams, Garcia and Walker (XS)",
             productSku: "5-1337",
             quantity: 2,
@@ -893,6 +896,7 @@ export const order = (placeholder: string): OrderDetails_order => ({
     {
       __typename: "OrderLine",
       id: "T3JkZXJMaW5lOjIy",
+      isShippingRequired: true,
       productName: "Watkins-Gonzalez (Soft)",
       productSku: "59-1337",
       quantity: 3,
@@ -915,6 +919,7 @@ export const order = (placeholder: string): OrderDetails_order => ({
     {
       __typename: "OrderLine",
       id: "T3JkZXJMaW5lOjIz",
+      isShippingRequired: true,
       productName: "Williams, Garcia and Walker (XS)",
       productSku: "5-1337",
       quantity: 2,
@@ -1001,11 +1006,12 @@ export const order = (placeholder: string): OrderDetails_order => ({
   user: null,
   userEmail: "melissa.simon@example.com"
 });
-export const draftOrder = (placeholder: string) => ({
+export const draftOrder = (placeholder: string): OrderDetails_order => ({
   __typename: "Order" as "Order",
   actions: [OrderAction.CAPTURE],
   availableShippingMethods: null,
   billingAddress: null,
+  canFinalize: true,
   created: "2018-09-20T23:23:39.811428+00:00",
   customerNote: "Lorem ipsum dolor sit",
   events: [],
@@ -1015,6 +1021,7 @@ export const draftOrder = (placeholder: string) => ({
     {
       __typename: "OrderLine" as "OrderLine",
       id: "T3JkZXJMaW5lOjQ1",
+      isShippingRequired: false,
       productName: "Davis Group (Hard)",
       productSku: "58-1338",
       quantity: 2,
@@ -1037,6 +1044,7 @@ export const draftOrder = (placeholder: string) => ({
     {
       __typename: "OrderLine" as "OrderLine",
       id: "T3JkZXJMaW5lOjQ2",
+      isShippingRequired: false,
       productName: "Anderson PLC (15-1337)",
       productSku: "15-1337",
       quantity: 2,
