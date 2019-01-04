@@ -467,7 +467,8 @@ def test_view_product_variant_details(admin_client, product):
 
 
 def test_view_product_variant_details_redirect_to_product(
-        admin_client, product):
+        admin_client, product_with_default_variant):
+    product = product_with_default_variant
     variant = product.variants.get()
     url = reverse(
         'dashboard:variant-details',
