@@ -34,7 +34,6 @@ const updateProps: Omit<CategoryUpdatePageProps, "classes"> = {
     hasNextPage: true,
     hasPreviousPage: true
   },
-  placeholderImage,
   products: category.products.edges.map(edge => edge.node),
   saveButtonBarState: "default",
   subcategories: category.children.edges.map(edge => edge.node)
