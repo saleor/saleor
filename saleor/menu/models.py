@@ -15,10 +15,10 @@ class Menu(models.Model):
     json_content = JSONField(blank=True, default=dict)
 
     class Meta:
-        ordering = ['pk']
+        ordering = ('pk', )
         permissions = ((
-            'manage_menus', pgettext_lazy(
-                'Permission description', 'Manage navigation.')),)
+            'manage_menus',
+            pgettext_lazy('Permission description', 'Manage navigation.')), )
 
     def __str__(self):
         return self.name
@@ -46,7 +46,7 @@ class MenuItem(MPTTModel, SortableModel):
     translated = TranslationProxy()
 
     class Meta:
-        ordering = ('sort_order',)
+        ordering = ('sort_order', )
         app_label = 'menu'
 
     def __str__(self):
