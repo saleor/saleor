@@ -6080,6 +6080,8 @@ exports[`Storyshots Product types / Edit attribute form errors 1`] = `<div />`;
 
 exports[`Storyshots Product types / Edit attribute loading 1`] = `<div />`;
 
+exports[`Storyshots Products / ProductVariantImageSelectDialog default 1`] = `null`;
+
 exports[`Storyshots SiteSettings / Add key dialog default 1`] = `<div />`;
 
 exports[`Storyshots SiteSettings / Add key dialog form errors 1`] = `<div />`;
