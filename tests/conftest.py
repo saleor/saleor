@@ -255,10 +255,21 @@ def category_with_image(db, image):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def categories_tree(db):
+def categories_tree(db, product_type):  # pylint: disable=W0613
     parent = Category.objects.create(name='Parent', slug='parent')
     parent.children.create(name='Child', slug='child')
+    child = parent.children.first()
+
+    product_attr = product_type.product_attributes.first()
+    attr_value = product_attr.values.first()
+    attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
+
+    Product.objects.create(
+        name='Test product', price=Money('10.00', 'USD'),
+        product_type=product_type, attributes=attributes, category=child)
+
     return parent
+
 
 @pytest.fixture
 def non_default_category(db):  # pylint: disable=W0613
