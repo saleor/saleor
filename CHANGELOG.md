@@ -42,3 +42,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed hard-coded site name in order PDFs - #3526 by @NyanKiyoshi
 - Extract enums to separate files - #3523 by @maarcingebala
 - Add default variant create to Product mutations - #3505 by @fowczarek
+- Fix attribute filters in parent category - #3535 by @fowczarek
