@@ -16,7 +16,9 @@ storiesOf("Products / ProductVariantImageSelectDialog", module).add(
   () => (
     <ProductVariantImageSelectDialog
       images={variantProductImages}
-      selectedImages={variantImages}
+      selectedImages={variantImages.map(image => image.id)}
+      onClose={() => undefined}
+      onImageSelect={() => undefined}
       open={true}
     />
   )
