@@ -283,6 +283,7 @@ class Product(CountableDjangoObjectType):
             self.get_first_image(), size, method='thumbnail')
         return info.context.build_absolute_uri(url)
 
+    @gql_optimizer.resolver_hints(prefetch_related='images')
     def resolve_thumbnail(self, info, *, size=None):
         image = self.get_first_image()
         if not size:
