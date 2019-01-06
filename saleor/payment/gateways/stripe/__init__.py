@@ -1,13 +1,16 @@
-from django_countries import countries
+from decimal import Decimal
+
 import stripe
 
-from ... import TransactionKind
-from ...utils import create_transaction
 from . import errors
+from ... import TransactionKind
+from ....payment.models import Payment
+from ...utils import create_transaction
 from .forms import StripePaymentModalForm
 from .utils import (
-    get_amount_for_stripe, get_amount_from_stripe,
-    get_currency_for_stripe, get_currency_from_stripe)
+    get_amount_for_stripe, get_amount_from_stripe, get_currency_for_stripe,
+    get_currency_from_stripe, get_payment_billing_fullname,
+    shipping_address_to_stripe_dict)
 
 
 def get_client_token(**_):
@@ -27,7 +30,7 @@ def authorize(payment, payment_token, **connection_params):
         # Authorize without capture
         response = _create_stripe_charge(
             client=client, payment=payment, amount=amount,
-            payment_token=payment_token, capture=False)
+            payment_token=payment_token, should_capture=False)
     except stripe.error.StripeError as exc:
         response = _get_error_response_from_exc(exc)
         error = exc.user_message
@@ -84,7 +87,7 @@ def charge(payment, payment_token, amount, **connection_params):
         # Charge without pre-authorize
         response = _create_stripe_charge(
             client=client, payment=payment, amount=amount,
-            payment_token=payment_token, capture=True)
+            payment_token=payment_token, should_capture=True)
     except stripe.error.StripeError as exc:
         response = _get_error_response_from_exc(exc)
         error = exc.user_message
@@ -170,8 +173,11 @@ def _get_client(**connection_params):
     return stripe
 
 
-def _create_stripe_charge(client, payment, amount, payment_token, capture):
-    """Create a charge with specific amount, ignoring payment's total."""
+def _get_stripe_charge_payload(
+        payment: Payment, amount: Decimal, payment_token: str,
+        should_capture: bool):
+    shipping_address = payment.order.shipping_address
+
     # Get currency
     currency = get_currency_for_stripe(payment.currency)
 
@@ -179,30 +185,32 @@ def _create_stripe_charge(client, payment, amount, payment_token, capture):
     stripe_amount = get_amount_for_stripe(amount, currency)
 
     # Get billing name from payment
-    name = '%s %s' % (
-        payment.billing_last_name, payment.billing_first_name)
+    name = get_payment_billing_fullname(payment)
 
-    # Update shipping address to prevent fraud in Stripe
-    shipping = dict(name=name, address=dict(
-        line1=payment.order.shipping_address.street_address_1,
-        line2=payment.order.shipping_address.street_address_2,
-        city=payment.order.shipping_address.city,
-        state=payment.order.shipping_address.country_area,
-        country=dict(countries).get(
-            payment.order.shipping_address.country, ''),
-        postal_code=payment.order.shipping_address.postal_code,
-    ))
+    # Construct the charge payload from the data
+    charge_payload = {
+        'capture': should_capture,
+        'amount': stripe_amount,
+        'currency': currency,
+        'source': payment_token,
+        'description': name}
 
-    # Create stripe charge
-    stripe_charge = client.Charge.create(
-        capture=capture,
-        amount=stripe_amount,
-        currency=currency,
-        source=payment_token,
-        shipping=shipping,
-        description=name)
+    if shipping_address:
+        # Update shipping address to prevent fraud in Stripe
+        charge_payload['shipping'] = {
+            'name': name,
+            'address': shipping_address_to_stripe_dict(shipping_address)}
 
-    return stripe_charge
+    return charge_payload
+
+
+def _create_stripe_charge(
+        client, payment, amount: Decimal, payment_token: str,
+        should_capture: bool):
+    """Create a charge with specific amount, ignoring payment's total."""
+    charge_payload = _get_stripe_charge_payload(
+        payment, amount, payment_token, should_capture)
+    return client.Charge.create(**charge_payload)
 
 
 def _create_transaction(payment, amount, kind, response):
