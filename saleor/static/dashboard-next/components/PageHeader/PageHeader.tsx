@@ -19,7 +19,7 @@ const styles = (theme: Theme) =>
   });
 
 interface PageHeaderProps extends WithStyles<typeof styles> {
-  back: boolean;
+  back?: boolean;
   children?: React.ReactNode;
   className?: string;
   title?: string;

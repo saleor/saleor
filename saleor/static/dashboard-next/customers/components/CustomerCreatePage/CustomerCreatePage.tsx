@@ -66,7 +66,6 @@ export interface CustomerCreatePageProps extends WithStyles<typeof styles> {
   disabled: boolean;
   errors: UserError[];
   saveButtonBar: ConfirmButtonTransitionState;
-  onBack: () => void;
   onSubmit: (data: CustomerCreatePageFormData) => void;
 }
 
