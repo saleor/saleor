@@ -39,6 +39,26 @@ def get_billing_data(order):
     return data
 
 
+def create_payment_information(
+    payment: Payment, payment_token: str, amount: Decimal=None) -> Dict:
+    """Extracts order information along with payment details.
+
+    Returns information required to process payment and additional
+    billing/shipping addresses for optional fraud-prevention mechanisms.
+    """
+    return {
+        'token': payment_token,
+        'amount': amount or payment.total,
+        'currency': payment.currency,
+        'billing': (
+            payment.order.billing_address.as_data()
+            if payment.order.billing_address else None),
+        'shipping': (
+            payment.order.shipping_address.as_data()
+            if payment.order.shipping_address else None)
+    }
+
+
 def handle_fully_paid_order(order):
     order.events.create(type=OrderEvents.ORDER_FULLY_PAID.value)
     if order.get_user_current_email():
@@ -136,24 +156,24 @@ def call_gateway(
     gateway_response = None
     error_msg = None
 
-    #TODO: improve so only one argument is sent (dict?) instead of passing
-    # multiple kwargs, eventually keep connection params separate
-    #TODO: add additional information to payment data (e.g. shipping/billing)
+    payment_information = create_payment_information(
+        payment, payment_token, **extra_params
+    )
+
     try:
         gateway_response = getattr(gateway, func_name)(
-            payment=model_to_dict(payment), payment_token=payment_token,
-            **extra_params, **gateway_params)
+            payment_information=payment_information, **gateway_params)
         validate_gateway_response(gateway_response)
     except AttributeError:
         error_msg = 'Gateway doesn\'t implement {}'.format(func_name)
-        logger.exception(msg)
+        logger.exception(error_msg)
     except GatewayError:
         error_msg = 'Gateway response validation failed'
-        logger.exception()
+        logger.exception(error_msg)
         gateway_response = None  # set response empty as the validation failed
     except Exception:
         error_msg = 'Gateway encountered an error'
-        logger.exception('Gateway encountered an error')
+        logger.exception(error_msg)
     finally:
         if not isinstance(gateway_response, list):
             gateway_response = [gateway_response]
