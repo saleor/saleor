@@ -44,3 +44,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add default variant create to Product mutations - #3505 by @fowczarek
 - Fix attribute filters in parent category - #3535 by @fowczarek
 - Fixed the no shipping orders payment crash on Stripe - #3550 by @NyanKiyoshi
+- Unique validation SKU when default variant create in GraphQL API - #3555 by @fowczarek
