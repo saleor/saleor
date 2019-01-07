@@ -100,6 +100,4 @@ def charge(
     auth_resp = authorize(payment, payment_token)
     if auth_resp['error']:
         return auth_resp
-    capture_resp = capture(payment, payment_token, amount)
-    capture_resp['kind'] = 'charge'
-    return [auth_resp, capture_resp]
+    return [auth_resp, capture(payment, payment_token, amount)]
