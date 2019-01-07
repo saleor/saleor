@@ -7,15 +7,16 @@
 # Joonghee Lee <leejoonghee@gmail.com>, 2018
 # Patryk Zawadzki <patrys@room-303.com>, 2018
 # Jihan Chung <jihanchung20@gmail.com>, 2018
+# Joonho Eom <jhoeom@gmail.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-03 09:23-0600\n"
+"POT-Creation-Date: 2018-12-18 08:53-0600\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Jihan Chung <jihanchung20@gmail.com>, 2018\n"
+"Last-Translator: Joonho Eom <jhoeom@gmail.com>, 2019\n"
 "Language-Team: Korean (https://www.transifex.com/mirumee/teams/34782/ko/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -31,17 +32,27 @@ msgstr "이메일"
 #: saleor/account/forms.py:82
 msgctxt "Password"
 msgid "Password"
-msgstr ""
+msgstr "비밀번호"
 
 #: saleor/account/forms.py:84
 msgctxt "Email"
 msgid "Email"
-msgstr ""
+msgstr "이메일"
 
 #: saleor/account/forms.py:88
 msgctxt "Registration error"
 msgid "This email has already been registered."
 msgstr "이미 등록된 이메일 입니다."
+
+#: saleor/account/forms.py:135
+msgctxt "Customer form: Given name field"
+msgid "Given name"
+msgstr "이름"
+
+#: saleor/account/forms.py:137
+msgctxt "Customer form: Family name field"
+msgid "Family name"
+msgstr "성"
 
 #: saleor/account/i18n.py:18
 msgctxt "Address field"
@@ -146,17 +157,17 @@ msgstr "우편번호"
 #: saleor/account/i18n.py:63 saleor/account/i18n.py:109
 msgctxt "Country"
 msgid "Country"
-msgstr ""
+msgstr "국가"
 
 #: saleor/account/i18n.py:94
 msgctxt "Personal name"
 msgid "Given name"
-msgstr ""
+msgstr "이름"
 
 #: saleor/account/i18n.py:96
 msgctxt "Personal name"
 msgid "Family name"
-msgstr ""
+msgstr "성"
 
 #: saleor/account/i18n.py:98
 msgctxt "Company or organization"
@@ -166,59 +177,59 @@ msgstr ""
 #: saleor/account/i18n.py:100
 msgctxt "Address"
 msgid "Address"
-msgstr ""
+msgstr "주소"
 
 #: saleor/account/i18n.py:103
 msgctxt "City"
 msgid "City"
-msgstr ""
+msgstr "시군구"
 
 #: saleor/account/i18n.py:105
 msgctxt "City area"
 msgid "District"
-msgstr ""
+msgstr "구"
 
 #: saleor/account/i18n.py:107
 msgctxt "Postal code"
 msgid "Postal code"
-msgstr ""
+msgstr "우편번호"
 
 #: saleor/account/i18n.py:111
 msgctxt "Country area"
 msgid "State or province"
-msgstr ""
+msgstr "시/도"
 
 #: saleor/account/i18n.py:113
 msgctxt "Phone number"
 msgid "Phone number"
-msgstr ""
+msgstr "전화번호"
 
 #: saleor/account/i18n.py:116
 msgctxt "Address"
 msgid "Street address, P.O. box, company name"
-msgstr ""
+msgstr "도로명, 회사명, 사서함"
 
 #: saleor/account/i18n.py:118
 msgctxt "Address"
 msgid "Apartment, suite, unit, building, floor, etc"
-msgstr ""
+msgstr "아파트, 빌라, 호수, 건물명, 층, 등"
 
 #: saleor/account/i18n.py:170
 msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr "이 입력값은 선택된 국가에는 적용되지 않습니다."
 
-#: saleor/account/models.py:133
+#: saleor/account/models.py:135
 msgctxt "Permission description"
 msgid "Manage customers."
-msgstr ""
+msgstr "고객관리"
 
-#: saleor/account/models.py:136
+#: saleor/account/models.py:138
 msgctxt "Permission description"
 msgid "Manage staff."
-msgstr ""
+msgstr "직원관리"
 
-#: saleor/account/models.py:139
+#: saleor/account/models.py:141
 msgctxt "Permission description"
 msgid "Impersonate customers."
 msgstr ""
@@ -251,27 +262,32 @@ msgstr "성공적으로 로그아웃 되었습니다."
 msgid "User has been created"
 msgstr "사용자가 생성 되었습니다"
 
-#: saleor/account/views.py:95
+#: saleor/account/views.py:97
 msgctxt "Storefront message"
 msgid "Password successfully changed."
 msgstr "비밀번호가 성공적으로 변경되었습니다."
 
-#: saleor/account/views.py:108
+#: saleor/account/views.py:106
+msgctxt "Storefront message"
+msgid "Account successfully updated."
+msgstr ""
+
+#: saleor/account/views.py:119
 msgctxt "Storefront message"
 msgid "Address successfully updated."
 msgstr "주소가 성공적으로 변경되었습니다."
 
-#: saleor/account/views.py:123
+#: saleor/account/views.py:134
 msgctxt "Storefront message"
 msgid "Address successfully removed"
 msgstr "주소가 성공적으로 삭제 되었습니다."
 
-#: saleor/account/views.py:137
+#: saleor/account/views.py:148
 msgctxt "Storefront message, when user requested his account removed"
 msgid "Please check your inbox for a confirmation e-mail."
 msgstr ""
 
-#: saleor/account/views.py:152
+#: saleor/account/views.py:163
 msgctxt "Account deleted"
 msgid ""
 "Your account was deleted successfully. In case of any trouble or questions "
@@ -880,7 +896,7 @@ msgctxt "Permission description"
 msgid "Manage orders."
 msgstr ""
 
-#: saleor/order/models.py:328
+#: saleor/order/models.py:337
 #, python-format
 msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
@@ -1061,7 +1077,7 @@ msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
 msgstr "%(variant_label)s - %(price)s"
 
-#: saleor/product/models.py:144
+#: saleor/product/models.py:145
 msgctxt "Permission description"
 msgid "Manage products."
 msgstr ""
@@ -1132,7 +1148,7 @@ msgid "Mongolian"
 msgstr ""
 
 #: saleor/settings.py:76
-msgid "Norwegian Bokmål"
+msgid "Norwegian"
 msgstr ""
 
 #: saleor/settings.py:77
@@ -1160,39 +1176,35 @@ msgid "Slovak"
 msgstr ""
 
 #: saleor/settings.py:83
-msgid "Slovenian"
-msgstr ""
-
-#: saleor/settings.py:84
 msgid "Swedish"
 msgstr ""
 
-#: saleor/settings.py:85
+#: saleor/settings.py:84
 msgid "Turkish"
 msgstr ""
 
-#: saleor/settings.py:86
+#: saleor/settings.py:85
 msgid "Ukrainian"
 msgstr ""
 
-#: saleor/settings.py:87
+#: saleor/settings.py:86
 msgid "Vietnamese"
 msgstr ""
 
-#: saleor/settings.py:88
+#: saleor/settings.py:87
 msgid "Simplified Chinese"
 msgstr ""
 
-#: saleor/settings.py:89
+#: saleor/settings.py:88
 msgid "Traditional Chinese"
 msgstr ""
 
-#: saleor/settings.py:325
+#: saleor/settings.py:324
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr ""
 
-#: saleor/settings.py:561
+#: saleor/settings.py:560
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr ""
@@ -1311,7 +1323,7 @@ msgstr "새로운 주소"
 #: templates/account/password_change.html:7 templates/checkout/index.html:11
 #: templates/order/details.html:18 templates/order/payment.html:18
 #: templates/order/payment/details.html:12 templates/page/details.html:27
-#: templates/product/details.html:44
+#: templates/product/details.html:45
 msgctxt "Main navigation item"
 msgid "Home"
 msgstr "홈"
@@ -1375,8 +1387,8 @@ msgstr "비밀번호 변경"
 
 #: templates/account/details.html:42
 msgctxt "User profile tab"
-msgid "Addresses book"
-msgstr "주소 모음"
+msgid "Contact details"
+msgstr ""
 
 #: templates/account/details.html:47
 msgctxt "User profile tab"
@@ -1418,17 +1430,32 @@ msgctxt "User profile action"
 msgid "Change password"
 msgstr "비밀번호 변경"
 
-#: templates/account/details.html:133
+#: templates/account/details.html:125
+msgctxt "User profile settings"
+msgid "Personal Data"
+msgstr ""
+
+#: templates/account/details.html:132
+msgctxt "User profile action"
+msgid "Update"
+msgstr "업데이트"
+
+#: templates/account/details.html:137
+msgctxt "List of adresses in contact details"
+msgid "Addresses"
+msgstr ""
+
+#: templates/account/details.html:148
 msgctxt "User address action"
 msgid "Edit"
 msgstr "수정"
 
-#: templates/account/details.html:149
+#: templates/account/details.html:164
 msgctxt "No addresses text"
 msgid "You will see new addresses here after first successful checkout."
 msgstr "첫번째 주문이 완료되면 주소를 확인할 수 있습니다."
 
-#: templates/account/details.html:160
+#: templates/account/details.html:175
 msgctxt "Message informing about the process of account removal"
 msgid ""
 "\n"
@@ -1436,7 +1463,7 @@ msgid ""
 "                "
 msgstr ""
 
-#: templates/account/details.html:165
+#: templates/account/details.html:180
 msgctxt "Remove account form action"
 msgid "Remove Account"
 msgstr ""
@@ -1681,7 +1708,7 @@ msgid "Style guide"
 msgstr "스타일 가이드"
 
 #: templates/cart_dropdown.html:39 templates/checkout/_subtotal_table.html:8
-#: templates/dashboard/order/detail.html:338
+#: templates/dashboard/order/detail.html:342
 msgctxt "Order subtotal"
 msgid "Subtotal"
 msgstr "부분 합계"
@@ -2143,8 +2170,8 @@ msgid "Void:"
 msgstr ""
 
 #: templates/dashboard/base_modal.html:33
-#: templates/dashboard/category/form.html:111
-#: templates/dashboard/category/form.html:115
+#: templates/dashboard/category/form.html:114
+#: templates/dashboard/category/form.html:118
 #: templates/dashboard/customer/form.html:59
 #: templates/dashboard/customer/form.html:66
 #: templates/dashboard/discount/sale/form.html:115
@@ -2261,7 +2288,7 @@ msgctxt "Category detail breadcrumbs"
 msgid "Add new category"
 msgstr "새로운 카테고리 추가"
 
-#: templates/dashboard/category/form.html:120
+#: templates/dashboard/category/form.html:123
 #: templates/dashboard/customer/form.html:62
 #: templates/dashboard/discount/sale/form.html:119
 #: templates/dashboard/discount/voucher/form.html:129
@@ -2277,7 +2304,7 @@ msgctxt "Dashboard update action"
 msgid "Update"
 msgstr "업데이트"
 
-#: templates/dashboard/category/form.html:124
+#: templates/dashboard/category/form.html:127
 #: templates/dashboard/discount/sale/form.html:123
 #: templates/dashboard/discount/voucher/form.html:133
 #: templates/dashboard/menu/form.html:66
@@ -2402,37 +2429,37 @@ msgctxt "Collection action"
 msgid "View on site"
 msgstr "사이트에서 보기"
 
-#: templates/dashboard/collection/detail.html:63
+#: templates/dashboard/collection/detail.html:66
 msgctxt "Collection form card title: availability sub form"
 msgid "Availability"
 msgstr ""
 
-#: templates/dashboard/collection/detail.html:71
+#: templates/dashboard/collection/detail.html:74
 msgctxt "Collection secondary action"
 msgid "Cancel"
 msgstr "취소"
 
-#: templates/dashboard/collection/detail.html:74
+#: templates/dashboard/collection/detail.html:77
 msgctxt "Collection detail action"
 msgid "Update"
 msgstr "업데이트"
 
-#: templates/dashboard/collection/detail.html:78
+#: templates/dashboard/collection/detail.html:81
 msgctxt "Collection detail action"
 msgid "Create"
 msgstr "생성"
 
-#: templates/dashboard/collection/detail.html:100
+#: templates/dashboard/collection/detail.html:103
 msgctxt "Collection field"
 msgid "Published"
 msgstr "퍼블리싱 됨"
 
-#: templates/dashboard/collection/detail.html:102
+#: templates/dashboard/collection/detail.html:105
 msgctxt "Collection field"
 msgid "Draft"
 msgstr "초안"
 
-#: templates/dashboard/collection/detail.html:110
+#: templates/dashboard/collection/detail.html:113
 msgctxt "Collection field"
 msgid "Can't unpublish homepage collection"
 msgstr ""
@@ -2493,92 +2520,92 @@ msgid ""
 "  "
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:51
+#: templates/dashboard/customer/detail.html:56
 msgctxt "Customer field"
 msgid "Date joined"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:63
+#: templates/dashboard/customer/detail.html:68
 msgctxt "Customer field"
 msgid "Note"
 msgstr "노트"
 
-#: templates/dashboard/customer/detail.html:74
+#: templates/dashboard/customer/detail.html:79
 msgctxt "Customer action"
 msgid "Edit customer"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:77
+#: templates/dashboard/customer/detail.html:82
 msgctxt "Customer action"
 msgid "Remove customer"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:81
+#: templates/dashboard/customer/detail.html:86
 msgctxt "Customer impersonate action"
 msgid "Impersonate customer"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:90
+#: templates/dashboard/customer/detail.html:95
 msgctxt "Customer recent orders table title"
 msgid "Recent orders"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:99
+#: templates/dashboard/customer/detail.html:104
 msgctxt "Customer orders table header"
 msgid "Number"
 msgstr "숫자"
 
-#: templates/dashboard/customer/detail.html:102
+#: templates/dashboard/customer/detail.html:107
 msgctxt "Customer orders table header"
 msgid "Placed on"
 msgstr "위치"
 
-#: templates/dashboard/customer/detail.html:105
+#: templates/dashboard/customer/detail.html:110
 msgctxt "Customer orders table header"
 msgid "Order status"
 msgstr "주문 상태"
 
-#: templates/dashboard/customer/detail.html:108
+#: templates/dashboard/customer/detail.html:113
 msgctxt "Customer orders table header"
 msgid "Total"
 msgstr "총합"
 
-#: templates/dashboard/customer/detail.html:135
+#: templates/dashboard/customer/detail.html:140
 msgctxt "Empty customer orders table message"
 msgid "No orders found."
 msgstr "주문이 없습니다."
 
-#: templates/dashboard/customer/detail.html:144
+#: templates/dashboard/customer/detail.html:149
 msgctxt "Customer notes card title"
 msgid "Customer notes"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:157
+#: templates/dashboard/customer/detail.html:162
 msgctxt "Customer without notes message"
 msgid "There are no notes associated with this customer"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:163
+#: templates/dashboard/customer/detail.html:168
 msgctxt "Customer notes card action"
 msgid "Add note"
 msgstr "요구사항 추가"
 
-#: templates/dashboard/customer/detail.html:176
+#: templates/dashboard/customer/detail.html:181
 msgctxt "Customer default shipping address card title"
 msgid "Default shipping address"
 msgstr "기본 배송 주소"
 
-#: templates/dashboard/customer/detail.html:183
+#: templates/dashboard/customer/detail.html:188
 msgctxt "Customer without default shipping address message"
 msgid "No default shipping address."
 msgstr "기본 배송 주소가 없습니다."
 
-#: templates/dashboard/customer/detail.html:196
+#: templates/dashboard/customer/detail.html:201
 msgctxt "Customer default billing address card title"
 msgid "Default billing address"
 msgstr "기본 결제 주소"
 
-#: templates/dashboard/customer/detail.html:204
+#: templates/dashboard/customer/detail.html:209
 msgctxt "Customer without default billing address message"
 msgid "No default billing address."
 msgstr "기본 결제 주소가 없습니다."
@@ -3012,7 +3039,7 @@ msgid "Total"
 msgstr "총합"
 
 #: templates/dashboard/index.html:105
-#: templates/dashboard/order/detail.html:207
+#: templates/dashboard/order/detail.html:211
 #: templates/dashboard/order/list.html:68
 msgctxt "Anonymous user account value"
 msgid "Guest"
@@ -3147,7 +3174,7 @@ msgstr ""
 #: templates/dashboard/menu/list.html:45
 msgctxt "Menu list table header Menu name"
 msgid "Menu name"
-msgstr ""
+msgstr "메뉴명"
 
 #: templates/dashboard/menu/list.html:69
 msgctxt "Empty menu list message"
@@ -3208,13 +3235,13 @@ msgid "Edit address"
 msgstr "주소 변경"
 
 #: templates/dashboard/order/address_form.html:39
-#: templates/dashboard/order/detail.html:213
+#: templates/dashboard/order/detail.html:217
 msgctxt ""
 msgid "Shipping address"
 msgstr "배송 주소"
 
 #: templates/dashboard/order/address_form.html:41
-#: templates/dashboard/order/detail.html:229
+#: templates/dashboard/order/detail.html:233
 msgctxt ""
 msgid "Billing address"
 msgstr "결제 주소"
@@ -3240,13 +3267,13 @@ msgid "Details"
 msgstr "상세"
 
 #: templates/dashboard/order/detail.html:87
-#: templates/dashboard/order/detail.html:567
+#: templates/dashboard/order/detail.html:571
 msgctxt "Order detail tab"
 msgid "Payments"
 msgstr "결제"
 
 #: templates/dashboard/order/detail.html:95
-#: templates/dashboard/order/detail.html:617
+#: templates/dashboard/order/detail.html:621
 msgctxt "Order detail tab"
 msgid "History"
 msgstr "히스토리"
@@ -3286,315 +3313,315 @@ msgctxt "Order summary card action"
 msgid "Capture"
 msgstr "캡쳐"
 
-#: templates/dashboard/order/detail.html:167
+#: templates/dashboard/order/detail.html:168
 msgctxt "Order summary card action"
 msgid "Refund"
 msgstr "환불"
 
-#: templates/dashboard/order/detail.html:172
+#: templates/dashboard/order/detail.html:173
 msgctxt "Order summary card action"
 msgid "Void"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:177
+#: templates/dashboard/order/detail.html:178
 msgctxt "Order detail action"
 msgid "Mark as paid"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:189
+#: templates/dashboard/order/detail.html:190
 msgctxt "Order details summary header"
 msgid "Customer"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:193
+#: templates/dashboard/order/detail.html:194
 msgctxt "Order customer details action title"
 msgid "Edit customer details"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:194
-#: templates/dashboard/order/detail.html:216
-#: templates/dashboard/order/detail.html:232
+#: templates/dashboard/order/detail.html:195
+#: templates/dashboard/order/detail.html:220
+#: templates/dashboard/order/detail.html:236
 #: templates/dashboard/product/product_image/list.html:82
 #: templates/dashboard/product/product_image/list.html:127
 msgctxt "Dashboard edit action"
 msgid "Edit"
 msgstr "수정"
 
-#: templates/dashboard/order/detail.html:223
+#: templates/dashboard/order/detail.html:227
 msgctxt "Missing shipping address message"
 msgid "No shipping address"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:238
+#: templates/dashboard/order/detail.html:242
 msgctxt "Order billing address same as shipping address"
 msgid "Same as shipping address"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:243
+#: templates/dashboard/order/detail.html:247
 msgctxt "Missing billing address message"
 msgid "No billing address"
-msgstr ""
-
-#: templates/dashboard/order/detail.html:256
-#, python-format
-msgctxt "Order table title"
-msgid "Order draft #%(order)s"
 msgstr ""
 
 #: templates/dashboard/order/detail.html:260
 #, python-format
 msgctxt "Order table title"
+msgid "Order draft #%(order)s"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:264
+#, python-format
+msgctxt "Order table title"
 msgid "Order #%(order)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:266
+#: templates/dashboard/order/detail.html:270
 msgctxt "Order placed on date"
 msgid "Placed on"
 msgstr "위치"
 
-#: templates/dashboard/order/detail.html:276
-#: templates/dashboard/order/detail.html:469
+#: templates/dashboard/order/detail.html:280
+#: templates/dashboard/order/detail.html:473
 #: templates/dashboard/order/pdf/packing_slip.html:64
 msgctxt "Order table header"
 msgid "Item"
 msgstr "상품상품"
 
-#: templates/dashboard/order/detail.html:279
+#: templates/dashboard/order/detail.html:283
 msgctxt "Order table header"
 msgid "Price"
 msgstr "가격"
 
-#: templates/dashboard/order/detail.html:282
-#: templates/dashboard/order/detail.html:472
+#: templates/dashboard/order/detail.html:286
+#: templates/dashboard/order/detail.html:476
 #: templates/dashboard/order/pdf/packing_slip.html:70
 msgctxt "Order table header"
 msgid "Quantity"
 msgstr "수량"
 
-#: templates/dashboard/order/detail.html:285
+#: templates/dashboard/order/detail.html:289
 msgctxt "Order table header"
 msgid "Total"
 msgstr "합계"
 
-#: templates/dashboard/order/detail.html:300
+#: templates/dashboard/order/detail.html:304
 #: templates/dashboard/order/fulfillment.html:85
 #, python-format
 msgctxt "Order table text"
 msgid "SKU: %(sku)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:316
-#: templates/dashboard/order/detail.html:317
+#: templates/dashboard/order/detail.html:320
+#: templates/dashboard/order/detail.html:321
 msgctxt "Order table row action"
 msgid "Change quantity"
 msgstr "수량 변경"
 
-#: templates/dashboard/order/detail.html:321
-#: templates/dashboard/order/detail.html:322
+#: templates/dashboard/order/detail.html:325
+#: templates/dashboard/order/detail.html:326
 msgctxt "Order table row action"
 msgid "Remove line"
 msgstr "라인 제거"
 
-#: templates/dashboard/order/detail.html:343
+#: templates/dashboard/order/detail.html:347
 msgctxt "Order totals action"
 msgid "Edit shipping"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:345
-#: templates/dashboard/order/detail.html:354
+#: templates/dashboard/order/detail.html:349
+#: templates/dashboard/order/detail.html:358
 #, python-format
 msgctxt "Order totals header"
 msgid "Shipping (%(shipping_name)s)"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:349
-#: templates/dashboard/order/detail.html:358
+#: templates/dashboard/order/detail.html:353
+#: templates/dashboard/order/detail.html:362
 msgctxt "Order totals header"
 msgid "Shipping"
 msgstr "배송"
 
-#: templates/dashboard/order/detail.html:364
+#: templates/dashboard/order/detail.html:368
 msgctxt "Order total taxes"
 msgid "Taxes (included)"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:366
+#: templates/dashboard/order/detail.html:370
 msgctxt "Order total taxes"
 msgid "Taxes"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:374
-#: templates/dashboard/order/detail.html:398
+#: templates/dashboard/order/detail.html:378
+#: templates/dashboard/order/detail.html:402
 #, python-format
 msgctxt "Order totals header"
 msgid "Discount (%(voucher)s)"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:378
-#: templates/dashboard/order/detail.html:402
+#: templates/dashboard/order/detail.html:382
+#: templates/dashboard/order/detail.html:406
 msgctxt "Order totals header"
 msgid "Discount"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:385
+#: templates/dashboard/order/detail.html:389
 msgctxt "Order totals action"
 msgid "Edit voucher"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:386
+#: templates/dashboard/order/detail.html:390
 msgctxt "Order detail action"
 msgid "Edit voucher"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:391
+#: templates/dashboard/order/detail.html:395
 msgctxt "Order totals action"
 msgid "Edit discount"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:392
+#: templates/dashboard/order/detail.html:396
 msgctxt "Order detail action"
 msgid "Edit discount"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:407
+#: templates/dashboard/order/detail.html:411
 msgctxt "Order totals header"
 msgid "Grand total"
 msgstr "총 합계"
 
-#: templates/dashboard/order/detail.html:428
+#: templates/dashboard/order/detail.html:432
 msgctxt "Order summary card action title"
 msgid "Fulfill order"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:429
+#: templates/dashboard/order/detail.html:433
 msgctxt "Order summary card action"
 msgid "Fulfill"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:433
+#: templates/dashboard/order/detail.html:437
 msgctxt "Order summary card action title"
 msgid "Add product to order"
 msgstr "주문하기 위한 상품 추가"
 
-#: templates/dashboard/order/detail.html:434
+#: templates/dashboard/order/detail.html:438
 msgctxt "Order summary card action"
 msgid "Add product"
 msgstr "상품 추가"
 
-#: templates/dashboard/order/detail.html:439
+#: templates/dashboard/order/detail.html:443
 msgctxt "Order summary card action title"
 msgid "Create order"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:440
+#: templates/dashboard/order/detail.html:444
 msgctxt "Order summary card action"
 msgid "Create order"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:446
+#: templates/dashboard/order/detail.html:450
 msgctxt "Order detail action"
 msgid "Invoice"
 msgstr "인보이스"
 
-#: templates/dashboard/order/detail.html:449
+#: templates/dashboard/order/detail.html:453
 msgctxt "Order detail action"
 msgid "View on site"
 msgstr "사이트에서 보기"
 
-#: templates/dashboard/order/detail.html:458
+#: templates/dashboard/order/detail.html:462
 #, python-format
 msgctxt "Fulfillment table title"
 msgid "Fulfillment #%(fulfillment)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:490
+#: templates/dashboard/order/detail.html:494
 #, python-format
 msgctxt "Fulfillment table text"
 msgid "Tracking number: %(tracking)s"
 msgstr "배송 트랙킹 넘버: %(tracking)s"
 
-#: templates/dashboard/order/detail.html:502
+#: templates/dashboard/order/detail.html:506
 msgctxt "Fulfillment summary card action title"
 msgid "Cancel fulfillment"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:503
+#: templates/dashboard/order/detail.html:507
 msgctxt "Fulfillment summary card action"
 msgid "Cancel"
 msgstr "취소"
 
-#: templates/dashboard/order/detail.html:506
+#: templates/dashboard/order/detail.html:510
 msgctxt "Fulfillment summary card action title"
 msgid "Edit tracking number"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:508
+#: templates/dashboard/order/detail.html:512
 msgctxt "Fulfillment summary card action"
 msgid "Edit tracking"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:510
+#: templates/dashboard/order/detail.html:514
 msgctxt "Fulfillment summary card action"
 msgid "Add tracking"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:515
+#: templates/dashboard/order/detail.html:519
 msgctxt "Order detail action"
 msgid "Packing Slips"
 msgstr "포장지"
 
-#: templates/dashboard/order/detail.html:525
+#: templates/dashboard/order/detail.html:529
 msgctxt "Customer order note card title"
 msgid "Customer note"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:531
+#: templates/dashboard/order/detail.html:535
 msgctxt "No customer order note card message"
 msgid "There is no note from the customer associated with this order."
 msgstr ""
 
-#: templates/dashboard/order/detail.html:540
+#: templates/dashboard/order/detail.html:544
 msgctxt "Order notes card title"
 msgid "Order notes"
 msgstr "요구사항"
 
-#: templates/dashboard/order/detail.html:553
+#: templates/dashboard/order/detail.html:557
 msgctxt "Empty order notes card message"
 msgid "There are no notes associated with this order."
 msgstr "이 주문과 관련된 요구사항이 없습니다."
 
-#: templates/dashboard/order/detail.html:559
+#: templates/dashboard/order/detail.html:563
 msgctxt "Order notes card action"
 msgid "Add note"
 msgstr "요구사항 추가"
 
-#: templates/dashboard/order/detail.html:574
+#: templates/dashboard/order/detail.html:578
 msgctxt "Payment history table header"
 msgid "Transaction ID"
 msgstr "트랜젝션 ID"
 
-#: templates/dashboard/order/detail.html:577
+#: templates/dashboard/order/detail.html:581
 msgctxt "Payment history table header"
 msgid "Date"
 msgstr "날짜"
 
-#: templates/dashboard/order/detail.html:580
+#: templates/dashboard/order/detail.html:584
 msgctxt "Payment history table header"
 msgid "Payment status"
 msgstr "결제 상태"
 
-#: templates/dashboard/order/detail.html:583
+#: templates/dashboard/order/detail.html:587
 msgctxt "Payment history table header"
 msgid "Amount"
 msgstr "총액"
 
-#: templates/dashboard/order/detail.html:591
+#: templates/dashboard/order/detail.html:595
 #, python-format
 msgctxt "Payment item column data"
 msgid "#%(payment_id)s"
 msgstr "#%(payment_id)s"
 
-#: templates/dashboard/order/detail.html:612
+#: templates/dashboard/order/detail.html:616
 msgctxt "Empty payment history table message"
 msgid "No payments made for this order."
 msgstr "이 주문을 위한 결제정보가 없습니다."
@@ -5542,10 +5569,10 @@ msgstr "주목할만한 제품들"
 #: templates/materializecssform/field.html:194
 #: templates/materializecssform/field.html:228
 #: templates/materializecssform/field.html:257
-#: templates/materializecssform/field.html:283
-#: templates/materializecssform/field.html:316
-#: templates/materializecssform/field.html:344
-#: templates/materializecssform/field.html:370
+#: templates/materializecssform/field.html:285
+#: templates/materializecssform/field.html:320
+#: templates/materializecssform/field.html:350
+#: templates/materializecssform/field.html:376
 msgctxt "Dashboard form labels"
 msgid "(optional)"
 msgstr "(옵션)"
@@ -5555,7 +5582,7 @@ msgstr "(옵션)"
 msgid "File"
 msgstr "파일"
 
-#: templates/materializecssform/field.html:349
+#: templates/materializecssform/field.html:355
 #, python-format
 msgctxt ""
 "Message showing how many chars were used out of maximum field's length"
@@ -5873,7 +5900,7 @@ msgctxt "product price range"
 msgid "from"
 msgstr "가격"
 
-#: templates/product/details.html:61
+#: templates/product/details.html:62
 #, python-format
 msgctxt "Product details text"
 msgid ""
@@ -5882,34 +5909,34 @@ msgid ""
 msgstr ""
 "<strong>주의!</strong> 지금 보고 계신 제품은 <strong>%(date)s</strong> 일 부터 확인 가능합니다."
 
-#: templates/product/details.html:123
+#: templates/product/details.html:124
 msgctxt "Product details link text"
 msgid "Edit in dashboard"
 msgstr "대시보드에서 수정"
 
-#: templates/product/details.html:149
+#: templates/product/details.html:150
 #, python-format
 msgctxt "Product details page vat rate value"
 msgid "including %(tax_rate)s%% VAT"
 msgstr ""
 
-#: templates/product/details.html:153
+#: templates/product/details.html:154
 #, python-format
 msgctxt "Product details page vat rate value"
 msgid "excluding %(tax_rate)s%% VAT"
 msgstr ""
 
-#: templates/product/details.html:177
+#: templates/product/details.html:178
 msgctxt "Product details primary action"
 msgid "Add to cart"
 msgstr "카트에 담기"
 
-#: templates/product/details.html:189
+#: templates/product/details.html:190
 msgctxt "Product details text"
 msgid "This product is currently <strong>unavailable</strong>."
 msgstr "이 제품은 현재 구매가 <strong>불가능</strong>합니다."
 
-#: templates/product/details.html:193
+#: templates/product/details.html:194
 msgctxt "Product details title"
 msgid "Description"
 msgstr "설명"

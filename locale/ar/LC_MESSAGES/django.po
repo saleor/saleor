@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-10-05 06:33-0500\n"
+"POT-Creation-Date: 2018-12-18 08:53-0600\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
 "Last-Translator: Patryk Zawadzki <patrys@room-303.com>, 2018\n"
 "Language-Team: Arabic (https://www.transifex.com/mirumee/teams/34782/ar/)\n"
@@ -40,6 +40,16 @@ msgstr "البريد الالكترونى"
 msgctxt "Registration error"
 msgid "This email has already been registered."
 msgstr "هذا البريد الالكتروني مستخدم من قبل ."
+
+#: saleor/account/forms.py:135
+msgctxt "Customer form: Given name field"
+msgid "Given name"
+msgstr "الاسم الأول"
+
+#: saleor/account/forms.py:137
+msgctxt "Customer form: Family name field"
+msgid "Family name"
+msgstr "اسم العائلة"
 
 #: saleor/account/i18n.py:18
 msgctxt "Address field"
@@ -206,17 +216,17 @@ msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr "القيمة غير صحيحة للدولة المختارة ."
 
-#: saleor/account/models.py:133
+#: saleor/account/models.py:135
 msgctxt "Permission description"
 msgid "Manage customers."
 msgstr "إدارة العملاء"
 
-#: saleor/account/models.py:136
+#: saleor/account/models.py:138
 msgctxt "Permission description"
 msgid "Manage staff."
 msgstr "إدارة الموظفين"
 
-#: saleor/account/models.py:139
+#: saleor/account/models.py:141
 msgctxt "Permission description"
 msgid "Impersonate customers."
 msgstr "انتحال صفة العملاء"
@@ -247,27 +257,32 @@ msgstr "تم تسجيل الخروج بنجاح ."
 msgid "User has been created"
 msgstr "تم انشاء المستخدم ."
 
-#: saleor/account/views.py:95
+#: saleor/account/views.py:97
 msgctxt "Storefront message"
 msgid "Password successfully changed."
 msgstr "تم تغيير كلمة المرور بنجاح ."
 
-#: saleor/account/views.py:108
+#: saleor/account/views.py:106
+msgctxt "Storefront message"
+msgid "Account successfully updated."
+msgstr ""
+
+#: saleor/account/views.py:119
 msgctxt "Storefront message"
 msgid "Address successfully updated."
 msgstr "تم تحديث العنوان بنجاح . "
 
-#: saleor/account/views.py:123
+#: saleor/account/views.py:134
 msgctxt "Storefront message"
 msgid "Address successfully removed"
 msgstr "تم حذف العنوان بنجاح ."
 
-#: saleor/account/views.py:137
+#: saleor/account/views.py:148
 msgctxt "Storefront message, when user requested his account removed"
 msgid "Please check your inbox for a confirmation e-mail."
 msgstr "تفقّد صندوق الوارد لتفعيل البريد الالكتروني . "
 
-#: saleor/account/views.py:152
+#: saleor/account/views.py:163
 msgctxt "Account deleted"
 msgid ""
 "Your account was deleted successfully. In case of any trouble or questions "
@@ -402,6 +417,26 @@ msgctxt "Voucher not applicable"
 msgid "Voucher expired in meantime. Order placement aborted."
 msgstr "انتهت صلاحية القسيمة في الوقت الحالي. تم إلغاء عملية الطلب."
 
+#: saleor/checkout/utils.py:901
+msgctxt "order placement_error"
+msgid "Shipping method is not set"
+msgstr ""
+
+#: saleor/checkout/utils.py:904
+msgctxt "order placement error"
+msgid "Shipping address is not set"
+msgstr ""
+
+#: saleor/checkout/utils.py:908
+msgctxt "order placement error"
+msgid "Shipping method is not valid for your shipping address"
+msgstr ""
+
+#: saleor/checkout/utils.py:911
+msgctxt "order placement error"
+msgid "Checkout is not fully paid"
+msgstr ""
+
 #: saleor/checkout/views/discount.py:62
 msgctxt "Checkout warning"
 msgid "This voucher has expired. Please review your checkout."
@@ -412,122 +447,122 @@ msgctxt "Checkout warning"
 msgid "Please review your checkout."
 msgstr "يرجى مراجعة عملية الشراء الخاصة بك."
 
-#: saleor/core/__init__.py:54
+#: saleor/core/__init__.py:55
 msgctxt "VAT rate type"
 msgid "accommodation"
 msgstr "الإقامة"
 
-#: saleor/core/__init__.py:56
+#: saleor/core/__init__.py:57
 msgctxt "VAT rate type"
 msgid "admission to cultural events"
 msgstr "تذاكر لفعاليات ثقافية"
 
-#: saleor/core/__init__.py:58
+#: saleor/core/__init__.py:59
 msgctxt "VAT rate type"
 msgid "admission to entertainment events"
 msgstr "تذاكر لفعاليات ترفيهية"
 
-#: saleor/core/__init__.py:60
+#: saleor/core/__init__.py:61
 msgctxt "VAT rate type"
 msgid "admission to sporting events"
 msgstr "تذاكر لفعاليات رياضية"
 
-#: saleor/core/__init__.py:61
+#: saleor/core/__init__.py:62
 msgctxt "VAT rate type"
 msgid "advertising"
 msgstr "إعلان"
 
-#: saleor/core/__init__.py:63
+#: saleor/core/__init__.py:64
 msgctxt "VAT rate type"
 msgid "agricultural supplies"
 msgstr "الإمدادات الزراعية"
 
-#: saleor/core/__init__.py:64
+#: saleor/core/__init__.py:65
 msgctxt "VAT rate type"
 msgid "baby foodstuffs"
 msgstr "أغذية الأطفال"
 
-#: saleor/core/__init__.py:65
+#: saleor/core/__init__.py:66
 msgctxt "VAT rate type"
 msgid "bikes"
 msgstr "الدراجات"
 
-#: saleor/core/__init__.py:66
+#: saleor/core/__init__.py:67
 msgctxt "VAT rate type"
 msgid "books"
 msgstr "كتب"
 
-#: saleor/core/__init__.py:68
+#: saleor/core/__init__.py:69
 msgctxt "VAT rate type"
 msgid "childrens clothing"
 msgstr "ملابس أطفال"
 
-#: saleor/core/__init__.py:69
+#: saleor/core/__init__.py:70
 msgctxt "VAT rate type"
 msgid "domestic fuel"
 msgstr "وقود منزلي"
 
-#: saleor/core/__init__.py:71
+#: saleor/core/__init__.py:72
 msgctxt "VAT rate type"
 msgid "domestic services"
 msgstr "خدمات منزلية"
 
-#: saleor/core/__init__.py:72
+#: saleor/core/__init__.py:73
 msgctxt "VAT rate type"
 msgid "e-books"
 msgstr "كتب إلكترونية"
 
-#: saleor/core/__init__.py:73
+#: saleor/core/__init__.py:74
 msgctxt "VAT rate type"
 msgid "foodstuffs"
 msgstr "مواد غذائية"
 
-#: saleor/core/__init__.py:74
+#: saleor/core/__init__.py:75
 msgctxt "VAT rate type"
 msgid "hotels"
 msgstr "فنادق"
 
-#: saleor/core/__init__.py:75
+#: saleor/core/__init__.py:76
 msgctxt "VAT rate type"
 msgid "medical"
 msgstr "طبي"
 
-#: saleor/core/__init__.py:76
+#: saleor/core/__init__.py:77
 msgctxt "VAT rate type"
 msgid "newspapers"
 msgstr ""
 
-#: saleor/core/__init__.py:78
+#: saleor/core/__init__.py:79
 msgctxt "VAT rate type"
 msgid "passenger transport"
 msgstr "نقل الركاب"
 
-#: saleor/core/__init__.py:80
+#: saleor/core/__init__.py:81
 msgctxt "VAT rate type"
 msgid "pharmaceuticals"
 msgstr "أدوية"
 
-#: saleor/core/__init__.py:82
+#: saleor/core/__init__.py:83
 msgctxt "VAT rate type"
 msgid "property renovations"
 msgstr "تجديد ممتلكات"
 
-#: saleor/core/__init__.py:83
+#: saleor/core/__init__.py:84
 msgctxt "VAT rate type"
 msgid "restaurants"
 msgstr "مطاعم"
 
-#: saleor/core/__init__.py:84
+#: saleor/core/__init__.py:85
 msgctxt "VAT rate type"
 msgid "social housing"
 msgstr "إسكان اجتماعي"
 
-#: saleor/core/__init__.py:85
+#: saleor/core/__init__.py:86
 msgctxt "VAT rate type"
 msgid "standard"
 msgstr "أساسي"
 
-#: saleor/core/__init__.py:86
+#: saleor/core/__init__.py:87
 msgctxt "VAT rate type"
 msgid "water"
 msgstr "ماء"
@@ -604,48 +639,48 @@ msgctxt "Voucher: discount for"
 msgid "Shipping"
 msgstr "الشحن"
 
-#: saleor/discount/models.py:75
+#: saleor/discount/models.py:77
 msgctxt "Voucher type"
 msgid "Free shipping"
 msgstr "شحن مجاني"
 
-#: saleor/discount/models.py:78
+#: saleor/discount/models.py:80
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off shipping"
 msgstr ""
 
-#: saleor/discount/models.py:84
+#: saleor/discount/models.py:86
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(product_num)d products"
 msgstr ""
 
-#: saleor/discount/models.py:92
+#: saleor/discount/models.py:94
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(collections_num)d collections"
 msgstr ""
 
-#: saleor/discount/models.py:100
+#: saleor/discount/models.py:102
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(categories_num)d categories"
 msgstr ""
 
-#: saleor/discount/models.py:104
+#: saleor/discount/models.py:106
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off"
 msgstr ""
 
-#: saleor/discount/models.py:134
+#: saleor/discount/models.py:136
 #, python-format
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for orders over %(amount)s."
 msgstr "هذا العرض صالح فقط للطلبات التي تزيد عن %(amount)s' "
 
-#: saleor/discount/models.py:176
+#: saleor/discount/models.py:179
 msgctxt "Permission description"
 msgid "Manage sales and vouchers."
 msgstr "إدارة المبيعات والقسائم."
@@ -655,7 +690,7 @@ msgctxt "Voucher not applicable"
 msgid "Discount not applicable for this product"
 msgstr "الخصومات لا تنطبق على هذا المنتج"
 
-#: saleor/graphql/order/mutations/fulfillments.py:77
+#: saleor/graphql/order/mutations/fulfillments.py:79
 #, python-format
 msgctxt "Fulfill order line mutation error"
 msgid "Only %(quantity)d item remaining to fulfill."
@@ -667,141 +702,130 @@ msgstr[3] ""
 msgstr[4] ""
 msgstr[5] ""
 
-#: saleor/graphql/order/mutations/fulfillments.py:210
+#: saleor/graphql/order/mutations/fulfillments.py:212
 msgctxt "Cancel fulfillment mutation error"
 msgid "This fulfillment can't be canceled"
 msgstr "لا يمكن إلغاء هذا الإجراء"
 
-#: saleor/graphql/order/mutations/orders.py:302
-#, python-format
-msgctxt "Payment description"
-msgid "Order %(order)s"
-msgstr ""
-
-#: saleor/menu/models.py:20
+#: saleor/menu/models.py:21
 msgctxt "Permission description"
 msgid "Manage navigation."
 msgstr "إدارة التصفح"
 
-#: saleor/menu/models.py:68
+#: saleor/menu/models.py:69
 msgctxt "Link object type description"
 msgid "URL: "
 msgstr "الرابط:"
 
-#: saleor/menu/models.py:73
+#: saleor/menu/models.py:74
 msgctxt "Link object type description"
 msgid "Category: "
 msgstr "تصنيف"
 
-#: saleor/menu/models.py:76
+#: saleor/menu/models.py:77
 msgctxt "Link object type description"
 msgid "Collection: "
 msgstr "المجموعة"
 
-#: saleor/menu/models.py:79
+#: saleor/menu/models.py:80
 msgctxt "Link object type description"
 msgid "Page: "
 msgstr "الصفحة"
 
-#: saleor/order/__init__.py:30
+#: saleor/order/__init__.py:20
 msgctxt ""
 "Status for a fully editable, not confirmed order created by staff users"
 msgid "Draft"
 msgstr "مسودة"
 
-#: saleor/order/__init__.py:33
+#: saleor/order/__init__.py:23
 msgctxt "Status for an order with any items marked as fulfilled"
 msgid "Unfulfilled"
 msgstr "لم يتم تنفيذها"
 
-#: saleor/order/__init__.py:36
+#: saleor/order/__init__.py:26
 msgctxt "Status for an order with some items marked as fulfilled"
 msgid "Partially fulfilled"
 msgstr "تم جزئياً"
 
-#: saleor/order/__init__.py:39
+#: saleor/order/__init__.py:29
 msgctxt "Status for an order with all items marked as fulfilled"
 msgid "Fulfilled"
 msgstr "استوفى"
 
-#: saleor/order/__init__.py:42
+#: saleor/order/__init__.py:32
 msgctxt "Status for a permanently canceled order"
 msgid "Canceled"
 msgstr "إلغاء"
 
-#: saleor/order/__init__.py:52
+#: saleor/order/__init__.py:42
 msgctxt "Status for a group of products in an order marked as fulfilled"
 msgid "Fulfilled"
 msgstr "استوفى"
 
-#: saleor/order/__init__.py:56
+#: saleor/order/__init__.py:46
 msgctxt ""
 "Status for a fulfilled group of products in an order marked as canceled"
 msgid "Canceled"
 msgstr "إلغاء"
 
-#: saleor/order/__init__.py:63
-msgctxt "Custom payment choice type"
-msgid "Manual"
-msgstr "كتيب"
-
-#: saleor/order/__init__.py:100
+#: saleor/order/__init__.py:83
 msgctxt "Email type"
 msgid "Payment confirmation"
 msgstr "تأكيد الدفع "
 
-#: saleor/order/__init__.py:102
+#: saleor/order/__init__.py:85
 msgctxt "Email type"
 msgid "Shipping confirmation"
 msgstr "تأكيد الشحن"
 
-#: saleor/order/__init__.py:104
+#: saleor/order/__init__.py:87
 msgctxt "Email type"
 msgid "Fulfillment confirmation"
 msgstr "تأكيد الإستيفاء"
 
-#: saleor/order/__init__.py:106
+#: saleor/order/__init__.py:89
 msgctxt "Email type"
 msgid "Order confirmation"
 msgstr "تأكيد الطلبية"
 
-#: saleor/order/__init__.py:119
+#: saleor/order/__init__.py:115
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Order created from draft order by %(user_name)s"
 msgstr ""
 
-#: saleor/order/__init__.py:124
+#: saleor/order/__init__.py:120
 #, python-format
 msgctxt "Dashboard message related to an order"
-msgid "Payment was released by %(user_name)s"
+msgid "Payment was voided by %(user_name)s"
 msgstr ""
 
-#: saleor/order/__init__.py:131
+#: saleor/order/__init__.py:126
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Successfully refunded: %(amount)s"
 msgstr "تم إرجاع المال بنجاح '%(amount)s'"
 
-#: saleor/order/__init__.py:138
+#: saleor/order/__init__.py:132
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Successfully captured: %(amount)s"
 msgstr "تم قبض المال بنجاح '%(amount)s'"
 
-#: saleor/order/__init__.py:143
+#: saleor/order/__init__.py:137
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Order manually marked as paid by %(user_name)s"
 msgstr ""
 
-#: saleor/order/__init__.py:148
+#: saleor/order/__init__.py:142
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Order was canceled by %(user_name)s"
 msgstr "تم إلغاء طلب الشراء بواسطة '%(user_name)s'"
 
-#: saleor/order/__init__.py:153
+#: saleor/order/__init__.py:147
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "We restocked %(quantity)d item"
@@ -813,19 +837,19 @@ msgstr[3] ""
 msgstr[4] ""
 msgstr[5] ""
 
-#: saleor/order/__init__.py:159
+#: saleor/order/__init__.py:153
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "%(user_name)s added note: %(note)s"
 msgstr ""
 
-#: saleor/order/__init__.py:165
+#: saleor/order/__init__.py:159
 #, python-format
 msgctxt "Dashboard message"
 msgid "Fulfillment #%(fulfillment)s canceled by %(user_name)s"
 msgstr ""
 
-#: saleor/order/__init__.py:171
+#: saleor/order/__init__.py:165
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Fulfilled %(quantity_fulfilled)d item"
@@ -837,29 +861,29 @@ msgstr[3] ""
 msgstr[4] ""
 msgstr[5] ""
 
-#: saleor/order/__init__.py:178
+#: saleor/order/__init__.py:172
 msgctxt "Dashboard message related to an order"
 msgid "Order was placed"
 msgstr "تم تقديم الطلب."
 
-#: saleor/order/__init__.py:182
+#: saleor/order/__init__.py:176
 msgctxt "Dashboard message related to an order"
 msgid "Order was fully paid"
 msgstr "تم دفع المبلغ بالكامل"
 
-#: saleor/order/__init__.py:186
+#: saleor/order/__init__.py:180
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "%(email_type)s email was sent to the customer (%(email)s)"
 msgstr ""
 
-#: saleor/order/__init__.py:193
+#: saleor/order/__init__.py:187
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Order details were updated by %(user_name)s"
 msgstr ""
 
-#: saleor/order/__init__.py:198
+#: saleor/order/__init__.py:192
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid ""
@@ -867,7 +891,7 @@ msgid ""
 "%(user_name)s"
 msgstr ""
 
-#: saleor/order/__init__.py:206
+#: saleor/order/__init__.py:200
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "%(quantity)d line item oversold on this order."
@@ -879,40 +903,33 @@ msgstr[3] ""
 msgstr[4] ""
 msgstr[5] ""
 
-#: saleor/order/forms.py:12
-msgctxt "Payment methods form label"
-msgid "Method"
-msgstr "طريقة"
+#: saleor/order/forms.py:15
+msgctxt "Payments form label"
+msgid "Payment Method"
+msgstr ""
 
 #: saleor/order/forms.py:35
 msgctxt "Payment delete form error"
 msgid "Payment does not exist"
 msgstr "طريقة الدفع غير موجودة"
 
-#: saleor/order/models.py:108
+#: saleor/order/forms.py:40
+msgctxt "Payment delete form error"
+msgid "Payment cannot be cancelled."
+msgstr ""
+
+#: saleor/order/models.py:132
 msgctxt "Permission description"
 msgid "Manage orders."
 msgstr "إدارة طلبات الشراء"
 
-#: saleor/order/models.py:245
+#: saleor/order/models.py:337
 #, python-format
 msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
 msgstr ""
 
-#: saleor/order/views.py:105
-#, python-format
-msgctxt "Payment description"
-msgid "Order %(order_number)s"
-msgstr ""
-
-#: saleor/order/views.py:124
-msgctxt "Payment gateway error"
-msgid ""
-"Oops, it looks like we were unable to contact the selected payment service"
-msgstr "عفوًا ، يبدو أننا لم نتمكن من التواصل مع خدمة الدفع المحددة"
-
-#: saleor/order/views.py:198
+#: saleor/order/views.py:193
 msgctxt "Connect order with user warning message"
 msgid ""
 "We couldn't assign the order to your account as the email addresses don't "
@@ -920,15 +937,102 @@ msgid ""
 msgstr ""
 "لم نتمكن من تعيين الطلب إلى حسابك حيث أن عناوين البريد الإلكتروني لا تتطابق"
 
-#: saleor/order/views.py:205
+#: saleor/order/views.py:200
 msgctxt "storefront message"
 msgid "The order is now assigned to your account"
 msgstr "تم الآن تعيين طلب الشراء إلى حسابك"
 
-#: saleor/page/models.py:36
+#: saleor/page/models.py:44
 msgctxt "Permission description"
 msgid "Manage pages."
 msgstr "إدارة الصفحات"
+
+#: saleor/payment/__init__.py:19
+msgctxt "Custom payment choice type"
+msgid "Manual"
+msgstr "كتيب"
+
+#: saleor/payment/__init__.py:54
+msgctxt "transaction kind"
+msgid "Authorization"
+msgstr ""
+
+#: saleor/payment/__init__.py:55
+msgctxt "transaction kind"
+msgid "Charge"
+msgstr ""
+
+#: saleor/payment/__init__.py:56
+msgctxt "transaction kind"
+msgid "Refund"
+msgstr "استرداد المال المدفوع"
+
+#: saleor/payment/__init__.py:57
+msgctxt "transaction kind"
+msgid "Capture"
+msgstr "قبض"
+
+#: saleor/payment/__init__.py:58
+msgctxt "transaction kind"
+msgid "Void"
+msgstr ""
+
+#: saleor/payment/__init__.py:77
+msgctxt "payment status"
+msgid "Charged"
+msgstr ""
+
+#: saleor/payment/__init__.py:78
+msgctxt "payment status"
+msgid "Not charged"
+msgstr ""
+
+#: saleor/payment/__init__.py:79
+msgctxt "payment status"
+msgid "Fully refunded"
+msgstr ""
+
+#: saleor/payment/gateways/braintree/__init__.py:63
+#: saleor/payment/gateways/braintree/forms.py:36
+msgctxt "payment error"
+msgid "Unable to process transaction. Please try again in a moment"
+msgstr ""
+
+#: saleor/payment/gateways/dummy/forms.py:10
+msgctxt "Payment status form field"
+msgid "Payment status"
+msgstr "حالة الدفع"
+
+#: saleor/payment/gateways/razorpay/errors.py:5
+msgctxt "Razorpay payment error"
+msgid "Order was not charged."
+msgstr ""
+
+#: saleor/payment/gateways/razorpay/errors.py:7
+msgctxt "Razorpay payment error"
+msgid "The payment data was invalid."
+msgstr ""
+
+#: saleor/payment/gateways/razorpay/errors.py:9
+msgctxt "Razorpay payment error"
+msgid "The order couldn't be proceeded."
+msgstr ""
+
+#: saleor/payment/gateways/razorpay/errors.py:11
+#, python-format
+msgctxt "Razorpay payment error"
+msgid "The %(currency)s currency is not supported."
+msgstr ""
+
+#: saleor/payment/gateways/razorpay/forms.py:14
+msgctxt "Rozorpay payment gateway primary button"
+msgid "Pay now with Razorpay"
+msgstr ""
+
+#: saleor/payment/gateways/razorpay/forms.py:16
+msgctxt "Rozorpay payment gateway secondary title"
+msgid "Total payment"
+msgstr ""
 
 #: saleor/product/__init__.py:15
 msgctxt "Product status"
@@ -1001,7 +1105,7 @@ msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
 msgstr ""
 
-#: saleor/product/models.py:139
+#: saleor/product/models.py:145
 msgctxt "Permission description"
 msgid "Manage products."
 msgstr "إدارة المنتجات"
@@ -1012,109 +1116,126 @@ msgid "Query"
 msgstr "استعلام"
 
 #: saleor/settings.py:61
+msgid "Arabic"
+msgstr ""
+
+#: saleor/settings.py:62
 msgid "Bulgarian"
 msgstr "اللغة البلغارية"
 
-#: saleor/settings.py:62
+#: saleor/settings.py:63
+msgid "Bengali"
+msgstr ""
+
+#: saleor/settings.py:64
 msgid "Czech"
 msgstr "اللغة التشيكية"
 
-#: saleor/settings.py:63
+#: saleor/settings.py:65
+msgid "Danish"
+msgstr ""
+
+#: saleor/settings.py:66
 msgid "German"
 msgstr "اللغة الألمانية"
 
-#: saleor/settings.py:64
+#: saleor/settings.py:67
 msgid "English"
 msgstr "اللغة الإنجليزية"
 
-#: saleor/settings.py:65
+#: saleor/settings.py:68
 msgid "Spanish"
 msgstr "اللغة الأسبانية"
 
-#: saleor/settings.py:66
-msgid "Persian (Iran)"
-msgstr "اللغة الفارسية (إيران)"
+#: saleor/settings.py:69
+msgid "Persian"
+msgstr ""
 
-#: saleor/settings.py:67
+#: saleor/settings.py:70
 msgid "French"
 msgstr "اللغة الفرنسية"
 
-#: saleor/settings.py:68
+#: saleor/settings.py:71
 msgid "Hungarian"
 msgstr "اللغة الهنغارية"
 
-#: saleor/settings.py:69
-msgid "Armenian"
-msgstr "اللغة الأرمنية"
-
-#: saleor/settings.py:70
+#: saleor/settings.py:72
 msgid "Italian"
 msgstr "اللغة الإيطالية"
 
-#: saleor/settings.py:71
+#: saleor/settings.py:73
 msgid "Japanese"
 msgstr "اللغة اليابانية"
 
-#: saleor/settings.py:72
+#: saleor/settings.py:74
 msgid "Korean"
 msgstr "اللغة الكورية"
 
-#: saleor/settings.py:73
+#: saleor/settings.py:75
+msgid "Mongolian"
+msgstr ""
+
+#: saleor/settings.py:76
 msgid "Norwegian"
 msgstr "اللغة النرويجية"
 
-#: saleor/settings.py:74
+#: saleor/settings.py:77
 msgid "Dutch"
 msgstr "اللغة الهولندية"
 
-#: saleor/settings.py:75
+#: saleor/settings.py:78
 msgid "Polish"
 msgstr "اللغة البولندية"
 
-#: saleor/settings.py:76
-msgid "Portuguese (Brazil)"
-msgstr "اللغة البرتغالية (البرازيل)."
+#: saleor/settings.py:79
+msgid "Brazilian Portuguese"
+msgstr ""
 
-#: saleor/settings.py:77
+#: saleor/settings.py:80
 msgid "Romanian"
 msgstr "اللغة الرومانية"
 
-#: saleor/settings.py:78
+#: saleor/settings.py:81
 msgid "Russian"
 msgstr "اللغة الروسية"
 
-#: saleor/settings.py:79
-msgid "Russian (Russia)"
-msgstr "اللغة الروسية (روسيا)"
-
-#: saleor/settings.py:80
+#: saleor/settings.py:82
 msgid "Slovak"
 msgstr "اللغة السلوفاكية"
 
-#: saleor/settings.py:81
+#: saleor/settings.py:83
+msgid "Swedish"
+msgstr ""
+
+#: saleor/settings.py:84
 msgid "Turkish"
 msgstr "اللغة التركية"
 
-#: saleor/settings.py:82
+#: saleor/settings.py:85
 msgid "Ukrainian"
 msgstr "اللغة الأوكرانية"
 
-#: saleor/settings.py:83
+#: saleor/settings.py:86
 msgid "Vietnamese"
 msgstr "الفيتنامية"
 
-#: saleor/settings.py:84
-msgid "Chinese"
-msgstr "اللغة الصينية"
+#: saleor/settings.py:87
+msgid "Simplified Chinese"
+msgstr ""
 
-#: saleor/settings.py:85
-msgid "Chinese (Taiwan)"
-msgstr "اللغة الصينية (تايوان)"
+#: saleor/settings.py:88
+msgid "Traditional Chinese"
+msgstr ""
 
-#: saleor/settings.py:319
+#: saleor/settings.py:324
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr "الاتحاد الأوروبي"
+
+#: saleor/settings.py:560
+msgctxt "Payment method name"
+msgid "Dummy gateway"
+msgstr ""
 
 #: saleor/shipping/__init__.py:10
 msgctxt "Type of shipping"
@@ -1230,7 +1351,7 @@ msgstr "عنوان جديد"
 #: templates/account/password_change.html:7 templates/checkout/index.html:11
 #: templates/order/details.html:18 templates/order/payment.html:18
 #: templates/order/payment/details.html:12 templates/page/details.html:27
-#: templates/product/details.html:44
+#: templates/product/details.html:45
 msgctxt "Main navigation item"
 msgid "Home"
 msgstr "الصفحة الرئيسية"
@@ -1294,8 +1415,8 @@ msgstr "تغيير كلمة السر"
 
 #: templates/account/details.html:42
 msgctxt "User profile tab"
-msgid "Addresses book"
-msgstr "دفتر العناوين "
+msgid "Contact details"
+msgstr ""
 
 #: templates/account/details.html:47
 msgctxt "User profile tab"
@@ -1337,17 +1458,32 @@ msgctxt "User profile action"
 msgid "Change password"
 msgstr "تغيير كلمة السر"
 
-#: templates/account/details.html:133
+#: templates/account/details.html:125
+msgctxt "User profile settings"
+msgid "Personal Data"
+msgstr ""
+
+#: templates/account/details.html:132
+msgctxt "User profile action"
+msgid "Update"
+msgstr "تحديث"
+
+#: templates/account/details.html:137
+msgctxt "List of adresses in contact details"
+msgid "Addresses"
+msgstr ""
+
+#: templates/account/details.html:148
 msgctxt "User address action"
 msgid "Edit"
 msgstr "تعديل"
 
-#: templates/account/details.html:149
+#: templates/account/details.html:164
 msgctxt "No addresses text"
 msgid "You will see new addresses here after first successful checkout."
 msgstr "سترى عناوين جديدة هنا بعد أول عملية شراء ناجحة."
 
-#: templates/account/details.html:160
+#: templates/account/details.html:175
 msgctxt "Message informing about the process of account removal"
 msgid ""
 "\n"
@@ -1357,7 +1493,7 @@ msgstr ""
 "\n"
 "إذا كنت ترغب في إزالة حسابك ، يرجى النقر فوق الزر أدناه وسيتم إرسال رسالة تأكيد إليك عبر الإيميل"
 
-#: templates/account/details.html:165
+#: templates/account/details.html:180
 msgctxt "Remove account form action"
 msgid "Remove Account"
 msgstr "إزالة حساب"
@@ -1605,7 +1741,7 @@ msgid "Style guide"
 msgstr "إرشادات التنسيق"
 
 #: templates/cart_dropdown.html:39 templates/checkout/_subtotal_table.html:8
-#: templates/dashboard/order/detail.html:338
+#: templates/dashboard/order/detail.html:342
 msgctxt "Order subtotal"
 msgid "Subtotal"
 msgstr "المبلغ الإجمالي"
@@ -1825,10 +1961,6 @@ msgstr "مماثلة لمعلومات الشحن"
 msgctxt "Checkout addresses form label"
 msgid "Enter a new address"
 msgstr "أدخل العنوان الجديد"
-
-#: templates/checkout/snippets/addresses_form_panel.html:2
-msgid "Same as shipping"
-msgstr "مماثلة لمعلومات الشحن"
 
 #: templates/checkout/snippets/voucher_form.html:14
 msgctxt "Checkout voucher form action"
@@ -2067,12 +2199,12 @@ msgstr "صفحات"
 
 #: templates/dashboard/base.html:234
 msgctxt "Dashboard software version"
-msgid "Release:"
+msgid "Void:"
 msgstr ""
 
 #: templates/dashboard/base_modal.html:33
-#: templates/dashboard/category/form.html:111
-#: templates/dashboard/category/form.html:115
+#: templates/dashboard/category/form.html:114
+#: templates/dashboard/category/form.html:118
 #: templates/dashboard/customer/form.html:59
 #: templates/dashboard/customer/form.html:66
 #: templates/dashboard/discount/sale/form.html:115
@@ -2129,7 +2261,7 @@ msgstr "التصنيفات الفرعية"
 
 #: templates/dashboard/category/detail.html:109
 #: templates/dashboard/includes/_menu_items.html:14
-#: templates/dashboard/product/attribute/detail.html:63
+#: templates/dashboard/product/attribute/detail.html:68
 #: templates/dashboard/product/detail.html:93
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:13
 #: templates/dashboard/sites/detail.html:77
@@ -2189,7 +2321,7 @@ msgctxt "Category detail breadcrumbs"
 msgid "Add new category"
 msgstr "إضافة تصنيف جديد"
 
-#: templates/dashboard/category/form.html:120
+#: templates/dashboard/category/form.html:123
 #: templates/dashboard/customer/form.html:62
 #: templates/dashboard/discount/sale/form.html:119
 #: templates/dashboard/discount/voucher/form.html:129
@@ -2205,7 +2337,7 @@ msgctxt "Dashboard update action"
 msgid "Update"
 msgstr "تحديث"
 
-#: templates/dashboard/category/form.html:124
+#: templates/dashboard/category/form.html:127
 #: templates/dashboard/discount/sale/form.html:123
 #: templates/dashboard/discount/voucher/form.html:133
 #: templates/dashboard/menu/form.html:66
@@ -2335,37 +2467,37 @@ msgctxt "Collection action"
 msgid "View on site"
 msgstr "عرض على الموقع"
 
-#: templates/dashboard/collection/detail.html:60
+#: templates/dashboard/collection/detail.html:66
 msgctxt "Collection form card title: availability sub form"
 msgid "Availability"
 msgstr "توافر"
 
-#: templates/dashboard/collection/detail.html:68
+#: templates/dashboard/collection/detail.html:74
 msgctxt "Collection secondary action"
 msgid "Cancel"
 msgstr "إلغاء"
 
-#: templates/dashboard/collection/detail.html:71
+#: templates/dashboard/collection/detail.html:77
 msgctxt "Collection detail action"
 msgid "Update"
 msgstr "تحديث"
 
-#: templates/dashboard/collection/detail.html:75
+#: templates/dashboard/collection/detail.html:81
 msgctxt "Collection detail action"
 msgid "Create"
 msgstr "إنشاء"
 
-#: templates/dashboard/collection/detail.html:97
+#: templates/dashboard/collection/detail.html:103
 msgctxt "Collection field"
 msgid "Published"
 msgstr "منشور"
 
-#: templates/dashboard/collection/detail.html:99
+#: templates/dashboard/collection/detail.html:105
 msgctxt "Collection field"
 msgid "Draft"
 msgstr "مسودة"
 
-#: templates/dashboard/collection/detail.html:107
+#: templates/dashboard/collection/detail.html:113
 msgctxt "Collection field"
 msgid "Can't unpublish homepage collection"
 msgstr "لا يمكن إلغاء مجموعات الصفحة الرئيسية"
@@ -2426,92 +2558,92 @@ msgid ""
 "  "
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:51
+#: templates/dashboard/customer/detail.html:56
 msgctxt "Customer field"
 msgid "Date joined"
 msgstr "تاريخ الانضمام"
 
-#: templates/dashboard/customer/detail.html:63
+#: templates/dashboard/customer/detail.html:68
 msgctxt "Customer field"
 msgid "Note"
 msgstr "ملاحظة"
 
-#: templates/dashboard/customer/detail.html:74
+#: templates/dashboard/customer/detail.html:79
 msgctxt "Customer action"
 msgid "Edit customer"
 msgstr "تحرير الزبون"
 
-#: templates/dashboard/customer/detail.html:77
+#: templates/dashboard/customer/detail.html:82
 msgctxt "Customer action"
 msgid "Remove customer"
 msgstr "إزالة الزبون"
 
-#: templates/dashboard/customer/detail.html:81
+#: templates/dashboard/customer/detail.html:86
 msgctxt "Customer impersonate action"
 msgid "Impersonate customer"
 msgstr "انتحال صفة الزبون "
 
-#: templates/dashboard/customer/detail.html:90
+#: templates/dashboard/customer/detail.html:95
 msgctxt "Customer recent orders table title"
 msgid "Recent orders"
 msgstr "طلبات الشراء الحديثة"
 
-#: templates/dashboard/customer/detail.html:99
+#: templates/dashboard/customer/detail.html:104
 msgctxt "Customer orders table header"
 msgid "Number"
 msgstr "العدد"
 
-#: templates/dashboard/customer/detail.html:102
+#: templates/dashboard/customer/detail.html:107
 msgctxt "Customer orders table header"
 msgid "Placed on"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:105
+#: templates/dashboard/customer/detail.html:110
 msgctxt "Customer orders table header"
 msgid "Order status"
 msgstr "حالة الطلب"
 
-#: templates/dashboard/customer/detail.html:108
+#: templates/dashboard/customer/detail.html:113
 msgctxt "Customer orders table header"
 msgid "Total"
 msgstr "المجموع"
 
-#: templates/dashboard/customer/detail.html:135
+#: templates/dashboard/customer/detail.html:140
 msgctxt "Empty customer orders table message"
 msgid "No orders found."
 msgstr "لم يتم العثور على أية طلبات شراء"
 
-#: templates/dashboard/customer/detail.html:144
+#: templates/dashboard/customer/detail.html:149
 msgctxt "Customer notes card title"
 msgid "Customer notes"
 msgstr "تعليق العملاء"
 
-#: templates/dashboard/customer/detail.html:157
+#: templates/dashboard/customer/detail.html:162
 msgctxt "Customer without notes message"
 msgid "There are no notes associated with this customer"
 msgstr "لا توجد ملاحظات متعلقة بهذا العميل"
 
-#: templates/dashboard/customer/detail.html:163
+#: templates/dashboard/customer/detail.html:168
 msgctxt "Customer notes card action"
 msgid "Add note"
 msgstr "إضافة تعليق"
 
-#: templates/dashboard/customer/detail.html:176
+#: templates/dashboard/customer/detail.html:181
 msgctxt "Customer default shipping address card title"
 msgid "Default shipping address"
 msgstr "عنوان الشحن الافتراضي"
 
-#: templates/dashboard/customer/detail.html:183
+#: templates/dashboard/customer/detail.html:188
 msgctxt "Customer without default shipping address message"
 msgid "No default shipping address."
 msgstr "لا يوجد عنوان افتراضي للشحن."
 
-#: templates/dashboard/customer/detail.html:196
+#: templates/dashboard/customer/detail.html:201
 msgctxt "Customer default billing address card title"
 msgid "Default billing address"
 msgstr "عنوان الفواتير الافتراضي"
 
-#: templates/dashboard/customer/detail.html:204
+#: templates/dashboard/customer/detail.html:209
 msgctxt "Customer without default billing address message"
 msgid "No default billing address."
 msgstr "لا يوجد عنوان افتراضي للفواتير."
@@ -2945,7 +3077,7 @@ msgid "Total"
 msgstr "المجموع"
 
 #: templates/dashboard/index.html:105
-#: templates/dashboard/order/detail.html:207
+#: templates/dashboard/order/detail.html:211
 #: templates/dashboard/order/list.html:68
 msgctxt "Anonymous user account value"
 msgid "Guest"
@@ -3141,13 +3273,13 @@ msgid "Edit address"
 msgstr "تعديل العنوان"
 
 #: templates/dashboard/order/address_form.html:39
-#: templates/dashboard/order/detail.html:213
+#: templates/dashboard/order/detail.html:217
 msgctxt ""
 msgid "Shipping address"
 msgstr "عنوان الشحن"
 
 #: templates/dashboard/order/address_form.html:41
-#: templates/dashboard/order/detail.html:229
+#: templates/dashboard/order/detail.html:233
 msgctxt ""
 msgid "Billing address"
 msgstr "عنوان الفاتورة"
@@ -3173,13 +3305,13 @@ msgid "Details"
 msgstr "تفاصيل"
 
 #: templates/dashboard/order/detail.html:87
-#: templates/dashboard/order/detail.html:567
+#: templates/dashboard/order/detail.html:571
 msgctxt "Order detail tab"
 msgid "Payments"
 msgstr "المدفوعات"
 
 #: templates/dashboard/order/detail.html:95
-#: templates/dashboard/order/detail.html:623
+#: templates/dashboard/order/detail.html:621
 msgctxt "Order detail tab"
 msgid "History"
 msgstr "السجل"
@@ -3219,320 +3351,315 @@ msgctxt "Order summary card action"
 msgid "Capture"
 msgstr "قبض"
 
-#: templates/dashboard/order/detail.html:167
+#: templates/dashboard/order/detail.html:168
 msgctxt "Order summary card action"
 msgid "Refund"
 msgstr "استرداد المال المدفوع"
 
-#: templates/dashboard/order/detail.html:172
+#: templates/dashboard/order/detail.html:173
 msgctxt "Order summary card action"
-msgid "Release"
+msgid "Void"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:177
+#: templates/dashboard/order/detail.html:178
 msgctxt "Order detail action"
 msgid "Mark as paid"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:189
+#: templates/dashboard/order/detail.html:190
 msgctxt "Order details summary header"
 msgid "Customer"
 msgstr "زبون"
 
-#: templates/dashboard/order/detail.html:193
+#: templates/dashboard/order/detail.html:194
 msgctxt "Order customer details action title"
 msgid "Edit customer details"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:194
-#: templates/dashboard/order/detail.html:216
-#: templates/dashboard/order/detail.html:232
+#: templates/dashboard/order/detail.html:195
+#: templates/dashboard/order/detail.html:220
+#: templates/dashboard/order/detail.html:236
 #: templates/dashboard/product/product_image/list.html:82
 #: templates/dashboard/product/product_image/list.html:127
 msgctxt "Dashboard edit action"
 msgid "Edit"
 msgstr "تعديل"
 
-#: templates/dashboard/order/detail.html:223
+#: templates/dashboard/order/detail.html:227
 msgctxt "Missing shipping address message"
 msgid "No shipping address"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:238
+#: templates/dashboard/order/detail.html:242
 msgctxt "Order billing address same as shipping address"
 msgid "Same as shipping address"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:243
+#: templates/dashboard/order/detail.html:247
 msgctxt "Missing billing address message"
 msgid "No billing address"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:256
+#: templates/dashboard/order/detail.html:260
 #, python-format
 msgctxt "Order table title"
 msgid "Order draft #%(order)s"
 msgstr "مسودة طلب الشراء %(order)s"
 
-#: templates/dashboard/order/detail.html:260
+#: templates/dashboard/order/detail.html:264
 #, python-format
 msgctxt "Order table title"
 msgid "Order #%(order)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:266
+#: templates/dashboard/order/detail.html:270
 msgctxt "Order placed on date"
 msgid "Placed on"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:276
-#: templates/dashboard/order/detail.html:469
+#: templates/dashboard/order/detail.html:280
+#: templates/dashboard/order/detail.html:473
 #: templates/dashboard/order/pdf/packing_slip.html:64
 msgctxt "Order table header"
 msgid "Item"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:279
+#: templates/dashboard/order/detail.html:283
 msgctxt "Order table header"
 msgid "Price"
 msgstr "السعر"
 
-#: templates/dashboard/order/detail.html:282
-#: templates/dashboard/order/detail.html:472
+#: templates/dashboard/order/detail.html:286
+#: templates/dashboard/order/detail.html:476
 #: templates/dashboard/order/pdf/packing_slip.html:70
 msgctxt "Order table header"
 msgid "Quantity"
 msgstr "عدد"
 
-#: templates/dashboard/order/detail.html:285
+#: templates/dashboard/order/detail.html:289
 msgctxt "Order table header"
 msgid "Total"
 msgstr "المجموع"
 
-#: templates/dashboard/order/detail.html:300
+#: templates/dashboard/order/detail.html:304
 #: templates/dashboard/order/fulfillment.html:85
 #, python-format
 msgctxt "Order table text"
 msgid "SKU: %(sku)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:316
-#: templates/dashboard/order/detail.html:317
+#: templates/dashboard/order/detail.html:320
+#: templates/dashboard/order/detail.html:321
 msgctxt "Order table row action"
 msgid "Change quantity"
 msgstr "تغيير الكمية"
 
-#: templates/dashboard/order/detail.html:321
-#: templates/dashboard/order/detail.html:322
+#: templates/dashboard/order/detail.html:325
+#: templates/dashboard/order/detail.html:326
 msgctxt "Order table row action"
 msgid "Remove line"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:343
+#: templates/dashboard/order/detail.html:347
 msgctxt "Order totals action"
 msgid "Edit shipping"
 msgstr "تحرير الشحن"
 
-#: templates/dashboard/order/detail.html:345
-#: templates/dashboard/order/detail.html:354
+#: templates/dashboard/order/detail.html:349
+#: templates/dashboard/order/detail.html:358
 #, python-format
 msgctxt "Order totals header"
 msgid "Shipping (%(shipping_name)s)"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:349
-#: templates/dashboard/order/detail.html:358
+#: templates/dashboard/order/detail.html:353
+#: templates/dashboard/order/detail.html:362
 msgctxt "Order totals header"
 msgid "Shipping"
 msgstr "الشحن"
 
-#: templates/dashboard/order/detail.html:364
+#: templates/dashboard/order/detail.html:368
 msgctxt "Order total taxes"
 msgid "Taxes (included)"
 msgstr "(شامل) الضرائب"
 
-#: templates/dashboard/order/detail.html:366
+#: templates/dashboard/order/detail.html:370
 msgctxt "Order total taxes"
 msgid "Taxes"
 msgstr "الضرائب"
 
-#: templates/dashboard/order/detail.html:374
-#: templates/dashboard/order/detail.html:398
+#: templates/dashboard/order/detail.html:378
+#: templates/dashboard/order/detail.html:402
 #, python-format
 msgctxt "Order totals header"
 msgid "Discount (%(voucher)s)"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:378
-#: templates/dashboard/order/detail.html:402
+#: templates/dashboard/order/detail.html:382
+#: templates/dashboard/order/detail.html:406
 msgctxt "Order totals header"
 msgid "Discount"
 msgstr "خصم"
 
-#: templates/dashboard/order/detail.html:385
+#: templates/dashboard/order/detail.html:389
 msgctxt "Order totals action"
 msgid "Edit voucher"
 msgstr "تعديل القسيمة"
 
-#: templates/dashboard/order/detail.html:386
+#: templates/dashboard/order/detail.html:390
 msgctxt "Order detail action"
 msgid "Edit voucher"
 msgstr "تعديل القسيمة"
 
-#: templates/dashboard/order/detail.html:391
+#: templates/dashboard/order/detail.html:395
 msgctxt "Order totals action"
 msgid "Edit discount"
 msgstr "تعديل الخصم"
 
-#: templates/dashboard/order/detail.html:392
+#: templates/dashboard/order/detail.html:396
 msgctxt "Order detail action"
 msgid "Edit discount"
 msgstr "تعديل الخصم"
 
-#: templates/dashboard/order/detail.html:407
+#: templates/dashboard/order/detail.html:411
 msgctxt "Order totals header"
 msgid "Grand total"
 msgstr "المجموع الكلي"
 
-#: templates/dashboard/order/detail.html:428
+#: templates/dashboard/order/detail.html:432
 msgctxt "Order summary card action title"
 msgid "Fulfill order"
 msgstr "إتمام الطلب"
 
-#: templates/dashboard/order/detail.html:429
+#: templates/dashboard/order/detail.html:433
 msgctxt "Order summary card action"
 msgid "Fulfill"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:433
+#: templates/dashboard/order/detail.html:437
 msgctxt "Order summary card action title"
 msgid "Add product to order"
 msgstr "أضف منتج إلى طلب الشراء"
 
-#: templates/dashboard/order/detail.html:434
+#: templates/dashboard/order/detail.html:438
 msgctxt "Order summary card action"
 msgid "Add product"
 msgstr "أضف منتج"
 
-#: templates/dashboard/order/detail.html:439
+#: templates/dashboard/order/detail.html:443
 msgctxt "Order summary card action title"
 msgid "Create order"
 msgstr "إنشاء أمر شراء"
 
-#: templates/dashboard/order/detail.html:440
+#: templates/dashboard/order/detail.html:444
 msgctxt "Order summary card action"
 msgid "Create order"
 msgstr "إنشاء أمر شراء"
 
-#: templates/dashboard/order/detail.html:446
+#: templates/dashboard/order/detail.html:450
 msgctxt "Order detail action"
 msgid "Invoice"
 msgstr "فاتورة"
 
-#: templates/dashboard/order/detail.html:449
+#: templates/dashboard/order/detail.html:453
 msgctxt "Order detail action"
 msgid "View on site"
 msgstr "عرض على الموقع"
 
-#: templates/dashboard/order/detail.html:458
+#: templates/dashboard/order/detail.html:462
 #, python-format
 msgctxt "Fulfillment table title"
 msgid "Fulfillment #%(fulfillment)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:490
+#: templates/dashboard/order/detail.html:494
 #, python-format
 msgctxt "Fulfillment table text"
 msgid "Tracking number: %(tracking)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:502
+#: templates/dashboard/order/detail.html:506
 msgctxt "Fulfillment summary card action title"
 msgid "Cancel fulfillment"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:503
+#: templates/dashboard/order/detail.html:507
 msgctxt "Fulfillment summary card action"
 msgid "Cancel"
 msgstr "إلغاء"
 
-#: templates/dashboard/order/detail.html:506
+#: templates/dashboard/order/detail.html:510
 msgctxt "Fulfillment summary card action title"
 msgid "Edit tracking number"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:508
+#: templates/dashboard/order/detail.html:512
 msgctxt "Fulfillment summary card action"
 msgid "Edit tracking"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:510
+#: templates/dashboard/order/detail.html:514
 msgctxt "Fulfillment summary card action"
 msgid "Add tracking"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:515
+#: templates/dashboard/order/detail.html:519
 msgctxt "Order detail action"
 msgid "Packing Slips"
 msgstr "قوائم التعبئة"
 
-#: templates/dashboard/order/detail.html:525
+#: templates/dashboard/order/detail.html:529
 msgctxt "Customer order note card title"
 msgid "Customer note"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:531
+#: templates/dashboard/order/detail.html:535
 msgctxt "No customer order note card message"
 msgid "There is no note from the customer associated with this order."
 msgstr "لا توجد ملاحظات من الزبون مرفقة مع الطلب."
 
-#: templates/dashboard/order/detail.html:540
+#: templates/dashboard/order/detail.html:544
 msgctxt "Order notes card title"
 msgid "Order notes"
 msgstr "ملاحظات مرفقة مع الطلب"
 
-#: templates/dashboard/order/detail.html:553
+#: templates/dashboard/order/detail.html:557
 msgctxt "Empty order notes card message"
 msgid "There are no notes associated with this order."
 msgstr "لا توجد ملاحظات مرفقة مع هذا الطلب."
 
-#: templates/dashboard/order/detail.html:559
+#: templates/dashboard/order/detail.html:563
 msgctxt "Order notes card action"
 msgid "Add note"
 msgstr "إضافة ملاحظة"
 
-#: templates/dashboard/order/detail.html:574
+#: templates/dashboard/order/detail.html:578
 msgctxt "Payment history table header"
 msgid "Transaction ID"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:577
+#: templates/dashboard/order/detail.html:581
 msgctxt "Payment history table header"
 msgid "Date"
 msgstr "تاريخ"
 
-#: templates/dashboard/order/detail.html:580
+#: templates/dashboard/order/detail.html:584
 msgctxt "Payment history table header"
 msgid "Payment status"
 msgstr "حالة الدفع"
 
-#: templates/dashboard/order/detail.html:583
-msgctxt "Payment history table header"
-msgid "Fraud status"
-msgstr ""
-
-#: templates/dashboard/order/detail.html:586
+#: templates/dashboard/order/detail.html:587
 msgctxt "Payment history table header"
 msgid "Amount"
 msgstr "كمية"
 
-#: templates/dashboard/order/detail.html:594
+#: templates/dashboard/order/detail.html:595
 #, python-format
 msgctxt "Payment item column data"
 msgid "#%(payment_id)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:618
+#: templates/dashboard/order/detail.html:616
 msgctxt "Empty payment history table message"
 msgid "No payments made for this order."
 msgstr "لم يتم الدفع لهذا الطلب."
@@ -3850,21 +3977,6 @@ msgctxt "Modal refund payment primary action"
 msgid "Refund"
 msgstr "استرداد المال المدفوع"
 
-#: templates/dashboard/order/modal/release.html:11
-msgctxt "Modal release payment text"
-msgid "Release payment"
-msgstr ""
-
-#: templates/dashboard/order/modal/release.html:17
-msgctxt "Modal release payment text"
-msgid "Do you want to release the payment?"
-msgstr ""
-
-#: templates/dashboard/order/modal/release.html:22
-msgctxt "Modal release payment primary action"
-msgid "Release"
-msgstr ""
-
 #: templates/dashboard/order/modal/remove_order.html:13
 msgctxt "Modal remove order title"
 msgid "Remove draft order"
@@ -3885,6 +3997,21 @@ msgstr "إلغاء"
 msgctxt "Modal remove order primary action"
 msgid "Remove draft order"
 msgstr "إزالة مسودة طلب الشراء"
+
+#: templates/dashboard/order/modal/void.html:11
+msgctxt "Modal void payment text"
+msgid "Void payment"
+msgstr ""
+
+#: templates/dashboard/order/modal/void.html:17
+msgctxt "Modal void payment text"
+msgid "Do you want to void the payment?"
+msgstr ""
+
+#: templates/dashboard/order/modal/void.html:22
+msgctxt "Modal void payment primary action"
+msgid "Void"
+msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:8
 msgctxt "Invoice title"
@@ -4157,36 +4284,40 @@ msgctxt "Attribute detail breadcrumbs"
 msgid "Attributes"
 msgstr "سمات"
 
-#: templates/dashboard/product/attribute/detail.html:48
+#: templates/dashboard/product/attribute/detail.html:46
+msgid "Product type"
+msgstr "نوع المنتج"
+
+#: templates/dashboard/product/attribute/detail.html:53
 msgctxt "Attribute detail action"
 msgid "Edit attribute"
 msgstr "تعديل السمة"
 
-#: templates/dashboard/product/attribute/detail.html:51
+#: templates/dashboard/product/attribute/detail.html:56
 msgctxt "Attribute detail action"
 msgid "Remove attribute"
 msgstr "إزالة سمة"
 
-#: templates/dashboard/product/attribute/detail.html:59
+#: templates/dashboard/product/attribute/detail.html:64
 msgid "Attribute values"
 msgstr "قيم السمة"
 
-#: templates/dashboard/product/attribute/detail.html:72
+#: templates/dashboard/product/attribute/detail.html:77
 msgid "Display name"
 msgstr "اسم العرض"
 
-#: templates/dashboard/product/attribute/detail.html:87
+#: templates/dashboard/product/attribute/detail.html:92
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:39
 msgctxt "Attribute value edit action"
 msgid "Edit"
 msgstr "تعديل"
 
-#: templates/dashboard/product/attribute/detail.html:90
+#: templates/dashboard/product/attribute/detail.html:95
 msgctxt "Attribute value edit action"
 msgid "Remove"
 msgstr "إزالة"
 
-#: templates/dashboard/product/attribute/detail.html:96
+#: templates/dashboard/product/attribute/detail.html:101
 msgctxt "Empty list of attribute values"
 msgid "No attribute values"
 msgstr "لا يوجد قيم للسمات"
@@ -4225,12 +4356,17 @@ msgctxt "Dashboard attributes list table header name"
 msgid "Name"
 msgstr "الاسم"
 
-#: templates/dashboard/product/attribute/list.html:45
+#: templates/dashboard/product/attribute/list.html:44
+msgctxt "Name of product type related to the attribute"
+msgid "Product type"
+msgstr "نوع المنتج"
+
+#: templates/dashboard/product/attribute/list.html:46
 msgctxt "Dashboard attributes list table header values"
 msgid "Values"
 msgstr "قيم "
 
-#: templates/dashboard/product/attribute/list.html:72
+#: templates/dashboard/product/attribute/list.html:76
 msgctxt "Empty attribute list message"
 msgid "No attributes found."
 msgstr "لم يتم العثور على السمة"
@@ -5418,7 +5554,7 @@ msgctxt "Site settings configure taxes action"
 msgid "Configure taxes"
 msgstr "تكوين الضرائب"
 
-#: templates/dashboard/taxes/list.html:125
+#: templates/dashboard/taxes/list.html:127
 msgctxt "Site settings fetch tax rates action"
 msgid "Fetch tax rates"
 msgstr ""
@@ -5475,10 +5611,10 @@ msgstr ""
 #: templates/materializecssform/field.html:194
 #: templates/materializecssform/field.html:228
 #: templates/materializecssform/field.html:257
-#: templates/materializecssform/field.html:283
-#: templates/materializecssform/field.html:316
-#: templates/materializecssform/field.html:344
-#: templates/materializecssform/field.html:370
+#: templates/materializecssform/field.html:285
+#: templates/materializecssform/field.html:320
+#: templates/materializecssform/field.html:350
+#: templates/materializecssform/field.html:376
 msgctxt "Dashboard form labels"
 msgid "(optional)"
 msgstr ""
@@ -5488,7 +5624,7 @@ msgstr ""
 msgid "File"
 msgstr ""
 
-#: templates/materializecssform/field.html:349
+#: templates/materializecssform/field.html:355
 #, python-format
 msgctxt ""
 "Message showing how many chars were used out of maximum field's length"
@@ -5717,12 +5853,8 @@ msgctxt "Payment details text"
 msgid "You've authorized transaction. Order is in processing"
 msgstr ""
 
-#: templates/order/payment/default.html:12
-msgctxt "Payment form (Stripe) secondary action"
-msgid "Change payment method"
-msgstr "غير طريقة الدفع"
-
-#: templates/order/payment/default.html:20
+#: templates/order/payment/braintree.html:28
+#: templates/order/payment/dummy.html:20
 msgctxt "Payment form primary action"
 msgid "Make payment"
 msgstr ""
@@ -5742,6 +5874,21 @@ msgctxt "Payment form title"
 msgid "Payment"
 msgstr "الدفع"
 
+#: templates/order/payment/details.html:44
+msgctxt "Header of the order summary table"
+msgid "Order details"
+msgstr ""
+
+#: templates/order/payment/dummy.html:12
+msgctxt "Payment form (Stripe) secondary action"
+msgid "Change payment"
+msgstr ""
+
+#: templates/order/payment/razorpay.html:11
+msgctxt "Payment form (Razorpay) secondary action"
+msgid "Change payment"
+msgstr ""
+
 #: templates/page/details.html:41
 msgctxt "Unavailable page detail text"
 msgid ""
@@ -5760,7 +5907,7 @@ msgid ""
 msgstr ""
 
 #: templates/product/_filters.html:14
-#: templates/product/product_list_base.html:55
+#: templates/product/product_list_base.html:57
 msgctxt "Filter heading title"
 msgid "Filters"
 msgstr "فلاتر"
@@ -5796,7 +5943,7 @@ msgctxt "product price range"
 msgid "from"
 msgstr "من"
 
-#: templates/product/details.html:61
+#: templates/product/details.html:62
 #, python-format
 msgctxt "Product details text"
 msgid ""
@@ -5804,68 +5951,68 @@ msgid ""
 "visible on <strong>%(date)s</strong>."
 msgstr ""
 
-#: templates/product/details.html:123
+#: templates/product/details.html:124
 msgctxt "Product details link text"
 msgid "Edit in dashboard"
 msgstr "عدل في لوحة التحكم"
 
-#: templates/product/details.html:149
+#: templates/product/details.html:150
 #, python-format
 msgctxt "Product details page vat rate value"
 msgid "including %(tax_rate)s%% VAT"
 msgstr ""
 
-#: templates/product/details.html:153
+#: templates/product/details.html:154
 #, python-format
 msgctxt "Product details page vat rate value"
 msgid "excluding %(tax_rate)s%% VAT"
 msgstr ""
 
-#: templates/product/details.html:177
+#: templates/product/details.html:178
 msgctxt "Product details primary action"
 msgid "Add to cart"
 msgstr "إضافة إلى البطاقة"
 
-#: templates/product/details.html:189
+#: templates/product/details.html:190
 msgctxt "Product details text"
 msgid "This product is currently <strong>unavailable</strong>."
 msgstr ""
 
-#: templates/product/details.html:193
+#: templates/product/details.html:194
 msgctxt "Product details title"
 msgid "Description"
 msgstr "الوصف"
 
-#: templates/product/product_list_base.html:63
+#: templates/product/product_list_base.html:65
 msgid "Sort by: <b>name</b>"
 msgstr ""
 
-#: templates/product/product_list_base.html:67
+#: templates/product/product_list_base.html:69
 msgid "Sort by: <b>price</b>"
 msgstr ""
 
-#: templates/product/product_list_base.html:86
+#: templates/product/product_list_base.html:88
 msgctxt "Product list filters"
 msgid "Sort by"
 msgstr "ترتيب بحسب"
 
-#: templates/product/product_list_base.html:92
+#: templates/product/product_list_base.html:94
 msgctxt "sort by option"
 msgid "ascending"
 msgstr "تصاعدي"
 
-#: templates/product/product_list_base.html:98
+#: templates/product/product_list_base.html:100
 msgctxt "sort by option"
 msgid "descending"
 msgstr "تنازلي"
 
-#: templates/product/product_list_base.html:149
+#: templates/product/product_list_base.html:152
 #: templates/search/results.html:34
 msgctxt "Search without results text"
 msgid "Sorry, no matches found for your request."
 msgstr "عذرا ، لم يتم العثور على ما يطابق طلبك."
 
-#: templates/product/product_list_base.html:150
+#: templates/product/product_list_base.html:153
 #: templates/search/results.html:35
 msgctxt "Search without results text"
 msgid "Try again or shop new arrivals."
@@ -6090,27 +6237,6 @@ msgid ""
 "%(site_name)s\n"
 msgstr ""
 
-#: templates/templated_email/order/note/confirm_note.email:4
-msgctxt "Note confirmation email subject"
-msgid "New note has been added to your order"
-msgstr "أضيف تعليق جديد لطلبيتك "
-
-#: templates/templated_email/order/note/confirm_note.email:8
-#, python-format
-msgctxt "Note confirmation email text"
-msgid ""
-"\n"
-"Hi!\n"
-"\n"
-"A new note has been added to your order. To see details please visit:\n"
-"%(order_details_url)s\n"
-"\n"
-"This is an automatically generated email, please do not reply.\n"
-"\n"
-"Sincerely,\n"
-"%(site_name)s\n"
-msgstr ""
-
 #: templates/templated_email/order/payment/confirm_payment.email:4
 msgctxt "Payment confirmation subject"
 msgid "Payment details"
@@ -6188,19 +6314,6 @@ msgstr "مرحباً !"
 #: templates/templated_email/source/confirm_fulfillment.mjml:16
 msgctxt "Fulfillment confirmation email text"
 msgid "Thank you for your order. Below is the list of shipped products."
-msgstr ""
-
-#: templates/templated_email/source/confirm_note.mjml:13
-msgctxt "Note confirmation e-mail text"
-msgid "Hi!"
-msgstr "مرحباً !"
-
-#: templates/templated_email/source/confirm_note.mjml:16
-#, python-format
-msgctxt "Note confirmation e-mail text"
-msgid ""
-"A new note has been added to your order. To see details please visit: <a "
-"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
 #: templates/templated_email/source/confirm_order.mjml:14
