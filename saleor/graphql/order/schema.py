@@ -10,7 +10,7 @@ from ..descriptions import DESCRIPTIONS
 from .enums import OrderStatusFilter
 from .mutations.draft_orders import (
     DraftOrderComplete, DraftOrderCreate, DraftOrderDelete,
-    DraftOrderLineCreate, DraftOrderLineDelete, DraftOrderLineUpdate,
+    DraftOrderLinesCreate, DraftOrderLineDelete, DraftOrderLineUpdate,
     DraftOrderUpdate)
 from .mutations.fulfillments import (
     FulfillmentCancel, FulfillmentCreate, FulfillmentUpdateTracking)
@@ -67,7 +67,7 @@ class OrderMutations(graphene.ObjectType):
     draft_order_complete = DraftOrderComplete.Field()
     draft_order_create = DraftOrderCreate.Field()
     draft_order_delete = DraftOrderDelete.Field()
-    draft_order_line_create = DraftOrderLineCreate.Field()
+    draft_order_lines_create = DraftOrderLinesCreate.Field()
     draft_order_line_delete = DraftOrderLineDelete.Field()
     draft_order_line_update = DraftOrderLineUpdate.Field()
     draft_order_update = DraftOrderUpdate.Field()

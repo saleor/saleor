@@ -212,53 +212,54 @@ class DraftOrderComplete(BaseMutation):
         return DraftOrderComplete(order=order)
 
 
-class DraftOrderLineCreate(BaseMutation):
-    order = graphene.Field(Order, description='A related draft order.')
-    order_line = graphene.Field(
-        OrderLine, description='A newly created order line.')
+class DraftOrderLinesCreate(BaseMutation):
+    order = graphene.Field(
+        graphene.NonNull(Order), description='A related draft order.')
+    order_lines = graphene.List(
+        graphene.NonNull(OrderLine),
+        description='List of newly added order lines.', required=True)
 
     class Arguments:
         id = graphene.ID(
             required=True,
             description='ID of the draft order to add the lines to.')
-        input = OrderLineCreateInput(
-            required=True,
-            description=dedent("""
-            Variant line input consisting of variant ID and quantity of
-            products."""))
+        input = graphene.List(
+            OrderLineCreateInput, required=True,
+            description=dedent("""Fields required to add order lines."""))
 
     class Meta:
-        description = 'Create an order line for a draft order.'
+        description = 'Create order lines for a draft order.'
 
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, input):
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
-        variant_id = input['variant_id']
-        variant = cls.get_node_or_error(
-            info, variant_id, errors, 'lines', ProductVariant)
-
-        if not (order or variant):
-            return DraftOrderLineCreate(errors=errors)
-
+        if not order:
+            return DraftOrderLinesCreate(errors=errors)
         if order.status != OrderStatus.DRAFT:
             cls.add_error(
                 errors, 'order_id', 'Only draft orders can be edited.')
 
-        quantity = input['quantity']
-        if quantity <= 0:
-            cls.add_error(
-                errors, 'quantity',
-                'Ensure this value is greater than or equal to 1.')
+        lines = []
+        for input_line in input:
+            variant_id = input_line['variant_id']
+            variant = cls.get_node_or_error(
+                info, variant_id, errors, 'variant_id', ProductVariant)
+            quantity = input_line['quantity']
+            if quantity > 0:
+                if variant:
+                    line = add_variant_to_order(
+                        order, variant, quantity, allow_overselling=True)
+                    lines.append(line)
+            else:
+                cls.add_error(
+                    errors, 'quantity',
+                    'Ensure this value is greater than or equal to 1.')
 
-        line = None
-        if not errors:
-            line = add_variant_to_order(
-                order, variant, quantity, allow_overselling=True)
-            recalculate_order(order)
-        return DraftOrderLineCreate(
-            order=order, order_line=line, errors=errors)
+        recalculate_order(order)
+        return DraftOrderLinesCreate(
+            order=order, order_lines=lines, errors=errors)
 
 
 class DraftOrderLineDelete(BaseMutation):

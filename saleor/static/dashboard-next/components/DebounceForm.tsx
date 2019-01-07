@@ -24,3 +24,4 @@ export const DebounceForm: React.StatelessComponent<DebounceFormProps> = ({
     }
   </Debounce>
 );
+export default DebounceForm;
