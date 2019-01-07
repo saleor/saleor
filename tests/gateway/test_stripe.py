@@ -4,17 +4,21 @@ from unittest.mock import Mock, patch
 
 import pytest
 import stripe
+from django_countries import countries
 
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.gateways.stripe import (
-    _create_transaction, _get_client, _get_error_response_from_exc, authorize,
-    capture, charge, get_amount_for_stripe, get_amount_from_stripe,
-    get_client_token, get_currency_for_stripe, get_currency_from_stripe,
-    get_form_class, refund, void)
+    _create_transaction, _get_client, _get_error_response_from_exc,
+    _get_stripe_charge_payload, authorize, capture, charge,
+    get_amount_for_stripe, get_amount_from_stripe, get_client_token,
+    get_currency_for_stripe, get_currency_from_stripe, get_form_class, refund,
+    void)
 from saleor.payment.gateways.stripe.errors import (
     ORDER_NOT_AUTHORIZED, ORDER_NOT_CHARGED)
 from saleor.payment.gateways.stripe.forms import (
     StripeCheckoutWidget, StripePaymentModalForm)
+from saleor.payment.gateways.stripe.utils import (
+    get_payment_billing_fullname, shipping_address_to_stripe_dict)
 
 TRANSACTION_AMOUNT = Decimal(42.42)
 TRANSACTION_REFUND_AMOUNT = Decimal(24.24)
@@ -158,6 +162,23 @@ def test_get_currency_from_stripe():
     assert get_currency_from_stripe('uSd') == 'USD'
 
 
+def test_get_payment_billing_fullname(payment_dummy):
+    expected_fullname = '%s %s' % (
+        payment_dummy.billing_last_name, payment_dummy.billing_first_name)
+    assert get_payment_billing_fullname(payment_dummy) == expected_fullname
+
+
+def test_shipping_address_to_stripe_dict(address):
+    expected_address_dict = {
+        'line1': address.street_address_1,
+        'line2': address.street_address_2,
+        'city': address.city,
+        'state': address.country_area,
+        'postal_code': address.postal_code,
+        'country': dict(countries).get(address.country, '')}
+    assert shipping_address_to_stripe_dict(address) == expected_address_dict
+
+
 def test_widget_with_default_options(stripe_payment, gateway_params):
     widget = StripeCheckoutWidget(stripe_payment, gateway_params)
     assert widget.render() == (
@@ -253,6 +274,43 @@ def test_get_error_response_from_exc():
     assert _get_error_response_from_exc(stripe_error) == {
         'message': ERROR_MESSAGE}
     assert _get_error_response_from_exc(invalid_request_error) == {}
+
+
+def test_get_stripe_charge_payload_with_shipping(stripe_payment):
+    billing_name = get_payment_billing_fullname(stripe_payment)
+    expected_payload = {
+        'capture': True,
+        'amount': get_amount_for_stripe(
+            TRANSACTION_AMOUNT, TRANSACTION_CURRENCY),
+        'currency': get_currency_for_stripe(TRANSACTION_CURRENCY),
+        'source': FAKE_TOKEN,
+        'description': billing_name,
+        'shipping': {
+            'name': billing_name,
+            'address': shipping_address_to_stripe_dict(
+                stripe_payment.order.shipping_address)}}
+
+    charge_payload = _get_stripe_charge_payload(
+        stripe_payment, TRANSACTION_AMOUNT, FAKE_TOKEN, True)
+
+    assert charge_payload == expected_payload
+
+
+def test_get_stripe_charge_payload_without_shipping(stripe_payment):
+    stripe_payment.order.shipping_address = None
+    billing_name = get_payment_billing_fullname(stripe_payment)
+    expected_payload = {
+        'capture': True,
+        'amount': get_amount_for_stripe(
+            TRANSACTION_AMOUNT, TRANSACTION_CURRENCY),
+        'currency': get_currency_for_stripe(TRANSACTION_CURRENCY),
+        'source': FAKE_TOKEN,
+        'description': billing_name}
+
+    charge_payload = _get_stripe_charge_payload(
+        stripe_payment, TRANSACTION_AMOUNT, FAKE_TOKEN, True)
+
+    assert charge_payload == expected_payload
 
 
 def test_create_transaction_with_charge_success_response(

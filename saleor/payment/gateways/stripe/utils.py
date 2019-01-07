@@ -1,5 +1,10 @@
 from decimal import Decimal
 
+from django_countries import countries
+
+from ....account.models import Address
+from ....payment.models import Payment
+
 # List of zero-decimal currencies
 # Since there is no public API in Stripe backend or helper function
 # in Stripe's Python library, this list is straight out of Stripe's docs
@@ -50,3 +55,19 @@ def get_currency_from_stripe(currency):
     Stripe's currency is using lowercase while Saleor is using uppercase.
     """
     return currency.upper()
+
+
+def get_payment_billing_fullname(payment: Payment):
+    # Get billing name from payment
+    return '%s %s' % (
+        payment.billing_last_name, payment.billing_first_name)
+
+
+def shipping_address_to_stripe_dict(shipping_address: Address):
+    return {
+        'line1': shipping_address.street_address_1,
+        'line2': shipping_address.street_address_2,
+        'city': shipping_address.city,
+        'state': shipping_address.country_area,
+        'postal_code': shipping_address.postal_code,
+        'country': dict(countries).get(shipping_address.country, '')}
