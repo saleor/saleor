@@ -33,6 +33,7 @@ export const collection: (
   __typename: "Collection",
   backgroundImage: {
     __typename: "Image",
+    alt: "Alt text",
     url: placeholderCollectionImage
   },
   description: "Lorem ipsum dolor sit amet",

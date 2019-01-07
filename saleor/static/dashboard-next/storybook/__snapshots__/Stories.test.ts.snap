@@ -6080,6 +6080,8 @@ exports[`Storyshots Product types / Edit attribute form errors 1`] = `<div />`;
 
 exports[`Storyshots Product types / Edit attribute loading 1`] = `<div />`;
 
+exports[`Storyshots Products / ProductVariantImageSelectDialog default 1`] = `null`;
+
 exports[`Storyshots SiteSettings / Add key dialog default 1`] = `<div />`;
 
 exports[`Storyshots SiteSettings / Add key dialog form errors 1`] = `<div />`;
@@ -7803,16 +7805,102 @@ exports[`Storyshots Views / Categories / Update category default 1`] = `
         <div
           class="MuiCardContent-root-id"
         >
-          <div>
+          <div
+            class="ImageTile-imageContainer-id"
+          >
             <div
-              class="CategoryBackgroundComponent-imageContainer-id"
+              class="ImageTile-imageOverlay-id"
             >
-              <span
-                class="Skeleton-skeleton-id"
+              <div
+                class="ImageTile-imageOverlayToolbar-id"
               >
-                ‌
-              </span>
+                <button
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
+                  </span>
+                </button>
+              </div>
             </div>
+            <img
+              alt="Alt text"
+              class="ImageTile-image-id"
+              src="placeholder255x255.png"
+            />
+          </div>
+        </div>
+        <hr
+          class="Hr-root-id"
+        />
+        <div
+          class="MuiCardContent-root-id"
+        >
+          <div
+            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+          >
+            <label
+              class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+              data-shrink="true"
+            >
+              Description
+            </label>
+            <div
+              class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+            >
+              <div
+                class="MuiPrivateTextarea-root-id"
+              >
+                <textarea
+                  aria-hidden="true"
+                  class="MuiPrivateTextarea-textarea-id MuiPrivateTextarea-shadow-id"
+                  readonly=""
+                  rows="1"
+                  tabindex="-1"
+                />
+                <textarea
+                  aria-hidden="true"
+                  class="MuiPrivateTextarea-textarea-id MuiPrivateTextarea-shadow-id"
+                  readonly=""
+                  rows="1"
+                  tabindex="-1"
+                >
+                  Alt text
+                </textarea>
+                <textarea
+                  aria-invalid="false"
+                  class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                  name="backgroundImageAlt"
+                  rows="1"
+                  style="height:19px"
+                >
+                  Alt text
+                </textarea>
+              </div>
+            </div>
+            <p
+              class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
+            >
+              Optional
+            </p>
           </div>
         </div>
       </div>
@@ -8819,16 +8907,102 @@ exports[`Storyshots Views / Categories / Update category no background 1`] = `
         <div
           class="MuiCardContent-root-id"
         >
-          <div>
+          <div
+            class="ImageTile-imageContainer-id"
+          >
             <div
-              class="CategoryBackgroundComponent-imageContainer-id"
+              class="ImageTile-imageOverlay-id"
             >
-              <span
-                class="Skeleton-skeleton-id"
+              <div
+                class="ImageTile-imageOverlayToolbar-id"
               >
-                ‌
-              </span>
+                <button
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
+                  </span>
+                </button>
+              </div>
             </div>
+            <img
+              alt="Alt text"
+              class="ImageTile-image-id"
+              src="placeholder255x255.png"
+            />
+          </div>
+        </div>
+        <hr
+          class="Hr-root-id"
+        />
+        <div
+          class="MuiCardContent-root-id"
+        >
+          <div
+            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+          >
+            <label
+              class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+              data-shrink="true"
+            >
+              Description
+            </label>
+            <div
+              class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+            >
+              <div
+                class="MuiPrivateTextarea-root-id"
+              >
+                <textarea
+                  aria-hidden="true"
+                  class="MuiPrivateTextarea-textarea-id MuiPrivateTextarea-shadow-id"
+                  readonly=""
+                  rows="1"
+                  tabindex="-1"
+                />
+                <textarea
+                  aria-hidden="true"
+                  class="MuiPrivateTextarea-textarea-id MuiPrivateTextarea-shadow-id"
+                  readonly=""
+                  rows="1"
+                  tabindex="-1"
+                >
+                  Alt text
+                </textarea>
+                <textarea
+                  aria-invalid="false"
+                  class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                  name="backgroundImageAlt"
+                  rows="1"
+                  style="height:19px"
+                >
+                  Alt text
+                </textarea>
+              </div>
+            </div>
+            <p
+              class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
+            >
+              Optional
+            </p>
           </div>
         </div>
       </div>
@@ -9314,16 +9488,102 @@ exports[`Storyshots Views / Categories / Update category no products 1`] = `
         <div
           class="MuiCardContent-root-id"
         >
-          <div>
+          <div
+            class="ImageTile-imageContainer-id"
+          >
             <div
-              class="CategoryBackgroundComponent-imageContainer-id"
+              class="ImageTile-imageOverlay-id"
             >
-              <span
-                class="Skeleton-skeleton-id"
+              <div
+                class="ImageTile-imageOverlayToolbar-id"
               >
-                ‌
-              </span>
+                <button
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
+                  </span>
+                </button>
+              </div>
             </div>
+            <img
+              alt="Alt text"
+              class="ImageTile-image-id"
+              src="placeholder255x255.png"
+            />
+          </div>
+        </div>
+        <hr
+          class="Hr-root-id"
+        />
+        <div
+          class="MuiCardContent-root-id"
+        >
+          <div
+            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+          >
+            <label
+              class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+              data-shrink="true"
+            >
+              Description
+            </label>
+            <div
+              class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+            >
+              <div
+                class="MuiPrivateTextarea-root-id"
+              >
+                <textarea
+                  aria-hidden="true"
+                  class="MuiPrivateTextarea-textarea-id MuiPrivateTextarea-shadow-id"
+                  readonly=""
+                  rows="1"
+                  tabindex="-1"
+                />
+                <textarea
+                  aria-hidden="true"
+                  class="MuiPrivateTextarea-textarea-id MuiPrivateTextarea-shadow-id"
+                  readonly=""
+                  rows="1"
+                  tabindex="-1"
+                >
+                  Alt text
+                </textarea>
+                <textarea
+                  aria-invalid="false"
+                  class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                  name="backgroundImageAlt"
+                  rows="1"
+                  style="height:19px"
+                >
+                  Alt text
+                </textarea>
+              </div>
+            </div>
+            <p
+              class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
+            >
+              Optional
+            </p>
           </div>
         </div>
       </div>
@@ -9815,16 +10075,102 @@ exports[`Storyshots Views / Categories / Update category no subcategories 1`] = 
         <div
           class="MuiCardContent-root-id"
         >
-          <div>
+          <div
+            class="ImageTile-imageContainer-id"
+          >
             <div
-              class="CategoryBackgroundComponent-imageContainer-id"
+              class="ImageTile-imageOverlay-id"
             >
-              <span
-                class="Skeleton-skeleton-id"
+              <div
+                class="ImageTile-imageOverlayToolbar-id"
               >
-                ‌
-              </span>
+                <button
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
+                  </span>
+                </button>
+              </div>
             </div>
+            <img
+              alt="Alt text"
+              class="ImageTile-image-id"
+              src="placeholder255x255.png"
+            />
+          </div>
+        </div>
+        <hr
+          class="Hr-root-id"
+        />
+        <div
+          class="MuiCardContent-root-id"
+        >
+          <div
+            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+          >
+            <label
+              class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+              data-shrink="true"
+            >
+              Description
+            </label>
+            <div
+              class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+            >
+              <div
+                class="MuiPrivateTextarea-root-id"
+              >
+                <textarea
+                  aria-hidden="true"
+                  class="MuiPrivateTextarea-textarea-id MuiPrivateTextarea-shadow-id"
+                  readonly=""
+                  rows="1"
+                  tabindex="-1"
+                />
+                <textarea
+                  aria-hidden="true"
+                  class="MuiPrivateTextarea-textarea-id MuiPrivateTextarea-shadow-id"
+                  readonly=""
+                  rows="1"
+                  tabindex="-1"
+                >
+                  Alt text
+                </textarea>
+                <textarea
+                  aria-invalid="false"
+                  class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                  name="backgroundImageAlt"
+                  rows="1"
+                  style="height:19px"
+                >
+                  Alt text
+                </textarea>
+              </div>
+            </div>
+            <p
+              class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
+            >
+              Optional
+            </p>
           </div>
         </div>
       </div>
@@ -10349,6 +10695,7 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                   </div>
                 </div>
                 <img
+                  alt="Alt text"
                   class="ImageTile-image-id"
                   src="block1.jpg"
                 />
@@ -10364,8 +10711,8 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                  data-shrink="false"
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
                 >
                   Description
                 </label>
@@ -10388,18 +10735,22 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                       readonly=""
                       rows="1"
                       tabindex="-1"
-                    />
+                    >
+                      Alt text
+                    </textarea>
                     <textarea
                       aria-invalid="false"
                       class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
                       name="backgroundImageAlt"
                       rows="1"
                       style="height:19px"
-                    />
+                    >
+                      Alt text
+                    </textarea>
                   </div>
                 </div>
                 <p
-                  class="MuiFormHelperText-root-id"
+                  class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
                 >
                   Optional
                 </p>
@@ -11958,6 +12309,7 @@ exports[`Storyshots Views / Collections / Collection details no products 1`] = `
                   </div>
                 </div>
                 <img
+                  alt="Alt text"
                   class="ImageTile-image-id"
                   src="block1.jpg"
                 />
@@ -11973,8 +12325,8 @@ exports[`Storyshots Views / Collections / Collection details no products 1`] = `
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                  data-shrink="false"
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
                 >
                   Description
                 </label>
@@ -11997,18 +12349,22 @@ exports[`Storyshots Views / Collections / Collection details no products 1`] = `
                       readonly=""
                       rows="1"
                       tabindex="-1"
-                    />
+                    >
+                      Alt text
+                    </textarea>
                     <textarea
                       aria-invalid="false"
                       class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
                       name="backgroundImageAlt"
                       rows="1"
                       style="height:19px"
-                    />
+                    >
+                      Alt text
+                    </textarea>
                   </div>
                 </div>
                 <p
-                  class="MuiFormHelperText-root-id"
+                  class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
                 >
                   Optional
                 </p>
@@ -36142,9 +36498,8 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
         </span>
       </button>
       <button
-        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
-        disabled=""
-        tabindex="-1"
+        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id undefined"
+        tabindex="0"
         type="button"
       >
         <span
@@ -37114,9 +37469,8 @@ exports[`Storyshots Views / Orders / Order draft without lines 1`] = `
         </span>
       </button>
       <button
-        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
-        disabled=""
-        tabindex="-1"
+        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id undefined"
+        tabindex="0"
         type="button"
       >
         <span
@@ -49505,8 +49859,8 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                     class="MuiFormControl-root-id"
                   >
                     <label
-                      class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                      data-shrink="false"
+                      class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                      data-shrink="true"
                     >
                       Inventory
                     </label>
@@ -49518,12 +49872,13 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                         class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id"
                         name="stockQuantity"
                         type="number"
+                        value="12"
                       />
                     </div>
                     <p
-                      class="MuiFormHelperText-root-id"
+                      class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
                     >
-                      Allocated: 
+                      Allocated: 1
                     </p>
                   </div>
                 </div>
@@ -57479,7 +57834,7 @@ exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
             <hr
               class="CardTitle-hr-id"
             />
-            <fieldset
+            <div
               class="MuiFormControl-root-id VoucherProperties-formControl-id"
             >
               <div
@@ -57624,7 +57979,7 @@ exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
                   </span>
                 </label>
               </div>
-            </fieldset>
+            </div>
             <div
               class="MuiCardContent-root-id"
             >
@@ -58089,7 +58444,7 @@ exports[`Storyshots Views / Vouchers / Voucher details when loading 1`] = `
             <hr
               class="CardTitle-hr-id"
             />
-            <fieldset
+            <div
               class="MuiFormControl-root-id VoucherProperties-formControl-id"
             >
               <div
@@ -58242,7 +58597,7 @@ exports[`Storyshots Views / Vouchers / Voucher details when loading 1`] = `
                   </span>
                 </label>
               </div>
-            </fieldset>
+            </div>
             <div
               class="MuiCardContent-root-id"
             >
