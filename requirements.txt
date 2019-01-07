@@ -5,8 +5,8 @@ autopep8==1.4.3
 babel==2.6.0
 billiard==3.5.0.5
 bleach==2.1.4
-boto3==1.9.72
-botocore==1.12.72
+boto3==1.9.74
+botocore==1.12.74
 braintree==3.49.0
 cairocffi==0.9.0
 cairosvg==2.2.1
@@ -46,7 +46,7 @@ django-storages==1.7.1
 django-templated-email==2.2.0
 django-versatileimagefield==1.10
 django-webpack-loader==0.6.0
-django==2.1.4
+django==2.1.5
 docutils==0.14
 elasticsearch-dsl==6.0.1
 elasticsearch==6.3.1
@@ -75,7 +75,7 @@ measurement==2.0.1
 mpmath==1.1.0
 oauthlib==2.1.0
 phonenumberslite==8.10.2
-pillow==5.4.0
+pillow==5.4.1
 prices==1.0.0
 promise==2.2.1
 psycopg2-binary==2.7.6.1
@@ -87,7 +87,7 @@ pyjwt==1.7.1
 pyphen==0.9.5
 python-dateutil==2.7.5 ; python_version >= '2.7'
 python3-openid==3.1.0 ; python_version >= '3.0'
-pytz==2018.7
+pytz==2018.9
 raven==6.9.0
 razorpay==1.1.1
 redis==2.10.6
@@ -107,6 +107,6 @@ tinycss2==0.6.1
 typing==3.6.6
 urllib3==1.24.1
 uwsgi==2.0.17.1 ; platform_system != 'Windows'
-vine==1.1.4
+vine==1.2.0
 weasyprint==44
 webencodings==0.5.1
