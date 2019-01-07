@@ -45,3 +45,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix attribute filters in parent category - #3535 by @fowczarek
 - Fixed the no shipping orders payment crash on Stripe - #3550 by @NyanKiyoshi
 - Change TypeScript loader to speed up the build process - #3545 by @patrys
+- Fix storybook dependencies conflict - #3544 by @dominik-zeglen
