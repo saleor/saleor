@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-03 09:23-0600\n"
+"POT-Creation-Date: 2018-12-18 08:53-0600\n"
 "PO-Revision-Date: 2017-02-09 15:43+0000\n"
 "Last-Translator: Bogdan Djukic <bogdan.djukic@yahoo.com>, 2018\n"
 "Language-Team: Serbian (https://www.transifex.com/mirumee/teams/34782/sr/)\n"
@@ -69,6 +69,11 @@ msgstr "Opis"
 msgctxt "Category form"
 msgid "Background Image"
 msgstr "Pozadinska slika"
+
+#: saleor/dashboard/category/forms.py:31
+msgctxt "Description of a category image"
+msgid "Image description"
+msgstr "Opis slike"
 
 #: saleor/dashboard/category/views.py:47
 #, python-format
@@ -149,12 +154,17 @@ msgctxt "Background image of a collection"
 msgid "Background image"
 msgstr "Pozadinska slika"
 
-#: saleor/dashboard/collection/forms.py:30
+#: saleor/dashboard/collection/forms.py:29
+msgctxt "Description of a collection image"
+msgid "Image description"
+msgstr "Opis slike"
+
+#: saleor/dashboard/collection/forms.py:32
 msgctxt "Collection published toggle"
 msgid "Published"
 msgstr "Objavljeno"
 
-#: saleor/dashboard/collection/forms.py:33
+#: saleor/dashboard/collection/forms.py:35
 msgctxt "Description field of a collection"
 msgid "Description"
 msgstr "Opis"
@@ -180,19 +190,19 @@ msgid "Deleted collection"
 msgstr "Kolekcija izbrisana"
 
 #: saleor/dashboard/customer/filters.py:17
-#: saleor/dashboard/staff/filters.py:17
+#: saleor/dashboard/staff/filters.py:16
 msgctxt "Customer list sorting option"
 msgid "email"
 msgstr "email"
 
 #: saleor/dashboard/customer/filters.py:19
-#: saleor/dashboard/staff/filters.py:19
+#: saleor/dashboard/staff/filters.py:18
 msgctxt "Customer list sorting option"
 msgid "name"
 msgstr "ime"
 
 #: saleor/dashboard/customer/filters.py:21
-#: saleor/dashboard/staff/filters.py:21
+#: saleor/dashboard/staff/filters.py:20
 msgctxt "Customer list sorting option"
 msgid "location"
 msgstr "lokacija"
@@ -227,7 +237,7 @@ msgctxt "Customer list filter label"
 msgid "Sort by"
 msgstr "Sortiraj po"
 
-#: saleor/dashboard/customer/filters.py:74
+#: saleor/dashboard/customer/filters.py:76
 #, python-format
 msgctxt "Number of matching records in the dashboard customers list"
 msgid "Found %(counter)d matching customer"
@@ -236,44 +246,60 @@ msgstr[0] "Nađen %(counter)d odgovarajući kupac"
 msgstr[1] "Nađeno %(counter)d odgovarajućih kupaca"
 msgstr[2] "Nađeno %(counter)d odgovarajućih kupaca"
 
-#: saleor/dashboard/customer/forms.py:22
+#: saleor/dashboard/customer/forms.py:10
+#, python-format
+msgctxt "Customer form: Name field placeholder"
+msgid "%(name)s (Inherit from default billing address)"
+msgstr ""
+
+#: saleor/dashboard/customer/forms.py:29
 msgctxt "Edit customer details in order form error"
 msgid ""
 "You can't delete your own account via dashboard, please try from the "
 "storefront."
 msgstr ""
 
-#: saleor/dashboard/customer/forms.py:27
+#: saleor/dashboard/customer/forms.py:34
 msgctxt "Edit customer details in order form error"
 msgid "Only superuser can delete his own account."
 msgstr "Samo superuser može da izbriše svoj nalog."
 
-#: saleor/dashboard/customer/forms.py:32
+#: saleor/dashboard/customer/forms.py:39
 msgctxt "Edit customer details in order form error"
 msgid "You have insufficient permissions, to edit staff users."
 msgstr "Nemate dozvole da izmenite korisnike osoblja."
 
-#: saleor/dashboard/customer/forms.py:50
+#: saleor/dashboard/customer/forms.py:67 saleor/dashboard/staff/forms.py:23
+msgctxt "Customer form: Given name field"
+msgid "Given name"
+msgstr "Ime"
+
+#: saleor/dashboard/customer/forms.py:69 saleor/dashboard/staff/forms.py:25
+msgctxt "Customer form: Family name field"
+msgid "Family name"
+msgstr "Prezime"
+
+#: saleor/dashboard/customer/forms.py:71
 msgctxt "Customer form: email address field"
 msgid "Email"
 msgstr "Email"
 
-#: saleor/dashboard/customer/forms.py:52
+#: saleor/dashboard/customer/forms.py:73
 msgctxt "Customer form: is active toggle"
 msgid "User is active"
 msgstr "Korisnik je aktivan"
 
-#: saleor/dashboard/customer/forms.py:54
+#: saleor/dashboard/customer/forms.py:75
 msgctxt "Customer form: customer note field"
 msgid "Notes"
 msgstr "Beleške"
 
-#: saleor/dashboard/customer/forms.py:64
+#: saleor/dashboard/customer/forms.py:85
 msgctxt "Customer note"
 msgid "Note"
 msgstr "Beleška"
 
-#: saleor/dashboard/customer/forms.py:67
+#: saleor/dashboard/customer/forms.py:88
 msgctxt "Allow customers to see note toggle"
 msgid "Customer can see this note"
 msgstr "Korisnik može da vidi ovu belešku"
@@ -428,7 +454,7 @@ msgstr "Period važenja"
 #: saleor/dashboard/discount/filters.py:105
 msgctxt "Voucher list sorting filter"
 msgid "Minimum amount spent"
-msgstr ""
+msgstr "Minimalna potrošnja"
 
 #: saleor/dashboard/discount/filters.py:108
 msgctxt "Voucher list sorting filter label"
@@ -440,19 +466,19 @@ msgstr "Sortiraj po"
 msgctxt "Number of matching records in the dashboard vouchers list"
 msgid "Found %(counter)d matching voucher"
 msgid_plural "Found %(counter)d matching vouchers"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Nađen %(counter)d odgovarajući vaučer"
+msgstr[1] "Nađeno %(counter)d odgovarajućih vaučera"
+msgstr[2] "Nađeno %(counter)d odgovarajuća vaučera"
 
 #: saleor/dashboard/discount/forms.py:22
 msgctxt "Lowest value for order to be able to use the voucher"
 msgid "Apply only if the purchase value is greater than or equal to"
-msgstr ""
+msgstr "Primeni samo ukoliko je vrednost porudžbine veća ili jednaka"
 
 #: saleor/dashboard/discount/forms.py:30
 msgctxt "Discounted products"
 msgid "Discounted products"
-msgstr ""
+msgstr "Sniženi proizvodi"
 
 #: saleor/dashboard/discount/forms.py:38
 msgctxt "Sale name"
@@ -462,17 +488,17 @@ msgstr "Naziv"
 #: saleor/dashboard/discount/forms.py:41
 msgctxt "Discount type"
 msgid "Fixed or percentage"
-msgstr ""
+msgstr "Fiksni ili procentualni"
 
 #: saleor/dashboard/discount/forms.py:44
 msgctxt "Sale date restrictions"
 msgid "Start date"
-msgstr ""
+msgstr "Datum početka"
 
 #: saleor/dashboard/discount/forms.py:47
 msgctxt "Sale date restrictions"
 msgid "End date"
-msgstr ""
+msgstr "Datum završetka"
 
 #: saleor/dashboard/discount/forms.py:50
 msgctxt "Percentage or fixed amount value"
@@ -482,23 +508,25 @@ msgstr "Vrednost"
 #: saleor/dashboard/discount/forms.py:53
 msgctxt "Discounted categories"
 msgid "Discounted categories"
-msgstr ""
+msgstr "Snižene kategorije"
 
 #: saleor/dashboard/discount/forms.py:56
 msgctxt "Discounted collections"
 msgid "Discounted collections"
-msgstr ""
+msgstr "Snižene kolekcije"
 
 #: saleor/dashboard/discount/forms.py:70
 msgctxt "Sale (discount) error"
 msgid "Sale cannot exceed 100%"
-msgstr ""
+msgstr "Popust ne može da premaši 100%"
 
 #: saleor/dashboard/discount/forms.py:77
 msgctxt "Sale (discount) error"
 msgid ""
 "A single sale must point to at least one product, collectionand/or category."
 msgstr ""
+"Pojedinačni popust mora biti za najmanje jedan proizvod, kolekciju i/ili "
+"kategoriju"
 
 #: saleor/dashboard/discount/forms.py:92
 msgctxt "Discount type"
@@ -508,22 +536,22 @@ msgstr "Vrsta popusta"
 #: saleor/dashboard/discount/forms.py:98
 msgctxt "Coupon code"
 msgid "Code"
-msgstr ""
+msgstr "Kupon kod"
 
 #: saleor/dashboard/discount/forms.py:101
 msgctxt "Usage limit"
 msgid "Usage limit"
-msgstr ""
+msgstr "Limit korišćenja"
 
 #: saleor/dashboard/discount/forms.py:104
 msgctxt "Voucher date restrictions"
 msgid "Start date"
-msgstr ""
+msgstr "Datum početka"
 
 #: saleor/dashboard/discount/forms.py:107
 msgctxt "Voucher date restrictions"
 msgid "End date"
-msgstr ""
+msgstr "Datum završetka"
 
 #: saleor/dashboard/discount/forms.py:110
 msgctxt "Discount type of the voucher"
@@ -533,17 +561,17 @@ msgstr "Vrsta popusta"
 #: saleor/dashboard/discount/forms.py:113
 msgctxt "Discount value of the voucher"
 msgid "Discount value"
-msgstr ""
+msgstr "Vrednost popusta"
 
 #: saleor/dashboard/discount/forms.py:137
 msgctxt "Text above the dropdown of countries"
 msgid "Limit countries that voucher should apply to"
-msgstr ""
+msgstr "Limitiraj države na koje se vaučer primenjuje"
 
 #: saleor/dashboard/discount/forms.py:165
 msgctxt "Field label, apply discount value only once per order"
 msgid "Only apply once per order"
-msgstr ""
+msgstr "Primeni samo jednom po porudžbini"
 
 #: saleor/dashboard/discount/forms.py:168
 msgctxt "Help text of checkbox for applying discount only once per order"
@@ -560,7 +588,7 @@ msgstr "Proizvodi"
 #: saleor/dashboard/discount/forms.py:191
 msgctxt "Collections"
 msgid "Collections"
-msgstr ""
+msgstr "Kolekcije"
 
 #: saleor/dashboard/discount/forms.py:202
 msgctxt "Categories"
@@ -570,34 +598,34 @@ msgstr "Kategorije"
 #: saleor/dashboard/discount/views.py:56
 msgctxt "Sale (discount) message"
 msgid "Added sale"
-msgstr ""
+msgstr "Popust je dodat"
 
 #: saleor/dashboard/discount/views.py:70
 msgctxt "Sale (discount) message"
 msgid "Updated sale"
-msgstr ""
+msgstr "Popust je ažuriran"
 
 #: saleor/dashboard/discount/views.py:84
 #, python-format
 msgctxt "Sale (discount) message"
 msgid "Removed sale %s"
-msgstr ""
+msgstr "Popust %s je izbrisan"
 
 #: saleor/dashboard/discount/views.py:124
 msgctxt "Voucher message"
 msgid "Added voucher"
-msgstr ""
+msgstr "Vaućer je dodat"
 
 #: saleor/dashboard/discount/views.py:150
 msgctxt "Voucher message"
 msgid "Updated voucher"
-msgstr ""
+msgstr "Vaučer je ažuriran"
 
 #: saleor/dashboard/discount/views.py:167
 #, python-format
 msgctxt "Voucher message"
 msgid "Removed voucher %s"
-msgstr ""
+msgstr "Vaučer %s je izbrisan"
 
 #: saleor/dashboard/menu/filters.py:9
 msgctxt "Menu list sorting option"
@@ -612,7 +640,7 @@ msgstr "Naziv"
 #: saleor/dashboard/menu/filters.py:17
 msgctxt "Menu list filter label"
 msgid "Menu name"
-msgstr ""
+msgstr "Naziv menija"
 
 #: saleor/dashboard/menu/filters.py:20
 msgctxt "Menu list filter label"
@@ -624,9 +652,9 @@ msgstr "Sortiraj po"
 msgctxt "Number of matching records in the dashboard menus list"
 msgid "Found %(counter)d matching menu"
 msgid_plural "Found %(counter)d matching menus"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Nađen %(counter)d odgovarajući meni"
+msgstr[1] "Nađeno %(counter)d odgovarajuća menija"
+msgstr[2] "Nađeno %(counter)d odgovarajućih menija"
 
 #: saleor/dashboard/menu/filters.py:39
 msgctxt "Menu item list filter label"
@@ -655,12 +683,12 @@ msgstr[2] ""
 #: saleor/dashboard/menu/forms.py:27
 msgctxt "Menu name"
 msgid "Menu name"
-msgstr ""
+msgstr "Naziv menija"
 
 #: saleor/dashboard/menu/forms.py:47
 msgctxt "Menu item object to link"
 msgid "Link"
-msgstr ""
+msgstr "Link"
 
 #: saleor/dashboard/menu/forms.py:53
 msgctxt "Menu item name"
@@ -670,7 +698,7 @@ msgstr "Naziv"
 #: saleor/dashboard/menu/forms.py:54
 msgctxt "Menu item url"
 msgid "URL"
-msgstr ""
+msgstr "Web adresa"
 
 #: saleor/dashboard/menu/forms.py:70
 msgctxt "Menu item form error"
@@ -709,19 +737,19 @@ msgstr ""
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added menu %s"
-msgstr ""
+msgstr "Meni %s je dodat"
 
 #: saleor/dashboard/menu/views.py:67
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated menu %s"
-msgstr ""
+msgstr "Meni %s je ažuriran"
 
 #: saleor/dashboard/menu/views.py:97
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed menu %s"
-msgstr ""
+msgstr "Meni %s je izbrisan"
 
 #: saleor/dashboard/menu/views.py:121
 #, python-format
@@ -744,27 +772,27 @@ msgstr ""
 #: saleor/dashboard/menu/views.py:249
 msgctxt "Link object type group description"
 msgid "Collection"
-msgstr ""
+msgstr "Kolekcija"
 
 #: saleor/dashboard/menu/views.py:254
 msgctxt "Link object type group description"
 msgid "Category"
-msgstr ""
+msgstr "Kategorija"
 
 #: saleor/dashboard/menu/views.py:259
 msgctxt "Link object type group description"
 msgid "Page"
-msgstr ""
+msgstr "Stranica"
 
 #: saleor/dashboard/order/filters.py:22
 msgctxt "Order list sorting option"
 msgid "#"
-msgstr ""
+msgstr "#"
 
 #: saleor/dashboard/order/filters.py:24
 msgctxt "Order list sorting option"
 msgid "payment"
-msgstr ""
+msgstr "plaćanje"
 
 #: saleor/dashboard/order/filters.py:25
 msgctxt "Order list sorting option"
@@ -774,12 +802,12 @@ msgstr "email"
 #: saleor/dashboard/order/filters.py:26 saleor/dashboard/order/filters.py:27
 msgctxt "Order list sorting option"
 msgid "created"
-msgstr ""
+msgstr "kreirano"
 
 #: saleor/dashboard/order/filters.py:32
 msgctxt "Order list filter label"
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #: saleor/dashboard/order/filters.py:35
 msgctxt "Order list filter label"
@@ -811,7 +839,7 @@ msgctxt "Order list filter label"
 msgid "Sort by"
 msgstr "Sortiraj po"
 
-#: saleor/dashboard/order/filters.py:74
+#: saleor/dashboard/order/filters.py:76
 #, python-format
 msgctxt "Number of matching records in the dashboard orders list"
 msgid "Found %(counter)d matching order"
@@ -915,7 +943,7 @@ msgstr ""
 #: saleor/dashboard/order/forms.py:383
 msgctxt "Integer number"
 msgid "Quantity"
-msgstr ""
+msgstr "Količina"
 
 #: saleor/dashboard/order/forms.py:402
 #, python-format
@@ -982,7 +1010,7 @@ msgstr ""
 #: saleor/dashboard/order/forms.py:548
 msgctxt "Add variant to order form label"
 msgid "Quantity"
-msgstr ""
+msgstr "Količina"
 
 #: saleor/dashboard/order/forms.py:569
 #, python-format
@@ -993,7 +1021,7 @@ msgstr ""
 #: saleor/dashboard/order/forms.py:592
 msgctxt "Order form: address subform - phone number input field"
 msgid "Phone number"
-msgstr ""
+msgstr "Broj telefona"
 
 #: saleor/dashboard/order/forms.py:601
 msgctxt "Send mail to customer"
@@ -1188,7 +1216,7 @@ msgstr ""
 #: saleor/dashboard/page/filters.py:17
 msgctxt "Page list url filter label"
 msgid "URL"
-msgstr ""
+msgstr "Web adresa"
 
 #: saleor/dashboard/page/filters.py:20
 msgctxt "Page list sorting filter label"
@@ -1283,7 +1311,7 @@ msgstr "Naziv"
 #: saleor/dashboard/product/filters.py:31
 msgctxt "Product list filter label"
 msgid "Category"
-msgstr ""
+msgstr "Kategorija"
 
 #: saleor/dashboard/product/filters.py:35
 msgctxt "Product list filter label"
@@ -1293,7 +1321,7 @@ msgstr ""
 #: saleor/dashboard/product/filters.py:39
 msgctxt "Product list filter label"
 msgid "Price"
-msgstr ""
+msgstr "Cena"
 
 #: saleor/dashboard/product/filters.py:43
 msgctxt "Product list filter label"
@@ -1375,12 +1403,12 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:73
 msgctxt "Product type tax rate type"
 msgid "Tax rate"
-msgstr ""
+msgstr "Visina poreza"
 
 #: saleor/dashboard/product/forms.py:75 saleor/dashboard/product/forms.py:237
 msgctxt "ProductType weight"
 msgid "Weight"
-msgstr ""
+msgstr "Težina"
 
 #: saleor/dashboard/product/forms.py:78
 msgctxt "ProductVariant weight help text"
@@ -1427,17 +1455,17 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:226
 msgctxt "Product tax rate type"
 msgid "Tax rate"
-msgstr ""
+msgstr "Visina poreza"
 
 #: saleor/dashboard/product/forms.py:230
 msgctxt "Category"
 msgid "Category"
-msgstr ""
+msgstr "Kategorija"
 
 #: saleor/dashboard/product/forms.py:233
 msgctxt "Add to collection select"
 msgid "Collections"
-msgstr ""
+msgstr "Kolekcije"
 
 #: saleor/dashboard/product/forms.py:240
 msgctxt "Product weight field help text"
@@ -1450,12 +1478,12 @@ msgstr ""
 #: saleor/dashboard/shipping/forms.py:123
 msgctxt "Currency amount"
 msgid "Price"
-msgstr ""
+msgstr "Cena"
 
 #: saleor/dashboard/product/forms.py:252
 msgctxt "Availability date"
 msgid "Publish product on"
-msgstr ""
+msgstr "Objavi proizvod"
 
 #: saleor/dashboard/product/forms.py:254
 msgctxt "Product published toggle"
@@ -1465,7 +1493,7 @@ msgstr "Objavljeno"
 #: saleor/dashboard/product/forms.py:256
 msgctxt "Charge taxes on product"
 msgid "Charge taxes on this product"
-msgstr ""
+msgstr "Promeni porez na ovaj proizvod"
 
 #: saleor/dashboard/product/forms.py:276
 msgctxt "Currency gross amount"
@@ -1480,7 +1508,7 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:307
 msgctxt "ProductVariant weight"
 msgid "Weight"
-msgstr ""
+msgstr "Težina"
 
 #: saleor/dashboard/product/forms.py:310
 msgctxt "ProductVariant weight help text"
@@ -1502,17 +1530,17 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:322
 msgctxt "Integer number"
 msgid "Number in stock"
-msgstr ""
+msgstr "Količina na zalihama"
 
 #: saleor/dashboard/product/forms.py:323
 msgctxt "Currency amount"
 msgid "Cost price"
-msgstr ""
+msgstr "Cena"
 
 #: saleor/dashboard/product/forms.py:325
 msgctxt "Track inventory field"
 msgid "Track inventory"
-msgstr ""
+msgstr "Praćenje inventara"
 
 #: saleor/dashboard/product/forms.py:329
 msgctxt "product variant handle stock field help text"
@@ -1542,7 +1570,7 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:404 saleor/dashboard/product/forms.py:509
 msgctxt "Product image"
 msgid "Image"
-msgstr ""
+msgstr "Slika"
 
 #: saleor/dashboard/product/forms.py:445
 msgctxt "Product display name"
@@ -1552,7 +1580,7 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:447
 msgctxt "Product internal name"
 msgid "Internal name"
-msgstr ""
+msgstr "Interni naziv"
 
 #: saleor/dashboard/product/views.py:128
 #, python-format
@@ -1684,7 +1712,7 @@ msgstr "naziv"
 #: saleor/dashboard/shipping/filters.py:16
 msgctxt "Shipping zones list filter label"
 msgid "Shipping zone name"
-msgstr ""
+msgstr "Naziv zone poštarine"
 
 #: saleor/dashboard/shipping/filters.py:20
 msgctxt "Shipping zones list filter label"
@@ -1694,7 +1722,7 @@ msgstr ""
 #: saleor/dashboard/shipping/filters.py:23
 msgctxt "Shipping zones filter label"
 msgid "Country"
-msgstr ""
+msgstr "Država"
 
 #: saleor/dashboard/shipping/filters.py:27
 msgctxt "Product list sorting filter label"
@@ -1713,7 +1741,7 @@ msgstr[2] ""
 #: saleor/dashboard/shipping/forms.py:35
 msgctxt "Label of the default weight unit picker"
 msgid "Default weight unit"
-msgstr ""
+msgstr "Podrazumevana mera za težinu"
 
 #: saleor/dashboard/shipping/forms.py:39
 msgctxt "Default weight unit help text"
@@ -1725,27 +1753,28 @@ msgstr ""
 #: saleor/dashboard/shipping/forms.py:49
 msgctxt "Shippment Zone field name"
 msgid "Shipping zone name"
-msgstr ""
+msgstr "Naziv zone poštarine"
 
 #: saleor/dashboard/shipping/forms.py:51
 msgctxt "Shipping Zone field name"
 msgid "Rest of World"
-msgstr ""
+msgstr "Ostatak sveta"
 
 #: saleor/dashboard/shipping/forms.py:53
 msgctxt "List of countries to pick from"
 msgid "Countries"
-msgstr ""
+msgstr "Države"
 
 #: saleor/dashboard/shipping/forms.py:57
 msgctxt "Countries field help text"
 msgid "Each country might be included in only one shipping zone."
-msgstr ""
+msgstr "Svaka država može biti uključena samo u jednu zonu poštarine"
 
 #: saleor/dashboard/shipping/forms.py:60
 msgctxt "Help text for ShippingZone name"
 msgid "Name is for internal use only, it won't be displayed to your customers"
 msgstr ""
+"Naziv je samo za interno korišćenje. Isto neće biti prikazano korisnicima."
 
 #: saleor/dashboard/shipping/forms.py:64
 msgctxt "Help text for ShippingZone name"
@@ -1764,12 +1793,12 @@ msgstr ""
 msgctxt "Shipping zone containing duplicated countries form error"
 msgid ""
 "Countries already exists in another shipping zone: %(list_of_countries)s"
-msgstr ""
+msgstr "Države već postoje u drugim zonama poštarine: %(list_of_countries)s"
 
 #: saleor/dashboard/shipping/forms.py:111
 msgctxt "ShippingZone field error"
 msgid "This field is required."
-msgstr ""
+msgstr "Ovo polje je obavezno"
 
 #: saleor/dashboard/shipping/forms.py:122
 msgctxt "Shipping Method name"
@@ -1784,38 +1813,38 @@ msgstr ""
 #: saleor/dashboard/shipping/forms.py:135
 msgctxt "Minimum order price to use this shipping method"
 msgid "Minimum order price"
-msgstr ""
+msgstr "Minimalna cena porudžbine"
 
 #: saleor/dashboard/shipping/forms.py:138
 msgctxt "Maximum order price to use this order"
 msgid "Maximum order price"
-msgstr ""
+msgstr "Maksimalna cena porudžbine"
 
 #: saleor/dashboard/shipping/forms.py:148
 msgctxt "Placeholder for maximum order price set to unlimited"
 msgid "No limit"
-msgstr ""
+msgstr "Bez limita"
 
 #: saleor/dashboard/shipping/forms.py:161
 #: saleor/dashboard/shipping/forms.py:198
 msgctxt "Price shipping method form error"
 msgid "Maximum order price should be larger than the minimum order price."
-msgstr ""
+msgstr "Maksimalna cena porudžbine mora biti veća od minimalne."
 
 #: saleor/dashboard/shipping/forms.py:170
 msgctxt "Minimum order weight to use this shipping method"
 msgid "Minimum order weight"
-msgstr ""
+msgstr "Minimalna težina porudžbine"
 
 #: saleor/dashboard/shipping/forms.py:174
 msgctxt "Maximum order weight to use this shipping method"
 msgid "Maximum order weight"
-msgstr ""
+msgstr "Maksimalna težina porudžbine"
 
 #: saleor/dashboard/shipping/forms.py:185
 msgctxt "Placeholder for maximum order weight set to unlimited"
 msgid "No limit"
-msgstr ""
+msgstr "Bez limita"
 
 #: saleor/dashboard/shipping/views.py:28
 msgctxt "Dashboard message"
@@ -1825,18 +1854,18 @@ msgstr ""
 #: saleor/dashboard/shipping/views.py:49
 msgctxt "Dashboard message"
 msgid "Added shipping zone"
-msgstr ""
+msgstr "Zona poštarine je dodata"
 
 #: saleor/dashboard/shipping/views.py:63
 msgctxt "Dashboard message"
 msgid "Updated shipping zone"
-msgstr ""
+msgstr "Zona poštarine je ažurirana"
 
 #: saleor/dashboard/shipping/views.py:91
 #, python-format
 msgctxt "Dashboard message"
 msgid "%(shipping_zone_name)s successfully removed"
-msgstr ""
+msgstr "%(shipping_zone_name)s uspešno izbrisana"
 
 #: saleor/dashboard/shipping/views.py:112
 #, python-format
@@ -1879,7 +1908,7 @@ msgstr ""
 #: saleor/dashboard/sites/forms.py:34
 msgctxt "Default weight unit"
 msgid "Default weight unit"
-msgstr ""
+msgstr "Osnovna mera za težinu"
 
 #: saleor/dashboard/sites/forms.py:38
 msgctxt "handle stock by default settings field help text"
@@ -1896,12 +1925,12 @@ msgstr ""
 #: saleor/dashboard/sites/forms.py:50
 msgctxt "Password"
 msgid "Password"
-msgstr ""
+msgstr "Lozinka"
 
 #: saleor/dashboard/sites/views.py:35
 msgctxt "Dashboard message"
 msgid "Updated site settings"
-msgstr ""
+msgstr "Ažurirana podešavanja sajta"
 
 #: saleor/dashboard/sites/views.py:64
 #, python-format
@@ -1921,17 +1950,17 @@ msgctxt "Dashboard message"
 msgid "Removed site authorization key %s"
 msgstr ""
 
-#: saleor/dashboard/staff/filters.py:30
+#: saleor/dashboard/staff/filters.py:29
 msgctxt "Group list filter label"
 msgid "Permissions"
-msgstr ""
+msgstr "Dozvole"
 
-#: saleor/dashboard/staff/filters.py:34
+#: saleor/dashboard/staff/filters.py:33
 msgctxt "Staff list filter label"
 msgid "Sort by"
 msgstr "Sortiraj po"
 
-#: saleor/dashboard/staff/filters.py:46
+#: saleor/dashboard/staff/filters.py:45
 #, python-format
 msgctxt "Number of matching records in the dashboard staff members list"
 msgid "Found %(counter)d matching staff member"
@@ -1940,17 +1969,17 @@ msgstr[0] ""
 msgstr[1] ""
 msgstr[2] ""
 
-#: saleor/dashboard/staff/forms.py:14
+#: saleor/dashboard/staff/forms.py:15
 msgctxt "Label above the permissions choicefield"
 msgid "Permissions"
-msgstr ""
+msgstr "Dozvole"
 
-#: saleor/dashboard/staff/forms.py:21
+#: saleor/dashboard/staff/forms.py:27
 msgctxt "Email"
 msgid "Email"
 msgstr "Email"
 
-#: saleor/dashboard/staff/forms.py:23
+#: saleor/dashboard/staff/forms.py:29
 msgctxt "User active toggle"
 msgid "User is active"
 msgstr "Korisnik je aktivan"
@@ -1981,7 +2010,7 @@ msgstr ""
 #: saleor/dashboard/taxes/filters.py:24
 msgctxt "Taxes list filter label"
 msgid "Country name"
-msgstr ""
+msgstr "Naziv države"
 
 #: saleor/dashboard/taxes/filters.py:28
 msgctxt "Taxes list sorting form"
@@ -1993,14 +2022,14 @@ msgstr "Sortiraj po"
 msgctxt "Number of matching records in the dashboard taxes list"
 msgid "Found %(counter)d matching country"
 msgid_plural "Found %(counter)d matching countries"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Nađena %(counter)d odgovarajuća država"
+msgstr[1] "Nađene %(counter)d odgovarajuće države"
+msgstr[2] "Nađeno %(counter)d odgovarajućih država"
 
 #: saleor/dashboard/taxes/forms.py:16
 msgctxt "Include taxes in prices"
 msgid "All products prices are entered with tax included"
-msgstr ""
+msgstr "Sve cene proizvoda su unete sa uključenim porezom"
 
 #: saleor/dashboard/taxes/forms.py:19
 msgctxt "Display gross prices"
@@ -2038,10 +2067,10 @@ msgstr ""
 #, python-format
 msgctxt "Label of first value in range filter"
 msgid "From %(value)s"
-msgstr ""
+msgstr "Od %(value)s"
 
 #: saleor/dashboard/templatetags/chips.py:80
 #, python-format
 msgctxt "Label of second value in range filter"
 msgid "To %(value)s"
-msgstr ""
+msgstr "Do %(value)s"

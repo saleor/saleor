@@ -4,16 +4,16 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 # 
 # Translators:
-# Mikkel Scheike <scheike@outlook.com>, 2018
+# Mikkel Scheike <scheike@outlook.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-03 09:23-0600\n"
+"POT-Creation-Date: 2018-12-18 08:53-0600\n"
 "PO-Revision-Date: 2017-02-09 15:43+0000\n"
-"Last-Translator: Mikkel Scheike <scheike@outlook.com>, 2018\n"
+"Last-Translator: Mikkel Scheike <scheike@outlook.com>, 2019\n"
 "Language-Team: Danish (https://www.transifex.com/mirumee/teams/34782/da/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -68,6 +68,11 @@ msgstr "Beskrivelse"
 msgctxt "Category form"
 msgid "Background Image"
 msgstr "Backgrundsbillede"
+
+#: saleor/dashboard/category/forms.py:31
+msgctxt "Description of a category image"
+msgid "Image description"
+msgstr "Billedbeskrivelse"
 
 #: saleor/dashboard/category/views.py:47
 #, python-format
@@ -147,12 +152,17 @@ msgctxt "Background image of a collection"
 msgid "Background image"
 msgstr "Baggrundsbillede"
 
-#: saleor/dashboard/collection/forms.py:30
+#: saleor/dashboard/collection/forms.py:29
+msgctxt "Description of a collection image"
+msgid "Image description"
+msgstr "Billedbeskrivelse"
+
+#: saleor/dashboard/collection/forms.py:32
 msgctxt "Collection published toggle"
 msgid "Published"
 msgstr "Offentliggjort"
 
-#: saleor/dashboard/collection/forms.py:33
+#: saleor/dashboard/collection/forms.py:35
 msgctxt "Description field of a collection"
 msgid "Description"
 msgstr "Beskrivelse"
@@ -178,19 +188,19 @@ msgid "Deleted collection"
 msgstr "Slettede kollektion"
 
 #: saleor/dashboard/customer/filters.py:17
-#: saleor/dashboard/staff/filters.py:17
+#: saleor/dashboard/staff/filters.py:16
 msgctxt "Customer list sorting option"
 msgid "email"
 msgstr "email"
 
 #: saleor/dashboard/customer/filters.py:19
-#: saleor/dashboard/staff/filters.py:19
+#: saleor/dashboard/staff/filters.py:18
 msgctxt "Customer list sorting option"
 msgid "name"
 msgstr "navn"
 
 #: saleor/dashboard/customer/filters.py:21
-#: saleor/dashboard/staff/filters.py:21
+#: saleor/dashboard/staff/filters.py:20
 msgctxt "Customer list sorting option"
 msgid "location"
 msgstr "beliggenhed"
@@ -225,7 +235,7 @@ msgctxt "Customer list filter label"
 msgid "Sort by"
 msgstr "Sortér efter"
 
-#: saleor/dashboard/customer/filters.py:74
+#: saleor/dashboard/customer/filters.py:76
 #, python-format
 msgctxt "Number of matching records in the dashboard customers list"
 msgid "Found %(counter)d matching customer"
@@ -233,7 +243,13 @@ msgid_plural "Found %(counter)d matching customers"
 msgstr[0] "Fandt %(counter)d matchende kunder"
 msgstr[1] "Fandt %(counter)d matchende kunder"
 
-#: saleor/dashboard/customer/forms.py:22
+#: saleor/dashboard/customer/forms.py:10
+#, python-format
+msgctxt "Customer form: Name field placeholder"
+msgid "%(name)s (Inherit from default billing address)"
+msgstr "%(name)s (Taget fra faktureringsadressen)"
+
+#: saleor/dashboard/customer/forms.py:29
 msgctxt "Edit customer details in order form error"
 msgid ""
 "You can't delete your own account via dashboard, please try from the "
@@ -242,37 +258,47 @@ msgstr ""
 "Du kan ikke slette din egen konto via dashboardet. Prøv venligst fra "
 "butiksfronten."
 
-#: saleor/dashboard/customer/forms.py:27
+#: saleor/dashboard/customer/forms.py:34
 msgctxt "Edit customer details in order form error"
 msgid "Only superuser can delete his own account."
 msgstr "Kun superbrugere kan slette deres egne konti."
 
-#: saleor/dashboard/customer/forms.py:32
+#: saleor/dashboard/customer/forms.py:39
 msgctxt "Edit customer details in order form error"
 msgid "You have insufficient permissions, to edit staff users."
 msgstr "Du har ikke tilladelse til at ændre på personale brugere."
 
-#: saleor/dashboard/customer/forms.py:50
+#: saleor/dashboard/customer/forms.py:67 saleor/dashboard/staff/forms.py:23
+msgctxt "Customer form: Given name field"
+msgid "Given name"
+msgstr "Fornavn"
+
+#: saleor/dashboard/customer/forms.py:69 saleor/dashboard/staff/forms.py:25
+msgctxt "Customer form: Family name field"
+msgid "Family name"
+msgstr "Efternavn"
+
+#: saleor/dashboard/customer/forms.py:71
 msgctxt "Customer form: email address field"
 msgid "Email"
 msgstr "Email"
 
-#: saleor/dashboard/customer/forms.py:52
+#: saleor/dashboard/customer/forms.py:73
 msgctxt "Customer form: is active toggle"
 msgid "User is active"
 msgstr "Brugeren er aktiv"
 
-#: saleor/dashboard/customer/forms.py:54
+#: saleor/dashboard/customer/forms.py:75
 msgctxt "Customer form: customer note field"
 msgid "Notes"
 msgstr "Noter"
 
-#: saleor/dashboard/customer/forms.py:64
+#: saleor/dashboard/customer/forms.py:85
 msgctxt "Customer note"
 msgid "Note"
 msgstr "Note"
 
-#: saleor/dashboard/customer/forms.py:67
+#: saleor/dashboard/customer/forms.py:88
 msgctxt "Allow customers to see note toggle"
 msgid "Customer can see this note"
 msgstr "Kunder kan se denne note"
@@ -811,7 +837,7 @@ msgctxt "Order list filter label"
 msgid "Sort by"
 msgstr "Sortér efter"
 
-#: saleor/dashboard/order/filters.py:74
+#: saleor/dashboard/order/filters.py:76
 #, python-format
 msgctxt "Number of matching records in the dashboard orders list"
 msgid "Found %(counter)d matching order"
@@ -1928,17 +1954,17 @@ msgctxt "Dashboard message"
 msgid "Removed site authorization key %s"
 msgstr "Fjernede hjemmeside godkendelsesnøgle %s"
 
-#: saleor/dashboard/staff/filters.py:30
+#: saleor/dashboard/staff/filters.py:29
 msgctxt "Group list filter label"
 msgid "Permissions"
 msgstr "Tilladelser"
 
-#: saleor/dashboard/staff/filters.py:34
+#: saleor/dashboard/staff/filters.py:33
 msgctxt "Staff list filter label"
 msgid "Sort by"
 msgstr "Sortér efter"
 
-#: saleor/dashboard/staff/filters.py:46
+#: saleor/dashboard/staff/filters.py:45
 #, python-format
 msgctxt "Number of matching records in the dashboard staff members list"
 msgid "Found %(counter)d matching staff member"
@@ -1946,17 +1972,17 @@ msgid_plural "Found %(counter)d matching staff members"
 msgstr[0] "Fandt %(counter)d matchende medarbejder"
 msgstr[1] "Fandt %(counter)d matchende medarbejdere"
 
-#: saleor/dashboard/staff/forms.py:14
+#: saleor/dashboard/staff/forms.py:15
 msgctxt "Label above the permissions choicefield"
 msgid "Permissions"
 msgstr "Tilladelser"
 
-#: saleor/dashboard/staff/forms.py:21
+#: saleor/dashboard/staff/forms.py:27
 msgctxt "Email"
 msgid "Email"
 msgstr "Email"
 
-#: saleor/dashboard/staff/forms.py:23
+#: saleor/dashboard/staff/forms.py:29
 msgctxt "User active toggle"
 msgid "User is active"
 msgstr "Brugeren er aktiv"

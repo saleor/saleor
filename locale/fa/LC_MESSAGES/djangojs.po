@@ -3,20 +3,32 @@
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
 # 
+# Translators:
+# Patryk Zawadzki <patrys@room-303.com>, 2018
+# shahnaz sehati <shahnazsehati@gmail.com>, 2018
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-09-10 05:21-0500\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: hossein akhlaghi <hossein0440@gmail.com>, 2018\n"
-"Language-Team: Persian (Iran) (https://www.transifex.com/mirumee/teams/34782/fa_IR/)\n"
+"POT-Creation-Date: 2018-12-18 08:53-0600\n"
+"PO-Revision-Date: 2017-02-08 11:00+0000\n"
+"Last-Translator: shahnaz sehati <shahnazsehati@gmail.com>, 2018\n"
+"Language-Team: Persian (https://www.transifex.com/mirumee/teams/34782/fa/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: fa_IR\n"
+"Language: fa\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:75
+msgid "Missing source"
+msgstr ""
+
+#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:136
+msgid "\n"
+msgstr ""
 
 #: saleor/static/dashboard/js/components/bulk-actions.js:89
 msgid "item selected"
@@ -284,62 +296,62 @@ msgctxt "Datepicker option"
 msgid "Close"
 msgstr "ببند"
 
-#: saleor/static/dashboard/js/components/editor.js:24
+#: saleor/static/dashboard/js/components/editor.js:27
 msgctxt "Rich text editor option"
 msgid "Bold text"
 msgstr "متن برجسته"
 
-#: saleor/static/dashboard/js/components/editor.js:28
+#: saleor/static/dashboard/js/components/editor.js:31
 msgctxt "Rich text editor option"
 msgid "Italic text"
 msgstr "متن ایتالیک"
 
-#: saleor/static/dashboard/js/components/editor.js:32
+#: saleor/static/dashboard/js/components/editor.js:35
 msgctxt "Rich text editor option"
 msgid "Header"
 msgstr "سر صفحه"
 
-#: saleor/static/dashboard/js/components/editor.js:39
+#: saleor/static/dashboard/js/components/editor.js:42
 msgctxt "Rich text editor option"
 msgid "Subheader"
-msgstr ""
+msgstr "زیر عنوان"
 
-#: saleor/static/dashboard/js/components/editor.js:46
+#: saleor/static/dashboard/js/components/editor.js:49
 msgctxt "Rich text editor option"
 msgid "Quote"
-msgstr ""
+msgstr "نقل قول"
 
-#: saleor/static/dashboard/js/components/editor.js:51
+#: saleor/static/dashboard/js/components/editor.js:54
 msgctxt "Rich text editor option"
 msgid "Link"
 msgstr "پیوند"
 
-#: saleor/static/dashboard/js/components/editor.js:58
+#: saleor/static/dashboard/js/components/editor.js:61
 msgctxt "Rich text editor option"
 msgid "Image (converts selected text to an image tag)"
 msgstr "تصویر (تبدیل متن انتخاب شده به یک برچسب عکس تصویر)"
 
-#: saleor/static/dashboard/js/components/editor.js:63
+#: saleor/static/dashboard/js/components/editor.js:66
 msgctxt "Rich text editor option"
 msgid "Left align"
 msgstr "تراز از چپ"
 
-#: saleor/static/dashboard/js/components/editor.js:68
+#: saleor/static/dashboard/js/components/editor.js:71
 msgctxt "Rich text editor option"
 msgid "Center align"
 msgstr "تراز وسط"
 
-#: saleor/static/dashboard/js/components/editor.js:73
+#: saleor/static/dashboard/js/components/editor.js:76
 msgctxt "Rich text editor option"
 msgid "Right align"
 msgstr "تراز از راست"
 
-#: saleor/static/dashboard/js/components/editor.js:78
+#: saleor/static/dashboard/js/components/editor.js:81
 msgctxt "Rich text editor option"
 msgid "Justify"
 msgstr ""
 
-#: saleor/static/dashboard/js/components/editor.js:83
+#: saleor/static/dashboard/js/components/editor.js:86
 msgctxt "Rich text editor option"
 msgid "Remove formatting"
 msgstr ""
