@@ -5,9 +5,6 @@ from typing import Dict
 from django.conf import settings
 from prices import Money
 
-from ... import TransactionKind
-from ...models import Payment
-from ...utils import create_transaction
 from .forms import DummyPaymentForm
 
 
@@ -31,9 +28,9 @@ def process_payment(
         payment: Dict, payment_token: str, amount: Decimal,
         **connection_params):
     auth_resp = authorize(payment, payment_token)
-    if auth_resp['errors']:
+    if auth_resp['error']:
         return auth_resp
-    return capture(payment, payment_token, amount)
+    return [auth_resp, capture(payment, payment_token, amount)]
 
 
 def authorize(payment: Dict, payment_token: str, **connection_params):
@@ -43,10 +40,11 @@ def authorize(payment: Dict, payment_token: str, **connection_params):
         error = 'Unable to authorize transaction'
     return {
         'is_success': success,
+        'kind': 'auth',
+        'amount': payment['total'],
+        'currency': payment['currency'],
         'transaction_id': payment_token,
-        'gateway_response': {},
-        'errors': error,
-    }
+        'error': error}
 
 
 def void(payment: Dict, payment_token: str, **connection_params: Dict):
@@ -56,10 +54,11 @@ def void(payment: Dict, payment_token: str, **connection_params: Dict):
         error = 'Unable to void the transaction.'
     return {
         'is_success': success,
+        'kind': 'void',
+        'amount': payment['total'],
+        'currency': payment['currency'],
         'transaction_id': payment_token,
-        'gateway_response': {},
-        'errors': error,
-    }
+        'error': error}
 
 
 def capture(
@@ -71,10 +70,11 @@ def capture(
         error = 'Unable to process capture'
     return {
         'is_success': success,
+        'kind': 'capture',
+        'amount': amount,
+        'currency': payment['currency'],
         'transaction_id': payment_token,
-        'gateway_response': {},
-        'errors': error,
-    }
+        'error': error}
 
 
 def refund(
@@ -86,10 +86,11 @@ def refund(
         error = 'Unable to process refund'
     return {
         'is_success': success,
+        'kind': 'refund',
+        'amount': amount,
+        'currency': payment['currency'],
         'transaction_id': payment_token,
-        'gateway_response': {},
-        'errors': error,
-    }
+        'error': error}
 
 
 def charge(
@@ -97,6 +98,8 @@ def charge(
         **connection_params):
     """Performs Authorize and Capture transactions in a single run."""
     auth_resp = authorize(payment, payment_token)
-    if auth_resp['errors']:
+    if auth_resp['error']:
         return auth_resp
-    return capture(payment, payment_token, amount)
+    capture_resp = capture(payment, payment_token, amount)
+    capture_resp['kind'] = 'charge'
+    return [auth_resp, capture_resp]

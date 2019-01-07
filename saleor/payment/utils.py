@@ -1,7 +1,7 @@
 import logging
 from decimal import Decimal
 from functools import wraps
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from django.conf import settings
 from django.db import transaction
@@ -78,15 +78,17 @@ def create_transaction(payment: Payment, kind: str, payment_token: str,
     """Creates a Transaction based on transaction kind and gateway response."""
     if gateway_response is None:
         gateway_response = {}
+
     txn, _ = Transaction.objects.get_or_create(
         payment=payment,
-        kind=kind,
+        kind=gateway_response.get('kind', kind),
         token=gateway_response.get('transaction_id', payment_token),
         is_success=gateway_response.get('is_success', False),
-        amount=extra_params.get('amount', payment.total),
-        currency=payment.currency,
+        amount=gateway_response.get('amount', payment.total),
+        currency=gateway_response.get('currency', payment.currency),
+        error=gateway_response.get('error'),
         gateway_response=gateway_response)
-    return txn
+    return txn  # returns last created transaction
 
 
 def gateway_get_client_token(gateway_name: str):
@@ -145,34 +147,42 @@ def call_gateway(
         logger.exception('Gateway doesn\'t implement %s', func_name)
     except GatewayError:
         logger.exception('Gateway response validation failed')
-        gateway_response = None  # set response none as the validation failed
+        gateway_response = None  # set response empty as the validation failed
     except Exception:
         logger.exception('Gateway encountered an error')
     finally:
-        transaction = create_transaction(
-            payment=payment,
-            kind=transaction_kind,
-            payment_token=payment_token,
-            gateway_response=gateway_response,
-            **extra_params)
+        if not isinstance(gateway_response, list):
+            gateway_response = [gateway_response]
+        for response in gateway_response:
+            transaction = create_transaction(
+                payment=payment,
+                kind=transaction_kind,
+                payment_token=payment_token,
+                gateway_response=response)
 
     if not transaction.is_success:
         # attempt to get errors from response, if none raise a generic one
-        raise PaymentError(gateway_response.get(
-            'errors', GENERIC_TRANSACTION_ERROR))
+        raise PaymentError(transaction.error or GENERIC_TRANSACTION_ERROR)
 
     return transaction
 
 
-def validate_gateway_response(response):
+def validate_gateway_response(responses):
     """Validates response to be a correct format for Saleor to process."""
-    if not isinstance(response, dict):
-        raise GatewayError('Gateway needs to return a dictionary')
-    required_fields = {'transaction_id', 'is_success', 'errors'}
-    if not required_fields.issubset(response):
-        raise GatewayError(
-            'Gateway response needs to contain following keys: {}'.format(
-                required_fields - response.keys()))
+    if not isinstance(responses, (dict, list)):
+        raise GatewayError('Gateway needs to return a dictionary or a list')
+    if not isinstance(responses, list):
+        responses = [responses]
+
+    required_fields = {
+        'transaction_id', 'is_success', 'kind', 'error', 'amount', 'currency'}
+    for response in responses:
+        if not required_fields.issubset(response):
+            raise GatewayError(
+                'Gateway response needs to contain following keys: {}'.format(
+                    required_fields - response.keys()))
+        #TODO: check if response is json serializable
+        #TODO: check if response['kind'] is an allowed choice of TransactionKind
 
 
 @validate_payment
@@ -248,6 +258,8 @@ def gateway_capture(payment: Payment, amount: Decimal=None) -> Transaction:
 
     auth_transaction = payment.transactions.filter(
         kind=TransactionKind.AUTH, is_success=True).first()
+    if auth_transaction is None:
+        raise PaymentError('Cannot capture unauthorized transaction')
     payment_token = auth_transaction.token
 
     transaction = call_gateway('capture',
@@ -272,6 +284,8 @@ def gateway_void(payment) -> Transaction:
 
     auth_transaction = payment.transactions.filter(
         kind=TransactionKind.AUTH, is_success=True).first()
+    if auth_transaction is None:
+        raise PaymentError('Cannot void unauthorized transaction')
     payment_token = auth_transaction.token
 
     transaction = call_gateway('void', transaction_kind=TransactionKind.VOID,
@@ -304,6 +318,8 @@ def gateway_refund(payment, amount: Decimal=None) -> Transaction:
     transaction = payment.transactions.filter(
         kind__in=[TransactionKind.CAPTURE, TransactionKind.CHARGE],
         is_success=True).first()
+    if transaction is None:
+        raise PaymentError('Cannot refund uncaptured/uncharged transaction')
     payment_token = transaction.token
 
     transaction = call_gateway('refund',
