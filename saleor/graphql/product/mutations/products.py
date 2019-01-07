@@ -342,7 +342,7 @@ class ProductCreate(ModelMutation):
                 cls.add_error(errors, 'sku', 'This field cannot be blank.')
             elif models.ProductVariant.objects.filter(sku=input_sku).exists():
                 cls.add_error(
-                    errors, 'sku', 'Product with this Sku already exists.')
+                    errors, 'sku', 'Product with this SKU already exists.')
 
     @classmethod
     @transaction.atomic
@@ -384,10 +384,10 @@ class ProductUpdate(ProductCreate):
     def clean_sku(cls, product_type, cleaned_input, errors):
         input_sku = cleaned_input.get('sku')
         if (not product_type.has_variants and
-            input_sku and
-            models.ProductVariant.objects.filter(sku=input_sku).exists()):
+                input_sku and
+                models.ProductVariant.objects.filter(sku=input_sku).exists()):
             cls.add_error(
-                errors, 'sku', 'Product with this Sku already exists.')
+                errors, 'sku', 'Product with this SKU already exists.')
 
     @classmethod
     @transaction.atomic
