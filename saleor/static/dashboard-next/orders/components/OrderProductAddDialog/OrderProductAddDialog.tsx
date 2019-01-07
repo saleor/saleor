@@ -152,6 +152,59 @@ const OrderProductAddDialog = withStyles(styles, {
               )
             : [];
 
+          const onProductAdd = (
+            product: OrderVariantSearch_products_edges_node,
+            productIndex: number
+          ) =>
+            selectedProducts[productIndex]
+              ? change({
+                  target: {
+                    name: "variants",
+                    value: data.variants.filter(
+                      selectedVariant =>
+                        !product.variants.find(
+                          productVariant =>
+                            productVariant.id === selectedVariant.id
+                        )
+                    )
+                  }
+                } as any)
+              : change({
+                  target: {
+                    name: "variants",
+                    value: [
+                      ...data.variants,
+                      ...product.variants.filter(
+                        productVariant =>
+                          !data.variants.find(
+                            selectedVariant =>
+                              selectedVariant.id === productVariant.id
+                          )
+                      )
+                    ]
+                  }
+                } as any);
+          const onVariantAdd = (
+            variant: OrderVariantSearch_products_edges_node_variants,
+            variantIndex: number,
+            productIndex: number
+          ) =>
+            selectedVariants[productIndex][variantIndex]
+              ? change({
+                  target: {
+                    name: "variants",
+                    value: data.variants.filter(
+                      selectedVariant => selectedVariant.id !== variant.id
+                    )
+                  }
+                } as any)
+              : change({
+                  target: {
+                    name: "variants",
+                    value: [...data.variants, variant]
+                  }
+                } as any);
+
           return (
             <>
               <DialogTitle>{i18n.t("Add product")}</DialogTitle>
@@ -210,36 +263,7 @@ const OrderProductAddDialog = withStyles(styles, {
                                   checked={selectedProducts[productIndex]}
                                   disabled={loading}
                                   onChange={() =>
-                                    selectedProducts[productIndex]
-                                      ? change({
-                                          target: {
-                                            name: "variants",
-                                            value: data.variants.filter(
-                                              selectedVariant =>
-                                                !product.variants.find(
-                                                  productVariant =>
-                                                    productVariant.id ===
-                                                    selectedVariant.id
-                                                )
-                                            )
-                                          }
-                                        } as any)
-                                      : change({
-                                          target: {
-                                            name: "variants",
-                                            value: [
-                                              ...data.variants,
-                                              ...product.variants.filter(
-                                                productVariant =>
-                                                  !data.variants.find(
-                                                    selectedVariant =>
-                                                      selectedVariant.id ===
-                                                      productVariant.id
-                                                  )
-                                              )
-                                            ]
-                                          }
-                                        } as any)
+                                    onProductAdd(product, productIndex)
                                   }
                                 />
                               </TableCell>
@@ -268,28 +292,11 @@ const OrderProductAddDialog = withStyles(styles, {
                                       }
                                       disabled={loading}
                                       onChange={() =>
-                                        selectedVariants[productIndex][
-                                          variantIndex
-                                        ]
-                                          ? change({
-                                              target: {
-                                                name: "variants",
-                                                value: data.variants.filter(
-                                                  selectedVariant =>
-                                                    selectedVariant.id !==
-                                                    variant.id
-                                                )
-                                              }
-                                            } as any)
-                                          : change({
-                                              target: {
-                                                name: "variants",
-                                                value: [
-                                                  ...data.variants,
-                                                  variant
-                                                ]
-                                              }
-                                            } as any)
+                                        onVariantAdd(
+                                          variant,
+                                          variantIndex,
+                                          productIndex
+                                        )
                                       }
                                     />
                                   </TableCell>
