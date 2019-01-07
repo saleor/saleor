@@ -46,3 +46,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed the no shipping orders payment crash on Stripe - #3550 by @NyanKiyoshi
 - Change TypeScript loader to speed up the build process - #3545 by @patrys
 - Fix storybook dependencies conflict - #3544 by @dominik-zeglen
+- Unique validation SKU when default variant create in GraphQL API - #3555 by @fowczarek

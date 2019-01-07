@@ -329,7 +329,7 @@ def product_with_default_variant(product_type_without_variant, category):
         name='Test product', price=Money('10.00', 'USD'),
         product_type=product_type_without_variant, category=category)
     ProductVariant.objects.create(
-        product=product, sku='123', track_inventory=True,
+        product=product, sku='1234', track_inventory=True,
         quantity=100)
     return product
 
