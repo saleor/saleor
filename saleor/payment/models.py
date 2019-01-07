@@ -83,7 +83,7 @@ class Payment(models.Model):
         validators=[MinValueValidator(1000)], null=True, blank=True)
 
     class Meta:
-        ordering = ['pk']
+        ordering = ('pk', )
 
     def __repr__(self):
         return 'Payment(gateway=%s, is_active=%s, created=%s, charge_status=%s)' % (

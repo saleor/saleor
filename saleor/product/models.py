@@ -140,6 +140,7 @@ class Product(SeoModel):
 
     class Meta:
         app_label = 'product'
+        ordering = ('name', )
         permissions = ((
             'manage_products', pgettext_lazy(
                 'Permission description',
@@ -378,7 +379,7 @@ class AttributeValue(SortableModel):
     translated = TranslationProxy()
 
     class Meta:
-        ordering = ('sort_order',)
+        ordering = ('sort_order', )
         unique_together = ('name', 'attribute')
 
     def __str__(self):
@@ -463,7 +464,7 @@ class Collection(SeoModel):
     translated = TranslationProxy()
 
     class Meta:
-        ordering = ['pk']
+        ordering = ('slug', )
 
     def __str__(self):
         return self.name

@@ -587,12 +587,6 @@ input DraftOrderInput {
   voucher: ID
 }
 
-type DraftOrderLineCreate {
-  errors: [Error!]
-  order: Order
-  orderLine: OrderLine
-}
-
 type DraftOrderLineDelete {
   errors: [Error!]
   order: Order
@@ -603,6 +597,12 @@ type DraftOrderLineUpdate {
   errors: [Error!]
   order: Order
   orderLine: OrderLine
+}
+
+type DraftOrderLinesCreate {
+  errors: [Error!]
+  order: Order!
+  orderLines: [OrderLine!]!
 }
 
 type DraftOrderUpdate {
@@ -876,7 +876,7 @@ type Mutations {
   draftOrderComplete(id: ID!): DraftOrderComplete
   draftOrderCreate(input: DraftOrderCreateInput!): DraftOrderCreate
   draftOrderDelete(id: ID!): DraftOrderDelete
-  draftOrderLineCreate(id: ID!, input: OrderLineCreateInput!): DraftOrderLineCreate
+  draftOrderLinesCreate(id: ID!, input: [OrderLineCreateInput]!): DraftOrderLinesCreate
   draftOrderLineDelete(id: ID!): DraftOrderLineDelete
   draftOrderLineUpdate(id: ID!, input: OrderLineInput!): DraftOrderLineUpdate
   draftOrderUpdate(id: ID!, input: DraftOrderInput!): DraftOrderUpdate

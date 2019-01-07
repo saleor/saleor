@@ -67,7 +67,7 @@ class Cart(models.Model):
     objects = CartQueryset.as_manager()
 
     class Meta:
-        ordering = ('-last_change',)
+        ordering = ('-last_change', )
 
     def __repr__(self):
         return 'Cart(quantity=%s)' % (self.quantity,)

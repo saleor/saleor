@@ -1,7 +1,10 @@
 import gql from "graphql-tag";
 
 import { TypedMutation } from "../mutations";
-import { collectionDetailsFragment } from "./queries";
+import {
+  collectionDetailsFragment,
+  collectionProductFragment
+} from "./queries";
 import {
   CollectionAssignProduct,
   CollectionAssignProductVariables
@@ -81,29 +84,26 @@ export const TypedCollectionUpdateWithHomepageMutation = TypedMutation<
 >(collectionUpdateWithHomepage);
 
 const assignCollectionProduct = gql`
+  ${collectionProductFragment}
   mutation CollectionAssignProduct(
     $collectionId: ID!
-    $productId: ID!
-    $first: Int!
+    $productIds: [ID!]!
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
   ) {
-    collectionAddProducts(collectionId: $collectionId, products: [$productId]) {
+    collectionAddProducts(collectionId: $collectionId, products: $productIds) {
       errors {
         field
         message
       }
       collection {
         id
-        products(first: $first) {
+        products(first: $first, after: $after, before: $before, last: $last) {
           edges {
             node {
-              id
-              isPublished
-              name
-              productType {
-                id
-                name
-              }
-              thumbnailUrl
+              ...CollectionProductFragment
             }
           }
           pageInfo {
