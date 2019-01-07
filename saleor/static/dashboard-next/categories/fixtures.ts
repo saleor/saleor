@@ -66,6 +66,11 @@ export const category: (
   placeholderImage: string
 ) => CategoryDetails_category = (placeholderImage: string) => ({
   __typename: "Category",
+  backgroundImage: {
+    __typename: "Image",
+    alt: "Alt text",
+    url: placeholderImage
+  },
   children: {
     __typename: "CategoryCountableConnection",
     edges: []

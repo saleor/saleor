@@ -1,5 +1,5 @@
 const autoprefixer = require('autoprefixer');
-const { CheckerPlugin } = require('awesome-typescript-loader');
+const CheckerPlugin = require('fork-ts-checker-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const path = require('path');
 const url = require('url');
@@ -20,7 +20,10 @@ const providePlugin = new webpack.ProvidePlugin({
   'query-string': 'query-string'
 });
 
-const checkerPlugin = new CheckerPlugin();
+const checkerPlugin = new CheckerPlugin({
+  reportFiles: ['saleor/**/*.{ts,tsx}'],
+  tslint: true
+});
 
 module.exports = (env, argv) => {
   const devMode = argv.mode !== 'production';
@@ -102,12 +105,10 @@ module.exports = (env, argv) => {
         {
           test: /\.tsx?$/,
           exclude: /node_modules/,
-          loader: 'awesome-typescript-loader',
+          loader: 'ts-loader',
           options: {
-            reportFiles: [
-              'saleor/**/*.{ts,tsx}'
-            ],
-            useCache: true
+            experimentalWatchApi: true,
+            transpileOnly: true
           }
         },
         {
@@ -121,6 +122,11 @@ module.exports = (env, argv) => {
           ]
         }
       ]
+    },
+    optimization: {
+      removeAvailableModules: false,
+      removeEmptyChunks: false,
+      splitChunks: false
     },
     plugins: [
       bundleTrackerPlugin,
