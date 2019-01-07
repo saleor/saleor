@@ -59,6 +59,7 @@ TIME_ZONE = 'America/Chicago'
 LANGUAGE_CODE = 'en'
 LANGUAGES = [
     ('ar', _('Arabic')),
+    ('az', _('Azerbaijani')),
     ('bg', _('Bulgarian')),
     ('bn', _('Bengali')),
     ('ca', _('Catalan')),
@@ -69,6 +70,7 @@ LANGUAGES = [
     ('es', _('Spanish')),
     ('fa', _('Persian')),
     ('fr', _('French')),
+    ('hi', _('Hindi')),
     ('hu', _('Hungarian')),
     ('it', _('Italian')),
     ('ja', _('Japanese')),
