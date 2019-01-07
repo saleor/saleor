@@ -74,7 +74,7 @@ def create_payment(**payment_data):
 
 
 def create_transaction(payment: Payment, kind: str, payment_token: str,
-        gateway_response: Dict=None, **extra_params) -> Transaction:
+        gateway_response: Dict=None, error_msg=None, **extra_params) -> Transaction:
     """Creates a Transaction based on transaction kind and gateway response."""
     if gateway_response is None:
         gateway_response = {}
@@ -86,7 +86,7 @@ def create_transaction(payment: Payment, kind: str, payment_token: str,
         is_success=gateway_response.get('is_success', False),
         amount=gateway_response.get('amount', payment.total),
         currency=gateway_response.get('currency', payment.currency),
-        error=gateway_response.get('error'),
+        error=gateway_response.get('error', error_msg),
         gateway_response=gateway_response)
     return txn  # returns last created transaction
 
@@ -134,6 +134,7 @@ def call_gateway(
     Additionally does validation of the returned gateway response."""
     gateway, gateway_params = get_payment_gateway(payment.gateway)
     gateway_response = None
+    error_msg = None
 
     #TODO: improve so only one argument is sent (dict?) instead of passing
     # multiple kwargs, eventually keep connection params separate
@@ -144,11 +145,14 @@ def call_gateway(
             **extra_params, **gateway_params)
         validate_gateway_response(gateway_response)
     except AttributeError:
-        logger.exception('Gateway doesn\'t implement %s', func_name)
+        error_msg = 'Gateway doesn\'t implement {}'.format(func_name)
+        logger.exception(msg)
     except GatewayError:
-        logger.exception('Gateway response validation failed')
+        error_msg = 'Gateway response validation failed'
+        logger.exception()
         gateway_response = None  # set response empty as the validation failed
     except Exception:
+        error_msg = 'Gateway encountered an error'
         logger.exception('Gateway encountered an error')
     finally:
         if not isinstance(gateway_response, list):
@@ -158,6 +162,7 @@ def call_gateway(
                 payment=payment,
                 kind=transaction_kind,
                 payment_token=payment_token,
+                error_msg=error_msg,
                 gateway_response=response)
 
     if not transaction.is_success:
