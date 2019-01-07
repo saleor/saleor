@@ -1131,3 +1131,69 @@ export const shippingMethods = [
   { id: "s1", name: "DHL", country: "whole world", price: {} },
   { id: "s2", name: "UPS", country: "Afghanistan" }
 ];
+export const orderLineSearch = (placeholderImage: string) => [
+  {
+    __typename: "Product" as "Product",
+    id: "UHJvZHVjdDo3Mg==",
+    name: "Apple Juice",
+    thumbnail: {
+      __typename: "Image" as "Image",
+      url: placeholderImage
+    },
+    variants: [
+      {
+        __typename: "ProductVariant" as "ProductVariant",
+        id: "UHJvZHVjdFZhcmlhbnQ6MjAy",
+        name: "500ml",
+        price: { amount: 3.0, currency: "USD", __typename: "Money" as "Money" },
+        sku: "93855755"
+      },
+      {
+        __typename: "ProductVariant" as "ProductVariant",
+        id: "UHJvZHVjdFZhcmlhbnQ6MjAz",
+        name: "1l",
+        price: { amount: 5.0, currency: "USD", __typename: "Money" as "Money" },
+        sku: "43226647"
+      },
+      {
+        __typename: "ProductVariant" as "ProductVariant",
+        id: "UHJvZHVjdFZhcmlhbnQ6MjA0",
+        name: "2l",
+        price: { amount: 7.0, currency: "USD", __typename: "Money" as "Money" },
+        sku: "80884671"
+      }
+    ]
+  },
+  {
+    __typename: "Product" as "Product",
+    id: "UHJvZHVjdDo3NQ==",
+    name: "Pineapple Juice",
+    thumbnail: {
+      __typename: "Image" as "Image",
+      url: placeholderImage
+    },
+    variants: [
+      {
+        __typename: "ProductVariant" as "ProductVariant",
+        id: "UHJvZHVjdFZhcmlhbnQ6MjEx",
+        name: "500ml",
+        price: { amount: 3.0, currency: "USD", __typename: "Money" as "Money" },
+        sku: "43200242"
+      },
+      {
+        __typename: "ProductVariant" as "ProductVariant",
+        id: "UHJvZHVjdFZhcmlhbnQ6MjEy",
+        name: "1l",
+        price: { amount: 5.0, currency: "USD", __typename: "Money" as "Money" },
+        sku: "79129513"
+      },
+      {
+        __typename: "ProductVariant" as "ProductVariant",
+        id: "UHJvZHVjdFZhcmlhbnQ6MjEz",
+        name: "2l",
+        price: { amount: 7.0, currency: "USD", __typename: "Money" as "Money" },
+        sku: "75799450"
+      }
+    ]
+  }
+];

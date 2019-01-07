@@ -1,8 +1,9 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
+import * as placeholderImage from "../../../../images/placeholder60x60.png";
 import OrderProductAddDialog from "../../../orders/components/OrderProductAddDialog";
-import { variants } from "../../../orders/fixtures";
+import { orderLineSearch } from "../../../orders/fixtures";
 import Decorator from "../../Decorator";
 
 storiesOf("Orders / OrderProductAddDialog", module)
@@ -13,8 +14,10 @@ storiesOf("Orders / OrderProductAddDialog", module)
       loading={false}
       open={true}
       onClose={undefined}
-      variants={variants}
-      fetchVariants={undefined}
       onSubmit={undefined}
+      hasMore={false}
+      onFetch={() => undefined}
+      onFetchMore={() => undefined}
+      products={orderLineSearch(placeholderImage)}
     />
   ));
