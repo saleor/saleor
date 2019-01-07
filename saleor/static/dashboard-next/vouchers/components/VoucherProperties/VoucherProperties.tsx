@@ -97,11 +97,7 @@ const VoucherProperties = withStyles(styles, { name: "VoucherProperties" })(
   }: VoucherPropertiesProps) => (
     <Card classes={{ root: classes.card }}>
       <CardTitle title={i18n.t("Voucher type")} />
-      <FormControl
-        component="fieldset"
-        required
-        className={classes.formControl}
-      >
+      <FormControl required className={classes.formControl}>
         <RadioGroup name="type" value={data.type} onChange={onChange}>
           <FormControlLabel
             disabled={disabled}

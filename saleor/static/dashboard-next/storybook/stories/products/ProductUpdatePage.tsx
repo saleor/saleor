@@ -103,5 +103,6 @@ storiesOf("Views / Products / Product edit", module)
       onImageDelete={() => undefined}
       onVariantShow={() => undefined}
       saveButtonBarState="default"
+      variants={undefined}
     />
   ));
