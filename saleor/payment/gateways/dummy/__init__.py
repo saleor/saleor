@@ -24,16 +24,15 @@ def get_form_class():
     return DummyPaymentForm
 
 
-def process_payment(
-        payment: Dict, payment_token: str, amount: Decimal,
-        **connection_params):
-    auth_resp = authorize(payment, payment_token)
+def process_payment(payment_information: Dict, **connection_params) -> Dict:
+    """Process the whole payment, by calling authorize and capture."""
+    auth_resp = authorize(payment_information, **connection_params)
     if auth_resp['error']:
         return auth_resp
-    return [auth_resp, capture(payment, payment_token, amount)]
+    return [auth_resp, capture(payment_information, **connection_params)]
 
 
-def authorize(payment: Dict, payment_token: str, **connection_params):
+def authorize(payment_information: Dict, **connection_params) -> Dict:
     success = dummy_success()
     error = None
     if not success:
@@ -41,13 +40,13 @@ def authorize(payment: Dict, payment_token: str, **connection_params):
     return {
         'is_success': success,
         'kind': 'auth',
-        'amount': payment['total'],
-        'currency': payment['currency'],
-        'transaction_id': payment_token,
+        'amount': payment_information['amount'],
+        'currency': payment_information['currency'],
+        'transaction_id': payment_information['token'],
         'error': error}
 
 
-def void(payment: Dict, payment_token: str, **connection_params: Dict):
+def void(payment_information: Dict, **connection_params) -> Dict:
     error = None
     success = dummy_success()
     if not success:
@@ -55,15 +54,13 @@ def void(payment: Dict, payment_token: str, **connection_params: Dict):
     return {
         'is_success': success,
         'kind': 'void',
-        'amount': payment['total'],
-        'currency': payment['currency'],
-        'transaction_id': payment_token,
+        'amount': payment_information['amount'],
+        'currency': payment_information['currency'],
+        'transaction_id': payment_information['token'],
         'error': error}
 
 
-def capture(
-        payment: Dict, payment_token: str, amount: Decimal,
-        **connection_params: Dict):
+def capture(payment_information: Dict, **connection_params: Dict) -> Dict:
     error = None
     success = dummy_success()
     if not success:
@@ -71,15 +68,13 @@ def capture(
     return {
         'is_success': success,
         'kind': 'capture',
-        'amount': amount,
-        'currency': payment['currency'],
-        'transaction_id': payment_token,
+        'amount': payment_information['amount'],
+        'currency': payment_information['currency'],
+        'transaction_id': payment_information['token'],
         'error': error}
 
 
-def refund(
-        payment: Dict, payment_token: str, amount: Decimal,
-        **connection_params: Dict):
+def refund(payment_information: Dict, **connection_params: Dict):
     error = None
     success = dummy_success()
     if not success:
@@ -87,17 +82,15 @@ def refund(
     return {
         'is_success': success,
         'kind': 'refund',
-        'amount': amount,
-        'currency': payment['currency'],
-        'transaction_id': payment_token,
+        'amount': payment_information['amount'],
+        'currency': payment_information['currency'],
+        'transaction_id': payment_information['token'],
         'error': error}
 
 
-def charge(
-        payment: Dict, payment_token: str, amount: Decimal,
-        **connection_params):
+def charge(payment_information: Dict, **connection_params):
     """Performs Authorize and Capture transactions in a single run."""
-    auth_resp = authorize(payment, payment_token)
+    auth_resp = authorize(payment_information, **connection_params)
     if auth_resp['error']:
         return auth_resp
-    return [auth_resp, capture(payment, payment_token, amount)]
+    return [auth_resp, capture(payment_information, **connection_params)]

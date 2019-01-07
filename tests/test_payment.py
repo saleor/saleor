@@ -16,7 +16,8 @@ from saleor.payment.utils import (
     clean_authorize, clean_capture, clean_charge, create_payment,
     create_transaction, gateway_authorize, gateway_capture, gateway_charge,
     gateway_get_client_token, gateway_refund, gateway_void, get_billing_data,
-    handle_fully_paid_order, validate_payment)
+    handle_fully_paid_order, validate_payment, create_payment_information,
+    gateway_process_payment)
 
 NOT_ACTIVE_PAYMENT_ERROR = 'This payment is no longer active.'
 EXAMPLE_ERROR = 'Example dummy error'
@@ -205,28 +206,47 @@ def test_payment_needs_to_be_active_for_any_action(func, payment_dummy):
 
 
 @patch('saleor.payment.utils.get_payment_gateway')
-def test_gateway_authorize(
+def test_gateway_process_payment(
         mock_get_payment_gateway, payment_txn_preauth, gateway_params,
         transaction_token, dummy_response):
     payment_token = transaction_token
-    txn = payment_txn_preauth.transactions.first()
     payment = payment_txn_preauth
+    mock_process_payment = Mock(return_value=[dummy_response, dummy_response])
+    mock_get_payment_gateway.return_value = (
+        Mock(process_payment=mock_process_payment), gateway_params)
+
+    payment_info = create_payment_information(payment, payment_token)
+    gateway_process_payment(payment, payment_token)
+
+    mock_get_payment_gateway.assert_called_with(payment.gateway)
+    mock_process_payment.assert_called_once_with(
+        payment_information=payment_info, **gateway_params)
+
+
+@patch('saleor.payment.utils.get_payment_gateway')
+def test_gateway_authorize(
+        mock_get_payment_gateway, payment_txn_preauth, gateway_params,
+        transaction_token, dummy_response):
+    payment = payment_txn_preauth
+    payment_token = transaction_token
 
     mock_authorize = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(authorize=mock_authorize), gateway_params)
 
-    payment_info = model_to_dict(payment)
+    payment_info = create_payment_information(payment, payment_token)
     gateway_authorize(payment, payment_token)
+
     mock_get_payment_gateway.assert_called_once_with(payment.gateway)
     mock_authorize.assert_called_once_with(
-        payment=payment_info, payment_token=payment_token, **gateway_params)
+        payment_information=payment_info, **gateway_params)
 
 
 @patch('saleor.payment.utils.get_payment_gateway')
 def test_gateway_authorize_failed(
         mock_get_payment_gateway, payment_txn_preauth, gateway_params,
         transaction_token, dummy_response):
+    payment = payment_txn_preauth
     payment_token = transaction_token
     txn = payment_txn_preauth.transactions.first()
     txn.is_success = False
@@ -263,11 +283,12 @@ def test_gateway_capture(
     mock_get_payment_gateway.return_value = (
         Mock(capture=mock_capture), gateway_params)
 
-    payment_info = model_to_dict(payment)
+    payment_info = create_payment_information(payment, '', amount)
     gateway_capture(payment, amount)
+
     mock_get_payment_gateway.assert_called_once_with(payment.gateway)
     mock_capture.assert_called_once_with(
-        payment=payment_info, payment_token='', amount=amount, **gateway_params)
+        payment_information=payment_info, **gateway_params)
 
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.CHARGED
@@ -359,12 +380,12 @@ def test_gateway_charge(
     mock_get_payment_gateway.return_value = (
         Mock(charge=mock_charge), gateway_params)
 
-    payment_info = model_to_dict(payment)
+    payment_info = create_payment_information(payment, payment_token, amount)
     gateway_charge(payment, payment_token, amount)
+
     mock_get_payment_gateway.assert_called_once_with(payment.gateway)
     mock_charge.assert_called_once_with(
-        payment=payment_info, payment_token=payment_token, amount=amount,
-        **gateway_params)
+        payment_information=payment_info, **gateway_params)
 
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.CHARGED
@@ -457,11 +478,12 @@ def test_gateway_void(
     mock_void = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (Mock(void=mock_void), gateway_params)
 
-    payment_info = model_to_dict(payment)
+    payment_info = create_payment_information(payment, txn.token)
     gateway_void(payment)
+
     mock_get_payment_gateway.assert_called_once_with(payment.gateway)
     mock_void.assert_called_once_with(
-        payment=payment_info, payment_token=txn.token, **gateway_params)
+        payment_information=payment_info, **gateway_params)
 
     payment.refresh_from_db()
     assert payment.is_active == False
@@ -507,12 +529,12 @@ def test_gateway_refund(
     mock_get_payment_gateway.return_value = (
         Mock(refund=mock_refund), gateway_params)
 
-    payment_info = model_to_dict(payment)
+    payment_info = create_payment_information(payment, txn.token, amount)
     gateway_refund(payment, amount)
+
     mock_get_payment_gateway.assert_called_once_with(payment.gateway)
     mock_refund.assert_called_once_with(
-        payment=payment_info, payment_token='',
-        amount=amount, **gateway_params)
+        payment_information=payment_info, **gateway_params)
 
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.FULLY_REFUNDED
