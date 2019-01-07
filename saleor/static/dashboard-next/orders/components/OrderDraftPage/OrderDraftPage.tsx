@@ -53,14 +53,6 @@ export interface OrderDraftPageProps extends WithStyles<typeof styles> {
     label: string;
   }>;
   saveButtonBarState: ConfirmButtonTransitionState;
-  variants: Array<{
-    id: string;
-    name: string;
-    sku: string;
-    stockQuantity: number;
-  }>;
-  variantsLoading: boolean;
-  fetchVariants: (value: string) => void;
   fetchUsers: (query: string) => void;
   onBack: () => void;
   onBillingAddressEdit: () => void;

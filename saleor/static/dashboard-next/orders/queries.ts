@@ -226,19 +226,31 @@ export const TypedOrderDetailsQuery = TypedQuery<
 >(orderDetailsQuery);
 
 export const orderVariantSearchQuery = gql`
-  query OrderVariantSearch($search: String!) {
-    products(query: $search, first: 5) {
+  query OrderVariantSearch($search: String!, $after: String) {
+    products(query: $search, first: 5, after: $after) {
       edges {
         node {
           id
           name
+          thumbnail {
+            url
+          }
           variants {
             id
             name
             sku
-            stockQuantity
+            price {
+              amount
+              currency
+            }
           }
         }
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
+        hasPreviousPage
+        startCursor
       }
     }
   }
