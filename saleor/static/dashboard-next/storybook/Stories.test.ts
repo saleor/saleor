@@ -16,7 +16,7 @@ jest.mock("@material-ui/core/styles/createGenerateClassName");
 initStoryshots({
   configPath: "saleor/static/dashboard-next/storybook/",
   test({ story }) {
-    const result = render(story.render());
+    const result = render((story as any).render());
     expect(toJSON(result)).toMatchSnapshot();
   }
 });
