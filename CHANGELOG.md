@@ -49,4 +49,5 @@ All notable, unreleased changes to this project will be documented in this file.
 - Change TypeScript loader to speed up the build process - #3545 by @patrys
 - Fix storybook dependencies conflict - #3544 by @dominik-zeglen
 - Unique validation SKU when default variant create in GraphQL API - #3555 by @fowczarek
+- Bump backend dependencies - #3557 by @maarcingebala. This PR removes security issue CVE-2019-3498 which was present in Django 2.1.4. Saleor however wasn't vulnerable to this issue as it doesn't use the affected `django.views.defaults.page_not_found()` view.
 - Restyle product selection dialogs - #3499 by @dominik-zeglen, @maarcingebala
