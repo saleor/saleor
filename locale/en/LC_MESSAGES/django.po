@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-18 08:53-0600\n"
+"POT-Creation-Date: 2019-01-07 11:01-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1002,6 +1002,21 @@ msgctxt "Rozorpay payment gateway secondary title"
 msgid "Total payment"
 msgstr ""
 
+#: saleor/payment/gateways/stripe/errors.py:4
+msgctxt "Stripe payment error"
+msgid "Order was not authorized."
+msgstr ""
+
+#: saleor/payment/gateways/stripe/errors.py:6
+msgctxt "Stripe payment error"
+msgid "Order was not charged."
+msgstr ""
+
+#: saleor/payment/gateways/stripe/forms.py:12
+msgctxt "Stripe payment gateway description"
+msgid "Total payment"
+msgstr ""
+
 #: saleor/product/__init__.py:15
 msgctxt "Product status"
 msgid "not published"
@@ -1073,7 +1088,7 @@ msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
 msgstr ""
 
-#: saleor/product/models.py:145
+#: saleor/product/models.py:147
 msgctxt "Permission description"
 msgid "Manage products."
 msgstr ""
@@ -1096,111 +1111,119 @@ msgid "Bengali"
 msgstr ""
 
 #: saleor/settings.py:64
-msgid "Czech"
+msgid "Catalan"
 msgstr ""
 
 #: saleor/settings.py:65
-msgid "Danish"
+msgid "Czech"
 msgstr ""
 
 #: saleor/settings.py:66
-msgid "German"
+msgid "Danish"
 msgstr ""
 
 #: saleor/settings.py:67
-msgid "English"
+msgid "German"
 msgstr ""
 
 #: saleor/settings.py:68
-msgid "Spanish"
+msgid "English"
 msgstr ""
 
 #: saleor/settings.py:69
-msgid "Persian"
+msgid "Spanish"
 msgstr ""
 
 #: saleor/settings.py:70
-msgid "French"
+msgid "Persian"
 msgstr ""
 
 #: saleor/settings.py:71
-msgid "Hungarian"
+msgid "French"
 msgstr ""
 
 #: saleor/settings.py:72
-msgid "Italian"
+msgid "Hungarian"
 msgstr ""
 
 #: saleor/settings.py:73
-msgid "Japanese"
+msgid "Italian"
 msgstr ""
 
 #: saleor/settings.py:74
-msgid "Korean"
+msgid "Japanese"
 msgstr ""
 
 #: saleor/settings.py:75
-msgid "Mongolian"
+msgid "Korean"
 msgstr ""
 
 #: saleor/settings.py:76
-msgid "Norwegian"
+msgid "Mongolian"
 msgstr ""
 
 #: saleor/settings.py:77
-msgid "Dutch"
+msgid "Norwegian"
 msgstr ""
 
 #: saleor/settings.py:78
-msgid "Polish"
+msgid "Dutch"
 msgstr ""
 
 #: saleor/settings.py:79
-msgid "Brazilian Portuguese"
+msgid "Polish"
 msgstr ""
 
 #: saleor/settings.py:80
-msgid "Romanian"
+msgid "Brazilian Portuguese"
 msgstr ""
 
 #: saleor/settings.py:81
-msgid "Russian"
+msgid "Romanian"
 msgstr ""
 
 #: saleor/settings.py:82
-msgid "Slovak"
+msgid "Russian"
 msgstr ""
 
 #: saleor/settings.py:83
-msgid "Swedish"
+msgid "Slovak"
 msgstr ""
 
 #: saleor/settings.py:84
-msgid "Turkish"
+msgid "Serbian"
 msgstr ""
 
 #: saleor/settings.py:85
-msgid "Ukrainian"
+msgid "Swedish"
 msgstr ""
 
 #: saleor/settings.py:86
-msgid "Vietnamese"
+msgid "Turkish"
 msgstr ""
 
 #: saleor/settings.py:87
-msgid "Simplified Chinese"
+msgid "Ukrainian"
 msgstr ""
 
 #: saleor/settings.py:88
+msgid "Vietnamese"
+msgstr ""
+
+#: saleor/settings.py:89
+msgid "Simplified Chinese"
+msgstr ""
+
+#: saleor/settings.py:90
 msgid "Traditional Chinese"
 msgstr ""
 
-#: saleor/settings.py:324
+#: saleor/settings.py:326
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr ""
 
-#: saleor/settings.py:560
+#: saleor/settings.py:563
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr ""
@@ -1981,13 +2004,21 @@ msgctxt "Site breadcrumbs home"
 msgid "Home"
 msgstr ""
 
-#: templates/collection/index.html:15
+#: templates/collection/index.html:16
+#, python-format
+msgctxt "Unpublished collection details text"
+msgid ""
+"<strong>Warning!</strong> You are previewing a collection that will become "
+"visible on <strong>%(date)s</strong>."
+msgstr ""
+
+#: templates/collection/index.html:21
 msgctxt "Unavailable collection detail text"
 msgid ""
 "\n"
-"        <strong>Warning!</strong>\n"
-"        You are previewing a collection that is not published.\n"
-"      "
+"          <strong>Warning!</strong>\n"
+"          You are previewing a collection that is not published.\n"
+"        "
 msgstr ""
 
 #: templates/dashboard/base.html:11
@@ -2431,32 +2462,32 @@ msgctxt "Collection form card title: availability sub form"
 msgid "Availability"
 msgstr ""
 
-#: templates/dashboard/collection/detail.html:74
+#: templates/dashboard/collection/detail.html:77
 msgctxt "Collection secondary action"
 msgid "Cancel"
 msgstr ""
 
-#: templates/dashboard/collection/detail.html:77
+#: templates/dashboard/collection/detail.html:80
 msgctxt "Collection detail action"
 msgid "Update"
 msgstr ""
 
-#: templates/dashboard/collection/detail.html:81
+#: templates/dashboard/collection/detail.html:84
 msgctxt "Collection detail action"
 msgid "Create"
 msgstr ""
 
-#: templates/dashboard/collection/detail.html:103
+#: templates/dashboard/collection/detail.html:106
 msgctxt "Collection field"
 msgid "Published"
 msgstr ""
 
-#: templates/dashboard/collection/detail.html:105
+#: templates/dashboard/collection/detail.html:108
 msgctxt "Collection field"
 msgid "Draft"
 msgstr ""
 
-#: templates/dashboard/collection/detail.html:113
+#: templates/dashboard/collection/detail.html:116
 msgctxt "Collection field"
 msgid "Can't unpublish homepage collection"
 msgstr ""
@@ -2884,9 +2915,18 @@ msgctxt "Collection availability status"
 msgid "Published"
 msgstr ""
 
-#: templates/dashboard/includes/_collection_availability.html:7
+#: templates/dashboard/includes/_collection_availability.html:8
+#, python-format
 msgctxt "Collection availability status"
-msgid "Not Published"
+msgid ""
+"\n"
+"        Hidden (will become visible on %(date)s)\n"
+"      "
+msgstr ""
+
+#: templates/dashboard/includes/_collection_availability.html:13
+msgctxt "Collection availability status"
+msgid "Hidden"
 msgstr ""
 
 #: templates/dashboard/includes/_filters.html:10
@@ -3384,7 +3424,7 @@ msgstr ""
 
 #: templates/dashboard/order/detail.html:280
 #: templates/dashboard/order/detail.html:473
-#: templates/dashboard/order/pdf/packing_slip.html:64
+#: templates/dashboard/order/pdf/packing_slip.html:58
 msgctxt "Order table header"
 msgid "Item"
 msgstr ""
@@ -3396,7 +3436,7 @@ msgstr ""
 
 #: templates/dashboard/order/detail.html:286
 #: templates/dashboard/order/detail.html:476
-#: templates/dashboard/order/pdf/packing_slip.html:70
+#: templates/dashboard/order/pdf/packing_slip.html:64
 msgctxt "Order table header"
 msgid "Quantity"
 msgstr ""
@@ -3978,136 +4018,144 @@ msgctxt "Modal void payment primary action"
 msgid "Void"
 msgstr ""
 
-#: templates/dashboard/order/pdf/invoice.html:8
+#: templates/dashboard/order/pdf/base_pdf.html:18
+msgctxt "Order PDF footer page counter"
+msgid "\"Page \" counter(page) \"/\" counter(pages)"
+msgstr ""
+
+#: templates/dashboard/order/pdf/base_pdf.html:34
+#, python-format
+msgctxt "Order PDF header"
+msgid "Order #%(order_id)s"
+msgstr ""
+
+#: templates/dashboard/order/pdf/invoice.html:9
+#, python-format
 msgctxt "Invoice title"
-msgid "Invoice for Order"
+msgid "Invoice for Order #%(order_id)s"
 msgstr ""
 
-#: templates/dashboard/order/pdf/invoice.html:17
-msgctxt "Invoice header"
-msgid "Order"
-msgstr ""
-
-#: templates/dashboard/order/pdf/invoice.html:21
+#: templates/dashboard/order/pdf/invoice.html:15
 msgctxt "Order invoice"
 msgid "Invoice"
 msgstr ""
 
-#: templates/dashboard/order/pdf/invoice.html:27
+#: templates/dashboard/order/pdf/invoice.html:21
 msgctxt "Invoice shipping address"
 msgid "Shipping address"
 msgstr ""
 
-#: templates/dashboard/order/pdf/invoice.html:32
+#: templates/dashboard/order/pdf/invoice.html:26
 msgctxt "Invoice billing address"
 msgid "Billing address"
 msgstr ""
 
-#: templates/dashboard/order/pdf/invoice.html:53
+#: templates/dashboard/order/pdf/invoice.html:47
 msgctxt "Invoice ordered items header"
 msgid "Items Ordered"
 msgstr ""
 
-#: templates/dashboard/order/pdf/invoice.html:60
+#: templates/dashboard/order/pdf/invoice.html:54
 msgctxt "Shipment order table header"
 msgid "Item"
 msgstr ""
 
-#: templates/dashboard/order/pdf/invoice.html:64
+#: templates/dashboard/order/pdf/invoice.html:58
 msgctxt "Shipment order table header"
 msgid "SKU"
 msgstr ""
 
-#: templates/dashboard/order/pdf/invoice.html:67
+#: templates/dashboard/order/pdf/invoice.html:61
 msgctxt "Shipment order table header"
 msgid "Tax rate"
 msgstr ""
 
-#: templates/dashboard/order/pdf/invoice.html:70
+#: templates/dashboard/order/pdf/invoice.html:64
 msgctxt "Shipment order table header"
 msgid "Gross price"
 msgstr ""
 
-#: templates/dashboard/order/pdf/invoice.html:73
+#: templates/dashboard/order/pdf/invoice.html:67
 msgctxt "Shipment order table header"
 msgid "Quantity"
 msgstr ""
 
-#: templates/dashboard/order/pdf/invoice.html:76
+#: templates/dashboard/order/pdf/invoice.html:70
 msgctxt "Shipment order table header"
 msgid "Total"
 msgstr ""
 
-#: templates/dashboard/order/pdf/invoice.html:90
+#: templates/dashboard/order/pdf/invoice.html:84
 #, python-format
 msgctxt "Order line tax rate value"
 msgid ""
 "\n"
-"              %(tax_rate)s %%\n"
-"            "
+"                %(tax_rate)s %%\n"
+"              "
 msgstr ""
 
-#: templates/dashboard/order/pdf/invoice.html:113
+#: templates/dashboard/order/pdf/invoice.html:107
 msgctxt "Order subtotal net price"
 msgid "Subtotal"
 msgstr ""
 
-#: templates/dashboard/order/pdf/invoice.html:121
+#: templates/dashboard/order/pdf/invoice.html:115
 msgctxt "Order total shipping price header"
 msgid "Shipping"
 msgstr ""
 
-#: templates/dashboard/order/pdf/invoice.html:129
+#: templates/dashboard/order/pdf/invoice.html:123
 msgctxt "Order total taxes header"
 msgid "Total taxes (included)"
 msgstr ""
 
-#: templates/dashboard/order/pdf/invoice.html:138
+#: templates/dashboard/order/pdf/invoice.html:132
 msgctxt "Order voucher header"
 msgid "Discount"
 msgstr ""
 
-#: templates/dashboard/order/pdf/invoice.html:149
+#: templates/dashboard/order/pdf/invoice.html:143
 msgctxt "Order total price header"
 msgid "Grand total"
 msgstr ""
 
-#: templates/dashboard/order/pdf/packing_slip.html:16
-msgctxt "Packing slip header"
-msgid "Order ID:"
+#: templates/dashboard/order/pdf/packing_slip.html:8
+#, python-format
+msgctxt "Packing slips title"
+msgid "Packing Slips for Fulfillment #%(fulfillment)s"
 msgstr ""
 
-#: templates/dashboard/order/pdf/packing_slip.html:20
+#: templates/dashboard/order/pdf/packing_slip.html:14
 msgctxt "Packing slips header"
 msgid "Packing Slips"
 msgstr ""
 
-#: templates/dashboard/order/pdf/packing_slip.html:26
+#: templates/dashboard/order/pdf/packing_slip.html:20
 msgctxt "Packing slip shipping details"
 msgid "Shipping Details"
 msgstr ""
 
-#: templates/dashboard/order/pdf/packing_slip.html:30
+#: templates/dashboard/order/pdf/packing_slip.html:24
 msgctxt "Packing slip shipping details"
 msgid "Billing Details"
 msgstr ""
 
-#: templates/dashboard/order/pdf/packing_slip.html:40
+#: templates/dashboard/order/pdf/packing_slip.html:34
 msgctxt "Packing slip shipping address"
 msgid "Shipping address"
 msgstr ""
 
-#: templates/dashboard/order/pdf/packing_slip.html:49
+#: templates/dashboard/order/pdf/packing_slip.html:43
 msgctxt "Packing slip billing address"
 msgid "Billing address"
 msgstr ""
 
-#: templates/dashboard/order/pdf/packing_slip.html:58
+#: templates/dashboard/order/pdf/packing_slip.html:52
 msgctxt "Order invoice"
 msgid "Items Ordered"
 msgstr ""
 
-#: templates/dashboard/order/pdf/packing_slip.html:67
+#: templates/dashboard/order/pdf/packing_slip.html:61
 msgctxt "Order table header"
 msgid "SKU"
 msgstr ""
@@ -5856,7 +5904,7 @@ msgctxt "Header of the order summary table"
 msgid "Order details"
 msgstr ""
 
-#: templates/order/payment/dummy.html:12
+#: templates/order/payment/dummy.html:12 templates/order/payment/stripe.html:11
 msgctxt "Payment form (Stripe) secondary action"
 msgid "Change payment"
 msgstr ""

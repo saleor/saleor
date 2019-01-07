@@ -9,18 +9,19 @@
 # Irina Treichl, 2018
 # Jens-Erik Weber <JensErikWeber@gmail.com>, 2018
 # H3 iM <coding.cs@pm.me>, 2018
-# NyаnKiyoshi <hello@vanille.bid>, 2018
 # Till Hinrichs <till@eightdyasaweek.cc>, 2018
 # Max Wessendorf <m.wessendorf@ukd.de>, 2018
+# NyаnKiyoshi <hello@vanille.bid>, 2018
+# Michael Bykovski <bykof@me.com>, 2018
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-03 09:23-0600\n"
+"POT-Creation-Date: 2018-12-18 08:53-0600\n"
 "PO-Revision-Date: 2017-02-09 15:43+0000\n"
-"Last-Translator: Max Wessendorf <m.wessendorf@ukd.de>, 2018\n"
+"Last-Translator: Michael Bykovski <bykof@me.com>, 2018\n"
 "Language-Team: German (https://www.transifex.com/mirumee/teams/34782/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -75,6 +76,11 @@ msgstr "Beschreibung"
 msgctxt "Category form"
 msgid "Background Image"
 msgstr "Hintergrundbild"
+
+#: saleor/dashboard/category/forms.py:31
+msgctxt "Description of a category image"
+msgid "Image description"
+msgstr "Bildbeschreibung"
 
 #: saleor/dashboard/category/views.py:47
 #, python-format
@@ -152,14 +158,19 @@ msgstr "Produkte"
 #: saleor/dashboard/collection/forms.py:27
 msgctxt "Background image of a collection"
 msgid "Background image"
-msgstr ""
+msgstr "Hintergrundbild"
 
-#: saleor/dashboard/collection/forms.py:30
+#: saleor/dashboard/collection/forms.py:29
+msgctxt "Description of a collection image"
+msgid "Image description"
+msgstr "Bildbeschreibung"
+
+#: saleor/dashboard/collection/forms.py:32
 msgctxt "Collection published toggle"
 msgid "Published"
 msgstr "Veröffentlicht"
 
-#: saleor/dashboard/collection/forms.py:33
+#: saleor/dashboard/collection/forms.py:35
 msgctxt "Description field of a collection"
 msgid "Description"
 msgstr "Beschreibung"
@@ -185,19 +196,19 @@ msgid "Deleted collection"
 msgstr "Sammlung gelöscht"
 
 #: saleor/dashboard/customer/filters.py:17
-#: saleor/dashboard/staff/filters.py:17
+#: saleor/dashboard/staff/filters.py:16
 msgctxt "Customer list sorting option"
 msgid "email"
 msgstr "E-Mail"
 
 #: saleor/dashboard/customer/filters.py:19
-#: saleor/dashboard/staff/filters.py:19
+#: saleor/dashboard/staff/filters.py:18
 msgctxt "Customer list sorting option"
 msgid "name"
 msgstr "Name"
 
 #: saleor/dashboard/customer/filters.py:21
-#: saleor/dashboard/staff/filters.py:21
+#: saleor/dashboard/staff/filters.py:20
 msgctxt "Customer list sorting option"
 msgid "location"
 msgstr "Ort"
@@ -232,7 +243,7 @@ msgctxt "Customer list filter label"
 msgid "Sort by"
 msgstr "Sortieren nach"
 
-#: saleor/dashboard/customer/filters.py:74
+#: saleor/dashboard/customer/filters.py:76
 #, python-format
 msgctxt "Number of matching records in the dashboard customers list"
 msgid "Found %(counter)d matching customer"
@@ -240,7 +251,13 @@ msgid_plural "Found %(counter)d matching customers"
 msgstr[0] "%(counter)d passenden Kunden gefunden"
 msgstr[1] "%(counter)d passende Kunden gefunden"
 
-#: saleor/dashboard/customer/forms.py:22
+#: saleor/dashboard/customer/forms.py:10
+#, python-format
+msgctxt "Customer form: Name field placeholder"
+msgid "%(name)s (Inherit from default billing address)"
+msgstr "%(name)s (Standard Rechnungsadresse)"
+
+#: saleor/dashboard/customer/forms.py:29
 msgctxt "Edit customer details in order form error"
 msgid ""
 "You can't delete your own account via dashboard, please try from the "
@@ -249,37 +266,47 @@ msgstr ""
 "Du kannst deinen Account nicht im Dashboard löschen, bitte versuche es auf "
 "der Storefront."
 
-#: saleor/dashboard/customer/forms.py:27
+#: saleor/dashboard/customer/forms.py:34
 msgctxt "Edit customer details in order form error"
 msgid "Only superuser can delete his own account."
 msgstr "Nur Superuser können ihren eigenen Account löschen."
 
-#: saleor/dashboard/customer/forms.py:32
+#: saleor/dashboard/customer/forms.py:39
 msgctxt "Edit customer details in order form error"
 msgid "You have insufficient permissions, to edit staff users."
 msgstr "Du hast unzureichende Rechte, um Mitarbeiter zu löschen."
 
-#: saleor/dashboard/customer/forms.py:50
+#: saleor/dashboard/customer/forms.py:67 saleor/dashboard/staff/forms.py:23
+msgctxt "Customer form: Given name field"
+msgid "Given name"
+msgstr "Vorname"
+
+#: saleor/dashboard/customer/forms.py:69 saleor/dashboard/staff/forms.py:25
+msgctxt "Customer form: Family name field"
+msgid "Family name"
+msgstr "Nachname"
+
+#: saleor/dashboard/customer/forms.py:71
 msgctxt "Customer form: email address field"
 msgid "Email"
 msgstr "E-Mail"
 
-#: saleor/dashboard/customer/forms.py:52
+#: saleor/dashboard/customer/forms.py:73
 msgctxt "Customer form: is active toggle"
 msgid "User is active"
 msgstr "Benutzer aktiv"
 
-#: saleor/dashboard/customer/forms.py:54
+#: saleor/dashboard/customer/forms.py:75
 msgctxt "Customer form: customer note field"
 msgid "Notes"
 msgstr "Notizen"
 
-#: saleor/dashboard/customer/forms.py:64
+#: saleor/dashboard/customer/forms.py:85
 msgctxt "Customer note"
 msgid "Note"
 msgstr "Notiz"
 
-#: saleor/dashboard/customer/forms.py:67
+#: saleor/dashboard/customer/forms.py:88
 msgctxt "Allow customers to see note toggle"
 msgid "Customer can see this note"
 msgstr "Kunden können diese Notiz sehen"
@@ -822,7 +849,7 @@ msgctxt "Order list filter label"
 msgid "Sort by"
 msgstr "Sortieren nach"
 
-#: saleor/dashboard/order/filters.py:74
+#: saleor/dashboard/order/filters.py:76
 #, python-format
 msgctxt "Number of matching records in the dashboard orders list"
 msgid "Found %(counter)d matching order"
@@ -917,7 +944,7 @@ msgstr "Manuelle Zahlungen können nicht erstattet werden"
 #: saleor/dashboard/order/forms.py:323
 msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be voided"
-msgstr ""
+msgstr "Nur vor-authorisierte Zahlungen können freigegeben werden"
 
 #: saleor/dashboard/order/forms.py:352
 msgctxt "Mark order as paid form error"
@@ -1060,7 +1087,7 @@ msgstr "%(amount)s erstattet"
 #: saleor/dashboard/order/views.py:224
 msgctxt "Dashboard message"
 msgid "Voided payment"
-msgstr ""
+msgstr "Zahlung storniert"
 
 #: saleor/dashboard/order/views.py:249
 #, python-format
@@ -1404,12 +1431,12 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:83
 msgctxt "Product type attributes"
 msgid "Attributes common to all variants."
-msgstr ""
+msgstr "Attribute, die von allen Varianten geteilt werden"
 
 #: saleor/dashboard/product/forms.py:88
 msgctxt "Product type attributes"
 msgid "Attributes specific to each variant."
-msgstr ""
+msgstr "Attribute die für die einzelne Variante spezifisch sind"
 
 #: saleor/dashboard/product/forms.py:99
 msgctxt "Enable variants"
@@ -1949,17 +1976,17 @@ msgctxt "Dashboard message"
 msgid "Removed site authorization key %s"
 msgstr "Seiten-Berechtigungsschlüssel %s entfernt"
 
-#: saleor/dashboard/staff/filters.py:30
+#: saleor/dashboard/staff/filters.py:29
 msgctxt "Group list filter label"
 msgid "Permissions"
 msgstr "Rechte"
 
-#: saleor/dashboard/staff/filters.py:34
+#: saleor/dashboard/staff/filters.py:33
 msgctxt "Staff list filter label"
 msgid "Sort by"
 msgstr "Sortieren nach"
 
-#: saleor/dashboard/staff/filters.py:46
+#: saleor/dashboard/staff/filters.py:45
 #, python-format
 msgctxt "Number of matching records in the dashboard staff members list"
 msgid "Found %(counter)d matching staff member"
@@ -1967,17 +1994,17 @@ msgid_plural "Found %(counter)d matching staff members"
 msgstr[0] "%(counter)d passenden Mitarbeiter gefunden "
 msgstr[1] "%(counter)d passende Mitarbeiter gefunden"
 
-#: saleor/dashboard/staff/forms.py:14
+#: saleor/dashboard/staff/forms.py:15
 msgctxt "Label above the permissions choicefield"
 msgid "Permissions"
 msgstr "Rechte"
 
-#: saleor/dashboard/staff/forms.py:21
+#: saleor/dashboard/staff/forms.py:27
 msgctxt "Email"
 msgid "Email"
 msgstr "E-Mail"
 
-#: saleor/dashboard/staff/forms.py:23
+#: saleor/dashboard/staff/forms.py:29
 msgctxt "User active toggle"
 msgid "User is active"
 msgstr "Benutzer aktiv"

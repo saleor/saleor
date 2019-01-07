@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-03 09:23-0600\n"
+"POT-Creation-Date: 2018-12-18 08:53-0600\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
 "Last-Translator: Bogdan Djukic <bogdan.djukic@yahoo.com>, 2018\n"
 "Language-Team: Serbian (https://www.transifex.com/mirumee/teams/34782/sr/)\n"
@@ -29,7 +29,7 @@ msgstr "Email"
 #: saleor/account/forms.py:82
 msgctxt "Password"
 msgid "Password"
-msgstr ""
+msgstr "Lozinka"
 
 #: saleor/account/forms.py:84
 msgctxt "Email"
@@ -39,27 +39,37 @@ msgstr "Email"
 #: saleor/account/forms.py:88
 msgctxt "Registration error"
 msgid "This email has already been registered."
-msgstr ""
+msgstr "Ova email adresa je već registrovana"
+
+#: saleor/account/forms.py:135
+msgctxt "Customer form: Given name field"
+msgid "Given name"
+msgstr "Ime"
+
+#: saleor/account/forms.py:137
+msgctxt "Customer form: Family name field"
+msgid "Family name"
+msgstr "Prezime"
 
 #: saleor/account/i18n.py:18
 msgctxt "Address field"
 msgid "Area"
-msgstr ""
+msgstr "Područje"
 
 #: saleor/account/i18n.py:19
 msgctxt "Address field"
 msgid "County"
-msgstr ""
+msgstr "Okrug"
 
 #: saleor/account/i18n.py:20
 msgctxt "Address field"
 msgid "Department"
-msgstr ""
+msgstr "Odeljenje"
 
 #: saleor/account/i18n.py:21
 msgctxt "Address field"
 msgid "District"
-msgstr ""
+msgstr "Oblast"
 
 #: saleor/account/i18n.py:22
 msgctxt "Address field"
@@ -74,149 +84,149 @@ msgstr ""
 #: saleor/account/i18n.py:24
 msgctxt "Address field"
 msgid "Emirate"
-msgstr ""
+msgstr "Emirat"
 
 #: saleor/account/i18n.py:25
 msgctxt "Address field"
 msgid "Island"
-msgstr ""
+msgstr "Ostrvo"
 
 #: saleor/account/i18n.py:26
 msgctxt "Address field"
 msgid "Neighborhood"
-msgstr ""
+msgstr "Komšiluk"
 
 #: saleor/account/i18n.py:27
 msgctxt "Address field"
 msgid "Oblast"
-msgstr ""
+msgstr "Oblast"
 
 #: saleor/account/i18n.py:28
 msgctxt "Address field"
 msgid "Parish"
-msgstr ""
+msgstr "Parohija"
 
 #: saleor/account/i18n.py:29
 msgctxt "Address field"
 msgid "PIN"
-msgstr ""
+msgstr "PIN"
 
 #: saleor/account/i18n.py:30
 msgctxt "Address field"
 msgid "Postal code"
-msgstr ""
+msgstr "Poštanski kod"
 
 #: saleor/account/i18n.py:31
 msgctxt "Address field"
 msgid "Prefecture"
-msgstr ""
+msgstr "Prefektura"
 
 #: saleor/account/i18n.py:32
 msgctxt "Address field"
 msgid "Province"
-msgstr ""
+msgstr "Provincija"
 
 #: saleor/account/i18n.py:33
 msgctxt "Address field"
 msgid "State"
-msgstr ""
+msgstr "Država"
 
 #: saleor/account/i18n.py:34
 msgctxt "Address field"
 msgid "Suburb"
-msgstr ""
+msgstr "Predgrađe"
 
 #: saleor/account/i18n.py:35
 msgctxt "Address field"
 msgid "Townland"
-msgstr ""
+msgstr "Grad"
 
 #: saleor/account/i18n.py:36
 msgctxt "Address field"
 msgid "Village/township"
-msgstr ""
+msgstr "Selo/naselje"
 
 #: saleor/account/i18n.py:37
 msgctxt "Address field"
 msgid "ZIP code"
-msgstr ""
+msgstr "Poštanski kod"
 
 #: saleor/account/i18n.py:63 saleor/account/i18n.py:109
 msgctxt "Country"
 msgid "Country"
-msgstr ""
+msgstr "Država"
 
 #: saleor/account/i18n.py:94
 msgctxt "Personal name"
 msgid "Given name"
-msgstr ""
+msgstr "Ime"
 
 #: saleor/account/i18n.py:96
 msgctxt "Personal name"
 msgid "Family name"
-msgstr ""
+msgstr "Prezime"
 
 #: saleor/account/i18n.py:98
 msgctxt "Company or organization"
 msgid "Company or organization"
-msgstr ""
+msgstr "Kompanija ili organizacija"
 
 #: saleor/account/i18n.py:100
 msgctxt "Address"
 msgid "Address"
-msgstr ""
+msgstr "Adresa"
 
 #: saleor/account/i18n.py:103
 msgctxt "City"
 msgid "City"
-msgstr ""
+msgstr "Grad"
 
 #: saleor/account/i18n.py:105
 msgctxt "City area"
 msgid "District"
-msgstr ""
+msgstr "Oblast"
 
 #: saleor/account/i18n.py:107
 msgctxt "Postal code"
 msgid "Postal code"
-msgstr ""
+msgstr "Poštanski kod"
 
 #: saleor/account/i18n.py:111
 msgctxt "Country area"
 msgid "State or province"
-msgstr ""
+msgstr "Država ili provincija"
 
 #: saleor/account/i18n.py:113
 msgctxt "Phone number"
 msgid "Phone number"
-msgstr ""
+msgstr "Broj telefona"
 
 #: saleor/account/i18n.py:116
 msgctxt "Address"
 msgid "Street address, P.O. box, company name"
-msgstr ""
+msgstr "Ulica, poštanski fah, naziv kompanije"
 
 #: saleor/account/i18n.py:118
 msgctxt "Address"
 msgid "Apartment, suite, unit, building, floor, etc"
-msgstr ""
+msgstr "Stan, apartman, jedinica, zgrada, sprat, itd"
 
 #: saleor/account/i18n.py:170
 msgctxt "Address form"
 msgid "This value is invalid for selected country"
-msgstr ""
+msgstr "Ova vrednost je nevažeća za odabranu zemlju"
 
-#: saleor/account/models.py:133
+#: saleor/account/models.py:135
 msgctxt "Permission description"
 msgid "Manage customers."
-msgstr ""
+msgstr "Upravljaj korisnicima"
 
-#: saleor/account/models.py:136
+#: saleor/account/models.py:138
 msgctxt "Permission description"
 msgid "Manage staff."
-msgstr ""
+msgstr "Upravljaj osobljem"
 
-#: saleor/account/models.py:139
+#: saleor/account/models.py:141
 msgctxt "Permission description"
 msgid "Impersonate customers."
 msgstr ""
@@ -225,7 +235,7 @@ msgstr ""
 #, python-format
 msgctxt "Address data"
 msgid "%(first_name)s %(last_name)s"
-msgstr ""
+msgstr "%(first_name)s %(last_name)s"
 
 #: saleor/account/templatetags/i18n_address_tags.py:16
 #, python-format
@@ -234,45 +244,54 @@ msgid ""
 "%(street_address_1)s\n"
 "%(street_address_2)s"
 msgstr ""
+"%(street_address_1)s\n"
+"%(street_address_2)s"
 
 #: saleor/account/validators.py:11
 msgid "The phone number entered is not valid."
-msgstr ""
+msgstr "Unešen broj telefoa je nevažeći"
 
 #: saleor/account/views.py:31
 msgid "You have been successfully logged out."
-msgstr ""
+msgstr "Uspešno ste odjavljeni"
 
 #: saleor/account/views.py:45
 msgid "User has been created"
-msgstr ""
+msgstr "Korisnik je kreiran"
 
-#: saleor/account/views.py:95
+#: saleor/account/views.py:97
 msgctxt "Storefront message"
 msgid "Password successfully changed."
-msgstr ""
+msgstr "Lozinka je uspešno promenjena."
 
-#: saleor/account/views.py:108
+#: saleor/account/views.py:106
+msgctxt "Storefront message"
+msgid "Account successfully updated."
+msgstr "Nalog je uspešno ažuriran."
+
+#: saleor/account/views.py:119
 msgctxt "Storefront message"
 msgid "Address successfully updated."
-msgstr ""
+msgstr "Adresa je uspešno ažurirana."
 
-#: saleor/account/views.py:123
+#: saleor/account/views.py:134
 msgctxt "Storefront message"
 msgid "Address successfully removed"
-msgstr ""
+msgstr "Adresa je uspešno izbrisana."
 
-#: saleor/account/views.py:137
+#: saleor/account/views.py:148
 msgctxt "Storefront message, when user requested his account removed"
 msgid "Please check your inbox for a confirmation e-mail."
-msgstr ""
+msgstr "Molimo Vas proverite vaše sanduče za potvrdni email."
 
-#: saleor/account/views.py:152
+#: saleor/account/views.py:163
 msgctxt "Account deleted"
 msgid ""
 "Your account was deleted successfully. In case of any trouble or questions "
 "feel free to contact us."
 msgstr ""
+"Vaš nalog je uspešno izbrisan. U slučaju bilo kakvog problema ili pitanja "
+"slobodno nas kontaktirajte."
 
 #: saleor/checkout/__init__.py:15
 msgctxt "Type of address used to fulfill order"
@@ -282,41 +301,41 @@ msgstr ""
 #: saleor/checkout/__init__.py:19
 msgctxt "Type of address used to fulfill order"
 msgid "Shipping"
-msgstr ""
+msgstr "Poštarina"
 
 #: saleor/checkout/forms.py:39
 msgctxt "Add to cart form field label"
 msgid "Quantity"
-msgstr ""
+msgstr "Količina"
 
 #: saleor/checkout/forms.py:43
 msgctxt "Add to cart form error"
 msgid "Sorry. This product is currently not available."
-msgstr ""
+msgstr "Izvinite. Ovaj proizvod trenutno nije dostupan."
 
 #: saleor/checkout/forms.py:46
 msgctxt "Add to cart form error"
 msgid "Sorry. This product is currently out of stock."
-msgstr ""
+msgstr "Izvinie. Ovaj proizvod trenutno nije na zalihama."
 
 #: saleor/checkout/forms.py:48
 msgctxt "Add to cart form error"
 msgid "Oops. We could not find that product."
-msgstr ""
+msgstr "Oops. Nismo uspeli da nađemo taj proizvod."
 
 #: saleor/checkout/forms.py:51
 #, python-format
 msgctxt "Add to cart form error"
 msgid "Only %d remaining in stock."
 msgid_plural "Only %d remaining in stock."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Samo %d na zalihama."
+msgstr[1] "Samo %d na zalihama."
+msgstr[2] "Samo %d na zalihama."
 
 #: saleor/checkout/forms.py:162
 msgctxt "Country form field label"
 msgid "Country"
-msgstr ""
+msgstr "Država"
 
 #: saleor/checkout/forms.py:188 saleor/checkout/forms.py:200
 msgctxt "Address form field label"
@@ -326,17 +345,17 @@ msgstr "Email"
 #: saleor/checkout/forms.py:213
 msgctxt "Shipping addresses form choice"
 msgid "Enter a new address"
-msgstr ""
+msgstr "Unesi novu adresu"
 
 #: saleor/checkout/forms.py:216
 msgctxt "Shipping addresses form field label"
 msgid "Address"
-msgstr ""
+msgstr "Adresa"
 
 #: saleor/checkout/forms.py:233
 msgctxt "Billing addresses form choice"
 msgid "Enter a new address"
-msgstr ""
+msgstr "Unesi novu adresu"
 
 #: saleor/checkout/forms.py:235
 msgctxt "Billing addresses form choice"
@@ -346,7 +365,7 @@ msgstr ""
 #: saleor/checkout/forms.py:238
 msgctxt "Billing addresses form field label"
 msgid "Address"
-msgstr ""
+msgstr "Adresa"
 
 #: saleor/checkout/forms.py:268
 msgctxt "Shipping method form field label"
@@ -356,7 +375,7 @@ msgstr ""
 #: saleor/checkout/forms.py:309
 msgctxt "Voucher form error"
 msgid "Discount code incorrect or expired"
-msgstr ""
+msgstr "Kod je netačan ili je istekao"
 
 #: saleor/checkout/forms.py:320
 msgctxt "Checkout discount form label for voucher field"
@@ -567,22 +586,22 @@ msgstr ""
 #: saleor/core/weight.py:33
 msgctxt "Kilogram weight unit symbol"
 msgid "kg"
-msgstr ""
+msgstr "kg"
 
 #: saleor/core/weight.py:34
 msgctxt "Pound weight unit symbol"
 msgid "lb"
-msgstr ""
+msgstr "lb"
 
 #: saleor/core/weight.py:35
 msgctxt "Ounce weight unit symbol"
 msgid "oz"
-msgstr ""
+msgstr "oz"
 
 #: saleor/core/weight.py:36
 msgctxt "Gram weight unit symbol"
 msgid "g"
-msgstr ""
+msgstr "g"
 
 #: saleor/discount/__init__.py:12
 msgctxt "Discount type"
@@ -592,32 +611,32 @@ msgstr "%"
 #: saleor/discount/__init__.py:23
 msgctxt "Voucher: discount for"
 msgid "All products"
-msgstr ""
+msgstr "Svi proizvodi"
 
 #: saleor/discount/__init__.py:24
 msgctxt "Voucher: discount for"
 msgid "Specific products"
-msgstr ""
+msgstr "Određeni proizvodi"
 
 #: saleor/discount/__init__.py:26
 msgctxt "Voucher: discount for"
 msgid "Specific collections of products"
-msgstr ""
+msgstr "Određene kolekcije proizvoda"
 
 #: saleor/discount/__init__.py:28
 msgctxt "Voucher: discount for"
 msgid "Specific categories of products"
-msgstr ""
+msgstr "Određene kategorije proizvoda"
 
 #: saleor/discount/__init__.py:29
 msgctxt "Voucher: discount for"
 msgid "Shipping"
-msgstr ""
+msgstr "Poštarina"
 
 #: saleor/discount/models.py:77
 msgctxt "Voucher type"
 msgid "Free shipping"
-msgstr ""
+msgstr "Besplatna poštarina"
 
 #: saleor/discount/models.py:80
 #, python-format
@@ -658,12 +677,12 @@ msgstr ""
 #: saleor/discount/models.py:179
 msgctxt "Permission description"
 msgid "Manage sales and vouchers."
-msgstr ""
+msgstr "Upravljaj popustima i vaučerima."
 
 #: saleor/discount/utils.py:47
 msgctxt "Voucher not applicable"
 msgid "Discount not applicable for this product"
-msgstr ""
+msgstr "Popust nije primenjljiv na ovaj proizvod"
 
 #: saleor/graphql/order/mutations/fulfillments.py:79
 #, python-format
@@ -682,7 +701,7 @@ msgstr ""
 #: saleor/menu/models.py:21
 msgctxt "Permission description"
 msgid "Manage navigation."
-msgstr ""
+msgstr "Upravljaj navigacijom."
 
 #: saleor/menu/models.py:69
 msgctxt "Link object type description"
@@ -886,7 +905,7 @@ msgctxt "Permission description"
 msgid "Manage orders."
 msgstr ""
 
-#: saleor/order/models.py:328
+#: saleor/order/models.py:337
 #, python-format
 msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
@@ -907,7 +926,7 @@ msgstr ""
 #: saleor/page/models.py:44
 msgctxt "Permission description"
 msgid "Manage pages."
-msgstr ""
+msgstr "Upravljaj stranicama."
 
 #: saleor/payment/__init__.py:19
 msgctxt "Custom payment choice type"
@@ -1059,7 +1078,7 @@ msgstr "Sortiraj po"
 #: saleor/product/filters.py:24
 msgctxt "Currency amount"
 msgid "Price"
-msgstr ""
+msgstr "Cena"
 
 #: saleor/product/forms.py:23
 #, python-format
@@ -1067,7 +1086,7 @@ msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
 msgstr ""
 
-#: saleor/product/models.py:144
+#: saleor/product/models.py:145
 msgctxt "Permission description"
 msgid "Manage products."
 msgstr ""
@@ -1079,126 +1098,122 @@ msgstr ""
 
 #: saleor/settings.py:61
 msgid "Arabic"
-msgstr ""
+msgstr "Arapski"
 
 #: saleor/settings.py:62
 msgid "Bulgarian"
-msgstr ""
+msgstr "Bugarski"
 
 #: saleor/settings.py:63
 msgid "Bengali"
-msgstr ""
+msgstr "Bengalski"
 
 #: saleor/settings.py:64
 msgid "Czech"
-msgstr ""
+msgstr "Češki"
 
 #: saleor/settings.py:65
 msgid "Danish"
-msgstr ""
+msgstr "Danski"
 
 #: saleor/settings.py:66
 msgid "German"
-msgstr ""
+msgstr "Nemački"
 
 #: saleor/settings.py:67
 msgid "English"
-msgstr ""
+msgstr "Engleski"
 
 #: saleor/settings.py:68
 msgid "Spanish"
-msgstr ""
+msgstr "Španski"
 
 #: saleor/settings.py:69
 msgid "Persian"
-msgstr ""
+msgstr "Persijski"
 
 #: saleor/settings.py:70
 msgid "French"
-msgstr ""
+msgstr "Francuski"
 
 #: saleor/settings.py:71
 msgid "Hungarian"
-msgstr ""
+msgstr "Mađarski"
 
 #: saleor/settings.py:72
 msgid "Italian"
-msgstr ""
+msgstr "Italijanski"
 
 #: saleor/settings.py:73
 msgid "Japanese"
-msgstr ""
+msgstr "Japanski"
 
 #: saleor/settings.py:74
 msgid "Korean"
-msgstr ""
+msgstr "Koreanski"
 
 #: saleor/settings.py:75
 msgid "Mongolian"
-msgstr ""
+msgstr "Mongolski"
 
 #: saleor/settings.py:76
-msgid "Norwegian Bokmål"
-msgstr ""
+msgid "Norwegian"
+msgstr "Norveški"
 
 #: saleor/settings.py:77
 msgid "Dutch"
-msgstr ""
+msgstr "Holandski"
 
 #: saleor/settings.py:78
 msgid "Polish"
-msgstr ""
+msgstr "Poljski"
 
 #: saleor/settings.py:79
 msgid "Brazilian Portuguese"
-msgstr ""
+msgstr "Brazilski Portugalski"
 
 #: saleor/settings.py:80
 msgid "Romanian"
-msgstr ""
+msgstr "Rumunski"
 
 #: saleor/settings.py:81
 msgid "Russian"
-msgstr ""
+msgstr "Ruski"
 
 #: saleor/settings.py:82
 msgid "Slovak"
-msgstr ""
+msgstr "Slovački"
 
 #: saleor/settings.py:83
-msgid "Slovenian"
-msgstr ""
+msgid "Swedish"
+msgstr "Švedski"
 
 #: saleor/settings.py:84
-msgid "Swedish"
-msgstr ""
+msgid "Turkish"
+msgstr "Turski"
 
 #: saleor/settings.py:85
-msgid "Turkish"
-msgstr ""
+msgid "Ukrainian"
+msgstr "Ukrajinski"
 
 #: saleor/settings.py:86
-msgid "Ukrainian"
-msgstr ""
+msgid "Vietnamese"
+msgstr "Vijetnamski"
 
 #: saleor/settings.py:87
-msgid "Vietnamese"
-msgstr ""
+msgid "Simplified Chinese"
+msgstr "Pojednostavljeni Kineski"
 
 #: saleor/settings.py:88
-msgid "Simplified Chinese"
-msgstr ""
-
-#: saleor/settings.py:89
 msgid "Traditional Chinese"
-msgstr ""
+msgstr "Tradicionalni Kineski"
 
-#: saleor/settings.py:325
+#: saleor/settings.py:324
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
-msgstr ""
+msgstr "Evropska Unija"
 
-#: saleor/settings.py:561
+#: saleor/settings.py:560
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr ""
@@ -1206,156 +1221,156 @@ msgstr ""
 #: saleor/shipping/__init__.py:10
 msgctxt "Type of shipping"
 msgid "Price based shipping"
-msgstr ""
+msgstr "Poštarina osnovana na ceni"
 
 #: saleor/shipping/__init__.py:12
 msgctxt "Type of shipping"
 msgid "Weight based shipping"
-msgstr ""
+msgstr "Poštarina osnovana na težini"
 
 #: saleor/shipping/models.py:38
 #, python-format
 msgctxt "Number of countries shipping zone apply to"
 msgid "%(num_of_countries)d countries"
-msgstr ""
+msgstr "%(num_of_countries)d država"
 
 #: saleor/shipping/models.py:53
 msgctxt "Permission description"
 msgid "Manage shipping."
-msgstr ""
+msgstr "Upravljaj poštarinom"
 
 #: saleor/shipping/utils.py:53
 #, python-format
 msgctxt "Applies to orders more expensive than the min value"
 msgid "%(min_price)s and up"
-msgstr ""
+msgstr "%(min_price)s i više"
 
 #: saleor/shipping/utils.py:56
 #, python-format
 msgctxt "Applies to order valued within this price range"
 msgid "%(min_price)s to %(max_price)s"
-msgstr ""
+msgstr "%(min_price)s do %(max_price)s"
 
 #: saleor/shipping/utils.py:72
 #, python-format
 msgctxt "Applies to orders heavier than the threshold"
 msgid "%(min_weight)s and up"
-msgstr ""
+msgstr "%(min_weight)s i više"
 
 #: saleor/shipping/utils.py:75
 #, python-format
 msgctxt "Applies to orders of total weight within this range"
 msgid "%(min_weight)s to %(max_weight)s"
-msgstr ""
+msgstr "%(min_weight)s do %(max_weight)s"
 
 #: saleor/site/models.py:40
 msgctxt "Permission description"
 msgid "Manage settings."
-msgstr ""
+msgstr "Upravljaj postavkama."
 
 #: templates/404.html:6
 msgctxt "Eror page not found"
 msgid "Page not found"
-msgstr ""
+msgstr "Stranica nije pronađena"
 
 #: templates/_language_picker_modal.html:8
 msgctxt "Change language modal title"
 msgid "Select language"
-msgstr ""
+msgstr "Izaberi jezik"
 
 #: templates/_language_picker_modal.html:24
 msgctxt "Close modal action button"
 msgid "Close"
-msgstr ""
+msgstr "Zatvori"
 
 #: templates/_language_picker_modal.html:25
 msgctxt "Change language action button"
 msgid "Change"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/account/account_delete_prompt.html:8
 msgctxt "Account deletetion confirmation page title"
 msgid "Are you sure?"
-msgstr ""
+msgstr "Da li ste sigurni?"
 
 #: templates/account/account_delete_prompt.html:16
 msgctxt "Message displayed to the user requesting for his account deletetion"
 msgid "Sorry to see you go!"
-msgstr ""
+msgstr "Žao nam je što odlazite!"
 
 #: templates/account/account_delete_prompt.html:22
 msgctxt "Message displayed to the user requesting for his account deletetion"
 msgid "Are you sure you want to delete your account?"
-msgstr ""
+msgstr "Da li ste sigurni da želite da izbrišete svoj nalog?"
 
 #: templates/account/account_delete_prompt.html:27
 msgctxt "Confirm account deletion button"
 msgid "Delete account"
-msgstr ""
+msgstr "Izbriši nalog"
 
 #: templates/account/address_delete.html:6
 msgctxt "Remove address form action"
 msgid "Remove Address"
-msgstr ""
+msgstr "Izbriši adresu"
 
 #: templates/account/address_delete.html:9
 msgctxt "Remove address form action"
 msgid "Cancel"
-msgstr ""
+msgstr "Odustani"
 
 #: templates/account/address_edit.html:7
 msgctxt "Edit address page title"
 msgid "Edit address"
-msgstr ""
+msgstr "Izmeni adresu"
 
 #: templates/account/address_edit.html:9
 msgctxt "New address page title"
 msgid "New address"
-msgstr ""
+msgstr "Nova adresa"
 
 #: templates/account/address_edit.html:16 templates/account/details.html:16
 #: templates/account/password_change.html:7 templates/checkout/index.html:11
 #: templates/order/details.html:18 templates/order/payment.html:18
 #: templates/order/payment/details.html:12 templates/page/details.html:27
-#: templates/product/details.html:44
+#: templates/product/details.html:45
 msgctxt "Main navigation item"
 msgid "Home"
-msgstr ""
+msgstr "Početna"
 
 #: templates/account/address_edit.html:21
 msgctxt "Edit/new address breadcrumb"
 msgid "Your profile"
-msgstr ""
+msgstr "Vaš profil"
 
 #: templates/account/address_edit.html:27
 msgctxt "Edit address breadcrumb"
 msgid "Edit address"
-msgstr ""
+msgstr "Izmeni adresu"
 
 #: templates/account/address_edit.html:33
 msgctxt "New address breadcrumb"
 msgid "New address"
-msgstr ""
+msgstr "Nova adresa"
 
 #: templates/account/address_edit.html:47
 msgctxt "Edit address title"
 msgid "Edit address"
-msgstr ""
+msgstr "Izmeni adresu"
 
 #: templates/account/address_edit.html:49
 msgctxt "New address title"
 msgid "New address"
-msgstr ""
+msgstr "Nova adresa"
 
 #: templates/account/address_edit.html:57
 msgctxt "Edit/new address primary action"
 msgid "Save changes"
-msgstr ""
+msgstr "Sačuvaj izmene"
 
 #: templates/account/details.html:10
 msgctxt "User profile page title"
 msgid "Your profile"
-msgstr ""
+msgstr "Vaš profil"
 
 #: templates/account/details.html:19 templates/account/password_change.html:8
 #: templates/base.html:84 templates/base.html:226
@@ -1363,11 +1378,11 @@ msgstr ""
 #: templates/order/payment/details.html:17
 msgctxt "Main navigation item"
 msgid "Your account"
-msgstr ""
+msgstr "Vaš nalog"
 
 #: templates/account/details.html:26
 msgid "My account"
-msgstr ""
+msgstr "Moj nalog"
 
 #: templates/account/details.html:30
 msgctxt "User profile tab"
@@ -1377,27 +1392,27 @@ msgstr ""
 #: templates/account/details.html:36
 msgctxt "User profile tab"
 msgid "Change password"
-msgstr ""
+msgstr "Promeni lozinku"
 
 #: templates/account/details.html:42
 msgctxt "User profile tab"
-msgid "Addresses book"
-msgstr ""
+msgid "Contact details"
+msgstr "Kontakt detalji"
 
 #: templates/account/details.html:47
 msgctxt "User profile tab"
 msgid "Settings"
-msgstr ""
+msgstr "Postavke"
 
 #: templates/account/details.html:59
 msgctxt "Recent orders column title"
 msgid "Order"
-msgstr ""
+msgstr "Porudžbina"
 
 #: templates/account/details.html:62
 msgctxt "Recent orders column title"
 msgid "Date"
-msgstr ""
+msgstr "Datum"
 
 #: templates/account/details.html:65
 msgctxt "Recent orders column title"
@@ -1407,12 +1422,12 @@ msgstr ""
 #: templates/account/details.html:68
 msgctxt "Recent orders column title"
 msgid "Status"
-msgstr ""
+msgstr "Status"
 
 #: templates/account/details.html:92
 msgctxt "Recent orders link text"
 msgid "Details"
-msgstr ""
+msgstr "Detalji"
 
 #: templates/account/details.html:107
 msgctxt "No recent orders text"
@@ -1422,19 +1437,34 @@ msgstr ""
 #: templates/account/details.html:118
 msgctxt "User profile action"
 msgid "Change password"
-msgstr ""
+msgstr "Promeni lozinku"
 
-#: templates/account/details.html:133
+#: templates/account/details.html:125
+msgctxt "User profile settings"
+msgid "Personal Data"
+msgstr "Lični podaci"
+
+#: templates/account/details.html:132
+msgctxt "User profile action"
+msgid "Update"
+msgstr "Ažuriraj"
+
+#: templates/account/details.html:137
+msgctxt "List of adresses in contact details"
+msgid "Addresses"
+msgstr "Adrese"
+
+#: templates/account/details.html:148
 msgctxt "User address action"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
-#: templates/account/details.html:149
+#: templates/account/details.html:164
 msgctxt "No addresses text"
 msgid "You will see new addresses here after first successful checkout."
 msgstr ""
 
-#: templates/account/details.html:160
+#: templates/account/details.html:175
 msgctxt "Message informing about the process of account removal"
 msgid ""
 "\n"
@@ -1442,15 +1472,15 @@ msgid ""
 "                "
 msgstr ""
 
-#: templates/account/details.html:165
+#: templates/account/details.html:180
 msgctxt "Remove account form action"
 msgid "Remove Account"
-msgstr ""
+msgstr "Izbriši Nalog"
 
 #: templates/account/login.html:5
 msgctxt "Login page title"
 msgid "Log in"
-msgstr ""
+msgstr "Uloguj se"
 
 #: templates/account/login.html:16
 msgctxt "Login form secondary title"
@@ -1460,23 +1490,23 @@ msgstr ""
 #: templates/account/login.html:21
 msgctxt "Login form secondary action"
 msgid "Register"
-msgstr ""
+msgstr "Registruj se"
 
 #: templates/account/login.html:26
 msgctxt "Login form title"
 msgid "Log in"
-msgstr ""
+msgstr "Uloguj se"
 
 #: templates/account/partials/already_logged_in.html:5
 #, python-format
 msgctxt "Already logged in warning message"
 msgid "You are already logged in as %(user)s."
-msgstr ""
+msgstr "Već ste ulogovani kao %(user)s."
 
 #: templates/account/partials/login_form.html:16
 msgctxt "Login form primary action"
 msgid "Log in"
-msgstr ""
+msgstr "Uloguj se"
 
 #: templates/account/partials/login_form.html:19
 msgctxt "Login form secondary link"
@@ -1485,31 +1515,31 @@ msgstr ""
 
 #: templates/account/partials/login_form.html:29
 msgid "Facebook"
-msgstr ""
+msgstr "Facebook"
 
 #: templates/account/partials/login_form.html:37
 msgid "Google"
-msgstr ""
+msgstr "Google"
 
 #: templates/account/password_change.html:9
 msgctxt "Password change breadcrumb"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/account/password_change.html:22
 msgctxt "Password change form legend"
 msgid "Change Password"
-msgstr ""
+msgstr "Izmeni Lozinku"
 
 #: templates/account/password_change.html:28
 msgctxt "Password change form primary action"
 msgid "Save new password"
-msgstr ""
+msgstr "Sačuvaj novu lozinku"
 
 #: templates/account/password_reset.html:6
 msgctxt "Password reset page title"
 msgid "Password reset"
-msgstr ""
+msgstr "Poništi lozinku"
 
 #: templates/account/password_reset.html:17
 msgctxt "Password reset form title"
@@ -1526,7 +1556,7 @@ msgstr ""
 #: templates/account/password_reset.html:30
 msgctxt "Password reset primary action"
 msgid "Continue"
-msgstr ""
+msgstr "Nastavi"
 
 #: templates/account/password_reset_done.html:6
 msgctxt "Password reset done page title"
@@ -1548,7 +1578,7 @@ msgstr ""
 #: templates/account/password_reset_from_key.html:6
 msgctxt "Password reset from key page title"
 msgid "Change Password"
-msgstr ""
+msgstr "Izmeni Lozinku"
 
 #: templates/account/password_reset_from_key.html:11
 msgid "Bad Token"
@@ -1576,7 +1606,7 @@ msgstr ""
 #: templates/account/password_reset_from_key.html:32
 msgctxt "Password reset from key form primary action"
 msgid "Continue"
-msgstr ""
+msgstr "Nastavi"
 
 #: templates/account/password_reset_from_key.html:39
 msgctxt "Password reset link expired from key form title"
@@ -1628,7 +1658,7 @@ msgstr ""
 #: templates/account/signup.html:21
 msgctxt "Signup form secondary action"
 msgid "Log in"
-msgstr ""
+msgstr "Uloguj se"
 
 #: templates/account/signup.html:28
 msgctxt "Signup form title"
@@ -1658,12 +1688,12 @@ msgstr ""
 #: templates/base.html:101 templates/base.html:244
 msgctxt "Main navigation item"
 msgid "Register"
-msgstr ""
+msgstr "Registruj se"
 
 #: templates/base.html:105 templates/base.html:249
 msgctxt "Main navigation item"
 msgid "Log in"
-msgstr ""
+msgstr "Uloguj se"
 
 #: templates/base.html:120
 msgctxt "Hamburger button text"
@@ -1685,7 +1715,7 @@ msgid "Style guide"
 msgstr ""
 
 #: templates/cart_dropdown.html:39 templates/checkout/_subtotal_table.html:8
-#: templates/dashboard/order/detail.html:338
+#: templates/dashboard/order/detail.html:342
 msgctxt "Order subtotal"
 msgid "Subtotal"
 msgstr ""
@@ -1718,7 +1748,7 @@ msgstr ""
 #: templates/category/index.html:7
 msgctxt "Category breadcrumbs home"
 msgid "Home"
-msgstr ""
+msgstr "Početna"
 
 #: templates/checkout/_subtotal_table.html:32
 msgctxt "Cart shipping cost form"
@@ -1808,12 +1838,12 @@ msgstr ""
 #: templates/checkout/index.html:33
 msgctxt "Cart table header"
 msgid "Quantity"
-msgstr ""
+msgstr "Količina"
 
 #: templates/checkout/index.html:36
 msgctxt "Cart table header"
 msgid "Price"
-msgstr ""
+msgstr "Cena"
 
 #: templates/checkout/index.html:81
 msgctxt "Cart primary action"
@@ -1838,7 +1868,7 @@ msgstr ""
 #: templates/checkout/login.html:18
 msgctxt "Checkout login page new users action"
 msgid "Continue"
-msgstr ""
+msgstr "Nastavi"
 
 #: templates/checkout/login.html:21
 msgctxt "Checkout login page new users message"
@@ -1869,7 +1899,7 @@ msgstr ""
 #: templates/checkout/shipping_address.html:18
 msgctxt "Checkout shipping address primary action"
 msgid "Continue"
-msgstr ""
+msgstr "Nastavi"
 
 #: templates/checkout/shipping_method.html:9
 msgid "Select other address"
@@ -1883,7 +1913,7 @@ msgstr ""
 #: templates/checkout/shipping_method.html:18
 msgctxt "Checkout shipping method primary action"
 msgid "Continue"
-msgstr ""
+msgstr "Nastavi"
 
 #: templates/checkout/shipping_method.html:23
 msgctxt ""
@@ -1904,7 +1934,7 @@ msgstr ""
 #: templates/checkout/snippets/addresses_form.html:11
 msgctxt "Checkout addresses form label"
 msgid "Enter a new address"
-msgstr ""
+msgstr "Unesi novu adresu"
 
 #: templates/checkout/snippets/voucher_form.html:14
 msgctxt "Checkout voucher form action"
@@ -1959,7 +1989,7 @@ msgstr ""
 #: templates/collection/index.html:7
 msgctxt "Site breadcrumbs home"
 msgid "Home"
-msgstr ""
+msgstr "Početna"
 
 #: templates/collection/index.html:15
 msgctxt "Unavailable collection detail text"
@@ -1999,7 +2029,7 @@ msgstr ""
 #: templates/dashboard/base.html:96 templates/dashboard/base.html:248
 msgctxt "Dashboard homepage"
 msgid "Home"
-msgstr ""
+msgstr "Početna"
 
 #: templates/dashboard/base.html:102
 msgctxt "Dashboard catalogue"
@@ -2029,7 +2059,7 @@ msgstr "Kategorije"
 #: templates/dashboard/base.html:117
 msgctxt "Dashboard side navigation link"
 msgid "Collections"
-msgstr ""
+msgstr "Kolekcije"
 
 #: templates/dashboard/base.html:126
 msgctxt "Dashboard discounts list"
@@ -2113,7 +2143,7 @@ msgstr ""
 #: templates/dashboard/base.html:200
 msgctxt "Dashboard shipping zones list"
 msgid "Shipping"
-msgstr ""
+msgstr "Poštarina"
 
 #: templates/dashboard/base.html:207 templates/dashboard/menu/detail.html:21
 #: templates/dashboard/menu/form.html:12 templates/dashboard/menu/form.html:29
@@ -2147,8 +2177,8 @@ msgid "Void:"
 msgstr ""
 
 #: templates/dashboard/base_modal.html:33
-#: templates/dashboard/category/form.html:111
-#: templates/dashboard/category/form.html:115
+#: templates/dashboard/category/form.html:114
+#: templates/dashboard/category/form.html:118
 #: templates/dashboard/customer/form.html:59
 #: templates/dashboard/customer/form.html:66
 #: templates/dashboard/discount/sale/form.html:115
@@ -2175,7 +2205,7 @@ msgstr ""
 #: templates/dashboard/taxes/form.html:100
 msgctxt "Dashboard cancel action"
 msgid "Cancel"
-msgstr ""
+msgstr "Odustani"
 
 #: templates/dashboard/category/detail.html:8
 #: templates/dashboard/category/list.html:9
@@ -2227,7 +2257,7 @@ msgstr "Opis"
 #: templates/dashboard/category/detail.html:140
 msgctxt "Category edit action"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/dashboard/category/detail.html:143
 msgctxt "Category list action link"
@@ -2257,7 +2287,7 @@ msgstr ""
 #: templates/dashboard/category/form.html:55
 msgctxt "Category form page title"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/dashboard/category/form.html:61
 #: templates/dashboard/category/form.html:77
@@ -2265,7 +2295,7 @@ msgctxt "Category detail breadcrumbs"
 msgid "Add new category"
 msgstr ""
 
-#: templates/dashboard/category/form.html:120
+#: templates/dashboard/category/form.html:123
 #: templates/dashboard/customer/form.html:62
 #: templates/dashboard/discount/sale/form.html:119
 #: templates/dashboard/discount/voucher/form.html:129
@@ -2279,9 +2309,9 @@ msgstr ""
 #: templates/dashboard/taxes/form.html:103
 msgctxt "Dashboard update action"
 msgid "Update"
-msgstr ""
+msgstr "Ažuriraj"
 
-#: templates/dashboard/category/form.html:124
+#: templates/dashboard/category/form.html:127
 #: templates/dashboard/discount/sale/form.html:123
 #: templates/dashboard/discount/voucher/form.html:133
 #: templates/dashboard/menu/form.html:66
@@ -2396,7 +2426,7 @@ msgstr ""
 #: templates/dashboard/collection/detail.html:18
 #: templates/dashboard/collection/list.html:19
 msgid "Collections"
-msgstr ""
+msgstr "Kolekcije"
 
 #: templates/dashboard/collection/detail.html:32
 msgctxt "Collection action"
@@ -2408,37 +2438,37 @@ msgctxt "Collection action"
 msgid "View on site"
 msgstr ""
 
-#: templates/dashboard/collection/detail.html:63
+#: templates/dashboard/collection/detail.html:66
 msgctxt "Collection form card title: availability sub form"
 msgid "Availability"
 msgstr ""
 
-#: templates/dashboard/collection/detail.html:71
+#: templates/dashboard/collection/detail.html:74
 msgctxt "Collection secondary action"
 msgid "Cancel"
-msgstr ""
+msgstr "Odustani"
 
-#: templates/dashboard/collection/detail.html:74
+#: templates/dashboard/collection/detail.html:77
 msgctxt "Collection detail action"
 msgid "Update"
-msgstr ""
+msgstr "Ažuriraj"
 
-#: templates/dashboard/collection/detail.html:78
+#: templates/dashboard/collection/detail.html:81
 msgctxt "Collection detail action"
 msgid "Create"
 msgstr ""
 
-#: templates/dashboard/collection/detail.html:100
+#: templates/dashboard/collection/detail.html:103
 msgctxt "Collection field"
 msgid "Published"
 msgstr "Objavljeno"
 
-#: templates/dashboard/collection/detail.html:102
+#: templates/dashboard/collection/detail.html:105
 msgctxt "Collection field"
 msgid "Draft"
 msgstr ""
 
-#: templates/dashboard/collection/detail.html:110
+#: templates/dashboard/collection/detail.html:113
 msgctxt "Collection field"
 msgid "Can't unpublish homepage collection"
 msgstr ""
@@ -2446,7 +2476,7 @@ msgstr ""
 #: templates/dashboard/collection/list.html:10
 msgctxt "Collections list page title "
 msgid "Collections"
-msgstr ""
+msgstr "Kolekcije"
 
 #: templates/dashboard/collection/list.html:25
 msgctxt "Collections list add button text"
@@ -2499,92 +2529,92 @@ msgid ""
 "  "
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:51
+#: templates/dashboard/customer/detail.html:56
 msgctxt "Customer field"
 msgid "Date joined"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:63
+#: templates/dashboard/customer/detail.html:68
 msgctxt "Customer field"
 msgid "Note"
 msgstr "Beleška"
 
-#: templates/dashboard/customer/detail.html:74
+#: templates/dashboard/customer/detail.html:79
 msgctxt "Customer action"
 msgid "Edit customer"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:77
+#: templates/dashboard/customer/detail.html:82
 msgctxt "Customer action"
 msgid "Remove customer"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:81
+#: templates/dashboard/customer/detail.html:86
 msgctxt "Customer impersonate action"
 msgid "Impersonate customer"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:90
+#: templates/dashboard/customer/detail.html:95
 msgctxt "Customer recent orders table title"
 msgid "Recent orders"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:99
+#: templates/dashboard/customer/detail.html:104
 msgctxt "Customer orders table header"
 msgid "Number"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:102
+#: templates/dashboard/customer/detail.html:107
 msgctxt "Customer orders table header"
 msgid "Placed on"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:105
+#: templates/dashboard/customer/detail.html:110
 msgctxt "Customer orders table header"
 msgid "Order status"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:108
+#: templates/dashboard/customer/detail.html:113
 msgctxt "Customer orders table header"
 msgid "Total"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:135
+#: templates/dashboard/customer/detail.html:140
 msgctxt "Empty customer orders table message"
 msgid "No orders found."
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:144
+#: templates/dashboard/customer/detail.html:149
 msgctxt "Customer notes card title"
 msgid "Customer notes"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:157
+#: templates/dashboard/customer/detail.html:162
 msgctxt "Customer without notes message"
 msgid "There are no notes associated with this customer"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:163
+#: templates/dashboard/customer/detail.html:168
 msgctxt "Customer notes card action"
 msgid "Add note"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:176
+#: templates/dashboard/customer/detail.html:181
 msgctxt "Customer default shipping address card title"
 msgid "Default shipping address"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:183
+#: templates/dashboard/customer/detail.html:188
 msgctxt "Customer without default shipping address message"
 msgid "No default shipping address."
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:196
+#: templates/dashboard/customer/detail.html:201
 msgctxt "Customer default billing address card title"
 msgid "Default billing address"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:204
+#: templates/dashboard/customer/detail.html:209
 msgctxt "Customer without default billing address message"
 msgid "No default billing address."
 msgstr ""
@@ -2735,12 +2765,12 @@ msgstr "Naziv"
 #: templates/dashboard/discount/sale/list.html:45
 msgctxt "Sale (discount) table header"
 msgid "Start date"
-msgstr ""
+msgstr "Datum početka"
 
 #: templates/dashboard/discount/sale/list.html:48
 msgctxt "Sale (discount) table header"
 msgid "End date"
-msgstr ""
+msgstr "Datum završetka"
 
 #: templates/dashboard/discount/sale/list.html:51
 msgctxt "Sale (discount) table header"
@@ -2809,12 +2839,12 @@ msgstr ""
 #: templates/dashboard/discount/voucher/list.html:49
 msgctxt "Voucher table header"
 msgid "Start date"
-msgstr ""
+msgstr "Datum početka"
 
 #: templates/dashboard/discount/voucher/list.html:52
 msgctxt "Voucher table header"
 msgid "End date"
-msgstr ""
+msgstr "Datum završetka"
 
 #: templates/dashboard/discount/voucher/list.html:55
 msgctxt "Voucher table header"
@@ -2904,7 +2934,7 @@ msgstr ""
 #: templates/dashboard/includes/_menu_items.html:28
 msgctxt "Menu items status"
 msgid "Status"
-msgstr ""
+msgstr "Status"
 
 #: templates/dashboard/includes/_menu_items.html:47
 msgctxt "Menu items status"
@@ -2919,7 +2949,7 @@ msgstr "Nije objavljeno"
 #: templates/dashboard/includes/_menu_items.html:56
 msgctxt "Menu item edit action"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/dashboard/includes/_menu_items.html:59
 msgctxt "Menu item list action link"
@@ -2966,12 +2996,12 @@ msgstr ""
 #: templates/dashboard/index.html:25
 msgctxt "Preauthorized payments table header"
 msgid "Order"
-msgstr ""
+msgstr "Porudžbina"
 
 #: templates/dashboard/index.html:28
 msgctxt "Preauthorized payments table header"
 msgid "Date"
-msgstr ""
+msgstr "Datum"
 
 #: templates/dashboard/index.html:31
 msgctxt "Preauthorized payments table header"
@@ -3018,7 +3048,7 @@ msgid "Total"
 msgstr ""
 
 #: templates/dashboard/index.html:105
-#: templates/dashboard/order/detail.html:207
+#: templates/dashboard/order/detail.html:211
 #: templates/dashboard/order/list.html:68
 msgctxt "Anonymous user account value"
 msgid "Guest"
@@ -3118,7 +3148,7 @@ msgstr ""
 #: templates/dashboard/menu/item/form.html:54
 msgctxt "Menu form page title"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/dashboard/menu/item/form.html:60
 msgctxt "Menu form page title"
@@ -3153,7 +3183,7 @@ msgstr ""
 #: templates/dashboard/menu/list.html:45
 msgctxt "Menu list table header Menu name"
 msgid "Menu name"
-msgstr ""
+msgstr "Ime menija"
 
 #: templates/dashboard/menu/list.html:69
 msgctxt "Empty menu list message"
@@ -3211,16 +3241,16 @@ msgstr ""
 #: templates/dashboard/order/address_form.html:7
 msgctxt ""
 msgid "Edit address"
-msgstr ""
+msgstr "Izmeni adresu"
 
 #: templates/dashboard/order/address_form.html:39
-#: templates/dashboard/order/detail.html:213
+#: templates/dashboard/order/detail.html:217
 msgctxt ""
 msgid "Shipping address"
 msgstr ""
 
 #: templates/dashboard/order/address_form.html:41
-#: templates/dashboard/order/detail.html:229
+#: templates/dashboard/order/detail.html:233
 msgctxt ""
 msgid "Billing address"
 msgstr ""
@@ -3243,16 +3273,16 @@ msgstr ""
 #: templates/dashboard/order/detail.html:79
 msgctxt "Order detail tab"
 msgid "Details"
-msgstr ""
+msgstr "Detalji"
 
 #: templates/dashboard/order/detail.html:87
-#: templates/dashboard/order/detail.html:567
+#: templates/dashboard/order/detail.html:571
 msgctxt "Order detail tab"
 msgid "Payments"
 msgstr ""
 
 #: templates/dashboard/order/detail.html:95
-#: templates/dashboard/order/detail.html:617
+#: templates/dashboard/order/detail.html:621
 msgctxt "Order detail tab"
 msgid "History"
 msgstr ""
@@ -3292,315 +3322,315 @@ msgctxt "Order summary card action"
 msgid "Capture"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:167
+#: templates/dashboard/order/detail.html:168
 msgctxt "Order summary card action"
 msgid "Refund"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:172
+#: templates/dashboard/order/detail.html:173
 msgctxt "Order summary card action"
 msgid "Void"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:177
+#: templates/dashboard/order/detail.html:178
 msgctxt "Order detail action"
 msgid "Mark as paid"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:189
+#: templates/dashboard/order/detail.html:190
 msgctxt "Order details summary header"
 msgid "Customer"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:193
+#: templates/dashboard/order/detail.html:194
 msgctxt "Order customer details action title"
 msgid "Edit customer details"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:194
-#: templates/dashboard/order/detail.html:216
-#: templates/dashboard/order/detail.html:232
+#: templates/dashboard/order/detail.html:195
+#: templates/dashboard/order/detail.html:220
+#: templates/dashboard/order/detail.html:236
 #: templates/dashboard/product/product_image/list.html:82
 #: templates/dashboard/product/product_image/list.html:127
 msgctxt "Dashboard edit action"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
-#: templates/dashboard/order/detail.html:223
+#: templates/dashboard/order/detail.html:227
 msgctxt "Missing shipping address message"
 msgid "No shipping address"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:238
+#: templates/dashboard/order/detail.html:242
 msgctxt "Order billing address same as shipping address"
 msgid "Same as shipping address"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:243
+#: templates/dashboard/order/detail.html:247
 msgctxt "Missing billing address message"
 msgid "No billing address"
-msgstr ""
-
-#: templates/dashboard/order/detail.html:256
-#, python-format
-msgctxt "Order table title"
-msgid "Order draft #%(order)s"
 msgstr ""
 
 #: templates/dashboard/order/detail.html:260
 #, python-format
 msgctxt "Order table title"
+msgid "Order draft #%(order)s"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:264
+#, python-format
+msgctxt "Order table title"
 msgid "Order #%(order)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:266
+#: templates/dashboard/order/detail.html:270
 msgctxt "Order placed on date"
 msgid "Placed on"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:276
-#: templates/dashboard/order/detail.html:469
+#: templates/dashboard/order/detail.html:280
+#: templates/dashboard/order/detail.html:473
 #: templates/dashboard/order/pdf/packing_slip.html:64
 msgctxt "Order table header"
 msgid "Item"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:279
+#: templates/dashboard/order/detail.html:283
 msgctxt "Order table header"
 msgid "Price"
-msgstr ""
+msgstr "Cena"
 
-#: templates/dashboard/order/detail.html:282
-#: templates/dashboard/order/detail.html:472
+#: templates/dashboard/order/detail.html:286
+#: templates/dashboard/order/detail.html:476
 #: templates/dashboard/order/pdf/packing_slip.html:70
 msgctxt "Order table header"
 msgid "Quantity"
-msgstr ""
+msgstr "Količina"
 
-#: templates/dashboard/order/detail.html:285
+#: templates/dashboard/order/detail.html:289
 msgctxt "Order table header"
 msgid "Total"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:300
+#: templates/dashboard/order/detail.html:304
 #: templates/dashboard/order/fulfillment.html:85
 #, python-format
 msgctxt "Order table text"
 msgid "SKU: %(sku)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:316
-#: templates/dashboard/order/detail.html:317
+#: templates/dashboard/order/detail.html:320
+#: templates/dashboard/order/detail.html:321
 msgctxt "Order table row action"
 msgid "Change quantity"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:321
-#: templates/dashboard/order/detail.html:322
+#: templates/dashboard/order/detail.html:325
+#: templates/dashboard/order/detail.html:326
 msgctxt "Order table row action"
 msgid "Remove line"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:343
+#: templates/dashboard/order/detail.html:347
 msgctxt "Order totals action"
 msgid "Edit shipping"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:345
-#: templates/dashboard/order/detail.html:354
+#: templates/dashboard/order/detail.html:349
+#: templates/dashboard/order/detail.html:358
 #, python-format
 msgctxt "Order totals header"
 msgid "Shipping (%(shipping_name)s)"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:349
-#: templates/dashboard/order/detail.html:358
+#: templates/dashboard/order/detail.html:353
+#: templates/dashboard/order/detail.html:362
 msgctxt "Order totals header"
 msgid "Shipping"
-msgstr ""
+msgstr "Poštarina"
 
-#: templates/dashboard/order/detail.html:364
+#: templates/dashboard/order/detail.html:368
 msgctxt "Order total taxes"
 msgid "Taxes (included)"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:366
+#: templates/dashboard/order/detail.html:370
 msgctxt "Order total taxes"
 msgid "Taxes"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:374
-#: templates/dashboard/order/detail.html:398
+#: templates/dashboard/order/detail.html:378
+#: templates/dashboard/order/detail.html:402
 #, python-format
 msgctxt "Order totals header"
 msgid "Discount (%(voucher)s)"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:378
-#: templates/dashboard/order/detail.html:402
+#: templates/dashboard/order/detail.html:382
+#: templates/dashboard/order/detail.html:406
 msgctxt "Order totals header"
 msgid "Discount"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:385
+#: templates/dashboard/order/detail.html:389
 msgctxt "Order totals action"
 msgid "Edit voucher"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:386
+#: templates/dashboard/order/detail.html:390
 msgctxt "Order detail action"
 msgid "Edit voucher"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:391
+#: templates/dashboard/order/detail.html:395
 msgctxt "Order totals action"
 msgid "Edit discount"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:392
+#: templates/dashboard/order/detail.html:396
 msgctxt "Order detail action"
 msgid "Edit discount"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:407
+#: templates/dashboard/order/detail.html:411
 msgctxt "Order totals header"
 msgid "Grand total"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:428
+#: templates/dashboard/order/detail.html:432
 msgctxt "Order summary card action title"
 msgid "Fulfill order"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:429
+#: templates/dashboard/order/detail.html:433
 msgctxt "Order summary card action"
 msgid "Fulfill"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:433
+#: templates/dashboard/order/detail.html:437
 msgctxt "Order summary card action title"
 msgid "Add product to order"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:434
+#: templates/dashboard/order/detail.html:438
 msgctxt "Order summary card action"
 msgid "Add product"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:439
+#: templates/dashboard/order/detail.html:443
 msgctxt "Order summary card action title"
 msgid "Create order"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:440
+#: templates/dashboard/order/detail.html:444
 msgctxt "Order summary card action"
 msgid "Create order"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:446
+#: templates/dashboard/order/detail.html:450
 msgctxt "Order detail action"
 msgid "Invoice"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:449
+#: templates/dashboard/order/detail.html:453
 msgctxt "Order detail action"
 msgid "View on site"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:458
+#: templates/dashboard/order/detail.html:462
 #, python-format
 msgctxt "Fulfillment table title"
 msgid "Fulfillment #%(fulfillment)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:490
+#: templates/dashboard/order/detail.html:494
 #, python-format
 msgctxt "Fulfillment table text"
 msgid "Tracking number: %(tracking)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:502
+#: templates/dashboard/order/detail.html:506
 msgctxt "Fulfillment summary card action title"
 msgid "Cancel fulfillment"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:503
+#: templates/dashboard/order/detail.html:507
 msgctxt "Fulfillment summary card action"
 msgid "Cancel"
-msgstr ""
+msgstr "Odustani"
 
-#: templates/dashboard/order/detail.html:506
+#: templates/dashboard/order/detail.html:510
 msgctxt "Fulfillment summary card action title"
 msgid "Edit tracking number"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:508
+#: templates/dashboard/order/detail.html:512
 msgctxt "Fulfillment summary card action"
 msgid "Edit tracking"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:510
+#: templates/dashboard/order/detail.html:514
 msgctxt "Fulfillment summary card action"
 msgid "Add tracking"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:515
+#: templates/dashboard/order/detail.html:519
 msgctxt "Order detail action"
 msgid "Packing Slips"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:525
+#: templates/dashboard/order/detail.html:529
 msgctxt "Customer order note card title"
 msgid "Customer note"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:531
+#: templates/dashboard/order/detail.html:535
 msgctxt "No customer order note card message"
 msgid "There is no note from the customer associated with this order."
 msgstr ""
 
-#: templates/dashboard/order/detail.html:540
+#: templates/dashboard/order/detail.html:544
 msgctxt "Order notes card title"
 msgid "Order notes"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:553
+#: templates/dashboard/order/detail.html:557
 msgctxt "Empty order notes card message"
 msgid "There are no notes associated with this order."
 msgstr ""
 
-#: templates/dashboard/order/detail.html:559
+#: templates/dashboard/order/detail.html:563
 msgctxt "Order notes card action"
 msgid "Add note"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:574
+#: templates/dashboard/order/detail.html:578
 msgctxt "Payment history table header"
 msgid "Transaction ID"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:577
+#: templates/dashboard/order/detail.html:581
 msgctxt "Payment history table header"
 msgid "Date"
-msgstr ""
+msgstr "Datum"
 
-#: templates/dashboard/order/detail.html:580
+#: templates/dashboard/order/detail.html:584
 msgctxt "Payment history table header"
 msgid "Payment status"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:583
+#: templates/dashboard/order/detail.html:587
 msgctxt "Payment history table header"
 msgid "Amount"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:591
+#: templates/dashboard/order/detail.html:595
 #, python-format
 msgctxt "Payment item column data"
 msgid "#%(payment_id)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:612
+#: templates/dashboard/order/detail.html:616
 msgctxt "Empty payment history table message"
 msgid "No payments made for this order."
 msgstr ""
@@ -3626,7 +3656,7 @@ msgstr ""
 #: templates/dashboard/order/modal/cancel_line.html:34
 msgctxt "Modal remove order line table header"
 msgid "Quantity"
-msgstr ""
+msgstr "Količina"
 
 #: templates/dashboard/order/fulfillment.html:105
 #, python-format
@@ -3700,7 +3730,7 @@ msgstr ""
 #: templates/dashboard/order/modal/cancel_line.html:31
 msgctxt "Modal remove order line table header"
 msgid "Price"
-msgstr ""
+msgstr "Cena"
 
 #: templates/dashboard/order/modal/cancel_line.html:37
 msgctxt "Modal remove order line table header"
@@ -3801,7 +3831,7 @@ msgstr ""
 #: templates/dashboard/order/modal/edit_customer.html:40
 msgctxt "Modal edit customer primary action"
 msgid "Update"
-msgstr ""
+msgstr "Ažuriraj"
 
 #: templates/dashboard/order/modal/edit_discount.html:11
 msgctxt "Modal edit discount title"
@@ -3811,7 +3841,7 @@ msgstr ""
 #: templates/dashboard/order/modal/edit_discount.html:21
 msgctxt "Modal edit discount primary action"
 msgid "Update"
-msgstr ""
+msgstr "Ažuriraj"
 
 #: templates/dashboard/order/modal/edit_shipping.html:11
 msgctxt "Modal edit shipping title"
@@ -3826,7 +3856,7 @@ msgstr ""
 #: templates/dashboard/order/modal/edit_shipping.html:29
 msgctxt "Modal edit shipping primary action"
 msgid "Update"
-msgstr ""
+msgstr "Ažuriraj"
 
 #: templates/dashboard/order/modal/edit_voucher.html:11
 msgctxt "Modal edit voucher title"
@@ -3841,7 +3871,7 @@ msgstr ""
 #: templates/dashboard/order/modal/edit_voucher.html:29
 msgctxt "Modal edit voucher primary action"
 msgid "Update"
-msgstr ""
+msgstr "Ažuriraj"
 
 #: templates/dashboard/order/modal/fulfillment_tracking.html:12
 msgctxt "Modal change fulfillment tracking title"
@@ -3856,7 +3886,7 @@ msgstr ""
 #: templates/dashboard/order/modal/fulfillment_tracking.html:27
 msgctxt "Modal change fulfillment tracking primary action"
 msgid "Update"
-msgstr ""
+msgstr "Ažuriraj"
 
 #: templates/dashboard/order/modal/fulfillment_tracking.html:29
 msgctxt "Modal change fulfillment tracking primary action"
@@ -3962,7 +3992,7 @@ msgstr ""
 #: templates/dashboard/order/pdf/invoice.html:17
 msgctxt "Invoice header"
 msgid "Order"
-msgstr ""
+msgstr "Porudžbina"
 
 #: templates/dashboard/order/pdf/invoice.html:21
 msgctxt "Order invoice"
@@ -3997,7 +4027,7 @@ msgstr ""
 #: templates/dashboard/order/pdf/invoice.html:67
 msgctxt "Shipment order table header"
 msgid "Tax rate"
-msgstr ""
+msgstr "Visina poreza"
 
 #: templates/dashboard/order/pdf/invoice.html:70
 msgctxt "Shipment order table header"
@@ -4007,7 +4037,7 @@ msgstr ""
 #: templates/dashboard/order/pdf/invoice.html:73
 msgctxt "Shipment order table header"
 msgid "Quantity"
-msgstr ""
+msgstr "Količina"
 
 #: templates/dashboard/order/pdf/invoice.html:76
 msgctxt "Shipment order table header"
@@ -4031,7 +4061,7 @@ msgstr ""
 #: templates/dashboard/order/pdf/invoice.html:121
 msgctxt "Order total shipping price header"
 msgid "Shipping"
-msgstr ""
+msgstr "Poštarina"
 
 #: templates/dashboard/order/pdf/invoice.html:129
 msgctxt "Order total taxes header"
@@ -4132,7 +4162,7 @@ msgstr ""
 #: templates/dashboard/page/form.html:8
 msgctxt "Page form page title"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/dashboard/page/form.html:10
 msgctxt "Page form page title"
@@ -4152,11 +4182,11 @@ msgstr ""
 #: templates/dashboard/page/form.html:48
 msgctxt "Page form breadcrumbs"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/dashboard/page/form.html:82 templates/dashboard/page/form.html:85
 msgid "Cancel"
-msgstr ""
+msgstr "Odustani"
 
 #: templates/dashboard/page/form.html:83
 msgid "Save"
@@ -4183,7 +4213,7 @@ msgstr ""
 #: templates/dashboard/page/list.html:43
 msgctxt "Static pages table header url"
 msgid "URL"
-msgstr ""
+msgstr "Web adresa"
 
 #: templates/dashboard/page/list.html:46
 msgctxt "Pages table header"
@@ -4251,7 +4281,7 @@ msgstr ""
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:39
 msgctxt "Attribute value edit action"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/dashboard/product/attribute/detail.html:95
 msgctxt "Attribute value edit action"
@@ -4267,7 +4297,7 @@ msgstr ""
 #: templates/dashboard/product/attribute/values/form.html:8
 msgctxt "Dashboard attributes list"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/dashboard/product/attribute/form.html:10
 #: templates/dashboard/product/attribute/values/form.html:10
@@ -4279,7 +4309,7 @@ msgstr ""
 #: templates/dashboard/product/attribute/values/form.html:47
 msgctxt "Attribute detail breadcrumbs"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/dashboard/product/attribute/form.html:51
 #: templates/dashboard/product/attribute/values/form.html:53
@@ -4402,7 +4432,7 @@ msgstr "Naziv"
 
 #: templates/dashboard/product/detail.html:101
 msgid "Status"
-msgstr ""
+msgstr "Status"
 
 #: templates/dashboard/product/detail.html:104
 msgid "Gross price"
@@ -4418,7 +4448,7 @@ msgstr ""
 
 #: templates/dashboard/product/detail.html:132
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/dashboard/product/detail.html:136
 msgctxt "Dashboard product details page"
@@ -4494,7 +4524,7 @@ msgstr ""
 #: templates/dashboard/product/product_variant/detail.html:155
 msgctxt "Dashboard variant details view"
 msgid "Number in stock"
-msgstr ""
+msgstr "Količina na zalihama"
 
 #: templates/dashboard/product/detail.html:248
 #: templates/dashboard/product/product_variant/detail.html:163
@@ -4515,7 +4545,7 @@ msgstr ""
 #: templates/dashboard/product/form.html:8
 msgctxt "Dashboard products list"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/dashboard/product/form.html:10
 msgctxt "Product form page title"
@@ -4530,13 +4560,13 @@ msgstr ""
 #: templates/dashboard/product/form.html:50
 msgctxt "Product form breadcrumbs"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/dashboard/product/form.html:111
 #: templates/dashboard/product/product_type/form.html:103
 #: templates/dashboard/product/product_variant/form.html:85
 msgid "Shipping"
-msgstr ""
+msgstr "Poštarina"
 
 #: templates/dashboard/product/form.html:115
 #: templates/dashboard/product/product_variant/form.html:76
@@ -4565,7 +4595,7 @@ msgstr "Naziv"
 #: templates/dashboard/product/list.html:64
 msgctxt "Products list table header"
 msgid "Price"
-msgstr ""
+msgstr "Cena"
 
 #: templates/dashboard/product/list.html:101
 msgctxt "Empty product list message"
@@ -4607,12 +4637,12 @@ msgstr ""
 #: templates/dashboard/product/product_image/form.html:38
 msgctxt "Image form text"
 msgid "Image"
-msgstr ""
+msgstr "Slika"
 
 #: templates/dashboard/product/product_image/form.html:43
 msgctxt "Image form text"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/dashboard/product/product_image/form.html:49
 msgctxt "Image form breadcrumbs"
@@ -4791,7 +4821,7 @@ msgstr ""
 #: templates/dashboard/product/product_variant/form.html:8
 msgctxt "Variant form page title"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/dashboard/product/product_variant/form.html:10
 msgctxt "Variant form page title"
@@ -4801,7 +4831,7 @@ msgstr ""
 #: templates/dashboard/product/product_variant/form.html:47
 msgctxt "Variant form breadcrumbs"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/dashboard/product/product_variant/form.html:53
 msgctxt "Variant form breadcrumbs"
@@ -4949,17 +4979,17 @@ msgstr ""
 #: templates/dashboard/shipping/detail.html:54
 msgctxt "Title of the shipping methods list"
 msgid "Price based shipping"
-msgstr ""
+msgstr "Poštarina osnovana na ceni"
 
 #: templates/dashboard/shipping/detail.html:55
 msgctxt "Title of the shipping methods list"
 msgid "Weight based shipping"
-msgstr ""
+msgstr "Poštarina osnovana na težini"
 
 #: templates/dashboard/shipping/form.html:9
 msgctxt "Dashboard shipping zones"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/dashboard/shipping/form.html:11
 #: templates/dashboard/shipping/form.html:24
@@ -4975,7 +5005,7 @@ msgstr ""
 #: templates/dashboard/shipping/form.html:48
 msgctxt "Shipping zone form page title"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/dashboard/shipping/form.html:54
 msgctxt "Shipping zone form breadcrumbs"
@@ -5009,7 +5039,7 @@ msgstr ""
 msgctxt ""
 "Shipping zones table header, list of countries within of shipping zone"
 msgid "Countries"
-msgstr ""
+msgstr "Države"
 
 #: templates/dashboard/shipping/list.html:83
 msgctxt "Empty shipping list message"
@@ -5033,7 +5063,7 @@ msgstr ""
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:27
 msgctxt "Header of the shipping methods list"
 msgid "Price"
-msgstr ""
+msgstr "Cena"
 
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:42
 msgctxt "Attribute value remove action"
@@ -5048,7 +5078,7 @@ msgstr ""
 #: templates/dashboard/shipping/methods/form.html:8
 msgctxt "Dashboard shipping method edit page"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/dashboard/shipping/methods/form.html:10
 msgctxt "Shipping method edit page title"
@@ -5122,7 +5152,7 @@ msgstr ""
 #: templates/dashboard/sites/authorization_keys/form.html:8
 msgctxt "Dashboard authorization key list"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/dashboard/sites/authorization_keys/form.html:10
 msgctxt "Add new authorization key page title"
@@ -5137,7 +5167,7 @@ msgstr ""
 #: templates/dashboard/sites/authorization_keys/form.html:40
 msgctxt "Authorization key breadcrumbs"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/dashboard/sites/authorization_keys/form.html:46
 msgctxt "Authorization key breadcrumbs"
@@ -5187,7 +5217,7 @@ msgstr ""
 #: templates/dashboard/sites/detail.html:99
 msgctxt "Authorization key edit action"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/dashboard/sites/detail.html:102
 msgctxt "Authorization key remove action"
@@ -5213,7 +5243,7 @@ msgstr ""
 #: templates/dashboard/sites/form.html:27
 msgctxt "Dashboard site settings"
 msgid "Edit"
-msgstr ""
+msgstr "Izmeni"
 
 #: templates/dashboard/sites/modal/confirm_delete.html:12
 #, python-format
@@ -5429,7 +5459,7 @@ msgstr ""
 #: templates/dashboard/taxes/list.html:33
 msgctxt "Taxes table header"
 msgid "Country name"
-msgstr ""
+msgstr "Naziv države"
 
 #: templates/dashboard/taxes/list.html:61
 msgctxt "Empty taxes message"
@@ -5444,7 +5474,7 @@ msgstr ""
 #: templates/dashboard/taxes/list.html:80
 msgctxt "Site settings field"
 msgid "All products prices are entered with tax included"
-msgstr ""
+msgstr "Sve cene proizvoda su unete sa uključenim porezom"
 
 #: templates/dashboard/taxes/list.html:84
 msgctxt "Include taxes in prices setting description"
@@ -5548,10 +5578,10 @@ msgstr ""
 #: templates/materializecssform/field.html:194
 #: templates/materializecssform/field.html:228
 #: templates/materializecssform/field.html:257
-#: templates/materializecssform/field.html:283
-#: templates/materializecssform/field.html:316
-#: templates/materializecssform/field.html:344
-#: templates/materializecssform/field.html:370
+#: templates/materializecssform/field.html:285
+#: templates/materializecssform/field.html:320
+#: templates/materializecssform/field.html:350
+#: templates/materializecssform/field.html:376
 msgctxt "Dashboard form labels"
 msgid "(optional)"
 msgstr ""
@@ -5561,7 +5591,7 @@ msgstr ""
 msgid "File"
 msgstr ""
 
-#: templates/materializecssform/field.html:349
+#: templates/materializecssform/field.html:355
 #, python-format
 msgctxt ""
 "Message showing how many chars were used out of maximum field's length"
@@ -5591,12 +5621,12 @@ msgstr ""
 #: templates/order/_ordered_items_table.html:178
 msgctxt "Order details column title"
 msgid "Quantity"
-msgstr ""
+msgstr "Količina"
 
 #: templates/order/_ordered_items_table.html:42
 msgctxt "Order details column title"
 msgid "Price"
-msgstr ""
+msgstr "Cena"
 
 #: templates/order/_ordered_items_table.html:85
 msgctxt "Order details subtotal row text"
@@ -5606,7 +5636,7 @@ msgstr ""
 #: templates/order/_ordered_items_table.html:102
 msgctxt "Order details shipment row text"
 msgid "Shipping"
-msgstr ""
+msgstr "Poštarina"
 
 #: templates/order/_ordered_items_table.html:134
 msgctxt "Order details taxes text"
@@ -5864,7 +5894,7 @@ msgstr ""
 #: templates/product/_filters.html:71
 msgctxt "Apply filters button"
 msgid "Update"
-msgstr ""
+msgstr "Ažuriraj"
 
 #. Translators: Layout may break if character length is different than four.
 #: templates/product/_items.html:30
@@ -5877,7 +5907,7 @@ msgctxt "product price range"
 msgid "from"
 msgstr ""
 
-#: templates/product/details.html:61
+#: templates/product/details.html:62
 #, python-format
 msgctxt "Product details text"
 msgid ""
@@ -5885,34 +5915,34 @@ msgid ""
 "visible on <strong>%(date)s</strong>."
 msgstr ""
 
-#: templates/product/details.html:123
+#: templates/product/details.html:124
 msgctxt "Product details link text"
 msgid "Edit in dashboard"
 msgstr ""
 
-#: templates/product/details.html:149
+#: templates/product/details.html:150
 #, python-format
 msgctxt "Product details page vat rate value"
 msgid "including %(tax_rate)s%% VAT"
 msgstr ""
 
-#: templates/product/details.html:153
+#: templates/product/details.html:154
 #, python-format
 msgctxt "Product details page vat rate value"
 msgid "excluding %(tax_rate)s%% VAT"
 msgstr ""
 
-#: templates/product/details.html:177
+#: templates/product/details.html:178
 msgctxt "Product details primary action"
 msgid "Add to cart"
 msgstr ""
 
-#: templates/product/details.html:189
+#: templates/product/details.html:190
 msgctxt "Product details text"
 msgid "This product is currently <strong>unavailable</strong>."
 msgstr ""
 
-#: templates/product/details.html:193
+#: templates/product/details.html:194
 msgctxt "Product details title"
 msgid "Description"
 msgstr "Opis"
@@ -6116,7 +6146,7 @@ msgstr ""
 #: templates/templated_email/order/confirm_order.email:20
 msgctxt "Order confirmation e-mail table header"
 msgid "Shipping"
-msgstr ""
+msgstr "Poštarina"
 
 #: templates/templated_email/order/confirm_order.email:21
 msgctxt "Order confirmation e-mail table header"
@@ -6281,7 +6311,7 @@ msgstr ""
 #: templates/templated_email/source/partials/_order_lines.mjml:19
 msgctxt "E-mail order lines summary table"
 msgid "Shipping"
-msgstr ""
+msgstr "Poštarina"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:28
 msgctxt "E-mail order lines summary table"
@@ -6311,7 +6341,7 @@ msgstr ""
 #: templates/templated_email/source/partials/_order_lines.mjml:59
 msgctxt "Quantity ordered of a product"
 msgid "Quantity"
-msgstr ""
+msgstr "Količina"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:60
 msgctxt "Unit price of a product"
