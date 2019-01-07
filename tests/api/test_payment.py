@@ -283,9 +283,10 @@ def test_payment_charge_success(
     assert not data['errors']
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.CHARGED
-    assert payment.transactions.count() == 1
-    txn = payment.transactions.last()
-    assert txn.kind == TransactionKind.CHARGE
+    assert payment.transactions.count() == 2
+    charge_txn, auth_txn = payment.transactions.all()
+    assert auth_txn.kind == TransactionKind.AUTH
+    assert charge_txn.kind == TransactionKind.CHARGE
 
 
 def test_payment_charge_gateway_error(
@@ -314,7 +315,7 @@ def test_payment_charge_gateway_error(
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
     assert payment.transactions.count() == 1
     txn = payment.transactions.last()
-    assert txn.kind == TransactionKind.CHARGE
+    assert txn.kind == TransactionKind.AUTH
     assert not txn.is_success
 
 
