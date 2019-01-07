@@ -102,7 +102,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={4}
+              colSpan={5}
               hasNextPage={maybe(() => pageInfo.hasNextPage)}
               onNextPage={onNextPage}
               hasPreviousPage={maybe(() => pageInfo.hasPreviousPage)}
@@ -149,6 +149,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
                 </TableCell>
                 <TableCell className={classes.iconCell}>
                   <IconButton
+                    disabled={!product}
                     onClick={event => onProductUnassign(product.id, event)}
                   >
                     <DeleteIcon color="secondary" />
@@ -159,7 +160,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
             () => (
               <TableRow>
                 <TableCell />
-                <TableCell colSpan={4}>{i18n.t("No products found")}</TableCell>
+                <TableCell colSpan={5}>{i18n.t("No products found")}</TableCell>
               </TableRow>
             )
           )}

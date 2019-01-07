@@ -34,11 +34,11 @@ import {
   OrderFulfillmentUpdateTracking,
   OrderFulfillmentUpdateTrackingVariables
 } from "./types/OrderFulfillmentUpdateTracking";
-import { OrderLineAdd, OrderLineAddVariables } from "./types/OrderLineAdd";
 import {
   OrderLineDelete,
   OrderLineDeleteVariables
 } from "./types/OrderLineDelete";
+import { OrderLinesAdd, OrderLinesAddVariables } from "./types/OrderLinesAdd";
 import {
   OrderLineUpdate,
   OrderLineUpdateVariables
@@ -395,10 +395,10 @@ export const TypedOrderLineDeleteMutation = TypedMutation<
   OrderLineDeleteVariables
 >(orderLineDeleteMutation);
 
-const orderLineAddMutation = gql`
+const orderLinesAddMutation = gql`
   ${fragmentOrderDetails}
-  mutation OrderLineAdd($id: ID!, $input: OrderLineCreateInput!) {
-    draftOrderLineCreate(id: $id, input: $input) {
+  mutation OrderLinesAdd($id: ID!, $input: [OrderLineCreateInput]!) {
+    draftOrderLinesCreate(id: $id, input: $input) {
       errors {
         field
         message
@@ -409,10 +409,10 @@ const orderLineAddMutation = gql`
     }
   }
 `;
-export const TypedOrderLineAddMutation = TypedMutation<
-  OrderLineAdd,
-  OrderLineAddVariables
->(orderLineAddMutation);
+export const TypedOrderLinesAddMutation = TypedMutation<
+  OrderLinesAdd,
+  OrderLinesAddVariables
+>(orderLinesAddMutation);
 
 const orderLineUpdateMutation = gql`
   ${fragmentOrderDetails}
