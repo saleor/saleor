@@ -284,9 +284,9 @@ def test_payment_charge_success(
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.CHARGED
     assert payment.transactions.count() == 2
-    charge_txn, auth_txn = payment.transactions.all()
+    capture_txn, auth_txn = payment.transactions.all()
     assert auth_txn.kind == TransactionKind.AUTH
-    assert charge_txn.kind == TransactionKind.CHARGE
+    assert capture_txn.kind == TransactionKind.CAPTURE
 
 
 def test_payment_charge_gateway_error(

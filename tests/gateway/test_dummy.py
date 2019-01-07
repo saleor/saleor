@@ -12,12 +12,12 @@ from saleor.payment.gateways.dummy.forms import DummyPaymentForm
 
 def test_charge_success(payment_dummy):
     gateway_charge(payment=payment_dummy, payment_token='fake-token')
-    charge_txn = payment_dummy.transactions.last()
+    capture_txn = payment_dummy.transactions.last()
 
-    assert charge_txn.is_success
-    assert charge_txn.kind == TransactionKind.CHARGE
-    assert charge_txn.payment == payment_dummy
-    assert charge_txn.amount == payment_dummy.total
+    assert capture_txn.is_success
+    assert capture_txn.kind == TransactionKind.CAPTURE
+    assert capture_txn.payment == payment_dummy
+    assert capture_txn.amount == payment_dummy.total
 
     payment_dummy.refresh_from_db()
     assert payment_dummy.charge_status == ChargeStatus.CHARGED
