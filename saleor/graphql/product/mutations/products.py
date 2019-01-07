@@ -336,8 +336,13 @@ class ProductCreate(ModelMutation):
         See the documentation for `has_variants` field for details:
         http://docs.getsaleor.com/en/latest/architecture/products.html#product-types
         """
-        if not product_type.has_variants and not cleaned_input.get('sku'):
-            cls.add_error(errors, 'sku', 'This field cannot be blank.')
+        if not product_type.has_variants:
+            input_sku = cleaned_input.get('sku')
+            if not input_sku:
+                cls.add_error(errors, 'sku', 'This field cannot be blank.')
+            elif models.ProductVariant.objects.filter(sku=input_sku).exists():
+                cls.add_error(
+                    errors, 'sku', 'Product with this Sku already exists.')
 
     @classmethod
     @transaction.atomic
@@ -377,9 +382,12 @@ class ProductUpdate(ProductCreate):
 
     @classmethod
     def clean_sku(cls, product_type, cleaned_input, errors):
-        # SKU is an optional field in the product update mutation,
-        # so we explicitly skip the validation.
-        pass
+        input_sku = cleaned_input.get('sku')
+        if (not product_type.has_variants and
+            input_sku and
+            models.ProductVariant.objects.filter(sku=input_sku).exists()):
+            cls.add_error(
+                errors, 'sku', 'Product with this Sku already exists.')
 
     @classmethod
     @transaction.atomic
