@@ -599,6 +599,41 @@ def test_create_product_without_variants_sku_validation(
     assert data['errors'][0]['message'] == 'This field cannot be blank.'
 
 
+def test_create_product_without_variants_sku_duplication(
+        staff_api_client, product_type_without_variant, category,
+        permission_manage_products, product_with_default_variant):
+    query = QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS
+
+    product_type = product_type_without_variant
+    product_type_id = graphene.Node.to_global_id(
+        'ProductType', product_type.pk)
+    category_id = graphene.Node.to_global_id(
+        'Category', category.pk)
+    product_name = 'test name'
+    product_description = 'description'
+    product_price = 10
+    quantity = 1
+    track_inventory = True
+    sku = '1234'
+
+    variables = {
+        'productTypeId': product_type_id,
+        'categoryId': category_id,
+        'name': product_name,
+        'description': product_description,
+        'price': product_price,
+        'sku': sku,
+        'quantity': quantity,
+        'trackInventory': track_inventory}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    content = get_graphql_content(response)
+    data = content['data']['productCreate']
+    assert data['errors'][0]['field'] == 'sku'
+    assert data['errors'][0]['message'] == 'Product with this Sku already exists.'
+
+
 def test_update_product(
         staff_api_client, category, non_default_category, product,
         permission_manage_products):
@@ -750,6 +785,45 @@ def test_update_product_without_variants(
     assert product['quantity'] == product_quantity
     assert product['trackInventory'] == product_track_inventory
 
+
+def test_update_product_without_variants_sku_duplication(
+        staff_api_client, product_with_default_variant,
+        permission_manage_products, product):
+    query = """
+    mutation updateProduct(
+        $productId: ID!,
+        $sku: String)
+    {
+        productUpdate(
+            id: $productId,
+            input: {
+                sku: $sku
+            })
+        {
+            product {
+                id
+            }
+            errors {
+                message
+                field
+            }
+        }
+    }"""
+    product = product_with_default_variant
+    product_id = graphene.Node.to_global_id('Product', product.pk)
+    product_sku = "123"
+
+    variables = {
+        'productId': product_id,
+        'sku': product_sku}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    content = get_graphql_content(response)
+    data = content['data']['productUpdate']
+    assert data['errors']
+    assert data['errors'][0]['field'] == 'sku'
+    assert data['errors'][0]['message'] == 'Product with this Sku already exists.'
 
 def test_delete_product(staff_api_client, product, permission_manage_products):
     query = """
