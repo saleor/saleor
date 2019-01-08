@@ -18,7 +18,8 @@ from ..core.utils import get_client_ip
 from ..payment import (
     ChargeStatus, PaymentError, TransactionKind, get_payment_gateway)
 from ..payment.models import Payment
-from ..payment.utils import gateway_process_payment, get_billing_data
+from ..payment.utils import (
+    create_payment_information, gateway_process_payment, get_billing_data)
 from .forms import (
     CustomerNoteForm, PasswordForm, PaymentDeleteForm, PaymentsForm)
 from .models import Order
@@ -110,9 +111,10 @@ def start_payment(request, order, gateway):
 
         payment_gateway, gateway_params = get_payment_gateway(payment.gateway)
         client_token = payment_gateway.get_client_token(**gateway_params)
+        payment_info = create_payment_information(payment)
         form = payment_gateway.get_form_class()(
-            data=request.POST or None, amount=payment.total,
-            currency=payment.currency, gateway_params=gateway_params)
+            data=request.POST or None, payment_information=payment_info,
+            gateway_params=gateway_params)
         if form.is_valid():
             try:
                 gateway_process_payment(payment=payment,
