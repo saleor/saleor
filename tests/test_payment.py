@@ -27,7 +27,8 @@ EXAMPLE_ERROR = 'Example dummy error'
 def transaction_data(payment_dummy, settings):
     return {
         'payment': payment_dummy,
-        'payment_token': 'token',
+        'payment_information': create_payment_information(
+            payment_dummy, 'token'),
         'kind': TransactionKind.CAPTURE,
         'gateway_response': {
             'is_success': True,
@@ -35,6 +36,7 @@ def transaction_data(payment_dummy, settings):
             'errors': None,
             'amount': Decimal(14.50),
             'currency': 'USD',
+            'kind': TransactionKind.CAPTURE,
             'raw_response': {
                 'credit_card': '4321',
                 'transaction': 'token'}}}
@@ -156,7 +158,7 @@ def test_create_transaction(transaction_data):
     txn = create_transaction(**transaction_data)
 
     assert txn.payment == transaction_data['payment']
-    assert txn.kind == transaction_data['kind']
+    assert txn.kind == transaction_data['gateway_response']['kind']
     assert txn.amount == transaction_data['gateway_response']['amount']
     assert txn.currency == transaction_data['gateway_response']['currency']
     assert txn.token == transaction_data['gateway_response']['transaction_id']

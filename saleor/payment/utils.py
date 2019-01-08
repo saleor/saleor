@@ -40,7 +40,7 @@ def get_billing_data(order):
 
 
 def create_payment_information(
-    payment: Payment, payment_token: str, amount: Decimal=None) -> Dict:
+    payment: Payment, payment_token: str=None, amount: Decimal=None) -> Dict:
     """Extracts order information along with payment details.
 
     Returns information required to process payment and additional
@@ -55,8 +55,10 @@ def create_payment_information(
             if payment.order.billing_address else None),
         'shipping': (
             payment.order.shipping_address.as_data()
-            if payment.order.shipping_address else None)
-    }
+            if payment.order.shipping_address else None),
+        'order_id': payment.order.id,
+        'customer_ip_address': payment.customer_ip_address,
+        'customer_email': payment.billing_email}
 
 
 def handle_fully_paid_order(order):
@@ -93,8 +95,8 @@ def create_payment(**payment_data):
     return payment
 
 
-def create_transaction(payment: Payment, kind: str, payment_token: str,
-        gateway_response: Dict=None, error_msg=None, **extra_params) -> Transaction:
+def create_transaction(payment: Payment, kind: str, payment_information: Dict,
+        gateway_response: Dict=None, error_msg=None) -> Transaction:
     """Creates a Transaction based on transaction kind and gateway response."""
     if gateway_response is None:
         gateway_response = {}
@@ -102,10 +104,12 @@ def create_transaction(payment: Payment, kind: str, payment_token: str,
     txn, _ = Transaction.objects.get_or_create(
         payment=payment,
         kind=gateway_response.get('kind', kind),
-        token=gateway_response.get('transaction_id', payment_token),
+        token=gateway_response.get(
+            'transaction_id', payment_information['token']),
         is_success=gateway_response.get('is_success', False),
-        amount=gateway_response.get('amount', payment.total),
-        currency=gateway_response.get('currency', payment.currency),
+        amount=gateway_response.get('amount', payment_information['amount']),
+        currency=gateway_response.get(
+            'currency', payment_information['currency']),
         error=gateway_response.get('error', error_msg),
         gateway_response=gateway_response)
     return txn  # returns last created transaction
@@ -181,7 +185,7 @@ def call_gateway(
             transaction = create_transaction(
                 payment=payment,
                 kind=transaction_kind,
-                payment_token=payment_token,
+                payment_information=payment_information,
                 error_msg=error_msg,
                 gateway_response=response)
 
@@ -196,6 +200,7 @@ def validate_gateway_response(responses):
     """Validates response to be a correct format for Saleor to process."""
     if not isinstance(responses, (dict, list)):
         raise GatewayError('Gateway needs to return a dictionary or a list')
+
     if not isinstance(responses, list):
         responses = [responses]
 
