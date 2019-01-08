@@ -166,7 +166,7 @@ class CheckoutLinesAdd(BaseMutation):
         errors = []
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
-        if not checkout:
+        if checkout is None:
             return CheckoutLinesAdd(errors=errors)
 
         variants, quantities = None, None
@@ -280,7 +280,7 @@ class CheckoutCustomerDetach(BaseMutation):
         errors = []
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
-        if not checkout:
+        if checkout is None:
             return cls(errors=errors)
         if not checkout.user:
             cls.add_error(
@@ -429,7 +429,7 @@ class CheckoutComplete(BaseMutation):
         errors = []
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
-        if not checkout:
+        if checkout is None:
             return CheckoutComplete(errors=errors)
         taxes = get_taxes_for_cart(checkout, info.context.taxes)
         ready, checkout_error = ready_to_place_order(
