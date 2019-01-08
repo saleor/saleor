@@ -25,7 +25,6 @@
         font-size: 1.5rem;
         &:hover {
           color: rgba($body-color, 0.6);
-
         }
       }
 
@@ -35,7 +34,7 @@
           position: relative;
 
           &:hover > a {
-              border-bottom: 3px solid black;
+            border-bottom: 3px solid black;
           }
 
           & > a {
@@ -176,10 +175,6 @@
     padding: $global-padding * 2 0;
     display: flex;
     align-items: center;
-    @include media-breakpoint-up(sm) {
-      margin-left: -27px;
-      margin-right: 27px;
-    }
     .menu-icon-mobile {
       position: relative;
       display: inline-block;
@@ -204,10 +199,10 @@
     position: relative;
     form {
       svg {
-        width: 1.5rem;
-        height: 1.5rem;
+        width: 18px;
+        height: 18px;
+        margin-left: 10px;
         vertical-align: middle;
-        padding: 0.1rem;
       }
     }
     .mobile-search-icon {
@@ -278,7 +273,7 @@
           position: absolute;
           right: 20px;
           top: 20px;
-          background-color: $blue;
+          background-color: $light-turquoise;
           border-radius: 100px;
           color: $white;
           width: 30px;
