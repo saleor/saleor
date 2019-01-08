@@ -116,6 +116,7 @@ input {
       padding: $global-padding * 2 $global-padding * 2 $global-padding * 2
         $global-padding * 4;
       border: 0;
+      height: 5.9rem;
     }
     .mobile-close-search {
       position: absolute;
@@ -123,8 +124,10 @@ input {
       left: 0.5rem;
     }
     .btn {
-      top: 1.6rem;
-      right: 2rem;
+      border-radius: 0;
+      height: 6rem;
+      right: 0;
+      top: 0;
     }
   }
 }

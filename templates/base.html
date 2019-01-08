@@ -117,7 +117,6 @@
           <div class="col-8 col-md-4 navbar__logo">
             <div class="menu-icon-mobile d-md-none navbar__brand__menu-toggle closed open">
               <svg data-src="{% static "images/mobile-menu.svg" %}" width="28px" height="20px"/>
-              <span>{% trans "menu" context "Hamburger button text" %}</span>
             </div>
             <a href="{% url 'home' %}">
               <svg data-src="{% static "images/logo-document.svg" %}" height="38px" width="176px"/>
@@ -195,7 +194,7 @@
     <div class="container">
       <div class="row">
           {% footer_menu site_menu=site.settings.bottom_menu %}
-        <div class="col-md-2 col-sm-4">
+        <div class="col-md-2 col-6">
         <ul class="menu">
           <li class="nav-item__dropdown menu__item">
             <a>
@@ -253,7 +252,7 @@
             {% endif %}
           </ul>
         </div>
-        <div class="offset-md-2 col-md-4 col-sm-12">
+        <div class="offset-md-2 col-md-4 col-12">
           <div class="footer__menus__social-container">
             <div class="footer__menus__social">
               <a target="_blank" rel="noopener" class="social-footer" href="https://www.facebook.com/mirumeelabs/">
@@ -289,12 +288,12 @@
   <div class="footer__copy">
     <div class="container">
       <div class="row">
-        <div class="col-md-3">
+        <div class="col-4">
           <a href="{% url 'home' %}" class="footer__logo">
             <svg data-src="{% static "images/logo-document.svg" %}" height="38px" width="176px"/>
           </a>
         </div>
-        <div class="col-md-9 footer__copy-text">COPYRIGHT © 2009–2018 MIRUMEE SOFTWARE</div>
+        <div class="col-8 footer__copy-text">COPYRIGHT © 2009–2018 MIRUMEE SOFTWARE</div>
       </div>
     </div>
   </div>

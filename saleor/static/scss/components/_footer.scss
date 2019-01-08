@@ -16,6 +16,9 @@
       display: flex;
       justify-content: center;
       flex-wrap: wrap;
+      @include media-breakpoint-down(sm) {
+        margin-top: $global-margin * 3;
+      }
       &-container {
         display: flex;
         flex-direction: column;
@@ -32,14 +35,6 @@
   }
   &__logo {
     margin-bottom: $global-margin;
-    svg {
-      @include media-breakpoint-down(md) {
-        height: 30px;
-      }
-      @include media-breakpoint-down(sm) {
-        height: 40px;
-      }
-    }
   }
   hr {
     margin-top: 0;
