@@ -8,6 +8,8 @@ import raven
 import dj_email_url
 import django_cache_url
 from django.contrib.messages import constants as messages
+from dotenv import load_dotenv
+load_dotenv()
 
 DEBUG = ast.literal_eval(os.environ.get('DEBUG', 'False'))
 
