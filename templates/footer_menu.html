@@ -5,7 +5,7 @@
 
 {% for item in menu_items %}
 {% with children=item.child_items %}
-  <div class="col-sm-4 col-md-2">
+  <div class="col-6 col-md-2">
     <ul class="menu">
       <li class="{% if children %}nav-item__dropdown{% endif %} menu__item">
         <a href="{{ item.url }}">
