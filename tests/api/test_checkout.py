@@ -117,6 +117,23 @@ def test_checkout_lines_add_empty_checkout(
     assert line.quantity == 1
 
 
+def test_checkout_check_lines_quantity(
+        user_api_client, cart, variant):
+    variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)
+    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
+
+    variables = {
+        'checkoutId': checkout_id,
+        'lines': [{'variantId': variant_id, 'quantity': 3}]}
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_ADD, variables)
+    # import ipdb; ipdb.set_trace()
+    content = get_graphql_content(response)
+    data = content['data']['checkoutLinesAdd']
+    assert data['errors'][0]['message'] == 'Could not add item Test product (SKU_A). Only 2 remaining in stock.'
+    assert data['errors'][0]['field'] == 'quantity'
+
+
 def test_checkout_lines_update(user_api_client, cart_with_item):
     cart = cart_with_item
     assert cart.lines.count() == 1
