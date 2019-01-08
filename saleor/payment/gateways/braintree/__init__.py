@@ -9,6 +9,7 @@ from django.utils.translation import pgettext_lazy
 from prices import Money
 
 from .forms import BraintreePaymentForm
+from .errors import BraintreeException
 
 logger = logging.getLogger(__name__)
 
@@ -30,23 +31,23 @@ ERROR_CODES_WHITELIST = {
 }
 
 
-def get_customer_data(payment: Dict) -> Dict:
+def get_customer_data(payment_information: Dict) -> Dict:
+    billing = payment_information['billing']
     return {
-        'order_id': payment['order'],
+        'order_id': payment_information['order_id'],
         'billing': {
-            'first_name': payment['billing_first_name'],
-            'last_name': payment['billing_last_name'],
-            'company': payment['billing_company_name'],
-            'postal_code': payment['billing_postal_code'],
-            'street_address': payment['billing_address_1'],
-            'extended_address': payment['billing_address_2'],
-            "locality": payment['billing_city'],
-            'region': payment['billing_country_area'],
-            'country_code_alpha2': payment['billing_country_code']},
+            'first_name': billing['first_name'],
+            'last_name': billing['last_name'],
+            'company': billing['company_name'],
+            'postal_code': billing['postal_code'],
+            'street_address': billing['street_address_1'],
+            'extended_address': billing['street_address_2'],
+            'locality': billing['city'],
+            'region': billing['country_area'],
+            'country_code_alpha2': billing['country']},
         'risk_data': {
-            'customer_ip': payment['customer_ip_address'] or ''},
-        'customer': {
-            'email': payment['billing_email']}}
+            'customer_ip': payment_information['customer_ip_address'] or ''},
+        'customer': {'email': payment_information['customer_email']}}
 
 
 def get_error_for_client(errors: List) -> str:
@@ -71,21 +72,17 @@ def extract_gateway_response(braintree_result) -> Dict:
         errors = [
             {'code': error.code, 'message': error.message}
             for error in braintree_result.errors.deep_errors]
+
     bt_transaction = braintree_result.transaction
     if not bt_transaction:
         return {'errors': errors}
-    if bt_transaction.currency_iso_code != settings.DEFAULT_CURRENCY:
-        logger.error(
-            'Braintree\'s currency is different than shop\'s currency')
-    # FIXME we should have a predefined list of fields that will be supported
-    # in the API
-    gateway_response = {
+
+    return {
         'transaction_id': getattr(bt_transaction, 'id', ''),
         'currency': bt_transaction.currency_iso_code,
         'amount': bt_transaction.amount,  # Decimal type
         'credit_card': bt_transaction.credit_card,
         'errors': errors}
-    return gateway_response
 
 
 def get_template():
@@ -119,110 +116,107 @@ def get_client_token(**connection_params: Dict) -> str:
 
 
 def process_payment(
-        payment: Dict, payment_token: str, amount: Decimal,
-        **connection_params: Dict) -> Dict:
-    auth_resp = authorize(payment, payment_token, **connection_params)
-    transaction_token = auth_resp['transaction_id']
+        payment_information: Dict, **connection_params: Dict) -> Dict:
+    auth_resp = authorize(payment_information, **connection_params)
+    payment_information['token'] = auth_resp['transaction_id']
 
     try:
-        return capture(transaction_token, amount, **connection_params)
+        return [auth_resp, capture(payment_information, **connection_params)]
     except Exception as e:
-        void(transaction_token, **connection_params)
-        raise
+        return [auth_resp, void(payment_information, **connection_params)]
 
 
-def authorize(
-        payment: Dict, payment_token: str, **connection_params: Dict) -> Dict:
+def authorize(payment_information: Dict, **connection_params: Dict) -> Dict:
     gateway = get_braintree_gateway(**connection_params)
 
     try:
         result = gateway.transaction.sale({
-            'amount': str(payment['total']),
-            'payment_method_nonce': payment_token,
+            'amount': str(payment_information['amount']),
+            'payment_method_nonce': payment_information['token'],
             'options': {
                 'submit_for_settlement': CONFIRM_MANUALLY,
                 'three_d_secure': {
                     'required': THREE_D_SECURE_REQUIRED}},
-            **get_customer_data(payment)})
+            **get_customer_data(payment_information)})
     except braintree_sdk.exceptions.NotFoundError:
-        # FIXME: make this a payment generic exception
-        raise Exception('Unable to process the transaction. '
-            'Transaction\'s token is incorrect or expired.')
+        raise BraintreeException
 
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
 
     return {
         'is_success': result.is_success,
-        'transaction_id': gateway_response['transaction_id'],
-        'raw_response': gateway_response,
-        'errors': error,
-    }
+        'kind': 'auth',
+        'amount': gateway_response.get('amount'),
+        'currency': gateway_response.get('currency'),
+        'transaction_id': gateway_response.get('transaction_id'),
+        'error': error,
+        'raw_response': gateway_response}
 
 
-def capture(
-        payment: Dict, payment_token: str, amount: Decimal,
-        **connection_params: Dict) -> Dict:
+def capture(payment_information: Dict, **connection_params: Dict) -> Dict:
     gateway = get_braintree_gateway(**connection_params)
 
     try:
         result = gateway.transaction.submit_for_settlement(
-            transaction_id=payment_token, amount=str(amount))
+            transaction_id=payment_information['token'],
+            amount=str(payment_information['amount']))
     except braintree_sdk.exceptions.NotFoundError:
-        raise Exception('Unable to process the transaction. '
-            'Transaction\'s token is incorrect or expired.')
+        raise BraintreeException
 
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
 
     return {
         'is_success': result.is_success,
-        'transaction_id': gateway_response['transaction_id'],
-        'raw_response': gateway_response,
-        'errors': error,
-    }
+        'kind': 'capture',
+        'amount': gateway_response.get('amount'),
+        'currency': gateway_response.get('currency'),
+        'transaction_id': gateway_response.get('transaction_id'),
+        'error': error,
+        'raw_response': gateway_response}
 
 
-def void(
-        payment: Dict, payment_token: str, **connection_params: Dict) -> Dict:
+def void(payment_information: Dict, **connection_params: Dict) -> Dict:
     gateway = get_braintree_gateway(**connection_params)
 
     try:
-        result = gateway.transaction.void(transaction_id=payment_token)
+        result = gateway.transaction.void(
+            transaction_id=payment_information['token'])
     except braintree_sdk.exceptions.NotFoundError:
-        raise Exception('Unable to process the transaction. '
-            'Transaction\'s token is incorrect or expired.')
+        raise BraintreeException
 
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
 
     return {
         'is_success': result.is_success,
-        'transaction_id': gateway_response['transaction_id'],
-        'raw_response': gateway_response,
-        'errors': error,
-    }
+        'kind': 'void',
+        'amount': gateway_response.get('amount'),
+        'currency': gateway_response.get('currency'),
+        'transaction_id': gateway_response.get('transaction_id'),
+        'error': error,
+        'raw_response': gateway_response}
 
 
-def refund(
-        payment: Dict, payment_token: str, amount: Decimal,
-        **connection_params: Dict) -> Dict:
+def refund(payment_information: Dict, **connection_params: Dict) -> Dict:
     gateway = get_braintree_gateway(**connection_params)
 
     try:
         result = gateway.transaction.refund(
-            transaction_id=payment_token,
-            amount_or_options=str(amount))
+            transaction_id=payment_information['token'],
+            amount_or_options=str(payment_information['amount']))
     except braintree_sdk.exceptions.NotFoundError:
-        raise Exception('Unable to process the transaction. '
-            'Transaction\'s token is incorrect or expired.')
+        raise BraintreeException
 
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
 
     return {
         'is_success': result.is_success,
-        'transaction_id': gateway_response['transaction_id'],
-        'raw_response': gateway_response,
-        'errors': error,
-    }
+        'kind': 'refund',
+        'amount': gateway_response.get('amount'),
+        'currency': gateway_response.get('currency'),
+        'transaction_id': gateway_response.get('transaction_id'),
+        'error': error,
+        'raw_response': gateway_response}

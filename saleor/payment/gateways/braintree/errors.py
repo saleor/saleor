@@ -110,3 +110,17 @@ def get_error_type(error_code):
         if error_code in error_codes:
             return error_type
     return DEFAULT_ERROR_TYPE
+
+
+DEFAULT_ERROR_MESSAGE = (
+    'Unable to process the transaction. '
+    'Transaction\'s token is incorrect or expired.')
+
+
+class BraintreeException(Exception):
+
+    def __init__(self, *args, **kwargs):
+        if args or kwargs:
+            super().__init__(*args, **kwargs)
+        else:
+            super().__init__(DEFAULT_ERROR_MESSAGE)
