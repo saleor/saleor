@@ -1,10 +1,34 @@
 .footer {
-  background-color: $gray;
-  padding: $global-padding * 2 0;
-  margin-top: $global-margin * 8;
-  @include media-breakpoint-down(xs) {
-    text-align: center;
-    margin-top: $global-margin * 2;
+  &__menus {
+    background-color: $light-gray;
+    padding: $global-padding * 2 0;
+    margin-top: $global-margin * 8;
+    @include media-breakpoint-down(xs) {
+      text-align: center;
+      margin-top: $global-margin * 2;
+    }
+    .menu__item {
+      & > a {
+        font-weight: 600;
+      }
+    }
+    &__social {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      &-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        height: 100%;
+      }
+    }
+  }
+  &__copy {
+    padding: $global-padding * 2 0 $global-padding * 3;
+    &-text {
+      text-align: right;
+    }
   }
   &__logo {
     margin-bottom: $global-margin;
@@ -17,11 +41,14 @@
       }
     }
   }
+  hr {
+    margin-top: 0;
+  }
   ul {
     list-style: none;
     padding-left: 0;
     a {
-      color: $white;
+      color: $black;
       line-height: 2;
     }
   }
@@ -32,7 +59,18 @@
       opacity: 0.6;
     }
     &.social-footer {
+      background-color: $dark-blue;
+      border-radius: 100%;
+      display: inline-block;
+      height: 36px;
+      margin-bottom: $global-margin;
       margin-right: $global-margin;
+      width: 36px;
+      svg {
+        height: 16px;
+        margin-top: 8px;
+        width: 100%;
+      }
     }
   }
 }

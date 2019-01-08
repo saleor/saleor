@@ -1,4 +1,6 @@
-.form-control, select, input {
+.form-control,
+select,
+input {
   color: $body-color;
   border-radius: 2px;
   border: 1px solid $gray;
@@ -80,21 +82,23 @@
   }
   .form-control {
     width: 100%;
-    border-radius: 0;
-    padding-left: $global-padding;
+    border-radius: $button-border-radius;
+    padding: $global-padding;
+    font-size: 0.8rem;
   }
   .btn {
-    width: 2.3rem;
-    height: 2.3rem;
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
+    height: 100%;
     position: absolute;
     top: 0;
     right: 0;
     cursor: pointer;
     border-left: solid 1px $gray;
-    border-radius: 0;
     outline: 0;
-    @include transition(background, 0.3s)
-    img {
+    display: flex;
+    align-items: center;
+    @include transition(background, 0.3s) img {
       height: 1.5rem;
       padding: $global-padding / 7;
     }
@@ -109,7 +113,8 @@
     z-index: 5;
     margin-top: 0;
     .form-control {
-      padding: $global-padding * 2 $global-padding * 2 $global-padding * 2 $global-padding * 4;
+      padding: $global-padding * 2 $global-padding * 2 $global-padding * 2
+        $global-padding * 4;
       border: 0;
     }
     .mobile-close-search {
@@ -153,7 +158,8 @@ input#id_quantity {
     vertical-align: top;
     margin: $global-margin / 4 $global-margin / 2 0 0;
   }
-  span, .address-details {
+  span,
+  .address-details {
     display: inline-block;
   }
   label {
@@ -182,5 +188,5 @@ input#id_quantity {
 select.form-control {
   appearance: none;
   border-radius: 2px;
-  background: url('../images/arrow-select.svg') 100% 50% no-repeat / 24px 14px;
+  background: url("../images/arrow-select.svg") 100% 50% no-repeat / 24px 14px;
 }

@@ -23,6 +23,15 @@ a.btn {
       color: $body-color;
     }
   }
+  &-primary {
+    border-color: transparent;
+    color: $white;
+    &:hover {
+      background-color: #42beab;
+      border-color: transparent;
+      color: $white;
+    }
+  }
   &.primary {
     background-color: $blue;
     color: $white;
@@ -80,13 +89,13 @@ a.btn {
     &.facebook {
       background: #3b5998;
       &:hover {
-        background: darken(#3b5998, 10%)
+        background: darken(#3b5998, 10%);
       }
     }
     &.google {
       background: #dd4b39;
       &:hover {
-        background: darken(#dd4b39, 10%)
+        background: darken(#dd4b39, 10%);
       }
     }
   }
