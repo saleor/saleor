@@ -127,7 +127,6 @@ def test_checkout_check_lines_quantity(
         'lines': [{'variantId': variant_id, 'quantity': 3}]}
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_LINES_ADD, variables)
-    # import ipdb; ipdb.set_trace()
     content = get_graphql_content(response)
     data = content['data']['checkoutLinesAdd']
     assert data['errors'][0]['message'] == 'Could not add item Test product (SKU_A). Only 2 remaining in stock.'

@@ -70,10 +70,11 @@ def check_lines_quantity(variants, quantities):
             variant.check_quantity(quantity)
         except InsufficientStock as e:
             message = (
-                'Add line mutation error',
-                'Could not add item. Only %(remaining)d remaining in stock.' %
-                {'remaining': e.item.quantity_available})
-            errors.append((variant.name, message))
+                'Could not add item '
+                + '%(item_name)s. Only %(remaining)d remaining in stock.' % {
+                    'remaining': e.item.quantity_available,
+                    'item_name': e.item.display_product()})
+            errors.append(('quantity', message))
     return errors
 
 
@@ -180,6 +181,8 @@ class CheckoutLinesAdd(BaseMutation):
             if line_errors:
                 for err in line_errors:
                     cls.add_error(errors, field=err[0], message=err[1])
+        if errors:
+            return CheckoutLinesAdd(errors=errors)
 
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
