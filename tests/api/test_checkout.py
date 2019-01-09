@@ -9,18 +9,24 @@ from saleor.order.models import Order
 from tests.api.utils import get_graphql_content
 
 
-def test_checkout_create(user_api_client, variant, graphql_address_data):
-    """Create checkout object using GraphQL API."""
-    query = """
+MUTATION_CHECKOUT_CREATE = """
     mutation createCheckout($checkoutInput: CheckoutCreateInput!) {
         checkoutCreate(input: $checkoutInput) {
             checkout {
                 token,
                 id
             }
+            errors {
+                field
+                message
+            }
         }
     }
     """
+
+
+def test_checkout_create(user_api_client, variant, graphql_address_data):
+    """Create checkout object using GraphQL API."""
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
     test_email = 'test@example.com'
     shipping_address = graphql_address_data
@@ -32,7 +38,8 @@ def test_checkout_create(user_api_client, variant, graphql_address_data):
             'email': test_email,
             'shippingAddress': shipping_address}}
     assert not Cart.objects.exists()
-    response = user_api_client.post_graphql(query, variables)
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)
 
     new_cart = Cart.objects.first()
@@ -55,6 +62,26 @@ def test_checkout_create(user_api_client, variant, graphql_address_data):
         'postalCode']
     assert new_cart.shipping_address.country == shipping_address['country']
     assert new_cart.shipping_address.city == shipping_address['city']
+
+
+def test_checkout_create_check_lines_quantity(
+        user_api_client, variant, graphql_address_data):
+    variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
+    test_email = 'test@example.com'
+    shipping_address = graphql_address_data
+    variables = {
+        'checkoutInput': {
+            'lines': [{
+                'quantity': 3,
+                'variantId': variant_id}],
+            'email': test_email,
+            'shippingAddress': shipping_address}}
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    data = content['data']['checkoutCreate']
+    assert data['errors'][0]['message'] == 'Could not add item Test product (SKU_A). Only 2 remaining in stock.'
+    assert data['errors'][0]['field'] == 'quantity'
 
 
 MUTATION_CHECKOUT_LINES_ADD = """
@@ -117,7 +144,7 @@ def test_checkout_lines_add_empty_checkout(
     assert line.quantity == 1
 
 
-def test_checkout_check_lines_quantity(
+def test_checkout_lines_add_check_lines_quantity(
         user_api_client, cart, variant):
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)
     checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
