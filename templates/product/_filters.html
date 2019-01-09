@@ -1,17 +1,8 @@
 {% load i18n %}
 {% load static %}
 
-<div class="product-filters">
-  <div class="product-filters__title">
-    <h2>
-      <strong>{{ object.translated }}</strong>
-    </h2>
-    {% block title_tree %}{% endblock title_tree %}
-  </div>
-</div>
 <div class="filters-menu__body d-none d-md-block">
   <h2>
-    {% trans 'Filters' context 'Filter heading title' %}
     {% if filter_set.is_bound_unsorted %}
       <a href="./">
         <span class="clear-filters float-right">{% trans 'Clear filters' context 'Product list page filters' %}</span>
@@ -67,7 +58,7 @@
             </div>
           {% endif %}
         {% endfor %}
-        <button class="btn primary" type="submit">{% trans 'Update' context 'Apply filters button' %}</button>
+        <button class="btn btn-primary" type="submit">{% trans 'Update results' context 'Apply filters button' %}</button>
       </form>
     </div>
   </div>

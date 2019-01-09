@@ -52,64 +52,6 @@
         {% block breadcrumb_part %}{% endblock %}
       </ul>
     </div>
-    <div class="col-md-5">
-      <h3 class="d-md-none float-left filters-toggle">
-        {% trans 'Filters' context 'Filter heading title' %}
-      </h3>
-      <div class="sort-by">
-        <div class="click-area d-none"></div>
-        <button class="btn btn-link">
-          <div>
-            <span>
-              {% if now_sorted_by == 'name' %}
-                {% blocktrans trimmed %}
-                  Sort by: <b>name</b>
-                {% endblocktrans %}
-              {% elif now_sorted_by == 'price' %}
-                {% blocktrans trimmed %}
-                  Sort by: <b>price</b>
-                {% endblocktrans %}
-              {% endif %}
-            </span>
-            <div class="sort-order-icon">
-              {% if is_descending %}
-                <svg data-src="{% static "images/arrow-down.svg" %}" />
-              {% else %}
-                <svg data-src="{% static "images/arrow-up.svg" %}" />
-              {% endif %}
-            </div>
-          </div>
-        </button>
-        <ul class="sort-list d-none">
-          {% for choice, label in sort_by_choices.items %}
-            <li>
-              <div class="row">
-                <div class="col-6">
-                  {% trans 'Sort by' context 'Product list filters' %}:
-                  <strong>{{ label }}</strong>
-                </div>
-                <div class="col-6">
-                  <div>
-                    <a href="{% get_sort_by_url choice %}">
-                      <span>{% trans 'ascending' context 'sort by option' %}</span>
-                      <div class="sort-order-icon float-right">
-                        <img class="lazyload lazypreload" data-src="{% static "images/arrow-up.svg" %}">
-                      </div>
-                    </a>
-                    <a href="{% get_sort_by_url choice descending=True %}">
-                      <span>{% trans 'descending' context 'sort by option' %}</span>
-                      <div class="sort-order-icon float-right">
-                        <img class="lazyload lazypreload" data-src="{% static "images/arrow-down.svg" %}">
-                      </div>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
-    </div>
   </div>
 {% endblock %}
 
@@ -121,39 +63,104 @@
 {% endblock topcontent %}
 
 {% block content %}
-
   {% block collection_published_warning %}{% endblock %}
-
   <div id="product-list-page">
     <div class="row">
       <div class="col-md-4 col-lg-3">
         {% block filters %}{% endblock filters %}
       </div>
       <div class="col-md-8 col-lg-9 product-list">
+        <div class="product-list__header">
+          <div class="product-list__header__title">
+          <h1>
+            <strong>{{ object.translated }}</strong>
+          </h1>
+          {% block title_tree %}{% endblock title_tree %}
+        </div>
+        <hr />
         <div>
+          <h3 class="d-md-none filters-toggle">
+            {% trans 'Filters' context 'Filter heading title' %}
+          </h3>
+          <div class="sort-by">
+            <div class="click-area d-none"></div>
+              <button class="btn btn-link">
+                <div>
+                  <span>
+                    {% if now_sorted_by == 'name' %}
+                      {% blocktrans trimmed %}
+                        Sort by: <b>name</b>
+                      {% endblocktrans %}
+                    {% elif now_sorted_by == 'price' %}
+                      {% blocktrans trimmed %}
+                        Sort by: <b>price</b>
+                      {% endblocktrans %}
+                    {% endif %}
+                  </span>
+                  <div class="sort-order-icon">
+                    {% if is_descending %}
+                      <svg data-src="{% static "images/chevron-down.svg" %}" />
+                    {% else %}
+                      <svg data-src="{% static "images/chevron-up.svg" %}" />
+                    {% endif %}
+                  </div>
+                </div>
+              </button>
+              <ul class="sort-list d-none">
+                {% for choice, label in sort_by_choices.items %}
+                  <li>
+                    <div class="row">
+                      <div class="col-6">
+                        {% trans 'Sort by' context 'Product list filters' %}:
+                        <strong>{{ label }}</strong>
+                      </div>
+                      <div class="col-6">
+                        <div>
+                          <a href="{% get_sort_by_url choice %}">
+                            <span>{% trans 'ascending' context 'sort by option' %}</span>
+                            <div class="sort-order-icon float-right">
+                              <img class="lazyload lazypreload" data-src="{% static "images/arrow-up.svg" %}">
+                            </div>
+                          </a>
+                          <a href="{% get_sort_by_url choice descending=True %}">
+                            <span>{% trans 'descending' context 'sort by option' %}</span>
+                            <div class="sort-order-icon float-right">
+                              <img class="lazyload lazypreload" data-src="{% static "images/arrow-down.svg" %}">
+                            </div>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
           <div>
-            {% if products %}
-              <div class="row">
-                {% include "product/_items.html" with products=products %}
-              </div>
-              <div class="row">
-                <div class="m-auto">
-                  {% if products_paginated.has_other_pages %}
-                    {% bootstrap_pagination products_paginated extra=request.GET.urlencode %}
-                  {% endif %}
+            <div>
+              {% if products %}
+                <div class="row">
+                  {% include "product/_items.html" with products=products %}
                 </div>
-              </div>
-            {% else %}
-              <div class="row no-results">
-                <div class="col-12">
-                  <svg data-src="{% static "images/no-results-bg.svg" %}"
-                       width="360"
-                       height="360" />
-                  <p>{% trans "Sorry, no matches found for your request." context "Search without results text" %}</p>
-                  <p>{% trans "Try again or shop new arrivals." context "Search without results text" %}</p>
+                <div class="row">
+                  <div class="m-auto">
+                    {% if products_paginated.has_other_pages %}
+                      {% bootstrap_pagination products_paginated extra=request.GET.urlencode %}
+                    {% endif %}
+                  </div>
                 </div>
-              </div>
-            {% endif %}
+              {% else %}
+                <div class="row no-results">
+                  <div class="col-12">
+                    <svg data-src="{% static "images/no-results-bg.svg" %}"
+                          width="360"
+                          height="360" />
+                    <p>{% trans "Sorry, no matches found for your request." context "Search without results text" %}</p>
+                    <p>{% trans "Try again or shop new arrivals." context "Search without results text" %}</p>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
           </div>
         </div>
       </div>
