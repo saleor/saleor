@@ -399,9 +399,10 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             info, shipping_method_id, errors, 'shipping_method_id',
             only_type=ShippingMethod)
 
-        clean_shipping_method(
-            checkout, shipping_method, errors, info.context.discounts,
-            info.context.taxes, remove=False)
+        if checkout and shipping_method:
+            clean_shipping_method(
+                checkout, shipping_method, errors, info.context.discounts,
+                info.context.taxes, remove=False)
         if errors:
             return CheckoutShippingMethodUpdate(errors=errors)
 
