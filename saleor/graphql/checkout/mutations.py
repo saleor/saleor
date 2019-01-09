@@ -309,21 +309,20 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
 
-        shipping_address, errors = cls.validate_address(
-            shipping_address, errors, instance=checkout.shipping_address)
-        if errors:
-            return CheckoutShippingAddressUpdate(errors=errors)
+        if checkout:
+            shipping_address, errors = cls.validate_address(
+                shipping_address, errors, instance=checkout.shipping_address)
+            clean_shipping_method(
+                checkout, checkout.shipping_method, errors,
+                info.context.discounts,
+                get_taxes_for_address(shipping_address))
+            if errors:
+                CheckoutShippingAddressUpdate(errors=errors)
 
-        clean_shipping_method(
-            checkout, checkout.shipping_method, errors,
-            info.context.discounts, get_taxes_for_address(shipping_address))
-        if errors:
-            CheckoutShippingAddressUpdate(errors=errors)
-
-        if checkout and shipping_address:
-            with transaction.atomic():
-                shipping_address.save()
-                change_shipping_address_in_cart(checkout, shipping_address)
+            if shipping_address:
+                with transaction.atomic():
+                    shipping_address.save()
+                    change_shipping_address_in_cart(checkout, shipping_address)
         return CheckoutShippingAddressUpdate(checkout=checkout, errors=errors)
 
 
