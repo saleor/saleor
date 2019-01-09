@@ -1,29 +1,52 @@
 {% extends "checkout/details.html" %}
 {% load i18n %}
 {% load i18n_address_tags %}
-{% load bootstrap_form from bootstrap4 %}
 
 {% block forms %}
-  <h3>{% trans "Shipping address" context "Checkout shipping address title" %}</h3>
-  {% format_address cart.shipping_address %}
-  <p><a href="{% url 'checkout:shipping-address' %}">{% trans "Select other address" %}</a></p>
-  <hr>
-  {% if shipping_method_form.shipping_method.field.choices %}
-    <form method="post" novalidate>
-      {% csrf_token %}
-      <h2>{% trans "Shipping method" context "Checkout shipping method form title" %}</h2>
-      {% bootstrap_form shipping_method_form show_label=False %}
-      <p class="text-md-right">
-        <button type="submit" class="btn primary">
-          {% trans "Continue" context "Checkout shipping method primary action" %}
-        </button>
-      </p>
-    </form>
-  {% else %}
-    {% blocktrans context "Message displayed to the user if there's no shipping methods for his country" %}
-      Unfortunately we do not ship to your selected country.
-      <br>
-      Please enter an alternative shipping address or contact us, if you think that's a mistake.
-    {% endblocktrans %}
-  {% endif %}
+  <div class="checkout__shipping-methods">
+    <h3>{% trans "Shipping address" context "Checkout shipping address title" %}</h3>
+    <div class="card card-default address">
+      <div class="card-body">
+        {% format_address cart.shipping_address %}
+      </div>
+    </div>
+    <p>
+      <a href="{% url 'checkout:shipping-address' %}">
+        {% trans "Select other address" %}
+      </a>
+    </p>
+    <hr>
+    {% if shipping_method_form.shipping_method.field.choices %}
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <h2>
+          {% trans "Shipping method" context "Checkout shipping method form title" %}
+        </h2>
+        <div class="checkout__shipping-methods-form">
+          {% for choice in shipping_method_form.shipping_method %}
+            <div class="radio">
+              <label>
+                <div class="card card-default">
+                  <div class="card-body">
+                    <strong>
+                      {{choice}}
+                    </strong>
+                  </div>
+                </div>
+              </label>
+            </div>
+          {% endfor %}
+          <button type="submit" class="btn btn-primary">
+            {% trans "Continue" context "Checkout shipping method primary action" %}
+          </button>
+        </div>
+      </form>
+    {% else %}
+      {% blocktrans context "Message displayed to the user if there's no shipping methods for his country" %}
+        Unfortunately we do not ship to your selected country.
+        <br>
+        Please enter an alternative shipping address or contact us, if you think that's a mistake.
+      {% endblocktrans %}
+    {% endif %}
+  </div>
 {% endblock %}

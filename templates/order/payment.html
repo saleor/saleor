@@ -77,7 +77,7 @@
               {% csrf_token %}
               {{ payment_form }}
               {% block form_submit %}
-                <button type="submit" class="btn primary">
+                <button type="submit" class="btn btn-primary">
                   {% trans "Proceed to payment" context "Payment details primary action" %}
                 </button>
               {% endblock %}
