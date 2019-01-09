@@ -259,7 +259,7 @@ class CheckoutCustomerAttach(BaseMutation):
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
         customer = cls.get_node_or_error(
             info, customer_id, errors, 'customer_id', only_type=User)
-        if checkout and customer:
+        if checkout is not None and customer:
             checkout.user = customer
             checkout.save(update_fields=['user'])
         return CheckoutCustomerAttach(checkout=checkout, errors=errors)
@@ -309,7 +309,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
 
-        if checkout:
+        if checkout is not None:
             shipping_address, errors = cls.validate_address(
                 shipping_address, errors, instance=checkout.shipping_address)
             clean_shipping_method(
@@ -350,7 +350,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         if errors:
             return CheckoutBillingAddressUpdate(errors=errors)
 
-        if checkout and billing_address:
+        if checkout is not None and billing_address:
             with transaction.atomic():
                 billing_address.save()
                 change_billing_address_in_cart(checkout, billing_address)
@@ -372,7 +372,7 @@ class CheckoutEmailUpdate(BaseMutation):
         errors = []
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
-        if checkout:
+        if checkout is not None:
             checkout.email = email
             checkout.save(update_fields=['email'])
 
@@ -399,7 +399,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             info, shipping_method_id, errors, 'shipping_method_id',
             only_type=ShippingMethod)
 
-        if checkout and shipping_method:
+        if checkout is not None and shipping_method:
             clean_shipping_method(
                 checkout, shipping_method, errors, info.context.discounts,
                 info.context.taxes, remove=False)
