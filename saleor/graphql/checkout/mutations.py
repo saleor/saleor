@@ -63,7 +63,6 @@ def check_lines_quantity(variants, quantities):
     """Check if stock is sufficient for each line in the list of dicts.
     Return list of errors.
     """
-    # FIXME Add tests
     errors = []
     for variant, quantity in zip(variants, quantities):
         try:
@@ -167,20 +166,25 @@ class CheckoutLinesAdd(BaseMutation):
         errors = []
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
-        if checkout is None:
-            return CheckoutLinesAdd(errors=errors)
-
         variants, quantities = None, None
-        if lines:
-            variant_ids = [line.get('variant_id') for line in lines]
-            variants = cls.get_nodes_or_error(
-                ids=variant_ids, errors=errors, field='variant_id',
-                only_type=ProductVariant)
-            quantities = [line.get('quantity') for line in lines]
-            line_errors = check_lines_quantity(variants, quantities)
-            if line_errors:
-                for err in line_errors:
-                    cls.add_error(errors, field=err[0], message=err[1])
+        if checkout is not None:
+            if lines:
+                variant_ids = [line.get('variant_id') for line in lines]
+                variants = cls.get_nodes_or_error(
+                    ids=variant_ids, errors=errors, field='variant_id',
+                    only_type=ProductVariant)
+                quantities = [line.get('quantity') for line in lines]
+                line_errors = check_lines_quantity(variants, quantities)
+                if line_errors:
+                    for err in line_errors:
+                        cls.add_error(errors, field=err[0], message=err[1])
+
+            # FIXME test if below function is called
+            clean_shipping_method(
+                checkout=checkout, method=checkout.shipping_method,
+                errors=errors, discounts=info.context.discounts,
+                taxes=get_taxes_for_address(checkout.shipping_address))
+
         if errors:
             return CheckoutLinesAdd(errors=errors)
 
@@ -188,14 +192,6 @@ class CheckoutLinesAdd(BaseMutation):
             for variant, quantity in zip(variants, quantities):
                 add_variant_to_cart(
                     checkout, variant, quantity, replace=replace)
-
-        # FIXME test if below function is called
-        clean_shipping_method(
-            checkout=checkout, method=checkout.shipping_method, errors=errors,
-            discounts=info.context.discounts,
-            taxes=get_taxes_for_address(checkout.shipping_address))
-        if errors:
-            return CheckoutLinesAdd(errors=errors)
 
         return CheckoutLinesAdd(checkout=checkout, errors=errors)
 
