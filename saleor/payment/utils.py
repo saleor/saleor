@@ -1,9 +1,11 @@
+import json
 import logging
 from decimal import Decimal
 from functools import wraps
 from typing import Dict, List, Optional
 
 from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
 from django.forms.models import model_to_dict
 from prices import Money
@@ -19,6 +21,9 @@ from .models import Payment, Transaction
 logger = logging.getLogger(__name__)
 
 GENERIC_TRANSACTION_ERROR = 'Transaction was unsuccessful'
+REQUIRED_GATEWAY_KEYS = {
+    'transaction_id', 'is_success', 'kind', 'error', 'amount', 'currency'}
+ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
 
 
 def get_billing_data(order):
@@ -204,15 +209,21 @@ def validate_gateway_response(responses):
     if not isinstance(responses, list):
         responses = [responses]
 
-    required_fields = {
-        'transaction_id', 'is_success', 'kind', 'error', 'amount', 'currency'}
     for response in responses:
-        if not required_fields.issubset(response):
+        if not REQUIRED_GATEWAY_KEYS.issubset(response):
             raise GatewayError(
                 'Gateway response needs to contain following keys: {}'.format(
-                    required_fields - response.keys()))
-        #TODO: check if response is json serializable
-        #TODO: check if response['kind'] is an allowed choice of TransactionKind
+                    sorted(REQUIRED_GATEWAY_KEYS)))
+
+        if response['kind'] not in ALLOWED_GATEWAY_KINDS:
+            raise GatewayError(
+                'Gateway response kind must be one of {}'.format(
+                    sorted(ALLOWED_GATEWAY_KINDS)))
+
+        try:
+            json.dumps(response, cls=DjangoJSONEncoder)
+        except (TypeError, ValueError):
+            raise GatewayError('Gateway response needs to be json serializable')
 
 
 @validate_payment
