@@ -63,17 +63,17 @@ def check_lines_quantity(variants, quantities):
     """Check if stock is sufficient for each line in the list of dicts.
     Return list of errors.
     """
-    # FIXME Add tests
     errors = []
     for variant, quantity in zip(variants, quantities):
         try:
             variant.check_quantity(quantity)
         except InsufficientStock as e:
             message = (
-                'Add line mutation error',
-                'Could not add item. Only %(remaining)d remaining in stock.' %
-                {'remaining': e.item.quantity_available})
-            errors.append((variant.name, message))
+                'Could not add item '
+                + '%(item_name)s. Only %(remaining)d remaining in stock.' % {
+                    'remaining': e.item.quantity_available,
+                    'item_name': e.item.display_product()})
+            errors.append(('quantity', message))
     return errors
 
 
@@ -166,33 +166,32 @@ class CheckoutLinesAdd(BaseMutation):
         errors = []
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
-        if not checkout:
-            return CheckoutLinesAdd(errors=errors)
-
         variants, quantities = None, None
-        if lines:
-            variant_ids = [line.get('variant_id') for line in lines]
-            variants = cls.get_nodes_or_error(
-                ids=variant_ids, errors=errors, field='variant_id',
-                only_type=ProductVariant)
-            quantities = [line.get('quantity') for line in lines]
-            line_errors = check_lines_quantity(variants, quantities)
-            if line_errors:
-                for err in line_errors:
-                    cls.add_error(errors, field=err[0], message=err[1])
+        if checkout is not None:
+            if lines:
+                variant_ids = [line.get('variant_id') for line in lines]
+                variants = cls.get_nodes_or_error(
+                    ids=variant_ids, errors=errors, field='variant_id',
+                    only_type=ProductVariant)
+                quantities = [line.get('quantity') for line in lines]
+                line_errors = check_lines_quantity(variants, quantities)
+                if line_errors:
+                    for err in line_errors:
+                        cls.add_error(errors, field=err[0], message=err[1])
+
+            # FIXME test if below function is called
+            clean_shipping_method(
+                checkout=checkout, method=checkout.shipping_method,
+                errors=errors, discounts=info.context.discounts,
+                taxes=get_taxes_for_address(checkout.shipping_address))
+
+        if errors:
+            return CheckoutLinesAdd(errors=errors)
 
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
                 add_variant_to_cart(
                     checkout, variant, quantity, replace=replace)
-
-        # FIXME test if below function is called
-        clean_shipping_method(
-            checkout=checkout, method=checkout.shipping_method, errors=errors,
-            discounts=info.context.discounts,
-            taxes=get_taxes_for_address(checkout.shipping_address))
-        if errors:
-            return CheckoutLinesAdd(errors=errors)
 
         return CheckoutLinesAdd(checkout=checkout, errors=errors)
 
@@ -260,7 +259,7 @@ class CheckoutCustomerAttach(BaseMutation):
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
         customer = cls.get_node_or_error(
             info, customer_id, errors, 'customer_id', only_type=User)
-        if checkout and customer:
+        if checkout is not None and customer:
             checkout.user = customer
             checkout.save(update_fields=['user'])
         return CheckoutCustomerAttach(checkout=checkout, errors=errors)
@@ -280,12 +279,11 @@ class CheckoutCustomerDetach(BaseMutation):
         errors = []
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
-        if not checkout:
-            return cls(errors=errors)
-        if not checkout.user:
+        if checkout is not None and not checkout.user:
             cls.add_error(
                 errors, field=None,
                 message='There\'s no customer assigned to this Checkout.')
+        if errors:
             return CheckoutCustomerDetach(errors=errors)
 
         checkout.user = None
@@ -311,21 +309,20 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
 
-        shipping_address, errors = cls.validate_address(
-            shipping_address, errors, instance=checkout.shipping_address)
-        if errors:
-            return CheckoutShippingAddressUpdate(errors=errors)
+        if checkout is not None:
+            shipping_address, errors = cls.validate_address(
+                shipping_address, errors, instance=checkout.shipping_address)
+            clean_shipping_method(
+                checkout, checkout.shipping_method, errors,
+                info.context.discounts,
+                get_taxes_for_address(shipping_address))
+            if errors:
+                CheckoutShippingAddressUpdate(errors=errors)
 
-        clean_shipping_method(
-            checkout, checkout.shipping_method, errors,
-            info.context.discounts, get_taxes_for_address(shipping_address))
-        if errors:
-            CheckoutShippingAddressUpdate(errors=errors)
-
-        if checkout and shipping_address:
-            with transaction.atomic():
-                shipping_address.save()
-                change_shipping_address_in_cart(checkout, shipping_address)
+            if shipping_address:
+                with transaction.atomic():
+                    shipping_address.save()
+                    change_shipping_address_in_cart(checkout, shipping_address)
         return CheckoutShippingAddressUpdate(checkout=checkout, errors=errors)
 
 
@@ -353,7 +350,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         if errors:
             return CheckoutBillingAddressUpdate(errors=errors)
 
-        if checkout and billing_address:
+        if checkout is not None and billing_address:
             with transaction.atomic():
                 billing_address.save()
                 change_billing_address_in_cart(checkout, billing_address)
@@ -375,7 +372,7 @@ class CheckoutEmailUpdate(BaseMutation):
         errors = []
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
-        if checkout:
+        if checkout is not None:
             checkout.email = email
             checkout.save(update_fields=['email'])
 
@@ -402,9 +399,10 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             info, shipping_method_id, errors, 'shipping_method_id',
             only_type=ShippingMethod)
 
-        clean_shipping_method(
-            checkout, shipping_method, errors, info.context.discounts,
-            info.context.taxes, remove=False)
+        if checkout is not None and shipping_method:
+            clean_shipping_method(
+                checkout, shipping_method, errors, info.context.discounts,
+                info.context.taxes, remove=False)
         if errors:
             return CheckoutShippingMethodUpdate(errors=errors)
 
@@ -429,7 +427,7 @@ class CheckoutComplete(BaseMutation):
         errors = []
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
-        if not checkout:
+        if checkout is None:
             return CheckoutComplete(errors=errors)
         taxes = get_taxes_for_cart(checkout, info.context.taxes)
         ready, checkout_error = ready_to_place_order(
