@@ -49,9 +49,10 @@ if REDIS_URL:
     CACHE_URL = os.environ.setdefault('CACHE_URL', REDIS_URL)
 CACHES = {'default': django_cache_url.config()}
 
+DB_NAME = 'saleor-contrib'
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgres://saleor:saleor@localhost:5432/saleor',
+        default='postgres://saleor:saleor@localhost:5432/' + DB_NAME,
         conn_max_age=600)}
 
 
