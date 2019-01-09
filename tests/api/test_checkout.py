@@ -310,35 +310,52 @@ def test_checkout_customer_attach(
     assert cart.user == customer_user
 
 
+MUTATION_CHECKOUT_CUSTOMER_DETACH = """
+    mutation checkoutCustomerDetach($checkoutId: ID!) {
+        checkoutCustomerDetach(checkoutId: $checkoutId) {
+            checkout {
+                token
+            }
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+
+
 def test_checkout_customer_detach(
         user_api_client, cart_with_item, customer_user):
     cart = cart_with_item
     cart.user = customer_user
     cart.save(update_fields=['user'])
 
-    query = """
-        mutation checkoutCustomerDetach($checkoutId: ID!) {
-            checkoutCustomerDetach(checkoutId: $checkoutId) {
-                checkout {
-                    token
-                }
-                errors {
-                    field
-                    message
-                }
-            }
-        }
-    """
     checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
     variables = {
         'checkoutId': checkout_id, }
-    response = user_api_client.post_graphql(query, variables)
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CUSTOMER_DETACH, variables)
     content = get_graphql_content(response)
 
     data = content['data']['checkoutCustomerDetach']
     assert not data['errors']
     cart.refresh_from_db()
     assert cart.user is None
+
+
+def test_checkout_customer_detach_without_customer(
+        user_api_client, cart_with_item, customer_user):
+    cart = cart_with_item
+
+    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
+    variables = {
+        'checkoutId': checkout_id, }
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CUSTOMER_DETACH, variables)
+    content = get_graphql_content(response)
+    data = content['data']['checkoutCustomerDetach']
+    assert data['errors'][0]['message'] == 'There\'s no customer assigned to this Checkout.'
 
 
 def test_checkout_shipping_address_update(

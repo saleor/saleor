@@ -279,12 +279,11 @@ class CheckoutCustomerDetach(BaseMutation):
         errors = []
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
-        if checkout is None:
-            return cls(errors=errors)
-        if not checkout.user:
+        if checkout is not None and not checkout.user:
             cls.add_error(
                 errors, field=None,
                 message='There\'s no customer assigned to this Checkout.')
+        if errors:
             return CheckoutCustomerDetach(errors=errors)
 
         checkout.user = None
