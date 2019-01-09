@@ -186,6 +186,8 @@ def create_products(products_data, placeholder_dir, create_images):
         defaults['weight'] = get_weight(defaults['weight'])
         defaults['category_id'] = defaults.pop('category')
         defaults['product_type_id'] = defaults.pop('product_type')
+        defaults['price'] = get_in_default_currency(
+            defaults, 'price', settings.DEFAULT_CURRENCY)
         defaults['attributes'] = json.loads(defaults['attributes'])
         product, _ = Product.objects.update_or_create(pk=pk, defaults=defaults)
 
@@ -206,7 +208,17 @@ def create_product_variants(variants_data):
             continue
         defaults['product_id'] = product_id
         defaults['attributes'] = json.loads(defaults['attributes'])
+        defaults['price_override'] = get_in_default_currency(
+            defaults, 'price_override', settings.DEFAULT_CURRENCY)
+        defaults['cost_price'] = get_in_default_currency(
+            defaults, 'cost_price', settings.DEFAULT_CURRENCY)
         ProductVariant.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def get_in_default_currency(defaults, field, currency):
+    if field in defaults and defaults[field] is not None:
+        return Money(defaults[field].amount, currency)
+    return None
 
 
 def create_products_by_schema(placeholder_dir, create_images):
@@ -293,7 +305,11 @@ def create_fake_user():
     if user:
         return user
 
-    user = User.objects.create_user(email=email, password='password')
+    user = User.objects.create_user(
+        first_name=address.first_name,
+        last_name=address.last_name,
+        email=email,
+        password='password')
     user.addresses.add(address)
     user.default_billing_address = address
     user.default_shipping_address = address
@@ -449,8 +465,8 @@ def create_shipping_zone(
             type=(
                 ShippingMethodType.PRICE_BASED if random.randint(0, 1)
                 else ShippingMethodType.WEIGHT_BASED),
-            minimum_order_price=fake.money(), maximum_order_price=None,
-            minimum_order_weight=fake.weight(), maximum_order_weight=None)
+            minimum_order_price=0, maximum_order_price=None,
+            minimum_order_weight=0, maximum_order_weight=None)
         for name in shipping_methods_names])
     return 'Shipping Zone: %s' % shipping_zone
 

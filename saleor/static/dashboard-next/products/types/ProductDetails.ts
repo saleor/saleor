@@ -128,8 +128,10 @@ export interface ProductDetails_product_variants {
   sku: string;
   name: string;
   priceOverride: ProductDetails_product_variants_priceOverride | null;
-  stockQuantity: number;
   margin: number | null;
+  quantity: number;
+  quantityAllocated: number;
+  stockQuantity: number;
 }
 
 export interface ProductDetails_product_productType {
@@ -162,25 +164,8 @@ export interface ProductDetails_product {
   url: string;
 }
 
-export interface ProductDetails_collections_edges_node {
-  __typename: "Collection";
-  id: string;
-  name: string;
-}
-
-export interface ProductDetails_collections_edges {
-  __typename: "CollectionCountableEdge";
-  node: ProductDetails_collections_edges_node;
-}
-
-export interface ProductDetails_collections {
-  __typename: "CollectionCountableConnection";
-  edges: ProductDetails_collections_edges[];
-}
-
 export interface ProductDetails {
   product: ProductDetails_product | null;
-  collections: ProductDetails_collections | null;
 }
 
 export interface ProductDetailsVariables {

@@ -115,7 +115,7 @@
 
 {% block topcontent %}
   {% if object.background_image %}
-    <div class="row" id="product-list-image"
+    <div class="row" id="product-list-image" alt="{{ object.background_image_alt }}"
          style="background-image: url({% get_thumbnail object.background_image size='1080x440' method="thumbnail" rendition_key_set="background_images" %})"></div>
   {% endif %}
 {% endblock topcontent %}

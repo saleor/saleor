@@ -1,6 +1,6 @@
+import graphene
 import pytest
 
-import graphene
 from saleor.graphql.shipping.types import ShippingMethodTypeEnum
 from tests.api.utils import assert_read_only_mode, get_graphql_content
 

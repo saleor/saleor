@@ -1,6 +1,5 @@
-import pytest
-
 import graphene
+
 from tests.api.utils import assert_read_only_mode, get_graphql_content
 
 

@@ -6,6 +6,5 @@
     "target": "es5",
     "noUnusedLocals": true,
     "noUnusedParameters": true
-  },
-  "include": ["webpack.d.ts"]
+  }
 }

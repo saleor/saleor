@@ -40,6 +40,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
               <TypedProductVariantCreateQuery
                 displayLoader
                 variables={{ id: productId }}
+                require={["product"]}
               >
                 {({ data, loading: productLoading }) => {
                   const handleCreateSuccess = (data: VariantCreate) => {

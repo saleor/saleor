@@ -1,4 +1,5 @@
 import graphene
+
 from saleor.graphql.menu.mutations import NavigationType
 from saleor.menu.models import MenuItem
 from tests.api.utils import assert_read_only_mode, get_graphql_content

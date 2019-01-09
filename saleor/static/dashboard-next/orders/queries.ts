@@ -47,6 +47,7 @@ export const fragmentAddress = gql`
 export const fragmentOrderLine = gql`
   fragment OrderLineFragment on OrderLine {
     id
+    isShippingRequired
     productName
     productSku
     quantity
@@ -74,6 +75,7 @@ export const fragmentOrderDetails = gql`
     billingAddress {
       ...AddressFragment
     }
+    canFinalize
     created
     customerNote
     events {
@@ -224,19 +226,31 @@ export const TypedOrderDetailsQuery = TypedQuery<
 >(orderDetailsQuery);
 
 export const orderVariantSearchQuery = gql`
-  query OrderVariantSearch($search: String!) {
-    products(query: $search, first: 20) {
+  query OrderVariantSearch($search: String!, $after: String) {
+    products(query: $search, first: 5, after: $after) {
       edges {
         node {
           id
           name
+          thumbnail {
+            url
+          }
           variants {
             id
             name
             sku
-            stockQuantity
+            price {
+              amount
+              currency
+            }
           }
         }
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
+        hasPreviousPage
+        startCursor
       }
     }
   }
@@ -248,7 +262,7 @@ export const TypedOrderVariantSearch = TypedQuery<
 
 export const userSearchQuery = gql`
   query UserSearch($search: String!) {
-    customers(query: $search, first: 20) {
+    customers(query: $search, first: 5) {
       edges {
         node {
           id

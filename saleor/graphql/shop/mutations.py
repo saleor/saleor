@@ -3,8 +3,8 @@ from graphql_jwt.decorators import permission_required
 from graphql_jwt.exceptions import PermissionDenied
 
 from ...site import models as site_models
+from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation
-from ..core.types.common import WeightUnitsEnum
 from ..product.types import Collection
 from .types import AuthorizationKey, AuthorizationKeyType, Shop
 

@@ -2,11 +2,11 @@ import datetime
 from unittest.mock import Mock, patch
 
 import pytest
-
 from django.urls import reverse
 from django_countries.fields import Country
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
+
 from saleor.account.models import Address
 from saleor.core import demo_obfuscators
 from saleor.checkout import views

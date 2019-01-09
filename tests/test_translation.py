@@ -1,9 +1,8 @@
 import pytest
 
 from saleor.product.models import (
-    AttributeValueTranslation, CategoryTranslation,
-    CollectionTranslation, AttributeTranslation, ProductTranslation,
-    ProductVariantTranslation)
+    AttributeTranslation, AttributeValueTranslation, CategoryTranslation,
+    CollectionTranslation, ProductTranslation, ProductVariantTranslation)
 from saleor.shipping.models import ShippingMethodTranslation
 
 

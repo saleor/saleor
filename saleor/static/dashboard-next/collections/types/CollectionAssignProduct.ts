@@ -17,13 +17,18 @@ export interface CollectionAssignProduct_collectionAddProducts_collection_produc
   name: string;
 }
 
+export interface CollectionAssignProduct_collectionAddProducts_collection_products_edges_node_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface CollectionAssignProduct_collectionAddProducts_collection_products_edges_node {
   __typename: "Product";
   id: string;
   isPublished: boolean;
   name: string;
   productType: CollectionAssignProduct_collectionAddProducts_collection_products_edges_node_productType;
-  thumbnailUrl: string | null;
+  thumbnail: CollectionAssignProduct_collectionAddProducts_collection_products_edges_node_thumbnail | null;
 }
 
 export interface CollectionAssignProduct_collectionAddProducts_collection_products_edges {
@@ -53,7 +58,7 @@ export interface CollectionAssignProduct_collectionAddProducts_collection {
 
 export interface CollectionAssignProduct_collectionAddProducts {
   __typename: "CollectionAddProducts";
-  errors: (CollectionAssignProduct_collectionAddProducts_errors | null)[] | null;
+  errors: CollectionAssignProduct_collectionAddProducts_errors[] | null;
   collection: CollectionAssignProduct_collectionAddProducts_collection | null;
 }
 
@@ -63,6 +68,9 @@ export interface CollectionAssignProduct {
 
 export interface CollectionAssignProductVariables {
   collectionId: string;
-  productId: string;
-  first: number;
+  productIds: string[];
+  first?: number | null;
+  after?: string | null;
+  last?: number | null;
+  before?: string | null;
 }

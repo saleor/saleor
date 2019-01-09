@@ -1,20 +1,22 @@
+from datetime import datetime
 from unittest.mock import Mock, patch
 
 import graphene
 import pytest
+from django.utils.dateparse import parse_datetime
 from django.utils.text import slugify
 from graphql_relay import to_global_id
 from prices import Money
-from tests.api.utils import get_graphql_content
-from tests.utils import create_image, create_pdf_file_with_image_ext
 
-from saleor.graphql.core.types import ReportingPeriod
-from saleor.graphql.product.types import (
-    StockAvailability, resolve_attribute_list)
+from saleor.graphql.core.enums import ReportingPeriod
+from saleor.graphql.product.enums import StockAvailability
+from saleor.graphql.product.types import resolve_attribute_list
 from saleor.product.models import (
     Attribute, AttributeValue, Category, Product, ProductImage, ProductType,
     ProductVariant)
 from saleor.product.tasks import update_variants_names
+from tests.api.utils import get_graphql_content
+from tests.utils import create_image, create_pdf_file_with_image_ext
 
 from .utils import (
     assert_no_permission, assert_read_only_mode, get_multipart_request_body)
@@ -90,6 +92,10 @@ def test_product_query(staff_api_client, product, permission_manage_products):
                         name
                         url
                         thumbnailUrl
+                        thumbnail{
+                            url
+                            alt
+                        }
                         images {
                             url
                         }
@@ -301,13 +307,15 @@ def test_filter_products_by_collections(
 
 
 def test_sort_products(user_api_client, product):
-    # set price of the first product
+    # set price and update date of the first product
     product.price = Money('10.00', 'USD')
+    product.updated_at = datetime.utcnow()
     product.save()
 
-    # create the second product with higher price
+    # Create the second product with higher price and date
     product.pk = None
     product.price = Money('20.00', 'USD')
+    product.updated_at = datetime.utcnow()
     product.save()
 
     query = """
@@ -318,6 +326,7 @@ def test_sort_products(user_api_client, product):
                     price {
                         amount
                     }
+                    updatedAt
                 }
             }
         }
@@ -339,6 +348,22 @@ def test_sort_products(user_api_client, product):
     price_0 = content['data']['products']['edges'][0]['node']['price']['amount']
     price_1 = content['data']['products']['edges'][1]['node']['price']['amount']
     assert price_0 > price_1
+
+    asc_date_query = query % {
+        'sort_by_product_order': '{field: DATE, direction:ASC}'}
+    response = user_api_client.post_graphql(asc_date_query)
+    content = get_graphql_content(response)
+    date_0 = content['data']['products']['edges'][0]['node']['updatedAt'] ## parse_datetime
+    date_1 = content['data']['products']['edges'][1]['node']['updatedAt']
+    assert parse_datetime(date_0) < parse_datetime(date_1)
+
+    desc_date_query = query % {
+        'sort_by_product_order': '{field: DATE, direction:DESC}'}
+    response = user_api_client.post_graphql(desc_date_query)
+    content = get_graphql_content(response)
+    date_0 = content['data']['products']['edges'][0]['node']['updatedAt']
+    date_1 = content['data']['products']['edges'][1]['node']['updatedAt']
+    assert parse_datetime(date_0) > parse_datetime(date_1)
 
 
 def test_create_product(
@@ -439,6 +464,149 @@ def test_create_product(
     assert_read_only_mode(response)
 
 
+QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS = """
+    mutation createProduct(
+        $productTypeId: ID!,
+        $categoryId: ID!
+        $name: String!,
+        $description: String!,
+        $price: Decimal!,
+        $sku: String,
+        $quantity: Int,
+        $trackInventory: Boolean)
+    {
+        productCreate(
+            input: {
+                category: $categoryId,
+                productType: $productTypeId,
+                name: $name,
+                description: $description,
+                price: $price,
+                sku: $sku,
+                quantity: $quantity,
+                trackInventory: $trackInventory
+            })
+        {
+            product {
+                id
+                name
+                variants{
+                    id
+                    sku
+                    quantity
+                    trackInventory
+                }
+                category {
+                    name
+                }
+                productType {
+                    name
+                }
+            }
+            errors {
+                message
+                field
+            }
+        }
+    }
+    """
+
+
+def test_create_product_without_variants(
+        staff_api_client, product_type_without_variant, category,
+        permission_manage_products):
+    query = QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS
+
+    product_type = product_type_without_variant
+    product_type_id = graphene.Node.to_global_id(
+        'ProductType', product_type.pk)
+    category_id = graphene.Node.to_global_id(
+        'Category', category.pk)
+    product_name = 'test name'
+    product_description = 'description'
+    product_price = 10
+    sku = 'sku'
+    quantity = 1
+    track_inventory = True
+
+    variables = {
+        'productTypeId': product_type_id,
+        'categoryId': category_id,
+        'name': product_name,
+        'description': product_description,
+        'price': product_price,
+        'sku': sku,
+        'quantity': quantity,
+        'trackInventory': track_inventory}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    assert_read_only_mode(response)
+
+
+def test_create_product_without_variants_sku_validation(
+        staff_api_client, product_type_without_variant, category,
+        permission_manage_products):
+    query = QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS
+
+    product_type = product_type_without_variant
+    product_type_id = graphene.Node.to_global_id(
+        'ProductType', product_type.pk)
+    category_id = graphene.Node.to_global_id(
+        'Category', category.pk)
+    product_name = 'test name'
+    product_description = 'description'
+    product_price = 10
+    quantity = 1
+    track_inventory = True
+
+    variables = {
+        'productTypeId': product_type_id,
+        'categoryId': category_id,
+        'name': product_name,
+        'description': product_description,
+        'price': product_price,
+        'sku': None,
+        'quantity': quantity,
+        'trackInventory': track_inventory}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    assert_read_only_mode(response)
+
+
+def test_create_product_without_variants_sku_duplication(
+        staff_api_client, product_type_without_variant, category,
+        permission_manage_products, product_with_default_variant):
+    query = QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS
+
+    product_type = product_type_without_variant
+    product_type_id = graphene.Node.to_global_id(
+        'ProductType', product_type.pk)
+    category_id = graphene.Node.to_global_id(
+        'Category', category.pk)
+    product_name = 'test name'
+    product_description = 'description'
+    product_price = 10
+    quantity = 1
+    track_inventory = True
+    sku = '1234'
+
+    variables = {
+        'productTypeId': product_type_id,
+        'categoryId': category_id,
+        'name': product_name,
+        'description': product_description,
+        'price': product_price,
+        'sku': sku,
+        'quantity': quantity,
+        'trackInventory': track_inventory}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    assert_read_only_mode(response)
+
+
 def test_update_product(
         staff_api_client, category, non_default_category, product,
         permission_manage_products):
@@ -515,6 +683,98 @@ def test_update_product(
         'chargeTaxes': product_chargeTaxes,
         'taxRate': product_taxRate,
         'price': product_price}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    assert_read_only_mode(response)
+
+
+def test_update_product_without_variants(
+        staff_api_client, product_with_default_variant,
+        permission_manage_products):
+    query = """
+    mutation updateProduct(
+        $productId: ID!,
+        $sku: String,
+        $quantity: Int,
+        $trackInventory: Boolean,
+        $description: String)
+    {
+        productUpdate(
+            id: $productId,
+            input: {
+                sku: $sku,
+                quantity: $quantity,
+                trackInventory: $trackInventory,
+                description: $description
+            })
+        {
+            product {
+                id
+                variants{
+                    id
+                    sku
+                    quantity
+                    trackInventory
+                }
+            }
+            errors {
+                message
+                field
+            }
+        }
+    }
+    """
+
+    product = product_with_default_variant
+    product_id = graphene.Node.to_global_id('Product', product.pk)
+    product_sku = "test_sku"
+    product_quantity = 10
+    product_track_inventory = False
+    product_description = "test description"
+
+    variables = {
+        'productId': product_id,
+        'sku': product_sku,
+        'quantity': product_quantity,
+        'trackInventory': product_track_inventory,
+        'description': product_description}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    assert_read_only_mode(response)
+
+
+def test_update_product_without_variants_sku_duplication(
+        staff_api_client, product_with_default_variant,
+        permission_manage_products, product):
+    query = """
+    mutation updateProduct(
+        $productId: ID!,
+        $sku: String)
+    {
+        productUpdate(
+            id: $productId,
+            input: {
+                sku: $sku
+            })
+        {
+            product {
+                id
+            }
+            errors {
+                message
+                field
+            }
+        }
+    }"""
+    product = product_with_default_variant
+    product_id = graphene.Node.to_global_id('Product', product.pk)
+    product_sku = "123"
+
+    variables = {
+        'productId': product_id,
+        'sku': product_sku}
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])

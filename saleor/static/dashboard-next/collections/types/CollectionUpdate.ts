@@ -15,6 +15,7 @@ export interface CollectionUpdate_collectionUpdate_errors {
 
 export interface CollectionUpdate_collectionUpdate_collection_backgroundImage {
   __typename: "Image";
+  alt: string | null;
   url: string;
 }
 
@@ -24,13 +25,14 @@ export interface CollectionUpdate_collectionUpdate_collection {
   isPublished: boolean;
   name: string;
   backgroundImage: CollectionUpdate_collectionUpdate_collection_backgroundImage | null;
+  description: string;
   seoDescription: string | null;
   seoTitle: string | null;
 }
 
 export interface CollectionUpdate_collectionUpdate {
   __typename: "CollectionUpdate";
-  errors: (CollectionUpdate_collectionUpdate_errors | null)[] | null;
+  errors: CollectionUpdate_collectionUpdate_errors[] | null;
   collection: CollectionUpdate_collectionUpdate_collection | null;
 }
 

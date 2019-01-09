@@ -39,6 +39,7 @@ class Category(MPTTModel, SeoModel):
         on_delete=models.CASCADE)
     background_image = VersatileImageField(
         upload_to='category-backgrounds', blank=True, null=True)
+    background_image_alt = models.CharField(max_length=128, blank=True)
 
     objects = models.Manager()
     tree = TreeManager()
@@ -128,7 +129,8 @@ class Product(SeoModel):
     updated_at = models.DateTimeField(auto_now=True, null=True)
     charge_taxes = models.BooleanField(default=True)
     tax_rate = models.CharField(
-        max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True)
+        max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True,
+        choices=TaxRateType.CHOICES)
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES,
         blank=True, null=True)
@@ -138,6 +140,7 @@ class Product(SeoModel):
 
     class Meta:
         app_label = 'product'
+        ordering = ('name', )
         permissions = ((
             'manage_products', pgettext_lazy(
                 'Permission description',
@@ -173,7 +176,7 @@ class Product(SeoModel):
 
     def get_first_image(self):
         images = list(self.images.all())
-        return images[0].image if images else None
+        return images[0] if images else None
 
     def get_price_range(self, discounts=None, taxes=None):
         if self.variants.all():
@@ -294,9 +297,7 @@ class ProductVariant(models.Model):
 
     def get_first_image(self):
         images = list(self.images.all())
-        if images:
-            return images[0].image
-        return self.product.get_first_image()
+        return images[0] if images else self.product.get_first_image()
 
     def get_ajax_label(self, discounts=None):
         price = self.get_price(discounts).gross
@@ -378,7 +379,7 @@ class AttributeValue(SortableModel):
     translated = TranslationProxy()
 
     class Meta:
-        ordering = ('sort_order',)
+        ordering = ('sort_order', )
         unique_together = ('name', 'attribute')
 
     def __str__(self):
@@ -435,7 +436,10 @@ class VariantImage(models.Model):
 class CollectionQuerySet(models.QuerySet):
 
     def public(self):
-        return self.filter(is_published=True)
+        return self.filter(
+            Q(is_published=True),
+            Q(published_date__isnull=True)
+            | Q(published_date__lte=datetime.date.today()))
 
     def visible_to_user(self, user):
         has_access_to_all = (
@@ -452,14 +456,15 @@ class Collection(SeoModel):
         Product, blank=True, related_name='collections')
     background_image = VersatileImageField(
         upload_to='collection-backgrounds', blank=True, null=True)
+    background_image_alt = models.CharField(max_length=128, blank=True)
     is_published = models.BooleanField(default=False)
     description = models.TextField(blank=True)
-
+    published_date = models.DateField(blank=True, null=True)
     objects = CollectionQuerySet.as_manager()
     translated = TranslationProxy()
 
     class Meta:
-        ordering = ['pk']
+        ordering = ('slug', )
 
     def __str__(self):
         return self.name
@@ -468,6 +473,12 @@ class Collection(SeoModel):
         return reverse(
             'product:collection',
             kwargs={'pk': self.id, 'slug': self.slug})
+
+    @property
+    def is_visible(self):
+        return self.is_published and (
+            self.published_date is None or
+            self.published_date <= datetime.date.today())
 
 
 class CollectionTranslation(SeoModelTranslation):

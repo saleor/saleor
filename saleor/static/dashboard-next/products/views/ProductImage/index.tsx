@@ -46,6 +46,7 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
                 imageId,
                 productId
               }}
+              require={["product"]}
             >
               {({ data, loading }) => {
                 return (

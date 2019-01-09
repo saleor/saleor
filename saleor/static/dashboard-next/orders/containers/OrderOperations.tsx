@@ -12,8 +12,8 @@ import {
   TypedOrderDraftUpdateMutation,
   TypedOrderFulfillmentCancelMutation,
   TypedOrderFulfillmentUpdateTrackingMutation,
-  TypedOrderLineAddMutation,
   TypedOrderLineDeleteMutation,
+  TypedOrderLinesAddMutation,
   TypedOrderLineUpdateMutation,
   TypedOrderMarkAsPaidMutation,
   TypedOrderRefundMutation,
@@ -207,7 +207,7 @@ const OrderOperations: React.StatelessComponent<OrderOperationsProps> = ({
                                         onCompleted={onOrderLineDelete}
                                       >
                                         {(...deleteOrderLine) => (
-                                          <TypedOrderLineAddMutation
+                                          <TypedOrderLinesAddMutation
                                             onCompleted={onOrderLineAdd}
                                           >
                                             {(...addOrderLine) => (
@@ -319,7 +319,7 @@ const OrderOperations: React.StatelessComponent<OrderOperationsProps> = ({
                                                 )}
                                               </TypedOrderLineUpdateMutation>
                                             )}
-                                          </TypedOrderLineAddMutation>
+                                          </TypedOrderLinesAddMutation>
                                         )}
                                       </TypedOrderLineDeleteMutation>
                                     )}

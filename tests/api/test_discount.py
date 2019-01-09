@@ -1,9 +1,7 @@
-import pytest
-
 import graphene
-from django.shortcuts import reverse
-from saleor.discount import DiscountValueType, VoucherType
-from saleor.graphql.discount.types import (
+
+from saleor.discount import DiscountValueType
+from saleor.graphql.discount.enums import (
     DiscountValueTypeEnum, VoucherTypeEnum)
 
 from tests.api.utils import assert_read_only_mode, get_graphql_content

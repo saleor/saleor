@@ -74,6 +74,7 @@ export interface OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_orderL
 export interface OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -119,6 +120,7 @@ export interface OrderMarkAsPaid_orderMarkAsPaid_order_lines_unitPrice {
 export interface OrderMarkAsPaid_orderMarkAsPaid_order_lines {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -229,6 +231,7 @@ export interface OrderMarkAsPaid_orderMarkAsPaid_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderMarkAsPaid_orderMarkAsPaid_order_billingAddress | null;
+  canFinalize: boolean;
   created: any;
   customerNote: string;
   events: (OrderMarkAsPaid_orderMarkAsPaid_order_events | null)[] | null;
@@ -253,7 +256,7 @@ export interface OrderMarkAsPaid_orderMarkAsPaid_order {
 
 export interface OrderMarkAsPaid_orderMarkAsPaid {
   __typename: "OrderMarkAsPaid";
-  errors: (OrderMarkAsPaid_orderMarkAsPaid_errors | null)[] | null;
+  errors: OrderMarkAsPaid_orderMarkAsPaid_errors[] | null;
   order: OrderMarkAsPaid_orderMarkAsPaid_order | null;
 }
 

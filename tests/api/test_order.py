@@ -1,23 +1,19 @@
 from unittest.mock import MagicMock, Mock
 
 import graphene
-import pytest
-from tests.api.utils import get_graphql_content
 
-from saleor.core.utils.taxes import ZERO_TAXED_MONEY
-from saleor.graphql.core.types import ReportingPeriod
+from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel, clean_order_capture, clean_order_mark_as_paid,
     clean_refund_payment, clean_void_payment)
-from saleor.graphql.order.types import OrderEventsEmailsEnum, OrderStatusFilter
+from saleor.graphql.order.enums import OrderEventsEmailsEnum, OrderStatusFilter
 from saleor.graphql.order.utils import can_finalize_draft_order
-from saleor.graphql.payment.types import PaymentChargeStatusEnum
 from saleor.order import OrderEvents, OrderEventsEmails, OrderStatus
-from saleor.order.models import Order, OrderEvent
 from saleor.payment import CustomPaymentChoices
 from saleor.payment.models import Payment
 from saleor.shipping.models import ShippingMethod
-from tests.api.utils import assert_read_only_mode, get_graphql_content
+
+from .utils import assert_read_only_mode, get_graphql_content
 
 
 def test_orderline_query(
@@ -488,14 +484,14 @@ def test_draft_order_complete_anonymous_user_no_email(
     assert_read_only_mode(response)
 
 
-DRAFT_ORDER_LINE_CREATE_MUTATION = """
-    mutation DraftOrderLineCreate($orderId: ID!, $variantId: ID!, $quantity: Int!) {
-        draftOrderLineCreate(id: $orderId, input: {variantId: $variantId, quantity: $quantity}) {
+DRAFT_ORDER_LINES_CREATE_MUTATION = """
+    mutation DraftOrderLinesCreate($orderId: ID!, $variantId: ID!, $quantity: Int!) {
+        draftOrderLinesCreate(id: $orderId, input: [{variantId: $variantId, quantity: $quantity}]) {
             errors {
                 field
                 message
             }
-            orderLine {
+            orderLines {
                 id
                 quantity
                 productSku
@@ -512,9 +508,9 @@ DRAFT_ORDER_LINE_CREATE_MUTATION = """
 """
 
 
-def test_draft_order_line_create(
+def test_draft_order_lines_create(
         draft_order, permission_manage_orders, staff_api_client):
-    query = DRAFT_ORDER_LINE_CREATE_MUTATION
+    query = DRAFT_ORDER_LINES_CREATE_MUTATION
     order = draft_order
     line = order.lines.first()
     variant = line.variant
@@ -533,7 +529,7 @@ def test_draft_order_line_create(
 
 def test_require_draft_order_when_creating_lines(
         order_with_lines, staff_api_client, permission_manage_orders):
-    query = DRAFT_ORDER_LINE_CREATE_MUTATION
+    query = DRAFT_ORDER_LINES_CREATE_MUTATION
     order = order_with_lines
     line = order.lines.first()
     variant = line.variant
@@ -1071,3 +1067,39 @@ def test_order_update_shipping_incorrect_shipping_method(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
     assert_read_only_mode(response)
+
+
+def test_draft_order_clear_shipping_method(
+        staff_api_client, draft_order, permission_manage_orders):
+    assert draft_order.shipping_method
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id('Order', draft_order.id)
+    variables = {'order': order_id, 'shippingMethod': None}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
+    assert_read_only_mode(response)
+
+
+def test_orders_total(
+        staff_api_client, permission_manage_orders, order_with_lines):
+    query = """
+    query Orders($period: ReportingPeriod) {
+        ordersTotal(period: $period) {
+            gross {
+                amount
+                currency
+            }
+            net {
+                currency
+                amount
+            }
+        }
+    }
+    """
+    variables = {'period': ReportingPeriod.TODAY.name}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+    assert (
+        content['data']['ordersTotal']['gross']['amount'] ==
+        order_with_lines.total.gross.amount)

@@ -126,7 +126,7 @@ class Order(models.Model):
     objects = OrderQueryset.as_manager()
 
     class Meta:
-        ordering = ('-pk',)
+        ordering = ('-pk', )
         permissions = ((
             'manage_orders',
             pgettext_lazy('Permission description', 'Manage orders.')),)
@@ -137,15 +137,23 @@ class Order(models.Model):
         return super().save(*args, **kwargs)
 
     def is_fully_paid(self):
+        total_paid = self._total_paid()
+        return total_paid.gross >= self.total.gross
+
+    def is_partly_paid(self):
+        total_paid = self._total_paid()
+        return total_paid.gross.amount > 0
+
+    def get_user_current_email(self):
+        return self.user.email if self.user else self.user_email
+
+    def _total_paid(self):
         payments = self.payments.filter(
             charge_status=ChargeStatus.CHARGED)
         total_captured = [
             payment.get_captured_amount() for payment in payments]
         total_paid = sum(total_captured, ZERO_TAXED_MONEY)
-        return total_paid.gross >= self.total.gross
-
-    def get_user_current_email(self):
-        return self.user.email if self.user else self.user_email
+        return total_paid
 
     def _index_billing_phone(self):
         return self.billing_address.phone
@@ -300,7 +308,7 @@ class OrderLine(models.Model):
         max_digits=5, decimal_places=2, default=Decimal('0.0'))
 
     class Meta:
-        ordering = ('pk',)
+        ordering = ('pk', )
 
     def __str__(self):
         return self.product_name

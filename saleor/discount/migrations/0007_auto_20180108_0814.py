@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 
 import datetime
+from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 import django_prices.models
@@ -33,7 +34,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='sale',
             name='type',
-            field=models.CharField(choices=[('fixed', 'USD'), ('percentage', '%')], default='fixed', max_length=10),
+            field=models.CharField(choices=[('fixed', settings.DEFAULT_CURRENCY), ('percentage', '%')], default='fixed', max_length=10),
         ),
         migrations.AlterField(
             model_name='sale',
@@ -63,7 +64,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='voucher',
             name='discount_value_type',
-            field=models.CharField(choices=[('fixed', 'USD'), ('percentage', '%')], default='fixed', max_length=10),
+            field=models.CharField(choices=[('fixed', settings.DEFAULT_CURRENCY), ('percentage', '%')], default='fixed', max_length=10),
         ),
         migrations.AlterField(
             model_name='voucher',
@@ -73,7 +74,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='voucher',
             name='limit',
-            field=django_prices.models.MoneyField(blank=True, currency='USD', decimal_places=2, max_digits=12, null=True),
+            field=django_prices.models.MoneyField(blank=True, currency=settings.DEFAULT_CURRENCY, decimal_places=2, max_digits=12, null=True),
         ),
         migrations.AlterField(
             model_name='voucher',

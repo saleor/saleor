@@ -2,7 +2,10 @@ export interface AddressTypeInput {
   city: string;
   cityArea?: string;
   companyName?: string;
-  country: string;
+  country: {
+    label: string;
+    value: string;
+  };
   countryArea?: string;
   firstName: string;
   lastName: string;

@@ -74,6 +74,7 @@ export interface OrderCancel_orderCancel_order_fulfillments_lines_orderLine_unit
 export interface OrderCancel_orderCancel_order_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -119,6 +120,7 @@ export interface OrderCancel_orderCancel_order_lines_unitPrice {
 export interface OrderCancel_orderCancel_order_lines {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -229,6 +231,7 @@ export interface OrderCancel_orderCancel_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderCancel_orderCancel_order_billingAddress | null;
+  canFinalize: boolean;
   created: any;
   customerNote: string;
   events: (OrderCancel_orderCancel_order_events | null)[] | null;
@@ -253,7 +256,7 @@ export interface OrderCancel_orderCancel_order {
 
 export interface OrderCancel_orderCancel {
   __typename: "OrderCancel";
-  errors: (OrderCancel_orderCancel_errors | null)[] | null;
+  errors: OrderCancel_orderCancel_errors[] | null;
   order: OrderCancel_orderCancel_order | null;
 }
 

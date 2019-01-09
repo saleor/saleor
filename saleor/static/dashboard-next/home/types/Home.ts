@@ -61,11 +61,16 @@ export interface Home_productTopToday_edges_node_attributes {
   value: Home_productTopToday_edges_node_attributes_value;
 }
 
+export interface Home_productTopToday_edges_node_product_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface Home_productTopToday_edges_node_product {
   __typename: "Product";
   id: string;
   name: string;
-  thumbnailUrl: string | null;
+  thumbnail: Home_productTopToday_edges_node_product_thumbnail | null;
 }
 
 export interface Home_productTopToday_edges_node {

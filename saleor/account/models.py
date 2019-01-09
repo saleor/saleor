@@ -109,6 +109,8 @@ def get_token():
 
 class User(PermissionsMixin, AbstractBaseUser):
     email = models.EmailField(unique=True)
+    first_name = models.CharField(max_length=256, blank=True)
+    last_name = models.CharField(max_length=256, blank=True)
     addresses = models.ManyToManyField(
         Address, blank=True, related_name='user_addresses')
     is_staff = models.BooleanField(default=False)
@@ -143,6 +145,13 @@ class User(PermissionsMixin, AbstractBaseUser):
         return self.email
 
     def get_full_name(self):
+        if self.first_name or self.last_name:
+            return ('%s %s' % (self.first_name, self.last_name)).strip()
+        if self.default_billing_address:
+            first_name = self.default_billing_address.first_name
+            last_name = self.default_billing_address.last_name
+            if first_name or last_name:
+                return ('%s %s' % (first_name, last_name)).strip()
         return self.email
 
     def get_short_name(self):

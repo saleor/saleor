@@ -29,9 +29,6 @@ const styles = (theme: Theme) =>
       flexGrow: 1,
       position: "relative"
     },
-    inputRoot: {
-      flexWrap: "wrap"
-    },
     paper: {
       left: 0,
       marginTop: theme.spacing.unit,
@@ -125,20 +122,22 @@ export const MultiAutocompleteSelectField = withStyles(styles, {
               inputValue,
               selectedItem,
               toggleMenu,
+              closeMenu,
+              openMenu,
               highlightedIndex
             }) => {
               return (
                 <div className={classes.container}>
                   <TextField
                     InputProps={{
-                      classes: {
-                        root: classes.inputRoot
-                      },
                       ...getInputProps({
                         onKeyDown: handleKeyDown(inputValue),
                         placeholder
                       }),
                       endAdornment: <ArrowDropdownIcon onClick={toggleMenu} />,
+                      id: undefined,
+                      onBlur: closeMenu,
+                      onFocus: openMenu,
                       startAdornment: selectedItem.map(item => (
                         <Chip
                           key={item.value}

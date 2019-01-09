@@ -2,14 +2,15 @@ from unittest.mock import Mock
 
 import graphene
 from django.utils import timezone
-from tests.api.utils import (
-    _get_graphql_content_from_response, get_graphql_content)
 
-from saleor.graphql.core.types import ReportingPeriod
+from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.core.utils import clean_seo_fields, snake_to_camel_case
 from saleor.graphql.product import types as product_types
 from saleor.graphql.utils import get_database_id, reporting_period_to_date
 from saleor.product.models import Product
+from tests.api.utils import (
+    assert_read_only_mode, _get_graphql_content_from_response,
+    get_graphql_content)
 
 
 def test_clean_seo_fields():
@@ -88,3 +89,55 @@ def test_total_count_query(api_client, product):
     response = api_client.post_graphql(query)
     content = get_graphql_content(response)
     assert content['data']['products']['totalCount'] == Product.objects.count()
+
+
+def test_mutation_decimal_input(
+        staff_api_client, variant, permission_manage_products):
+    query = """
+    mutation decimalInput($id: ID!, $cost: Decimal) {
+        productVariantUpdate(id: $id,
+        input: {costPrice: $cost}) {
+            errors {
+                field
+                message
+            }
+            productVariant {
+                costPrice{
+                    amount
+                }
+            }
+        }
+    }
+    """
+    variables = {
+        'id': graphene.Node.to_global_id('ProductVariant', variant.id),
+        'cost': 12.12}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    assert_read_only_mode(response)
+
+
+def test_mutation_decimal_input_without_arguments(
+        staff_api_client, variant, permission_manage_products):
+    query = """
+    mutation {
+        productVariantUpdate(id: "%(variant_id)s",
+        input: {costPrice: "%(cost)s"}) {
+            errors {
+                field
+                message
+            }
+            productVariant {
+                costPrice{
+                    amount
+                }
+            }
+        }
+    }
+    """ % {
+        'variant_id': graphene.Node.to_global_id('ProductVariant', variant.id),
+        'cost': 12.12
+    }
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_products])
+    assert_read_only_mode(response)

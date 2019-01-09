@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.sites.models import Site
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import get_template
 
@@ -31,14 +32,19 @@ def _create_pdf(rendered_template, absolute_url):
 
 
 def create_invoice_pdf(order, absolute_url):
-    ctx = {'order': order}
+    ctx = {
+        'order': order,
+        'site': Site.objects.get_current()}
     rendered_template = get_template(INVOICE_TEMPLATE).render(ctx)
     pdf_file = _create_pdf(rendered_template, absolute_url)
     return pdf_file, order
 
 
 def create_packing_slip_pdf(order, fulfillment, absolute_url):
-    ctx = {'order': order, 'fulfillment': fulfillment}
+    ctx = {
+        'order': order,
+        'fulfillment': fulfillment,
+        'site': Site.objects.get_current()}
     rendered_template = get_template(PACKING_SLIP_TEMPLATE).render(ctx)
     pdf_file = _create_pdf(rendered_template, absolute_url)
     return pdf_file, order

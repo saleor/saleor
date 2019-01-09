@@ -74,6 +74,7 @@ export interface OrderRefund_orderRefund_order_fulfillments_lines_orderLine_unit
 export interface OrderRefund_orderRefund_order_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -119,6 +120,7 @@ export interface OrderRefund_orderRefund_order_lines_unitPrice {
 export interface OrderRefund_orderRefund_order_lines {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -229,6 +231,7 @@ export interface OrderRefund_orderRefund_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderRefund_orderRefund_order_billingAddress | null;
+  canFinalize: boolean;
   created: any;
   customerNote: string;
   events: (OrderRefund_orderRefund_order_events | null)[] | null;
@@ -253,7 +256,7 @@ export interface OrderRefund_orderRefund_order {
 
 export interface OrderRefund_orderRefund {
   __typename: "OrderRefund";
-  errors: (OrderRefund_orderRefund_errors | null)[] | null;
+  errors: OrderRefund_orderRefund_errors[] | null;
   order: OrderRefund_orderRefund_order | null;
 }
 
