@@ -24,31 +24,23 @@ a.btn {
     }
   }
   &-primary {
-    border-color: transparent;
+    border: none;
     color: $white;
+    padding: $global-padding $global-padding * 4;
     &:hover {
       background-color: #42beab;
-      border-color: transparent;
+      border: none;
       color: $white;
     }
   }
-  &.primary {
-    background-color: $blue;
-    color: $white;
-    padding: $global-padding $global-padding * 4;
-    border: none;
-    &:hover {
-      background-color: $darken-blue;
-    }
-  }
   &.secondary {
-    border: 1px solid $blue;
+    border: 1px solid $light-turquoise;
     padding: $global-padding $global-padding * 2;
     background-color: $white;
-    color: $blue;
+    color: $light-turquoise;
     &:hover {
-      border-color: $darken-blue;
-      color: $darken-blue;
+      border-color: #42beab;
+      color: #42beab;
     }
   }
   &.danger {

@@ -59,6 +59,8 @@ input {
     top: 0;
     right: 0;
     margin-top: 0;
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
   }
 }
 
@@ -169,9 +171,27 @@ input#id_quantity {
     padding-left: 0;
   }
   input {
+    -webkit-appearance: none;
+    cursor: pointer;
+    border: 1px solid $light-turquoise;
     display: inline-block;
-    vertical-align: top;
+    height: 14px;
     margin: $global-margin / 4 $global-margin / 2 0 0;
+    position: relative;
+    vertical-align: top;
+    width: 14px;
+    &:checked {
+      &:after {
+        background: $light-turquoise;
+        border-radius: 100%;
+        content: "";
+        height: 8px;
+        left: 2px;
+        position: absolute;
+        top: 2px;
+        width: 8px;
+      }
+    }
   }
   span,
   .address-details {

@@ -1,6 +1,7 @@
 .checkout {
   margin-bottom: $global-margin * 5;
-  h2, h3 {
+  h2,
+  h3 {
     text-transform: uppercase;
     margin: 0 0 $global-margin * 2 0;
   }
@@ -18,7 +19,7 @@
     padding: $global-padding * 1.5 0 $global-padding;
     margin-bottom: $global-margin;
     @include media-breakpoint-down(sm) {
-        padding: $global-padding 0;
+      padding: $global-padding 0;
       & ~ .maincontent {
         margin-top: 0;
       }
@@ -86,10 +87,20 @@
       border-top: 1px solid $gray;
       padding-top: $global-padding;
       .input-btn {
-          .btn-voucher-remove {
-            position: relative;
-          }
+        input {
+          border-radius: 12px;
         }
+        .btn {
+          height: 3.6rem;
+          padding: $global-padding;
+        }
+        .btn-voucher-remove {
+          position: relative;
+        }
+      }
+      input {
+        padding: $global-padding;
+      }
     }
     &__tittle {
       margin-bottom: $global-margin * 2;
@@ -146,6 +157,38 @@
       }
     }
   }
+  &__new-address {
+    grid-column-end: span 2;
+    &-container {
+      grid-column-end: span 2;
+    }
+  }
+  &__shipping {
+    .btn {
+      grid-column-start: 2;
+      width: 100%;
+    }
+  }
+  &__shipping-methods {
+    .address {
+      width: calc(50% - #{$global-margin});
+    }
+    .btn {
+      grid-column-start: 2;
+      width: 100%;
+    }
+    &-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-column-gap: $global-margin * 2;
+      grid-row-gap: $global-margin;
+      label {
+        cursor: pointer;
+        display: block;
+        margin: 0;
+      }
+    }
+  }
   &__payments {
     &-card-expiry-slash {
       pointer-events: none;
@@ -155,5 +198,17 @@
   }
   &__street_address_2 {
     padding-top: $global-padding * 2;
+  }
+  &__addresses {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-column-gap: $global-margin * 2;
+    &-panel {
+      label {
+        cursor: pointer;
+        display: block;
+        margin-right: 0;
+      }
+    }
   }
 }
