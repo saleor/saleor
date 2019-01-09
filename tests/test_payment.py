@@ -10,36 +10,45 @@ from django.forms.models import model_to_dict
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.views import PAYMENT_TEMPLATE
 from saleor.payment import (
-    ChargeStatus, PaymentError, TransactionKind, get_payment_gateway)
+    ChargeStatus, GatewayError, PaymentError, TransactionKind,
+    get_payment_gateway)
 from saleor.payment.models import Payment
 from saleor.payment.utils import (
     clean_authorize, clean_capture, clean_charge, create_payment,
     create_transaction, gateway_authorize, gateway_capture, gateway_charge,
     gateway_get_client_token, gateway_refund, gateway_void, get_billing_data,
     handle_fully_paid_order, validate_payment, create_payment_information,
-    gateway_process_payment)
+    gateway_process_payment, validate_gateway_response, ALLOWED_GATEWAY_KINDS,
+    REQUIRED_GATEWAY_KEYS)
 
 NOT_ACTIVE_PAYMENT_ERROR = 'This payment is no longer active.'
 EXAMPLE_ERROR = 'Example dummy error'
 
 
 @pytest.fixture
-def transaction_data(payment_dummy, settings):
+def gateway_response(settings):
+    return {
+        'is_success': True,
+        'transaction_id': 'transaction-token',
+        'amount': Decimal(14.50),
+        'currency': settings.DEFAULT_CURRENCY,
+        'kind': TransactionKind.CAPTURE,
+        'error': None,
+        'raw_response': {
+            'credit_card_four': '1234',
+            'transaction-id': 'transaction-token',
+        }
+    }
+
+
+@pytest.fixture
+def transaction_data(payment_dummy, gateway_response):
     return {
         'payment': payment_dummy,
         'payment_information': create_payment_information(
-            payment_dummy, 'token'),
+            payment_dummy, 'payment-token'),
         'kind': TransactionKind.CAPTURE,
-        'gateway_response': {
-            'is_success': True,
-            'transaction_id': 'token',
-            'errors': None,
-            'amount': Decimal(14.50),
-            'currency': 'USD',
-            'kind': TransactionKind.CAPTURE,
-            'raw_response': {
-                'credit_card': '4321',
-                'transaction': 'token'}}}
+        'gateway_response': gateway_response}
 
 
 @pytest.fixture
@@ -786,3 +795,40 @@ def test_payment_get_authorized_amount(payment_txn_preauth):
 
     payment.transactions.all().delete()
     assert payment.get_authorized_amount().amount == Decimal(0)
+
+
+def test_validate_gateway_response(gateway_response):
+    validate_gateway_response(gateway_response)
+
+
+def test_validate_gateway_response_missing_required_key(gateway_response):
+    del gateway_response['is_success']
+
+    with pytest.raises(GatewayError) as e:
+        validate_gateway_response(gateway_response)
+
+    assert str(e.value) == (
+        'Gateway response needs to contain following keys: {}'.format(
+            sorted(REQUIRED_GATEWAY_KEYS)))
+
+
+def test_validate_gateway_response_incorrect_transaction_kind(gateway_response):
+    gateway_response['kind'] = 'incorrect-kind'
+
+    with pytest.raises(GatewayError) as e:
+        validate_gateway_response(gateway_response)
+
+    assert str(e.value) == (
+        'Gateway response kind must be one of {}'.format(
+            sorted(ALLOWED_GATEWAY_KINDS)))
+
+
+def test_validate_gateway_response_not_json_serializable(gateway_response):
+    class CustomClass(object):
+        pass
+    gateway_response['extra'] = CustomClass()
+
+    with pytest.raises(GatewayError) as e:
+        validate_gateway_response(gateway_response)
+
+    assert str(e.value) == 'Gateway response needs to be json serializable'
