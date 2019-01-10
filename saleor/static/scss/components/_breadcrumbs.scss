@@ -3,11 +3,13 @@
   text-transform: uppercase;
   li {
     display: inline;
-    &:not(:first-of-type) {
+    &:last-of-type {
       a {
         color: $skull-gray;
         font-weight: 600;
       }
+    }
+    &:not(:first-of-type) {
       margin-left: $global-margin / 3;
     }
     &:not(:last-of-type):after {
