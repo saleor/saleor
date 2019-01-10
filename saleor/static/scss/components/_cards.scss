@@ -58,6 +58,7 @@
 }
 
 .card {
+  border-radius: 12px;
   &-default {
     background-color: $light-gray;
   }
