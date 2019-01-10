@@ -264,6 +264,9 @@ ME_QUERY = """
         me {
             id
             email
+            checkout {
+                token
+            }
         }
     }
 """
@@ -303,6 +306,17 @@ def test_me_query_customer_can_not_see_note(
     data = content['data']['me']
     assert data['email'] == staff_api_client.user.email
     assert data['note'] == staff_api_client.user.note
+
+
+def test_me_query_checkout(user_api_client, cart):
+    user = user_api_client.user
+    cart.user = user
+    cart.save()
+
+    response = user_api_client.post_graphql(ME_QUERY)
+    content = get_graphql_content(response)
+    data = content['data']['me']
+    assert data['checkout']['token'] == str(cart.token)
 
 
 def test_customer_register(user_api_client):
