@@ -1,9 +1,12 @@
+from textwrap import dedent
+
 import graphene
 from graphql_jwt.decorators import permission_required
 
+from ..core.enums import ReportingPeriod
 from ..core.fields import PrefetchingConnectionField
-from ..core.types import ReportingPeriod
 from ..descriptions import DESCRIPTIONS
+from .enums import StockAvailability
 from .mutations.attributes import (
     AttributeCreate, AttributeDelete, AttributeUpdate, AttributeValueCreate,
     AttributeValueDelete, AttributeValueUpdate)
@@ -22,15 +25,22 @@ from .resolvers import (
 from .scalars import AttributeScalar
 from .types import (
     Attribute, Category, Collection, Product, ProductOrder, ProductType,
-    ProductVariant, StockAvailability)
+    ProductVariant)
 
 
 class ProductQueries(graphene.ObjectType):
     attributes = PrefetchingConnectionField(
         Attribute,
+        description='List of the shop\'s attributes.',
         query=graphene.String(description=DESCRIPTIONS['attributes']),
-        in_category=graphene.Argument(graphene.ID),
-        description='List of the shop\'s attributes.')
+        in_category=graphene.Argument(
+            graphene.ID, description=dedent(
+                '''Return attributes for products belonging to the given
+                category.''')),
+        in_collection=graphene.Argument(
+            graphene.ID, description=dedent(
+                '''Return attributes for products belonging to the given
+                collection.''')),)
     categories = PrefetchingConnectionField(
         Category, query=graphene.String(
             description=DESCRIPTIONS['category']),
@@ -58,9 +68,12 @@ class ProductQueries(graphene.ObjectType):
         collections=graphene.List(
             graphene.ID, description='Filter products by collections.'),
         price_lte=graphene.Float(
-            description='Filter by price less than or equal to the given value.'),
+            description=dedent(
+                '''Filter by price less than or equal to the given value.''')),
         price_gte=graphene.Float(
-            description='Filter by price greater than or equal to the given value.'),
+            description=dedent(
+                '''
+                Filter by price greater than or equal to the given value.''')),
         sort_by=graphene.Argument(
             ProductOrder, description='Sort products.'),
         stock_availability=graphene.Argument(
@@ -85,8 +98,10 @@ class ProductQueries(graphene.ObjectType):
             ReportingPeriod, required=True, description='Span of time.'),
         description='List of top selling products.')
 
-    def resolve_attributes(self, info, in_category=None, query=None, **kwargs):
-        return resolve_attributes(info, in_category, query)
+    def resolve_attributes(
+            self, info, in_category=None, in_collection=None, query=None,
+            **kwargs):
+        return resolve_attributes(info, in_category, in_collection, query)
 
     def resolve_categories(self, info, level=None, query=None, **kwargs):
         return resolve_categories(info, level=level, query=query)

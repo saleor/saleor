@@ -1,7 +1,7 @@
+import graphene
 import pytest
 
-import graphene
-from tests.api.utils import assert_read_only_mode
+from .utils import assert_read_only_mode
 
 
 CREATE_FULFILLMENT_QUERY = """

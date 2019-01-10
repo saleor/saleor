@@ -11,7 +11,7 @@ import * as React from "react";
 import Skeleton from "../../../components/Skeleton";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
-import { maybe, renderCollection } from "../../../misc";
+import { getUserName, maybe, renderCollection } from "../../../misc";
 import { ListProps } from "../../../types";
 import { ListCustomers_customers_edges_node } from "../../types/ListCustomers";
 
@@ -19,8 +19,8 @@ const styles = createStyles({
   tableRow: {
     cursor: "pointer"
   },
-  textRight: {
-    textAlign: "right"
+  textCenter: {
+    textAlign: "center"
   },
   wideCell: {
     width: "60%"
@@ -47,10 +47,13 @@ const CustomerList = withStyles(styles, { name: "CustomerList" })(
       <Table>
         <TableHead>
           <TableRow>
+            <TableCell>
+              {i18n.t("Customer Name", { context: "table header" })}
+            </TableCell>
             <TableCell className={classes.wideCell}>
               {i18n.t("Customer e-mail", { context: "table header" })}
             </TableCell>
-            <TableCell className={classes.textRight}>
+            <TableCell className={classes.textCenter}>
               {i18n.t("Orders", { context: "table header" })}
             </TableCell>
           </TableRow>
@@ -58,7 +61,7 @@ const CustomerList = withStyles(styles, { name: "CustomerList" })(
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={2}
+              colSpan={3}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
               hasPreviousPage={
@@ -80,9 +83,12 @@ const CustomerList = withStyles(styles, { name: "CustomerList" })(
                 <TableCell
                   onClick={customer ? onRowClick(customer.id) : undefined}
                 >
+                  {getUserName(customer)}
+                </TableCell>
+                <TableCell>
                   {maybe<React.ReactNode>(() => customer.email, <Skeleton />)}
                 </TableCell>
-                <TableCell className={classes.textRight}>
+                <TableCell className={classes.textCenter}>
                   {maybe<React.ReactNode>(
                     () => customer.orders.totalCount,
                     <Skeleton />
@@ -92,7 +98,7 @@ const CustomerList = withStyles(styles, { name: "CustomerList" })(
             ),
             () => (
               <TableRow>
-                <TableCell colSpan={2}>
+                <TableCell colSpan={3}>
                   {i18n.t("No customers found")}
                 </TableCell>
               </TableRow>

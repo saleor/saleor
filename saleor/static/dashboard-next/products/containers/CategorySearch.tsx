@@ -28,10 +28,7 @@ export class CategorySearchProvider extends React.Component<
 
   render() {
     return (
-      <TypedCategorySearchQuery
-        variables={{ query: this.state.query }}
-        skip={!this.state.query}
-      >
+      <TypedCategorySearchQuery variables={{ query: this.state.query }}>
         {searchOpts => this.props.children({ search: this.search, searchOpts })}
       </TypedCategorySearchQuery>
     );

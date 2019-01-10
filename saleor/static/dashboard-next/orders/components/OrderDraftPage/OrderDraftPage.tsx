@@ -53,14 +53,6 @@ export interface OrderDraftPageProps extends WithStyles<typeof styles> {
     label: string;
   }>;
   saveButtonBarState: ConfirmButtonTransitionState;
-  variants: Array<{
-    id: string;
-    name: string;
-    sku: string;
-    stockQuantity: number;
-  }>;
-  variantsLoading: boolean;
-  fetchVariants: (value: string) => void;
   fetchUsers: (query: string) => void;
   onBack: () => void;
   onBillingAddressEdit: () => void;
@@ -155,7 +147,7 @@ const OrderDraftPage = withStyles(styles, { name: "OrderDraftPage" })(
       </div>
       <SaveButtonBar
         state={saveButtonBarState}
-        disabled={disabled || maybe(() => order.lines.length === 0)}
+        disabled={disabled || !maybe(() => order.canFinalize)}
         onCancel={onBack}
         onSave={onDraftFinalize}
         labels={{ save: i18n.t("Finalize", { context: "button" }) }}

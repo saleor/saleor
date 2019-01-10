@@ -8,60 +8,23 @@ from graphene import relay
 from graphql.error import GraphQLError
 
 from ...product import models
-from ...product.templatetags.product_images import get_thumbnail
+from ...product.templatetags.product_images import (
+    get_product_image_thumbnail, get_thumbnail)
 from ...product.utils import calculate_revenue_for_variant
 from ...product.utils.availability import get_availability
 from ...product.utils.costs import (
     get_margin_for_variant, get_product_costs_data)
+from ..core.connection import CountableDjangoObjectType
 from ..core.decorators import permission_required
+from ..core.enums import ReportingPeriod, TaxRateType
 from ..core.fields import PrefetchingConnectionField
-from ..core.types import (
-    CountableDjangoObjectType, Money, MoneyRange, ReportingPeriod, TaxedMoney,
-    TaxedMoneyRange, TaxRateType)
+from ..core.types import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 from ..utils import get_database_id, reporting_period_to_date
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
+from .enums import AttributeValueType, OrderDirection, ProductOrderField
 
 COLOR_PATTERN = r'^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$'  # noqa
 color_pattern = re.compile(COLOR_PATTERN)
-
-
-class AttributeTypeEnum(graphene.Enum):
-    PRODUCT = 'PRODUCT'
-    VARIANT = 'VARIANT'
-
-
-class AttributeValueType(graphene.Enum):
-    COLOR = 'COLOR'
-    GRADIENT = 'GRADIENT'
-    URL = 'URL'
-    STRING = 'STRING'
-
-
-class StockAvailability(graphene.Enum):
-    IN_STOCK = 'AVAILABLE'
-    OUT_OF_STOCK = 'OUT_OF_STOCK'
-
-
-class ProductOrderField(graphene.Enum):
-    NAME = 'name'
-    PRICE = 'price'
-
-    @property
-    def description(self):
-        if self == ProductOrderField.NAME:
-            return 'Sort products by name.'
-        return 'Sort products by price.'
-
-
-class OrderDirection(graphene.Enum):
-    ASC = ''
-    DESC = '-'
-
-    @property
-    def description(self):
-        if self == OrderDirection.ASC:
-            return 'Specifies an ascending sort order.'
-        return 'Specifies a descending sort order.'
 
 
 def resolve_attribute_list(attributes_hstore, attributes_qs):
@@ -97,6 +60,15 @@ def resolve_attribute_value_type(attribute_value):
     if '://' in attribute_value:
         return AttributeValueType.URL
     return AttributeValueType.STRING
+
+
+def resolve_background_image(background_image, alt, size, info):
+    if size:
+        url = get_thumbnail(background_image, size, method='thumbnail')
+    else:
+        url = background_image.url
+    url = info.context.build_absolute_uri(url)
+    return Image(url, alt)
 
 
 class AttributeValue(CountableDjangoObjectType):
@@ -245,18 +217,11 @@ class ProductAvailability(graphene.ObjectType):
 class Image(graphene.ObjectType):
     url = graphene.String(
         required=True,
-        description='The URL of the image.',
-        size=graphene.Int(description='Size of the image'))
+        description='The URL of the image.')
+    alt = graphene.String(description='Alt text for an image.')
 
     class Meta:
         description = 'Represents an image.'
-
-    def resolve_url(self, info, size=None):
-        if size:
-            url = get_thumbnail(self, size, method='thumbnail')
-        else:
-            url = self.url
-        return info.context.build_absolute_uri(url)
 
 
 class Product(CountableDjangoObjectType):
@@ -264,15 +229,20 @@ class Product(CountableDjangoObjectType):
         description='The storefront URL for the product.', required=True)
     thumbnail_url = graphene.String(
         description='The URL of a main thumbnail for a product.',
+        size=graphene.Argument(graphene.Int, description='Size of thumbnail'),
+        deprecation_reason=dedent("""thumbnailUrl is deprecated, use
+         thumbnail instead"""))
+    thumbnail = graphene.Field(
+        Image, description='The main thumbnail for a product.',
         size=graphene.Argument(graphene.Int, description='Size of thumbnail'))
     availability = graphene.Field(
-        ProductAvailability,
-        description=dedent("""Informs about product's availability in the
+        ProductAvailability, description=dedent("""Informs about product's availability in the
         storefront, current price and discounts."""))
     price = graphene.Field(
         Money,
         description=dedent("""The product's base price (without any discounts
         applied)."""))
+    tax_rate = TaxRateType(description='A type of tax rate.')
     attributes = graphene.List(
         graphene.NonNull(SelectedAttribute), required=True,
         description='List of attributes assigned to this product.')
@@ -309,8 +279,19 @@ class Product(CountableDjangoObjectType):
     def resolve_thumbnail_url(self, info, *, size=None):
         if not size:
             size = 255
-        url = get_thumbnail(self.get_first_image(), size, method='thumbnail')
+        url = get_product_image_thumbnail(
+            self.get_first_image(), size, method='thumbnail')
         return info.context.build_absolute_uri(url)
+
+    @gql_optimizer.resolver_hints(prefetch_related='images')
+    def resolve_thumbnail(self, info, *, size=None):
+        image = self.get_first_image()
+        if not size:
+            size = 255
+        url = get_product_image_thumbnail(image, size, method='thumbnail')
+        url = info.context.build_absolute_uri(url)
+        alt = image.alt if image else None
+        return Image(alt=alt, url=url)
 
     def resolve_url(self, info):
         return self.get_absolute_url()
@@ -413,16 +394,21 @@ class Collection(CountableDjangoObjectType):
         PrefetchingConnectionField(
             Product, description='List of products in this collection.'),
         prefetch_related=prefetch_products)
-    background_image = graphene.Field(Image)
+    background_image = graphene.Field(
+        Image, size=graphene.Int(description='Size of the image'))
 
     class Meta:
         description = "Represents a collection of products."
-        exclude_fields = ['voucher_set', 'sale_set', 'menuitem_set']
+        exclude_fields = [
+            'voucher_set', 'sale_set', 'menuitem_set', 'background_image_alt']
         interfaces = [relay.Node]
         model = models.Collection
 
-    def resolve_background_image(self, info, **kwargs):
-        return self.background_image or None
+    def resolve_background_image(self, info, size=None, **kwargs):
+        if not self.background_image:
+            return None
+        return resolve_background_image(
+            self.background_image, self.background_image_alt, size, info)
 
     def resolve_products(self, info, **kwargs):
         if hasattr(self, 'prefetched_products'):
@@ -444,7 +430,8 @@ class Category(CountableDjangoObjectType):
     children = PrefetchingConnectionField(
         lambda: Category,
         description='List of children of the category.')
-    background_image = graphene.Field(Image)
+    background_image = graphene.Field(
+        Image, size=graphene.Int(description='Size of the image'))
 
     class Meta:
         description = dedent("""Represents a single category of products.
@@ -452,7 +439,7 @@ class Category(CountableDjangoObjectType):
         be used for navigation in the storefront.""")
         exclude_fields = [
             'lft', 'rght', 'tree_id', 'voucher_set', 'sale_set',
-            'menuitem_set']
+            'menuitem_set', 'background_image_alt']
         interfaces = [relay.Node]
         model = models.Category
 
@@ -460,8 +447,11 @@ class Category(CountableDjangoObjectType):
         qs = self.get_ancestors()
         return gql_optimizer.query(qs, info)
 
-    def resolve_background_image(self, info, **kwargs):
-        return self.background_image or None
+    def resolve_background_image(self, info, size=None, **kwargs):
+        if not self.background_image:
+            return None
+        return resolve_background_image(
+            self.background_image, self.background_image_alt, size, info)
 
     def resolve_children(self, info, **kwargs):
         qs = self.children.all()

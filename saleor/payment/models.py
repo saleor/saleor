@@ -5,7 +5,6 @@ from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django_prices.models import MoneyField
 from prices import Money
 
 from . import (
@@ -84,7 +83,7 @@ class Payment(models.Model):
         validators=[MinValueValidator(1000)], null=True, blank=True)
 
     class Meta:
-        ordering = ['pk']
+        ordering = ('pk', )
 
     def __repr__(self):
         return 'Payment(gateway=%s, is_active=%s, created=%s, charge_status=%s)' % (
@@ -99,14 +98,28 @@ class Payment(models.Model):
     def get_authorized_amount(self):
         money = zero_money()
 
-        # Calculate authorized amount from all succeeded auth transactions
-        for transaction in self.transactions.filter(
-                kind=TransactionKind.AUTH, is_success=True).all():
-            money += Money(
-                transaction.amount, self.currency or settings.DEFAULT_CURRENCY)
+        # Query all the transactions which should be prefetched
+        # to optimize db queries
+        transactions = self.transactions.all()
 
-        # The authorized amount should exclude the already captured amount
-        money -= self.get_captured_amount()
+        # There is no authorized amount anymore when capture is succeeded
+        # since capture can only be made once, even it is a partial capture
+        if any([txn.kind == TransactionKind.CAPTURE
+                and txn.is_success for txn in transactions]):
+            return money
+
+        # Filter the succeeded auth transactions
+        authorized_txns = [
+            txn for txn in transactions
+            if txn.kind == TransactionKind.AUTH and txn.is_success]
+
+        # Calculate authorized amount from all succeeded auth transactions
+        for txn in authorized_txns:
+            money += Money(
+                txn.amount, self.currency or settings.DEFAULT_CURRENCY)
+
+        # If multiple partial capture is supported later though it's unlikely,
+        # the authorized amount should exclude the already captured amount here
         return money
 
     def get_captured_amount(self):
@@ -146,24 +159,30 @@ class Payment(models.Model):
             amount = self.captured_amount
         return utils.gateway_refund(payment=self, amount=amount)
 
+    @property
+    def is_authorized(self):
+        return any([
+            txn.kind == TransactionKind.AUTH
+            and txn.is_success for txn in self.transactions.all()])
+
+    @property
+    def not_charged(self):
+        return self.charge_status == ChargeStatus.NOT_CHARGED
+
     def can_authorize(self):
-        return (
-            self.is_active and self.charge_status == ChargeStatus.NOT_CHARGED)
+        return self.is_active and self.not_charged
 
     def can_capture(self):
-        # FIXME should also have an auth transaction
-        not_charged = self.charge_status == ChargeStatus.NOT_CHARGED
+        return self.is_active and self.not_charged and self.is_authorized
+
+    def can_charge(self):
         not_fully_charged = (
             self.charge_status == ChargeStatus.CHARGED
             and self.get_total() > self.get_captured_amount())
-        return self.is_active and not_charged or not_fully_charged
-
-    def can_charge(self):
-        return self.can_capture()
+        return self.is_active and (self.not_charged or not_fully_charged)
 
     def can_void(self):
-        return (
-            self.is_active and self.charge_status == ChargeStatus.NOT_CHARGED)
+        return self.is_active and self.not_charged and self.is_authorized
 
     def can_refund(self):
         return (

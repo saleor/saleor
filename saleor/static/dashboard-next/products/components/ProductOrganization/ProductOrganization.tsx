@@ -206,9 +206,13 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
             }
             onChange={onChange}
           />
-          <Typography className={classes.cardSubtitle}>
-            {i18n.t("Attributes")}
-          </Typography>
+          {!(data && data.attributes && data.attributes.length === 0) ? (
+            <Typography className={classes.cardSubtitle}>
+              {i18n.t("Attributes")}
+            </Typography>
+          ) : (
+            <FormSpacer />
+          )}
           {data.attributes ? (
             data.attributes.map((item, index) => {
               return (

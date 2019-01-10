@@ -1,5 +1,7 @@
 import * as React from "react";
 import { QueryResult } from "react-apollo";
+
+import { LoadMore } from "../../queries";
 import { TypedOrderVariantSearch } from "../queries";
 import {
   OrderVariantSearch,
@@ -14,7 +16,8 @@ interface OrderVariantSearchProviderProps {
         searchOpts: QueryResult<
           OrderVariantSearch,
           OrderVariantSearchVariables
-        >;
+        > &
+          LoadMore<OrderVariantSearch, OrderVariantSearchVariables>;
       };
     }
   ) => React.ReactElement<any>);
@@ -34,10 +37,7 @@ export class OrderVariantSearchProvider extends React.Component<
   render() {
     const { children } = this.props;
     return (
-      <TypedOrderVariantSearch
-        variables={{ search: this.state.query }}
-        skip={!this.state.query}
-      >
+      <TypedOrderVariantSearch variables={{ search: this.state.query }}>
         {searchOpts =>
           children({ variants: { search: this.search, searchOpts } })
         }

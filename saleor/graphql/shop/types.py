@@ -12,13 +12,14 @@ from ...core.permissions import get_permissions
 from ...core.utils import get_client_ip, get_country_by_ip
 from ...menu import models as menu_models
 from ...product import models as product_models
-from ...site import AuthenticationBackends, models as site_models
+from ...site import models as site_models
+from ..core.enums import WeightUnitsEnum
 from ..core.types.common import (
-    CountryDisplay, LanguageDisplay, PermissionDisplay, WeightUnitsEnum)
-from ..core.utils import str_to_enum
+    CountryDisplay, LanguageDisplay, PermissionDisplay)
 from ..menu.types import Menu
 from ..product.types import Collection
 from ..utils import format_permissions_for_display
+from .enums import AuthorizationKeyType
 
 
 class Navigation(graphene.ObjectType):
@@ -27,11 +28,6 @@ class Navigation(graphene.ObjectType):
 
     class Meta:
         description = 'Represents shop\'s navigation menus.'
-
-
-AuthorizationKeyType = graphene.Enum(
-    'AuthorizationKeyType', [(str_to_enum(auth_type[0]), auth_type[0])
-                             for auth_type in AuthenticationBackends.BACKENDS])
 
 
 class AuthorizationKey(graphene.ObjectType):

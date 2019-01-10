@@ -1,0 +1,46 @@
+{% url 'home' as home_url %}
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+{% load get_menu_item_name from shop %}
+
+{% for item in menu_items %}
+{% with children=item.child_items %}
+  <div class="col-6 col-md-2">
+    <ul class="menu">
+      <li class="{% if children %}nav-item__dropdown{% endif %} menu__item">
+        <a href="{{ item.url }}">
+          {% get_menu_item_name lang_code=LANGUAGE_CODE menu_item=item %}
+        </a>
+        {% if children %}
+        <hr />
+        <div class="nav-item__submenu">
+          <ul>
+            {% for child in children %}
+              <li>
+                <a href="{{ child.url }}">
+                  {% get_menu_item_name lang_code=LANGUAGE_CODE menu_item=child %}
+                </a>
+
+                {% with grandchildren=child.child_items %}
+                  {% if grandchildren %}
+                    <ul>
+                      {% for grandchild in grandchildren %}
+                        <li>
+                          <a href="{{ grandchild.url }}">
+                            {% get_menu_item_name lang_code=LANGUAGE_CODE menu_item=grandchild %}
+                          </a>
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  {% endif %}
+                {% endwith %}
+              </li>
+            {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+      </li>
+    </ul>
+  </div>
+{% endwith %}
+{% endfor %}

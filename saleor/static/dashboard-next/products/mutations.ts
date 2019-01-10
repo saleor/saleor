@@ -20,6 +20,10 @@ import {
   ProductImageUpdateVariables
 } from "./types/ProductImageUpdate";
 import { ProductUpdate, ProductUpdateVariables } from "./types/ProductUpdate";
+import {
+  SimpleProductUpdate,
+  SimpleProductUpdateVariables
+} from "./types/SimpleProductUpdate";
 import { VariantCreate, VariantCreateVariables } from "./types/VariantCreate";
 import { VariantDelete, VariantDeleteVariables } from "./types/VariantDelete";
 import {
@@ -137,6 +141,61 @@ export const TypedProductUpdateMutation = TypedMutation<
   ProductUpdate,
   ProductUpdateVariables
 >(productUpdateMutation);
+
+export const simpleProductUpdateMutation = gql`
+  ${fragmentProduct}
+  ${fragmentVariant}
+  mutation SimpleProductUpdate(
+    $id: ID!
+    $attributes: [AttributeValueInput]
+    $availableOn: Date
+    $category: ID
+    $chargeTaxes: Boolean!
+    $collections: [ID]
+    $description: String
+    $isPublished: Boolean!
+    $name: String
+    $price: Decimal
+    $productVariantId: ID!
+    $productVariantInput: ProductVariantInput!
+  ) {
+    productUpdate(
+      id: $id
+      input: {
+        attributes: $attributes
+        availableOn: $availableOn
+        category: $category
+        chargeTaxes: $chargeTaxes
+        collections: $collections
+        description: $description
+        isPublished: $isPublished
+        name: $name
+        price: $price
+      }
+    ) {
+      errors {
+        field
+        message
+      }
+      product {
+        ...Product
+      }
+    }
+    productVariantUpdate(id: $productVariantId, input: $productVariantInput) {
+      errors {
+        field
+        message
+      }
+      productVariant {
+        ...ProductVariant
+      }
+    }
+  }
+`;
+export const TypedSimpleProductUpdateMutation = TypedMutation<
+  SimpleProductUpdate,
+  SimpleProductUpdateVariables
+>(simpleProductUpdateMutation);
 
 export const productCreateMutation = gql`
   ${fragmentProduct}

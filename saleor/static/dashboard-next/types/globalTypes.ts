@@ -171,6 +171,7 @@ export interface CategoryInput {
   slug?: string | null;
   seo?: SeoInput | null;
   backgroundImage?: any | null;
+  backgroundImageAlt?: string | null;
 }
 
 export interface CollectionCreateInput {
@@ -179,7 +180,9 @@ export interface CollectionCreateInput {
   slug?: string | null;
   description?: string | null;
   backgroundImage?: any | null;
+  backgroundImageAlt?: string | null;
   seo?: SeoInput | null;
+  publishedDate?: any | null;
   products?: (string | null)[] | null;
 }
 
@@ -189,12 +192,16 @@ export interface CollectionInput {
   slug?: string | null;
   description?: string | null;
   backgroundImage?: any | null;
+  backgroundImageAlt?: string | null;
   seo?: SeoInput | null;
+  publishedDate?: any | null;
 }
 
 export interface CustomerInput {
   defaultBillingAddress?: AddressInput | null;
   defaultShippingAddress?: AddressInput | null;
+  firstName?: string | null;
+  lastName?: string | null;
   email?: string | null;
   isActive?: boolean | null;
   note?: string | null;
@@ -263,6 +270,16 @@ export interface ProductTypeInput {
   taxRate?: TaxRateType | null;
 }
 
+export interface ProductVariantInput {
+  attributes?: (AttributeValueInput | null)[] | null;
+  costPrice?: any | null;
+  priceOverride?: any | null;
+  sku?: string | null;
+  quantity?: number | null;
+  trackInventory?: boolean | null;
+  weight?: any | null;
+}
+
 export interface SeoInput {
   title?: string | null;
   description?: string | null;
@@ -283,23 +300,29 @@ export interface SiteDomainInput {
 }
 
 export interface StaffCreateInput {
+  firstName?: string | null;
+  lastName?: string | null;
   email?: string | null;
   isActive?: boolean | null;
   note?: string | null;
-  permissions?: (string | null)[] | null;
+  permissions?: (PermissionEnum | null)[] | null;
   sendPasswordEmail?: boolean | null;
 }
 
 export interface StaffInput {
+  firstName?: string | null;
+  lastName?: string | null;
   email?: string | null;
   isActive?: boolean | null;
   note?: string | null;
-  permissions?: (string | null)[] | null;
+  permissions?: (PermissionEnum | null)[] | null;
 }
 
 export interface UserCreateInput {
   defaultBillingAddress?: AddressInput | null;
   defaultShippingAddress?: AddressInput | null;
+  firstName?: string | null;
+  lastName?: string | null;
   email?: string | null;
   isActive?: boolean | null;
   note?: string | null;

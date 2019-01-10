@@ -1,5 +1,5 @@
 import json
-
+from django.core.serializers.json import DjangoJSONEncoder
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.shortcuts import reverse
@@ -35,7 +35,7 @@ class ApiClient(Client):
         handling multipart requests in Graphene.
         """
         if data:
-            data = json.dumps(data)
+            data = json.dumps(data, cls=DjangoJSONEncoder)
         kwargs['content_type'] = 'application/json'
         return super().post(API_PATH, data, **kwargs)
 
@@ -51,7 +51,7 @@ class ApiClient(Client):
         if variables is not None:
             data['variables'] = variables
         if data:
-            data = json.dumps(data)
+            data = json.dumps(data, cls=DjangoJSONEncoder)
         kwargs['content_type'] = 'application/json'
 
         if permissions:

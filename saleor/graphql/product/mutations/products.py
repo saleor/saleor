@@ -1,6 +1,7 @@
 from textwrap import dedent
 
 import graphene
+from django.db import transaction
 from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
@@ -12,10 +13,11 @@ from ....product.thumbnails import (
     create_category_background_image_thumbnails,
     create_collection_background_image_thumbnails, create_product_thumbnails)
 from ....product.utils.attributes import get_name_from_attributes
+from ...core.enums import TaxRateType
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.types import Decimal, SeoInput, TaxRateType, Upload
+from ...core.scalars import Decimal, WeightScalar
+from ...core.types import SeoInput, Upload
 from ...core.utils import clean_seo_fields
-from ...shipping.types import WeightScalar
 from ..types import Category, Collection, Product, ProductImage, ProductVariant
 from ..utils import attributes_to_hstore
 
@@ -26,6 +28,8 @@ class CategoryInput(graphene.InputObjectType):
     slug = graphene.String(description='Category slug')
     seo = SeoInput(description='Search engine optimization fields.')
     background_image = Upload(description='Background image file.')
+    background_image_alt = graphene.String(
+        description='Alt text for an image.')
 
 
 class CategoryCreate(ModelMutation):
@@ -113,7 +117,11 @@ class CollectionInput(graphene.InputObjectType):
     slug = graphene.String(description='Slug of the collection.')
     description = graphene.String(description='Description of the collection.')
     background_image = Upload(description='Background image file.')
+    background_image_alt = graphene.String(
+        description='Alt text for an image.')
     seo = SeoInput(description='Search engine optimization fields.')
+    published_date = graphene.Date(
+        description='Publication date. ISO 8601 standard.')
 
 
 class CollectionCreateInput(CollectionInput):
@@ -275,6 +283,18 @@ class ProductInput(graphene.InputObjectType):
     seo = SeoInput(description='Search engine optimization fields.')
     weight = WeightScalar(
         description='Weight of the Product.', required=False)
+    sku = graphene.String(
+        description=dedent("""Stock keeping unit of a product. Note: this
+        field is only used if a product doesn't use variants."""))
+    quantity = graphene.Int(
+        description=dedent("""The total quantity of a product available for
+        sale. Note: this field is only used if a product doesn't
+        use variants."""))
+    track_inventory = graphene.Boolean(
+        description=dedent("""Determines if the inventory of this product
+        should be tracked. If false, the quantity won't change when customers
+        buy this item. Note: this field is only used if a product doesn't
+        use variants."""))
 
 
 class ProductCreateInput(ProductInput):
@@ -314,7 +334,39 @@ class ProductCreate(ModelMutation):
             else:
                 cleaned_input['attributes'] = attributes
         clean_seo_fields(cleaned_input)
+        cls.clean_sku(product_type, cleaned_input, errors)
         return cleaned_input
+
+    @classmethod
+    def clean_sku(cls, product_type, cleaned_input, errors):
+        """Validate SKU input field.
+
+        When creating products that don't use variants, SKU is required in
+        the input in order to create the default variant underneath.
+        See the documentation for `has_variants` field for details:
+        http://docs.getsaleor.com/en/latest/architecture/products.html#product-types
+        """
+        if not product_type.has_variants:
+            input_sku = cleaned_input.get('sku')
+            if not input_sku:
+                cls.add_error(errors, 'sku', 'This field cannot be blank.')
+            elif models.ProductVariant.objects.filter(sku=input_sku).exists():
+                cls.add_error(
+                    errors, 'sku', 'Product with this SKU already exists.')
+
+    @classmethod
+    @transaction.atomic
+    def save(cls, info, instance, cleaned_input):
+        instance.save()
+        if not instance.product_type.has_variants:
+            site_settings = info.context.site.settings
+            track_inventory = cleaned_input.get(
+                'track_inventory', site_settings.track_inventory_by_default)
+            quantity = cleaned_input.get('quantity', 0)
+            sku = cleaned_input.get('sku')
+            models.ProductVariant.objects.create(
+                product=instance, track_inventory=track_inventory,
+                sku=sku, quantity=quantity)
 
     @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):
@@ -337,6 +389,34 @@ class ProductUpdate(ProductCreate):
     class Meta:
         description = 'Updates an existing product.'
         model = models.Product
+
+    @classmethod
+    def clean_sku(cls, product_type, cleaned_input, errors):
+        input_sku = cleaned_input.get('sku')
+        if (not product_type.has_variants and
+                input_sku and
+                models.ProductVariant.objects.filter(sku=input_sku).exists()):
+            cls.add_error(
+                errors, 'sku', 'Product with this SKU already exists.')
+
+    @classmethod
+    @transaction.atomic
+    def save(cls, info, instance, cleaned_input):
+        instance.save()
+        if not instance.product_type.has_variants:
+            variant = instance.variants.first()
+            update_fields = []
+            if 'track_inventory' in cleaned_input:
+                variant.track_inventory = cleaned_input['track_inventory']
+                update_fields.append('track_inventory')
+            if 'quantity' in cleaned_input:
+                variant.quantity = cleaned_input['quantity']
+                update_fields.append('quantity')
+            if 'sku' in cleaned_input:
+                variant.sku = cleaned_input['sku']
+                update_fields.append('sku')
+            if update_fields:
+                variant.save(update_fields=update_fields)
 
 
 class ProductDelete(ModelDeleteMutation):
@@ -623,8 +703,10 @@ class ProductImageUpdate(BaseMutation):
             info, id, errors, 'id', only_type=ProductImage)
         product = image.product
         if not errors:
-            image.alt = input.get('alt', '')
-            image.save()
+            alt = input.get('alt')
+            if alt is not None:
+                image.alt = alt
+                image.save(update_fields=['alt'])
         return ProductImageUpdate(product=product, image=image, errors=errors)
 
 

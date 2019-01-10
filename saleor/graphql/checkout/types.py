@@ -3,7 +3,7 @@ import graphene_django_optimizer as gql_optimizer
 
 from ...checkout import models
 from ...core.utils.taxes import get_taxes_for_address
-from ..core.types.common import CountableDjangoObjectType
+from ..core.connection import CountableDjangoObjectType
 from ..core.types.money import TaxedMoney
 from ..order.resolvers import resolve_shipping_methods
 from ..shipping.types import ShippingMethod
@@ -37,7 +37,8 @@ class Checkout(CountableDjangoObjectType):
         ShippingMethod, required=False,
         description='Shipping methods that can be used with this order.')
     is_shipping_required = graphene.Boolean(
-        description='Returns True, if checkout requires shipping.')
+        description='Returns True, if checkout requires shipping.',
+        required=True)
     lines = gql_optimizer.field(
         graphene.List(
             CheckoutLine, description=(

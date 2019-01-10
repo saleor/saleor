@@ -134,8 +134,10 @@ export interface ProductImageCreate_productImageCreate_product_variants {
   sku: string;
   name: string;
   priceOverride: ProductImageCreate_productImageCreate_product_variants_priceOverride | null;
-  stockQuantity: number;
   margin: number | null;
+  quantity: number;
+  quantityAllocated: number;
+  stockQuantity: number;
 }
 
 export interface ProductImageCreate_productImageCreate_product_productType {
@@ -170,7 +172,7 @@ export interface ProductImageCreate_productImageCreate_product {
 
 export interface ProductImageCreate_productImageCreate {
   __typename: "ProductImageCreate";
-  errors: (ProductImageCreate_productImageCreate_errors | null)[] | null;
+  errors: ProductImageCreate_productImageCreate_errors[] | null;
   product: ProductImageCreate_productImageCreate_product | null;
 }
 

@@ -3,7 +3,6 @@ import queryString from 'query-string';
 import React, { Component } from 'react';
 import gql from 'graphql-tag';
 
-import CategoryFilter from './CategoryFilter';
 import PriceFilter from './PriceFilter';
 import ProductFilters from './ProductFilters';
 import ProductList from './ProductList';
@@ -189,41 +188,40 @@ class CategoryPage extends Component {
                     <span className="filters-menu__icon d-sm-none"></span>
                   )}
                 </div>
-                <div className="col-6 col-md-10 col-lg-6">
-                  <SortBy sortedValue={sortBy} setSorting={this.setSorting}/>
-                </div>
               </div>
             </div>
           </div>
         </div>
         <div className="row">
           <div className="col-md-4 col-lg-3">
-            <div className="product-filters">
-              <CategoryFilter category={category}/>
-            </div>
             {filtersMenu && (
-              <div>
-                <h2>
-                  {pgettext('Category page filters', 'Filters')}
-                  <span className="clear-filters float-right"
-                    onClick={this.clearFilters}>{pgettext('Category page filters', 'Clear filters')}</span>
-                </h2>
-                <div className="product-filters">
-                  <ProductFilters
-                    attributes={attributes}
-                    checkedAttributes={variables.attributesFilter}
-                    onFilterChanged={this.updateAttributesFilter}
-                  />
-                  <PriceFilter
-                    onFilterChanged={this.updatePriceFilter}
-                    maxPrice={variables.maxPrice}
-                    minPrice={variables.minPrice}
-                  />
-                </div>
+              <div className="product-filters">
+                <ProductFilters
+                  attributes={attributes}
+                  checkedAttributes={variables.attributesFilter}
+                  onFilterChanged={this.updateAttributesFilter}
+                />
+                <PriceFilter
+                  onFilterChanged={this.updatePriceFilter}
+                  onFilterClear={this.clearFilters}
+                  maxPrice={variables.maxPrice}
+                  minPrice={variables.minPrice}
+                />
               </div>
             )}
           </div>
           <div className="col-md-8 col-lg-9 category-list">
+            <div className="product-list__header">
+              <div className="product-list__header__title">
+                <h1>
+                  <strong>{category.name}</strong>
+                </h1>
+              </div>
+              <hr />
+              <div>
+                <SortBy sortedValue={sortBy} setSorting={this.setSorting}/>
+              </div>
+            </div>
             <div>
               <ProductList
                 onLoadMore={this.incrementProductsCount}

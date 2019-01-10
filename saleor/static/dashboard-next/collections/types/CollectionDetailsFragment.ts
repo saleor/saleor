@@ -7,6 +7,7 @@
 
 export interface CollectionDetailsFragment_backgroundImage {
   __typename: "Image";
+  alt: string | null;
   url: string;
 }
 
@@ -16,6 +17,7 @@ export interface CollectionDetailsFragment {
   isPublished: boolean;
   name: string;
   backgroundImage: CollectionDetailsFragment_backgroundImage | null;
+  description: string;
   seoDescription: string | null;
   seoTitle: string | null;
 }

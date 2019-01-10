@@ -25,9 +25,15 @@ class CollectionForm(forms.ModelForm):
             'background_image': pgettext_lazy(
                 'Background image of a collection',
                 'Background image'),
+            'background_image_alt': pgettext_lazy(
+                'Description of a collection image', 'Image description'),
             'is_published': pgettext_lazy(
                 'Collection published toggle',
                 'Published'),
+            'published_date': pgettext_lazy(
+                'The publication date field, can be a posterior date for '
+                'a planned publication.',
+                'Published date'),
             'description': pgettext_lazy(
                 'Description field of a collection',
                 'Description')}

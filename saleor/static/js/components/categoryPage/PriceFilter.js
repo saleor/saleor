@@ -14,7 +14,8 @@ export default class PriceFilter extends Component {
   static propTypes = {
     minPrice: PropTypes.number,
     maxPrice: PropTypes.number,
-    onFilterChanged: PropTypes.func.isRequired
+    onFilterChanged: PropTypes.func.isRequired,
+    onFilterClear: PropTypes.func.isRequired
   }
 
   checkKey = (event) => {
@@ -39,7 +40,7 @@ export default class PriceFilter extends Component {
   }
 
   render() {
-    const { maxPrice, minPrice } = this.props;
+    const { maxPrice, minPrice, onFilterClear } = this.props;
     const { visibility } = this.state;
     return (
       <div className={['filter-section', visibility ? '' : 'filter-section--closed'].join(' ')}>
@@ -59,7 +60,7 @@ export default class PriceFilter extends Component {
                 ref={input => (this.minPriceInput = input)}
                 type="number"
               />
-              <span>&#8212;</span>
+              <span className="dash">&#8212;</span>
               <input
                 className="form-control"
                 defaultValue={maxPrice}
@@ -69,7 +70,10 @@ export default class PriceFilter extends Component {
                 ref={input => (this.maxPriceInput = input)}
                 type="number"
               />
-              <button className="btn primary mt-3" onClick={this.updateFilter}>{pgettext('Price filter on category page', 'Update')}</button>
+              <span className="clear-filters text-uppercase" onClick={onFilterClear}>
+                {pgettext('Category page filters', 'Clear filters')}
+              </span>
+              <button className="btn btn-primary mt-3" onClick={this.updateFilter}>{pgettext('Price filter on category page', 'Update')}</button>
             </div>
           </div>
         )}

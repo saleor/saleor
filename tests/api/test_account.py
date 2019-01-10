@@ -7,11 +7,12 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import reverse
-from tests.api.utils import get_graphql_content
 
 from saleor.account.models import Address, User
 from saleor.graphql.account.mutations import (
     CustomerDelete, SetPassword, StaffDelete, StaffUpdate, UserDelete)
+from saleor.graphql.core.enums import PermissionEnum
+from tests.api.utils import get_graphql_content
 
 from .utils import (
     assert_no_permission, assert_read_only_mode,
@@ -90,6 +91,8 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
     query User($id: ID!) {
         user(id: $id) {
             email
+            firstName
+            lastName
             isStaff
             isActive
             addresses {
@@ -125,6 +128,8 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
     content = get_graphql_content(response)
     data = content['data']['user']
     assert data['email'] == user.email
+    assert data['firstName'] == user.first_name
+    assert data['lastName'] == user.last_name
     assert data['isStaff'] == user.is_staff
     assert data['isActive'] == user.is_active
     assert len(data['addresses']) == user.addresses.count()
@@ -326,10 +331,13 @@ def test_customer_register(user_api_client):
 def test_customer_create(staff_api_client, address, permission_manage_users):
     query = """
     mutation CreateCustomer(
-        $email: String, $note: String, $billing: AddressInput,
-        $shipping: AddressInput, $send_mail: Boolean) {
+        $email: String, $firstName: String, $lastName: String,
+        $note: String, $billing: AddressInput, $shipping: AddressInput,
+        $send_mail: Boolean) {
         customerCreate(input: {
             email: $email,
+            firstName: $firstName,
+            lastName: $lastName,
             note: $note,
             defaultShippingAddress: $shipping,
             defaultBillingAddress: $billing
@@ -348,6 +356,8 @@ def test_customer_create(staff_api_client, address, permission_manage_users):
                     id
                 }
                 email
+                firstName
+                lastName
                 isActive
                 isStaff
                 note
@@ -356,6 +366,8 @@ def test_customer_create(staff_api_client, address, permission_manage_users):
     }
     """
     email = 'api_user@example.com'
+    first_name = "api_first_name"
+    last_name = "api_last_name"
     note = 'Test user'
     address_data = convert_dict_keys_to_camel_case(address.as_data())
 
@@ -370,9 +382,11 @@ def test_customer_create(staff_api_client, address, permission_manage_users):
 def test_customer_update(
         staff_api_client, customer_user, address, permission_manage_users):
     query = """
-    mutation UpdateCustomer($id: ID!, $isActive: Boolean, $note: String, $billing: AddressInput, $shipping: AddressInput) {
+    mutation UpdateCustomer($id: ID!, $firstName: String, $lastName: String, $isActive: Boolean, $note: String, $billing: AddressInput, $shipping: AddressInput) {
         customerUpdate(id: $id, input: {
             isActive: $isActive,
+            firstName: $firstName,
+            lastName: $lastName,
             note: $note,
             defaultBillingAddress: $billing
             defaultShippingAddress: $shipping
@@ -383,6 +397,8 @@ def test_customer_update(
             }
             user {
                 id
+                firstName
+                lastName
                 defaultBillingAddress {
                     id
                 }
@@ -404,6 +420,8 @@ def test_customer_update(
     shipping_address_pk = customer_user.default_shipping_address.pk
 
     id = graphene.Node.to_global_id('User', customer_user.id)
+    first_name = 'new_first_name'
+    last_name = 'new_last_name'
     note = 'Test update note'
     address_data = convert_dict_keys_to_camel_case(address.as_data())
 
@@ -411,7 +429,12 @@ def test_customer_update(
     address_data['streetAddress1'] = new_street_address
 
     variables = {
-        'id': id, 'isActive': False, 'note': note, 'billing': address_data,
+        'id': id,
+        'firstName': first_name,
+        'lastName': last_name,
+        'isActive': False,
+        'note': note,
+        'billing': address_data,
         'shipping': address_data}
 
     # check unauthorized access
@@ -503,7 +526,7 @@ def test_customer_delete_errors(customer_user, admin_user, staff_user):
 def test_staff_create(
         staff_api_client, permission_manage_staff, permission_manage_products):
     query = """
-    mutation CreateStaff($email: String, $permissions: [String], $send_mail: Boolean) {
+    mutation CreateStaff($email: String, $permissions: [PermissionEnum], $send_mail: Boolean) {
         staffCreate(input: {email: $email, permissions: $permissions, sendPasswordEmail: $send_mail}) {
             errors {
                 field
@@ -522,13 +545,10 @@ def test_staff_create(
     }
     """
 
-    permission_manage_products_codename = '%s.%s' % (
-        permission_manage_products.content_type.app_label,
-        permission_manage_products.codename)
-
     email = 'api_user@example.com'
     variables = {
-        'email': email, 'permissions': [permission_manage_products_codename],
+        'email': email,
+        'permissions': [PermissionEnum.MANAGE_PRODUCTS.name],
         'send_mail': True}
 
     response = staff_api_client.post_graphql(
@@ -539,7 +559,7 @@ def test_staff_create(
 def test_staff_update(staff_api_client, permission_manage_staff):
     query = """
     mutation UpdateStaff(
-            $id: ID!, $permissions: [String], $is_active: Boolean) {
+            $id: ID!, $permissions: [PermissionEnum], $is_active: Boolean) {
         staffUpdate(
                 id: $id,
                 input: {permissions: $permissions, isActive: $is_active}) {
