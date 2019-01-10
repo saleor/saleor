@@ -8,6 +8,7 @@ from django.utils.translation import pgettext
 from django.views.decorators.http import require_POST
 
 from ...discount.models import Voucher
+from ...order.models import Order
 from ..forms import CartVoucherForm
 from ..models import Cart
 from ..utils import (
@@ -53,7 +54,7 @@ def validate_voucher(view):
     def func(request, cart):
         if cart.voucher_code:
             try:
-                Voucher.objects.active(date=date.today()).get(
+                voucher = Voucher.objects.active(date=date.today()).get(
                     code=cart.voucher_code)
             except Voucher.DoesNotExist:
                 remove_voucher_from_cart(cart)
@@ -62,6 +63,30 @@ def validate_voucher(view):
                     'This voucher has expired. Please review your checkout.')
                 messages.warning(request, msg)
                 return redirect('checkout:summary')
+            if voucher.one_per_customer:
+                orders = None
+                if cart.user:
+                    orders = cart.user.orders \
+                        .filter(created__date__gte=voucher.start_date) \
+                        .filter(voucher=voucher)
+                elif cart.email:
+                    orders = Order.objects \
+                        .filter(created__date__gte=voucher.start_date) \
+                        .filter(user_email=cart.email) \
+                        .filter(voucher=voucher)
+                if orders is None:
+                    # Decide what to do here:
+                    # This only happens if email or user is not yet a part of
+                    # the cart. Occurs when used on checkout_shipping_address
+                    # view.
+                    pass
+                elif orders:
+                    remove_voucher_from_cart(cart)
+                    msg = pgettext(
+                        'Checkout warning',
+                        'This voucher may only be used once per customer.')
+                    messages.warning(request, msg)
+                    return redirect('checkout:summary')
         return view(request, cart)
     return func
 

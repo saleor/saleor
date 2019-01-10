@@ -23,6 +23,7 @@ from saleor.core.utils.taxes import (
     ZERO_MONEY, ZERO_TAXED_MONEY, get_taxes_for_country)
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Voucher
+from saleor.order.models import Order
 from saleor.product.models import Category
 from saleor.shipping.models import ShippingZone
 
@@ -381,6 +382,38 @@ def test_view_checkout_summary_with_invalid_voucher(
     assert not order.voucher
     assert not order.discount_amount
     assert not order.discount_name
+
+
+def test_view_checkout_summary_with_used_one_per_customer_voucher(
+    #FIXME - not working
+        client, request_cart_with_item, shipping_zone, address, voucher):
+    user_email = 'test@example.com' # guest customer
+    voucher.one_per_customer = True
+    voucher.save()
+
+    # cart setup
+    request_cart_with_item.shipping_address = address
+    request_cart_with_item.email = user_email
+    request_cart_with_item.shipping_method = (
+        shipping_zone.shipping_methods.first())
+    request_cart_with_item.voucher = voucher
+    request_cart_with_item.save()
+
+    # create previous order with voucher and 'test@example.com'
+    create_order(
+        request_cart_with_item, 'first_order', discounts=[voucher], taxes=None)
+
+    url = reverse('checkout:summary')
+    voucher_url = '{url}?next={url}'.format(url=url)
+    data = {'discount-voucher': voucher.code}
+
+    response = client.post(voucher_url, data, follow=True, HTTP_REFERER=url)
+
+    # voucher application should be denied
+    cart = response.context['cart']
+    assert not cart.voucher_code
+    assert not cart.discount_amount
+    assert not cart.discount_name
 
 
 def test_view_checkout_summary_with_invalid_voucher_code(
