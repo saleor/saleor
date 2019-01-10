@@ -1,11 +1,11 @@
+from typing import Dict
+
 from django import forms
 from django.forms.utils import flatatt
 from django.forms.widgets import HiddenInput
 from django.utils.html import format_html
 from django.utils.translation import pgettext_lazy
 
-from ...forms import PaymentForm
-from ...models import Payment
 from .utils import get_amount_for_razorpay
 
 CHECKOUT_SCRIPT_URL = 'https://checkout.razorpay.com/v1/checkout.js'
@@ -17,9 +17,10 @@ SECONDARY_TITLE = pgettext_lazy(
 
 
 class RazorPayCheckoutWidget(HiddenInput):
+
     def __init__(
             self, *,
-            payment: Payment,
+            payment_information: Dict,
             public_key: str,
             prefill: bool,
             store_name: str,
@@ -33,16 +34,16 @@ class RazorPayCheckoutWidget(HiddenInput):
             'data-image': store_image,
             'data-name': store_name,
             'data-description': SECONDARY_TITLE,
-            'data-amount': get_amount_for_razorpay(payment.total),
-            'data-currency': payment.currency}
+            'data-amount': get_amount_for_razorpay(payment_information['amount']),
+            'data-currency': payment_information['currency']}
 
         if prefill:
             customer_name = '%s %s' % (
-                payment.billing_last_name,
-                payment.billing_first_name)
+                payment_information['billing']['last_name'],
+                payment_information['billing']['first_name'])
             base_attrs.update({
                 'data-prefill.name': customer_name,
-                'data-prefill.email': payment.billing_email})
+                'data-prefill.email': payment_information['customer_email']})
 
         if override_attrs:
             base_attrs.update(override_attrs)
@@ -54,19 +55,16 @@ class RazorPayCheckoutWidget(HiddenInput):
         return format_html('<script{0}></script>', flatatt(attrs))
 
 
-class RazorPaymentForm(PaymentForm):
+class RazorPaymentForm(forms.Form):
     razorpay_payment_id = forms.CharField(
         required=True, widget=forms.HiddenInput)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, payment_information, gateway_params, *args, **kwargs):
         super().__init__(*args, **kwargs)
         widget = RazorPayCheckoutWidget(
-            payment=self.payment, **self.gateway_params)
+            payment_information=payment_information, **gateway_params)
         self.fields['razorpay'] = forms.CharField(
             widget=widget, required=False)
 
-    def process_payment(self):
-        data = super(RazorPaymentForm, self).clean()
-        payment_token = data['razorpay_payment_id']
-        self.payment.charge(payment_token)
-        return self.payment
+    def get_payment_token(self):
+        return self.cleaned_data['razorpay_payment_id']
