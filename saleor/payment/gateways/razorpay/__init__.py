@@ -8,8 +8,6 @@ import razorpay.errors
 
 from . import errors
 from ... import TransactionKind
-from ...models import Payment, Transaction
-from ...utils import create_transaction
 from .forms import RazorPaymentForm
 from .utils import get_amount_for_razorpay, get_error_response
 
@@ -28,32 +26,29 @@ RAZORPAY_EXCEPTIONS = (
 logger = logging.getLogger(__name__)
 
 
-def _generate_transaction(
-        payment: Payment,
+def _generate_response(
+        payment_information: Dict,
         kind: str,
-        amount: Decimal,
         *,
-        id='',
         is_success=True,
-        **data) -> Transaction:
+        **data) -> Dict:
     """Creates a transaction from a Razorpay's success payload
     or from passed data."""
-    transaction = create_transaction(
-        payment=payment,
-        kind=kind,
-        amount=amount,
-        currency=data.pop('currency', payment.currency),
-        gateway_response=data,
-        token=id,
-        is_success=is_success)
-    return transaction
+    return {
+        'transaction_id': data.get('id', payment_information['token']),
+        'kind': kind,
+        'amount': data.get('amount', payment_information['amount']),
+        'currency': data.get('currency', payment_information['currency']),
+        'error': data.get('error', None),
+        'is_success': is_success,
+        'raw_response': data}
 
 
-def check_payment_supported(payment: Payment):
-    """Checks that a given payment is supported"""
-    if payment.currency not in SUPPORTED_CURRENCIES:
+def check_payment_supported(payment_information: Dict):
+    """Checks that a given payment is supported."""
+    if payment_information['currency'] not in SUPPORTED_CURRENCIES:
         return errors.UNSUPPORTED_CURRENCY % {
-            'currency': payment.currency}
+            'currency': payment_information['currency']}
 
 
 def get_error_message_from_razorpay_error(exc: BaseException):
@@ -72,6 +67,10 @@ def clean_razorpay_response(response: dict):
     response['amount'] = Decimal(response['amount']) / 100
 
 
+def get_template():
+    return 'order/payment/razorpay.html'
+
+
 def get_form_class():
     """Return the associated razorpay payment form."""
     return RazorPaymentForm
@@ -88,11 +87,11 @@ def get_client_token(**_):
     return str(uuid.uuid4())
 
 
-def charge(
-        payment: Payment,
-        payment_token: str,
-        amount: Decimal,
-        **connection_params: Dict) -> Tuple[Transaction, str]:
+def process_payment(payment_information: Dict, **connection_params) -> Dict:
+    return charge(payment_information=payment_information, **connection_params)
+
+
+def charge(payment_information: Dict, **connection_params: Dict) -> Dict:
     """Charge a authorized payment using the razorpay client.
 
     But it first check if the given payment instance is supported
@@ -102,27 +101,30 @@ def charge(
     we flag the transaction as failed and return
     a short user friendly description of the error
     after logging the error to stderr."""
-    error = check_payment_supported(payment=payment)
+    error = check_payment_supported(payment_information=payment_information)
     razorpay_client = get_client(**connection_params)
-    razorpay_amount = get_amount_for_razorpay(amount)
+    razorpay_amount = get_amount_for_razorpay(payment_information['amount'])
 
     if not error:
         try:
             response = razorpay_client.payment.capture(
-                payment_token, razorpay_amount)
+                payment_information['token'], razorpay_amount)
             clean_razorpay_response(response)
         except RAZORPAY_EXCEPTIONS as exc:
             error = get_error_message_from_razorpay_error(exc)
-            response = get_error_response(amount, id=payment_token)
+            response = get_error_response(
+                payment_information['amount'], error=error,
+                id=payment_information['token'])
     else:
-        response = get_error_response(amount, id=payment_token)
+        response = get_error_response(
+            payment_information['amount'], error=error,
+            id=payment_information['token'])
 
-    transaction = _generate_transaction(
-        payment=payment, kind=TransactionKind.CHARGE, **response)
-    return transaction, error
+    return _generate_response(
+        payment_information=payment_information, kind='charge', **response)
 
 
-def refund(payment: Payment, amount: Decimal, **connection_params):
+def refund(payment_information: Dict, **connection_params) -> Dict:
     """Refund a payment using the razorpay client.
 
     But it first check if the given payment instance is supported
@@ -132,26 +134,22 @@ def refund(payment: Payment, amount: Decimal, **connection_params):
     payment id to refund. And return an error with a failed transaction
     if the there is no such transaction, or if an error
     from razorpay occurs during the refund."""
-    error = check_payment_supported(payment=payment)
-    capture_txn = payment.transactions.filter(
-        kind=TransactionKind.CHARGE, is_success=True).first()
+    error = check_payment_supported(payment_information=payment_information)
 
     if error:
-        response = get_error_response(amount)
-    elif capture_txn is not None:
+        response = get_error_response(
+            payment_information['amount'], error=error)
+    else:
         razorpay_client = get_client(**connection_params)
-        razorpay_amount = get_amount_for_razorpay(amount)
+        razorpay_amount = get_amount_for_razorpay(payment_information['amount'])
         try:
             response = razorpay_client.payment.refund(
-                capture_txn.token, razorpay_amount)
+                payment_information['token'], razorpay_amount)
             clean_razorpay_response(response)
         except RAZORPAY_EXCEPTIONS as exc:
             error = get_error_message_from_razorpay_error(exc)
-            response = get_error_response(amount)
-    else:
-        error = errors.ORDER_NOT_CHARGED
-        response = get_error_response(amount)
+            response = get_error_response(
+                payment_information['amount'], error=error)
 
-    transaction = _generate_transaction(
-        payment=payment, kind=TransactionKind.REFUND, **response)
-    return transaction, error
+    return _generate_response(
+        payment_information=payment_information, kind='refund', **response)
