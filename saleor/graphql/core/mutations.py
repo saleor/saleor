@@ -2,6 +2,7 @@ from itertools import chain
 from textwrap import dedent
 
 import graphene
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.db.models.fields.files import FileField
 from graphene.types.mutation import MutationOptions
@@ -381,5 +382,6 @@ class VerifyToken(Verify):
     user = graphene.Field(User)
 
     def resolve_user(self, info, **kwargs):
-        email = self.payload.get('email')
-        return models.User.objects.get(email=email)
+        username_field = get_user_model().USERNAME_FIELD
+        kwargs = {username_field: self.payload.get(username_field)}
+        return models.User.objects.get(**kwargs)
