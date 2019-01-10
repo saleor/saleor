@@ -5,7 +5,7 @@
     text-transform: uppercase;
     margin: 0 0 $global-margin * 2 0;
   }
-  hr {
+  hr:not(.margin-default) {
     margin: $global-margin * 3 0 $global-margin * 2;
   }
   .primary {
@@ -186,6 +186,21 @@
         cursor: pointer;
         display: block;
         margin: 0;
+      }
+    }
+  }
+  &__payment {
+    h3 {
+      margin: $global-margin * 2 0 $global-margin;
+    }
+    &-form {
+      label {
+        cursor: pointer;
+        display: block;
+        margin: 0;
+      }
+      &__choice {
+        margin-bottom: $global-margin;
       }
     }
   }

@@ -11,15 +11,21 @@
       {% if order.is_shipping_required %}
         <div class="col-6">
           <h3>
-            {% trans "Shipping address" context "Order details address title" %}
+            <b>
+              {% trans "Shipping address" context "Order details address title" %}
+            </b>
           </h3>
+          <hr class="margin-default" />
           {% format_address order.shipping_address %}
         </div>
       {% endif %}
       <div class="col-6">
         <h3>
-          {% trans "Billing address" context "Order details address title" %}
+          <b>
+            {% trans "Billing address" context "Order details address title" %}
+          </b>
         </h3>
+        <hr class="margin-default" />
         {% format_address order.billing_address %}
       </div>
     </div>
@@ -62,13 +68,17 @@
           <span>{{ line.translated_product_name|default:line.product_name }}</span>
         {% endif %}
       </div>
-      <div class="col-md-4">
+      <div class="col-md-4 order-details__product__description">
         <div class="row">
           <div class="col-md-6 col-12">
-            <p class="float-right">x {{ line.quantity }}</p>
+            <p class="text-right">
+              <span>
+                x {{ line.quantity }}
+              </span>
+            </p>
           </div>
           <div class="col-md-6 col-12">
-            <p class="float-right">
+            <p class="text-right">
               {% price line.get_total display_gross=order.display_gross_prices %}
             </p>
           </div>

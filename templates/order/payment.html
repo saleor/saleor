@@ -36,7 +36,7 @@
 
 {% block content %}
   <div class="row checkout">
-    <div class="col-lg-10 m-auto">
+    <div class="col-lg-7 m-auto checkout__payment">
       {% if order.user == user or not order.is_fully_paid %}
         {% if not order.is_fully_paid and order.billing_address %}
           {% if waiting_payment %}
@@ -73,15 +73,32 @@
                 Pay for order {{ order }}
               {% endblocktrans %}
             </h1>
-            <form method="post" action="{% url "order:payment" token=order.token %}" class="payment-form radio">
-              {% csrf_token %}
-              {{ payment_form }}
-              {% block form_submit %}
-                <button type="submit" class="btn btn-primary">
-                  {% trans "Proceed to payment" context "Payment details primary action" %}
-                </button>
-              {% endblock %}
-            </form>
+            <h3>
+              <b>{% trans "Choose payment method" %}</b>
+            </h3>
+            <div class="checkout__payment-form">
+              <form method="post" action="{% url "order:payment" token=order.token %}" class="payment-form radio">
+                {% csrf_token %}
+                {% for choice in payment_form.gateway %}
+                  <div class="radio checkout__payment-form__choice">
+                    <label>
+                      <div class="card card-default">
+                        <div class="card-body">
+                          <strong>
+                            {{choice}}
+                          </strong>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                {% endfor %}
+                {% block form_submit %}
+                  <button type="submit" class="btn btn-primary">
+                    {% trans "Proceed to payment" context "Payment details primary action" %}
+                  </button>
+                {% endblock %}
+              </form>
+            </div>
           {% else %}
             <p>{% trans "You've authorized transaction. Order is in processing" context "Payment details text" %}</p>
           {% endif %}
