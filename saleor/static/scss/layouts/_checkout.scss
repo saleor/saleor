@@ -159,14 +159,23 @@
   }
   &__new-address {
     grid-column-end: span 2;
+    @include media-breakpoint-down(md) {
+      grid-column-end: span 1;
+    }
     &-container {
       grid-column-end: span 2;
+      @include media-breakpoint-down(md) {
+        grid-column-end: span 1;
+      }
     }
   }
   &__shipping {
     .btn {
       grid-column-start: 2;
       width: 100%;
+      @include media-breakpoint-down(md) {
+        grid-column-start: 1;
+      }
     }
   }
   &__shipping-methods {
@@ -179,16 +188,27 @@
     .btn {
       grid-column-start: 2;
       width: 100%;
+      @include media-breakpoint-down(md) {
+        grid-column-start: 1;
+      }
     }
     &-form {
       display: grid;
       grid-template-columns: 1fr 1fr;
       grid-column-gap: $global-margin * 2;
       grid-row-gap: $global-margin;
+      @include media-breakpoint-down(md) {
+        grid-template-columns: 1fr;
+      }
       label {
         cursor: pointer;
         display: block;
         margin: 0;
+      }
+      .btn {
+        @include media-breakpoint-down(md) {
+          width: 100%;
+        }
       }
     }
   }
@@ -201,6 +221,11 @@
         cursor: pointer;
         display: block;
         margin: 0;
+      }
+      .btn {
+        @include media-breakpoint-down(md) {
+          width: 100%;
+        }
       }
       &__choice {
         margin-bottom: $global-margin;
@@ -221,6 +246,9 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-column-gap: $global-margin * 2;
+    @include media-breakpoint-down(md) {
+      grid-template-columns: 1fr;
+    }
     &-panel {
       label {
         cursor: pointer;
