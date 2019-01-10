@@ -255,11 +255,8 @@
 }
 
 .clear-filters {
-  color: $body-color;
-  font-weight: 400;
-  cursor: pointer;
-  font-size: 0.8rem;
-  line-height: 1.3rem;
+  display: inline-block;
+  margin: $global-margin * 0.5 0 $global-margin;
 }
 
 .load-more {

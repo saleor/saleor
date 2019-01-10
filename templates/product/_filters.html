@@ -2,13 +2,6 @@
 {% load static %}
 
 <div class="filters-menu__body d-none d-md-block">
-  <h2>
-    {% if filter_set.is_bound_unsorted %}
-      <a href="./">
-        <span class="clear-filters float-right">{% trans 'Clear filters' context 'Product list page filters' %}</span>
-      </a>
-    {% endif %}
-  </h2>
   <div class="product-filters">
     <div class="product-filters__attributes" data-icon-up="{% static "images/chevron-up.svg" %}" data-icon-down="{% static "images/chevron-down.svg" %}">
       <form method="get">
@@ -58,6 +51,11 @@
             </div>
           {% endif %}
         {% endfor %}
+        {% if filter_set.is_bound_unsorted %}
+          <a class="clear-filters text-uppercase" href="./">
+            {% trans 'Clear filters' context 'Product list page filters' %}
+          </a>
+        {% endif %}
         <button class="btn btn-primary" type="submit">{% trans 'Update results' context 'Apply filters button' %}</button>
       </form>
     </div>
