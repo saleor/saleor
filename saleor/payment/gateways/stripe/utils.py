@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Dict
 
 from django_countries import countries
 
@@ -57,17 +58,18 @@ def get_currency_from_stripe(currency):
     return currency.upper()
 
 
-def get_payment_billing_fullname(payment: Payment):
+def get_payment_billing_fullname(payment_information: Dict):
     # Get billing name from payment
     return '%s %s' % (
-        payment.billing_last_name, payment.billing_first_name)
+        payment_information['billing']['last_name'],
+        payment_information['billing']['first_name'])
 
 
-def shipping_address_to_stripe_dict(shipping_address: Address):
+def shipping_to_stripe_dict(shipping: Dict):
     return {
-        'line1': shipping_address.street_address_1,
-        'line2': shipping_address.street_address_2,
-        'city': shipping_address.city,
-        'state': shipping_address.country_area,
-        'postal_code': shipping_address.postal_code,
-        'country': dict(countries).get(shipping_address.country, '')}
+        'line1': shipping['street_address_1'],
+        'line2': shipping['street_address_2'],
+        'city': shipping['city'],
+        'state': shipping['country_area'],
+        'postal_code': shipping['postal_code'],
+        'country': dict(countries).get(shipping['country'], '')}

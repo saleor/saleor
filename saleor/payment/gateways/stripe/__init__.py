@@ -1,16 +1,14 @@
 from decimal import Decimal
+from typing import Dict
 
 import stripe
 
 from . import errors
-from ... import TransactionKind
-from ....payment.models import Payment
-from ...utils import create_transaction
 from .forms import StripePaymentModalForm
 from .utils import (
     get_amount_for_stripe, get_amount_from_stripe, get_currency_for_stripe,
     get_currency_from_stripe, get_payment_billing_fullname,
-    shipping_address_to_stripe_dict)
+    shipping_to_stripe_dict)
 
 
 def get_client_token(**_):
@@ -20,148 +18,112 @@ def get_client_token(**_):
     return
 
 
-def authorize(payment, payment_token, **connection_params):
-    client, error = _get_client(**connection_params), ''
+def process_payment(payment_information, **connection_params):
+    return charge(payment_information, **connection_params)
+
+
+def authorize(payment_information, **connection_params):
+    client, error = _get_client(**connection_params), None
 
     # Get amount from payment
-    amount = payment.total
+    amount = payment_information['amount']
 
     try:
         # Authorize without capture
         response = _create_stripe_charge(
-            client=client, payment=payment, amount=amount,
-            payment_token=payment_token, should_capture=False)
+            client=client, payment_information=payment_information,
+            should_capture=False)
     except stripe.error.StripeError as exc:
         response = _get_error_response_from_exc(exc)
         error = exc.user_message
 
-    # Create transaction
-    txn = _create_transaction(
-        payment=payment,
-        amount=amount,
-        kind=TransactionKind.AUTH,
-        response=response)
-
-    return txn, error
+    # Create response
+    return _create_response(
+        payment_information=payment_information,
+        kind='auth', response=response, error=error)
 
 
-def capture(payment, amount, **connection_params):
-    client, error = _get_client(**connection_params), ''
+def capture(payment_information, **connection_params):
+    client, error = _get_client(**connection_params), None
 
     # Get amount from argument or payment, and convert to stripe's amount
-    amount = amount or payment.total
-    stripe_amount = get_amount_for_stripe(amount, payment.currency)
+    amount = payment_information['amount']
+    stripe_amount = get_amount_for_stripe(
+        amount, payment_information['currency'])
 
-    capture_txn = payment.transactions.filter(
-        kind=TransactionKind.AUTH, is_success=True).first()
+    try:
+        # Retrieve stripe charge and capture specific amount
+        stripe_charge = client.Charge.retrieve(payment_information['token'])
+        response = stripe_charge.capture(amount=stripe_amount)
+    except stripe.error.StripeError as exc:
+        response = _get_error_response_from_exc(exc)
+        error = exc.user_message
 
-    if capture_txn is not None:
-        try:
-            # Retrieve stripe charge and capture specific amount
-            stripe_charge = client.Charge.retrieve(capture_txn.token)
-            response = stripe_charge.capture(amount=stripe_amount)
-        except stripe.error.StripeError as exc:
-            response = _get_error_response_from_exc(exc)
-            error = exc.user_message
-    else:
-        error = errors.ORDER_NOT_AUTHORIZED
-        response = dict()
-
-    # Create transaction
-    txn = _create_transaction(
-        payment=payment,
-        amount=amount,
-        kind=TransactionKind.CAPTURE,
-        response=response)
-
-    return txn, error
+    # Create response
+    return _create_response(
+        payment_information=payment_information,
+        kind='capture', response=response, error=error)
 
 
-def charge(payment, payment_token, amount, **connection_params):
-    client, error = _get_client(**connection_params), ''
+def charge(payment_information, **connection_params):
+    client, error = _get_client(**connection_params), None
 
     # Get amount from argument or payment
-    amount = amount or payment.total
+    amount = payment_information['amount']
 
     try:
         # Charge without pre-authorize
         response = _create_stripe_charge(
-            client=client, payment=payment, amount=amount,
-            payment_token=payment_token, should_capture=True)
+            client=client, payment_information=payment_information,
+            should_capture=True)
     except stripe.error.StripeError as exc:
         response = _get_error_response_from_exc(exc)
         error = exc.user_message
 
-    # Create transaction
-    txn = _create_transaction(
-        payment=payment,
-        amount=amount,
-        kind=TransactionKind.CHARGE,
-        response=response)
-
-    return txn, error
+    # Create response
+    return _create_response(
+        payment_information=payment_information,
+        kind='charge', response=response, error=error)
 
 
-def refund(payment, amount, **connection_params):
-    client, error = _get_client(**connection_params), ''
+def refund(payment_information, **connection_params):
+    client, error = _get_client(**connection_params), None
 
-    # Get amount from argument or payment, and convert to stripe's amount
-    amount = amount or payment.total
-    stripe_amount = get_amount_for_stripe(amount, payment.currency)
+    # Get amount from payment, and convert to stripe's amount
+    amount = payment_information['amount']
+    stripe_amount = get_amount_for_stripe(amount,
+        payment_information['currency'])
 
-    capture_txn = payment.transactions.filter(
-        kind__in=[TransactionKind.CAPTURE, TransactionKind.CHARGE],
-        is_success=True).first()
+    try:
+        # Retrieve stripe charge and refund specific amount
+        stripe_charge = client.Charge.retrieve(payment_information['token'])
+        response = client.Refund.create(
+            charge=stripe_charge.id, amount=stripe_amount)
+    except stripe.error.StripeError as exc:
+        response = _get_error_response_from_exc(exc)
+        error = exc.user_message
 
-    if capture_txn is not None:
-        try:
-            # Retrieve stripe charge and refund specific amount
-            stripe_charge = client.Charge.retrieve(capture_txn.token)
-            response = client.Refund.create(
-                charge=stripe_charge.id, amount=stripe_amount)
-        except stripe.error.StripeError as exc:
-            response = _get_error_response_from_exc(exc)
-            error = exc.user_message
-    else:
-        error = errors.ORDER_NOT_CHARGED
-        response = dict()
-
-    # Create transaction
-    txn = _create_transaction(
-        payment=payment,
-        amount=amount,
-        kind=TransactionKind.REFUND,
-        response=response)
-
-    return txn, error
+    # Create response
+    return _create_response(
+        payment_information=payment_information,
+        kind='refund', response=response, error=error)
 
 
-def void(payment, **connection_params):
-    client, error = _get_client(**connection_params), ''
+def void(payment_information, **connection_params):
+    client, error = _get_client(**connection_params), None
 
-    capture_txn = payment.transactions.filter(
-        kind=TransactionKind.AUTH, is_success=True).first()
+    try:
+        # Retrieve stripe charge and refund all
+        stripe_charge = client.Charge.retrieve(payment_information['token'])
+        response = client.Refund.create(charge=stripe_charge.id)
+    except stripe.error.StripeError as exc:
+        response = _get_error_response_from_exc(exc)
+        error = exc.user_message
 
-    if capture_txn is not None:
-        try:
-            # Retrieve stripe charge and refund all
-            stripe_charge = client.Charge.retrieve(capture_txn.token)
-            response = client.Refund.create(charge=stripe_charge.id)
-        except stripe.error.StripeError as exc:
-            response = _get_error_response_from_exc(exc)
-            error = exc.user_message
-    else:
-        error = errors.ORDER_NOT_AUTHORIZED
-        response = dict()
-
-    # Create transaction
-    txn = _create_transaction(
-        payment=payment,
-        amount=payment.total,
-        kind=TransactionKind.VOID,
-        response=response)
-
-    return txn, error
+    # Create response
+    return _create_response(
+        payment_information=payment_information,
+        kind='void', response=response, error=error)
 
 
 def get_form_class():
@@ -173,51 +135,49 @@ def _get_client(**connection_params):
     return stripe
 
 
-def _get_stripe_charge_payload(
-        payment: Payment, amount: Decimal, payment_token: str,
-        should_capture: bool):
-    shipping_address = payment.order.shipping_address
+def _get_stripe_charge_payload(payment_information: Dict, should_capture: bool):
+    shipping = payment_information['shipping']
 
     # Get currency
-    currency = get_currency_for_stripe(payment.currency)
+    currency = get_currency_for_stripe(payment_information['currency'])
 
     # Get appropriate amount for stripe
-    stripe_amount = get_amount_for_stripe(amount, currency)
+    stripe_amount = get_amount_for_stripe(
+        payment_information['amount'], currency)
 
     # Get billing name from payment
-    name = get_payment_billing_fullname(payment)
+    name = get_payment_billing_fullname(payment_information)
 
     # Construct the charge payload from the data
     charge_payload = {
         'capture': should_capture,
         'amount': stripe_amount,
         'currency': currency,
-        'source': payment_token,
+        'source': payment_information['token'],
         'description': name}
 
-    if shipping_address:
+    if shipping:
         # Update shipping address to prevent fraud in Stripe
         charge_payload['shipping'] = {
             'name': name,
-            'address': shipping_address_to_stripe_dict(shipping_address)}
+            'address': shipping_to_stripe_dict(shipping)}
 
     return charge_payload
 
 
-def _create_stripe_charge(
-        client, payment, amount: Decimal, payment_token: str,
-        should_capture: bool):
+def _create_stripe_charge(client, payment_information, should_capture: bool):
     """Create a charge with specific amount, ignoring payment's total."""
     charge_payload = _get_stripe_charge_payload(
-        payment, amount, payment_token, should_capture)
+        payment_information, should_capture)
     return client.Charge.create(**charge_payload)
 
 
-def _create_transaction(payment, amount, kind, response):
+def _create_response(payment_information, kind, response, error):
     # Get currency from response or payment
     currency = get_currency_from_stripe(
-        response.get('currency', payment.currency))
+        response.get('currency', payment_information['currency']))
 
+    amount = payment_information.get('amount')
     # Get amount from response or payment
     if 'amount' in response:
         stripe_amount = response.get('amount')
@@ -233,17 +193,15 @@ def _create_transaction(payment, amount, kind, response):
     # Check if the response's status is flagged as succeeded
     is_success = (response.get('status') == 'succeeded')
 
-    # Create transaction
-    txn = create_transaction(
-        payment=payment,
-        token=token,
-        kind=kind,
-        is_success=is_success,
-        amount=amount,
-        currency=currency,
-        gateway_response=response)
-
-    return txn
+    return {
+        'is_success': is_success,
+        'transaction_id': token,
+        'kind': kind,
+        'amount': amount,
+        'currency': currency,
+        'error': error,
+        'raw_response': response,
+    }
 
 
 def _get_error_response_from_exc(exc):
