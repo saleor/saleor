@@ -608,3 +608,8 @@ GRAPHENE = {
     'RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST': True,
     'RELAY_CONNECTION_MAX_LIMIT': 100
 }
+
+CHECKOUT_PAYMENT_GATEWAYS = {
+    DUMMY: pgettext_lazy('Payment method name', 'Dummy gateway'),
+    BRAINTREE: 'Braintree'
+}

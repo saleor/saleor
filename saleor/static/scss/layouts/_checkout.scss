@@ -170,6 +170,9 @@
     }
   }
   &__shipping-methods {
+    p {
+      margin: $global-margin * 2 0;
+    }
     .address {
       width: calc(50% - #{$global-margin});
     }
@@ -223,6 +226,13 @@
         cursor: pointer;
         display: block;
         margin-right: 0;
+      }
+    }
+  }
+  &__billing {
+    &-form {
+      p {
+        margin: $global-margin * 2 0;
       }
     }
   }

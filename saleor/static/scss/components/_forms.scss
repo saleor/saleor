@@ -173,7 +173,7 @@ input#id_quantity {
   input {
     -webkit-appearance: none;
     cursor: pointer;
-    border: 1px solid $light-turquoise;
+    border: 1px solid $turquoise;
     display: inline-block;
     height: 14px;
     margin: $global-margin / 4 $global-margin / 2 0 0;
@@ -182,7 +182,7 @@ input#id_quantity {
     width: 14px;
     &:checked {
       &:after {
-        background: $light-turquoise;
+        background: $turquoise;
         border-radius: 100%;
         content: "";
         height: 8px;
