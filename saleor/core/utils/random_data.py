@@ -481,7 +481,7 @@ def create_shipping_zones():
     yield create_shipping_zone(
         shipping_zone_name='Europe', countries=european_countries,
         shipping_methods_names=[
-            'DHL', 'UPS', 'Registred priority', 'DB Schenker'])
+            'DHL', 'UPS', 'Registered priority', 'DB Schenker'])
     oceanian_countries = [
         'AS', 'AU', 'CX', 'CC', 'CK', 'FJ', 'PF', 'GU', 'HM', 'KI', 'MH', 'FM',
         'NR', 'NC', 'NZ', 'NU', 'NF', 'MP', 'PW', 'PG', 'PN', 'WS', 'SB', 'TK',
@@ -636,13 +636,13 @@ def create_menus():
             parent=item)
 
     page = Page.objects.order_by('?')[0]
-    bottom_menu.items.get_or_create(
-        name=page.title,
-        page=page)
+    item_saleor = bottom_menu.items.get_or_create(name='Saleor', url='/')[0]
+    item_saleor.children.get_or_create(
+        name=page.title, page=page, menu=bottom_menu)
 
     # DEMO: add link to GraphQL API in the footer menu
-    bottom_menu.items.get_or_create(
-        name='GraphQL API', defaults={'url': reverse('api')})
+    item_saleor.children.get_or_create(
+        name='GraphQL API', url=reverse('api'), menu=bottom_menu)
 
     yield 'Created footer menu'
     update_menu(top_menu)
