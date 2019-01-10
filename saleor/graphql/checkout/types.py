@@ -5,7 +5,7 @@ from ...checkout import models
 from ...core.utils.taxes import get_taxes_for_address
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.money import TaxedMoney
-from ..order.resolvers import resolve_shipping_methods
+from ..order.utils import applicable_shipping_methods
 from ..shipping.types import ShippingMethod
 
 
@@ -84,7 +84,7 @@ class Checkout(CountableDjangoObjectType):
         taxes = get_taxes_for_address(self.shipping_address)
         price = self.get_subtotal(
             taxes=taxes, discounts=info.context.discounts)
-        return resolve_shipping_methods(self, info, price.gross.amount)
+        return applicable_shipping_methods(self, info, price.gross.amount)
 
     def resolve_is_shipping_required(self, info):
         return self.is_shipping_required()
