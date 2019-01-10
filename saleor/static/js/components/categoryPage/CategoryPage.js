@@ -205,8 +205,6 @@ class CategoryPage extends Component {
               <div>
                 <h2>
                   {pgettext('Category page filters', 'Filters')}
-                  <span className="clear-filters float-right"
-                    onClick={this.clearFilters}>{pgettext('Category page filters', 'Clear filters')}</span>
                 </h2>
                 <div className="product-filters">
                   <ProductFilters
@@ -216,6 +214,7 @@ class CategoryPage extends Component {
                   />
                   <PriceFilter
                     onFilterChanged={this.updatePriceFilter}
+                    onFilterClear={this.clearFilters}
                     maxPrice={variables.maxPrice}
                     minPrice={variables.minPrice}
                   />

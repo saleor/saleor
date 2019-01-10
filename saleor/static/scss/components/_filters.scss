@@ -44,7 +44,7 @@
           width: 40%;
           display: inline-block;
         }
-        span {
+        .dash {
           width: 20%;
           text-align: center;
           display: inline-block;
@@ -255,8 +255,10 @@
 }
 
 .clear-filters {
+  cursor: pointer;
   display: inline-block;
-  margin: $global-margin * 0.5 0 $global-margin;
+  margin: $global-margin 0;
+  color: $turquoise;
 }
 
 .load-more {
