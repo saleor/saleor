@@ -8,7 +8,7 @@ from ....order.utils import cancel_order
 from ....payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from ....payment.models import Payment
 from ....payment.utils import (
-    gateway_capture, gateway_void, gateway_refund, get_billing_data)
+    gateway_capture, gateway_refund, gateway_void, get_billing_data)
 from ....shipping.models import ShippingMethod as ShippingMethodModel
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation

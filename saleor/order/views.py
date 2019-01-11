@@ -15,8 +15,7 @@ from . import FulfillmentStatus
 from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
-from ..payment import (
-    ChargeStatus, PaymentError, TransactionKind, get_payment_gateway)
+from ..payment import ChargeStatus, TransactionKind, get_payment_gateway
 from ..payment.models import Payment
 from ..payment.utils import (
     create_payment_information, gateway_process_payment, get_billing_data)
@@ -117,8 +116,8 @@ def start_payment(request, order, gateway):
             gateway_params=gateway_params)
         if form.is_valid():
             try:
-                gateway_process_payment(payment=payment,
-                    payment_token=form.get_payment_token())
+                gateway_process_payment(
+                    payment=payment, payment_token=form.get_payment_token())
             except Exception as exc:
                 form.add_error(None, str(exc))
             else:

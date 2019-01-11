@@ -141,7 +141,8 @@ def refund(payment_information: Dict, **connection_params) -> Dict:
             payment_information['amount'], error=error)
     else:
         razorpay_client = get_client(**connection_params)
-        razorpay_amount = get_amount_for_razorpay(payment_information['amount'])
+        razorpay_amount = get_amount_for_razorpay(
+            payment_information['amount'])
         try:
             response = razorpay_client.payment.refund(
                 payment_information['token'], razorpay_amount)

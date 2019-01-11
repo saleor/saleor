@@ -122,7 +122,7 @@ def process_payment(
 
     try:
         return [auth_resp, capture(payment_information, **connection_params)]
-    except Exception as e:
+    except Exception:
         return [auth_resp, void(payment_information, **connection_params)]
 
 

@@ -21,7 +21,7 @@ from ...order.utils import (
 from ...payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from ...payment.models import Payment
 from ...payment.utils import (
-    get_billing_data, gateway_capture, gateway_refund, gateway_void)
+    gateway_capture, gateway_refund, gateway_void, get_billing_data)
 from ...product.models import Product, ProductVariant
 from ...product.utils import allocate_stock, deallocate_stock
 from ...shipping.models import ShippingMethod

@@ -20,7 +20,8 @@ class StripeCheckoutWidget(HiddenInput):
             'src': CHECKOUT_SCRIPT_URL,
             'data-key': gateway_params.get('public_key'),
             'data-amount': get_amount_for_stripe(
-                payment_information['amount'], payment_information['currency']),
+                payment_information['amount'],
+                payment_information['currency']),
             'data-name': gateway_params.get('store_name'),
             'data-image': gateway_params.get('store_image'),
             'data-description': CHECKOUT_DESCRIPTION,
