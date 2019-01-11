@@ -12,33 +12,35 @@
     </a>
     {% if children %}
     <div class="{% if horizontal %}nav-item__dropdown-content{% else %}nav-item__submenu{% endif %}">
-      <ul>
-        {% for child in children %}
-          <li>
-            <a href="{{ child.url }}">
-              {% if horizontal %}
-                <strong>{% get_menu_item_name lang_code=LANGUAGE_CODE menu_item=child %}</strong>
-              {% else %}
-                {% get_menu_item_name lang_code=LANGUAGE_CODE menu_item=child %}
-              {% endif %}
-            </a>
+      <div class="container">
+        <ul>
+          {% for child in children %}
+            <li>
+              <a href="{{ child.url }}">
+                {% if horizontal %}
+                  <strong>{% get_menu_item_name lang_code=LANGUAGE_CODE menu_item=child %}</strong>
+                {% else %}
+                  {% get_menu_item_name lang_code=LANGUAGE_CODE menu_item=child %}
+                {% endif %}
+              </a>
 
-            {% with grandchildren=child.child_items %}
-              {% if grandchildren %}
-                <ul>
-                  {% for grandchild in grandchildren %}
-                    <li>
-                      <a href="{{ grandchild.url }}">
-                        {% get_menu_item_name lang_code=LANGUAGE_CODE menu_item=grandchild %}
-                      </a>
-                    </li>
-                  {% endfor %}
-                </ul>
-              {% endif %}
-            {% endwith %}
-          </li>
-        {% endfor %}
+              {% with grandchildren=child.child_items %}
+                {% if grandchildren %}
+                  <ul>
+                    {% for grandchild in grandchildren %}
+                      <li>
+                        <a href="{{ grandchild.url }}">
+                          {% get_menu_item_name lang_code=LANGUAGE_CODE menu_item=grandchild %}
+                        </a>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% endif %}
+              {% endwith %}
+            </li>
+          {% endfor %}
         </ul>
+      </div>
     </div>
     {% endif %}
   </li>
