@@ -61,10 +61,7 @@ export const CollectionDetails: React.StatelessComponent<
             >
               {({ data, loading }) => {
                 const handleCollectionUpdate = (data: CollectionUpdate) => {
-                  if (
-                    data.collectionUpdate.errors === null ||
-                    data.collectionUpdate.errors.length === 0
-                  ) {
+                  if (data.collectionUpdate.errors.length === 0) {
                     pushMessage({
                       text: i18n.t("Updated collection", {
                         context: "notification"
@@ -75,10 +72,7 @@ export const CollectionDetails: React.StatelessComponent<
                 };
 
                 const handleProductAssign = (data: CollectionAssignProduct) => {
-                  if (
-                    data.collectionAddProducts.errors === null ||
-                    data.collectionAddProducts.errors.length === 0
-                  ) {
+                  if (data.collectionAddProducts.errors.length === 0) {
                     pushMessage({
                       text: i18n.t("Added product to collection", {
                         context: "notification"
@@ -91,10 +85,7 @@ export const CollectionDetails: React.StatelessComponent<
                 const handleProductUnassign = (
                   data: UnassignCollectionProduct
                 ) => {
-                  if (
-                    data.collectionRemoveProducts.errors === null ||
-                    data.collectionRemoveProducts.errors.length === 0
-                  ) {
+                  if (data.collectionRemoveProducts.errors.length === 0) {
                     pushMessage({
                       text: i18n.t("Removed product from collection", {
                         context: "notification"
@@ -104,10 +95,7 @@ export const CollectionDetails: React.StatelessComponent<
                 };
 
                 const handleCollectionRemove = (data: RemoveCollection) => {
-                  if (
-                    data.collectionDelete.errors === null ||
-                    data.collectionDelete.errors.length === 0
-                  ) {
+                  if (data.collectionDelete.errors.length === 0) {
                     pushMessage({
                       text: i18n.t("Removed collection", {
                         context: "notification"

@@ -32,10 +32,7 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
         {navigate => {
           const handleBack = () => navigate(productUrl(productId));
           const handleUpdateSuccess = (data: ProductImageUpdate) => {
-            if (
-              data.productImageUpdate &&
-              data.productImageUpdate.errors.length === 0
-            ) {
+            if (data.productImageUpdate.errors.length === 0) {
               pushMessage({ text: "Saved changes" });
             }
           };

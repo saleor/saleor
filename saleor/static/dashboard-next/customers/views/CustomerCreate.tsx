@@ -17,10 +17,7 @@ export const CustomerCreate: React.StatelessComponent<{}> = () => (
       <Messages>
         {pushMessage => {
           const handleCreateCustomerSuccess = (data: CreateCustomer) => {
-            if (
-              data.customerCreate.errors === null ||
-              data.customerCreate.errors.length === 0
-            ) {
+            if (data.customerCreate.errors.length === 0) {
               pushMessage({
                 text: i18n.t("Customer created", {
                   context: "notification"

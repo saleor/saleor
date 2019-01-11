@@ -36,10 +36,7 @@ export const CustomerDetailsView: React.StatelessComponent<
       <Messages>
         {pushMessage => {
           const handleCustomerUpdateSuccess = (data: UpdateCustomer) => {
-            if (
-              data.customerUpdate.errors === null ||
-              data.customerUpdate.errors.length === 0
-            ) {
+            if (data.customerUpdate.errors.length === 0) {
               pushMessage({
                 text: i18n.t("Customer updated", {
                   context: "notification"
@@ -48,10 +45,7 @@ export const CustomerDetailsView: React.StatelessComponent<
             }
           };
           const handleCustomerRemoveSuccess = (data: RemoveCustomer) => {
-            if (
-              data.customerDelete.errors === null ||
-              data.customerDelete.errors.length === 0
-            ) {
+            if (data.customerDelete.errors.length === 0) {
               pushMessage({
                 text: i18n.t("Customer removed", {
                   context: "notification"

@@ -60,10 +60,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                   const handleAttributeCreateSuccess = (
                     data: AttributeCreate
                   ) => {
-                    if (
-                      !data.attributeCreate.errors ||
-                      data.attributeCreate.errors.length === 0
-                    ) {
+                    if (data.attributeCreate.errors.length === 0) {
                       pushMessage({
                         text: i18n.t("Attribute created", {
                           context: "notification"
@@ -91,10 +88,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                   const handleAttributeUpdateSuccess = (
                     data: AttributeUpdate
                   ) => {
-                    if (
-                      !data.attributeUpdate.errors ||
-                      data.attributeUpdate.errors.length === 0
-                    ) {
+                    if (data.attributeUpdate.errors.length === 0) {
                       pushMessage({
                         text: i18n.t("Attribute updated", {
                           context: "notification"
