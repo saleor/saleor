@@ -23,7 +23,6 @@ from saleor.core.utils.taxes import (
     ZERO_MONEY, ZERO_TAXED_MONEY, get_taxes_for_country)
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Voucher
-from saleor.order.models import Order
 from saleor.product.models import Category
 from saleor.shipping.models import ShippingZone
 

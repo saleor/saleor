@@ -44,7 +44,7 @@ def checkout_index(request, cart):
 
 
 @get_or_empty_db_cart(Cart.objects.for_display())
-@validate_voucher # could be removed
+@validate_voucher
 @validate_cart
 @validate_is_shipping_required
 @add_voucher_form
