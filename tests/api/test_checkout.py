@@ -25,7 +25,7 @@ MUTATION_CHECKOUT_CREATE = """
     """
 
 
-def test_checkout_create(user_api_client, variant, graphql_address_data):
+def test_checkout_create(api_client, variant, graphql_address_data):
     """Create checkout object using GraphQL API."""
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
     test_email = 'test@example.com'
@@ -38,7 +38,7 @@ def test_checkout_create(user_api_client, variant, graphql_address_data):
             'email': test_email,
             'shippingAddress': shipping_address}}
     assert not Cart.objects.exists()
-    response = user_api_client.post_graphql(
+    response = api_client.post_graphql(
         MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)
 
@@ -67,13 +67,12 @@ def test_checkout_create(user_api_client, variant, graphql_address_data):
 def test_checkout_create_logged_in_customer(
         user_api_client, variant):
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
-    test_email = 'test_mail@example.com'
     variables = {
         'checkoutInput': {
             'lines': [{
                 'quantity': 1,
-                'variantId': variant_id}],
-            'email': test_email}}
+                'variantId': variant_id}]}}
+    assert not Cart.objects.exists()
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)
@@ -81,7 +80,65 @@ def test_checkout_create_logged_in_customer(
     assert new_cart is not None
     checkout_data = content['data']['checkoutCreate']['checkout']
     assert checkout_data['token'] == str(new_cart.token)
-    assert new_cart.user.id == user_api_client.user.id
+    cart_user = new_cart.user
+    customer = user_api_client.user
+    assert customer.id == cart_user.id
+    assert customer.default_shipping_address_id == new_cart.shipping_address_id
+    assert customer.default_billing_address_id == new_cart.billing_address_id
+
+
+def test_checkout_create_logged_in_customer_custom_email(
+        user_api_client, variant):
+    variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
+    custom_email = 'custom@example.com'
+    variables = {
+        'checkoutInput': {
+            'lines': [{
+                'quantity': 1,
+                'variantId': variant_id}],
+            'email': custom_email}}
+    assert not Cart.objects.exists()
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    new_cart = Cart.objects.first()
+    assert new_cart is not None
+    checkout_data = content['data']['checkoutCreate']['checkout']
+    assert checkout_data['token'] == str(new_cart.token)
+    cart_user = new_cart.user
+    customer = user_api_client.user
+    assert customer.id == cart_user.id
+    assert new_cart.email == custom_email
+
+
+def test_checkout_create_logged_in_customer_custom_addresses(
+        user_api_client, variant, graphql_address_data):
+    variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
+    test_email = 'test@example.com'
+    shipping_address = graphql_address_data
+    billing_address = graphql_address_data
+    variables = {
+        'checkoutInput': {
+            'lines': [{
+                'quantity': 1,
+                'variantId': variant_id}],
+            'shippingAddress': shipping_address,
+            'billingAddress': billing_address}}
+    assert not Cart.objects.exists()
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    new_cart = Cart.objects.first()
+    assert new_cart is not None
+    checkout_data = content['data']['checkoutCreate']['checkout']
+    assert checkout_data['token'] == str(new_cart.token)
+    cart_user = new_cart.user
+    customer = user_api_client.user
+    assert customer.id == cart_user.id
+    assert not customer.default_shipping_address_id == new_cart.shipping_address_id
+    assert not customer.default_billing_address_id == new_cart.billing_address_id
+    assert new_cart.shipping_address.first_name == shipping_address['firstName']
+    assert new_cart.billing_address.first_name == billing_address['firstName']
 
 
 def test_checkout_create_check_lines_quantity(
@@ -96,6 +153,7 @@ def test_checkout_create_check_lines_quantity(
                 'variantId': variant_id}],
             'email': test_email,
             'shippingAddress': shipping_address}}
+    assert not Cart.objects.exists()
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)
