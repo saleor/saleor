@@ -64,6 +64,26 @@ def test_checkout_create(user_api_client, variant, graphql_address_data):
     assert new_cart.shipping_address.city == shipping_address['city']
 
 
+def test_checkout_create_logged_in_customer(
+        user_api_client, variant):
+    variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
+    test_email = 'test_mail@example.com'
+    variables = {
+        'checkoutInput': {
+            'lines': [{
+                'quantity': 1,
+                'variantId': variant_id}],
+            'email': test_email}}
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    new_cart = Cart.objects.first()
+    assert new_cart is not None
+    checkout_data = content['data']['checkoutCreate']['checkout']
+    assert checkout_data['token'] == str(new_cart.token)
+    assert new_cart.user.id == user_api_client.user.id
+
+
 def test_checkout_create_check_lines_quantity(
         user_api_client, variant, graphql_address_data):
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
