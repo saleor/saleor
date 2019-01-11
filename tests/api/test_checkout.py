@@ -90,6 +90,7 @@ def test_checkout_create_logged_in_customer(
 def test_checkout_create_logged_in_customer_custom_email(
         user_api_client, variant):
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
+    customer = user_api_client.user
     custom_email = 'custom@example.com'
     variables = {
         'checkoutInput': {
@@ -98,6 +99,7 @@ def test_checkout_create_logged_in_customer_custom_email(
                 'variantId': variant_id}],
             'email': custom_email}}
     assert not Cart.objects.exists()
+    assert not custom_email == customer.email
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)
@@ -106,7 +108,6 @@ def test_checkout_create_logged_in_customer_custom_email(
     checkout_data = content['data']['checkoutCreate']['checkout']
     assert checkout_data['token'] == str(new_cart.token)
     cart_user = new_cart.user
-    customer = user_api_client.user
     assert customer.id == cart_user.id
     assert new_cart.email == custom_email
 
@@ -114,7 +115,6 @@ def test_checkout_create_logged_in_customer_custom_email(
 def test_checkout_create_logged_in_customer_custom_addresses(
         user_api_client, variant, graphql_address_data):
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
-    test_email = 'test@example.com'
     shipping_address = graphql_address_data
     billing_address = graphql_address_data
     variables = {
