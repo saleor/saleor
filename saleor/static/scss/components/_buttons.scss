@@ -23,23 +23,24 @@ a.btn {
       color: $body-color;
     }
   }
-  &.primary {
-    background-color: $blue;
+  &-primary {
+    border: none;
     color: $white;
     padding: $global-padding $global-padding * 4;
-    border: none;
     &:hover {
-      background-color: $darken-blue;
+      background-color: #42beab;
+      border: none;
+      color: $white;
     }
   }
   &.secondary {
-    border: 1px solid $blue;
+    border: 1px solid $light-turquoise;
     padding: $global-padding $global-padding * 2;
     background-color: $white;
-    color: $blue;
+    color: $light-turquoise;
     &:hover {
-      border-color: $darken-blue;
-      color: $darken-blue;
+      border-color: #42beab;
+      color: #42beab;
     }
   }
   &.danger {
@@ -80,13 +81,13 @@ a.btn {
     &.facebook {
       background: #3b5998;
       &:hover {
-        background: darken(#3b5998, 10%)
+        background: darken(#3b5998, 10%);
       }
     }
     &.google {
       background: #dd4b39;
       &:hover {
-        background: darken(#dd4b39, 10%)
+        background: darken(#dd4b39, 10%);
       }
     }
   }
