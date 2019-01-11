@@ -36,8 +36,8 @@ Example
         client_token = gateway.client_token.generate()
         return client_token
 
-authorize(payment, payment_token, \*\*connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+authorize(payment_information, \*\*connection_params)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A process of reserving the amount of money against the customer's funding
 source. Money does not change hands until the authorization is captured.
@@ -48,26 +48,26 @@ Example
 .. code-block:: python
 
     def authorize(
-            payment: Payment,
-            payment_token: str,
-            **connection_params: Dict) -> Tuple[Transaction, str]:
+            payment_information: Dict,
+            **connection_params: Dict) -> Dict:
 
         # Handle connecting to the gateway and sending the auth request here
-        response = gateway.authorize(token=payment_token)
+        response = gateway.authorize(token=payment_information['token'])
 
-        txn = Transaction.objects.create(
-            payment=payment,
-            kind=TransactionKind.AUTH,
-            amount=response.amount,
-            currency=response.currency,
-            gateway_response=get_payment_gateway_response(response),
-            token=response.transaction.id,
-            error=get_error(response),
-            is_success=response.is_success)
-        return txn, response['error']
+        # Return a correct response format so Saleor can process it,
+        # the response must be json serializable
+        return {
+            'is_success': response.is_success,
+            'transaction_id': response.transaction.id,
+            'kind': 'auth',
+            'amount': response.amount,
+            'currency': response.currency,
+            'error': get_error(response),
+            'raw_response': get_payment_gateway_response(response),
+        }
 
-refund(payment, amount, \*\*connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+refund(payment_information, \*\*connection_params)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Full or partial return of captured funds to the customer.
 
@@ -77,31 +77,26 @@ Example
 .. code-block:: python
 
     def refund(
-            payment: Payment,
-            amount: Decimal,
-            **connection_params: Dict) -> Tuple[Transaction, str]:
-
-        # Please note that token from the last AUTH transaction should be used
-        capture_txn = payment.transactions.filter(
-            kind=TransactionKind.CAPTURE).first()
-        transaction_token = capture_txn.token
+            payment_information: Dict,
+            **connection_params: Dict) -> Dict:
 
         # Handle connecting to the gateway and sending the refund request here
-        response = gateway.refund(token=transaction_token)
+        response = gateway.refund(token=payment_information['token'])
 
-        txn = create_transaction(
-            payment=payment,
-            kind=TransactionKind.REFUND,
-            amount=response.amount,
-            currency=response.currency,
-            token=response.transaction.id,
-            error=get_error(response),
-            is_success=response.is_success,
-            gateway_response=get_payment_gateway_response(response))
-        return txn, response['error']
+        # Return a correct response format so Saleor can process it,
+        # the response must be json serializable
+        return {
+            'is_success': response.is_success,
+            'transaction_id': response.transaction.id,
+            'kind': 'refund',
+            'amount': response.amount,
+            'currency': response.currency,
+            'error': get_error(response),
+            'raw_response': get_payment_gateway_response(response),
+        }
 
-capture(payment, amount, \*\*connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+capture(payment_information, \*\*connection_params)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A transfer of the money that was reserved during the authorization stage.
 
@@ -111,31 +106,26 @@ Example
 .. code-block:: python
 
     def capture(
-            payment: Payment,
-            amount: Decimal,
-            **connection_params: Dict) -> Tuple[Transaction, str]:
-
-        # Please note that token from the last AUTH transaction should be used
-        auth_transaction = payment.transactions.filter(
-            kind=TransactionKind.AUTH).first()
-        transaction_token = auth_transaction.token
+            payment_information: Dict,
+            **connection_params: Dict) -> Dict:
 
         # Handle connecting to the gateway and sending the capture request here
-        response = gateway.capture(token=transaction_token)
+        response = gateway.capture(token=payment_information['token'])
 
-        txn = create_transaction(
-            payment=payment,
-            kind=TransactionKind.CAPTURE,
-            amount=response,
-            currency=response.currency,
-            token=response.transaction.id,
-            error=get_error(response),
-            is_success=response.is_success,
-            gateway_response=get_payment_gateway_response(response))
-        return txn, response['error']
+        # Return a correct response format so Saleor can process it,
+        # the response must be json serializable
+        return {
+            'is_success': response.is_success,
+            'transaction_id': response.transaction.id,
+            'kind': 'refund',
+            'amount': response.amount,
+            'currency': response.currency,
+            'error': get_error(response),
+            'raw_response': get_payment_gateway_response(response),
+        }
 
-void(payment, \*\*connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+void(payment_information, \*\*connection_params)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A cancellation of a pending authorization or capture.
 
@@ -145,30 +135,26 @@ Example
 .. code-block:: python
 
     def void(
-            payment: Payment,
-            **connection_params: Dict) -> Tuple[Transaction, str]:
-
-        # Please note that token from the last AUTH transaction should be used
-        auth_transaction = payment.transactions.filter(
-            kind=TransactionKind.AUTH).first()
-        transaction_token = auth_transaction.token
+            payment_information: Dict,
+            **connection_params: Dict) -> Dict:
 
         # Handle connecting to the gateway and sending the void request here
-        response = gateway.void(token=transaction_token)
+        response = gateway.void(token=payment_information['token'])
 
-        txn = create_transaction(
-            payment=payment,
-            kind=TransactionKind.VOID,
-            amount=response.amount,
-            currency=response.currency,
-            error=get_error(response),
-            gateway_response=get_payment_gateway_response(response),
-            token=response.transaction.id,
-            is_success=response.is_success)
-        return txn, response['error']
+        # Return a correct response format so Saleor can process it,
+        # the response must be json serializable
+        return {
+            'is_success': response.is_success,
+            'transaction_id': response.transaction.id,
+            'kind': 'refund',
+            'amount': response.amount,
+            'currency': response.currency,
+            'error': get_error(response),
+            'raw_response': get_payment_gateway_response(response),
+        }
 
-charge(payment, payment_token, amount, \*\*connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+charge(payment_information, \*\*connection_params)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Authorization and capture in a single step.
 
@@ -178,52 +164,74 @@ Example
 .. code-block:: python
 
     def charge(
-            payment: Payment,
-            payment_token: str,
-            amount: Decimal,
-            **connection_params: Dict) -> Tuple[Transaction, str]:
+            payment_information: Dict,
+            **connection_params: Dict) -> Dict:
 
         # Handle connecting to the gateway and sending the charge request here
-        response = gateway.charge(token=payment_token, amount=amount)
+        response = gateway.charge(
+            token=payment_information['token'],
+            amount=payment_information['amount'])
 
-        txn = create_transaction(
-            payment=payment,
-            kind=TransactionKind.CHARGE,
-            amount=response.amount,
-            currency=response.currency,
-            error=get_error(response),
-            gateway_response=get_payment_gateway_response(response),
-            token=response.transaction.id,
-            is_success=response.is_success)
-        return txn, response['error']
+        # Return a correct response format so Saleor can process it,
+        # the response must be json serializable
+        return {
+            'is_success': response.is_success,
+            'transaction_id': response.transaction.id,
+            'kind': 'refund',
+            'amount': response.amount,
+            'currency': response.currency,
+            'error': get_error(response),
+            'raw_response': get_payment_gateway_response(response),
+        }
+
+process_payment(payment_information, \*\*connection_params)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Used for the checkout process, it should perform all the necessary
+steps to process a payment. It should use already defined functions,
+like authorize and capture.
+
+Example
+"""""""
+
+.. code-block:: python
+
+    def process_payment(
+            payment_information: Dict,
+            **connection_params: Dict) -> Dict:
+
+        # Authorize, update the token, then capture
+        authorize_response = authorize(
+            payment_information, **connection_params)
+        payment_information['token'] = authorize_response['transaction_id']
+
+        capture_response = capture(
+            payment_information, **connection_params)
+
+        # Return a list of responses, each response must be json serializable
+        return [authorize_response, capture_response]
 
 Parameters
 ^^^^^^^^^^
 
-+-----------------------+-------------+------------------------------------------------------------------------------------+
-| name                  | type        | description                                                                        |
-+-----------------------+-------------+------------------------------------------------------------------------------------+
-| ``payment``           | ``Payment`` | Payment instance, for which the transaction will be created.                       |
-+-----------------------+-------------+------------------------------------------------------------------------------------+
-| ``client_token``      | ``str``     | Unique client's token that will be used as his indentifier in the payment process. |
-+-----------------------+-------------+------------------------------------------------------------------------------------+
-| ``connection_params`` | ``dict``    | List of parameters used for connecting to the payment's gateway.                   |
-+-----------------------+-------------+------------------------------------------------------------------------------------+
-| ``amount``            | ``Decimal`` | Amount of Money to be refunded/captured.                                           |
-+-----------------------+-------------+------------------------------------------------------------------------------------+
++-------------------------+----------+------------------------------------------------------------------------------------+
+| name                    | type     | description                                                                        |
++-------------------------+----------+------------------------------------------------------------------------------------+
+| ``payment_information`` | ``dict`` | Payment information, containing the tokens, amount, currency and billing.          |
++-------------------------+----------+------------------------------------------------------------------------------------+
+| ``connection_params``   | ``dict`` | List of parameters used for connecting to the payment's gateway.                   |
++-------------------------+----------+------------------------------------------------------------------------------------+
 
 Returns
 ^^^^^^^
 
-+------------------+-----------------+-----------------------------------------------------------------------------------------------------------+
-| name             | type            | description                                                                                               |
-+------------------+-----------------+-----------------------------------------------------------------------------------------------------------+
-| ``txn``          | ``Transaction`` | Transaction created during the payment process, with ``is_success`` set to ``True`` if no error occurred. |
-+------------------+-----------------+-----------------------------------------------------------------------------------------------------------+
-| ``error``        | ``str``         | Error message to be displayed in the UI, empty if no error occurred.                                      |
-+------------------+-----------------+-----------------------------------------------------------------------------------------------------------+
-| ``client_token`` | ``str``         | Unique client's token that will be used as his indentifier in the payment process.                        |
-+------------------+-----------------+-----------------------------------------------------------------------------------------------------------+
++----------------------+----------------------------+------------------------------------------------------------------------------------------------------------------------------------------+
+| name                 | type                       | description                                                                                                                              |
++----------------------+----------------------------+------------------------------------------------------------------------------------------------------------------------------------------+
+| ``gateway_response`` | ``dict`` or ``list[dict]`` | Dictionary or list of dictionaries containing details about every transaction, with ``is_success`` set to ``True`` if no error occurred. |
++----------------------+----------------------------+------------------------------------------------------------------------------------------------------------------------------------------+
+| ``client_token``     | ``str``                    | Unique client's token that will be used as his indentifier in the payment process.                                                       |
++----------------------+----------------------------+------------------------------------------------------------------------------------------------------------------------------------------+
 
 Handling errors
 ---------------
@@ -237,12 +245,13 @@ Adding payment method to the old checkout (optional)
 If you are not using SPA Storefront, there are some additional steps you need
 to perform in order to enable the payment method in your checkout flow.
 
-Add PaymentForm
-^^^^^^^^^^^^^^^
+Add a Form
+^^^^^^^^^^
 
 Payment on the storefront will be handled via payment form, it should
-implement all the steps necessary for the payment to succeed.
-All payment forms should inherit from ``PaymentForm``.
+implement all the steps necessary for the payment to succeed. The form
+must implement `get_payment_token` that returns a token required to process
+payments. All payment forms should inherit from ``django.forms.Form``.
 
 Your changes should live under
 ``saleor.payment.gateways.<gateway name>.forms.py``
@@ -252,16 +261,12 @@ Example
 
 .. code-block:: python
 
-    class BraintreePaymentForm(PaymentForm):
+    class BraintreePaymentForm(forms.Form):
         amount = forms.DecimalField()
         payment_method_nonce = forms.CharField()
 
-        def process_payment(self):
-            payment_token = self.cleaned_data['payment_method_nonce']
-            self.payment.token = payment_token
-            self.payment.save(update_fields=['token'])
-            amount = self.cleaned_data['amount']
-            self.payment.charge(payment_token, amount)
+        def get_payment_token(self):
+            return self.cleaned_data['payment_method_nonce']
 
 Implement get_form_class()
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -278,6 +283,20 @@ Example
 
         def get_form_class():
             return BraintreePaymentForm
+
+
+Implement get_template()
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Should return a path to a template that will be rendered for the checkout.
+
+Example
+"""""""
+
+    .. code-block:: python
+
+        def get_template():
+            return 'order/payment/braintree.html'
 
 Add template
 ^^^^^^^^^^^^
