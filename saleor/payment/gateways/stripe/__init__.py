@@ -120,6 +120,10 @@ def void(payment_information, **connection_params):
         kind='void', response=response, error=error)
 
 
+def get_template():
+    return 'order/payment/stripe.html'
+
+
 def get_form_class():
     return StripePaymentModalForm
 
