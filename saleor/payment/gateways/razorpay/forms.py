@@ -34,7 +34,8 @@ class RazorPayCheckoutWidget(HiddenInput):
             'data-image': store_image,
             'data-name': store_name,
             'data-description': SECONDARY_TITLE,
-            'data-amount': get_amount_for_razorpay(payment_information['amount']),
+            'data-amount': get_amount_for_razorpay(
+                payment_information['amount']),
             'data-currency': payment_information['currency']}
 
         if prefill:

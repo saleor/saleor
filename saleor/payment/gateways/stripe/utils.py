@@ -3,9 +3,6 @@ from typing import Dict
 
 from django_countries import countries
 
-from ....account.models import Address
-from ....payment.models import Payment
-
 # List of zero-decimal currencies
 # Since there is no public API in Stripe backend or helper function
 # in Stripe's Python library, this list is straight out of Stripe's docs

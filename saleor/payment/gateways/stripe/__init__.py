@@ -25,9 +25,6 @@ def process_payment(payment_information, **connection_params):
 def authorize(payment_information, **connection_params):
     client, error = _get_client(**connection_params), None
 
-    # Get amount from payment
-    amount = payment_information['amount']
-
     try:
         # Authorize without capture
         response = _create_stripe_charge(
@@ -68,9 +65,6 @@ def capture(payment_information, **connection_params):
 def charge(payment_information, **connection_params):
     client, error = _get_client(**connection_params), None
 
-    # Get amount from argument or payment
-    amount = payment_information['amount']
-
     try:
         # Charge without pre-authorize
         response = _create_stripe_charge(
@@ -91,8 +85,8 @@ def refund(payment_information, **connection_params):
 
     # Get amount from payment, and convert to stripe's amount
     amount = payment_information['amount']
-    stripe_amount = get_amount_for_stripe(amount,
-        payment_information['currency'])
+    stripe_amount = get_amount_for_stripe(
+        amount, payment_information['currency'])
 
     try:
         # Retrieve stripe charge and refund specific amount
@@ -135,7 +129,8 @@ def _get_client(**connection_params):
     return stripe
 
 
-def _get_stripe_charge_payload(payment_information: Dict, should_capture: bool):
+def _get_stripe_charge_payload(
+        payment_information: Dict, should_capture: bool):
     shipping = payment_information['shipping']
 
     # Get currency

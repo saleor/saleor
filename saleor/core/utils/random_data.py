@@ -32,8 +32,8 @@ from ...order.utils import update_order_status
 from ...page.models import Page
 from ...payment.models import Payment
 from ...payment.utils import (
-    get_billing_data, gateway_authorize, gateway_capture, gateway_refund,
-    gateway_void)
+    gateway_authorize, gateway_capture, gateway_refund, gateway_void,
+    get_billing_data)
 from ...product.models import (
     Attribute, AttributeValue, Category, Collection, Product, ProductImage,
     ProductType, ProductVariant)

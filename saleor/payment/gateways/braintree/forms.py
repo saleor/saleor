@@ -15,6 +15,7 @@ class BraintreePaymentForm(forms.Form):
 
     def __init__(self, payment_information, gateway_params, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.gateway_params = gateway_params
         self.payment_information = payment_information
         self.fields['amount'].initial = payment_information['amount']
 
