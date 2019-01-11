@@ -121,6 +121,7 @@ def process_payment(
     payment_information['token'] = auth_resp['transaction_id']
 
     try:
+        assert auth_resp['is_success']
         return [auth_resp, capture(payment_information, **connection_params)]
     except Exception:
         return [auth_resp, void(payment_information, **connection_params)]

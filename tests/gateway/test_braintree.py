@@ -15,12 +15,11 @@ from saleor.payment import TransactionKind, get_payment_gateway
 from saleor.payment.gateways.braintree import (
     CONFIRM_MANUALLY, THREE_D_SECURE_REQUIRED, authorize, capture,
     extract_gateway_response, get_braintree_gateway, get_client_token,
-    get_customer_data, get_error_for_client, refund, void)
-from saleor.payment.gateways.braintree.forms import BraintreePaymentForm
+    get_customer_data, get_error_for_client, process_payment, refund, void)
 from saleor.payment.gateways.braintree.errors import (
-    BraintreeException, DEFAULT_ERROR_MESSAGE)
+    DEFAULT_ERROR_MESSAGE, BraintreeException)
+from saleor.payment.gateways.braintree.forms import BraintreePaymentForm
 from saleor.payment.utils import create_payment_information
-
 
 INCORRECT_TOKEN_ERROR = (
     'Unable to process the transaction. Transaction\'s token is incorrect '
@@ -191,6 +190,43 @@ def test_get_client_token(mock_gateway, gateway_config):
     mock_generate.assert_called_once_with()
     assert result == client_token
 
+
+@pytest.mark.integration
+@patch('saleor.payment.gateways.braintree.get_braintree_gateway')
+def test_process_payment_error_response(
+        mock_gateway, payment_dummy, braintree_error_response):
+    payment = payment_dummy
+    payment_token = 'payment-token'
+    mock_response = Mock(return_value=braintree_error_response)
+    mock_gateway.return_value = Mock(transaction=Mock(sale=mock_response))
+
+    payment_info = create_payment_information(payment, payment_token)
+    response = process_payment(payment_info)
+
+    assert isinstance(response, list)
+    auth_resp, void_resp = response
+
+    assert auth_resp['kind'] == TransactionKind.AUTH
+    assert void_resp['kind'] == TransactionKind.VOID
+
+
+@pytest.mark.integration
+@patch('saleor.payment.gateways.braintree.get_braintree_gateway')
+def test_process_payment(
+        mock_gateway, payment_dummy, braintree_success_response):
+    payment = payment_dummy
+    payment_token = 'payment-token'
+    mock_response = Mock(return_value=braintree_success_response)
+    mock_gateway.return_value = Mock(transaction=Mock(sale=mock_response))
+
+    payment_info = create_payment_information(payment, payment_token)
+    response = process_payment(payment_info)
+
+    assert isinstance(response, list)
+    auth_resp, capture_resp = response
+
+    assert auth_resp['kind'] == TransactionKind.AUTH
+    assert capture_resp['kind'] == TransactionKind.CAPTURE
 
 @pytest.mark.integration
 @patch('saleor.payment.gateways.braintree.get_braintree_gateway')

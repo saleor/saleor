@@ -4,8 +4,8 @@ from unittest.mock import Mock, patch
 import pytest
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from django.template.loader import get_template
 from django.forms.models import model_to_dict
+from django.template.loader import get_template
 
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.views import PAYMENT_TEMPLATE
@@ -14,12 +14,12 @@ from saleor.payment import (
     get_payment_gateway)
 from saleor.payment.models import Payment
 from saleor.payment.utils import (
+    ALLOWED_GATEWAY_KINDS, REQUIRED_GATEWAY_KEYS, call_gateway,
     clean_authorize, clean_capture, clean_charge, create_payment,
-    create_transaction, gateway_authorize, gateway_capture, gateway_charge,
-    gateway_get_client_token, gateway_refund, gateway_void, get_billing_data,
-    handle_fully_paid_order, validate_payment, create_payment_information,
-    gateway_process_payment, validate_gateway_response, ALLOWED_GATEWAY_KINDS,
-    REQUIRED_GATEWAY_KEYS)
+    create_payment_information, create_transaction, gateway_authorize,
+    gateway_capture, gateway_charge, gateway_get_client_token,
+    gateway_process_payment, gateway_refund, gateway_void, get_billing_data,
+    handle_fully_paid_order, validate_gateway_response, validate_payment)
 
 NOT_ACTIVE_PAYMENT_ERROR = 'This payment is no longer active.'
 EXAMPLE_ERROR = 'Example dummy error'
@@ -832,3 +832,44 @@ def test_validate_gateway_response_not_json_serializable(gateway_response):
         validate_gateway_response(gateway_response)
 
     assert str(e.value) == 'Gateway response needs to be json serializable'
+
+
+@patch('saleor.payment.utils.get_payment_gateway')
+def test_call_gateway_invalid_response(
+        mock_get_payment_gateway, payment_dummy):
+    mock_get_payment_gateway.return_value = (
+        Mock(auth=Mock(return_value=('wrong', 'response'))), {})
+
+    with pytest.raises(PaymentError) as e:
+        call_gateway(
+            func_name='auth', transaction_kind='auth',
+            payment=payment_dummy, payment_token='token')
+    assert str(e.value) == 'Gateway response validation failed'
+
+
+@patch('saleor.payment.utils.get_payment_gateway')
+def test_call_gateway_function_not_implemented(
+        mock_get_payment_gateway, payment_dummy):
+    class CustomClass:
+        pass
+
+    mock_get_payment_gateway.return_value = (CustomClass(), {})
+
+    with pytest.raises(PaymentError) as e:
+        call_gateway(
+            func_name='func', transaction_kind='auth',
+            payment=payment_dummy, payment_token='token')
+    assert str(e.value) == 'Gateway doesn\'t implement func'
+
+
+@patch('saleor.payment.utils.get_payment_gateway')
+def test_call_gateway_generic_error(
+        mock_get_payment_gateway, payment_dummy):
+    mock_get_payment_gateway.return_value = (
+        Mock(auth=Mock(side_effect=Exception('something went wrong'))), {})
+
+    with pytest.raises(PaymentError) as e:
+        call_gateway(
+            func_name='auth', transaction_kind='auth',
+            payment=payment_dummy, payment_token='token')
+    assert str(e.value) == 'Gateway encountered an error'
