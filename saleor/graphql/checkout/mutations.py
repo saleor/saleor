@@ -77,6 +77,16 @@ def check_lines_quantity(variants, quantities):
     return errors
 
 
+def get_validated_address_data(checkout, errors, user, address_data):
+    if address_data:
+        address_data, errors = checkout.validate_address(
+            address_data, errors)
+        return address_data
+    if not user.is_anonymous:
+        return user.default_shipping_address
+    return None
+
+
 class CheckoutLineInput(graphene.InputObjectType):
     quantity = graphene.Int(
         description='The number of items purchased.')
@@ -127,23 +137,32 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 cleaned_input['quantities'] = quantities
 
         shipping_address_data = input.pop('shipping_address', None)
-        if shipping_address_data:
-            shipping_address, errors = cls.validate_address(
-                shipping_address_data, errors)
+        shipping_address = get_validated_address_data(
+            cls, errors, user, shipping_address_data)
+        if shipping_address:
             cleaned_input['shipping_address'] = shipping_address
-        elif user:
-            cleaned_input['shipping_address'] = user.default_shipping_address
+
+        billing_address_data = input.pop('billing_address', None)
+        billing_address = get_validated_address_data(
+            cls, errors, user, billing_address_data)
+        if billing_address:
+            cleaned_input['billing_address'] = billing_address
 
         return cleaned_input
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
         shipping_address = cleaned_input.get('shipping_address')
+        billing_address = cleaned_input.get('billing_address')
         update_fields = []
         if shipping_address:
             shipping_address.save()
             instance.shipping_address = shipping_address
             update_fields.append('shipping_address')
+        if billing_address:
+            billing_address.save()
+            instance.billing_address = billing_address
+            update_fields.append('billing_address')
         super().save(info, instance, cleaned_input)
         user = info.context.user
         if not user.is_anonymous:
