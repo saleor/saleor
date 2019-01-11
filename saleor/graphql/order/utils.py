@@ -1,3 +1,4 @@
+from ...shipping import models as shipping_models
 from ..core.types.common import Error
 
 
@@ -25,3 +26,15 @@ def can_finalize_draft_order(order, errors):
                     message='Shipping method is not valid for chosen shipping '
                             'address'))
     return errors
+
+
+def applicable_shipping_methods(obj, info, price):
+    if not obj.is_shipping_required():
+        return None
+    if not obj.shipping_address:
+        return None
+
+    qs = shipping_models.ShippingMethod.objects
+    return qs.applicable_shipping_methods(
+        price=price, weight=obj.get_total_weight(),
+        country_code=obj.shipping_address.country.code)
