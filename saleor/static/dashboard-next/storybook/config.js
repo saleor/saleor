@@ -108,6 +108,9 @@ function loadStories() {
   // Site settings
   require("./stories/siteSettings/SiteSettingsKeyDialog");
   require("./stories/siteSettings/SiteSettingsPage");
+  
+  // Taxes
+  require("./stories/taxes/TaxListPage");
 }
 
 configure(loadStories, module);
