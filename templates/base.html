@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 {% load i18n %}
-{% load menu from shop %}
+{% load footer_menu menu from shop %}
 {% load placeholder %}
 {% load render_bundle from webpack_loader %}
 {% load static %}
@@ -117,13 +117,12 @@
           <div class="col-8 col-md-4 navbar__logo">
             <div class="menu-icon-mobile d-md-none navbar__brand__menu-toggle closed open">
               <svg data-src="{% static "images/mobile-menu.svg" %}" width="28px" height="20px"/>
-              <span>{% trans "menu" context "Hamburger button text" %}</span>
             </div>
             <a href="{% url 'home' %}">
               <svg data-src="{% static "images/logo-document.svg" %}" height="38px" width="176px"/>
             </a>
           </div>
-          <div class="col-2 col-md-4 navbar__search static">
+          <div class="col-2 col-md-5 navbar__search static">
             {% if SEARCH_IS_ENABLED %}
               <div class="d-md-none mobile-search-icon">
                 <svg data-src="{% static "images/search.svg" %}" width="30" height="30"/>
@@ -136,20 +135,20 @@
                        value="{% if query %}{{ query }}{% endif %}"
                        placeholder="{% trans "Search for product" %}"
                        required>
-                <button class="btn btn-link" type="submit">
-                  <svg data-src="{% static "images/search.svg" %}" width="30" height="30"/>
+                <button class="btn btn-primary" type="submit">
+                  {% trans "Search" %} <svg data-src="{% static "images/search.svg" %}" width="18" height="18"/>
                 </button>
               </form>
             {% endif %}
           </div>
-          <div class="col-2 col-md-4">
+          <div class="col-2 col-md-3">
             <div class="navbar__brand__cart float-right">
               <a rel="nofollow" class="cart__icon" href="{% url "cart:index" %}">
                 <span class="cart-label d-none d-md-inline-block">
                   {% trans "Your Cart" context "Main navigation item" %}
                 </span>
                 <div class="navbar__brand__cart__icon">
-                  <svg data-src="{% static "images/cart.svg" %}" width="35" height="30"/>
+                  <svg data-src="{% static "images/cart.svg" %}" width="24" height="24"/>
                 </div>
                 <span class="badge {% if not cart_counter %}empty{% endif %}">
                   {% if cart_counter %}
@@ -191,18 +190,19 @@
 </div>
 {% block footer %}
   <footer class="footer">
+  <div class="footer__menus">
     <div class="container">
       <div class="row">
-        <div class="col-md-3">
-          <a href="{% url 'home' %}" class="footer__logo">
-            <svg data-src="{% static "images/logo-document.svg" %}" height="38px" width="176px"/>
-          </a>
-        </div>
-        <div class="col-md-3 col-sm-6">
-          {% menu site_menu=site.settings.bottom_menu %}
-        </div>
-        <div class="col-md-3 col-sm-6">
-          <ul>
+          {% footer_menu site_menu=site.settings.bottom_menu %}
+        <div class="col-md-2 col-6">
+        <ul class="menu">
+          <li class="nav-item__dropdown menu__item">
+            <a>
+              <strong>
+                {% trans "Account" %}
+              </strong>
+            </a>
+            <hr />
             <li>
               <a rel="nofollow" href="{% url "cart:index" %}">
                 {% trans "Your Cart" context "Main navigation item" %}
@@ -252,34 +252,51 @@
             {% endif %}
           </ul>
         </div>
-        <div class="col-md-3 col-sm-12">
-          <a target="_blank" rel="noopener" class="social-footer" href="https://www.facebook.com/mirumeelabs/">
-            <svg data-src="{% static "images/facebook-logo.svg" %}" width="45px" height="45px"/>
-          </a>
-          <a target="_blank" rel="noopener" class="social-footer" href="https://github.com/mirumee/saleor">
-            <svg data-src="{% static "images/github-logo.svg" %}" width="45px" height="45px"/>
-          </a>
-          <a target="_blank" rel="noopener" class="social-footer" href="https://twitter.com/getsaleor">
-            <svg data-src="{% static "images/twitter-logo.svg" %}" width="45px" height="45px"/>
-          </a>
-          <a target="_blank" rel="noopener" class="social-footer" href="https://plus.google.com/+Mirumee">
-            <svg data-src="{% static "images/google-logo.svg" %}" width="45px" height="45px"/>
-          </a>
-          <a target="_blank" rel="noopener" class="social-footer" href="https://www.meetup.com/Mirumee-Talks/">
-            <svg data-src="{% static "images/meetup-logo.svg" %}" width="45px" height="45px"/>
-          </a>
-          <a target="_blank" rel="noopener" class="social-footer" href="https://linkedin.com/company/mirumee-software">
-            <svg data-src="{% static "images/linkedin-logo.svg" %}" width="45px" height="45px"/>
-          </a>
-          <a target="_blank" rel="noopener" class="social-footer" href="https://dribbble.com/mirumee">
-            <svg data-src="{% static "images/dribbble-logo.svg" %}" width="45px" height="45px"/>
-          </a>
-          <a target="_blank" rel="noopener" class="social-footer" href="https://www.instagram.com/explore/tags/mirumee/">
-            <svg data-src="{% static "images/instagram-logo.svg" %}" width="45px" height="45px"/>
-          </a>
+        <div class="offset-md-2 col-md-4 col-12">
+          <div class="footer__menus__social-container">
+            <div class="footer__menus__social">
+              <a target="_blank" rel="noopener" class="social-footer" href="https://www.facebook.com/mirumeelabs/">
+                <svg data-src="{% static "images/facebook-logo.svg" %}" width="45px" height="45px"/>
+              </a>
+              <a target="_blank" rel="noopener" class="social-footer" href="https://github.com/mirumee/saleor">
+                <svg data-src="{% static "images/github-logo.svg" %}" width="45px" height="45px"/>
+              </a>
+              <a target="_blank" rel="noopener" class="social-footer" href="https://twitter.com/getsaleor">
+                <svg data-src="{% static "images/twitter-logo.svg" %}" width="45px" height="45px"/>
+              </a>
+              <a target="_blank" rel="noopener" class="social-footer" href="https://plus.google.com/+Mirumee">
+                <svg data-src="{% static "images/google-logo.svg" %}" width="45px" height="45px"/>
+              </a>
+              <a target="_blank" rel="noopener" class="social-footer" href="https://www.meetup.com/Mirumee-Talks/">
+                <svg data-src="{% static "images/meetup-logo.svg" %}" width="45px" height="45px"/>
+              </a>
+              <a target="_blank" rel="noopener" class="social-footer" href="https://linkedin.com/company/mirumee-software">
+                <svg data-src="{% static "images/linkedin-logo.svg" %}" width="45px" height="45px"/>
+              </a>
+              <a target="_blank" rel="noopener" class="social-footer" href="https://dribbble.com/mirumee">
+                <svg data-src="{% static "images/dribbble-logo.svg" %}" width="45px" height="45px"/>
+              </a>
+              <a target="_blank" rel="noopener" class="social-footer" href="https://www.instagram.com/explore/tags/mirumee/">
+                <svg data-src="{% static "images/instagram-logo.svg" %}" width="45px" height="45px"/>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+  </div>
+  <div class="footer__copy">
+    <div class="container">
+      <div class="row">
+        <div class="col-4">
+          <a href="{% url 'home' %}" class="footer__logo">
+            <svg data-src="{% static "images/logo-document.svg" %}" height="38px" width="176px"/>
+          </a>
+        </div>
+        <div class="col-8 footer__copy-text">COPYRIGHT © 2009–2019 MIRUMEE SOFTWARE</div>
+      </div>
+    </div>
+  </div>
   </footer>
 {% endblock %}
 {% block footer_scripts %}
