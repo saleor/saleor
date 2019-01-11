@@ -93,6 +93,8 @@ class CheckoutCreateInput(graphene.InputObjectType):
     shipping_address = AddressInput(
         description=(
             'The mailling address to where the checkout will be shipped.'))
+    billing_address = AddressInput(
+        description=('Billing address of the customer.'))
 
 
 class CheckoutCreate(ModelMutation, I18nMixin):
@@ -108,6 +110,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     @classmethod
     def clean_input(cls, info, instance, input, errors):
         cleaned_input = super().clean_input(info, instance, input, errors)
+        user = info.context.user
         lines = input.pop('lines', None)
         if lines:
             variant_ids = [line.get('variant_id') for line in lines]
@@ -128,16 +131,26 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             shipping_address, errors = cls.validate_address(
                 shipping_address_data, errors)
             cleaned_input['shipping_address'] = shipping_address
+        elif user:
+            cleaned_input['shipping_address'] = user.default_shipping_address
+
         return cleaned_input
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
         shipping_address = cleaned_input.get('shipping_address')
+        update_fields = []
         if shipping_address:
             shipping_address.save()
             instance.shipping_address = shipping_address
+            update_fields.append('shipping_address')
         super().save(info, instance, cleaned_input)
-        instance.save(update_fields=['shipping_address'])
+        user = info.context.user
+        if not user.is_anonymous:
+            instance.user = user
+            update_fields.append('user')
+        instance.save(update_fields=update_fields)
+
         variants = cleaned_input.get('variants')
         quantities = cleaned_input.get('quantities')
         if variants and quantities:
