@@ -323,6 +323,7 @@ input CheckoutCreateInput {
   lines: [CheckoutLineInput]
   email: String
   shippingAddress: AddressInput
+  billingAddress: AddressInput
 }
 
 type CheckoutCustomerAttach {
