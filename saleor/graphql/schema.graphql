@@ -365,8 +365,8 @@ type CheckoutLineDelete {
 }
 
 input CheckoutLineInput {
-  quantity: Int
-  variantId: ID
+  quantity: Int!
+  variantId: ID!
 }
 
 type CheckoutLinesAdd {
