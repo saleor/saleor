@@ -128,6 +128,7 @@ class CartLine(models.Model):
 
     class Meta:
         unique_together = ('cart', 'variant', 'data')
+        ordering = ('id',)
 
     def __str__(self):
         return smart_str(self.variant)
