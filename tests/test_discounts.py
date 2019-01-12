@@ -221,7 +221,7 @@ def test_get_voucher_discount_all_products(
     (date.today(), date.today(), None, True),
     (date.today() + timedelta(weeks=10), date.today(), None, True),
     ))
-def test_sale_active2(current_date, start_date, end_date, is_active):
+def test_sale_active(current_date, start_date, end_date, is_active):
     Sale.objects.create(
         type=DiscountValueType.FIXED,
         value=5,
