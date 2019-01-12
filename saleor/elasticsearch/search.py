@@ -1,5 +1,10 @@
+import logging
+
 from constance import config
 from django.conf import settings
+from django.core import cache
+
+from elasticsearch import NotFoundError
 from elasticsearch_dsl import DocType, Text, Integer, InnerObjectWrapper, \
     Nested, String, Date, char_filter
 from elasticsearch_dsl import Keyword
@@ -12,6 +17,8 @@ from elasticsearch_dsl.connections import connections
 __author__ = 'tkolter'
 
 connections.create_connection()
+redis = cache.caches['default']
+logger = logging.getLogger(__name__)
 
 
 OYE_RELEASES_INDEX = 'oye-{}releases'.format("" if settings.ENVIRONMENT is None else settings.ENVIRONMENT + "-")
@@ -99,6 +106,10 @@ class Release(DocType):
     class Meta:
         all = MetaField(store=True, analyzer=lowercase_analyzer, search_analyzer=lowercase_analyzer)
         index = OYE_RELEASES_INDEX
+
+    @staticmethod
+    def get_elastic_dict(release):
+        return get_elastic_release_dict(release)
 
 
 class Artist(DocType):
@@ -203,3 +214,54 @@ def search(query, size=10, page=1, doc_type=None, fields=QUERY_FIELDS):
     s = Search(**search_params).from_dict(query_dict).index(search_params['index']).doc_type(doc_type)
     response = s.execute()
     return response
+
+
+def get_elastic_release_dict(release):
+    result = {
+        'artist_name': release.name,
+        'title': release.title,
+        'description': release.description,
+        'label': release.label,
+        'cat_no': release.catno,
+    }
+    if release.released_at:
+        result['released_at'] = release.released_at
+
+    return result
+
+
+def _elastic_dict_cache_key(doc_type, item):
+    return 'elastic_dict_{}_{}'.format(doc_type.__name__, item.pk)
+
+
+def _get_cacheable_elastic_dict(doc_type, item):
+    get_elastic_dict = getattr(doc_type, 'get_elastic_dict', None)
+    if get_elastic_dict and callable(get_elastic_dict):
+        return get_elastic_dict(item)
+
+
+def cached_elastic(doc_type):
+    def wrapper(func):
+        def cached_indexing(self):
+            run_index = False
+            cache_key = _elastic_dict_cache_key(doc_type, self)
+            elastic_dict = _get_cacheable_elastic_dict(doc_type, self)
+            try:
+                doc_type.get(self.pk)
+                cached_dict = redis.get(cache_key, None)
+                if cached_dict is None or cached_dict != elastic_dict:
+                    run_index = True
+                    logger.info('Re-index elastic document (type: {}, id: {})'.format(
+                        doc_type.__name__,
+                        self.pk
+                    ))
+
+            except NotFoundError:
+                run_index = True
+            if run_index:
+                func(self)
+                redis.set(cache_key, elastic_dict)
+
+        return cached_indexing
+
+    return wrapper
