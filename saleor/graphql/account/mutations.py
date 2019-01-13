@@ -190,7 +190,6 @@ class UserDelete(ModelDeleteMutation):
         elif instance.is_superuser:
             cls.add_error(
                 errors, 'id', 'Only superuser can delete his own account.')
-        return errors
 
 
 class CustomerDelete(UserDelete):
@@ -211,7 +210,6 @@ class CustomerDelete(UserDelete):
         super().clean_instance(info, instance, errors)
         if instance.is_staff:
             cls.add_error(errors, 'id', 'Cannot delete a staff account.')
-        return errors
 
 
 class StaffCreate(ModelMutation):
@@ -315,7 +313,6 @@ class StaffDelete(UserDelete):
         if not instance.is_staff:
             cls.add_error(
                 errors, 'id', 'Cannot delete a non-staff user.')
-        return errors
 
     @classmethod
     def mutate(cls, root, info, **data):
