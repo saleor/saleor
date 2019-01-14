@@ -79,8 +79,9 @@ def check_lines_quantity(variants, quantities):
 
 class CheckoutLineInput(graphene.InputObjectType):
     quantity = graphene.Int(
-        description='The number of items purchased.')
-    variant_id = graphene.ID(description='ID of the ProductVariant.')
+        required=True, description='The number of items purchased.')
+    variant_id = graphene.ID(
+        required=True, description='ID of the ProductVariant.')
 
 
 class CheckoutCreateInput(graphene.InputObjectType):
