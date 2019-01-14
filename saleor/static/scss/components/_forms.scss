@@ -1,6 +1,8 @@
-.form-control, select, input {
+.form-control,
+select,
+input {
   color: $body-color;
-  border-radius: 2px;
+  border-radius: 8px;
   border: 1px solid $gray;
   &:focus {
     color: $body-color;
@@ -12,6 +14,18 @@
     color: $gray;
     font-family: $font-family-sans-serif;
     font-weight: 300;
+  }
+  &[type="checkbox"] {
+    -webkit-appearance: none;
+    border-color: $turquoise;
+    border-radius: 2px;
+    cursor: pointer;
+    height: 8px;
+    transition-duration: 300ms;
+    width: 8px;
+    &:checked {
+      background-color: $turquoise;
+    }
   }
 }
 
@@ -45,6 +59,8 @@
     top: 0;
     right: 0;
     margin-top: 0;
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
   }
 }
 
@@ -80,21 +96,23 @@
   }
   .form-control {
     width: 100%;
-    border-radius: 0;
-    padding-left: $global-padding;
+    border-radius: $button-border-radius;
+    padding: $global-padding;
+    font-size: 0.8rem;
   }
   .btn {
-    width: 2.3rem;
-    height: 2.3rem;
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
+    height: 100%;
     position: absolute;
     top: 0;
     right: 0;
     cursor: pointer;
     border-left: solid 1px $gray;
-    border-radius: 0;
     outline: 0;
-    @include transition(background, 0.3s)
-    img {
+    display: flex;
+    align-items: center;
+    @include transition(background, 0.3s) img {
       height: 1.5rem;
       padding: $global-padding / 7;
     }
@@ -109,8 +127,10 @@
     z-index: 5;
     margin-top: 0;
     .form-control {
-      padding: $global-padding * 2 $global-padding * 2 $global-padding * 2 $global-padding * 4;
+      padding: $global-padding * 2 $global-padding * 2 $global-padding * 2
+        $global-padding * 4;
       border: 0;
+      height: 5.9rem;
     }
     .mobile-close-search {
       position: absolute;
@@ -118,8 +138,10 @@
       left: 0.5rem;
     }
     .btn {
-      top: 1.6rem;
-      right: 2rem;
+      border-radius: 0;
+      height: 6rem;
+      right: 0;
+      top: 0;
     }
   }
 }
@@ -149,11 +171,30 @@ input#id_quantity {
     padding-left: 0;
   }
   input {
+    -webkit-appearance: none;
+    cursor: pointer;
+    border: 1px solid $turquoise;
     display: inline-block;
-    vertical-align: top;
+    height: 14px;
     margin: $global-margin / 4 $global-margin / 2 0 0;
+    position: relative;
+    vertical-align: top;
+    width: 14px;
+    &:checked {
+      &:after {
+        background: $turquoise;
+        border-radius: 100%;
+        content: "";
+        height: 8px;
+        left: 2px;
+        position: absolute;
+        top: 2px;
+        width: 8px;
+      }
+    }
   }
-  span, .address-details {
+  span,
+  .address-details {
     display: inline-block;
   }
   label {
@@ -182,5 +223,5 @@ input#id_quantity {
 select.form-control {
   appearance: none;
   border-radius: 2px;
-  background: url('../images/arrow-select.svg') 100% 50% no-repeat / 24px 14px;
+  background: url("../images/arrow-select.svg") 100% 50% no-repeat / 24px 14px;
 }

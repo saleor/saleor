@@ -77,7 +77,7 @@
       </div>
       <div class="row">
         <div class="col-md-12">
-            <a href="{% url "checkout:login" %}" class="btn primary float-right cart__submit">
+            <a href="{% url "checkout:login" %}" class="btn btn-primary float-right cart__submit">
             {% trans "Checkout" context "Cart primary action" %}
           </a>
             <button class="btn secondary float-right cart__clear" data-action="{% url 'cart:clear-cart' %}">
@@ -89,7 +89,7 @@
       <div class="cart__empty">
         <img class="lazyload lazypreload" data-src="{% static 'images/empty-cart-bg.png' %}" data-srcset="{% static 'images/empty-cart-bg.png' %} 1x, {% static 'images/empty-cart-bg2x.png' %} 2x">
         <h2>{% trans "There are no products in your shopping cart." context "Empty cart message" %}</h2>
-        <a href="{% url 'home' %}" class="btn primary">{% trans "Check out our sales" context "Empty cart link" %}</a>
+        <a href="{% url 'home' %}" class="btn btn-primary">{% trans "Check out our sales" context "Empty cart link" %}</a>
       </div>
     {% endif %}
   </div>

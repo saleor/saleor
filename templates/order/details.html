@@ -56,7 +56,7 @@
             {% trans "Payment details" context "Order details link text" %}
           </a>
         {% else %}
-          <a href="{% url "order:payment" token=order.token %}" class="btn primary">
+          <a href="{% url "order:payment" token=order.token %}" class="btn btn-primary">
             {% trans "Pay for order" context "Order details primary action" %}
           </a>
         {% endif %}
@@ -72,7 +72,7 @@
           {% csrf_token %}
           <h2>{% trans "Add a note to your order" context "Order note title" %}</h2>
           {% bootstrap_form note_form display_labels=False %}
-          <input type="submit" value="{% trans 'Submit note' context 'Customer panel - order details: add note submit button' %}" class="btn primary" />
+          <input type="submit" value="{% trans 'Submit note' context 'Customer panel - order details: add note submit button' %}" class="btn btn-primary" />
         </form>
       {% endif %}
       </div>

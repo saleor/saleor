@@ -115,7 +115,7 @@
             <form action="" method="post">
               {% csrf_token %}
               {% bootstrap_form change_password_form %}
-              <input type="submit" class="btn primary narrow" value="{% trans "Change password" context "User profile action" %}">
+              <input type="submit" class="btn btn-primary narrow" value="{% trans "Change password" context "User profile action" %}">
             </form>
           </div>
         </div>
@@ -129,7 +129,7 @@
             <form action="" method="post">
               {% csrf_token %}
               {% bootstrap_form user_name_form %}
-              <input type="submit" class="btn primary narrow" value="{% trans "Update" context "User profile action" %}">
+              <input type="submit" class="btn btn-primary narrow" value="{% trans "Update" context "User profile action" %}">
             </form>
           </div>
         </div>
