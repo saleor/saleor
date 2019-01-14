@@ -77,16 +77,6 @@ def check_lines_quantity(variants, quantities):
     return errors
 
 
-def get_validated_address_data(checkout, errors, user, address_data):
-    if address_data:
-        address_data, errors = checkout.validate_address(
-            address_data, errors)
-        return address_data
-    if not user.is_anonymous:
-        return user.default_shipping_address
-    return None
-
-
 class CheckoutLineInput(graphene.InputObjectType):
     quantity = graphene.Int(
         description='The number of items purchased.')
@@ -136,17 +126,27 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 cleaned_input['variants'] = variants
                 cleaned_input['quantities'] = quantities
 
+        default_shipping_address = None
+        default_billing_address = None
+        if not user.is_anonymous:
+            default_billing_address = user.default_billing_address
+            default_shipping_address = user.default_shipping_address
+
         shipping_address_data = input.pop('shipping_address', None)
-        shipping_address = get_validated_address_data(
-            cls, errors, user, shipping_address_data)
-        if shipping_address:
+        if shipping_address_data:
+            shipping_address, errors = cls.validate_address(
+                shipping_address_data, errors)
             cleaned_input['shipping_address'] = shipping_address
+        else:
+            cleaned_input['shipping_address'] = default_shipping_address
 
         billing_address_data = input.pop('billing_address', None)
-        billing_address = get_validated_address_data(
-            cls, errors, user, billing_address_data)
-        if billing_address:
+        if billing_address_data:
+            billing_address, errors = cls.validate_address(
+                billing_address_data, errors)
             cleaned_input['billing_address'] = billing_address
+        else:
+            cleaned_input['billing_address'] = default_billing_address
 
         return cleaned_input
 
