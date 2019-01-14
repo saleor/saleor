@@ -9,3 +9,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Register celery task for updating exchange rates - #3599 by @jxltom
 - Order by id by default for CartLine - #3593 by @jxltom
 - Fix bug where products in homepage should be visible to request.user instead of anonymous user - #3598 by @jxltom
+- Simplify mutation's error checking - #3589 by @dominik-zeglen
