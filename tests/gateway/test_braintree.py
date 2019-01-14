@@ -11,10 +11,10 @@ from braintree.validation_error import ValidationError
 from django.core.exceptions import ImproperlyConfigured
 from prices import Money
 
-from saleor.payment import TransactionKind, get_payment_gateway
+from saleor.payment import get_payment_gateway
 from saleor.payment.gateways.braintree import (
-    CONFIRM_MANUALLY, THREE_D_SECURE_REQUIRED, authorize, capture,
-    extract_gateway_response, get_braintree_gateway, get_client_token,
+    CONFIRM_MANUALLY, THREE_D_SECURE_REQUIRED, TransactionKind, authorize,
+    capture, extract_gateway_response, get_braintree_gateway, get_client_token,
     get_customer_data, get_error_for_client, process_payment, refund, void)
 from saleor.payment.gateways.braintree.errors import (
     DEFAULT_ERROR_MESSAGE, BraintreeException)

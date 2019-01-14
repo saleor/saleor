@@ -31,6 +31,14 @@ ERROR_CODES_WHITELIST = {
 }
 
 
+class TransactionKind:
+    AUTH = 'auth'
+    CAPTURE = 'capture'
+    CHARGE = 'charge'
+    REFUND = 'refund'
+    VOID = 'void'
+
+
 def get_customer_data(payment_information: Dict) -> Dict:
     billing = payment_information['billing']
     return {
@@ -115,18 +123,6 @@ def get_client_token(**connection_params: Dict) -> str:
     return client_token
 
 
-def process_payment(
-        payment_information: Dict, **connection_params: Dict) -> Dict:
-    auth_resp = authorize(payment_information, **connection_params)
-    payment_information['token'] = auth_resp['transaction_id']
-
-    try:
-        assert auth_resp['is_success']
-        return [auth_resp, capture(payment_information, **connection_params)]
-    except Exception:
-        return [auth_resp, void(payment_information, **connection_params)]
-
-
 def authorize(payment_information: Dict, **connection_params: Dict) -> Dict:
     gateway = get_braintree_gateway(**connection_params)
 
@@ -147,10 +143,13 @@ def authorize(payment_information: Dict, **connection_params: Dict) -> Dict:
 
     return {
         'is_success': result.is_success,
-        'kind': 'auth',
-        'amount': gateway_response.get('amount'),
-        'currency': gateway_response.get('currency'),
-        'transaction_id': gateway_response.get('transaction_id'),
+        'kind': TransactionKind.AUTH,
+        'amount': gateway_response.get(
+            'amount', payment_information['amount']),
+        'currency': gateway_response.get(
+            'currency', payment_information['currency']),
+        'transaction_id': gateway_response.get(
+            'transaction_id', payment_information['token']),
         'error': error,
         'raw_response': gateway_response}
 
@@ -170,10 +169,13 @@ def capture(payment_information: Dict, **connection_params: Dict) -> Dict:
 
     return {
         'is_success': result.is_success,
-        'kind': 'capture',
-        'amount': gateway_response.get('amount'),
-        'currency': gateway_response.get('currency'),
-        'transaction_id': gateway_response.get('transaction_id'),
+        'kind': TransactionKind.CAPTURE,
+        'amount': gateway_response.get(
+            'amount', payment_information['amount']),
+        'currency': gateway_response.get(
+            'currency', payment_information['currency']),
+        'transaction_id': gateway_response.get(
+            'transaction_id', payment_information['token']),
         'error': error,
         'raw_response': gateway_response}
 
@@ -192,10 +194,13 @@ def void(payment_information: Dict, **connection_params: Dict) -> Dict:
 
     return {
         'is_success': result.is_success,
-        'kind': 'void',
-        'amount': gateway_response.get('amount'),
-        'currency': gateway_response.get('currency'),
-        'transaction_id': gateway_response.get('transaction_id'),
+        'kind': TransactionKind.VOID,
+        'amount': gateway_response.get(
+            'amount', payment_information['amount']),
+        'currency': gateway_response.get(
+            'currency', payment_information['currency']),
+        'transaction_id': gateway_response.get(
+            'transaction_id', payment_information['token']),
         'error': error,
         'raw_response': gateway_response}
 
@@ -215,9 +220,21 @@ def refund(payment_information: Dict, **connection_params: Dict) -> Dict:
 
     return {
         'is_success': result.is_success,
-        'kind': 'refund',
-        'amount': gateway_response.get('amount'),
-        'currency': gateway_response.get('currency'),
-        'transaction_id': gateway_response.get('transaction_id'),
+        'kind': TransactionKind.REFUND,
+        'amount': gateway_response.get(
+            'amount', payment_information['amount']),
+        'currency': gateway_response.get(
+            'currency', payment_information['currency']),
+        'transaction_id': gateway_response.get(
+            'transaction_id', payment_information['token']),
         'error': error,
         'raw_response': gateway_response}
+
+
+def process_payment(
+        payment_information: Dict, **connection_params: Dict) -> Dict:
+    auth_resp = authorize(payment_information, **connection_params)
+    if auth_resp['is_success']:
+        payment_information['token'] = auth_resp['transaction_id']
+        return [auth_resp, capture(payment_information, **connection_params)]
+    return [auth_resp, void(payment_information, **connection_params)]

@@ -217,10 +217,52 @@ Parameters
 +-------------------------+----------+------------------------------------------------------------------------------------+
 | name                    | type     | description                                                                        |
 +-------------------------+----------+------------------------------------------------------------------------------------+
-| ``payment_information`` | ``dict`` | Payment information, containing the tokens, amount, currency and billing.          |
+| ``payment_information`` | ``dict`` | Payment information, containing the token, amount, currency and billing.           |
 +-------------------------+----------+------------------------------------------------------------------------------------+
 | ``connection_params``   | ``dict`` | List of parameters used for connecting to the payment's gateway.                   |
 +-------------------------+----------+------------------------------------------------------------------------------------+
+
+Example
+"""""""
+
+.. code-block:: python
+
+    payment_information = {
+        'token': 'token-used-for-transaction',  # provided by gateway
+        'amount': Decimal('174.32'),  # amount to be authorized/captured/charged/refunded
+        'currency': 'USD',  # ISO 4217 currency code
+        'billing': {  # billing information
+            'first_name': 'Joe',
+            'last_name': 'Doe',
+            'company_name': 'JoeDoe Inc.',
+            'street_address_1': '3417 Bridge Street'
+            'street_address_2': '',
+            'city': 'Pryor',
+            'city_area': '',
+            'postal_code': '74361',
+            'country': 'US',
+            'country_area': 'OK'
+            'phone': '+19188249023'},
+        'shipping': {  # shipping information
+            'first_name': 'Dollie',
+            'last_name': 'Sullivan',
+            'company_name': '',
+            'street_address_1': '2003 Progress Way'
+            'street_address_2': '',
+            'city': 'Waterloo',
+            'city_area': '',
+            'postal_code': '50797',
+            'country': 'US',
+            'country_area': 'IA'
+            'phone': '+19188249023'},
+        'order': 117,  # order id
+        'customer_ip_address': '10.0.0.1',  # ip address of the customer
+        'customer_email': 'joedoe@example.com',  # email of the customer
+    }
+
+    connection_params = {
+
+    }
 
 Returns
 ^^^^^^^
@@ -232,6 +274,46 @@ Returns
 +----------------------+----------------------------+------------------------------------------------------------------------------------------------------------------------------------------+
 | ``client_token``     | ``str``                    | Unique client's token that will be used as his indentifier in the payment process.                                                       |
 +----------------------+----------------------------+------------------------------------------------------------------------------------------------------------------------------------------+
+
+
+Gateway response fields
+"""""""""""""""""""""""
+
++----------------+-------------+--------------------------------------------------------------------------+
+| name           | type        | description                                                              |
++----------------+-------------+--------------------------------------------------------------------------+
+| transaction_id | ``str``     | Transaction ID as returned by the gateway.                               |
++----------------+-------------+--------------------------------------------------------------------------+
+| kind           | ``str``     | Transaction kind, one of: auth, capture, charge, refund, void.           |
++----------------+-------------+--------------------------------------------------------------------------+
+| is_success     | ``bool``    | Status whether the transaction was successful or not.                    |
++----------------+-------------+--------------------------------------------------------------------------+
+| amount         | ``Decimal`` | Amount that the gateway actually charged or authorized.                  |
++----------------+-------------+--------------------------------------------------------------------------+
+| currency       | ``str``     | Currency in which the gateway charged, needs to be an ISO 4217 code.     |
++----------------+-------------+--------------------------------------------------------------------------+
+| error          | ``str``     | An error message if one occured. Should be ``None`` if no error occured. |
++----------------+-------------+--------------------------------------------------------------------------+
+
+Additional fields can be sent for logging/debug purposes. The only requirement is that they're serializable by
+``DjangoJSONEncoder``. They will be saved in ``gateway_response`` field on Transaction model.
+
+
+Example
+=======
+
+.. code-block: python
+
+    response = {
+        'transaction_id': 'token-from-gateway',
+        'kind': 'auth',
+        'is_success': True,
+        'amount': Decimal(14.50),
+        'currency': 'USD',
+        'error': None,
+        'extra_field': 'additional information',
+        'raw_response': raw_gateway_response_as_dict}
+
 
 Handling errors
 ---------------
