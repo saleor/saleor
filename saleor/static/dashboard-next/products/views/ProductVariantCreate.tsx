@@ -44,10 +44,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
               >
                 {({ data, loading: productLoading }) => {
                   const handleCreateSuccess = (data: VariantCreate) => {
-                    if (
-                      data.productVariantCreate.errors === null ||
-                      data.productVariantCreate.errors.length === 0
-                    ) {
+                    if (data.productVariantCreate.errors.length === 0) {
                       pushMessage({ text: i18n.t("Product created") });
                       navigate(
                         productVariantEditUrl(

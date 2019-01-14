@@ -16,10 +16,7 @@ export const CollectionCreate: React.StatelessComponent<{}> = () => (
       <Navigator>
         {navigate => {
           const handleCollectionCreateSuccess = (data: CreateCollection) => {
-            if (
-              data.collectionCreate.errors === null ||
-              data.collectionCreate.errors.length === 0
-            ) {
+            if (data.collectionCreate.errors.length === 0) {
               pushMessage({
                 text: i18n.t("Created collection", {
                   context: "notification"
