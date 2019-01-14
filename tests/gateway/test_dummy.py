@@ -129,7 +129,7 @@ def test_void_gateway_error(payment_txn_preauth, monkeypatch):
 
 @pytest.mark.parametrize('amount', [80, 70])
 def test_capture_success(amount, payment_txn_preauth):
-    txn = gateway_capture(payment=payment_txn_preauth, amount=amount)
+    txn = gateway_capture(payment=payment_txn_preauth, amount=Decimal(amount))
     assert txn.is_success
     assert txn.payment == payment_txn_preauth
     payment_txn_preauth.refresh_from_db()
@@ -178,7 +178,7 @@ def test_refund_success(
     payment.charge_status = ChargeStatus.CHARGED
     payment.captured_amount = initial_captured_amount
     payment.save()
-    txn = gateway_refund(payment=payment, amount=refund_amount)
+    txn = gateway_refund(payment=payment, amount=Decimal(refund_amount))
     assert txn.kind == TransactionKind.REFUND
     assert txn.is_success
     assert txn.payment == payment
@@ -200,7 +200,7 @@ def test_refund_failed(
     payment.captured_amount = Decimal(initial_captured_amount)
     payment.save()
     with pytest.raises(PaymentError):
-        txn = gateway_refund(payment=payment, amount=refund_amount)
+        txn = gateway_refund(payment=payment, amount=Decimal(refund_amount))
         assert txn is None
 
 

@@ -26,14 +26,22 @@ RAZORPAY_EXCEPTIONS = (
 logger = logging.getLogger(__name__)
 
 
+class TransactionKind:
+    AUTH = 'auth'
+    CAPTURE = 'capture'
+    CHARGE = 'charge'
+    REFUND = 'refund'
+    VOID = 'void'
+
+
 def _generate_response(
         payment_information: Dict,
         kind: str,
         *,
         is_success=True,
         **data) -> Dict:
-    """Creates a transaction from a Razorpay's success payload
-    or from passed data."""
+    """Generate Saleor transaction information from
+    Razorpay's success payload or from passed data."""
     return {
         'transaction_id': data.get('id', payment_information['token']),
         'kind': kind,
@@ -87,10 +95,6 @@ def get_client_token(**_):
     return str(uuid.uuid4())
 
 
-def process_payment(payment_information: Dict, **connection_params) -> Dict:
-    return charge(payment_information=payment_information, **connection_params)
-
-
 def charge(payment_information: Dict, **connection_params: Dict) -> Dict:
     """Charge a authorized payment using the razorpay client.
 
@@ -121,7 +125,8 @@ def charge(payment_information: Dict, **connection_params: Dict) -> Dict:
             id=payment_information['token'])
 
     return _generate_response(
-        payment_information=payment_information, kind='charge', **response)
+        payment_information=payment_information,
+        kind=TransactionKind.CHARGE, **response)
 
 
 def refund(payment_information: Dict, **connection_params) -> Dict:
@@ -153,4 +158,9 @@ def refund(payment_information: Dict, **connection_params) -> Dict:
                 payment_information['amount'], error=error)
 
     return _generate_response(
-        payment_information=payment_information, kind='refund', **response)
+        payment_information=payment_information,
+        kind=TransactionKind.REFUND, **response)
+
+
+def process_payment(payment_information: Dict, **connection_params) -> Dict:
+    return charge(payment_information=payment_information, **connection_params)

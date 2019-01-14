@@ -108,6 +108,8 @@ def create_transaction(
     if gateway_response is None:
         gateway_response = {}
 
+    # default values for token, amount, currency are only used in cases where
+    # response from gateway was invalid or an exception occured
     txn, _ = Transaction.objects.get_or_create(
         payment=payment,
         kind=gateway_response.get('kind', kind),
@@ -119,8 +121,7 @@ def create_transaction(
             'currency', payment_information['currency']),
         error=gateway_response.get('error', error_msg),
         gateway_response=gateway_response)
-    return txn  # returns last created transaction
-
+    return txn
 
 def gateway_get_client_token(gateway_name: str):
     """Gets client token, that will be used as a customer's identificator for
@@ -213,16 +214,34 @@ def validate_gateway_response(responses):
     if not isinstance(responses, list):
         responses = [responses]
 
+    field_types = {
+        'amount': Decimal,
+        'currency': str,
+        'is_success': bool,
+        'kind': str,
+        'transaction_id': str,
+        'error': (type(None), str),
+    }
+
     for response in responses:
         if not REQUIRED_GATEWAY_KEYS.issubset(response):
             raise GatewayError(
                 'Gateway response needs to contain following keys: {}'.format(
                     sorted(REQUIRED_GATEWAY_KEYS)))
 
+        for name, value in response.items():
+            if name in field_types:
+                if not isinstance(value, field_types[name]):
+                    raise GatewayError('{} must be of type {}, was {}'.format(
+                        name, field_types[name], type(value)))
+
         if response['kind'] not in ALLOWED_GATEWAY_KINDS:
             raise GatewayError(
                 'Gateway response kind must be one of {}'.format(
                     sorted(ALLOWED_GATEWAY_KINDS)))
+
+        if response['currency'] != settings.DEFAULT_CURRENCY:
+            logger.warning('Transaction currency is different than Saleor\'s.')
 
         try:
             json.dumps(response, cls=DjangoJSONEncoder)

@@ -6,13 +6,13 @@ import pytest
 import stripe
 from django_countries import countries
 
-from saleor.payment import ChargeStatus, TransactionKind
+from saleor.payment import ChargeStatus
 from saleor.payment.gateways.stripe import (
     _create_response, _get_client, _get_error_response_from_exc,
     _get_stripe_charge_payload, authorize, capture, charge,
     get_amount_for_stripe, get_amount_from_stripe, get_client_token,
     get_currency_for_stripe, get_currency_from_stripe, get_form_class, refund,
-    void)
+    void, TransactionKind)
 from saleor.payment.gateways.stripe.errors import (
     ORDER_NOT_AUTHORIZED, ORDER_NOT_CHARGED)
 from saleor.payment.gateways.stripe.forms import (
@@ -362,14 +362,14 @@ def test_create_transaction_with_refund_success_response(
 
 def test_create_response_with_error_response(stripe_payment):
     payment = stripe_payment
-    payment_info = create_payment_information(payment)
+    payment_info = create_payment_information(payment, FAKE_TOKEN)
     stripe_error_response = {}
 
     response = _create_response(
         payment_information=payment_info, kind='ANYKIND',
         response=stripe_error_response, error=None)
 
-    assert response['transaction_id'] == ''
+    assert response['transaction_id'] == FAKE_TOKEN
     assert response['is_success'] is False
     assert response['amount'] == payment.total
     assert response['currency'] == payment.currency
@@ -413,7 +413,7 @@ def test_authorize_error_response(
     response = authorize(payment_info, **gateway_params)
 
     assert response['error'] == ERROR_MESSAGE
-    assert response['transaction_id'] == ''
+    assert response['transaction_id'] == FAKE_TOKEN
     assert response['kind'] == TransactionKind.AUTH
     assert not response['is_success']
     assert response['amount'] == payment.total
@@ -480,7 +480,7 @@ def test_capture_error_response(
         gateway_params):
     payment = stripe_authorized_payment
     payment_info = create_payment_information(
-        payment, amount=TRANSACTION_AMOUNT)
+        payment, TRANSACTION_TOKEN, amount=TRANSACTION_AMOUNT)
     stripe_error = stripe.error.InvalidRequestError(
         message=ERROR_MESSAGE, param=None)
     mock_charge_retrieve.side_effect = stripe_error
@@ -488,7 +488,7 @@ def test_capture_error_response(
     response = capture(payment_info, **gateway_params)
 
     assert response['error'] == ERROR_MESSAGE
-    assert response['transaction_id'] == ''
+    assert response['transaction_id'] == TRANSACTION_TOKEN
     assert response['kind'] == TransactionKind.CAPTURE
     assert not response['is_success']
     assert response['amount'] == payment.total
@@ -537,7 +537,7 @@ def test_charge_error_response(
     response = charge(payment_info, **gateway_params)
 
     assert response['error'] == ERROR_MESSAGE
-    assert response['transaction_id'] == ''
+    assert response['transaction_id'] == FAKE_TOKEN
     assert response['kind'] == TransactionKind.CHARGE
     assert not response['is_success']
     assert response['amount'] == payment.total
@@ -557,7 +557,7 @@ def test_refund_charged(
         stripe_refund_success_response):
     payment = stripe_charged_payment
     payment_info = create_payment_information(
-        payment, amount=TRANSACTION_AMOUNT)
+        payment, TRANSACTION_TOKEN, amount=TRANSACTION_AMOUNT)
     response = stripe_refund_success_response
     mock_charge_retrieve.return_value = Mock(id='')
     mock_refund_create.return_value = response
@@ -610,7 +610,7 @@ def test_refund_error_response(
         gateway_params):
     payment = stripe_charged_payment
     payment_info = create_payment_information(
-        payment, amount=TRANSACTION_AMOUNT)
+        payment, TRANSACTION_TOKEN, amount=TRANSACTION_AMOUNT)
     mock_charge_retrieve.return_value = Mock(id='')
     stripe_error = stripe.error.InvalidRequestError(
         message=ERROR_MESSAGE, param=None)
@@ -619,7 +619,7 @@ def test_refund_error_response(
     response = refund(payment_info, **gateway_params)
 
     assert response['error'] == ERROR_MESSAGE
-    assert response['transaction_id'] == ''
+    assert response['transaction_id'] == TRANSACTION_TOKEN
     assert response['kind'] == TransactionKind.REFUND
     assert not response['is_success']
     assert response['amount'] == payment.total
@@ -638,7 +638,7 @@ def test_void(
         gateway_params,
         stripe_refund_success_response):
     payment = stripe_authorized_payment
-    payment_info = create_payment_information(payment)
+    payment_info = create_payment_information(payment, TRANSACTION_TOKEN)
     response = stripe_refund_success_response
     mock_charge_retrieve.return_value = Mock(id='')
     mock_refund_create.return_value = response
@@ -663,7 +663,7 @@ def test_void_error_response(
         stripe_authorized_payment,
         gateway_params):
     payment = stripe_authorized_payment
-    payment_info = create_payment_information(payment)
+    payment_info = create_payment_information(payment, TRANSACTION_TOKEN)
     mock_charge_retrieve.return_value = Mock(id='')
     stripe_error = stripe.error.InvalidRequestError(
         message=ERROR_MESSAGE, param=None)
@@ -672,7 +672,7 @@ def test_void_error_response(
     response = void(payment_info, **gateway_params)
 
     assert response['error'] == ERROR_MESSAGE
-    assert response['transaction_id'] == ''
+    assert response['transaction_id'] == TRANSACTION_TOKEN
     assert response['kind'] == TransactionKind.VOID
     assert not response['is_success']
     assert response['amount'] == payment.total

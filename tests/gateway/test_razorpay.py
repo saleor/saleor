@@ -4,11 +4,11 @@ from unittest.mock import patch
 import pytest
 from razorpay.errors import BadRequestError, ServerError
 
-from saleor.payment import ChargeStatus, TransactionKind
+from saleor.payment import ChargeStatus
 from saleor.payment.gateways.razorpay import (
     charge, check_payment_supported, clean_razorpay_response, errors,
     get_amount_for_razorpay, get_client, get_client_token, get_form_class,
-    logger, refund)
+    logger, refund, TransactionKind)
 from saleor.payment.gateways.razorpay.forms import (
     RazorPayCheckoutWidget, RazorPaymentForm)
 from saleor.payment.utils import create_payment_information

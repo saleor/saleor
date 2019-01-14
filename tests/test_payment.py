@@ -834,6 +834,16 @@ def test_validate_gateway_response_not_json_serializable(gateway_response):
     assert str(e.value) == 'Gateway response needs to be json serializable'
 
 
+def test_validate_gateway_response_incorrect_field_type(gateway_response):
+    gateway_response['amount'] = 'should-be-decimal'
+
+    with pytest.raises(GatewayError) as e:
+        validate_gateway_response(gateway_response)
+
+    assert str(e.value) == 'amount must be of type {}, was {}'.format(
+        Decimal, str)
+
+
 @patch('saleor.payment.utils.get_payment_gateway')
 def test_call_gateway_invalid_response(
         mock_get_payment_gateway, payment_dummy):

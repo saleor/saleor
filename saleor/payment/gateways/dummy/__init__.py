@@ -8,6 +8,14 @@ from prices import Money
 from .forms import DummyPaymentForm
 
 
+class TransactionKind:
+    AUTH = 'auth'
+    CAPTURE = 'capture'
+    CHARGE = 'charge'
+    REFUND = 'refund'
+    VOID = 'void'
+
+
 def dummy_success():
     return True
 
@@ -27,7 +35,7 @@ def get_form_class():
 def process_payment(payment_information: Dict, **connection_params) -> Dict:
     """Process the whole payment, by calling authorize and capture."""
     auth_resp = authorize(payment_information, **connection_params)
-    if auth_resp['error']:
+    if not auth_resp['is_success']:
         return auth_resp
     return [auth_resp, capture(payment_information, **connection_params)]
 
@@ -39,7 +47,7 @@ def authorize(payment_information: Dict, **connection_params) -> Dict:
         error = 'Unable to authorize transaction'
     return {
         'is_success': success,
-        'kind': 'auth',
+        'kind': TransactionKind.AUTH,
         'amount': payment_information['amount'],
         'currency': payment_information['currency'],
         'transaction_id': payment_information['token'],
@@ -53,7 +61,7 @@ def void(payment_information: Dict, **connection_params) -> Dict:
         error = 'Unable to void the transaction.'
     return {
         'is_success': success,
-        'kind': 'void',
+        'kind': TransactionKind.VOID,
         'amount': payment_information['amount'],
         'currency': payment_information['currency'],
         'transaction_id': payment_information['token'],
@@ -67,7 +75,7 @@ def capture(payment_information: Dict, **connection_params: Dict) -> Dict:
         error = 'Unable to process capture'
     return {
         'is_success': success,
-        'kind': 'capture',
+        'kind': TransactionKind.CAPTURE,
         'amount': payment_information['amount'],
         'currency': payment_information['currency'],
         'transaction_id': payment_information['token'],
@@ -81,7 +89,7 @@ def refund(payment_information: Dict, **connection_params: Dict):
         error = 'Unable to process refund'
     return {
         'is_success': success,
-        'kind': 'refund',
+        'kind': TransactionKind.REFUND,
         'amount': payment_information['amount'],
         'currency': payment_information['currency'],
         'transaction_id': payment_information['token'],
@@ -91,6 +99,6 @@ def refund(payment_information: Dict, **connection_params: Dict):
 def charge(payment_information: Dict, **connection_params):
     """Performs Authorize and Capture transactions in a single run."""
     auth_resp = authorize(payment_information, **connection_params)
-    if auth_resp['error']:
+    if not auth_resp['is_success']:
         return auth_resp
     return [auth_resp, capture(payment_information, **connection_params)]
