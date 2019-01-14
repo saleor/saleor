@@ -8,3 +8,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix bug that quantity and variant id of CheckoutLineInput should be required - #3592 by @jxltom
 - Register celery task for updating exchange rates - #3599 by @jxltom
 - Order by id by default for CartLine - #3593 by @jxltom
+- Fix bug where products in homepage should be visible to request.user instead of anonymous user - #3598 by @jxltom

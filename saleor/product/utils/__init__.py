@@ -1,7 +1,6 @@
 from urllib.parse import urlencode
 
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
 from django.db.models import F
 
 from ...checkout.utils import (
@@ -39,8 +38,7 @@ def products_for_products_list(user):
     return products
 
 
-def products_for_homepage(homepage_collection):
-    user = AnonymousUser()
+def products_for_homepage(user, homepage_collection):
     products = products_visible_to_user(user)
     products = products.prefetch_related(
         'translations', 'images', 'variants__variant_images__image')
