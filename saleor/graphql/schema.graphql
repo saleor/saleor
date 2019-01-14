@@ -1971,6 +1971,7 @@ type User implements Node {
   defaultShippingAddress: Address
   defaultBillingAddress: Address
   orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
+  checkout: Checkout
   permissions: [PermissionDisplay]
 }
 
