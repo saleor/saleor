@@ -110,7 +110,7 @@ function loadStories() {
   require("./stories/siteSettings/SiteSettingsPage");
   
   // Taxes
-  require("./stories/taxes/TaxListPage");
+  require("./stories/taxes/CountryListPage");
 }
 
 configure(loadStories, module);
