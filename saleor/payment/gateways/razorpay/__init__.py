@@ -7,7 +7,6 @@ import razorpay
 import razorpay.errors
 
 from . import errors
-from ... import TransactionKind
 from .forms import RazorPaymentForm
 from .utils import get_amount_for_razorpay, get_error_response
 

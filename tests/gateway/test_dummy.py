@@ -4,10 +4,10 @@ import pytest
 
 from saleor.payment import (
     ChargeStatus, PaymentError, TransactionKind, get_payment_gateway)
-from saleor.payment.utils import (
-    gateway_authorize, gateway_capture, gateway_charge, gateway_void,
-    gateway_process_payment, gateway_refund)
 from saleor.payment.gateways.dummy.forms import DummyPaymentForm
+from saleor.payment.utils import (
+    create_payment_information, gateway_authorize, gateway_capture,
+    gateway_charge, gateway_process_payment, gateway_refund, gateway_void)
 
 
 def test_charge_success(payment_dummy):
@@ -235,9 +235,11 @@ def test_dummy_payment_form(kind, charge_status, settings, payment_dummy):
     payment = payment_dummy
     data = {'charge_status': charge_status}
     payment_gateway, gateway_params = get_payment_gateway(payment.gateway)
+    payment_info = create_payment_information(payment)
 
-    form = DummyPaymentForm(data=data, amount=payment.total,
-        currency=payment.currency, gateway_params=gateway_params)
+    form = DummyPaymentForm(
+        data=data, payment_information=payment_info,
+        gateway_params=gateway_params)
     assert form.is_valid()
     gateway_process_payment(
         payment=payment, payment_token=form.get_payment_token())

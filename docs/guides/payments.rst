@@ -235,34 +235,31 @@ Example
             'first_name': 'Joe',
             'last_name': 'Doe',
             'company_name': 'JoeDoe Inc.',
-            'street_address_1': '3417 Bridge Street'
+            'street_address_1': '3417 Bridge Street',
             'street_address_2': '',
             'city': 'Pryor',
             'city_area': '',
             'postal_code': '74361',
             'country': 'US',
-            'country_area': 'OK'
+            'country_area': 'OK',
             'phone': '+19188249023'},
         'shipping': {  # shipping information
             'first_name': 'Dollie',
             'last_name': 'Sullivan',
             'company_name': '',
-            'street_address_1': '2003 Progress Way'
+            'street_address_1': '2003 Progress Way',
             'street_address_2': '',
             'city': 'Waterloo',
             'city_area': '',
             'postal_code': '50797',
             'country': 'US',
-            'country_area': 'IA'
+            'country_area': 'IA',
             'phone': '+19188249023'},
         'order': 117,  # order id
         'customer_ip_address': '10.0.0.1',  # ip address of the customer
         'customer_email': 'joedoe@example.com',  # email of the customer
     }
 
-    connection_params = {
-
-    }
 
 Returns
 ^^^^^^^
