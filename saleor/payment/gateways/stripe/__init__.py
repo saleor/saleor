@@ -194,7 +194,7 @@ def _create_response(payment_information, kind, response, error):
             stripe_amount -= response.get('amount_refunded')
         amount = get_amount_from_stripe(stripe_amount, currency)
 
-    # Get token, which is an empty string for error responses
+    # Get token from response or use provided one
     token = response.get('id', payment_information['token'])
 
     # Check if the response's status is flagged as succeeded

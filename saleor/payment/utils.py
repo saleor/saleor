@@ -108,7 +108,7 @@ def create_transaction(
     if gateway_response is None:
         gateway_response = {}
 
-    # default values for token, amount, currency are only used in cases where
+    # Default values for token, amount, currency are only used in cases where
     # response from gateway was invalid or an exception occured
     txn, _ = Transaction.objects.get_or_create(
         payment=payment,
@@ -122,6 +122,7 @@ def create_transaction(
         error=gateway_response.get('error', error_msg),
         gateway_response=gateway_response)
     return txn
+
 
 def gateway_get_client_token(gateway_name: str):
     """Gets client token, that will be used as a customer's identificator for
@@ -182,7 +183,7 @@ def call_gateway(
     except GatewayError:
         error_msg = 'Gateway response validation failed'
         logger.exception(error_msg)
-        gateway_response = None  # set response empty as the validation failed
+        gateway_response = None  # Set response empty as the validation failed
     except Exception:
         error_msg = 'Gateway encountered an error'
         logger.exception(error_msg)
@@ -200,7 +201,7 @@ def call_gateway(
 
     for transaction in transactions:
         if not transaction.is_success:
-            # attempt to get errors from response, if none raise a generic one
+            # Attempt to get errors from response, if none raise a generic one
             raise PaymentError(transaction.error or GENERIC_TRANSACTION_ERROR)
 
     return transactions[-1]
