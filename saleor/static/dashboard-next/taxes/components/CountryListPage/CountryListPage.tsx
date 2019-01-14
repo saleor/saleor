@@ -49,8 +49,8 @@ const CountryListPage = withStyles(styles, { name: "CountryListPage" })(
     const initialForm: FormData = {
       // chargeTaxesOnShipping: maybe(() => shop.chargeTaxesOnShipping),
       chargeTaxesOnShipping: false,
-      includeTax: maybe(() => shop.includeTaxesInPrices),
-      showGross: maybe(() => shop.displayGrossPrices)
+      includeTax: maybe(() => shop.includeTaxesInPrices, false),
+      showGross: maybe(() => shop.displayGrossPrices, false)
     };
     return (
       <Form initial={initialForm} onSubmit={onSubmit}>
