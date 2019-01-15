@@ -10,8 +10,8 @@ import * as React from "react";
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import AddPhotoIcon from "@material-ui/icons/AddAPhoto";
 import CardTitle from "../../../components/CardTitle";
+import { Dropzone } from "../../../components/Dropzone";
 import Hr from "../../../components/Hr";
 import ImageTile from "../../../components/ImageTile";
 import Skeleton from "../../../components/Skeleton";
@@ -21,15 +21,6 @@ import { FormData } from "../CategoryUpdatePage";
 
 const styles = (theme: Theme) =>
   createStyles({
-    PhotosIcon: {
-      height: "64px",
-      margin: "0 auto",
-      width: "64px"
-    },
-    PhotosIconContainer: {
-      margin: `${theme.spacing.unit * 5}px 0`,
-      textAlign: "center"
-    },
     fileField: {
       display: "none"
     },
@@ -57,7 +48,7 @@ export interface CategoryBackgroundProps extends WithStyles<typeof styles> {
   image: CategoryDetails_category_backgroundImage;
   onChange: (event: React.ChangeEvent<any>) => void;
   onImageDelete: () => void;
-  onImageUpload: (event: React.ChangeEvent<any>) => void;
+  onImageUpload: (file: File) => void;
 }
 
 export const CategoryBackground = withStyles(styles)(
@@ -94,28 +85,29 @@ export const CategoryBackground = withStyles(styles)(
                 <input
                   className={classes.fileField}
                   id="fileUpload"
-                  onChange={onImageUpload}
+                  onChange={event => onImageUpload(event.target.files[0])}
                   type="file"
                   ref={this.imgInputAnchor}
                 />
               </>
             }
           />
-          <CardContent>
-            {image === undefined ? (
+          {image === undefined ? (
+            <CardContent>
               <div>
                 <div className={classes.imageContainer}>
                   <Skeleton />
                 </div>
               </div>
-            ) : image === null ? (
-              <div className={classes.PhotosIconContainer}>
-                <AddPhotoIcon className={classes.PhotosIcon} />
-              </div>
-            ) : (
+            </CardContent>
+          ) : image === null ? (
+            <Dropzone onImageUpload={onImageUpload} />
+          ) : (
+            <CardContent>
               <ImageTile image={image} onImageDelete={onImageDelete} />
-            )}
-          </CardContent>
+            </CardContent>
+          )}
+
           {image && (
             <>
               <Hr />

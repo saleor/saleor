@@ -150,12 +150,12 @@ export const CategoryDetails: React.StatelessComponent<
                                       }
                                     })
                                   }
-                                  onImageUpload={event =>
+                                  onImageUpload={file =>
                                     updateCategory({
                                       variables: {
                                         id,
                                         input: {
-                                          backgroundImage: event.target.files[0]
+                                          backgroundImage: file
                                         }
                                       }
                                     })
