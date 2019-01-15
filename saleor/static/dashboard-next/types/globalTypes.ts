@@ -116,6 +116,7 @@ export enum TaxRateType {
   SOCIAL_HOUSING = "SOCIAL_HOUSING",
   STANDARD = "STANDARD",
   WATER = "WATER",
+  WINE = "WINE",
 }
 
 export enum WeightUnitsEnum {

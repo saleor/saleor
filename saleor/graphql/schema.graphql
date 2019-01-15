@@ -1626,7 +1626,7 @@ type Query {
 
 type ReducedRate {
   rate: Float!
-  rateType: String!
+  rateType: TaxRateType!
 }
 
 type Refresh {
@@ -1908,6 +1908,7 @@ enum TaxRateType {
   SOCIAL_HOUSING
   STANDARD
   WATER
+  WINE
 }
 
 type TaxedMoney {
