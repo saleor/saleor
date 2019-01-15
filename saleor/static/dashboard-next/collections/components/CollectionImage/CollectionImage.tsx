@@ -95,7 +95,7 @@ export const CollectionImage = withStyles(styles)(
                 <input
                   className={classes.fileField}
                   id="fileUpload"
-                  onChange={onImageUpload}
+                  onChange={event => onImageUpload(event.target.files[0])}
                   type="file"
                   ref={this.imgInputAnchor}
                 />
