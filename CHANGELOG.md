@@ -12,3 +12,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Simplify mutation's error checking - #3589 by @dominik-zeglen
 - Add checkout assignment to the logged in customer - #3587 by @fowczarek
 - Refactor `clean_instance`, so it does not returns errors anymore - #3597 by @akjanik
+- Fix logo placement - #3602 by @dominik-zeglen
