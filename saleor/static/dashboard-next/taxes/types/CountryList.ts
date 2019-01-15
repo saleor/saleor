@@ -8,6 +8,7 @@
 export interface CountryList_shop_countries_vat_reducedRates {
   __typename: "ReducedRate";
   rateType: string;
+  rate: number;
 }
 
 export interface CountryList_shop_countries_vat {
@@ -25,9 +26,9 @@ export interface CountryList_shop_countries {
 
 export interface CountryList_shop {
   __typename: "Shop";
-  countries: (CountryList_shop_countries | null)[];
-  displayGrossPrices: boolean | null;
   includeTaxesInPrices: boolean | null;
+  displayGrossPrices: boolean | null;
+  countries: (CountryList_shop_countries | null)[];
 }
 
 export interface CountryList {

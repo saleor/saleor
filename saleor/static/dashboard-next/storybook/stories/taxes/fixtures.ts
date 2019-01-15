@@ -12,34 +12,42 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "admission to cultural events"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "admission to entertainment events"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "books"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "foodstuffs"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "hotels"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "newspapers"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "passenger transport"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "pharmaceuticals"
         }
       ],
@@ -55,42 +63,52 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
-          rateType: "admission to cultural events"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "admission to entertainment events"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "books"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "foodstuffs"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "hotels"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "medical"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "newspapers"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "pharmaceuticals"
-        },
-        {
-          __typename: "ReducedRate",
+          rate: 12,
           rateType: "restaurants"
         },
         {
           __typename: "ReducedRate",
+          rate: 6,
+          rateType: "admission to cultural events"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 6,
+          rateType: "admission to entertainment events"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 6,
+          rateType: "books"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 6,
+          rateType: "foodstuffs"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 6,
+          rateType: "hotels"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 6,
+          rateType: "medical"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 6,
+          rateType: "newspapers"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 6,
+          rateType: "pharmaceuticals"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 6,
           rateType: "water"
         }
       ],
@@ -106,6 +124,7 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
+          rate: 9,
           rateType: "hotels"
         }
       ],
@@ -121,46 +140,57 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
+          rate: 5,
           rateType: "admission to cultural events"
         },
         {
           __typename: "ReducedRate",
+          rate: 5,
           rateType: "admission to entertainment events"
         },
         {
           __typename: "ReducedRate",
+          rate: 5,
           rateType: "admission to sporting events"
         },
         {
           __typename: "ReducedRate",
+          rate: 5,
           rateType: "books"
         },
         {
           __typename: "ReducedRate",
+          rate: 5,
           rateType: "foodstuffs"
         },
         {
           __typename: "ReducedRate",
-          rateType: "hotels"
-        },
-        {
-          __typename: "ReducedRate",
+          rate: 5,
           rateType: "medical"
         },
         {
           __typename: "ReducedRate",
+          rate: 5,
           rateType: "newspapers"
         },
         {
           __typename: "ReducedRate",
+          rate: 5,
           rateType: "passenger transport"
         },
         {
           __typename: "ReducedRate",
+          rate: 5,
           rateType: "pharmaceuticals"
         },
         {
           __typename: "ReducedRate",
+          rate: 9,
+          rateType: "hotels"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 9,
           rateType: "restaurants"
         }
       ],
@@ -176,47 +206,58 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
-          rateType: "admission to cultural events"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "admission to entertainment events"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "admission to sporting events"
-        },
-        {
-          __typename: "ReducedRate",
+          rate: 10,
           rateType: "baby foodstuffs"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "books"
         },
         {
           __typename: "ReducedRate",
-          rateType: "foodstuffs"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "hotels"
-        },
-        {
-          __typename: "ReducedRate",
+          rate: 10,
           rateType: "medical"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
+          rateType: "pharmaceuticals"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 15,
+          rateType: "admission to cultural events"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 15,
+          rateType: "admission to entertainment events"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 15,
+          rateType: "admission to sporting events"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 15,
+          rateType: "foodstuffs"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 15,
+          rateType: "hotels"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 15,
           rateType: "newspapers"
         },
         {
           __typename: "ReducedRate",
+          rate: 15,
           rateType: "passenger transport"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "pharmaceuticals"
         }
       ],
       standardRate: 21
@@ -231,34 +272,42 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
+          rate: 7,
           rateType: "admission to cultural events"
         },
         {
           __typename: "ReducedRate",
+          rate: 7,
           rateType: "admission to entertainment events"
         },
         {
           __typename: "ReducedRate",
+          rate: 7,
           rateType: "books"
         },
         {
           __typename: "ReducedRate",
+          rate: 7,
           rateType: "foodstuffs"
         },
         {
           __typename: "ReducedRate",
+          rate: 7,
           rateType: "hotels"
         },
         {
           __typename: "ReducedRate",
+          rate: 7,
           rateType: "medical"
         },
         {
           __typename: "ReducedRate",
+          rate: 7,
           rateType: "newspapers"
         },
         {
           __typename: "ReducedRate",
+          rate: 7,
           rateType: "passenger transport"
         }
       ],
@@ -284,18 +333,22 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
+          rate: 9,
           rateType: "books"
         },
         {
           __typename: "ReducedRate",
+          rate: 9,
           rateType: "hotels"
         },
         {
           __typename: "ReducedRate",
+          rate: 9,
           rateType: "medical"
         },
         {
           __typename: "ReducedRate",
+          rate: 9,
           rateType: "pharmaceuticals"
         }
       ],
@@ -311,35 +364,43 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "admission to cultural events"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "admission to entertainment events"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "admission to sporting events"
         },
         {
           __typename: "ReducedRate",
-          rateType: "foodstuffs"
-        },
-        {
-          __typename: "ReducedRate",
+          rate: 10,
           rateType: "medical"
         },
         {
           __typename: "ReducedRate",
-          rateType: "newspapers"
-        },
-        {
-          __typename: "ReducedRate",
+          rate: 10,
           rateType: "passenger transport"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "pharmaceuticals"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 4,
+          rateType: "foodstuffs"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 4,
+          rateType: "newspapers"
         }
       ],
       standardRate: 21
@@ -354,42 +415,52 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "admission to cultural events"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "admission to entertainment events"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "admission to sporting events"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "books"
         },
         {
           __typename: "ReducedRate",
-          rateType: "foodstuffs"
-        },
-        {
-          __typename: "ReducedRate",
+          rate: 10,
           rateType: "hotels"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "newspapers"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "passenger transport"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "pharmaceuticals"
         },
         {
           __typename: "ReducedRate",
+          rate: 14,
+          rateType: "foodstuffs"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 14,
           rateType: "restaurants"
         }
       ],
@@ -405,55 +476,68 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "accommodation"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "admission to cultural events"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "admission to entertainment events"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "admission to sporting events"
         },
         {
           __typename: "ReducedRate",
-          rateType: "books"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "e-books"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "foodstuffs"
-        },
-        {
-          __typename: "ReducedRate",
+          rate: 10,
           rateType: "hotels"
         },
         {
           __typename: "ReducedRate",
-          rateType: "medical"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "newspapers"
-        },
-        {
-          __typename: "ReducedRate",
+          rate: 10,
           rateType: "passenger transport"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
+          rateType: "restaurants"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 2.1,
+          rateType: "newspapers"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 2.1,
           rateType: "pharmaceuticals"
         },
         {
           __typename: "ReducedRate",
-          rateType: "restaurants"
+          rate: 5.5,
+          rateType: "books"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 5.5,
+          rateType: "e-books"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 5.5,
+          rateType: "foodstuffs"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 5.5,
+          rateType: "medical"
         }
       ],
       standardRate: 20
@@ -468,34 +552,42 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
+          rate: 0,
           rateType: "books"
         },
         {
           __typename: "ReducedRate",
+          rate: 0,
           rateType: "childrens clothing"
         },
         {
           __typename: "ReducedRate",
+          rate: 0,
           rateType: "foodstuffs"
         },
         {
           __typename: "ReducedRate",
+          rate: 0,
           rateType: "medical"
         },
         {
           __typename: "ReducedRate",
+          rate: 0,
           rateType: "newspapers"
         },
         {
           __typename: "ReducedRate",
+          rate: 0,
           rateType: "passenger transport"
         },
         {
           __typename: "ReducedRate",
+          rate: 0,
           rateType: "pharmaceuticals"
         },
         {
           __typename: "ReducedRate",
+          rate: 5,
           rateType: "property renovations"
         }
       ],
@@ -511,39 +603,48 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
+          rate: 13,
           rateType: "admission to cultural events"
         },
         {
           __typename: "ReducedRate",
+          rate: 13,
           rateType: "admission to entertainment events"
         },
         {
           __typename: "ReducedRate",
+          rate: 13,
           rateType: "admission to sporting events"
         },
         {
           __typename: "ReducedRate",
-          rateType: "books"
-        },
-        {
-          __typename: "ReducedRate",
+          rate: 13,
           rateType: "foodstuffs"
         },
         {
           __typename: "ReducedRate",
-          rateType: "hotels"
-        },
-        {
-          __typename: "ReducedRate",
+          rate: 13,
           rateType: "medical"
         },
         {
           __typename: "ReducedRate",
-          rateType: "newspapers"
+          rate: 13,
+          rateType: "pharmaceuticals"
         },
         {
           __typename: "ReducedRate",
-          rateType: "pharmaceuticals"
+          rate: 6.5,
+          rateType: "books"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 6.5,
+          rateType: "hotels"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 6.5,
+          rateType: "newspapers"
         }
       ],
       standardRate: 24
@@ -558,10 +659,12 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
+          rate: 13,
           rateType: "hotels"
         },
         {
           __typename: "ReducedRate",
+          rate: 13,
           rateType: "newspapers"
         }
       ],
@@ -577,22 +680,27 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
-          rateType: "books"
-        },
-        {
-          __typename: "ReducedRate",
+          rate: 18,
           rateType: "foodstuffs"
         },
         {
           __typename: "ReducedRate",
+          rate: 18,
           rateType: "hotels"
         },
         {
           __typename: "ReducedRate",
+          rate: 5,
+          rateType: "books"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 5,
           rateType: "medical"
         },
         {
           __typename: "ReducedRate",
+          rate: 5,
           rateType: "pharmaceuticals"
         }
       ],
@@ -608,42 +716,52 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
-          rateType: "admission to cultural events"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "admission to entertainment events"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "admission to sporting events"
-        },
-        {
-          __typename: "ReducedRate",
+          rate: 0,
           rateType: "books"
         },
         {
           __typename: "ReducedRate",
+          rate: 0,
           rateType: "childrens clothing"
         },
         {
           __typename: "ReducedRate",
-          rateType: "foodstuffs"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "hotels"
-        },
-        {
-          __typename: "ReducedRate",
+          rate: 0,
           rateType: "medical"
         },
         {
           __typename: "ReducedRate",
+          rate: 4.8,
+          rateType: "foodstuffs"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 9,
+          rateType: "admission to cultural events"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 9,
+          rateType: "admission to entertainment events"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 9,
+          rateType: "admission to sporting events"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 9,
+          rateType: "hotels"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 9,
           rateType: "newspapers"
         },
         {
           __typename: "ReducedRate",
+          rate: 9,
           rateType: "restaurants"
         }
       ],
@@ -659,43 +777,53 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "admission to cultural events"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "admission to entertainment events"
         },
         {
           __typename: "ReducedRate",
-          rateType: "books"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "e-books"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "foodstuffs"
-        },
-        {
-          __typename: "ReducedRate",
+          rate: 10,
           rateType: "hotels"
         },
         {
           __typename: "ReducedRate",
-          rateType: "medical"
-        },
-        {
-          __typename: "ReducedRate",
+          rate: 10,
           rateType: "passenger transport"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "pharmaceuticals"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "restaurants"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 4,
+          rateType: "books"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 4,
+          rateType: "e-books"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 4,
+          rateType: "foodstuffs"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 4,
+          rateType: "medical"
         }
       ],
       standardRate: 22
@@ -710,15 +838,18 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
-          rateType: "books"
-        },
-        {
-          __typename: "ReducedRate",
+          rate: 5,
           rateType: "medical"
         },
         {
           __typename: "ReducedRate",
+          rate: 5,
           rateType: "pharmaceuticals"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 9,
+          rateType: "books"
         }
       ],
       standardRate: 21
@@ -733,71 +864,88 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
-          rateType: "admission to cultural events"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "admission to entertainment events"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "admission to sporting events"
-        },
-        {
-          __typename: "ReducedRate",
+          rate: 14,
           rateType: "advertising"
         },
         {
           __typename: "ReducedRate",
-          rateType: "bikes"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "books"
-        },
-        {
-          __typename: "ReducedRate",
+          rate: 14,
           rateType: "domestic fuel"
         },
         {
           __typename: "ReducedRate",
-          rateType: "domestic services"
+          rate: 14,
+          rateType: "wine"
         },
         {
           __typename: "ReducedRate",
+          rate: 3,
+          rateType: "admission to cultural events"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 3,
+          rateType: "admission to entertainment events"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 3,
+          rateType: "admission to sporting events"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 3,
+          rateType: "books"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 3,
           rateType: "e-books"
         },
         {
           __typename: "ReducedRate",
+          rate: 3,
           rateType: "foodstuffs"
         },
         {
           __typename: "ReducedRate",
+          rate: 3,
           rateType: "hotels"
         },
         {
           __typename: "ReducedRate",
+          rate: 3,
           rateType: "medical"
         },
         {
           __typename: "ReducedRate",
+          rate: 3,
           rateType: "newspapers"
         },
         {
           __typename: "ReducedRate",
+          rate: 3,
           rateType: "passenger transport"
         },
         {
           __typename: "ReducedRate",
+          rate: 3,
           rateType: "pharmaceuticals"
         },
         {
           __typename: "ReducedRate",
+          rate: 3,
           rateType: "restaurants"
         },
         {
           __typename: "ReducedRate",
-          rateType: "wine"
+          rate: 8,
+          rateType: "bikes"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 8,
+          rateType: "domestic services"
         }
       ],
       standardRate: 17
@@ -812,22 +960,27 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
+          rate: 12,
           rateType: "books"
         },
         {
           __typename: "ReducedRate",
+          rate: 12,
           rateType: "hotels"
         },
         {
           __typename: "ReducedRate",
+          rate: 12,
           rateType: "medical"
         },
         {
           __typename: "ReducedRate",
+          rate: 12,
           rateType: "newspapers"
         },
         {
           __typename: "ReducedRate",
+          rate: 12,
           rateType: "pharmaceuticals"
         }
       ],
@@ -843,35 +996,43 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
-          rateType: "admission to cultural events"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "books"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "e-books"
-        },
-        {
-          __typename: "ReducedRate",
+          rate: 0,
           rateType: "foodstuffs"
         },
         {
           __typename: "ReducedRate",
-          rateType: "hotels"
+          rate: 0,
+          rateType: "pharmaceuticals"
         },
         {
           __typename: "ReducedRate",
+          rate: 5,
+          rateType: "admission to cultural events"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 5,
+          rateType: "books"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 5,
+          rateType: "e-books"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 5,
           rateType: "medical"
         },
         {
           __typename: "ReducedRate",
+          rate: 5,
           rateType: "newspapers"
         },
         {
           __typename: "ReducedRate",
-          rateType: "pharmaceuticals"
+          rate: 7,
+          rateType: "hotels"
         }
       ],
       standardRate: 18
@@ -886,38 +1047,47 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
+          rate: 9,
           rateType: "accommodation"
         },
         {
           __typename: "ReducedRate",
+          rate: 9,
           rateType: "admission to cultural events"
         },
         {
           __typename: "ReducedRate",
+          rate: 9,
           rateType: "admission to entertainment events"
         },
         {
           __typename: "ReducedRate",
+          rate: 9,
           rateType: "books"
         },
         {
           __typename: "ReducedRate",
+          rate: 9,
           rateType: "foodstuffs"
         },
         {
           __typename: "ReducedRate",
+          rate: 9,
           rateType: "hotels"
         },
         {
           __typename: "ReducedRate",
+          rate: 9,
           rateType: "medical"
         },
         {
           __typename: "ReducedRate",
+          rate: 9,
           rateType: "passenger transport"
         },
         {
           __typename: "ReducedRate",
+          rate: 9,
           rateType: "pharmaceuticals"
         }
       ],
@@ -933,42 +1103,52 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
-          rateType: "admission to cultural events"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "admission to entertainment events"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "admission to sporting events"
-        },
-        {
-          __typename: "ReducedRate",
+          rate: 5,
           rateType: "foodstuffs"
         },
         {
           __typename: "ReducedRate",
+          rate: 8,
+          rateType: "admission to cultural events"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 8,
+          rateType: "admission to entertainment events"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 8,
+          rateType: "admission to sporting events"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 8,
           rateType: "hotels"
         },
         {
           __typename: "ReducedRate",
+          rate: 8,
           rateType: "medical"
         },
         {
           __typename: "ReducedRate",
+          rate: 8,
           rateType: "newspapers"
         },
         {
           __typename: "ReducedRate",
+          rate: 8,
           rateType: "passenger transport"
         },
         {
           __typename: "ReducedRate",
+          rate: 8,
           rateType: "pharmaceuticals"
         },
         {
           __typename: "ReducedRate",
+          rate: 8,
           rateType: "restaurants"
         }
       ],
@@ -984,34 +1164,42 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
+          rate: 13,
           rateType: "agricultural supplies"
         },
         {
           __typename: "ReducedRate",
+          rate: 6,
           rateType: "books"
         },
         {
           __typename: "ReducedRate",
+          rate: 6,
           rateType: "foodstuffs"
         },
         {
           __typename: "ReducedRate",
+          rate: 6,
           rateType: "hotels"
         },
         {
           __typename: "ReducedRate",
+          rate: 6,
           rateType: "medical"
         },
         {
           __typename: "ReducedRate",
+          rate: 6,
           rateType: "newspapers"
         },
         {
           __typename: "ReducedRate",
+          rate: 6,
           rateType: "passenger transport"
         },
         {
           __typename: "ReducedRate",
+          rate: 6,
           rateType: "pharmaceuticals"
         }
       ],
@@ -1027,39 +1215,48 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
+          rate: 5,
+          rateType: "social housing"
+        },
+        {
+          __typename: "ReducedRate",
+          rate: 9,
           rateType: "admission to cultural events"
         },
         {
           __typename: "ReducedRate",
+          rate: 9,
           rateType: "admission to entertainment events"
         },
         {
           __typename: "ReducedRate",
+          rate: 9,
           rateType: "books"
         },
         {
           __typename: "ReducedRate",
+          rate: 9,
           rateType: "foodstuffs"
         },
         {
           __typename: "ReducedRate",
+          rate: 9,
           rateType: "hotels"
         },
         {
           __typename: "ReducedRate",
+          rate: 9,
           rateType: "medical"
         },
         {
           __typename: "ReducedRate",
+          rate: 9,
           rateType: "newspapers"
         },
         {
           __typename: "ReducedRate",
+          rate: 9,
           rateType: "pharmaceuticals"
-        },
-        {
-          __typename: "ReducedRate",
-          rateType: "social housing"
         }
       ],
       standardRate: 19
@@ -1074,11 +1271,13 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
-          rateType: "books"
+          rate: 12,
+          rateType: "foodstuffs"
         },
         {
           __typename: "ReducedRate",
-          rateType: "foodstuffs"
+          rate: 6,
+          rateType: "books"
         }
       ],
       standardRate: 25
@@ -1093,38 +1292,47 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
+          rate: 9.5,
           rateType: "admission to cultural events"
         },
         {
           __typename: "ReducedRate",
+          rate: 9.5,
           rateType: "admission to entertainment events"
         },
         {
           __typename: "ReducedRate",
+          rate: 9.5,
           rateType: "admission to sporting events"
         },
         {
           __typename: "ReducedRate",
+          rate: 9.5,
           rateType: "books"
         },
         {
           __typename: "ReducedRate",
+          rate: 9.5,
           rateType: "foodstuffs"
         },
         {
           __typename: "ReducedRate",
+          rate: 9.5,
           rateType: "hotels"
         },
         {
           __typename: "ReducedRate",
+          rate: 9.5,
           rateType: "medical"
         },
         {
           __typename: "ReducedRate",
+          rate: 9.5,
           rateType: "newspapers"
         },
         {
           __typename: "ReducedRate",
+          rate: 9.5,
           rateType: "pharmaceuticals"
         }
       ],
@@ -1140,26 +1348,32 @@ export const countries: CountryList = [
       reducedRates: [
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "admission to cultural events"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "admission to entertainment events"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "books"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "foodstuffs"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "medical"
         },
         {
           __typename: "ReducedRate",
+          rate: 10,
           rateType: "pharmaceuticals"
         }
       ],
