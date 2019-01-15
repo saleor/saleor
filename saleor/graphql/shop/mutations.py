@@ -15,6 +15,8 @@ class ShopSettingsInput(graphene.InputObjectType):
         description='Include taxes in prices')
     display_gross_prices = graphene.Boolean(
         description='Display prices with tax in store')
+    charge_taxes_on_shipping = graphene.Boolean(
+        description='Charge taxes on shipping')
     track_inventory_by_default = graphene.Boolean(
         description='Enable inventory tracking')
     default_weight_unit = WeightUnitsEnum(description='Default weight unit')
