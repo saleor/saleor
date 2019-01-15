@@ -11,9 +11,9 @@ import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import CardTitle from "../../../components/CardTitle";
-import Dropzone from "../../../components/Dropzone";
 import Hr from "../../../components/Hr";
 import ImageTile from "../../../components/ImageTile";
+import ImageUpload from "../../../components/ImageUpload";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { CollectionDetails_collection_backgroundImage } from "../../types/CollectionDetails";
@@ -111,7 +111,7 @@ export const CollectionImage = withStyles(styles)(
               </div>
             </CardContent>
           ) : image === null ? (
-            <Dropzone onImageUpload={onImageUpload} />
+            <ImageUpload onImageUpload={onImageUpload} />
           ) : (
             <CardContent>
               <ImageTile image={image} onImageDelete={onImageDelete} />

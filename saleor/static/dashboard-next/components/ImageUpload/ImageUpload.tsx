@@ -9,10 +9,10 @@ import Typography from "@material-ui/core/Typography";
 import AddPhotoIcon from "@material-ui/icons/AddAPhoto";
 import classNames from "classnames";
 import * as React from "react";
-import DropzoneComponent from "react-dropzone";
+import Dropzone from "react-dropzone";
 import i18n from "../../i18n";
 
-interface DropzoneProps {
+interface ImageUploadProps {
   onImageUpload: (file: File) => void;
 }
 
@@ -52,28 +52,35 @@ const styles = (theme: Theme) =>
     }
   });
 
-export const Dropzone = withStyles(styles, { name: "Dropzone" })(
-  ({ classes, onImageUpload }: DropzoneProps & WithStyles<typeof styles>) => (
-    <DropzoneComponent onDrop={files => onImageUpload(files[0])}>
-      {({ isDragActive, getInputProps, getRootProps }) => (
-        <div
-          {...getRootProps()}
-          className={classNames({
-            [classes.photosIconContainer]: true,
-            [classes.containerDragActive]: isDragActive
-          })}
-        >
-          <input {...getInputProps()} className={classes.fileField} />
-          <AddPhotoIcon className={classes.photosIcon} />
-          <Typography className={classes.uploadText} variant="body2">
-            {i18n.t("Drop here to upload", {
-              context: "image upload"
+export const ImageUpload = withStyles(styles, { name: "ImageUpload" })(
+  ({
+    classes,
+    onImageUpload
+  }: ImageUploadProps & WithStyles<typeof styles>) => {
+    // console.log(DropzoneComponent);
+    // throw DropzoneComponent;
+    return (
+      <Dropzone onDrop={files => onImageUpload(files[0])}>
+        {({ isDragActive, getInputProps, getRootProps }) => (
+          <div
+            {...getRootProps()}
+            className={classNames({
+              [classes.photosIconContainer]: true,
+              [classes.containerDragActive]: isDragActive
             })}
-          </Typography>
-        </div>
-      )}
-    </DropzoneComponent>
-  )
+          >
+            <input {...getInputProps()} className={classes.fileField} />
+            <AddPhotoIcon className={classes.photosIcon} />
+            <Typography className={classes.uploadText} variant="body2">
+              {i18n.t("Drop here to upload", {
+                context: "image upload"
+              })}
+            </Typography>
+          </div>
+        )}
+      </Dropzone>
+    );
+  }
 );
-Dropzone.displayName = "Dropzone";
-export default Dropzone;
+ImageUpload.displayName = "ImageUpload";
+export default ImageUpload;
