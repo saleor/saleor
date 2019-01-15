@@ -5,6 +5,8 @@ import { CountryList } from "./types/CountryList";
 const countryList = gql`
   query CountryList {
     shop {
+      includeTaxesInPrices
+      displayGrossPrices
       countries {
         country
         code
@@ -12,11 +14,10 @@ const countryList = gql`
           standardRate
           reducedRates {
             rateType
+            rate
           }
         }
       }
-      displayGrossPrices
-      includeTaxesInPrices
     }
   }
 `;

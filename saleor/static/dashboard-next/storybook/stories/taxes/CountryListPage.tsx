@@ -11,6 +11,7 @@ import { countries } from "./fixtures";
 const props: CountryListPageProps = {
   ...pageListProps.default,
   onSubmit: () => undefined,
+  onTaxFetch: () => undefined,
   shop: {
     __typename: "Shop",
     countries,
