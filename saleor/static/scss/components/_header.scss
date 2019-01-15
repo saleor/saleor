@@ -175,6 +175,9 @@
     padding: $global-padding * 2 0;
     display: flex;
     align-items: center;
+    svg {
+      width: 113px;
+    }
     .menu-icon-mobile {
       position: relative;
       display: inline-block;
