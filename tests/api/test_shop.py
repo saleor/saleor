@@ -241,6 +241,7 @@ def test_query_charge_taxes_on_shipping(api_client, site_settings):
     charge_taxes_on_shipping = site_settings.charge_taxes_on_shipping
     assert data['chargeTaxesOnShipping'] == charge_taxes_on_shipping
 
+
 def test_shop_settings_mutation(
         staff_api_client, site_settings, permission_manage_settings):
     query = """
@@ -248,23 +249,33 @@ def test_shop_settings_mutation(
             shopSettingsUpdate(input: $input) {
                 shop {
                     headerText,
-                    includeTaxesInPrices
+                    includeTaxesInPrices,
+                    chargeTaxesOnShipping
+                }
+                errors{
+                    field,
+                    message
                 }
             }
         }
     """
+    charge_taxes_on_shipping = site_settings.charge_taxes_on_shipping
+    new_charge_taxes_on_shipping = not charge_taxes_on_shipping
     variables = {
         'input': {
             'includeTaxesInPrices': False,
-            'headerText': 'Lorem ipsum'}}
+            'headerText': 'Lorem ipsum',
+            'chargeTaxesOnShipping': new_charge_taxes_on_shipping}}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_settings])
     content = get_graphql_content(response)
     data = content['data']['shopSettingsUpdate']['shop']
     assert data['includeTaxesInPrices'] == False
     assert data['headerText'] == 'Lorem ipsum'
+    assert data['chargeTaxesOnShipping'] == new_charge_taxes_on_shipping
     site_settings.refresh_from_db()
     assert not site_settings.include_taxes_in_prices
+    assert site_settings.charge_taxes_on_shipping == new_charge_taxes_on_shipping
 
 
 def test_shop_domain_update(staff_api_client, permission_manage_settings):
