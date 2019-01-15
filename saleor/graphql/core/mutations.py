@@ -123,7 +123,6 @@ class BaseMutation(graphene.Mutation):
                 for message in message_dict[field]:
                     field = snake_to_camel_case(field)
                     cls.add_error(errors, field, message)
-        return errors
 
     @classmethod
     def construct_instance(cls, instance, cleaned_data):
