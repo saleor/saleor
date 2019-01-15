@@ -111,6 +111,7 @@ function loadStories() {
   
   // Taxes
   require("./stories/taxes/CountryListPage");
+  require("./stories/taxes/CountryTaxesPage");
 }
 
 configure(loadStories, module);
