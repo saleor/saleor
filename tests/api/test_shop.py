@@ -73,7 +73,10 @@ def test_query_countries_with_tax(user_api_client, vatlayer, tax_rates):
     rates = {
         rate['rateType']: rate['rate']
         for rate in country['vat']['reducedRates']}
-    assert rates == tax_rates['reduced_rates']
+    reduced_rates = {
+        str_to_enum(tax_rate): tax_rates['reduced_rates'][tax_rate]
+        for tax_rate in tax_rates['reduced_rates']}
+    assert rates == reduced_rates
 
 
 def test_query_default_country(user_api_client, settings):
@@ -252,7 +255,7 @@ def test_shop_settings_mutation(
                     includeTaxesInPrices,
                     chargeTaxesOnShipping
                 }
-                errors{
+                errors {
                     field,
                     message
                 }
