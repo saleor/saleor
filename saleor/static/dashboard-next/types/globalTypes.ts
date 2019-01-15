@@ -290,6 +290,7 @@ export interface ShopSettingsInput {
   description?: string | null;
   includeTaxesInPrices?: boolean | null;
   displayGrossPrices?: boolean | null;
+  chargeTaxesOnShipping?: boolean | null;
   trackInventoryByDefault?: boolean | null;
   defaultWeightUnit?: WeightUnitsEnum | null;
 }
