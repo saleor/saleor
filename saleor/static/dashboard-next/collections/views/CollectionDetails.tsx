@@ -235,11 +235,11 @@ export const CollectionDetails: React.StatelessComponent<
                                     true
                                   )
                                 }
-                                onImageUpload={event =>
+                                onImageUpload={file =>
                                   updateCollection.mutate({
                                     id,
                                     input: {
-                                      backgroundImage: event.target.files[0]
+                                      backgroundImage: file
                                     }
                                   })
                                 }
