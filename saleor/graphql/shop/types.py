@@ -100,6 +100,8 @@ class Shop(graphene.ObjectType):
         description='Include taxes in prices')
     display_gross_prices = graphene.Boolean(
         description='Display prices with tax in store')
+    charge_taxes_on_shipping = graphene.Boolean(
+        description='Charge taxes on shipping')
     track_inventory_by_default = graphene.Boolean(
         description='Enable inventory tracking')
     default_weight_unit = WeightUnitsEnum(description='Default weight unit')
@@ -183,6 +185,9 @@ class Shop(graphene.ObjectType):
 
     def resolve_display_gross_prices(self, info):
         return info.context.site.settings.display_gross_prices
+
+    def resolve_charge_taxes_on_shipping(self, info):
+        return info.context.site.settings.charge_taxes_on_shipping
 
     def resolve_track_inventory_by_default(self, info):
         return info.context.site.settings.track_inventory_by_default
