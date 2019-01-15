@@ -73,7 +73,10 @@ def test_query_countries_with_tax(user_api_client, vatlayer, tax_rates):
     rates = {
         rate['rateType']: rate['rate']
         for rate in country['vat']['reducedRates']}
-    assert rates == tax_rates['reduced_rates']
+    reduced_rates = {
+        str_to_enum(tax_rate): tax_rates['reduced_rates'][tax_rate]
+        for tax_rate in tax_rates['reduced_rates']}
+    assert rates == reduced_rates
 
 
 def test_query_default_country(user_api_client, settings):
@@ -228,6 +231,20 @@ def test_query_navigation(user_api_client, site_settings):
     assert navigation_data['secondary']['name'] == site_settings.bottom_menu.name
 
 
+def test_query_charge_taxes_on_shipping(api_client, site_settings):
+    query = """
+    query {
+        shop {
+            chargeTaxesOnShipping
+        }
+    }"""
+    response = api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    data = content['data']['shop']
+    charge_taxes_on_shipping = site_settings.charge_taxes_on_shipping
+    assert data['chargeTaxesOnShipping'] == charge_taxes_on_shipping
+
+
 def test_shop_settings_mutation(
         staff_api_client, site_settings, permission_manage_settings):
     query = """
@@ -235,23 +252,33 @@ def test_shop_settings_mutation(
             shopSettingsUpdate(input: $input) {
                 shop {
                     headerText,
-                    includeTaxesInPrices
+                    includeTaxesInPrices,
+                    chargeTaxesOnShipping
+                }
+                errors {
+                    field,
+                    message
                 }
             }
         }
     """
+    charge_taxes_on_shipping = site_settings.charge_taxes_on_shipping
+    new_charge_taxes_on_shipping = not charge_taxes_on_shipping
     variables = {
         'input': {
             'includeTaxesInPrices': False,
-            'headerText': 'Lorem ipsum'}}
+            'headerText': 'Lorem ipsum',
+            'chargeTaxesOnShipping': new_charge_taxes_on_shipping}}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_settings])
     content = get_graphql_content(response)
     data = content['data']['shopSettingsUpdate']['shop']
     assert data['includeTaxesInPrices'] == False
     assert data['headerText'] == 'Lorem ipsum'
+    assert data['chargeTaxesOnShipping'] == new_charge_taxes_on_shipping
     site_settings.refresh_from_db()
     assert not site_settings.include_taxes_in_prices
+    assert site_settings.charge_taxes_on_shipping == new_charge_taxes_on_shipping
 
 
 def test_shop_domain_update(staff_api_client, permission_manage_settings):
