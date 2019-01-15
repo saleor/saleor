@@ -75,4 +75,5 @@ export const Dropzone = withStyles(styles, { name: "Dropzone" })(
     </DropzoneComponent>
   )
 );
+Dropzone.displayName = "Dropzone";
 export default Dropzone;
