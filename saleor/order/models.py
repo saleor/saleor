@@ -188,6 +188,18 @@ class Order(models.Model):
             return last_payment.get_charge_status_display()
         return None
 
+    def get_payment_status(self):
+        status = self.get_last_payment_status()
+        if status is None:
+            return ChargeStatus.NOT_CHARGED
+        return status
+
+    def get_payment_status_display(self):
+        status = self.get_last_payment_status_display()
+        if status is None:
+            return dict(ChargeStatus.CHOICES).get(ChargeStatus.NOT_CHARGED)
+        return status
+
     def is_pre_authorized(self):
         return self.payments.filter(
             is_active=True,
