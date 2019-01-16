@@ -15,3 +15,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix logo placement - #3602 by @dominik-zeglen
 - Add charges taxes on shipping field to shop settings in GraphQL Api - #3603 by @fowczarek
 - Fix bug where orders can not be filtered by payment status - #3608 by @jxltom
+- Fix logo placement in dashboard 2.0 when the svg has specific width - #3609 by @jxltom
