@@ -4,7 +4,7 @@ import * as React from "react";
 import AddressEdit from "../../../components/AddressEdit";
 import { Container } from "../../../components/Container";
 import { customer } from "../../../customers/fixtures";
-import { transformAddressToForm } from "../../../orders";
+import { transformAddressToForm } from "../../../misc";
 import { countries } from "../../../orders/fixtures";
 import Decorator from "../../Decorator";
 

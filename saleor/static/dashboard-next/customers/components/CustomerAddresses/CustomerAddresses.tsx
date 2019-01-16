@@ -1,6 +1,11 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
@@ -11,20 +16,22 @@ import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { CustomerDetails_user } from "../../types/CustomerDetails";
 
-export interface CustomerAddressesProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    label: {
+      fontWeight: 600,
+      marginBottom: theme.spacing.unit
+    }
+  });
+
+export interface CustomerAddressesProps extends WithStyles<typeof styles> {
   customer: CustomerDetails_user;
   disabled: boolean;
   onAddressManageClick: () => void;
 }
 
-const decorate = withStyles(theme => ({
-  label: {
-    fontWeight: 600 as 600,
-    marginBottom: theme.spacing.unit
-  }
-}));
-const CustomerAddresses = decorate<CustomerAddressesProps>(
-  ({ classes, customer }) => (
+const CustomerAddresses = withStyles(styles, { name: "CustomerAddresses" })(
+  ({ classes, customer }: CustomerAddressesProps) => (
     <Card>
       <CardTitle
         title={i18n.t("Address Information")}
@@ -32,7 +39,7 @@ const CustomerAddresses = decorate<CustomerAddressesProps>(
         //   <Button
         //     color="secondary"
         //     disabled={disabled}
-        //     variant="flat"
+        //     variant="text"
         //     onClick={onAddressManageClick}
         //   >
         //     {i18n.t("Manage", { context: "button" })}

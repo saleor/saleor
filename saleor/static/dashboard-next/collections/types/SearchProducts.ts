@@ -5,10 +5,24 @@
 // GraphQL query operation: SearchProducts
 // ====================================================
 
+export interface SearchProducts_products_edges_node_productType {
+  __typename: "ProductType";
+  id: string;
+  name: string;
+}
+
+export interface SearchProducts_products_edges_node_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface SearchProducts_products_edges_node {
   __typename: "Product";
   id: string;
+  isPublished: boolean;
   name: string;
+  productType: SearchProducts_products_edges_node_productType;
+  thumbnail: SearchProducts_products_edges_node_thumbnail | null;
 }
 
 export interface SearchProducts_products_edges {

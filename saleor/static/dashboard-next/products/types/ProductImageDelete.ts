@@ -5,25 +5,15 @@
 // GraphQL mutation operation: ProductImageDelete
 // ====================================================
 
-export interface ProductImageDelete_productImageDelete_product_images_edges_node {
+export interface ProductImageDelete_productImageDelete_product_images {
   __typename: "ProductImage";
   id: string;
-}
-
-export interface ProductImageDelete_productImageDelete_product_images_edges {
-  __typename: "ProductImageCountableEdge";
-  node: ProductImageDelete_productImageDelete_product_images_edges_node;
-}
-
-export interface ProductImageDelete_productImageDelete_product_images {
-  __typename: "ProductImageCountableConnection";
-  edges: ProductImageDelete_productImageDelete_product_images_edges[];
 }
 
 export interface ProductImageDelete_productImageDelete_product {
   __typename: "Product";
   id: string;
-  images: ProductImageDelete_productImageDelete_product_images | null;
+  images: (ProductImageDelete_productImageDelete_product_images | null)[] | null;
 }
 
 export interface ProductImageDelete_productImageDelete {

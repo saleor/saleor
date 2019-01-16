@@ -5,6 +5,12 @@
 // GraphQL mutation operation: OrderDraftCreate
 // ====================================================
 
+export interface OrderDraftCreate_draftOrderCreate_errors {
+  __typename: "Error";
+  field: string | null;
+  message: string | null;
+}
+
 export interface OrderDraftCreate_draftOrderCreate_order {
   __typename: "Order";
   id: string;
@@ -12,6 +18,7 @@ export interface OrderDraftCreate_draftOrderCreate_order {
 
 export interface OrderDraftCreate_draftOrderCreate {
   __typename: "DraftOrderCreate";
+  errors: OrderDraftCreate_draftOrderCreate_errors[] | null;
   order: OrderDraftCreate_draftOrderCreate_order | null;
 }
 

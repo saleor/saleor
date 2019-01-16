@@ -1,6 +1,11 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -16,17 +21,18 @@ import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
 
-const decorate = withStyles(theme => ({
-  link: {
-    color: theme.palette.secondary.main,
-    cursor: "pointer"
-  },
-  textLeft: {
-    textAlign: "left" as "left"
-  }
-}));
+const styles = (theme: Theme) =>
+  createStyles({
+    link: {
+      color: theme.palette.secondary.main,
+      cursor: "pointer"
+    },
+    textLeft: {
+      textAlign: "left"
+    }
+  });
 
-interface ProductListProps {
+interface ProductListProps extends WithStyles<typeof styles> {
   hasNextPage?: boolean;
   hasPreviousPage?: boolean;
   products?: Array<{
@@ -43,7 +49,7 @@ interface ProductListProps {
   onRowClick?(id: string): () => void;
 }
 
-export const ProductList = decorate<ProductListProps>(
+export const ProductList = withStyles(styles, { name: "ProductList" })(
   ({
     classes,
     hasNextPage,
@@ -53,12 +59,12 @@ export const ProductList = decorate<ProductListProps>(
     onNextPage,
     onPreviousPage,
     onRowClick
-  }) => (
+  }: ProductListProps) => (
     <Card>
       <CardTitle
         title={i18n.t("Products")}
         toolbar={
-          <Button variant="flat" color="secondary" onClick={onAddProduct}>
+          <Button variant="text" color="secondary" onClick={onAddProduct}>
             {i18n.t("Add product")}
           </Button>
         }
@@ -122,5 +128,5 @@ export const ProductList = decorate<ProductListProps>(
     </Card>
   )
 );
-
+ProductList.displayName = "CategoryProductList";
 export default ProductList;

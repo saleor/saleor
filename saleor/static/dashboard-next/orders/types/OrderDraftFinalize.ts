@@ -53,56 +53,47 @@ export interface OrderDraftFinalize_draftOrderComplete_order_events {
   user: OrderDraftFinalize_draftOrderComplete_order_events_user | null;
 }
 
-export interface OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines_edges_node_orderLine_unitPrice_gross {
+export interface OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines_orderLine_unitPrice_gross {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines_edges_node_orderLine_unitPrice_net {
+export interface OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines_orderLine_unitPrice_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines_edges_node_orderLine_unitPrice {
+export interface OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines_orderLine_unitPrice {
   __typename: "TaxedMoney";
-  gross: OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines_edges_node_orderLine_unitPrice_gross;
-  net: OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines_edges_node_orderLine_unitPrice_net;
+  gross: OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines_orderLine_unitPrice_gross;
+  net: OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines_orderLine_unitPrice_net;
 }
 
-export interface OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines_edges_node_orderLine {
+export interface OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
   quantityFulfilled: number;
-  unitPrice: OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines_edges_node_orderLine_unitPrice | null;
+  unitPrice: OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines_orderLine_unitPrice | null;
   thumbnailUrl: string | null;
 }
 
-export interface OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines_edges_node {
+export interface OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines {
   __typename: "FulfillmentLine";
   id: string;
   quantity: number;
-  orderLine: OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines_edges_node_orderLine | null;
-}
-
-export interface OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines_edges {
-  __typename: "FulfillmentLineCountableEdge";
-  node: OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines_edges_node;
-}
-
-export interface OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines {
-  __typename: "FulfillmentLineCountableConnection";
-  edges: OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines_edges[];
+  orderLine: OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines_orderLine | null;
 }
 
 export interface OrderDraftFinalize_draftOrderComplete_order_fulfillments {
   __typename: "Fulfillment";
   id: string;
-  lines: OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines | null;
+  lines: (OrderDraftFinalize_draftOrderComplete_order_fulfillments_lines | null)[] | null;
   fulfillmentOrder: number;
   status: FulfillmentStatus;
   trackingNumber: string;
@@ -129,6 +120,7 @@ export interface OrderDraftFinalize_draftOrderComplete_order_lines_unitPrice {
 export interface OrderDraftFinalize_draftOrderComplete_order_lines {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -239,7 +231,9 @@ export interface OrderDraftFinalize_draftOrderComplete_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderDraftFinalize_draftOrderComplete_order_billingAddress | null;
+  canFinalize: boolean;
   created: any;
+  customerNote: string;
   events: (OrderDraftFinalize_draftOrderComplete_order_events | null)[] | null;
   fulfillments: (OrderDraftFinalize_draftOrderComplete_order_fulfillments | null)[];
   lines: (OrderDraftFinalize_draftOrderComplete_order_lines | null)[];
@@ -262,7 +256,7 @@ export interface OrderDraftFinalize_draftOrderComplete_order {
 
 export interface OrderDraftFinalize_draftOrderComplete {
   __typename: "DraftOrderComplete";
-  errors: (OrderDraftFinalize_draftOrderComplete_errors | null)[] | null;
+  errors: OrderDraftFinalize_draftOrderComplete_errors[] | null;
   order: OrderDraftFinalize_draftOrderComplete_order | null;
 }
 

@@ -2,6 +2,7 @@ import * as React from "react";
 
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
+import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
 import CustomerCreatePage from "../components/CustomerCreatePage";
@@ -16,10 +17,7 @@ export const CustomerCreate: React.StatelessComponent<{}> = () => (
       <Messages>
         {pushMessage => {
           const handleCreateCustomerSuccess = (data: CreateCustomer) => {
-            if (
-              data.customerCreate.errors === null ||
-              data.customerCreate.errors.length === 0
-            ) {
+            if (data.customerCreate.errors.length === 0) {
               pushMessage({
                 text: i18n.t("Customer created", {
                   context: "notification"
@@ -29,50 +27,59 @@ export const CustomerCreate: React.StatelessComponent<{}> = () => (
             }
           };
           return (
-            <TypedCustomerCreateDataQuery>
+            <TypedCustomerCreateDataQuery displayLoader>
               {({ data, loading }) => (
                 <TypedCreateCustomerMutation
                   onCompleted={handleCreateCustomerSuccess}
                 >
                   {(createCustomer, createCustomerOpts) => (
-                    <CustomerCreatePage
-                      countries={maybe(() => data.shop.countries, [])}
-                      disabled={loading || createCustomerOpts.loading}
-                      errors={maybe(
-                        () => createCustomerOpts.data.customerCreate.errors,
-                        []
-                      )}
-                      saveButtonBar={
-                        createCustomerOpts.loading ? "loading" : "default"
-                      }
-                      onBack={() => navigate(customerListUrl)}
-                      onSubmit={formData => {
-                        const address = {
-                          city: formData.city,
-                          cityArea: formData.cityArea,
-                          companyName: formData.companyName,
-                          country: formData.country,
-                          countryArea: formData.countryArea,
-                          firstName: formData.firstName,
-                          lastName: formData.lastName,
-                          phone: formData.phone,
-                          postalCode: formData.postalCode,
-                          streetAddress1: formData.streetAddress1,
-                          streetAddress2: formData.streetAddress2
-                        };
-                        createCustomer({
-                          variables: {
-                            input: {
-                              defaultBillingAddress: address,
-                              defaultShippingAddress: address,
-                              email: formData.email,
-                              note: formData.note,
-                              sendPasswordEmail: true
+                    <>
+                      <WindowTitle title={i18n.t("Create customer")} />
+                      <CustomerCreatePage
+                        countries={maybe(() => data.shop.countries, [])}
+                        disabled={loading || createCustomerOpts.loading}
+                        errors={maybe(
+                          () => createCustomerOpts.data.customerCreate.errors,
+                          []
+                        )}
+                        saveButtonBar={
+                          createCustomerOpts.loading ? "loading" : "default"
+                        }
+                        onBack={() => navigate(customerListUrl)}
+                        onSubmit={formData => {
+                          const address = {
+                            city: formData.city,
+                            cityArea: formData.cityArea,
+                            companyName: formData.companyName,
+                            country: formData.country,
+                            countryArea: formData.countryArea,
+                            firstName: formData.firstName,
+                            lastName: formData.lastName,
+                            phone: formData.phone,
+                            postalCode: formData.postalCode,
+                            streetAddress1: formData.streetAddress1,
+                            streetAddress2: formData.streetAddress2
+                          };
+                          createCustomer({
+                            variables: {
+                              input: {
+                                defaultBillingAddress: {
+                                  ...address,
+                                  country: address.country.value
+                                },
+                                defaultShippingAddress: {
+                                  ...address,
+                                  country: address.country.value
+                                },
+                                email: formData.email,
+                                note: formData.note,
+                                sendPasswordEmail: true
+                              }
                             }
-                          }
-                        });
-                      }}
-                    />
+                          });
+                        }}
+                      />
+                    </>
                   )}
                 </TypedCreateCustomerMutation>
               )}

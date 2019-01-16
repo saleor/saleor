@@ -13,7 +13,7 @@ export interface PageDelete_pageDelete_errors {
 
 export interface PageDelete_pageDelete {
   __typename: "PageDelete";
-  errors: (PageDelete_pageDelete_errors | null)[] | null;
+  errors: PageDelete_pageDelete_errors[] | null;
 }
 
 export interface PageDelete {

@@ -21,6 +21,7 @@ storiesOf("Views / Products / Product image details", module)
       onDelete={undefined}
       onRowClick={() => undefined}
       onSubmit={() => undefined}
+      saveButtonBarState="default"
     />
   ))
   .add("when loading data", () => (
@@ -30,5 +31,6 @@ storiesOf("Views / Products / Product image details", module)
       onDelete={undefined}
       onRowClick={() => undefined}
       onSubmit={() => undefined}
+      saveButtonBarState="default"
     />
   ));

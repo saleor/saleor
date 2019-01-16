@@ -84,4 +84,5 @@ class TaxRateType:
         (RESTAURANTS, pgettext_lazy('VAT rate type', 'restaurants')),
         (SOCIAL_HOUSING, pgettext_lazy('VAT rate type', 'social housing')),
         (STANDARD, pgettext_lazy('VAT rate type', 'standard')),
-        (WATER, pgettext_lazy('VAT rate type', 'water')))
+        (WATER, pgettext_lazy('VAT rate type', 'water')),
+        (WINE, pgettext_lazy('VAT rate type', 'wine')))

@@ -1,8 +1,13 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
-import { PageListProps } from "../../..";
 import { CardSpacer } from "../../../components/CardSpacer";
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import { Container } from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
@@ -10,6 +15,7 @@ import SaveButtonBar from "../../../components/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
+import { PageListProps } from "../../../types";
 import { CollectionDetails_collection } from "../../types/CollectionDetails";
 import CollectionDetails from "../CollectionDetails/CollectionDetails";
 import { CollectionImage } from "../CollectionImage/CollectionImage";
@@ -17,6 +23,8 @@ import CollectionProducts from "../CollectionProducts/CollectionProducts";
 import CollectionStatus from "../CollectionStatus/CollectionStatus";
 
 export interface CollectionDetailsPageFormData {
+  backgroundImageAlt: string;
+  description: string;
   name: string;
   seoDescription: string;
   seoTitle: string;
@@ -24,9 +32,21 @@ export interface CollectionDetailsPageFormData {
   isPublished: boolean;
 }
 
-export interface CollectionDetailsPageProps extends PageListProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "9fr 4fr"
+    }
+  });
+
+export interface CollectionDetailsPageProps
+  extends PageListProps,
+    WithStyles<typeof styles> {
   collection: CollectionDetails_collection;
   isFeatured: boolean;
+  saveButtonBarState: ConfirmButtonTransitionState;
   onBack: () => void;
   onCollectionRemove: () => void;
   onImageDelete: () => void;
@@ -35,36 +55,34 @@ export interface CollectionDetailsPageProps extends PageListProps {
   onSubmit: (data: CollectionDetailsPageFormData) => void;
 }
 
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "9fr 4fr"
-  }
-}));
-const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
+const CollectionDetailsPage = withStyles(styles, {
+  name: "CollectionDetailsPage"
+})(
   ({
     classes,
     collection,
     disabled,
     isFeatured,
+    saveButtonBarState,
     onBack,
     onCollectionRemove,
     onImageDelete,
     onImageUpload,
     onSubmit,
     ...collectionProductsProps
-  }) => (
+  }: CollectionDetailsPageProps) => (
     <Form
       initial={{
+        backgroundImageAlt: maybe(() => collection.backgroundImage.alt, ""),
+        description: maybe(() => collection.description, ""),
         isFeatured,
-        isPublished: maybe(() => collection.isPublished),
-        name: maybe(() => collection.name),
-        seoDescription: maybe(() => collection.seoDescription),
-        seoTitle: maybe(() => collection.seoTitle)
+        isPublished: maybe(() => collection.isPublished, false),
+        name: maybe(() => collection.name, ""),
+        seoDescription: maybe(() => collection.seoDescription, ""),
+        seoTitle: maybe(() => collection.seoTitle, "")
       }}
       onSubmit={onSubmit}
-      key={JSON.stringify(collection) + isFeatured}
+      confirmLeave
     >
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container width="md">
@@ -79,9 +97,11 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
               />
               <CardSpacer />
               <CollectionImage
+                data={data}
                 image={maybe(() => collection.backgroundImage)}
                 onImageDelete={onImageDelete}
                 onImageUpload={onImageUpload}
+                onChange={change}
               />
               <CardSpacer />
               <CollectionProducts
@@ -116,6 +136,7 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
             </div>
           </div>
           <SaveButtonBar
+            state={saveButtonBarState}
             disabled={disabled || !hasChanged}
             onCancel={onBack}
             onDelete={onCollectionRemove}

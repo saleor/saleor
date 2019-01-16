@@ -5,21 +5,11 @@
 // GraphQL query operation: ProductVariantCreateData
 // ====================================================
 
-export interface ProductVariantCreateData_product_images_edges_node {
+export interface ProductVariantCreateData_product_images {
   __typename: "ProductImage";
   id: string;
   sortOrder: number;
   url: string;
-}
-
-export interface ProductVariantCreateData_product_images_edges {
-  __typename: "ProductImageCountableEdge";
-  node: ProductVariantCreateData_product_images_edges_node;
-}
-
-export interface ProductVariantCreateData_product_images {
-  __typename: "ProductImageCountableConnection";
-  edges: ProductVariantCreateData_product_images_edges[];
 }
 
 export interface ProductVariantCreateData_product_productType_variantAttributes_values {
@@ -44,46 +34,26 @@ export interface ProductVariantCreateData_product_productType {
   variantAttributes: (ProductVariantCreateData_product_productType_variantAttributes | null)[] | null;
 }
 
-export interface ProductVariantCreateData_product_variants_edges_node_image_edges_node {
+export interface ProductVariantCreateData_product_variants_images {
   __typename: "ProductImage";
   id: string;
   url: string;
 }
 
-export interface ProductVariantCreateData_product_variants_edges_node_image_edges {
-  __typename: "ProductImageCountableEdge";
-  node: ProductVariantCreateData_product_variants_edges_node_image_edges_node;
-}
-
-export interface ProductVariantCreateData_product_variants_edges_node_image {
-  __typename: "ProductImageCountableConnection";
-  edges: ProductVariantCreateData_product_variants_edges_node_image_edges[];
-}
-
-export interface ProductVariantCreateData_product_variants_edges_node {
+export interface ProductVariantCreateData_product_variants {
   __typename: "ProductVariant";
   id: string;
   name: string;
   sku: string;
-  image: ProductVariantCreateData_product_variants_edges_node_image | null;
-}
-
-export interface ProductVariantCreateData_product_variants_edges {
-  __typename: "ProductVariantCountableEdge";
-  node: ProductVariantCreateData_product_variants_edges_node;
-}
-
-export interface ProductVariantCreateData_product_variants {
-  __typename: "ProductVariantCountableConnection";
-  edges: ProductVariantCreateData_product_variants_edges[];
+  images: (ProductVariantCreateData_product_variants_images | null)[] | null;
 }
 
 export interface ProductVariantCreateData_product {
   __typename: "Product";
   id: string;
-  images: ProductVariantCreateData_product_images | null;
+  images: (ProductVariantCreateData_product_images | null)[] | null;
   productType: ProductVariantCreateData_product_productType;
-  variants: ProductVariantCreateData_product_variants | null;
+  variants: (ProductVariantCreateData_product_variants | null)[] | null;
 }
 
 export interface ProductVariantCreateData {

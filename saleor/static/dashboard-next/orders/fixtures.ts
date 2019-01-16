@@ -1,3 +1,4 @@
+import { transformOrderStatus, transformPaymentStatus } from "../misc";
 import {
   FulfillmentStatus,
   OrderAction,
@@ -5,7 +6,6 @@ import {
   OrderStatus,
   PaymentChargeStatusEnum
 } from "../types/globalTypes";
-import { transformOrderStatus, transformPaymentStatus } from "./";
 import { OrderDetails_order } from "./types/OrderDetails";
 import { OrderList_orders_edges_node } from "./types/OrderList";
 import { UserSearch_customers_edges_node } from "./types/UserSearch";
@@ -795,7 +795,9 @@ export const order = (placeholder: string): OrderDetails_order => ({
     streetAddress1: "487 Roberto Shores",
     streetAddress2: ""
   },
+  canFinalize: true,
   created: "2018-09-11T09:37:28.185874+00:00",
+  customerNote: "Lorem ipsum dolor sit amet",
   events: [
     {
       __typename: "OrderEvent",
@@ -818,41 +820,36 @@ export const order = (placeholder: string): OrderDetails_order => ({
       __typename: "Fulfillment",
       fulfillmentOrder: 2,
       id: "RnVsZmlsbG1lbnQ6MjQ=",
-      lines: {
-        __typename: "FulfillmentLineCountableConnection",
-        edges: [
-          {
-            __typename: "FulfillmentLineCountableEdge",
-            node: {
-              __typename: "FulfillmentLine",
-              id: "RnVsZmlsbG1lbnRMaW5lOjM5",
-              orderLine: {
-                __typename: "OrderLine",
-                id: "T3JkZXJMaW5lOjIz",
-                productName: "Williams, Garcia and Walker (XS)",
-                productSku: "5-1337",
-                quantity: 2,
-                quantityFulfilled: 2,
-                thumbnailUrl: placeholder,
-                unitPrice: {
-                  __typename: "TaxedMoney",
-                  gross: {
-                    __typename: "Money",
-                    amount: 79.71,
-                    currency: "USD"
-                  },
-                  net: {
-                    __typename: "Money",
-                    amount: 79.71,
-                    currency: "USD"
-                  }
-                }
+      lines: [
+        {
+          __typename: "FulfillmentLine",
+          id: "RnVsZmlsbG1lbnRMaW5lOjM5",
+          orderLine: {
+            __typename: "OrderLine",
+            id: "T3JkZXJMaW5lOjIz",
+            isShippingRequired: false,
+            productName: "Williams, Garcia and Walker (XS)",
+            productSku: "5-1337",
+            quantity: 2,
+            quantityFulfilled: 2,
+            thumbnailUrl: placeholder,
+            unitPrice: {
+              __typename: "TaxedMoney",
+              gross: {
+                __typename: "Money",
+                amount: 79.71,
+                currency: "USD"
               },
-              quantity: 1
+              net: {
+                __typename: "Money",
+                amount: 79.71,
+                currency: "USD"
+              }
             }
-          }
-        ]
-      },
+          },
+          quantity: 1
+        }
+      ],
       status: FulfillmentStatus.FULFILLED,
       trackingNumber: ""
     },
@@ -860,41 +857,36 @@ export const order = (placeholder: string): OrderDetails_order => ({
       __typename: "Fulfillment",
       fulfillmentOrder: 1,
       id: "RnVsZmlsbG1lbnQ6OQ==",
-      lines: {
-        __typename: "FulfillmentLineCountableConnection",
-        edges: [
-          {
-            __typename: "FulfillmentLineCountableEdge",
-            node: {
-              __typename: "FulfillmentLine",
-              id: "RnVsZmlsbG1lbnRMaW5lOjE1",
-              orderLine: {
-                __typename: "OrderLine",
-                id: "T3JkZXJMaW5lOjIz",
-                productName: "Williams, Garcia and Walker (XS)",
-                productSku: "5-1337",
-                quantity: 2,
-                quantityFulfilled: 2,
-                thumbnailUrl: placeholder,
-                unitPrice: {
-                  __typename: "TaxedMoney",
-                  gross: {
-                    __typename: "Money",
-                    amount: 79.71,
-                    currency: "USD"
-                  },
-                  net: {
-                    __typename: "Money",
-                    amount: 79.71,
-                    currency: "USD"
-                  }
-                }
+      lines: [
+        {
+          __typename: "FulfillmentLine",
+          id: "RnVsZmlsbG1lbnRMaW5lOjE1",
+          orderLine: {
+            __typename: "OrderLine",
+            id: "T3JkZXJMaW5lOjIz",
+            isShippingRequired: false,
+            productName: "Williams, Garcia and Walker (XS)",
+            productSku: "5-1337",
+            quantity: 2,
+            quantityFulfilled: 2,
+            thumbnailUrl: placeholder,
+            unitPrice: {
+              __typename: "TaxedMoney",
+              gross: {
+                __typename: "Money",
+                amount: 79.71,
+                currency: "USD"
               },
-              quantity: 1
+              net: {
+                __typename: "Money",
+                amount: 79.71,
+                currency: "USD"
+              }
             }
-          }
-        ]
-      },
+          },
+          quantity: 1
+        }
+      ],
       status: FulfillmentStatus.FULFILLED,
       trackingNumber: ""
     }
@@ -904,6 +896,7 @@ export const order = (placeholder: string): OrderDetails_order => ({
     {
       __typename: "OrderLine",
       id: "T3JkZXJMaW5lOjIy",
+      isShippingRequired: true,
       productName: "Watkins-Gonzalez (Soft)",
       productSku: "59-1337",
       quantity: 3,
@@ -926,6 +919,7 @@ export const order = (placeholder: string): OrderDetails_order => ({
     {
       __typename: "OrderLine",
       id: "T3JkZXJMaW5lOjIz",
+      isShippingRequired: true,
       productName: "Williams, Garcia and Walker (XS)",
       productSku: "5-1337",
       quantity: 2,
@@ -1012,12 +1006,14 @@ export const order = (placeholder: string): OrderDetails_order => ({
   user: null,
   userEmail: "melissa.simon@example.com"
 });
-export const draftOrder = (placeholder: string) => ({
+export const draftOrder = (placeholder: string): OrderDetails_order => ({
   __typename: "Order" as "Order",
   actions: [OrderAction.CAPTURE],
   availableShippingMethods: null,
   billingAddress: null,
+  canFinalize: true,
   created: "2018-09-20T23:23:39.811428+00:00",
+  customerNote: "Lorem ipsum dolor sit",
   events: [],
   fulfillments: [],
   id: "T3JkZXI6MjQ=",
@@ -1025,6 +1021,7 @@ export const draftOrder = (placeholder: string) => ({
     {
       __typename: "OrderLine" as "OrderLine",
       id: "T3JkZXJMaW5lOjQ1",
+      isShippingRequired: false,
       productName: "Davis Group (Hard)",
       productSku: "58-1338",
       quantity: 2,
@@ -1047,6 +1044,7 @@ export const draftOrder = (placeholder: string) => ({
     {
       __typename: "OrderLine" as "OrderLine",
       id: "T3JkZXJMaW5lOjQ2",
+      isShippingRequired: false,
       productName: "Anderson PLC (15-1337)",
       productSku: "15-1337",
       quantity: 2,
@@ -1132,4 +1130,70 @@ export const countries = [
 export const shippingMethods = [
   { id: "s1", name: "DHL", country: "whole world", price: {} },
   { id: "s2", name: "UPS", country: "Afghanistan" }
+];
+export const orderLineSearch = (placeholderImage: string) => [
+  {
+    __typename: "Product" as "Product",
+    id: "UHJvZHVjdDo3Mg==",
+    name: "Apple Juice",
+    thumbnail: {
+      __typename: "Image" as "Image",
+      url: placeholderImage
+    },
+    variants: [
+      {
+        __typename: "ProductVariant" as "ProductVariant",
+        id: "UHJvZHVjdFZhcmlhbnQ6MjAy",
+        name: "500ml",
+        price: { amount: 3.0, currency: "USD", __typename: "Money" as "Money" },
+        sku: "93855755"
+      },
+      {
+        __typename: "ProductVariant" as "ProductVariant",
+        id: "UHJvZHVjdFZhcmlhbnQ6MjAz",
+        name: "1l",
+        price: { amount: 5.0, currency: "USD", __typename: "Money" as "Money" },
+        sku: "43226647"
+      },
+      {
+        __typename: "ProductVariant" as "ProductVariant",
+        id: "UHJvZHVjdFZhcmlhbnQ6MjA0",
+        name: "2l",
+        price: { amount: 7.0, currency: "USD", __typename: "Money" as "Money" },
+        sku: "80884671"
+      }
+    ]
+  },
+  {
+    __typename: "Product" as "Product",
+    id: "UHJvZHVjdDo3NQ==",
+    name: "Pineapple Juice",
+    thumbnail: {
+      __typename: "Image" as "Image",
+      url: placeholderImage
+    },
+    variants: [
+      {
+        __typename: "ProductVariant" as "ProductVariant",
+        id: "UHJvZHVjdFZhcmlhbnQ6MjEx",
+        name: "500ml",
+        price: { amount: 3.0, currency: "USD", __typename: "Money" as "Money" },
+        sku: "43200242"
+      },
+      {
+        __typename: "ProductVariant" as "ProductVariant",
+        id: "UHJvZHVjdFZhcmlhbnQ6MjEy",
+        name: "1l",
+        price: { amount: 5.0, currency: "USD", __typename: "Money" as "Money" },
+        sku: "79129513"
+      },
+      {
+        __typename: "ProductVariant" as "ProductVariant",
+        id: "UHJvZHVjdFZhcmlhbnQ6MjEz",
+        name: "2l",
+        price: { amount: 7.0, currency: "USD", __typename: "Money" as "Money" },
+        sku: "75799450"
+      }
+    ]
+  }
 ];

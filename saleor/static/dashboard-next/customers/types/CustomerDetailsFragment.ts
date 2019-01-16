@@ -53,6 +53,8 @@ export interface CustomerDetailsFragment {
   __typename: "User";
   id: string;
   email: string;
+  firstName: string;
+  lastName: string;
   dateJoined: any;
   lastLogin: any | null;
   defaultShippingAddress: CustomerDetailsFragment_defaultShippingAddress | null;

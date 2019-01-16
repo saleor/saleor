@@ -1,18 +1,17 @@
-import { withStyles } from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import { UserError } from "../../../";
 import { CardSpacer } from "../../../components/CardSpacer";
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar, {
-  SaveButtonBarState
-} from "../../../components/SaveButtonBar/SaveButtonBar";
+import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
-import Tabs, { Tab } from "../../../components/Tab";
+import { Tab } from "../../../components/Tab";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
+import { UserError } from "../../../types";
 import CategoryDetailsForm from "../../components/CategoryDetailsForm";
 import CategoryList from "../../components/CategoryList";
 import {
@@ -20,20 +19,33 @@ import {
   CategoryDetails_category_children_edges_node,
   CategoryDetails_category_products_edges_node
 } from "../../types/CategoryDetails";
-// import CategoryBackground from "../CategoryBackground";
+import CategoryBackground from "../CategoryBackground";
 import CategoryProductsCard from "../CategoryProductsCard";
 
-interface FormData {
+export interface FormData {
+  backgroundImageAlt: string;
   description: string;
   name: string;
   seoTitle: string;
   seoDescription: string;
 }
 
-export interface CategoryUpdatePageProps {
+const styles = createStyles({
+  tabsBorder: {
+    borderBottom: "1px solid #eeeeee"
+  }
+});
+
+export enum CategoryPageTab {
+  categories = "categories",
+  products = "products"
+}
+
+export interface CategoryUpdatePageProps extends WithStyles<typeof styles> {
+  changeTab: (index: CategoryPageTab) => void;
+  currentTab: CategoryPageTab;
   errors: UserError[];
   disabled: boolean;
-  placeholderImage: string;
   category: CategoryDetails_category;
   products: CategoryDetails_category_products_edges_node[];
   subcategories: CategoryDetails_category_children_edges_node[];
@@ -41,7 +53,7 @@ export interface CategoryUpdatePageProps {
     hasNextPage: boolean;
     hasPreviousPage: boolean;
   };
-  saveButtonBarState?: SaveButtonBarState;
+  saveButtonBarState: ConfirmButtonTransitionState;
   onImageDelete: () => void;
   onSubmit: (data: FormData) => void;
   onImageUpload(event: React.ChangeEvent<any>);
@@ -55,14 +67,15 @@ export interface CategoryUpdatePageProps {
   onCategoryClick(id: string): () => void;
 }
 
-const decorate = withStyles({
-  tabsBorder: {
-    borderBottom: "1px solid #eeeeee"
-  }
-});
+const CategoriesTab = Tab(CategoryPageTab.categories);
+const ProductsTab = Tab(CategoryPageTab.products);
 
-export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
+export const CategoryUpdatePage = withStyles(styles, {
+  name: "CategoryUpdatePage"
+})(
   ({
+    changeTab,
+    currentTab,
     category,
     classes,
     disabled,
@@ -79,16 +92,20 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
     onNextPage,
     onPreviousPage,
     onProductClick,
-    onSubmit
-  }) => {
-    const initialData = category
+    onSubmit,
+    onImageDelete,
+    onImageUpload
+  }: CategoryUpdatePageProps) => {
+    const initialData: FormData = category
       ? {
+          backgroundImageAlt: maybe(() => category.backgroundImage.alt, ""),
           description: category.description || "",
-          name: category.name,
+          name: category.name || "",
           seoDescription: category.seoDescription || "",
           seoTitle: category.seoTitle || ""
         }
       : {
+          backgroundImageAlt: "",
           description: "",
           name: "",
           seoDescription: "",
@@ -99,7 +116,7 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
         onSubmit={onSubmit}
         initial={initialData}
         errors={userErrors}
-        key={JSON.stringify(category)}
+        confirmLeave
       >
         {({ data, change, errors, submit, hasChanged }) => (
           <Container width="md">
@@ -114,13 +131,13 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
               onChange={change}
             />
             <CardSpacer />
-            {/* TODO: Uncomment this section after API fixes */}
-            {/* <CategoryBackground
+            <CategoryBackground
+              data={data}
               onImageUpload={onImageUpload}
               onImageDelete={onImageDelete}
-              backgroundImage={maybe(() => category.backgroundImage)}
-              placeholderImage={placeholderImage}
-            /> */}
+              image={maybe(() => category.backgroundImage)}
+              onChange={change}
+            />
             <CardSpacer />
             <SeoForm
               helperText={i18n.t(
@@ -135,49 +152,45 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
               disabled={disabled}
             />
             <CardSpacer />
-            <Tabs>
-              {({ changeTab, currentTab }) => (
-                <>
-                  <div className={classes.tabsBorder}>
-                    <Tab
-                      isActive={currentTab === 0}
-                      value={0}
-                      changeTab={changeTab}
-                    >
-                      {i18n.t("Subcategories")}
-                    </Tab>
-                    <Tab
-                      isActive={currentTab === 1}
-                      value={1}
-                      changeTab={changeTab}
-                    >
-                      {i18n.t("Products")}
-                    </Tab>
-                  </div>
-                  <CardSpacer />
-                  {currentTab === 0 && (
-                    <CategoryList
-                      isRoot={false}
-                      categories={subcategories}
-                      onAdd={onAddCategory}
-                      onRowClick={onCategoryClick}
-                    />
-                  )}
-                  {currentTab === 1 && (
-                    <CategoryProductsCard
-                      categoryName={maybe(() => category.name)}
-                      products={products}
-                      disabled={disabled}
-                      pageInfo={pageInfo}
-                      onNextPage={onNextPage}
-                      onPreviousPage={onPreviousPage}
-                      onRowClick={onProductClick}
-                      onAdd={onAddProduct}
-                    />
-                  )}
-                </>
-              )}
-            </Tabs>
+            <div className={classes.tabsBorder}>
+              <CategoriesTab
+                isActive={currentTab === CategoryPageTab.categories}
+                changeTab={changeTab}
+              >
+                {i18n.t("Subcategories")}
+              </CategoriesTab>
+              <ProductsTab
+                isActive={currentTab === CategoryPageTab.products}
+                changeTab={changeTab}
+              >
+                {i18n.t("Products")}
+              </ProductsTab>
+            </div>
+            <CardSpacer />
+            {currentTab === CategoryPageTab.categories && (
+              <CategoryList
+                disabled={disabled}
+                isRoot={false}
+                categories={subcategories}
+                onAdd={onAddCategory}
+                onRowClick={onCategoryClick}
+                onNextPage={onNextPage}
+                onPreviousPage={onPreviousPage}
+                pageInfo={pageInfo}
+              />
+            )}
+            {currentTab === CategoryPageTab.products && (
+              <CategoryProductsCard
+                categoryName={maybe(() => category.name)}
+                products={products}
+                disabled={disabled}
+                pageInfo={pageInfo}
+                onNextPage={onNextPage}
+                onPreviousPage={onPreviousPage}
+                onRowClick={onProductClick}
+                onAdd={onAddProduct}
+              />
+            )}
             <SaveButtonBar
               onCancel={onBack}
               onDelete={onDelete}
@@ -194,4 +207,5 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
     );
   }
 );
+CategoryUpdatePage.displayName = "CategoryUpdatePage";
 export default CategoryUpdatePage;

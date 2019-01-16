@@ -1,6 +1,11 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
@@ -8,7 +13,16 @@ import ControlledCheckbox from "../../../components/ControlledCheckbox";
 import PriceField from "../../../components/PriceField";
 import i18n from "../../../i18n";
 
-interface ProductPricingProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "1fr 1fr"
+    }
+  });
+
+interface ProductPricingProps extends WithStyles<typeof styles> {
   currency?: string;
   data: {
     chargeTaxes: boolean;
@@ -18,15 +32,8 @@ interface ProductPricingProps {
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "1fr 1fr"
-  }
-}));
-const ProductPricing = decorate<ProductPricingProps>(
-  ({ classes, currency, data, disabled, onChange }) => (
+const ProductPricing = withStyles(styles, { name: "ProductPricing" })(
+  ({ classes, currency, data, disabled, onChange }: ProductPricingProps) => (
     <Card>
       <CardTitle title={i18n.t("Pricing")}>
         <ControlledCheckbox

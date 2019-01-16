@@ -145,10 +145,14 @@ def test_send_set_password_email(staff_user, site_settings):
 
 def test_create_staff_and_set_password(admin_client):
     url = reverse('dashboard:staff-create')
-    data = {'email': 'staff3@example.com', 'is_staff': True}
+    data = {
+        'first_name': 'Jan', 'last_name': 'Nowak',
+        'email': 'staff3@example.com', 'is_staff': True}
     response = admin_client.post(url, data)
     assert response.status_code == 302
     new_user = User.objects.get(email='staff3@example.com')
+    assert new_user.first_name == 'Jan'
+    assert new_user.last_name == 'Nowak'
     assert not new_user.password
     uid = urlsafe_base64_encode(force_bytes(new_user.pk)).decode()
     token = default_token_generator.make_token(new_user)

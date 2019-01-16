@@ -11,6 +11,7 @@ storiesOf("Orders / OrderShippingMethodEditDialog", module)
   .addDecorator(Decorator)
   .add("default", () => (
     <OrderShippingMethodEditDialog
+      confirmButtonState="default"
       onClose={undefined}
       onSubmit={undefined}
       open={true}

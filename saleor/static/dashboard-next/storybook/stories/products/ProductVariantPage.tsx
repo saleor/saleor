@@ -20,6 +20,7 @@ storiesOf("Views / Products / Product variant details", module)
       onImageSelect={() => undefined}
       onSubmit={() => undefined}
       onVariantClick={() => undefined}
+      saveButtonBarState="default"
     />
   ))
   .add("when loading data", () => (
@@ -33,5 +34,6 @@ storiesOf("Views / Products / Product variant details", module)
       onImageSelect={() => undefined}
       onSubmit={() => undefined}
       onVariantClick={() => undefined}
+      saveButtonBarState="default"
     />
   ));

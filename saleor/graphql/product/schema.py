@@ -1,38 +1,46 @@
+from textwrap import dedent
+
 import graphene
 from graphql_jwt.decorators import permission_required
 
-from ..descriptions import DESCRIPTIONS
+from ..core.enums import ReportingPeriod
 from ..core.fields import PrefetchingConnectionField
-from ..core.types import ReportingPeriod
+from ..descriptions import DESCRIPTIONS
+from .enums import StockAvailability
 from .mutations.attributes import (
-    AttributeValueCreate, AttributeValueDelete,
-    AttributeValueUpdate, AttributeCreate, AttributeDelete,
-    AttributeUpdate)
+    AttributeCreate, AttributeDelete, AttributeUpdate, AttributeValueCreate,
+    AttributeValueDelete, AttributeValueUpdate)
 from .mutations.products import (
-    CategoryCreate, CategoryDelete, CategoryUpdate,
-    CollectionAddProducts, CollectionCreate, CollectionDelete,
-    CollectionRemoveProducts, CollectionUpdate, ProductCreate,
-    ProductDelete, ProductUpdate, ProductTypeCreate,
-    ProductTypeDelete, ProductImageCreate, ProductImageDelete,
-    ProductImageReorder, ProductImageUpdate, ProductTypeUpdate,
-    ProductVariantCreate, ProductVariantDelete,
-    ProductVariantUpdate, VariantImageAssign, VariantImageUnassign)
+    CategoryCreate, CategoryDelete, CategoryUpdate, CollectionAddProducts,
+    CollectionCreate, CollectionDelete, CollectionRemoveProducts,
+    CollectionUpdate, ProductCreate, ProductDelete, ProductImageCreate,
+    ProductImageDelete, ProductImageReorder, ProductImageUpdate,
+    ProductTypeCreate, ProductTypeDelete, ProductTypeUpdate, ProductUpdate,
+    ProductVariantCreate, ProductVariantDelete, ProductVariantUpdate,
+    VariantImageAssign, VariantImageUnassign)
 from .resolvers import (
     resolve_attributes, resolve_categories, resolve_collections,
-    resolve_products, resolve_product_types, resolve_product_variants,
+    resolve_product_types, resolve_product_variants, resolve_products,
     resolve_report_product_sales)
 from .scalars import AttributeScalar
 from .types import (
-    Category, Collection, Product, Attribute, ProductType, ProductVariant,
-    StockAvailability)
+    Attribute, Category, Collection, Product, ProductOrder, ProductType,
+    ProductVariant)
 
 
 class ProductQueries(graphene.ObjectType):
     attributes = PrefetchingConnectionField(
         Attribute,
+        description='List of the shop\'s attributes.',
         query=graphene.String(description=DESCRIPTIONS['attributes']),
-        in_category=graphene.Argument(graphene.ID),
-        description='List of the shop\'s attributes.')
+        in_category=graphene.Argument(
+            graphene.ID, description=dedent(
+                '''Return attributes for products belonging to the given
+                category.''')),
+        in_collection=graphene.Argument(
+            graphene.ID, description=dedent(
+                '''Return attributes for products belonging to the given
+                collection.''')),)
     categories = PrefetchingConnectionField(
         Category, query=graphene.String(
             description=DESCRIPTIONS['category']),
@@ -60,10 +68,14 @@ class ProductQueries(graphene.ObjectType):
         collections=graphene.List(
             graphene.ID, description='Filter products by collections.'),
         price_lte=graphene.Float(
-            description='Filter by price less than or equal to the given value.'),
+            description=dedent(
+                '''Filter by price less than or equal to the given value.''')),
         price_gte=graphene.Float(
-            description='Filter by price greater than or equal to the given value.'),
-        sort_by=graphene.String(description='Sort products.'),
+            description=dedent(
+                '''
+                Filter by price greater than or equal to the given value.''')),
+        sort_by=graphene.Argument(
+            ProductOrder, description='Sort products.'),
         stock_availability=graphene.Argument(
             StockAvailability,
             description='Filter products by the stock availability'),
@@ -86,14 +98,16 @@ class ProductQueries(graphene.ObjectType):
             ReportingPeriod, required=True, description='Span of time.'),
         description='List of top selling products.')
 
-    def resolve_attributes(self, info, in_category=None, query=None, **kwargs):
-        return resolve_attributes(info, in_category, query)
-
-    def resolve_category(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, Category)
+    def resolve_attributes(
+            self, info, in_category=None, in_collection=None, query=None,
+            **kwargs):
+        return resolve_attributes(info, in_category, in_collection, query)
 
     def resolve_categories(self, info, level=None, query=None, **kwargs):
         return resolve_categories(info, level=level, query=query)
+
+    def resolve_category(self, info, id):
+        return graphene.Node.get_node_from_global_id(info, id, Category)
 
     def resolve_collection(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, Collection)
@@ -137,24 +151,24 @@ class ProductMutations(graphene.ObjectType):
     category_delete = CategoryDelete.Field()
     category_update = CategoryUpdate.Field()
 
-    collection_create = CollectionCreate.Field()
-    collection_update = CollectionUpdate.Field()
-    collection_delete = CollectionDelete.Field()
     collection_add_products = CollectionAddProducts.Field()
+    collection_create = CollectionCreate.Field()
+    collection_delete = CollectionDelete.Field()
     collection_remove_products = CollectionRemoveProducts.Field()
+    collection_update = CollectionUpdate.Field()
 
     product_create = ProductCreate.Field()
     product_delete = ProductDelete.Field()
     product_update = ProductUpdate.Field()
 
     product_image_create = ProductImageCreate.Field()
-    product_image_reorder = ProductImageReorder.Field()
     product_image_delete = ProductImageDelete.Field()
+    product_image_reorder = ProductImageReorder.Field()
     product_image_update = ProductImageUpdate.Field()
 
     product_type_create = ProductTypeCreate.Field()
-    product_type_update = ProductTypeUpdate.Field()
     product_type_delete = ProductTypeDelete.Field()
+    product_type_update = ProductTypeUpdate.Field()
 
     product_variant_create = ProductVariantCreate.Field()
     product_variant_delete = ProductVariantDelete.Field()

@@ -2,12 +2,15 @@ import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.contrib.auth import get_user_model
 from graphene import relay
+from graphql_jwt.decorators import permission_required
 
 from ...account import models
+from ...checkout.utils import get_user_cart
 from ...core.permissions import get_permissions
+from ..checkout.types import Checkout
+from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
-from ..core.types.common import (
-    CountableDjangoObjectType, CountryDisplay, PermissionDisplay)
+from ..core.types import CountryDisplay, PermissionDisplay
 from ..utils import format_permissions_for_display
 
 
@@ -41,18 +44,33 @@ class Address(CountableDjangoObjectType):
 
 
 class User(CountableDjangoObjectType):
+    addresses = gql_optimizer.field(
+        graphene.List(Address, description='List of all user\'s addresses.'),
+        model_field='addresses')
+    checkout = graphene.Field(
+        Checkout,
+        description='Returns the last open checkout of this user.')
+    note = graphene.String(description='A note about the customer')
+    orders = gql_optimizer.field(
+        PrefetchingConnectionField(
+            'saleor.graphql.order.types.Order',
+            description='List of user\'s orders.'),
+        model_field='orders')
     permissions = graphene.List(
         PermissionDisplay, description='List of user\'s permissions.')
-    addresses = gql_optimizer.field(
-        PrefetchingConnectionField(
-            Address, description='List of all user\'s addresses.'),
-        model_field='addresses')
 
     class Meta:
-        exclude_fields = ['password', 'is_superuser', 'OrderEvent_set']
+        exclude_fields = [
+            'carts', 'password', 'is_superuser', 'OrderEvent_set']
         description = 'Represents user data.'
         interfaces = [relay.Node]
         model = get_user_model()
+
+    def resolve_addresses(self, info, **kwargs):
+        return self.addresses.all()
+
+    def resolve_checkout(self, info, **kwargs):
+        return get_user_cart(self)
 
     def resolve_permissions(self, info, **kwargs):
         if self.is_superuser:
@@ -62,8 +80,15 @@ class User(CountableDjangoObjectType):
                 'content_type').order_by('codename')
         return format_permissions_for_display(permissions)
 
-    def resolve_addresses(self, info, **kwargs):
-        return self.addresses.all()
+    @permission_required('account.manage_users')
+    def resolve_note(self, info):
+        return self.note
+
+    def resolve_orders(self, info, **kwargs):
+        viewer = info.context.user
+        if viewer.has_perm('order.manage_orders'):
+            return self.orders.all()
+        return self.orders.confirmed()
 
 
 class AddressValidationInput(graphene.InputObjectType):

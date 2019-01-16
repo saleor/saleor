@@ -10,7 +10,9 @@ export const staffMemberFragment = gql`
   fragment StaffMemberFragment on User {
     id
     email
+    firstName
     isActive
+    lastName
   }
 `;
 export const staffMemberDetailsFragment = gql`

@@ -41,5 +41,5 @@ const DateFormatter: React.StatelessComponent<DateFormatterProps> = ({
     </LocaleConsumer>
   );
 };
-
+DateFormatter.displayName = "DateFormatter";
 export default DateFormatter;

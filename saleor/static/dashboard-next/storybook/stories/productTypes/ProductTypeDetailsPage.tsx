@@ -1,3 +1,4 @@
+import { Omit } from "@material-ui/core";
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
@@ -8,7 +9,7 @@ import { productType } from "../../../productTypes/fixtures";
 import { WeightUnitsEnum } from "../../../types/globalTypes";
 import Decorator from "../../Decorator";
 
-const props: ProductTypeDetailsPageProps = {
+const props: Omit<ProductTypeDetailsPageProps, "classes"> = {
   defaultWeightUnit: "kg" as WeightUnitsEnum,
   disabled: false,
   errors: [],

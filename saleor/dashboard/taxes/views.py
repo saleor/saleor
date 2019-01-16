@@ -8,6 +8,7 @@ from django.core.management import call_command
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
+from django.views.decorators.http import require_POST
 from django_countries.fields import Country
 from django_prices_vatlayer.models import VAT
 
@@ -61,6 +62,7 @@ def configure_taxes(request):
 
 
 @staff_member_required
+@require_POST
 @permission_required('site.manage_settings')
 def fetch_tax_rates(request):
     try:

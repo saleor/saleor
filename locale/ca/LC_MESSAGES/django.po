@@ -1,0 +1,6636 @@
+# Saleor
+# Copyright (C) 2017 Mirumee Software
+# This file is distributed under the same license as the Saleor package.
+# Mirumee Software <hello@mirumee.com>, 2017.
+# 
+# Translators:
+# Jordi Divins <j.divins@iskra.cat>, 2018
+# Eudald Camprubí <e.camprubi@iskra.cat>, 2018
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: master\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-12-03 09:23-0600\n"
+"PO-Revision-Date: 2017-02-08 11:00+0000\n"
+"Last-Translator: Eudald Camprubí <e.camprubi@iskra.cat>, 2018\n"
+"Language-Team: Catalan (https://www.transifex.com/mirumee/teams/34782/ca/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ca\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: saleor/account/forms.py:69
+msgctxt "Form field"
+msgid "Email"
+msgstr "Email"
+
+#: saleor/account/forms.py:82
+msgctxt "Password"
+msgid "Password"
+msgstr "Contrasenya"
+
+#: saleor/account/forms.py:84
+msgctxt "Email"
+msgid "Email"
+msgstr "Correu electrònic"
+
+#: saleor/account/forms.py:88
+msgctxt "Registration error"
+msgid "This email has already been registered."
+msgstr "Aquesta adreça de correu ja ha estat registrada."
+
+#: saleor/account/i18n.py:18
+msgctxt "Address field"
+msgid "Area"
+msgstr "Àrea"
+
+#: saleor/account/i18n.py:19
+msgctxt "Address field"
+msgid "County"
+msgstr "Comptat"
+
+#: saleor/account/i18n.py:20
+msgctxt "Address field"
+msgid "Department"
+msgstr "Departament"
+
+#: saleor/account/i18n.py:21
+msgctxt "Address field"
+msgid "District"
+msgstr "Districte"
+
+#: saleor/account/i18n.py:22
+msgctxt "Address field"
+msgid "Do/si"
+msgstr "Do/si"
+
+#: saleor/account/i18n.py:23
+msgctxt "Address field"
+msgid "Eircode"
+msgstr "Eircode"
+
+#: saleor/account/i18n.py:24
+msgctxt "Address field"
+msgid "Emirate"
+msgstr "Emirat"
+
+#: saleor/account/i18n.py:25
+msgctxt "Address field"
+msgid "Island"
+msgstr "Illa"
+
+#: saleor/account/i18n.py:26
+msgctxt "Address field"
+msgid "Neighborhood"
+msgstr "Barri"
+
+#: saleor/account/i18n.py:27
+msgctxt "Address field"
+msgid "Oblast"
+msgstr "Óblast"
+
+#: saleor/account/i18n.py:28
+msgctxt "Address field"
+msgid "Parish"
+msgstr "Parròquia"
+
+#: saleor/account/i18n.py:29
+msgctxt "Address field"
+msgid "PIN"
+msgstr "PIN"
+
+#: saleor/account/i18n.py:30
+msgctxt "Address field"
+msgid "Postal code"
+msgstr "Codi postal"
+
+#: saleor/account/i18n.py:31
+msgctxt "Address field"
+msgid "Prefecture"
+msgstr "Prefectura"
+
+#: saleor/account/i18n.py:32
+msgctxt "Address field"
+msgid "Province"
+msgstr "Província"
+
+#: saleor/account/i18n.py:33
+msgctxt "Address field"
+msgid "State"
+msgstr "Estat"
+
+#: saleor/account/i18n.py:34
+msgctxt "Address field"
+msgid "Suburb"
+msgstr "Suburbi"
+
+#: saleor/account/i18n.py:35
+msgctxt "Address field"
+msgid "Townland"
+msgstr "Municipi agregat"
+
+#: saleor/account/i18n.py:36
+msgctxt "Address field"
+msgid "Village/township"
+msgstr "Poble / municipi"
+
+#: saleor/account/i18n.py:37
+msgctxt "Address field"
+msgid "ZIP code"
+msgstr "Codi ZIP"
+
+#: saleor/account/i18n.py:63 saleor/account/i18n.py:109
+msgctxt "Country"
+msgid "Country"
+msgstr "País"
+
+#: saleor/account/i18n.py:94
+msgctxt "Personal name"
+msgid "Given name"
+msgstr "Nom atorgat"
+
+#: saleor/account/i18n.py:96
+msgctxt "Personal name"
+msgid "Family name"
+msgstr "Nom de família"
+
+#: saleor/account/i18n.py:98
+msgctxt "Company or organization"
+msgid "Company or organization"
+msgstr "Empresa o organització"
+
+#: saleor/account/i18n.py:100
+msgctxt "Address"
+msgid "Address"
+msgstr "Adreça"
+
+#: saleor/account/i18n.py:103
+msgctxt "City"
+msgid "City"
+msgstr "Ciutat"
+
+#: saleor/account/i18n.py:105
+msgctxt "City area"
+msgid "District"
+msgstr "Districte"
+
+#: saleor/account/i18n.py:107
+msgctxt "Postal code"
+msgid "Postal code"
+msgstr "Codi postal"
+
+#: saleor/account/i18n.py:111
+msgctxt "Country area"
+msgid "State or province"
+msgstr "Estat o província"
+
+#: saleor/account/i18n.py:113
+msgctxt "Phone number"
+msgid "Phone number"
+msgstr "Telèfon"
+
+#: saleor/account/i18n.py:116
+msgctxt "Address"
+msgid "Street address, P.O. box, company name"
+msgstr "Carrer, caixa d'oficina postal, nom d'empresa"
+
+#: saleor/account/i18n.py:118
+msgctxt "Address"
+msgid "Apartment, suite, unit, building, floor, etc"
+msgstr "Apartament, suite, unitat, edifici, pis, etc"
+
+#: saleor/account/i18n.py:170
+msgctxt "Address form"
+msgid "This value is invalid for selected country"
+msgstr "Valor invàlid pel país escollit"
+
+#: saleor/account/models.py:133
+msgctxt "Permission description"
+msgid "Manage customers."
+msgstr "Gestiona clients."
+
+#: saleor/account/models.py:136
+msgctxt "Permission description"
+msgid "Manage staff."
+msgstr "Gestiona personal."
+
+#: saleor/account/models.py:139
+msgctxt "Permission description"
+msgid "Impersonate customers."
+msgstr "Suplantació de clients."
+
+#: saleor/account/templatetags/i18n_address_tags.py:12
+#, python-format
+msgctxt "Address data"
+msgid "%(first_name)s %(last_name)s"
+msgstr "%(first_name)s %(last_name)s"
+
+#: saleor/account/templatetags/i18n_address_tags.py:16
+#, python-format
+msgctxt "Address data"
+msgid ""
+"%(street_address_1)s\n"
+"%(street_address_2)s"
+msgstr ""
+"%(street_address_1)s\n"
+"%(street_address_2)s"
+
+#: saleor/account/validators.py:11
+msgid "The phone number entered is not valid."
+msgstr "El telèfon introduit no és vàlid."
+
+#: saleor/account/views.py:31
+msgid "You have been successfully logged out."
+msgstr "S'ha tancat la sessió correctament."
+
+#: saleor/account/views.py:45
+msgid "User has been created"
+msgstr "Usuari creat"
+
+#: saleor/account/views.py:95
+msgctxt "Storefront message"
+msgid "Password successfully changed."
+msgstr "Contrasenya canviada correctament"
+
+#: saleor/account/views.py:108
+msgctxt "Storefront message"
+msgid "Address successfully updated."
+msgstr "Adreça actualitzada correctament."
+
+#: saleor/account/views.py:123
+msgctxt "Storefront message"
+msgid "Address successfully removed"
+msgstr "Adreça eliminada correctament."
+
+#: saleor/account/views.py:137
+msgctxt "Storefront message, when user requested his account removed"
+msgid "Please check your inbox for a confirmation e-mail."
+msgstr ""
+"Si us plau, comprova si has rebut un correu electrònic de confirmació a la "
+"teva bústia."
+
+#: saleor/account/views.py:152
+msgctxt "Account deleted"
+msgid ""
+"Your account was deleted successfully. In case of any trouble or questions "
+"feel free to contact us."
+msgstr ""
+"Compte eliminat correctament. En cas de tenir algún problema o consulta pots"
+" contactar amb nosaltres."
+
+#: saleor/checkout/__init__.py:15
+msgctxt "Type of address used to fulfill order"
+msgid "Billing"
+msgstr "Facturació"
+
+#: saleor/checkout/__init__.py:19
+msgctxt "Type of address used to fulfill order"
+msgid "Shipping"
+msgstr "Enviament"
+
+#: saleor/checkout/forms.py:39
+msgctxt "Add to cart form field label"
+msgid "Quantity"
+msgstr "Quantitat"
+
+#: saleor/checkout/forms.py:43
+msgctxt "Add to cart form error"
+msgid "Sorry. This product is currently not available."
+msgstr "Ho sentim. Actualment aquest producte no està disponible."
+
+#: saleor/checkout/forms.py:46
+msgctxt "Add to cart form error"
+msgid "Sorry. This product is currently out of stock."
+msgstr "Ho sentim. Actualment aquest producte no té estoc."
+
+#: saleor/checkout/forms.py:48
+msgctxt "Add to cart form error"
+msgid "Oops. We could not find that product."
+msgstr "Vaja. Producte no trobat."
+
+#: saleor/checkout/forms.py:51
+#, python-format
+msgctxt "Add to cart form error"
+msgid "Only %d remaining in stock."
+msgid_plural "Only %d remaining in stock."
+msgstr[0] "Només queda %d producte en estoc."
+msgstr[1] "Només queden %d en estoc."
+
+#: saleor/checkout/forms.py:162
+msgctxt "Country form field label"
+msgid "Country"
+msgstr "País"
+
+#: saleor/checkout/forms.py:188 saleor/checkout/forms.py:200
+msgctxt "Address form field label"
+msgid "Email"
+msgstr "Email"
+
+#: saleor/checkout/forms.py:213
+msgctxt "Shipping addresses form choice"
+msgid "Enter a new address"
+msgstr "Introduir una nova adreça"
+
+#: saleor/checkout/forms.py:216
+msgctxt "Shipping addresses form field label"
+msgid "Address"
+msgstr "Adreça"
+
+#: saleor/checkout/forms.py:233
+msgctxt "Billing addresses form choice"
+msgid "Enter a new address"
+msgstr "Introduir una nova adreça"
+
+#: saleor/checkout/forms.py:235
+msgctxt "Billing addresses form choice"
+msgid "Same as shipping"
+msgstr "La mateixa que la d'enviament"
+
+#: saleor/checkout/forms.py:238
+msgctxt "Billing addresses form field label"
+msgid "Address"
+msgstr "Adreça"
+
+#: saleor/checkout/forms.py:268
+msgctxt "Shipping method form field label"
+msgid "Shipping method"
+msgstr "Mètode d'enviament"
+
+#: saleor/checkout/forms.py:309
+msgctxt "Voucher form error"
+msgid "Discount code incorrect or expired"
+msgstr "Codi de descompte incorrecte o caducat"
+
+#: saleor/checkout/forms.py:320
+msgctxt "Checkout discount form label for voucher field"
+msgid "Gift card or discount code"
+msgstr "Tarjeta regal o codi de descompte"
+
+#: saleor/checkout/utils.py:135
+msgctxt "Cart warning message"
+msgid ""
+"Sorry. We don't have that many items in stock. Quantity was set to maximum "
+"available for now."
+msgstr ""
+"Ho sentim. No tenim tants articles en estoc. La quantitat ha estat cambiada "
+"a la quantitat màxima que disposem."
+
+#: saleor/checkout/utils.py:647
+msgctxt "Voucher not applicable"
+msgid "Your order does not require shipping."
+msgstr "La comanda no necessita enviament."
+
+#: saleor/checkout/utils.py:653
+msgctxt "Voucher not applicable"
+msgid "Please select a shipping method first."
+msgstr "Si us plau, cal escollir primer un mètode d'enviament."
+
+#: saleor/checkout/utils.py:661
+msgctxt "Voucher not applicable"
+msgid "This offer is not valid in your country."
+msgstr "Aquesta oferta no és válida al seu país."
+
+#: saleor/checkout/utils.py:682
+msgctxt "Voucher not applicable"
+msgid "This offer is only valid for selected items."
+msgstr "Aquesta oferta només és válida per alguns articles."
+
+#: saleor/checkout/utils.py:792
+msgctxt "Voucher not applicable"
+msgid "Voucher expired in meantime. Order placement aborted."
+msgstr ""
+"El val de descompte ha caducat mentrestant. La comanda ha estat anul·lada."
+
+#: saleor/checkout/utils.py:901
+msgctxt "order placement_error"
+msgid "Shipping method is not set"
+msgstr "Mètode d'enviament no seleccionat"
+
+#: saleor/checkout/utils.py:904
+msgctxt "order placement error"
+msgid "Shipping address is not set"
+msgstr "Adreça d'enviament no seleccionada"
+
+#: saleor/checkout/utils.py:908
+msgctxt "order placement error"
+msgid "Shipping method is not valid for your shipping address"
+msgstr "Adreça d'enviament no vàlida per l'adreça d'enviament escollida"
+
+#: saleor/checkout/utils.py:911
+msgctxt "order placement error"
+msgid "Checkout is not fully paid"
+msgstr "El procés de comanda no està pagat completament"
+
+#: saleor/checkout/views/discount.py:62
+msgctxt "Checkout warning"
+msgid "This voucher has expired. Please review your checkout."
+msgstr ""
+"Aquest val de descompte ha caducat. Si us plau revisi el procés de pagament."
+
+#: saleor/checkout/views/summary.py:34
+msgctxt "Checkout warning"
+msgid "Please review your checkout."
+msgstr "Si us plau revisi el procés de pagament."
+
+#: saleor/core/__init__.py:55
+msgctxt "VAT rate type"
+msgid "accommodation"
+msgstr "allotjament"
+
+#: saleor/core/__init__.py:57
+msgctxt "VAT rate type"
+msgid "admission to cultural events"
+msgstr "admissió a esdeveniments culturals"
+
+#: saleor/core/__init__.py:59
+msgctxt "VAT rate type"
+msgid "admission to entertainment events"
+msgstr "admissió a esdeveniments d'entreteniment"
+
+#: saleor/core/__init__.py:61
+msgctxt "VAT rate type"
+msgid "admission to sporting events"
+msgstr "admissió a esdeveniments d'esport"
+
+#: saleor/core/__init__.py:62
+msgctxt "VAT rate type"
+msgid "advertising"
+msgstr "publicitat"
+
+#: saleor/core/__init__.py:64
+msgctxt "VAT rate type"
+msgid "agricultural supplies"
+msgstr "subministraments agrícoles"
+
+#: saleor/core/__init__.py:65
+msgctxt "VAT rate type"
+msgid "baby foodstuffs"
+msgstr "aliments per a nadons"
+
+#: saleor/core/__init__.py:66
+msgctxt "VAT rate type"
+msgid "bikes"
+msgstr "bicicletes"
+
+#: saleor/core/__init__.py:67
+msgctxt "VAT rate type"
+msgid "books"
+msgstr "llibres"
+
+#: saleor/core/__init__.py:69
+msgctxt "VAT rate type"
+msgid "childrens clothing"
+msgstr "roba per nens"
+
+#: saleor/core/__init__.py:70
+msgctxt "VAT rate type"
+msgid "domestic fuel"
+msgstr "combustible domèstic"
+
+#: saleor/core/__init__.py:72
+msgctxt "VAT rate type"
+msgid "domestic services"
+msgstr "serveis domèstics"
+
+#: saleor/core/__init__.py:73
+msgctxt "VAT rate type"
+msgid "e-books"
+msgstr "llibres electrònics"
+
+#: saleor/core/__init__.py:74
+msgctxt "VAT rate type"
+msgid "foodstuffs"
+msgstr "aliments"
+
+#: saleor/core/__init__.py:75
+msgctxt "VAT rate type"
+msgid "hotels"
+msgstr "hotels"
+
+#: saleor/core/__init__.py:76
+msgctxt "VAT rate type"
+msgid "medical"
+msgstr "mèdic"
+
+#: saleor/core/__init__.py:77
+msgctxt "VAT rate type"
+msgid "newspapers"
+msgstr "diaris"
+
+#: saleor/core/__init__.py:79
+msgctxt "VAT rate type"
+msgid "passenger transport"
+msgstr "transport de passatgers"
+
+#: saleor/core/__init__.py:81
+msgctxt "VAT rate type"
+msgid "pharmaceuticals"
+msgstr "productes farmacèutics"
+
+#: saleor/core/__init__.py:83
+msgctxt "VAT rate type"
+msgid "property renovations"
+msgstr "renovacions immobiliàries"
+
+#: saleor/core/__init__.py:84
+msgctxt "VAT rate type"
+msgid "restaurants"
+msgstr "restaurants"
+
+#: saleor/core/__init__.py:85
+msgctxt "VAT rate type"
+msgid "social housing"
+msgstr "habitatge social"
+
+#: saleor/core/__init__.py:86
+msgctxt "VAT rate type"
+msgid "standard"
+msgstr "estàndard"
+
+#: saleor/core/__init__.py:87
+msgctxt "VAT rate type"
+msgid "water"
+msgstr "aigua"
+
+#: saleor/core/filters.py:27
+#, python-format
+msgctxt "Number of matching records in the dashboard list"
+msgid "Found %(counter)d matching record"
+msgid_plural "Found %(counter)d matching records"
+msgstr[0] "Trobat %(counter)d registre coincident"
+msgstr[1] "Trobats %(counter)d registres coincidents"
+
+#: saleor/core/i18n.py:5
+msgctxt "Country choice"
+msgid "Any Country"
+msgstr "Qualsevol país"
+
+#: saleor/core/views.py:39
+msgctxt "Impersonation message"
+msgid "You are now logged as {}"
+msgstr "Identificat com l'usuari: {}"
+
+#: saleor/core/weight.py:33
+msgctxt "Kilogram weight unit symbol"
+msgid "kg"
+msgstr "kg"
+
+#: saleor/core/weight.py:34
+msgctxt "Pound weight unit symbol"
+msgid "lb"
+msgstr "lb"
+
+#: saleor/core/weight.py:35
+msgctxt "Ounce weight unit symbol"
+msgid "oz"
+msgstr "oz"
+
+#: saleor/core/weight.py:36
+msgctxt "Gram weight unit symbol"
+msgid "g"
+msgstr "g"
+
+#: saleor/discount/__init__.py:12
+msgctxt "Discount type"
+msgid "%"
+msgstr "%"
+
+#: saleor/discount/__init__.py:23
+msgctxt "Voucher: discount for"
+msgid "All products"
+msgstr "Tots els productes"
+
+#: saleor/discount/__init__.py:24
+msgctxt "Voucher: discount for"
+msgid "Specific products"
+msgstr "Productes específics"
+
+#: saleor/discount/__init__.py:26
+msgctxt "Voucher: discount for"
+msgid "Specific collections of products"
+msgstr "Col·leccions específiques de productes"
+
+#: saleor/discount/__init__.py:28
+msgctxt "Voucher: discount for"
+msgid "Specific categories of products"
+msgstr "Categories específiques de productes"
+
+#: saleor/discount/__init__.py:29
+msgctxt "Voucher: discount for"
+msgid "Shipping"
+msgstr "Enviament"
+
+#: saleor/discount/models.py:77
+msgctxt "Voucher type"
+msgid "Free shipping"
+msgstr "Enviament gratuït"
+
+#: saleor/discount/models.py:80
+#, python-format
+msgctxt "Voucher type"
+msgid "%(discount)s off shipping"
+msgstr "%(discount)s sobre l'enviament"
+
+#: saleor/discount/models.py:86
+#, python-format
+msgctxt "Voucher type"
+msgid "%(discount)s off %(product_num)d products"
+msgstr ""
+
+#: saleor/discount/models.py:94
+#, python-format
+msgctxt "Voucher type"
+msgid "%(discount)s off %(collections_num)d collections"
+msgstr ""
+
+#: saleor/discount/models.py:102
+#, python-format
+msgctxt "Voucher type"
+msgid "%(discount)s off %(categories_num)d categories"
+msgstr ""
+
+#: saleor/discount/models.py:106
+#, python-format
+msgctxt "Voucher type"
+msgid "%(discount)s off"
+msgstr ""
+
+#: saleor/discount/models.py:136
+#, python-format
+msgctxt "Voucher not applicable"
+msgid "This offer is only valid for orders over %(amount)s."
+msgstr "Aquesta oferta només és váida per comandes de més de %(amount)s."
+
+#: saleor/discount/models.py:179
+msgctxt "Permission description"
+msgid "Manage sales and vouchers."
+msgstr "Gestiona descomptes i vals de descompte."
+
+#: saleor/discount/utils.py:47
+msgctxt "Voucher not applicable"
+msgid "Discount not applicable for this product"
+msgstr "Descompte no aplicable per aquest producte."
+
+#: saleor/graphql/order/mutations/fulfillments.py:79
+#, python-format
+msgctxt "Fulfill order line mutation error"
+msgid "Only %(quantity)d item remaining to fulfill."
+msgid_plural "Only %(quantity)d items remaining to fulfill."
+msgstr[0] "Només falta %(quantity)d article per complir."
+msgstr[1] "Només falten %(quantity)d articles per complir."
+
+#: saleor/graphql/order/mutations/fulfillments.py:212
+msgctxt "Cancel fulfillment mutation error"
+msgid "This fulfillment can't be canceled"
+msgstr "Aquest compliment no pot ser cancel·lat"
+
+#: saleor/menu/models.py:21
+msgctxt "Permission description"
+msgid "Manage navigation."
+msgstr "Gestiona navegació."
+
+#: saleor/menu/models.py:69
+msgctxt "Link object type description"
+msgid "URL: "
+msgstr "URL: "
+
+#: saleor/menu/models.py:74
+msgctxt "Link object type description"
+msgid "Category: "
+msgstr "Categoria:"
+
+#: saleor/menu/models.py:77
+msgctxt "Link object type description"
+msgid "Collection: "
+msgstr "Col·lecció"
+
+#: saleor/menu/models.py:80
+msgctxt "Link object type description"
+msgid "Page: "
+msgstr "Pàgina:"
+
+#: saleor/order/__init__.py:20
+msgctxt ""
+"Status for a fully editable, not confirmed order created by staff users"
+msgid "Draft"
+msgstr "Esborrany"
+
+#: saleor/order/__init__.py:23
+msgctxt "Status for an order with any items marked as fulfilled"
+msgid "Unfulfilled"
+msgstr "No s'ha completat"
+
+#: saleor/order/__init__.py:26
+msgctxt "Status for an order with some items marked as fulfilled"
+msgid "Partially fulfilled"
+msgstr "Completat parcialment"
+
+#: saleor/order/__init__.py:29
+msgctxt "Status for an order with all items marked as fulfilled"
+msgid "Fulfilled"
+msgstr "Completat"
+
+#: saleor/order/__init__.py:32
+msgctxt "Status for a permanently canceled order"
+msgid "Canceled"
+msgstr "Cancel·lat"
+
+#: saleor/order/__init__.py:42
+msgctxt "Status for a group of products in an order marked as fulfilled"
+msgid "Fulfilled"
+msgstr "Completat"
+
+#: saleor/order/__init__.py:46
+msgctxt ""
+"Status for a fulfilled group of products in an order marked as canceled"
+msgid "Canceled"
+msgstr "Cancel·lat"
+
+#: saleor/order/__init__.py:83
+msgctxt "Email type"
+msgid "Payment confirmation"
+msgstr "Confirmació de pagament"
+
+#: saleor/order/__init__.py:85
+msgctxt "Email type"
+msgid "Shipping confirmation"
+msgstr "Confirmació d'enviament"
+
+#: saleor/order/__init__.py:87
+msgctxt "Email type"
+msgid "Fulfillment confirmation"
+msgstr "Confirmació de completat"
+
+#: saleor/order/__init__.py:89
+msgctxt "Email type"
+msgid "Order confirmation"
+msgstr "Confirmació de comanda"
+
+#: saleor/order/__init__.py:115
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Order created from draft order by %(user_name)s"
+msgstr "Comanda creada des d'un esborrany ordenar per %(user_name)s"
+
+#: saleor/order/__init__.py:120
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Payment was voided by %(user_name)s"
+msgstr "Pagament anul·lat per %(user_name)s"
+
+#: saleor/order/__init__.py:126
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Successfully refunded: %(amount)s"
+msgstr "Pagament reemborsat: %(amount)s"
+
+#: saleor/order/__init__.py:132
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Successfully captured: %(amount)s"
+msgstr "Correctament capturat: %(amount)s"
+
+#: saleor/order/__init__.py:137
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Order manually marked as paid by %(user_name)s"
+msgstr "Comanda marcada manualment com a pagada per %(user_name)s"
+
+#: saleor/order/__init__.py:142
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Order was canceled by %(user_name)s"
+msgstr "Comanda cancel·lada per %(user_name)s"
+
+#: saleor/order/__init__.py:147
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "We restocked %(quantity)d item"
+msgid_plural "We restocked %(quantity)d items"
+msgstr[0] "Hem reincorporat %(quantity)d article"
+msgstr[1] "Hem reincorporat %(quantity)darticles"
+
+#: saleor/order/__init__.py:153
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "%(user_name)s added note: %(note)s"
+msgstr "%(user_name)s ha afegit la nota: %(note)s"
+
+#: saleor/order/__init__.py:159
+#, python-format
+msgctxt "Dashboard message"
+msgid "Fulfillment #%(fulfillment)s canceled by %(user_name)s"
+msgstr "Completat #%(fulfillment)s cancel·lat per %(user_name)s"
+
+#: saleor/order/__init__.py:165
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Fulfilled %(quantity_fulfilled)d item"
+msgid_plural "Fulfilled %(quantity_fulfilled)d items"
+msgstr[0] "%(quantity_fulfilled)d article complert."
+msgstr[1] "%(quantity_fulfilled)d articles complerts."
+
+#: saleor/order/__init__.py:172
+msgctxt "Dashboard message related to an order"
+msgid "Order was placed"
+msgstr "Comanda va ser realitzada"
+
+#: saleor/order/__init__.py:176
+msgctxt "Dashboard message related to an order"
+msgid "Order was fully paid"
+msgstr "Comanda va ser pagada completament"
+
+#: saleor/order/__init__.py:180
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "%(email_type)s email was sent to the customer (%(email)s)"
+msgstr "El correu %(email_type)sha estat enviat al client (%(email)s)"
+
+#: saleor/order/__init__.py:187
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Order details were updated by %(user_name)s"
+msgstr "Detalls de la comanda actualitzats per %(user_name)s"
+
+#: saleor/order/__init__.py:192
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid ""
+"Fulfillment #%(fulfillment)s tracking was updated to %(tracking_number)s by "
+"%(user_name)s"
+msgstr ""
+
+#: saleor/order/__init__.py:200
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "%(quantity)d line item oversold on this order."
+msgid_plural "%(quantity)d line items oversold on this order."
+msgstr[0] "%(quantity)d línia d'article sobrepassada en aquesta comanda"
+msgstr[1] "%(quantity)d línies d'article sobrepassades en aquesta comanda"
+
+#: saleor/order/forms.py:15
+msgctxt "Payments form label"
+msgid "Payment Method"
+msgstr "Mètode de pagament"
+
+#: saleor/order/forms.py:35
+msgctxt "Payment delete form error"
+msgid "Payment does not exist"
+msgstr "El pagament no existeix"
+
+#: saleor/order/forms.py:40
+msgctxt "Payment delete form error"
+msgid "Payment cannot be cancelled."
+msgstr "El pagament no es pot cancel·lar."
+
+#: saleor/order/models.py:132
+msgctxt "Permission description"
+msgid "Manage orders."
+msgstr "Gestiona comandes."
+
+#: saleor/order/models.py:328
+#, python-format
+msgctxt "Fulfillment str"
+msgid "Fulfillment #%s"
+msgstr ""
+
+#: saleor/order/views.py:193
+msgctxt "Connect order with user warning message"
+msgid ""
+"We couldn't assign the order to your account as the email addresses don't "
+"match"
+msgstr ""
+"No podem assignar la comanda al teu compte, ja que les adreces de correu "
+"electrònic no són iguals"
+
+#: saleor/order/views.py:200
+msgctxt "storefront message"
+msgid "The order is now assigned to your account"
+msgstr "La comanda està assignada al teu compte"
+
+#: saleor/page/models.py:44
+msgctxt "Permission description"
+msgid "Manage pages."
+msgstr "Gestiona pàgines"
+
+#: saleor/payment/__init__.py:19
+msgctxt "Custom payment choice type"
+msgid "Manual"
+msgstr "Manual"
+
+#: saleor/payment/__init__.py:54
+msgctxt "transaction kind"
+msgid "Authorization"
+msgstr "Autorització"
+
+#: saleor/payment/__init__.py:55
+msgctxt "transaction kind"
+msgid "Charge"
+msgstr "Carrega"
+
+#: saleor/payment/__init__.py:56
+msgctxt "transaction kind"
+msgid "Refund"
+msgstr "Retornar diners"
+
+#: saleor/payment/__init__.py:57
+msgctxt "transaction kind"
+msgid "Capture"
+msgstr "Captura"
+
+#: saleor/payment/__init__.py:58
+msgctxt "transaction kind"
+msgid "Void"
+msgstr "Buida"
+
+#: saleor/payment/__init__.py:77
+msgctxt "payment status"
+msgid "Charged"
+msgstr "Cobrada"
+
+#: saleor/payment/__init__.py:78
+msgctxt "payment status"
+msgid "Not charged"
+msgstr "No s'ha cobrat"
+
+#: saleor/payment/__init__.py:79
+msgctxt "payment status"
+msgid "Fully refunded"
+msgstr "Diners retornats"
+
+#: saleor/payment/gateways/braintree/__init__.py:63
+#: saleor/payment/gateways/braintree/forms.py:36
+msgctxt "payment error"
+msgid "Unable to process transaction. Please try again in a moment"
+msgstr ""
+"No s'ha pogut processar la transacció. Si us plau, torna-ho a intentar més "
+"tard."
+
+#: saleor/payment/gateways/dummy/forms.py:10
+msgctxt "Payment status form field"
+msgid "Payment status"
+msgstr "Estat de pagament"
+
+#: saleor/payment/gateways/razorpay/errors.py:5
+msgctxt "Razorpay payment error"
+msgid "Order was not charged."
+msgstr "La comanda no ha estat cobrada."
+
+#: saleor/payment/gateways/razorpay/errors.py:7
+msgctxt "Razorpay payment error"
+msgid "The payment data was invalid."
+msgstr "La data de pagament no és vàlida."
+
+#: saleor/payment/gateways/razorpay/errors.py:9
+msgctxt "Razorpay payment error"
+msgid "The order couldn't be proceeded."
+msgstr "La comanda no pot ser processada"
+
+#: saleor/payment/gateways/razorpay/errors.py:11
+#, python-format
+msgctxt "Razorpay payment error"
+msgid "The %(currency)s currency is not supported."
+msgstr "La moneda %(currency)s encara no està disponible."
+
+#: saleor/payment/gateways/razorpay/forms.py:14
+msgctxt "Rozorpay payment gateway primary button"
+msgid "Pay now with Razorpay"
+msgstr "Paga ara mitjançant Razorpay"
+
+#: saleor/payment/gateways/razorpay/forms.py:16
+msgctxt "Rozorpay payment gateway secondary title"
+msgid "Total payment"
+msgstr "Pagament total"
+
+#: saleor/product/__init__.py:15
+msgctxt "Product status"
+msgid "not published"
+msgstr "no publicat"
+
+#: saleor/product/__init__.py:17
+msgctxt "Product status"
+msgid "variants missing"
+msgstr "falten les variants"
+
+#: saleor/product/__init__.py:19
+msgctxt "Product status"
+msgid "out of stock"
+msgstr "fora d'estoc"
+
+#: saleor/product/__init__.py:21
+msgctxt "Product status"
+msgid "stock running low"
+msgstr "queda poc estoc"
+
+#: saleor/product/__init__.py:23
+msgctxt "Product status"
+msgid "not yet available"
+msgstr "encara no disponible"
+
+#: saleor/product/__init__.py:25
+msgctxt "Product status"
+msgid "ready for purchase"
+msgstr "llest per comprar"
+
+#: saleor/product/__init__.py:37
+msgctxt "Variant status"
+msgid "available"
+msgstr "disponible"
+
+#: saleor/product/__init__.py:39
+msgctxt "Variant status"
+msgid "out of stock"
+msgstr "sense estoc"
+
+#: saleor/product/filters.py:12
+msgctxt "Product list sorting option"
+msgid "name"
+msgstr "nom"
+
+#: saleor/product/filters.py:13
+msgctxt "Product list sorting option"
+msgid "price"
+msgstr "preu"
+
+#: saleor/product/filters.py:15
+msgctxt "Product list sorting option"
+msgid "last updated"
+msgstr "última actualització"
+
+#: saleor/product/filters.py:20
+msgctxt "Product list sorting form"
+msgid "Sort by"
+msgstr "Ordena per"
+
+#: saleor/product/filters.py:24
+msgctxt "Currency amount"
+msgid "Price"
+msgstr "Preu"
+
+#: saleor/product/forms.py:23
+#, python-format
+msgctxt "Variant choice field label"
+msgid "%(variant_label)s - %(price)s"
+msgstr "%(variant_label)s- %(price)s"
+
+#: saleor/product/models.py:144
+msgctxt "Permission description"
+msgid "Manage products."
+msgstr "Gestiona producte."
+
+#: saleor/search/forms.py:9
+msgctxt "Search form label"
+msgid "Query"
+msgstr "Consulta"
+
+#: saleor/settings.py:61
+msgid "Arabic"
+msgstr "Àrab"
+
+#: saleor/settings.py:62
+msgid "Bulgarian"
+msgstr "Búlgar"
+
+#: saleor/settings.py:63
+msgid "Bengali"
+msgstr "Bengalí"
+
+#: saleor/settings.py:64
+msgid "Czech"
+msgstr "Txec"
+
+#: saleor/settings.py:65
+msgid "Danish"
+msgstr "Danès"
+
+#: saleor/settings.py:66
+msgid "German"
+msgstr "Alemany"
+
+#: saleor/settings.py:67
+msgid "English"
+msgstr "Anglès"
+
+#: saleor/settings.py:68
+msgid "Spanish"
+msgstr "Espanyol"
+
+#: saleor/settings.py:69
+msgid "Persian"
+msgstr "Persa"
+
+#: saleor/settings.py:70
+msgid "French"
+msgstr "Francès"
+
+#: saleor/settings.py:71
+msgid "Hungarian"
+msgstr "Hongarès"
+
+#: saleor/settings.py:72
+msgid "Italian"
+msgstr "Italià"
+
+#: saleor/settings.py:73
+msgid "Japanese"
+msgstr "Japonès"
+
+#: saleor/settings.py:74
+msgid "Korean"
+msgstr "Coreà"
+
+#: saleor/settings.py:75
+msgid "Mongolian"
+msgstr "Mongol"
+
+#: saleor/settings.py:76
+msgid "Norwegian Bokmål"
+msgstr "Noruec "
+
+#: saleor/settings.py:77
+msgid "Dutch"
+msgstr "Holandès"
+
+#: saleor/settings.py:78
+msgid "Polish"
+msgstr "Polonès"
+
+#: saleor/settings.py:79
+msgid "Brazilian Portuguese"
+msgstr "Portuguès de Brasil"
+
+#: saleor/settings.py:80
+msgid "Romanian"
+msgstr "Romanès"
+
+#: saleor/settings.py:81
+msgid "Russian"
+msgstr "Rus"
+
+#: saleor/settings.py:82
+msgid "Slovak"
+msgstr "Eslovac"
+
+#: saleor/settings.py:83
+msgid "Slovenian"
+msgstr "Eslovè"
+
+#: saleor/settings.py:84
+msgid "Swedish"
+msgstr "Suec"
+
+#: saleor/settings.py:85
+msgid "Turkish"
+msgstr "Turc"
+
+#: saleor/settings.py:86
+msgid "Ukrainian"
+msgstr "Ucrainès"
+
+#: saleor/settings.py:87
+msgid "Vietnamese"
+msgstr "Vietnamita"
+
+#: saleor/settings.py:88
+msgid "Simplified Chinese"
+msgstr "Xinès simplificat"
+
+#: saleor/settings.py:89
+msgid "Traditional Chinese"
+msgstr "Xinès tradicional"
+
+#: saleor/settings.py:325
+msgctxt "Name of political and economical union of european countries"
+msgid "European Union"
+msgstr "Unió europea"
+
+#: saleor/settings.py:561
+msgctxt "Payment method name"
+msgid "Dummy gateway"
+msgstr "Porta d'enllaç de proves"
+
+#: saleor/shipping/__init__.py:10
+msgctxt "Type of shipping"
+msgid "Price based shipping"
+msgstr "Enviament basat en el preu"
+
+#: saleor/shipping/__init__.py:12
+msgctxt "Type of shipping"
+msgid "Weight based shipping"
+msgstr "Enviament basat en el pes"
+
+#: saleor/shipping/models.py:38
+#, python-format
+msgctxt "Number of countries shipping zone apply to"
+msgid "%(num_of_countries)d countries"
+msgstr "%(num_of_countries)d països"
+
+#: saleor/shipping/models.py:53
+msgctxt "Permission description"
+msgid "Manage shipping."
+msgstr "Gestiona enviament."
+
+#: saleor/shipping/utils.py:53
+#, python-format
+msgctxt "Applies to orders more expensive than the min value"
+msgid "%(min_price)s and up"
+msgstr "%(min_price)s i superior"
+
+#: saleor/shipping/utils.py:56
+#, python-format
+msgctxt "Applies to order valued within this price range"
+msgid "%(min_price)s to %(max_price)s"
+msgstr "%(min_price)s a %(max_price)s"
+
+#: saleor/shipping/utils.py:72
+#, python-format
+msgctxt "Applies to orders heavier than the threshold"
+msgid "%(min_weight)s and up"
+msgstr "%(min_weight)s i superior"
+
+#: saleor/shipping/utils.py:75
+#, python-format
+msgctxt "Applies to orders of total weight within this range"
+msgid "%(min_weight)s to %(max_weight)s"
+msgstr "%(min_weight)s a %(max_weight)s"
+
+#: saleor/site/models.py:40
+msgctxt "Permission description"
+msgid "Manage settings."
+msgstr "Gestiona configuracions."
+
+#: templates/404.html:6
+msgctxt "Eror page not found"
+msgid "Page not found"
+msgstr "Pàgina no trobada"
+
+#: templates/_language_picker_modal.html:8
+msgctxt "Change language modal title"
+msgid "Select language"
+msgstr "Selecciona una llengua"
+
+#: templates/_language_picker_modal.html:24
+msgctxt "Close modal action button"
+msgid "Close"
+msgstr "Tanca"
+
+#: templates/_language_picker_modal.html:25
+msgctxt "Change language action button"
+msgid "Change"
+msgstr "Canvia"
+
+#: templates/account/account_delete_prompt.html:8
+msgctxt "Account deletetion confirmation page title"
+msgid "Are you sure?"
+msgstr "N'estàs segur/a?"
+
+#: templates/account/account_delete_prompt.html:16
+msgctxt "Message displayed to the user requesting for his account deletetion"
+msgid "Sorry to see you go!"
+msgstr "Ens sap greu veure com marxes!"
+
+#: templates/account/account_delete_prompt.html:22
+msgctxt "Message displayed to the user requesting for his account deletetion"
+msgid "Are you sure you want to delete your account?"
+msgstr "Estàs segur/a que vols eliminar el compte?"
+
+#: templates/account/account_delete_prompt.html:27
+msgctxt "Confirm account deletion button"
+msgid "Delete account"
+msgstr "Elimina compte"
+
+#: templates/account/address_delete.html:6
+msgctxt "Remove address form action"
+msgid "Remove Address"
+msgstr "Elimina adreça"
+
+#: templates/account/address_delete.html:9
+msgctxt "Remove address form action"
+msgid "Cancel"
+msgstr "Cancel·la"
+
+#: templates/account/address_edit.html:7
+msgctxt "Edit address page title"
+msgid "Edit address"
+msgstr "Edita adreça"
+
+#: templates/account/address_edit.html:9
+msgctxt "New address page title"
+msgid "New address"
+msgstr "Nova adreça"
+
+#: templates/account/address_edit.html:16 templates/account/details.html:16
+#: templates/account/password_change.html:7 templates/checkout/index.html:11
+#: templates/order/details.html:18 templates/order/payment.html:18
+#: templates/order/payment/details.html:12 templates/page/details.html:27
+#: templates/product/details.html:44
+msgctxt "Main navigation item"
+msgid "Home"
+msgstr "Inici"
+
+#: templates/account/address_edit.html:21
+msgctxt "Edit/new address breadcrumb"
+msgid "Your profile"
+msgstr "El teu perfil"
+
+#: templates/account/address_edit.html:27
+msgctxt "Edit address breadcrumb"
+msgid "Edit address"
+msgstr "Edita adreça"
+
+#: templates/account/address_edit.html:33
+msgctxt "New address breadcrumb"
+msgid "New address"
+msgstr "Nova adreça"
+
+#: templates/account/address_edit.html:47
+msgctxt "Edit address title"
+msgid "Edit address"
+msgstr "Edita adreça"
+
+#: templates/account/address_edit.html:49
+msgctxt "New address title"
+msgid "New address"
+msgstr "Nova adreça"
+
+#: templates/account/address_edit.html:57
+msgctxt "Edit/new address primary action"
+msgid "Save changes"
+msgstr "Desa canvis"
+
+#: templates/account/details.html:10
+msgctxt "User profile page title"
+msgid "Your profile"
+msgstr "El teu perfil"
+
+#: templates/account/details.html:19 templates/account/password_change.html:8
+#: templates/base.html:84 templates/base.html:226
+#: templates/order/details.html:23 templates/order/payment.html:23
+#: templates/order/payment/details.html:17
+msgctxt "Main navigation item"
+msgid "Your account"
+msgstr "El teu compte"
+
+#: templates/account/details.html:26
+msgid "My account"
+msgstr "El meu compte"
+
+#: templates/account/details.html:30
+msgctxt "User profile tab"
+msgid "Recent Orders"
+msgstr "Comandes recents"
+
+#: templates/account/details.html:36
+msgctxt "User profile tab"
+msgid "Change password"
+msgstr "Canvia contrasenya"
+
+#: templates/account/details.html:42
+msgctxt "User profile tab"
+msgid "Addresses book"
+msgstr "Llibre d'adreces"
+
+#: templates/account/details.html:47
+msgctxt "User profile tab"
+msgid "Settings"
+msgstr "Configuracions"
+
+#: templates/account/details.html:59
+msgctxt "Recent orders column title"
+msgid "Order"
+msgstr "Comanda"
+
+#: templates/account/details.html:62
+msgctxt "Recent orders column title"
+msgid "Date"
+msgstr "Data"
+
+#: templates/account/details.html:65
+msgctxt "Recent orders column title"
+msgid "Summary"
+msgstr "Resum"
+
+#: templates/account/details.html:68
+msgctxt "Recent orders column title"
+msgid "Status"
+msgstr "Estat"
+
+#: templates/account/details.html:92
+msgctxt "Recent orders link text"
+msgid "Details"
+msgstr "Detalls"
+
+#: templates/account/details.html:107
+msgctxt "No recent orders text"
+msgid "There are not any completed orders yet."
+msgstr "Encara no hi ha cap comanda completada."
+
+#: templates/account/details.html:118
+msgctxt "User profile action"
+msgid "Change password"
+msgstr "Canvia contrasenya"
+
+#: templates/account/details.html:133
+msgctxt "User address action"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/account/details.html:149
+msgctxt "No addresses text"
+msgid "You will see new addresses here after first successful checkout."
+msgstr ""
+"Aquí es podrà veure la nova adreça després del primer procés de compra "
+"completat correctament."
+
+#: templates/account/details.html:160
+msgctxt "Message informing about the process of account removal"
+msgid ""
+"\n"
+"                  If you'd like to remove your account, please click on the button below and a confirmation email will be sent to you.\n"
+"                "
+msgstr ""
+"\n"
+"Si el que vols és eliminar el compte, si us plau, clica al botó de sota i rebràs un correu electrònic de confirmació. "
+
+#: templates/account/details.html:165
+msgctxt "Remove account form action"
+msgid "Remove Account"
+msgstr "Elimina compte"
+
+#: templates/account/login.html:5
+msgctxt "Login page title"
+msgid "Log in"
+msgstr "Inicia sessió"
+
+#: templates/account/login.html:16
+msgctxt "Login form secondary title"
+msgid "Don't have an account yet?"
+msgstr "Encara no tens un compte?"
+
+#: templates/account/login.html:21
+msgctxt "Login form secondary action"
+msgid "Register"
+msgstr "Registrat"
+
+#: templates/account/login.html:26
+msgctxt "Login form title"
+msgid "Log in"
+msgstr "Inicia sessió"
+
+#: templates/account/partials/already_logged_in.html:5
+#, python-format
+msgctxt "Already logged in warning message"
+msgid "You are already logged in as %(user)s."
+msgstr "Ja estàs loguejat com a %(user)s."
+
+#: templates/account/partials/login_form.html:16
+msgctxt "Login form primary action"
+msgid "Log in"
+msgstr "Inicia sessió"
+
+#: templates/account/partials/login_form.html:19
+msgctxt "Login form secondary link"
+msgid "Forgot password?"
+msgstr "Has oblidat la contrasenya?"
+
+#: templates/account/partials/login_form.html:29
+msgid "Facebook"
+msgstr "Facebook"
+
+#: templates/account/partials/login_form.html:37
+msgid "Google"
+msgstr "Google"
+
+#: templates/account/password_change.html:9
+msgctxt "Password change breadcrumb"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/account/password_change.html:22
+msgctxt "Password change form legend"
+msgid "Change Password"
+msgstr "Canvia contrasenya"
+
+#: templates/account/password_change.html:28
+msgctxt "Password change form primary action"
+msgid "Save new password"
+msgstr "Desa contrasenya nova"
+
+#: templates/account/password_reset.html:6
+msgctxt "Password reset page title"
+msgid "Password reset"
+msgstr "Contrasenya restablerta"
+
+#: templates/account/password_reset.html:17
+msgctxt "Password reset form title"
+msgid "Forgot your password?"
+msgstr "Has oblidat la teva contrasenya?"
+
+#: templates/account/password_reset.html:19
+msgctxt "Password reset form help text"
+msgid ""
+"Please let us know the email you have used to register or purchase at our "
+"store."
+msgstr ""
+"Si us plau, diga'ns quin correu electrònic has utilitzat per a registrar-te "
+"o comprar a la nostra botiga."
+
+#: templates/account/password_reset.html:30
+msgctxt "Password reset primary action"
+msgid "Continue"
+msgstr "Continua"
+
+#: templates/account/password_reset_done.html:6
+msgctxt "Password reset done page title"
+msgid "Password Reset"
+msgstr "Contrasenya restablerta"
+
+#: templates/account/password_reset_done.html:10
+msgctxt "Password reset done title"
+msgid "Password Reset"
+msgstr "Contrasenya restablerta"
+
+#: templates/account/password_reset_done.html:14
+msgctxt "Password reset done text"
+msgid ""
+"We have sent you an e-mail. Please contact us if you do not receive it "
+"within a few minutes."
+msgstr ""
+"T'hem enviat un correu. Si us plau, posa't en contacte amb nosaltres si no "
+"el reps en uns minuts. "
+
+#: templates/account/password_reset_from_key.html:6
+msgctxt "Password reset from key page title"
+msgid "Change Password"
+msgstr "Canvia contrasenya"
+
+#: templates/account/password_reset_from_key.html:11
+msgid "Bad Token"
+msgstr "Token invàlid"
+
+#: templates/account/password_reset_from_key.html:13
+#, python-format
+msgctxt "Password reset text if key is invalid"
+msgid ""
+"The password reset link was invalid, possibly because it has already been "
+"used.<br> Please request a <a href=\"%(passwd_reset_url)s\">new password "
+"reset</a>."
+msgstr ""
+"L'enllaç per a restablir la contrasenya és invàlid, segurament perquè ja "
+"s'ha fet servir. <br> Si us plau, sol·licita de nou de <a "
+"href=\"%(passwd_reset_url)s\"> restablir la contrasenya </a>. "
+
+#: templates/account/password_reset_from_key.html:24
+msgctxt "Password reset from key form title"
+msgid "Password Reset"
+msgstr "Contrasenya restablerta"
+
+#: templates/account/password_reset_from_key.html:25
+msgctxt "Password reset from key form title"
+msgid "Now you can set new password for you account."
+msgstr "És el moment d'establir una nova contrasenya pel teu compte"
+
+#: templates/account/password_reset_from_key.html:32
+msgctxt "Password reset from key form primary action"
+msgid "Continue"
+msgstr "Continua"
+
+#: templates/account/password_reset_from_key.html:39
+msgctxt "Password reset link expired from key form title"
+msgid "Password Reset Link Expired"
+msgstr "L'enllaç per a restablir la contrasenya ha caducat"
+
+#: templates/account/password_reset_from_key.html:40
+msgctxt "Password reset from key form title"
+msgid ""
+"Sorry but this link is no longer valid. If you forget your password, please "
+"use link below."
+msgstr ""
+"Ens sap greu, però l'enllaç ja no és vàlid. Si has oblidat la contrasenya, "
+"si us plau utilitza l'enllaç d'aquí sota. "
+
+#: templates/account/password_reset_from_key.html:42
+msgctxt "Reset my password link"
+msgid "Reset my password"
+msgstr "Restablir la meva contrasenya"
+
+#: templates/account/password_reset_from_key_done.html:4
+msgctxt "Password reset from key done page title"
+msgid "Password Changed"
+msgstr "S'ha canviat la contrasenya"
+
+#: templates/account/password_reset_from_key_done.html:7
+msgctxt "Password reset from key done title"
+msgid "Password Changed"
+msgstr "S'ha canviat la contrasenya"
+
+#: templates/account/password_reset_from_key_done.html:9
+msgid "Your password is now changed."
+msgstr "La teva contrasenya ha estat canviada."
+
+#: templates/account/password_reset_from_key_done.html:10
+#, python-format
+msgctxt "Password reset from key done text"
+msgid "You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
+msgstr ""
+"Ara pots <a href=\"%(login_url)s\">iniciar sessió</a> utilitzant la teva "
+"nova contrasenya"
+
+#: templates/account/signup.html:6
+msgctxt "Signup page title"
+msgid "Sign Up"
+msgstr "Registrat"
+
+#: templates/account/signup.html:17
+msgctxt "Signup form secondary title"
+msgid "Already have an account?"
+msgstr "Ja tens un compte?"
+
+#: templates/account/signup.html:21
+msgctxt "Signup form secondary action"
+msgid "Log in"
+msgstr "Inicia sessió"
+
+#: templates/account/signup.html:28
+msgctxt "Signup form title"
+msgid "Create an account"
+msgstr "Crea un compte"
+
+#: templates/account/signup.html:36
+msgctxt "Signup form primary action"
+msgid "Create an account"
+msgstr "Crea un compte"
+
+#: templates/base.html:78 templates/base.html:215
+msgctxt "Main navigation item"
+msgid "Dashboard"
+msgstr "Panell"
+
+#: templates/base.html:89 templates/base.html:232
+msgctxt "Main navigation item"
+msgid "Stop impersonating"
+msgstr "Atura suplantació"
+
+#: templates/base.html:95 templates/base.html:238
+msgctxt "Main navigation item"
+msgid "Log out"
+msgstr "Tanca sessió"
+
+#: templates/base.html:101 templates/base.html:244
+msgctxt "Main navigation item"
+msgid "Register"
+msgstr "Registrat"
+
+#: templates/base.html:105 templates/base.html:249
+msgctxt "Main navigation item"
+msgid "Log in"
+msgstr "Inicia sessió"
+
+#: templates/base.html:120
+msgctxt "Hamburger button text"
+msgid "menu"
+msgstr "menú"
+
+#: templates/base.html:137
+msgid "Search for product"
+msgstr "Cerca un producte"
+
+#: templates/base.html:149 templates/base.html:208
+msgctxt "Main navigation item"
+msgid "Your Cart"
+msgstr "El teu carret"
+
+#: templates/base.html:220
+msgctxt "Main navigation item"
+msgid "Style guide"
+msgstr "Guia d'estils"
+
+#: templates/cart_dropdown.html:39 templates/checkout/_subtotal_table.html:8
+#: templates/dashboard/order/detail.html:338
+msgctxt "Order subtotal"
+msgid "Subtotal"
+msgstr "Subtotal"
+
+#: templates/cart_dropdown.html:40
+msgctxt "Cart dropdown text"
+msgid "Shipment and taxes calculated at checkout"
+msgstr "Enviament i impostos calculats durant el procés de pagament"
+
+#: templates/cart_dropdown.html:54
+msgctxt "Cart dropdown secondary action"
+msgid "Go to cart"
+msgstr "Anar al carret"
+
+#: templates/cart_dropdown.html:57
+msgctxt "Cart dropdown primary action"
+msgid "Checkout"
+msgstr "Procés de pagament"
+
+#: templates/cart_dropdown.html:62 templates/checkout/index.html:91
+msgctxt "Empty cart message"
+msgid "There are no products in your shopping cart."
+msgstr "No hi ha productes al teu carret."
+
+#: templates/cart_dropdown.html:67 templates/checkout/index.html:92
+msgctxt "Empty cart link"
+msgid "Check out our sales"
+msgstr "Consulteu les nostres ofertes"
+
+#: templates/category/index.html:7
+msgctxt "Category breadcrumbs home"
+msgid "Home"
+msgstr "Inici"
+
+#: templates/checkout/_subtotal_table.html:32
+msgctxt "Cart shipping cost form"
+msgid "Shipping cost for:"
+msgstr "Costs d'enviament per:"
+
+#: templates/checkout/_subtotal_table.html:57
+msgctxt "Order subtotal"
+msgid "Total"
+msgstr "Total"
+
+#: templates/checkout/_subtotal_table.html:58
+msgctxt "Cart summary text"
+msgid "Shipment and taxes calculated at checkout"
+msgstr "Enviament i impostos calculats durant el procés de compra"
+
+#: templates/checkout/details.html:7
+msgctxt "Checkout page title"
+msgid "Checkout"
+msgstr "Procés de compra"
+
+#: templates/checkout/details.html:12
+msgctxt "Checkout top message"
+msgid "Easy and secure!"
+msgstr "Fàcil i segur!"
+
+#: templates/checkout/details.html:20
+msgctxt "Checkout title"
+msgid "Checkout"
+msgstr "Procés de compra"
+
+#: templates/checkout/details.html:35
+msgctxt "Order review title"
+msgid "Order review"
+msgstr "Revisió de comanda"
+
+#: templates/checkout/details.html:51
+msgctxt "Order review section"
+msgid "Subtotal"
+msgstr "Subtotal"
+
+#: templates/checkout/details.html:61
+msgctxt "Order review section"
+msgid "Shipment"
+msgstr "Enviament"
+
+#: templates/checkout/details.html:77
+msgctxt "Order review section title"
+msgid "Taxes (included)"
+msgstr "Impostos (inclosos)"
+
+#: templates/checkout/details.html:79
+msgctxt "Order review section title"
+msgid "Taxes"
+msgstr "Impostos"
+
+#: templates/checkout/details.html:89
+msgctxt "Order review section title"
+msgid "Promo code"
+msgstr "Codi promocional"
+
+#: templates/checkout/details.html:95
+msgctxt "Order review section title"
+msgid "Total"
+msgstr "Total"
+
+#: templates/checkout/index.html:7
+msgctxt "Cart page title"
+msgid "Your cart"
+msgstr "El teu carret"
+
+#: templates/checkout/index.html:12
+msgctxt "Cart breadcrumb"
+msgid "Cart"
+msgstr "Carret"
+
+#: templates/checkout/index.html:22
+msgctxt "Cart message"
+msgid "Product has been removed from cart"
+msgstr "El producte ha estat esborrat del carret"
+
+#: templates/checkout/index.html:30
+msgctxt "Cart table header"
+msgid "Product"
+msgstr "Producte"
+
+#: templates/checkout/index.html:33
+msgctxt "Cart table header"
+msgid "Quantity"
+msgstr "Quantitat"
+
+#: templates/checkout/index.html:36
+msgctxt "Cart table header"
+msgid "Price"
+msgstr "Preu"
+
+#: templates/checkout/index.html:81
+msgctxt "Cart primary action"
+msgid "Checkout"
+msgstr "Procés de compra"
+
+#: templates/checkout/index.html:84
+msgctxt "cart page: secondary action, empty the cart"
+msgid "Clear cart"
+msgstr "Buidar el carret"
+
+#: templates/checkout/login.html:6
+msgctxt "Checkout login page title"
+msgid "Login"
+msgstr "Inicia sessió"
+
+#: templates/checkout/login.html:12
+msgctxt "Checkout login page title"
+msgid "New customer?"
+msgstr "Nou client?"
+
+#: templates/checkout/login.html:18
+msgctxt "Checkout login page new users action"
+msgid "Continue"
+msgstr "Continua"
+
+#: templates/checkout/login.html:21
+msgctxt "Checkout login page new users message"
+msgid "Registration is not required!"
+msgstr "No cal registrar-se!"
+
+#: templates/checkout/login.html:26
+msgctxt "Checkout login form title"
+msgid "Existing customer? Log in."
+msgstr "Ja ets client? Inicia sessió."
+
+#: templates/checkout/payment.html:9
+msgctxt "Checkout payment title"
+msgid "Payment"
+msgstr "Pagament"
+
+#: templates/checkout/payment.html:13
+msgctxt "Checkout payment primary action"
+msgid "Place order"
+msgstr "Realitza comanda"
+
+#: templates/checkout/shipping_address.html:8
+#: templates/checkout/shipping_method.html:7
+msgctxt "Checkout shipping address title"
+msgid "Shipping address"
+msgstr "Adreça d'enviament"
+
+#: templates/checkout/shipping_address.html:18
+msgctxt "Checkout shipping address primary action"
+msgid "Continue"
+msgstr "Continua"
+
+#: templates/checkout/shipping_method.html:9
+msgid "Select other address"
+msgstr "Seleccionar una altra adreça"
+
+#: templates/checkout/shipping_method.html:14
+msgctxt "Checkout shipping method form title"
+msgid "Shipping method"
+msgstr "Mètode d'enviament"
+
+#: templates/checkout/shipping_method.html:18
+msgctxt "Checkout shipping method primary action"
+msgid "Continue"
+msgstr "Continua"
+
+#: templates/checkout/shipping_method.html:23
+msgctxt ""
+"Message displayed to the user if there's no shipping methods for his country"
+msgid ""
+"\n"
+"      Unfortunately we do not ship to your selected country.\n"
+"      <br>\n"
+"      Please enter an alternative shipping address or contact us, if you think that's a mistake.\n"
+"    "
+msgstr ""
+"\n"
+"Malauradament no podem fer enviament al país seleccionat.\n"
+"<br>\n"
+"Si us plau, proporciona una adreça d'enviament alternativa o bé contacta'ns si consideres que és un error."
+
+#: templates/checkout/snippets/addresses_form.html:4
+msgctxt "Checkout addresses form label"
+msgid "Same as shipping"
+msgstr "La mateixa que la d'enviament"
+
+#: templates/checkout/snippets/addresses_form.html:11
+msgctxt "Checkout addresses form label"
+msgid "Enter a new address"
+msgstr "Introduir una nova adreça"
+
+#: templates/checkout/snippets/voucher_form.html:14
+msgctxt "Checkout voucher form action"
+msgid "Remove"
+msgstr "Elimina"
+
+#: templates/checkout/snippets/voucher_form.html:15
+msgctxt "Checkout voucher form action"
+msgid "(Remove)"
+msgstr "(Elimina)"
+
+#: templates/checkout/snippets/voucher_form.html:25
+msgctxt "Checkout voucher form action"
+msgid "Use"
+msgstr "Utilitza"
+
+#: templates/checkout/summary.html:8
+msgctxt "Checkout summary title"
+msgid "Billing address"
+msgstr "Adreça de facturació"
+
+#: templates/checkout/summary.html:10
+msgctxt "Checkout shipping method"
+msgid "Change shipping method"
+msgstr "Canvia el mètode d'enviament"
+
+#: templates/checkout/summary.html:11
+msgctxt "Checkout summary note title"
+msgid "Add a note to your order"
+msgstr "Afegeix una nota a la comanda"
+
+#: templates/checkout/summary.html:15
+msgctxt "Checkout summary primary action"
+msgid "Order & Pay"
+msgstr "Comanda i Pagament"
+
+#: templates/checkout/summary_without_shipping.html:8
+msgctxt "Checkout summary without shipping title"
+msgid "Billing address"
+msgstr "Adreça de facturació"
+
+#: templates/checkout/summary_without_shipping.html:15
+msgctxt "Checkout summary without shipping note title"
+msgid "Add a note to your order"
+msgstr "Afegeix una nota a la comanda"
+
+#: templates/checkout/summary_without_shipping.html:19
+msgctxt "Checkout summary without shipping action"
+msgid "Place order"
+msgstr "Realitza comanda"
+
+#: templates/collection/index.html:7
+msgctxt "Site breadcrumbs home"
+msgid "Home"
+msgstr "Inici"
+
+#: templates/collection/index.html:15
+msgctxt "Unavailable collection detail text"
+msgid ""
+"\n"
+"        <strong>Warning!</strong>\n"
+"        You are previewing a collection that is not published.\n"
+"      "
+msgstr ""
+"\n"
+"        Alerta!</strong>\n"
+"        Estas previsualitzant una col·lecció que no està publicada.\n"
+"      "
+
+#: templates/dashboard/base.html:11
+#, python-format
+msgctxt "Dashboard default page title"
+msgid "Dashboard - %(site_name)s"
+msgstr "Panell - %(site_name)s"
+
+#: templates/dashboard/base.html:42
+msgctxt "Dashboard top navigation action"
+msgid "Visit storefront"
+msgstr "Veure frontal"
+
+#: templates/dashboard/base.html:47
+msgctxt "Dashboard top navigation action"
+msgid "Style guide"
+msgstr "Guia d'estils"
+
+#: templates/dashboard/base.html:52
+msgctxt "Dashboard top navigation action"
+msgid "Log out"
+msgstr "Tancar sessió"
+
+#: templates/dashboard/base.html:81
+msgctxt "Dashboard search"
+msgid "Search"
+msgstr "Cerca"
+
+#: templates/dashboard/base.html:96 templates/dashboard/base.html:248
+msgctxt "Dashboard homepage"
+msgid "Home"
+msgstr "Inici"
+
+#: templates/dashboard/base.html:102
+msgctxt "Dashboard catalogue"
+msgid "Catalogue"
+msgstr "Catàleg"
+
+#: templates/dashboard/base.html:107 templates/dashboard/product/form.html:28
+#: templates/dashboard/product/list.html:10
+#: templates/dashboard/product/list.html:36
+#: templates/dashboard/product/product_image/list.html:29
+#: templates/dashboard/product/product_type/form.html:12
+#: templates/dashboard/product/product_variant/form.html:26
+msgctxt "Dashboard products list"
+msgid "Products"
+msgstr "Productes"
+
+#: templates/dashboard/base.html:112
+#: templates/dashboard/category/detail.html:33
+#: templates/dashboard/category/detail.html:39
+#: templates/dashboard/category/form.html:13
+#: templates/dashboard/category/form.html:32
+#: templates/dashboard/category/list.html:32
+msgctxt "Dashboard categories list"
+msgid "Categories"
+msgstr "Categories"
+
+#: templates/dashboard/base.html:117
+msgctxt "Dashboard side navigation link"
+msgid "Collections"
+msgstr "Col·leccions"
+
+#: templates/dashboard/base.html:126
+msgctxt "Dashboard discounts list"
+msgid "Discounts"
+msgstr "Descomptes"
+
+#: templates/dashboard/base.html:131
+msgctxt "Dashboard sales (discounts) list"
+msgid "Sales"
+msgstr "Descomptes"
+
+#: templates/dashboard/base.html:136
+#: templates/dashboard/discount/voucher/form.html:12
+#: templates/dashboard/discount/voucher/form.html:43
+#: templates/dashboard/discount/voucher/list.html:9
+#: templates/dashboard/discount/voucher/list.html:19
+msgctxt "Dashboard vouchers list"
+msgid "Vouchers"
+msgstr "Vals de descompte"
+
+#: templates/dashboard/base.html:145
+msgctxt "Dashboard sales. `Sales' is noun of to sell"
+msgid "Sales"
+msgstr "Descomptes"
+
+#: templates/dashboard/base.html:151
+#: templates/dashboard/order/address_form.html:7
+#: templates/dashboard/order/address_form.html:23
+#: templates/dashboard/order/detail.html:12
+#: templates/dashboard/order/detail.html:56
+#: templates/dashboard/order/fulfillment.html:11
+#: templates/dashboard/order/fulfillment.html:27
+#: templates/dashboard/order/list.html:9
+#: templates/dashboard/order/list.html:29
+msgctxt "Dashboard orders list"
+msgid "Orders"
+msgstr "Comandes"
+
+#: templates/dashboard/base.html:158
+#: templates/dashboard/customer/detail.html:9
+#: templates/dashboard/customer/detail.html:25
+#: templates/dashboard/customer/form.html:28
+#: templates/dashboard/customer/list.html:8
+#: templates/dashboard/customer/list.html:26
+msgctxt "Dashboard customers list"
+msgid "Customers"
+msgstr "Clients"
+
+#: templates/dashboard/base.html:168
+msgctxt "Management section"
+msgid "Staff management"
+msgstr "Gestiona treballadors"
+
+#: templates/dashboard/base.html:173
+msgctxt "Dashboard staff members list"
+msgid "Staff members"
+msgstr "Treballadors"
+
+#: templates/dashboard/base.html:182
+msgctxt "Dashboard configuration"
+msgid "Configuration"
+msgstr "Configuraicó"
+
+#: templates/dashboard/base.html:188
+#: templates/dashboard/product/product_type/form.html:28
+#: templates/dashboard/product/product_type/list.html:8
+#: templates/dashboard/product/product_type/list.html:28
+msgctxt "Dashboard product types list"
+msgid "Product types"
+msgstr "Tipus de productes"
+
+#: templates/dashboard/base.html:193
+#: templates/dashboard/product/attribute/form.html:29
+#: templates/dashboard/product/attribute/list.html:8
+#: templates/dashboard/product/attribute/list.html:26
+#: templates/dashboard/product/attribute/values/form.html:29
+msgctxt "Dashboard attributes list"
+msgid "Attributes"
+msgstr "Atributs"
+
+#: templates/dashboard/base.html:200
+msgctxt "Dashboard shipping zones list"
+msgid "Shipping"
+msgstr "Enviament"
+
+#: templates/dashboard/base.html:207 templates/dashboard/menu/detail.html:21
+#: templates/dashboard/menu/form.html:12 templates/dashboard/menu/form.html:29
+#: templates/dashboard/menu/item/detail.html:22
+#: templates/dashboard/menu/item/detail.html:28
+#: templates/dashboard/menu/item/form.html:29
+#: templates/dashboard/menu/list.html:30
+msgctxt "Dashboard menus list"
+msgid "Navigation"
+msgstr "Navegació"
+
+#: templates/dashboard/base.html:214 templates/dashboard/sites/form.html:11
+#: templates/dashboard/taxes/form.html:12
+msgctxt "Dashboard site settings"
+msgid "Site settings"
+msgstr "Configuració del lloc web"
+
+#: templates/dashboard/base.html:220
+msgctxt "Dashboard taxes"
+msgid "Taxes"
+msgstr "Impostos"
+
+#: templates/dashboard/base.html:226
+msgctxt "Dashboard static pages"
+msgid "Pages"
+msgstr "Pàgines"
+
+#: templates/dashboard/base.html:234
+msgctxt "Dashboard software version"
+msgid "Void:"
+msgstr "Buit:"
+
+#: templates/dashboard/base_modal.html:33
+#: templates/dashboard/category/form.html:111
+#: templates/dashboard/category/form.html:115
+#: templates/dashboard/customer/form.html:59
+#: templates/dashboard/customer/form.html:66
+#: templates/dashboard/discount/sale/form.html:115
+#: templates/dashboard/discount/voucher/form.html:125
+#: templates/dashboard/menu/form.html:58
+#: templates/dashboard/menu/item/form.html:80
+#: templates/dashboard/order/address_form.html:61
+#: templates/dashboard/order/fulfillment.html:133
+#: templates/dashboard/product/attribute/form.html:77
+#: templates/dashboard/product/attribute/form.html:84
+#: templates/dashboard/product/attribute/values/form.html:78
+#: templates/dashboard/product/form.html:134
+#: templates/dashboard/product/form.html:141
+#: templates/dashboard/product/product_image/form.html:79
+#: templates/dashboard/product/product_type/form.html:113
+#: templates/dashboard/product/product_variant/form.html:111
+#: templates/dashboard/product/product_variant/form.html:118
+#: templates/dashboard/shipping/form.html:77
+#: templates/dashboard/shipping/form.html:84
+#: templates/dashboard/shipping/methods/form.html:80
+#: templates/dashboard/sites/authorization_keys/form.html:71
+#: templates/dashboard/sites/form.html:61
+#: templates/dashboard/staff/detail.html:73
+#: templates/dashboard/taxes/form.html:100
+msgctxt "Dashboard cancel action"
+msgid "Cancel"
+msgstr "Cancel·la"
+
+#: templates/dashboard/category/detail.html:8
+#: templates/dashboard/category/list.html:9
+msgctxt "Category list page title"
+msgid "Categories"
+msgstr "Categories"
+
+#: templates/dashboard/category/detail.html:83
+msgctxt "Category field"
+msgid "Description"
+msgstr "Descripció"
+
+#: templates/dashboard/category/detail.html:94
+msgctxt "Category detail view action"
+msgid "Edit category"
+msgstr "Edita categoria"
+
+#: templates/dashboard/category/detail.html:97
+msgctxt "Category detail view action"
+msgid "Remove category"
+msgstr "Elimina categoria"
+
+#: templates/dashboard/category/detail.html:104
+msgctxt "Title of the subcategories list"
+msgid "Subcategories"
+msgstr "Subcategories"
+
+#: templates/dashboard/category/detail.html:109
+#: templates/dashboard/includes/_menu_items.html:14
+#: templates/dashboard/product/attribute/detail.html:68
+#: templates/dashboard/product/detail.html:93
+#: templates/dashboard/shipping/methods/_shipping_methods_table.html:13
+#: templates/dashboard/sites/detail.html:77
+msgid "Add"
+msgstr "Afegeix"
+
+#: templates/dashboard/category/detail.html:116
+#: templates/dashboard/category/list.html:49
+msgctxt "Category list table header name"
+msgid "Name"
+msgstr "Nom"
+
+#: templates/dashboard/category/detail.html:119
+#: templates/dashboard/category/list.html:52
+msgctxt "Category list table header description"
+msgid "Description"
+msgstr "Descripció"
+
+#: templates/dashboard/category/detail.html:140
+msgctxt "Category edit action"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/category/detail.html:143
+msgctxt "Category list action link"
+msgid "Remove"
+msgstr "Elimina"
+
+#: templates/dashboard/category/detail.html:149
+msgctxt "Empty list of categories"
+msgid "No subcategories"
+msgstr "No hi ha subcategories"
+
+#: templates/dashboard/category/form.html:9
+msgctxt "Category form page title"
+msgid "Edit category"
+msgstr "Edita categoria"
+
+#: templates/dashboard/category/form.html:11
+msgctxt "Category detail page title"
+msgid "Add new category"
+msgstr "Afegeix nova categoria"
+
+#: templates/dashboard/category/form.html:24
+msgctxt "Category form page title"
+msgid "Add new category"
+msgstr "Afegeix nova categoria"
+
+#: templates/dashboard/category/form.html:55
+msgctxt "Category form page title"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/category/form.html:61
+#: templates/dashboard/category/form.html:77
+msgctxt "Category detail breadcrumbs"
+msgid "Add new category"
+msgstr "Afegeix nova categoria"
+
+#: templates/dashboard/category/form.html:120
+#: templates/dashboard/customer/form.html:62
+#: templates/dashboard/discount/sale/form.html:119
+#: templates/dashboard/discount/voucher/form.html:129
+#: templates/dashboard/menu/form.html:62
+#: templates/dashboard/menu/item/form.html:84
+#: templates/dashboard/order/address_form.html:64
+#: templates/dashboard/order/modal/change_quantity.html:19
+#: templates/dashboard/product/product_type/form.html:117
+#: templates/dashboard/sites/form.html:64
+#: templates/dashboard/staff/detail.html:77
+#: templates/dashboard/taxes/form.html:103
+msgctxt "Dashboard update action"
+msgid "Update"
+msgstr "Actualitza"
+
+#: templates/dashboard/category/form.html:124
+#: templates/dashboard/discount/sale/form.html:123
+#: templates/dashboard/discount/voucher/form.html:133
+#: templates/dashboard/menu/form.html:66
+#: templates/dashboard/menu/item/form.html:88
+#: templates/dashboard/product/attribute/form.html:87
+#: templates/dashboard/product/attribute/values/form.html:86
+#: templates/dashboard/product/form.html:144
+#: templates/dashboard/product/product_image/form.html:87
+#: templates/dashboard/product/product_type/form.html:121
+#: templates/dashboard/product/product_variant/form.html:121
+#: templates/dashboard/shipping/form.html:87
+#: templates/dashboard/shipping/methods/form.html:88
+#: templates/dashboard/sites/authorization_keys/form.html:79
+msgctxt "Dashboard create action"
+msgid "Create"
+msgstr "Crea"
+
+#: templates/dashboard/category/list.html:22
+msgctxt "Category list add button text"
+msgid "Add category"
+msgstr "Afegeix categoria"
+
+#: templates/dashboard/category/list.html:83
+msgctxt "Empty category list message"
+msgid "No categories found."
+msgstr "No s'han trobat categories."
+
+#: templates/dashboard/category/modal/confirm_delete.html:13
+#, python-format
+msgctxt "Remove category modal title"
+msgid "Remove category %(category)s"
+msgstr "Elimina categoria %(category)s"
+
+#: templates/dashboard/category/modal/confirm_delete.html:20
+#, python-format
+msgctxt "Remove category modal title"
+msgid ""
+"Are you sure you want to remove category <strong>%(category)s</strong>?"
+msgstr "Segur que vols eliminar la categoria <strong>%(category)s</strong>?"
+
+#: templates/dashboard/category/modal/confirm_delete.html:25
+msgctxt "Delete category form text about descendant categories"
+msgid "The following child categories will be removed:"
+msgstr "Les següents categories filles seran eliminades:"
+
+#: templates/dashboard/category/modal/confirm_delete.html:38
+#, python-format
+msgctxt "Remove category form text about products"
+msgid "There is one product in this category that will be removed."
+msgid_plural ""
+"There are %(counter)s products in this category that will be removed."
+msgstr[0] "Hi ha un producte a aquesta categoria que serà eliminat."
+msgstr[1] ""
+"Hi ha %(counter)s productes a aquesta categoria que seran eliminats."
+
+#: templates/dashboard/category/modal/confirm_delete.html:49
+#: templates/dashboard/collection/confirm_delete.html:26
+#: templates/dashboard/customer/modal/confirm_delete.html:28
+#: templates/dashboard/discount/sale/modal/confirm_delete.html:24
+#: templates/dashboard/discount/voucher/modal/confirm_delete.html:26
+#: templates/dashboard/menu/item/modal/confirm_delete.html:34
+#: templates/dashboard/menu/modal/confirm_delete.html:34
+#: templates/dashboard/order/modal/cancel_line.html:65
+#: templates/dashboard/page/modal_delete.html:26
+#: templates/dashboard/product/attribute/modal/attribute_confirm_delete.html:26
+#: templates/dashboard/product/attribute/values/modal/confirm_delete.html:26
+#: templates/dashboard/product/modal/confirm_delete.html:26
+#: templates/dashboard/product/product_image/modal/confirm_delete.html:25
+#: templates/dashboard/product/product_type/modal/confirm_delete.html:40
+#: templates/dashboard/product/product_variant/modal/confirm_delete.html:34
+#: templates/dashboard/shipping/modal/confirm_delete.html:27
+#: templates/dashboard/shipping/modal/method_confirm_delete.html:26
+#: templates/dashboard/sites/modal/confirm_delete.html:26
+#: templates/dashboard/staff/modal/confirm_delete.html:24
+msgctxt "Dashboard delete action"
+msgid "Remove"
+msgstr "Elimina"
+
+#: templates/dashboard/category/zero_page.html:5
+msgid "No categories found."
+msgstr "No s'han trobat categories."
+
+#: templates/dashboard/category/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Categories are used to organize products into groups that are displayed in the navigation in the storefront.<br>\n"
+"    You can create categories by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+"\n"
+"    Les categories són utilitzades per organitzar productes en grups que es mostren a la navegació al frontal.<br>\n"
+"    Pots crear categories utilitzant els botons <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span>.\n"
+"  "
+
+#: templates/dashboard/collection/confirm_delete.html:12
+#, python-format
+msgctxt "Modal remove collection text"
+msgid "Remove collection %(collection)s"
+msgstr "Elimina la col·lecció %(collection)s"
+
+#: templates/dashboard/collection/confirm_delete.html:19
+#, python-format
+msgctxt "Modal remove collection text"
+msgid ""
+"Are you sure you want to remove collection <strong>%(collection)s</strong>?"
+msgstr ""
+"Segur que vols eliminar la col·lecció <strong>%(collection)s</strong>?"
+
+#: templates/dashboard/collection/detail.html:8
+#: templates/dashboard/collection/detail.html:14
+#: templates/dashboard/collection/detail.html:20
+msgid "Add new collection"
+msgstr "Afegeix nova col·lecció"
+
+#: templates/dashboard/collection/detail.html:8
+#: templates/dashboard/collection/detail.html:18
+#: templates/dashboard/collection/list.html:19
+msgid "Collections"
+msgstr "Col·leccions"
+
+#: templates/dashboard/collection/detail.html:32
+msgctxt "Collection action"
+msgid "Remove collection"
+msgstr "Elimina col·lecció"
+
+#: templates/dashboard/collection/detail.html:37
+msgctxt "Collection action"
+msgid "View on site"
+msgstr "Veure al lloc web"
+
+#: templates/dashboard/collection/detail.html:63
+msgctxt "Collection form card title: availability sub form"
+msgid "Availability"
+msgstr "Disponibilitat"
+
+#: templates/dashboard/collection/detail.html:71
+msgctxt "Collection secondary action"
+msgid "Cancel"
+msgstr "Cancel·la"
+
+#: templates/dashboard/collection/detail.html:74
+msgctxt "Collection detail action"
+msgid "Update"
+msgstr "Actualitza"
+
+#: templates/dashboard/collection/detail.html:78
+msgctxt "Collection detail action"
+msgid "Create"
+msgstr "Crea"
+
+#: templates/dashboard/collection/detail.html:100
+msgctxt "Collection field"
+msgid "Published"
+msgstr "Publicat"
+
+#: templates/dashboard/collection/detail.html:102
+msgctxt "Collection field"
+msgid "Draft"
+msgstr "Esborrany"
+
+#: templates/dashboard/collection/detail.html:110
+msgctxt "Collection field"
+msgid "Can't unpublish homepage collection"
+msgstr "No es pot despublicar la col·lecció de la pàgina inicial"
+
+#: templates/dashboard/collection/list.html:10
+msgctxt "Collections list page title "
+msgid "Collections"
+msgstr "Col·leccions"
+
+#: templates/dashboard/collection/list.html:25
+msgctxt "Collections list add button text"
+msgid "Add collection"
+msgstr "Afegeix col·lecció"
+
+#: templates/dashboard/collection/list.html:40
+msgctxt "Collections list table header name"
+msgid "Name"
+msgstr "Nom"
+
+#: templates/dashboard/collection/list.html:43
+msgctxt "Voucher table header"
+msgid "Number of products"
+msgstr "Nombre de productes"
+
+#: templates/dashboard/collection/list.html:46
+msgctxt "Collections list table header"
+msgid "Visibility"
+msgstr "Visibilitat"
+
+#: templates/dashboard/collection/list.html:58
+msgid "Products in collection:"
+msgstr "Productes a la col·lecció:"
+
+#: templates/dashboard/collection/list.html:79
+msgctxt "Empty collection list message"
+msgid "No collections found."
+msgstr "No s'han trobat col·leccions"
+
+#: templates/dashboard/collection/list.html:92
+msgid "Homepage collection"
+msgstr "Col·lecció de la pàgina inicial"
+
+#: templates/dashboard/collection/list.html:102
+msgctxt "Homepage collection save"
+msgid "Save"
+msgstr "Desa"
+
+#: templates/dashboard/collection/zero_page.html:5
+msgid "No collections found."
+msgstr "No s'han trobat col·leccions."
+
+#: templates/dashboard/collection/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Collections are used to organize products into custom groups.<br>\n"
+"    You can create collections by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+"\n"
+"Les col·leccions s'utilitzen per organitzar productes en grups personalitzats.<br>\n"
+"Pots crear col·leccions utilitzant els botons <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span>."
+
+#: templates/dashboard/customer/detail.html:51
+msgctxt "Customer field"
+msgid "Date joined"
+msgstr "Data d'unió"
+
+#: templates/dashboard/customer/detail.html:63
+msgctxt "Customer field"
+msgid "Note"
+msgstr "Nota"
+
+#: templates/dashboard/customer/detail.html:74
+msgctxt "Customer action"
+msgid "Edit customer"
+msgstr "Edita client"
+
+#: templates/dashboard/customer/detail.html:77
+msgctxt "Customer action"
+msgid "Remove customer"
+msgstr "Elimina client"
+
+#: templates/dashboard/customer/detail.html:81
+msgctxt "Customer impersonate action"
+msgid "Impersonate customer"
+msgstr "Suplantar client"
+
+#: templates/dashboard/customer/detail.html:90
+msgctxt "Customer recent orders table title"
+msgid "Recent orders"
+msgstr "Comandes recents"
+
+#: templates/dashboard/customer/detail.html:99
+msgctxt "Customer orders table header"
+msgid "Number"
+msgstr "Número"
+
+#: templates/dashboard/customer/detail.html:102
+msgctxt "Customer orders table header"
+msgid "Placed on"
+msgstr "Creada el"
+
+#: templates/dashboard/customer/detail.html:105
+msgctxt "Customer orders table header"
+msgid "Order status"
+msgstr "Estat de comanda"
+
+#: templates/dashboard/customer/detail.html:108
+msgctxt "Customer orders table header"
+msgid "Total"
+msgstr "Total"
+
+#: templates/dashboard/customer/detail.html:135
+msgctxt "Empty customer orders table message"
+msgid "No orders found."
+msgstr "No s'han trobat comandes."
+
+#: templates/dashboard/customer/detail.html:144
+msgctxt "Customer notes card title"
+msgid "Customer notes"
+msgstr "Notes de client"
+
+#: templates/dashboard/customer/detail.html:157
+msgctxt "Customer without notes message"
+msgid "There are no notes associated with this customer"
+msgstr "No hih a notes associades amb aquest client"
+
+#: templates/dashboard/customer/detail.html:163
+msgctxt "Customer notes card action"
+msgid "Add note"
+msgstr "Afegeix nota"
+
+#: templates/dashboard/customer/detail.html:176
+msgctxt "Customer default shipping address card title"
+msgid "Default shipping address"
+msgstr "Adreça d'enivament per defecte"
+
+#: templates/dashboard/customer/detail.html:183
+msgctxt "Customer without default shipping address message"
+msgid "No default shipping address."
+msgstr "No hi ha adreça d'enviament per defecte."
+
+#: templates/dashboard/customer/detail.html:196
+msgctxt "Customer default billing address card title"
+msgid "Default billing address"
+msgstr "Adreça de facturació per defecte"
+
+#: templates/dashboard/customer/detail.html:204
+msgctxt "Customer without default billing address message"
+msgid "No default billing address."
+msgstr "No hi ha adreça de facturació per defecte."
+
+#: templates/dashboard/customer/form.html:10
+msgctxt "Dashboard add customer"
+msgid "Add new customer"
+msgstr "Afegeix nou client"
+
+#: templates/dashboard/customer/form.html:12
+#: templates/dashboard/search/results.html:89
+msgctxt "Dashboard customer"
+msgid "Customer"
+msgstr "Client"
+
+#: templates/dashboard/customer/form.html:36
+msgctxt "Dashboard add customer action"
+msgid "Add customer"
+msgstr "Afegeix client"
+
+#: templates/dashboard/customer/form.html:47
+msgctxt "Customer details header"
+msgid "Customer details"
+msgstr "Detalls del client"
+
+#: templates/dashboard/customer/form.html:69
+#: templates/dashboard/staff/detail.html:79
+msgctxt "Dashboard add action"
+msgid "Add"
+msgstr "Afegeix"
+
+#: templates/dashboard/customer/list.html:17
+msgctxt "Customer list add button text"
+msgid "Add customer"
+msgstr "Afegeix client"
+
+#: templates/dashboard/customer/list.html:40
+msgctxt "Customers table header"
+msgid "Name"
+msgstr "Nom"
+
+#: templates/dashboard/customer/list.html:43
+msgctxt "Customers table header"
+msgid "Email"
+msgstr "Email"
+
+#: templates/dashboard/customer/list.html:46
+msgctxt "Customers table header"
+msgid "Location"
+msgstr "Localització"
+
+#: templates/dashboard/customer/list.html:86
+msgctxt "Empty customers table message"
+msgid "No customers found."
+msgstr "No s'han trobat clients."
+
+#: templates/dashboard/customer/modal/add_note.html:11
+#: templates/dashboard/order/modal/add_note.html:11
+msgctxt "Modal add note title"
+msgid "Add note"
+msgstr "Afegeix nota"
+
+#: templates/dashboard/customer/modal/add_note.html:19
+#: templates/dashboard/order/modal/add_note.html:19
+msgctxt "Modal add note primary action"
+msgid "Save note"
+msgstr "Desa nota"
+
+#: templates/dashboard/customer/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Header of modal used for removing customer's account "
+msgid "Remove customer %(customer)s"
+msgstr "Elimina client %(customer)s"
+
+#: templates/dashboard/customer/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Modal remove collection text"
+msgid ""
+"Are you sure you want to remove customer <strong>%(customer)s</strong>? "
+"Please note that this procedure will remove customer's account, but "
+"customer's orders and addresses associated with them will persist for the "
+"financial records."
+msgstr ""
+"Segur que vols eliminar el client <strong>%(customer)s</strong>? Això farà "
+"que s'elimini el compte de l'usuari, però les seves comandes i adreces "
+"associades no s'eliminaràn. "
+
+#: templates/dashboard/customer/modal/confirm_promote.html:12
+msgctxt "Dashboard confirmation modal"
+msgid "Promote to staff member"
+msgstr "Promocionar a treballador"
+
+#: templates/dashboard/customer/modal/confirm_promote.html:17
+#, python-format
+msgctxt "Modal promote to staff member text"
+msgid "Are you sure you want to promote %(customer)s to staff member?"
+msgstr "Segur que vols promocionar %(customer)s a treballador?"
+
+#: templates/dashboard/customer/modal/confirm_promote.html:24
+msgctxt "Dashboard promote action"
+msgid "Promote"
+msgstr "Promocionar"
+
+#: templates/dashboard/customer/zero_page.html:5
+msgid "No customers found."
+msgstr "No s'han trobat clients."
+
+#: templates/dashboard/customer/zero_page.html:8
+msgid ""
+"\n"
+"    Customer accounts will appear here once users register in the shop.\n"
+"  "
+msgstr ""
+"\n"
+"    Els comptes de clients apareixeran aquí una vegada els usuaris es registrin a la botiga.  "
+
+#: templates/dashboard/discount/sale/form.html:10
+msgctxt "Sale (discount) page title"
+msgid "Add new sale"
+msgstr "Afegeix nou descompte"
+
+#: templates/dashboard/discount/sale/form.html:12
+#: templates/dashboard/discount/sale/form.html:43
+#: templates/dashboard/discount/sale/list.html:18
+msgctxt "Dashboard sales (discounts) list."
+msgid "Sales"
+msgstr "Descomptes"
+
+#: templates/dashboard/discount/sale/form.html:32
+msgctxt "Sale (discount) action"
+msgid "Remove sale"
+msgstr "Elimina descompte"
+
+#: templates/dashboard/discount/sale/form.html:56
+msgctxt "Sale (discount) breadcrumbs"
+msgid "Add new sale"
+msgstr "Afegeix nou descompte"
+
+#: templates/dashboard/discount/sale/list.html:9
+msgid "Sales"
+msgstr "Descomptes"
+
+#: templates/dashboard/discount/sale/list.html:27
+msgctxt "Sale (discount) list add button text"
+msgid "Add sale"
+msgstr "Afegeix descompte"
+
+#: templates/dashboard/discount/sale/list.html:42
+msgctxt "Sale (discount) table header"
+msgid "Name"
+msgstr "Nom"
+
+#: templates/dashboard/discount/sale/list.html:45
+msgctxt "Sale (discount) table header"
+msgid "Start date"
+msgstr "Data d'inici"
+
+#: templates/dashboard/discount/sale/list.html:48
+msgctxt "Sale (discount) table header"
+msgid "End date"
+msgstr "Data de fi"
+
+#: templates/dashboard/discount/sale/list.html:51
+msgctxt "Sale (discount) table header"
+msgid "Discount"
+msgstr "Descompte"
+
+#: templates/dashboard/discount/sale/list.html:84
+msgctxt "Empty sales table message"
+msgid "No sales found"
+msgstr "No s'han trobat descomptes"
+
+#: templates/dashboard/discount/sale/modal/confirm_delete.html:12
+msgctxt "Remove sale (discount) text"
+msgid "Remove sale"
+msgstr "Elimina descompte"
+
+#: templates/dashboard/discount/sale/modal/confirm_delete.html:17
+#, python-format
+msgctxt "Remove sale (discount) text"
+msgid "Are you sure you want to remove <strong>%(sale)s</strong>?"
+msgstr "Segur que vols eliminar <strong>%(sale)s</strong>?"
+
+#: templates/dashboard/discount/sale/zero_page.html:5
+msgid "No sales found."
+msgstr "No s'han trobat ofertes."
+
+#: templates/dashboard/discount/sale/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Sales are used to create discounts on particular products or whole categories.<br>\n"
+"    You can create sales by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+"\n"
+"Les ofertes s'utilitzen per crear descomptes en un sol producte o en tota una categoria. <br>\n"
+"Pots crear ofertes utilitzant els botons <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span>."
+
+#: templates/dashboard/discount/voucher/form.html:10
+msgctxt "Voucher page title"
+msgid "Add new voucher"
+msgstr "Afegeix nou val de descompte"
+
+#: templates/dashboard/discount/voucher/form.html:32
+msgctxt "Voucher action"
+msgid "Remove voucher"
+msgstr "Elimina val de descompte"
+
+#: templates/dashboard/discount/voucher/form.html:56
+msgctxt "Voucher breadcrumbs"
+msgid "Add new voucher"
+msgstr "Afegeix nou val de descompte"
+
+#: templates/dashboard/discount/voucher/list.html:28
+msgctxt "Voucher list add button text"
+msgid "Add voucher"
+msgstr "Afegeix val de descompte"
+
+#: templates/dashboard/discount/voucher/list.html:43
+msgctxt "Voucher table header"
+msgid "Name"
+msgstr "Nom"
+
+#: templates/dashboard/discount/voucher/list.html:46
+msgctxt "Voucher table header"
+msgid "Discount"
+msgstr "Descompte"
+
+#: templates/dashboard/discount/voucher/list.html:49
+msgctxt "Voucher table header"
+msgid "Start date"
+msgstr "Data d'inici"
+
+#: templates/dashboard/discount/voucher/list.html:52
+msgctxt "Voucher table header"
+msgid "End date"
+msgstr "Data de fi"
+
+#: templates/dashboard/discount/voucher/list.html:55
+msgctxt "Voucher table header"
+msgid "Used"
+msgstr "Utilitzat"
+
+#: templates/dashboard/discount/voucher/list.html:58
+msgctxt "Voucher table header"
+msgid "Min amount spent"
+msgstr "Import mínim gastat"
+
+#: templates/dashboard/discount/voucher/list.html:105
+msgctxt "Empty vouchers table message"
+msgid "No vouchers found"
+msgstr "No s'han trobat vals de descompte"
+
+#: templates/dashboard/discount/voucher/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Remove voucher text"
+msgid "Remove voucher %(voucher)s"
+msgstr "Elimina val de descompte %(voucher)s"
+
+#: templates/dashboard/discount/voucher/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Remove voucher text"
+msgid "Are you sure you want to remove voucher <strong>%(voucher)s</strong>?"
+msgstr ""
+"Estàs segur d'eliminar el val de descompte <strong>%(voucher)s</strong>?"
+
+#: templates/dashboard/discount/voucher/zero_page.html:5
+msgid "No vouchers found."
+msgstr "No s'han trobat vals de descompte"
+
+#: templates/dashboard/discount/voucher/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Vouchers allows creating promotional codes for all purchases, specific products or shipping.<br>\n"
+"    You can create vouchers by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+
+#: templates/dashboard/includes/_collection_availability.html:5
+msgctxt "Collection availability status"
+msgid "Published"
+msgstr "Publicat"
+
+#: templates/dashboard/includes/_collection_availability.html:7
+msgctxt "Collection availability status"
+msgid "Not Published"
+msgstr "No publicat"
+
+#: templates/dashboard/includes/_filters.html:10
+msgctxt "Dashboard card title"
+msgid "Filters"
+msgstr "Filtres"
+
+#: templates/dashboard/includes/_filters.html:43
+msgctxt "Category page filters"
+msgid "Clear"
+msgstr "Netejar"
+
+#: templates/dashboard/includes/_filters.html:47
+msgctxt "Category price filter"
+msgid "Filter"
+msgstr "Filtre"
+
+#: templates/dashboard/includes/_google_preview.html:5
+msgctxt "Title of the box showing preview from the search engine perspective"
+msgid "Search engine listing preview"
+msgstr "Pre-visualització del llistat del motor de cerca"
+
+#: templates/dashboard/includes/_menu_items.html:9
+msgctxt "Title of the menu items list"
+msgid "Menu items"
+msgstr "Elements de menú"
+
+#: templates/dashboard/includes/_menu_items.html:23
+msgctxt "Menu items list table header name"
+msgid "Name"
+msgstr "Nom"
+
+#: templates/dashboard/includes/_menu_items.html:26
+msgctxt "Menu items list table header points to"
+msgid "Points to"
+msgstr "Apunta a"
+
+#: templates/dashboard/includes/_menu_items.html:28
+msgctxt "Menu items status"
+msgid "Status"
+msgstr "Estat"
+
+#: templates/dashboard/includes/_menu_items.html:47
+msgctxt "Menu items status"
+msgid "Published"
+msgstr "Publicat"
+
+#: templates/dashboard/includes/_menu_items.html:51
+msgctxt "Menu items status"
+msgid "Not published"
+msgstr "No publicat"
+
+#: templates/dashboard/includes/_menu_items.html:56
+msgctxt "Menu item edit action"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/includes/_menu_items.html:59
+msgctxt "Menu item list action link"
+msgid "Remove"
+msgstr "Elimina"
+
+#: templates/dashboard/includes/_menu_items.html:65
+msgctxt "Empty list of menu items"
+msgid "No menu items"
+msgstr "No elements de menú"
+
+#: templates/dashboard/includes/_page_availability.html:5
+msgctxt "Page availability status"
+msgid "Published"
+msgstr "Publicat"
+
+#: templates/dashboard/includes/_page_availability.html:9
+#: templates/dashboard/includes/_page_availability.html:19
+msgctxt "Page availability status"
+msgid "Hidden"
+msgstr "Ocult"
+
+#: templates/dashboard/includes/_page_availability.html:13
+#, python-format
+msgctxt "Page availability status"
+msgid ""
+"\n"
+"      Hidden (will become visible on %(date)s)\n"
+"    "
+msgstr ""
+"\n"
+"      Ocult (visible el dia %(date)s)\n"
+"    "
+
+#: templates/dashboard/index.html:15 templates/dashboard/index.html:69
+#: templates/dashboard/index.html:133
+#, python-format
+msgctxt "Dashboard homepage summary header title"
+msgid "Showing last %(counter)s results"
+msgstr "Mostrant %(counter)s últims resultats"
+
+#: templates/dashboard/index.html:16
+msgctxt "Dashboard homepage table title"
+msgid "Preauthorized payments"
+msgstr "Pagaments preautoritzats"
+
+#: templates/dashboard/index.html:25
+msgctxt "Preauthorized payments table header"
+msgid "Order"
+msgstr "Comanda"
+
+#: templates/dashboard/index.html:28
+msgctxt "Preauthorized payments table header"
+msgid "Date"
+msgstr "Data"
+
+#: templates/dashboard/index.html:31
+msgctxt "Preauthorized payments table header"
+msgid "Customer"
+msgstr "Client"
+
+#: templates/dashboard/index.html:34
+msgctxt "Preauthorized payments table header"
+msgid "Amount"
+msgstr "Quantitat"
+
+#: templates/dashboard/index.html:48
+msgid "Guest"
+msgstr "Convidat"
+
+#: templates/dashboard/index.html:61
+msgctxt "Empty Preauthorized payments table message"
+msgid "No preauthorized payments."
+msgstr "Pagaments pre-autoritzants no acceptats"
+
+#: templates/dashboard/index.html:70
+msgctxt "Dashboard homepage table title"
+msgid "Orders ready for shipment"
+msgstr "Comandes llestes per l'enviament"
+
+#: templates/dashboard/index.html:83 templates/dashboard/order/list.html:46
+msgctxt "Orders table header"
+msgid "Customer"
+msgstr "Client"
+
+#: templates/dashboard/index.html:86 templates/dashboard/order/list.html:49
+msgctxt "Orders table header"
+msgid "Placed on"
+msgstr "Creada el"
+
+#: templates/dashboard/index.html:89 templates/dashboard/order/list.html:52
+msgctxt "Orders table header"
+msgid "Payment status"
+msgstr "Estat de pagament"
+
+#: templates/dashboard/index.html:92 templates/dashboard/order/list.html:55
+msgctxt "Orders table header"
+msgid "Total"
+msgstr "Total"
+
+#: templates/dashboard/index.html:105
+#: templates/dashboard/order/detail.html:207
+#: templates/dashboard/order/list.html:68
+msgctxt "Anonymous user account value"
+msgid "Guest"
+msgstr "Convidat"
+
+#: templates/dashboard/index.html:126
+msgctxt "Empty order table message"
+msgid "No orders are ready for shipment."
+msgstr "No hi ha comandes llestes per l'enviament."
+
+#: templates/dashboard/index.html:134
+msgctxt "Dashboard homepage table title"
+msgid "Products with low stock"
+msgstr "Productes amb estoc baix"
+
+#: templates/dashboard/index.html:143
+msgctxt "Low stock product list"
+msgid "Product name"
+msgstr "Nom de producte"
+
+#: templates/dashboard/index.html:146
+msgctxt "Low stock product list"
+msgid "Stock left"
+msgstr "Estoc restant"
+
+#: templates/dashboard/index.html:167
+msgctxt "Empty low stock table message"
+msgid "No products are low in stock."
+msgstr "No hi ha productes amb estoc baix."
+
+#: templates/dashboard/menu/detail.html:7 templates/dashboard/menu/list.html:9
+msgctxt "Menu list page title"
+msgid "Navigation"
+msgstr "Navegació"
+
+#: templates/dashboard/menu/detail.html:48
+msgctxt "Menu detail view action"
+msgid "Edit menu"
+msgstr "Edita menú"
+
+#: templates/dashboard/menu/detail.html:51
+msgctxt "Menu detail view action"
+msgid "Remove menu"
+msgstr "Elimina menú"
+
+#: templates/dashboard/menu/form.html:8
+msgctxt "Menu form page title"
+msgid "Edit menu"
+msgstr "Edita menú"
+
+#: templates/dashboard/menu/form.html:10 templates/dashboard/menu/form.html:21
+msgctxt "Menu form page title"
+msgid "Add new menu"
+msgstr "Afegeix nou menú"
+
+#: templates/dashboard/menu/form.html:39
+msgctxt "Menu detail breadcrumbs"
+msgid "Add new menu"
+msgstr "Afegeix nou menú"
+
+#: templates/dashboard/menu/item/detail.html:7
+msgctxt "Menu item list page title"
+msgid "Menu items"
+msgstr "Elements de menú"
+
+#: templates/dashboard/menu/item/detail.html:73
+msgctxt "Menu item field"
+msgid "Points to"
+msgstr "Apunta a"
+
+#: templates/dashboard/menu/item/detail.html:85
+msgctxt "Menu item detail view action"
+msgid "Edit menu item"
+msgstr "Edita element de menú"
+
+#: templates/dashboard/menu/item/detail.html:88
+msgctxt "Menu item detail view action"
+msgid "Remove menu item"
+msgstr "Elimina element de menú"
+
+#: templates/dashboard/menu/item/form.html:8
+msgctxt "Menu item page title"
+msgid "Edit menu item"
+msgstr "Edita element de menú"
+
+#: templates/dashboard/menu/item/form.html:10
+#: templates/dashboard/menu/item/form.html:21
+msgctxt "Menu item page title"
+msgid "Add new menu item"
+msgstr "Afegeix nou element de menú"
+
+#: templates/dashboard/menu/item/form.html:12
+msgctxt "Dashboard menu items list"
+msgid "Menu items"
+msgstr "Elements de menú"
+
+#: templates/dashboard/menu/item/form.html:54
+msgctxt "Menu form page title"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/menu/item/form.html:60
+msgctxt "Menu form page title"
+msgid "Add new menu item"
+msgstr "Afegeix nou element de menú"
+
+#: templates/dashboard/menu/item/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Remove menu item modal title"
+msgid "Remove menu item %(menu_item)s"
+msgstr "Elimina element de menú %(menu_item)s"
+
+#: templates/dashboard/menu/item/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Remove menu item modal title"
+msgid ""
+"Are you sure you want to remove menu item <strong>%(menu_item)s</strong> "
+"from %(menu)s menu?"
+msgstr ""
+"Segur que es vol eliminar l'element de menú <strong>%(menu_item)s</strong> "
+"del menú %(menu)s ? "
+
+#: templates/dashboard/menu/item/modal/confirm_delete.html:24
+#: templates/dashboard/menu/modal/confirm_delete.html:24
+msgctxt "Remove menu modal text about descendant menu items"
+msgid "The following menu items will be removed:"
+msgstr "S'eliminaràn els següents elements de menú:"
+
+#: templates/dashboard/menu/list.html:20
+msgctxt "Menu list add button text"
+msgid "Add menu"
+msgstr "Afegeix menú"
+
+#: templates/dashboard/menu/list.html:45
+msgctxt "Menu list table header Menu name"
+msgid "Menu name"
+msgstr "Nom del menú"
+
+#: templates/dashboard/menu/list.html:69
+msgctxt "Empty menu list message"
+msgid "No menus found."
+msgstr "No s'han trobat menús."
+
+#: templates/dashboard/menu/list.html:82
+msgid "Storefront Menus"
+msgstr "Menús del frontal"
+
+#: templates/dashboard/menu/list.html:95
+#: templates/dashboard/product/attribute/form.html:80
+#: templates/dashboard/product/attribute/values/form.html:82
+#: templates/dashboard/product/form.html:137
+#: templates/dashboard/product/product_image/form.html:83
+#: templates/dashboard/product/product_variant/form.html:114
+#: templates/dashboard/shipping/form.html:80
+#: templates/dashboard/shipping/list.html:104
+#: templates/dashboard/shipping/methods/form.html:84
+#: templates/dashboard/sites/authorization_keys/form.html:75
+msgctxt "Dashboard update action"
+msgid "Save"
+msgstr "Desa"
+
+#: templates/dashboard/menu/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Remove menu modal title"
+msgid "Remove menu %(menu)s"
+msgstr "Elimina menú %(menu)s"
+
+#: templates/dashboard/menu/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Remove menu modal title"
+msgid "Are you sure you want to remove menu <strong>%(menu)s</strong>?"
+msgstr "Segur que vols eliminar el menú <strong>%(menu)s</strong>?"
+
+#: templates/dashboard/menu/zero_page.html:5
+msgid "No menus found."
+msgstr "No s'han trobat menús."
+
+#: templates/dashboard/menu/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Menus are used to organize the navigation bar displayed in the storefront.<br>\n"
+"    You can create menus by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+"\n"
+"Els menús s'utilitzen per organitzar la barra de navegació que es mostra a la portada de la botiga.<br>\n"
+"Pots crear menús utilitzant els botons <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span>."
+
+#: templates/dashboard/next.html:11
+msgctxt "Dashboard default page title"
+msgid "Dashboard - Saleor"
+msgstr "Panell - Saleor"
+
+#: templates/dashboard/order/address_form.html:7
+msgctxt ""
+msgid "Edit address"
+msgstr "Edita adreça"
+
+#: templates/dashboard/order/address_form.html:39
+#: templates/dashboard/order/detail.html:213
+msgctxt ""
+msgid "Shipping address"
+msgstr "Adreça d'enviament"
+
+#: templates/dashboard/order/address_form.html:41
+#: templates/dashboard/order/detail.html:229
+msgctxt ""
+msgid "Billing address"
+msgstr "Adreça de facturació"
+
+#: templates/dashboard/order/detail.html:32
+msgctxt "Order detail action"
+msgid "Cancel Order"
+msgstr "Cancel·la comanda"
+
+#: templates/dashboard/order/detail.html:39
+msgctxt "Order detail action"
+msgid "Remove draft order"
+msgstr "Elimina l'esborrany de comanda"
+
+#: templates/dashboard/order/detail.html:45
+msgctxt "Order detail action"
+msgid "Print"
+msgstr "Imprimir"
+
+#: templates/dashboard/order/detail.html:79
+msgctxt "Order detail tab"
+msgid "Details"
+msgstr "Detalls"
+
+#: templates/dashboard/order/detail.html:87
+#: templates/dashboard/order/detail.html:567
+msgctxt "Order detail tab"
+msgid "Payments"
+msgstr "Pagaments"
+
+#: templates/dashboard/order/detail.html:95
+#: templates/dashboard/order/detail.html:617
+msgctxt "Order detail tab"
+msgid "History"
+msgstr "Historial"
+
+#: templates/dashboard/order/detail.html:108
+msgctxt "Order summary card header"
+msgid "Payments"
+msgstr "Pagaments"
+
+#: templates/dashboard/order/detail.html:114
+msgctxt "Payment status not available"
+msgid "N/A"
+msgstr "N/P"
+
+#: templates/dashboard/order/detail.html:124
+msgctxt "Order summary card header"
+msgid "Outstanding balance"
+msgstr "Saldo pendent"
+
+#: templates/dashboard/order/detail.html:137
+msgctxt "Order summary card header"
+msgid "Preauthorized amount"
+msgstr "Quantitat pre-autoritzada"
+
+#: templates/dashboard/order/detail.html:143
+msgctxt "Preauthorized amount not available"
+msgid "N/A"
+msgstr "N/P"
+
+#: templates/dashboard/order/detail.html:149
+msgctxt "Order summary card header"
+msgid "Captured amount"
+msgstr "Quantitat capturada"
+
+#: templates/dashboard/order/detail.html:163
+msgctxt "Order summary card action"
+msgid "Capture"
+msgstr "Capturar"
+
+#: templates/dashboard/order/detail.html:167
+msgctxt "Order summary card action"
+msgid "Refund"
+msgstr "Retornar diners"
+
+#: templates/dashboard/order/detail.html:172
+msgctxt "Order summary card action"
+msgid "Void"
+msgstr "Buida"
+
+#: templates/dashboard/order/detail.html:177
+msgctxt "Order detail action"
+msgid "Mark as paid"
+msgstr "Marcar com a pagat"
+
+#: templates/dashboard/order/detail.html:189
+msgctxt "Order details summary header"
+msgid "Customer"
+msgstr "Client"
+
+#: templates/dashboard/order/detail.html:193
+msgctxt "Order customer details action title"
+msgid "Edit customer details"
+msgstr "Edita detalls del client"
+
+#: templates/dashboard/order/detail.html:194
+#: templates/dashboard/order/detail.html:216
+#: templates/dashboard/order/detail.html:232
+#: templates/dashboard/product/product_image/list.html:82
+#: templates/dashboard/product/product_image/list.html:127
+msgctxt "Dashboard edit action"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/order/detail.html:223
+msgctxt "Missing shipping address message"
+msgid "No shipping address"
+msgstr "No hi ha adreça d'enviament"
+
+#: templates/dashboard/order/detail.html:238
+msgctxt "Order billing address same as shipping address"
+msgid "Same as shipping address"
+msgstr "La mateixa que l'adreça d'enviament"
+
+#: templates/dashboard/order/detail.html:243
+msgctxt "Missing billing address message"
+msgid "No billing address"
+msgstr "No hi ha adreça de facturació"
+
+#: templates/dashboard/order/detail.html:256
+#, python-format
+msgctxt "Order table title"
+msgid "Order draft #%(order)s"
+msgstr "Esborrany de comanda #%(order)s"
+
+#: templates/dashboard/order/detail.html:260
+#, python-format
+msgctxt "Order table title"
+msgid "Order #%(order)s"
+msgstr "Comanda #%(order)s"
+
+#: templates/dashboard/order/detail.html:266
+msgctxt "Order placed on date"
+msgid "Placed on"
+msgstr "Creada el"
+
+#: templates/dashboard/order/detail.html:276
+#: templates/dashboard/order/detail.html:469
+#: templates/dashboard/order/pdf/packing_slip.html:64
+msgctxt "Order table header"
+msgid "Item"
+msgstr "Article"
+
+#: templates/dashboard/order/detail.html:279
+msgctxt "Order table header"
+msgid "Price"
+msgstr "Preu"
+
+#: templates/dashboard/order/detail.html:282
+#: templates/dashboard/order/detail.html:472
+#: templates/dashboard/order/pdf/packing_slip.html:70
+msgctxt "Order table header"
+msgid "Quantity"
+msgstr "Quantitat"
+
+#: templates/dashboard/order/detail.html:285
+msgctxt "Order table header"
+msgid "Total"
+msgstr "Total"
+
+#: templates/dashboard/order/detail.html:300
+#: templates/dashboard/order/fulfillment.html:85
+#, python-format
+msgctxt "Order table text"
+msgid "SKU: %(sku)s"
+msgstr "SKU: %(sku)s"
+
+#: templates/dashboard/order/detail.html:316
+#: templates/dashboard/order/detail.html:317
+msgctxt "Order table row action"
+msgid "Change quantity"
+msgstr "Canvia quantitat"
+
+#: templates/dashboard/order/detail.html:321
+#: templates/dashboard/order/detail.html:322
+msgctxt "Order table row action"
+msgid "Remove line"
+msgstr "Elimina línia"
+
+#: templates/dashboard/order/detail.html:343
+msgctxt "Order totals action"
+msgid "Edit shipping"
+msgstr "Edita l'enviament"
+
+#: templates/dashboard/order/detail.html:345
+#: templates/dashboard/order/detail.html:354
+#, python-format
+msgctxt "Order totals header"
+msgid "Shipping (%(shipping_name)s)"
+msgstr "Enviament (%(shipping_name)s)"
+
+#: templates/dashboard/order/detail.html:349
+#: templates/dashboard/order/detail.html:358
+msgctxt "Order totals header"
+msgid "Shipping"
+msgstr "Enviament"
+
+#: templates/dashboard/order/detail.html:364
+msgctxt "Order total taxes"
+msgid "Taxes (included)"
+msgstr "Impostos (inclosos)"
+
+#: templates/dashboard/order/detail.html:366
+msgctxt "Order total taxes"
+msgid "Taxes"
+msgstr "Impostos"
+
+#: templates/dashboard/order/detail.html:374
+#: templates/dashboard/order/detail.html:398
+#, python-format
+msgctxt "Order totals header"
+msgid "Discount (%(voucher)s)"
+msgstr "Descompte (%(voucher)s)"
+
+#: templates/dashboard/order/detail.html:378
+#: templates/dashboard/order/detail.html:402
+msgctxt "Order totals header"
+msgid "Discount"
+msgstr "Descompte"
+
+#: templates/dashboard/order/detail.html:385
+msgctxt "Order totals action"
+msgid "Edit voucher"
+msgstr "Edita val descompte"
+
+#: templates/dashboard/order/detail.html:386
+msgctxt "Order detail action"
+msgid "Edit voucher"
+msgstr "Edita val de descompte"
+
+#: templates/dashboard/order/detail.html:391
+msgctxt "Order totals action"
+msgid "Edit discount"
+msgstr "Edita descompte"
+
+#: templates/dashboard/order/detail.html:392
+msgctxt "Order detail action"
+msgid "Edit discount"
+msgstr "Edita descompte"
+
+#: templates/dashboard/order/detail.html:407
+msgctxt "Order totals header"
+msgid "Grand total"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:428
+msgctxt "Order summary card action title"
+msgid "Fulfill order"
+msgstr "Completar comanda"
+
+#: templates/dashboard/order/detail.html:429
+msgctxt "Order summary card action"
+msgid "Fulfill"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:433
+msgctxt "Order summary card action title"
+msgid "Add product to order"
+msgstr "Afegeix producte a la comanda"
+
+#: templates/dashboard/order/detail.html:434
+msgctxt "Order summary card action"
+msgid "Add product"
+msgstr "Afegeix producte"
+
+#: templates/dashboard/order/detail.html:439
+msgctxt "Order summary card action title"
+msgid "Create order"
+msgstr "Crea comanda"
+
+#: templates/dashboard/order/detail.html:440
+msgctxt "Order summary card action"
+msgid "Create order"
+msgstr "Crea comanda"
+
+#: templates/dashboard/order/detail.html:446
+msgctxt "Order detail action"
+msgid "Invoice"
+msgstr "Factura"
+
+#: templates/dashboard/order/detail.html:449
+msgctxt "Order detail action"
+msgid "View on site"
+msgstr "Veure al lloc web"
+
+#: templates/dashboard/order/detail.html:458
+#, python-format
+msgctxt "Fulfillment table title"
+msgid "Fulfillment #%(fulfillment)s"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:490
+#, python-format
+msgctxt "Fulfillment table text"
+msgid "Tracking number: %(tracking)s"
+msgstr "Número de seguiment: %(tracking)s"
+
+#: templates/dashboard/order/detail.html:502
+msgctxt "Fulfillment summary card action title"
+msgid "Cancel fulfillment"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:503
+msgctxt "Fulfillment summary card action"
+msgid "Cancel"
+msgstr "Cancel·la"
+
+#: templates/dashboard/order/detail.html:506
+msgctxt "Fulfillment summary card action title"
+msgid "Edit tracking number"
+msgstr "Edita número de seguiment"
+
+#: templates/dashboard/order/detail.html:508
+msgctxt "Fulfillment summary card action"
+msgid "Edit tracking"
+msgstr "Edita seguiment"
+
+#: templates/dashboard/order/detail.html:510
+msgctxt "Fulfillment summary card action"
+msgid "Add tracking"
+msgstr "Afegeix seguiment"
+
+#: templates/dashboard/order/detail.html:515
+msgctxt "Order detail action"
+msgid "Packing Slips"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:525
+msgctxt "Customer order note card title"
+msgid "Customer note"
+msgstr "Nota de client"
+
+#: templates/dashboard/order/detail.html:531
+msgctxt "No customer order note card message"
+msgid "There is no note from the customer associated with this order."
+msgstr "No hi ha cap nota del client associada a aquesta comanda."
+
+#: templates/dashboard/order/detail.html:540
+msgctxt "Order notes card title"
+msgid "Order notes"
+msgstr "Notes de comanda"
+
+#: templates/dashboard/order/detail.html:553
+msgctxt "Empty order notes card message"
+msgid "There are no notes associated with this order."
+msgstr "No hi ha notes del client associades a aquesta comanda."
+
+#: templates/dashboard/order/detail.html:559
+msgctxt "Order notes card action"
+msgid "Add note"
+msgstr "Afegeix nota"
+
+#: templates/dashboard/order/detail.html:574
+msgctxt "Payment history table header"
+msgid "Transaction ID"
+msgstr "Codi de transacció"
+
+#: templates/dashboard/order/detail.html:577
+msgctxt "Payment history table header"
+msgid "Date"
+msgstr "Data"
+
+#: templates/dashboard/order/detail.html:580
+msgctxt "Payment history table header"
+msgid "Payment status"
+msgstr "Estat de pagament"
+
+#: templates/dashboard/order/detail.html:583
+msgctxt "Payment history table header"
+msgid "Amount"
+msgstr "Quantitat"
+
+#: templates/dashboard/order/detail.html:591
+#, python-format
+msgctxt "Payment item column data"
+msgid "#%(payment_id)s"
+msgstr "# %(payment_id)s"
+
+#: templates/dashboard/order/detail.html:612
+msgctxt "Empty payment history table message"
+msgid "No payments made for this order."
+msgstr "No hi ha pagaments fets per aquesta comanda."
+
+#: templates/dashboard/order/fulfillment.html:11
+#: templates/dashboard/order/fulfillment.html:42
+msgctxt "Dashboard order fulfillment"
+msgid "Fulfill"
+msgstr ""
+
+#: templates/dashboard/order/fulfillment.html:58
+msgctxt "Fulfill order title"
+msgid "Fulfill order"
+msgstr "Completar comanda"
+
+#: templates/dashboard/order/fulfillment.html:67
+#: templates/dashboard/order/modal/cancel_line.html:25
+msgctxt "Modal remove order line table header"
+msgid "Item"
+msgstr "Article"
+
+#: templates/dashboard/order/fulfillment.html:70
+#: templates/dashboard/order/modal/cancel_line.html:34
+msgctxt "Modal remove order line table header"
+msgid "Quantity"
+msgstr "Quantitat"
+
+#: templates/dashboard/order/fulfillment.html:105
+#, python-format
+msgctxt "Fulfill order table quantity unfulfilled"
+msgid "of %(quantity_unfulfilled)s"
+msgstr "de %(quantity_unfulfilled)s"
+
+#: templates/dashboard/order/fulfillment.html:136
+msgctxt "Dashboard update action"
+msgid "Fulfill"
+msgstr ""
+
+#: templates/dashboard/order/list.html:19
+msgctxt "Order list add button text"
+msgid "Add order"
+msgstr "Afegeix comanda"
+
+#: templates/dashboard/order/list.html:97
+msgctxt "Empty order list message"
+msgid "No orders found."
+msgstr "No s'han trobat comandes."
+
+#: templates/dashboard/order/modal/add_variant_to_order.html:11
+#, python-format
+msgctxt "Modal order add variant title"
+msgid "Add product to %(order)s"
+msgstr "Afegeix el producte a %(order)s"
+
+#: templates/dashboard/order/modal/add_variant_to_order.html:22
+msgctxt "Modal order add variant primary action"
+msgid "Add"
+msgstr "Afegeix"
+
+#: templates/dashboard/order/modal/cancel_fulfillment.html:11
+#, python-format
+msgctxt "Modal cancel fulfillment title"
+msgid "Cancel fulfillment #%(fulfillment)s"
+msgstr ""
+
+#: templates/dashboard/order/modal/cancel_fulfillment.html:18
+#, python-format
+msgctxt "Modal cancel fulfillment text"
+msgid "Are you sure you want cancel fulfillment #%(fulfillment)s?"
+msgstr ""
+
+#: templates/dashboard/order/modal/cancel_fulfillment.html:26
+msgctxt "Modal cancel fulfillment cancel action"
+msgid "Abort"
+msgstr "Abortar"
+
+#: templates/dashboard/order/modal/cancel_fulfillment.html:30
+msgctxt "Modal cancel fulfillment primary action"
+msgid "Cancel Fulfillment"
+msgstr ""
+
+#: templates/dashboard/order/modal/cancel_line.html:12
+msgctxt "Modal remove order line title"
+msgid "Remove order line"
+msgstr "Elimina línia de compra"
+
+#: templates/dashboard/order/modal/cancel_line.html:17
+msgctxt "Modal remove order line text"
+msgid "Are you sure you want remove this order line?"
+msgstr "Segur que es vol eliminar aquesta línia de compra?"
+
+#: templates/dashboard/order/modal/cancel_line.html:28
+msgctxt "Modal remove order line table header"
+msgid "SKU"
+msgstr "SKU"
+
+#: templates/dashboard/order/modal/cancel_line.html:31
+msgctxt "Modal remove order line table header"
+msgid "Price"
+msgstr "Preu"
+
+#: templates/dashboard/order/modal/cancel_line.html:37
+msgctxt "Modal remove order line table header"
+msgid "Total"
+msgstr "Total"
+
+#: templates/dashboard/order/modal/cancel_order.html:11
+msgctxt "Modal cancel order title"
+msgid "Cancel order"
+msgstr "Cancel·la comanda"
+
+#: templates/dashboard/order/modal/cancel_order.html:16
+#, python-format
+msgctxt "Modal cancel order text"
+msgid "Are you sure you want cancel order %(order)s?"
+msgstr "Segur que vols cancel·lar la comanda %(order)s?"
+
+#: templates/dashboard/order/modal/cancel_order.html:24
+msgctxt "Modal cancel order cancel action"
+msgid "Abort"
+msgstr "Abortar"
+
+#: templates/dashboard/order/modal/cancel_order.html:28
+msgctxt "Modal cancel order primary action"
+msgid "Cancel Order"
+msgstr "Cancel·la comanda"
+
+#: templates/dashboard/order/modal/capture.html:13
+msgctxt "Modal capture payment title"
+msgid "Capture payment"
+msgstr "Capturar pagament"
+
+#: templates/dashboard/order/modal/capture.html:19
+msgctxt "Modal capture payment title"
+msgid "Before this action:"
+msgstr "Abans d'aquesta acció:"
+
+#: templates/dashboard/order/modal/capture.html:21
+msgctxt "Modal capture payment list title"
+msgid "Order total:"
+msgstr "Total comanda:"
+
+#: templates/dashboard/order/modal/capture.html:24
+msgctxt "Modal capture payment list title"
+msgid "Taxes (included):"
+msgstr "Impostos (inclosos):"
+
+#: templates/dashboard/order/modal/capture.html:27
+msgctxt "Modal capture payment list title"
+msgid "Captured amount:"
+msgstr "Total capturat"
+
+#: templates/dashboard/order/modal/capture.html:35
+msgctxt "Modal capture payment primary action"
+msgid "Capture"
+msgstr "Capturar"
+
+#: templates/dashboard/order/modal/change_quantity.html:11
+msgctxt "Modal change quantity title"
+msgid "Change quantity"
+msgstr "Canvia quantitat"
+
+#: templates/dashboard/order/modal/create_order.html:11
+msgctxt "Modal create order title"
+msgid "Create order"
+msgstr "Crea comanda"
+
+#: templates/dashboard/order/modal/create_order.html:16
+#, python-format
+msgctxt "Modal create order text"
+msgid ""
+"Are you sure you want create order %(order)s? Once the order has been "
+"created, you will not be able to make changes."
+msgstr ""
+"Estàs segur/a que d'eliminar la comanda %(order)s? Una vegada la comanda ha "
+"estat creada, no serà possible de fer-hi canvis. "
+
+#: templates/dashboard/order/modal/create_order.html:26
+msgctxt "Modal create order primary action"
+msgid "Create"
+msgstr "Crea"
+
+#: templates/dashboard/order/modal/edit_customer.html:11
+msgctxt "Modal edit customer title"
+msgid "Edit customer details"
+msgstr "Edita detalls del client"
+
+#: templates/dashboard/order/modal/edit_customer.html:17
+msgctxt "Modal edit customer text"
+msgid ""
+"Connect an order with an account of an existing customer or provide a "
+"contact email address."
+msgstr ""
+"Connectar una comanda amb el compte d'un client ja existent o donar un "
+"correu electrònic de contacte."
+
+#: templates/dashboard/order/modal/edit_customer.html:34
+msgctxt "Dashboard edit draft order remove action"
+msgid "Remove customer from order"
+msgstr "Elimina client de la comanda"
+
+#: templates/dashboard/order/modal/edit_customer.html:40
+msgctxt "Modal edit customer primary action"
+msgid "Update"
+msgstr "Actualitza"
+
+#: templates/dashboard/order/modal/edit_discount.html:11
+msgctxt "Modal edit discount title"
+msgid "Edit discount"
+msgstr "Edita descompte"
+
+#: templates/dashboard/order/modal/edit_discount.html:21
+msgctxt "Modal edit discount primary action"
+msgid "Update"
+msgstr "Actualitza"
+
+#: templates/dashboard/order/modal/edit_shipping.html:11
+msgctxt "Modal edit shipping title"
+msgid "Edit shipping"
+msgstr "Edita l'enviament"
+
+#: templates/dashboard/order/modal/edit_shipping.html:23
+msgctxt "Dashboard edit draft order remove action"
+msgid "Remove shipping from order"
+msgstr "Elimina enviament de la comanda"
+
+#: templates/dashboard/order/modal/edit_shipping.html:29
+msgctxt "Modal edit shipping primary action"
+msgid "Update"
+msgstr "Actualitza"
+
+#: templates/dashboard/order/modal/edit_voucher.html:11
+msgctxt "Modal edit voucher title"
+msgid "Edit voucher"
+msgstr "Edita val de descompte"
+
+#: templates/dashboard/order/modal/edit_voucher.html:23
+msgctxt "Dashboard edit draft order remove action"
+msgid "Remove voucher from order"
+msgstr "Elimina val de descompte de la comanda"
+
+#: templates/dashboard/order/modal/edit_voucher.html:29
+msgctxt "Modal edit voucher primary action"
+msgid "Update"
+msgstr "Actualitza"
+
+#: templates/dashboard/order/modal/fulfillment_tracking.html:12
+msgctxt "Modal change fulfillment tracking title"
+msgid "Edit tracking"
+msgstr "Edita seguiment"
+
+#: templates/dashboard/order/modal/fulfillment_tracking.html:14
+msgctxt "Modal change fulfillment tracking title"
+msgid "Add tracking"
+msgstr "Afegeix seguiment"
+
+#: templates/dashboard/order/modal/fulfillment_tracking.html:27
+msgctxt "Modal change fulfillment tracking primary action"
+msgid "Update"
+msgstr "Actualitza"
+
+#: templates/dashboard/order/modal/fulfillment_tracking.html:29
+msgctxt "Modal change fulfillment tracking primary action"
+msgid "Save"
+msgstr "Desa"
+
+#: templates/dashboard/order/modal/mark_as_paid.html:12
+msgctxt "Modal mark order as paid title"
+msgid "Mark order as paid"
+msgstr "Marcar la comanda com a pagada"
+
+#: templates/dashboard/order/modal/mark_as_paid.html:17
+msgctxt "Modal mark order as paid text"
+msgid "Are you sure you want mark order as paid?"
+msgstr "Segur que vols marcar la comanda com a pagada?"
+
+#: templates/dashboard/order/modal/mark_as_paid.html:18
+msgctxt "Modal mark order as paid text"
+msgid "Total received:"
+msgstr "Quantitat total rebuda: "
+
+#: templates/dashboard/order/modal/mark_as_paid.html:23
+msgctxt "Modal mark order as paid cancel action"
+msgid "Abort"
+msgstr "Abortar"
+
+#: templates/dashboard/order/modal/mark_as_paid.html:27
+msgctxt "Modal mark order as paid primary action"
+msgid "Mark as paid"
+msgstr "Marcar com a pagat"
+
+#: templates/dashboard/order/modal/refund.html:14
+msgctxt "Modal refund payment title"
+msgid "Refund payment"
+msgstr "Retornar pagament"
+
+#: templates/dashboard/order/modal/refund.html:20
+msgctxt "Modal refund payment title"
+msgid "Before this action:"
+msgstr "Abans d'aquesta acció:"
+
+#: templates/dashboard/order/modal/refund.html:22
+msgctxt "Modal refund payment list title"
+msgid "Order total:"
+msgstr "Total comanda:"
+
+#: templates/dashboard/order/modal/refund.html:25
+msgctxt "Modal refund payment list title"
+msgid "Taxes (included):"
+msgstr "Impostos (inclosos):"
+
+#: templates/dashboard/order/modal/refund.html:28
+msgctxt "Modal refund payment list title"
+msgid "Captured amount:"
+msgstr "Total capturat"
+
+#: templates/dashboard/order/modal/refund.html:36
+msgctxt "Modal refund payment primary action"
+msgid "Refund"
+msgstr "Retornar diners"
+
+#: templates/dashboard/order/modal/remove_order.html:13
+msgctxt "Modal remove order title"
+msgid "Remove draft order"
+msgstr "Elimina esborrany de comanda"
+
+#: templates/dashboard/order/modal/remove_order.html:18
+#, python-format
+msgctxt "Modal remove order text"
+msgid "Are you sure you want remove draft order %(order)s?"
+msgstr "Segur que vols eliminar l'esborrany de la comanda %(order)s?"
+
+#: templates/dashboard/order/modal/remove_order.html:25
+msgctxt "Modal remove order cancel action"
+msgid "Abort"
+msgstr "Abortar"
+
+#: templates/dashboard/order/modal/remove_order.html:29
+msgctxt "Modal remove order primary action"
+msgid "Remove draft order"
+msgstr "Elimina esborrany de comanda"
+
+#: templates/dashboard/order/modal/void.html:11
+msgctxt "Modal void payment text"
+msgid "Void payment"
+msgstr "Anul·lar pagament"
+
+#: templates/dashboard/order/modal/void.html:17
+msgctxt "Modal void payment text"
+msgid "Do you want to void the payment?"
+msgstr "Vols anul·lar el pagament?"
+
+#: templates/dashboard/order/modal/void.html:22
+msgctxt "Modal void payment primary action"
+msgid "Void"
+msgstr "Buida"
+
+#: templates/dashboard/order/pdf/invoice.html:8
+msgctxt "Invoice title"
+msgid "Invoice for Order"
+msgstr "Factura per la comanda"
+
+#: templates/dashboard/order/pdf/invoice.html:17
+msgctxt "Invoice header"
+msgid "Order"
+msgstr "Comanda"
+
+#: templates/dashboard/order/pdf/invoice.html:21
+msgctxt "Order invoice"
+msgid "Invoice"
+msgstr "Factura"
+
+#: templates/dashboard/order/pdf/invoice.html:27
+msgctxt "Invoice shipping address"
+msgid "Shipping address"
+msgstr "Adreça d'enviament"
+
+#: templates/dashboard/order/pdf/invoice.html:32
+msgctxt "Invoice billing address"
+msgid "Billing address"
+msgstr "Adreça de facturació"
+
+#: templates/dashboard/order/pdf/invoice.html:53
+msgctxt "Invoice ordered items header"
+msgid "Items Ordered"
+msgstr "Articles demanats"
+
+#: templates/dashboard/order/pdf/invoice.html:60
+msgctxt "Shipment order table header"
+msgid "Item"
+msgstr "Article"
+
+#: templates/dashboard/order/pdf/invoice.html:64
+msgctxt "Shipment order table header"
+msgid "SKU"
+msgstr "SKU"
+
+#: templates/dashboard/order/pdf/invoice.html:67
+msgctxt "Shipment order table header"
+msgid "Tax rate"
+msgstr "Taxa de l'impost"
+
+#: templates/dashboard/order/pdf/invoice.html:70
+msgctxt "Shipment order table header"
+msgid "Gross price"
+msgstr "Preu brut"
+
+#: templates/dashboard/order/pdf/invoice.html:73
+msgctxt "Shipment order table header"
+msgid "Quantity"
+msgstr "Quantitat"
+
+#: templates/dashboard/order/pdf/invoice.html:76
+msgctxt "Shipment order table header"
+msgid "Total"
+msgstr "Total"
+
+#: templates/dashboard/order/pdf/invoice.html:90
+#, python-format
+msgctxt "Order line tax rate value"
+msgid ""
+"\n"
+"              %(tax_rate)s %%\n"
+"            "
+msgstr ""
+"\n"
+"%(tax_rate)s%%"
+
+#: templates/dashboard/order/pdf/invoice.html:113
+msgctxt "Order subtotal net price"
+msgid "Subtotal"
+msgstr "Subtotal"
+
+#: templates/dashboard/order/pdf/invoice.html:121
+msgctxt "Order total shipping price header"
+msgid "Shipping"
+msgstr "Enviament"
+
+#: templates/dashboard/order/pdf/invoice.html:129
+msgctxt "Order total taxes header"
+msgid "Total taxes (included)"
+msgstr "Taxes totals (incloses)"
+
+#: templates/dashboard/order/pdf/invoice.html:138
+msgctxt "Order voucher header"
+msgid "Discount"
+msgstr "Descompte"
+
+#: templates/dashboard/order/pdf/invoice.html:149
+msgctxt "Order total price header"
+msgid "Grand total"
+msgstr ""
+
+#: templates/dashboard/order/pdf/packing_slip.html:16
+msgctxt "Packing slip header"
+msgid "Order ID:"
+msgstr "ID de comanda:"
+
+#: templates/dashboard/order/pdf/packing_slip.html:20
+msgctxt "Packing slips header"
+msgid "Packing Slips"
+msgstr ""
+
+#: templates/dashboard/order/pdf/packing_slip.html:26
+msgctxt "Packing slip shipping details"
+msgid "Shipping Details"
+msgstr "Detalls de l'enviament"
+
+#: templates/dashboard/order/pdf/packing_slip.html:30
+msgctxt "Packing slip shipping details"
+msgid "Billing Details"
+msgstr "Detalls de la factura"
+
+#: templates/dashboard/order/pdf/packing_slip.html:40
+msgctxt "Packing slip shipping address"
+msgid "Shipping address"
+msgstr "Adreça d'enviament"
+
+#: templates/dashboard/order/pdf/packing_slip.html:49
+msgctxt "Packing slip billing address"
+msgid "Billing address"
+msgstr "Adreça de facturació"
+
+#: templates/dashboard/order/pdf/packing_slip.html:58
+msgctxt "Order invoice"
+msgid "Items Ordered"
+msgstr "Articles demanats"
+
+#: templates/dashboard/order/pdf/packing_slip.html:67
+msgctxt "Order table header"
+msgid "SKU"
+msgstr "SKU"
+
+#: templates/dashboard/order/zero_page.html:5
+msgid "No orders found."
+msgstr "No s'han trobat comandes."
+
+#: templates/dashboard/order/zero_page.html:8
+msgid ""
+"\n"
+"    Orders will appear here after customers complete the checkout.\n"
+"  "
+msgstr ""
+"\n"
+"     Les comandes apareixeran aquí després que els clients completin el procés de compra."
+
+#: templates/dashboard/page/detail.html:8 templates/dashboard/page/list.html:8
+msgctxt "Pages list page title"
+msgid "Pages"
+msgstr "Pàgines"
+
+#: templates/dashboard/page/detail.html:17
+msgctxt "Pages form breadcrumbs"
+msgid "Pages"
+msgstr "Pàgines"
+
+#: templates/dashboard/page/detail.html:43
+msgctxt "Page URL"
+msgid "Page URL"
+msgstr "Enllaç de la pàgina"
+
+#: templates/dashboard/page/detail.html:49
+msgctxt "Page action"
+msgid "Edit page"
+msgstr "Edita pàgina"
+
+#: templates/dashboard/page/detail.html:52
+msgctxt "Page action"
+msgid "Remove page"
+msgstr "Elimina pàgina"
+
+#: templates/dashboard/page/detail.html:55
+msgctxt "Page action"
+msgid "View on site"
+msgstr "Veure al lloc web"
+
+#: templates/dashboard/page/form.html:8
+msgctxt "Page form page title"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/page/form.html:10
+msgctxt "Page form page title"
+msgid "Add new page"
+msgstr "Afegeix pàgna nova"
+
+#: templates/dashboard/page/form.html:26
+msgctxt "Dashboard pages list"
+msgid "Pages"
+msgstr "Pàgines"
+
+#: templates/dashboard/page/form.html:41
+msgctxt "Page form breadcrumbs"
+msgid "Add new page"
+msgstr "Afegeix pàgna nova"
+
+#: templates/dashboard/page/form.html:48
+msgctxt "Page form breadcrumbs"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/page/form.html:82 templates/dashboard/page/form.html:85
+msgid "Cancel"
+msgstr "Cancel·la"
+
+#: templates/dashboard/page/form.html:83
+msgid "Save"
+msgstr "Desa"
+
+#: templates/dashboard/page/form.html:86
+msgid "Create"
+msgstr "Crea"
+
+#: templates/dashboard/page/list.html:17
+msgctxt "Page list add button text"
+msgid "Add page"
+msgstr "Afegeix pàgina"
+
+#: templates/dashboard/page/list.html:25
+msgid "Pages"
+msgstr "Pàgines"
+
+#: templates/dashboard/page/list.html:40
+msgctxt "Static pages table header name"
+msgid "Title"
+msgstr "Títol"
+
+#: templates/dashboard/page/list.html:43
+msgctxt "Static pages table header url"
+msgid "URL"
+msgstr "Enllaç"
+
+#: templates/dashboard/page/list.html:46
+msgctxt "Pages table header"
+msgid "Visibility"
+msgstr "Visibilitat"
+
+#: templates/dashboard/page/list.html:76
+msgctxt "Empty pages list message"
+msgid "No pages found."
+msgstr "Pàgines no trobades"
+
+#: templates/dashboard/page/modal_delete.html:12
+#, python-format
+msgctxt "Modal remove page text"
+msgid "Remove page %(page)s"
+msgstr "Elimina pàgina %(page)s"
+
+#: templates/dashboard/page/modal_delete.html:19
+#, python-format
+msgctxt "Modal remove page text"
+msgid "Are you sure you want to remove page <strong>%(page)s</strong>?"
+msgstr "Segur que vols eliminar la pàgina <strong>%(page)s</strong>?"
+
+#: templates/dashboard/page/zero_page.html:5
+msgid "No pages found."
+msgstr "Pàgines no trobades"
+
+#: templates/dashboard/page/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Pages allows to create custom static pages such as \"About us\" that will be displayed at particular url.<br>\n"
+"    You can create pages by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+"\n"
+"Les pàgines et permeten crear contingut estàtic personalitzat, com per exemple la pàgina \"Sobre nosaltres\" que es mostrarà en un URL determinada. <br>\n"
+"Pots crear pàgines utilitzant els botons <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span>. "
+
+#: templates/dashboard/product/attribute/detail.html:18
+msgctxt "Attribute detail breadcrumbs"
+msgid "Attributes"
+msgstr "Atributs"
+
+#: templates/dashboard/product/attribute/detail.html:46
+msgid "Product type"
+msgstr "Tipus de producte"
+
+#: templates/dashboard/product/attribute/detail.html:53
+msgctxt "Attribute detail action"
+msgid "Edit attribute"
+msgstr "Edita atribut"
+
+#: templates/dashboard/product/attribute/detail.html:56
+msgctxt "Attribute detail action"
+msgid "Remove attribute"
+msgstr "Elimina atribut"
+
+#: templates/dashboard/product/attribute/detail.html:64
+msgid "Attribute values"
+msgstr "Valors de l'atribut"
+
+#: templates/dashboard/product/attribute/detail.html:77
+msgid "Display name"
+msgstr "Nom que es mostra"
+
+#: templates/dashboard/product/attribute/detail.html:92
+#: templates/dashboard/shipping/methods/_shipping_methods_table.html:39
+msgctxt "Attribute value edit action"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/product/attribute/detail.html:95
+msgctxt "Attribute value edit action"
+msgid "Remove"
+msgstr "Elimina"
+
+#: templates/dashboard/product/attribute/detail.html:101
+msgctxt "Empty list of attribute values"
+msgid "No attribute values"
+msgstr "Atribut sense valors"
+
+#: templates/dashboard/product/attribute/form.html:8
+#: templates/dashboard/product/attribute/values/form.html:8
+msgctxt "Dashboard attributes list"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/product/attribute/form.html:10
+#: templates/dashboard/product/attribute/values/form.html:10
+msgctxt "Attribute detail page title"
+msgid "Add new attribute"
+msgstr "Afegeix un nou atribut"
+
+#: templates/dashboard/product/attribute/form.html:45
+#: templates/dashboard/product/attribute/values/form.html:47
+msgctxt "Attribute detail breadcrumbs"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/product/attribute/form.html:51
+#: templates/dashboard/product/attribute/values/form.html:53
+msgctxt "Attribute detail breadcrumbs"
+msgid "Add new attribute"
+msgstr "Afegeix un nou atribut"
+
+#: templates/dashboard/product/attribute/list.html:17
+msgctxt "Attribute list add button text"
+msgid "Add attribute"
+msgstr "Afegeix atribut"
+
+#: templates/dashboard/product/attribute/list.html:42
+msgctxt "Dashboard attributes list table header name"
+msgid "Name"
+msgstr "Nom"
+
+#: templates/dashboard/product/attribute/list.html:44
+msgctxt "Name of product type related to the attribute"
+msgid "Product type"
+msgstr "Tipus de producte"
+
+#: templates/dashboard/product/attribute/list.html:46
+msgctxt "Dashboard attributes list table header values"
+msgid "Values"
+msgstr "Valors"
+
+#: templates/dashboard/product/attribute/list.html:76
+msgctxt "Empty attribute list message"
+msgid "No attributes found."
+msgstr "No s'han trobat atributs"
+
+#: templates/dashboard/product/attribute/modal/attribute_confirm_delete.html:12
+#, python-format
+msgctxt "Modal remove attribute text"
+msgid "Remove attribute %(attribute)s"
+msgstr "Elimina atribut %(attribute)s"
+
+#: templates/dashboard/product/attribute/modal/attribute_confirm_delete.html:19
+#, python-format
+msgctxt "Modal remove attribute text"
+msgid ""
+"Are you sure you want to remove attribute <strong>%(attribute)s</strong>?"
+msgstr "Segur que vols eliminar l'atribut <strong>%(attribute)s</strong>?"
+
+#: templates/dashboard/product/attribute/values/form.html:70
+msgctxt "Attribute values form title"
+msgid "Attribute values"
+msgstr "Valors de l'atribut"
+
+#: templates/dashboard/product/attribute/values/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Modal delete attribute text"
+msgid "Delete attribute value %(value)s"
+msgstr "Elimina valor d'atribut %(value)s"
+
+#: templates/dashboard/product/attribute/values/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Modal delete attribute text"
+msgid ""
+"Are you sure you want to remove attribute value <strong>%(value)s</strong>?"
+msgstr ""
+"Segur que vols eliminar el valor de l'atribut <strong>%(value)s</strong>?"
+
+#: templates/dashboard/product/attribute/zero_page.html:5
+#: templates/dashboard/product/product_variant/form.html:82
+msgid "No attributes found."
+msgstr "No s'han trobat atributs"
+
+#: templates/dashboard/product/attribute/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Attributes are used to define custom properties of products and variants, that can be used for filtering purposes in the storefront.<br>\n"
+"    You can add attributes by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+"\n"
+"Els atributs s'utilitzen per definir propietats personalitzades de productes o variants, es poden fer servir com a filtres a la botiga.<br>\n"
+"Pots afegir atributs utilitzant els botons <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span>."
+
+#: templates/dashboard/product/detail.html:19
+#: templates/dashboard/product/product_variant/detail.html:20
+msgctxt "Product form breadcrumbs"
+msgid "Products"
+msgstr "Productes"
+
+#: templates/dashboard/product/detail.html:54
+msgctxt "Product field"
+msgid "Published"
+msgstr "Publicat"
+
+#: templates/dashboard/product/detail.html:56
+msgctxt "Product field"
+msgid "Draft"
+msgstr "Esborrany"
+
+#: templates/dashboard/product/detail.html:77
+msgctxt "Product action"
+msgid "Edit product"
+msgstr "Edita producte"
+
+#: templates/dashboard/product/detail.html:80
+msgctxt "Product action"
+msgid "Remove product"
+msgstr "Elimina producte"
+
+#: templates/dashboard/product/detail.html:83
+msgctxt "Product action"
+msgid "View on site"
+msgstr "Veure al lloc web"
+
+#: templates/dashboard/product/detail.html:90
+msgid "Variant"
+msgstr "Variant"
+
+#: templates/dashboard/product/detail.html:99
+msgid "SKU"
+msgstr "SKU"
+
+#: templates/dashboard/product/detail.html:100
+msgid "Name"
+msgstr "Nom"
+
+#: templates/dashboard/product/detail.html:101
+msgid "Status"
+msgstr "Estat"
+
+#: templates/dashboard/product/detail.html:104
+msgid "Gross price"
+msgstr "Preu brut"
+
+#: templates/dashboard/product/detail.html:106
+msgid "Net price"
+msgstr "Preu net"
+
+#: templates/dashboard/product/detail.html:109
+msgid "Margin"
+msgstr "Marge"
+
+#: templates/dashboard/product/detail.html:132
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/product/detail.html:136
+msgctxt "Dashboard product details page"
+msgid "No variants found"
+msgstr "No s'han trobat variants"
+
+#: templates/dashboard/product/detail.html:152
+#: templates/dashboard/product/product_variant/detail.html:77
+msgctxt "Product pricing card header"
+msgid "Pricing"
+msgstr "Preus"
+
+#: templates/dashboard/product/detail.html:156
+#, python-format
+msgctxt "Product pricing card header subtitle"
+msgid "Taxes are charged (%(tax_rate)s tax rate)"
+msgstr "Les taxes s'han carregat (%(tax_rate)staxes)"
+
+#: templates/dashboard/product/detail.html:160
+msgctxt "Product pricing card header subtitle"
+msgid "Taxes are not charged"
+msgstr "Les taxes no s'han carregat"
+
+#: templates/dashboard/product/detail.html:171
+#: templates/dashboard/product/product_variant/detail.html:87
+msgctxt "Product field"
+msgid "Gross sale price"
+msgstr "Preu de venda brut"
+
+#: templates/dashboard/product/detail.html:173
+#: templates/dashboard/product/product_variant/detail.html:89
+msgctxt "Product field"
+msgid "Net sale price"
+msgstr "Preu de venda net"
+
+#: templates/dashboard/product/detail.html:184
+#: templates/dashboard/product/product_variant/detail.html:100
+msgctxt "Product field"
+msgid "Gross discounted price"
+msgstr "Preu de descompte brut"
+
+#: templates/dashboard/product/detail.html:186
+#: templates/dashboard/product/product_variant/detail.html:102
+msgctxt "Product field"
+msgid "Net discounted price"
+msgstr "Preu de descompte net"
+
+#: templates/dashboard/product/detail.html:197
+#: templates/dashboard/product/product_variant/detail.html:113
+msgctxt "Product field"
+msgid "Gross purchase cost"
+msgstr "Cost de compra brut"
+
+#: templates/dashboard/product/detail.html:199
+#: templates/dashboard/product/product_variant/detail.html:115
+msgctxt "Product field"
+msgid "Net purchase cost"
+msgstr "Cost de compra net"
+
+#: templates/dashboard/product/detail.html:208
+#: templates/dashboard/product/product_variant/detail.html:128
+msgctxt "Product field"
+msgid "Margin"
+msgstr "Marge"
+
+#: templates/dashboard/product/detail.html:231
+#: templates/dashboard/product/product_variant/detail.html:146
+msgctxt "Product variant inventory card header"
+msgid "Inventory"
+msgstr "Inventari"
+
+#: templates/dashboard/product/detail.html:240
+#: templates/dashboard/product/product_variant/detail.html:155
+msgctxt "Dashboard variant details view"
+msgid "Number in stock"
+msgstr "Nombre en estoc"
+
+#: templates/dashboard/product/detail.html:248
+#: templates/dashboard/product/product_variant/detail.html:163
+msgctxt "Dashboard variant details view"
+msgid "Allocated"
+msgstr "Assignat"
+
+#: templates/dashboard/product/detail.html:261
+#: templates/dashboard/product/product_image/list.html:7
+#: templates/dashboard/product/product_image/list.html:41
+msgid "Images"
+msgstr "Imatges"
+
+#: templates/dashboard/product/detail.html:271
+msgid "Edit images"
+msgstr "Edita imatges"
+
+#: templates/dashboard/product/form.html:8
+msgctxt "Dashboard products list"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/product/form.html:10
+msgctxt "Product form page title"
+msgid "Add new product"
+msgstr "Afegeix nou producte"
+
+#: templates/dashboard/product/form.html:43
+msgctxt "Product form breadcrumbs"
+msgid "Add new product"
+msgstr "Afegeix nou producte"
+
+#: templates/dashboard/product/form.html:50
+msgctxt "Product form breadcrumbs"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/product/form.html:111
+#: templates/dashboard/product/product_type/form.html:103
+#: templates/dashboard/product/product_variant/form.html:85
+msgid "Shipping"
+msgstr "Enviament"
+
+#: templates/dashboard/product/form.html:115
+#: templates/dashboard/product/product_variant/form.html:76
+msgid "Attributes"
+msgstr "Atributs"
+
+#: templates/dashboard/product/form.html:118
+#, python-format
+msgid ""
+"\n"
+"                    Product Type: %(product_type_name)s\n"
+"                  "
+msgstr ""
+"\n"
+"Tipus de producte: %(product_type_name)s"
+
+#: templates/dashboard/product/list.html:21
+#: templates/dashboard/product/list.html:25
+msgctxt "Product list add button text"
+msgid "Add product"
+msgstr "Afegeix producte"
+
+#: templates/dashboard/product/list.html:61
+msgctxt "Products list table header"
+msgid "Name"
+msgstr "Nom"
+
+#: templates/dashboard/product/list.html:64
+msgctxt "Products list table header"
+msgid "Price"
+msgstr "Preu"
+
+#: templates/dashboard/product/list.html:101
+msgctxt "Empty product list message"
+msgid "No products found."
+msgstr "No s'han trobat productes."
+
+#: templates/dashboard/product/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Modal remove product text"
+msgid "Remove product %(product)s"
+msgstr "Elimina producte %(product)s"
+
+#: templates/dashboard/product/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Modal remove product text"
+msgid "Are you sure you want to remove product <strong>%(product)s</strong>?"
+msgstr "Segur que vols eliminar el producte <strong>%(product)s</strong>?"
+
+#: templates/dashboard/product/modal/select_type.html:11
+msgctxt "Modal select product types title"
+msgid "Product type"
+msgstr "Tipus de producte"
+
+#: templates/dashboard/product/modal/select_type.html:19
+msgctxt "Dashboard add action"
+msgid "Create"
+msgstr "Crea"
+
+#: templates/dashboard/product/product_image/form.html:8
+msgctxt "Image form text"
+msgid "Edit - Image"
+msgstr "Edita - Imatge"
+
+#: templates/dashboard/product/product_image/form.html:10
+msgctxt "Image form text"
+msgid "Add image"
+msgstr "Afegeix imatge"
+
+#: templates/dashboard/product/product_image/form.html:38
+msgctxt "Image form text"
+msgid "Image"
+msgstr "Imatge"
+
+#: templates/dashboard/product/product_image/form.html:43
+msgctxt "Image form text"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/product/product_image/form.html:49
+msgctxt "Image form breadcrumbs"
+msgid "Add image"
+msgstr "Afegeix imatge"
+
+#: templates/dashboard/product/product_image/form.html:52
+#, python-format
+msgctxt "Image form breadcrumbs"
+msgid "Add image for %(product)s"
+msgstr "Afegeix imatge per %(product)s"
+
+#: templates/dashboard/product/product_image/list.html:19
+msgctxt "Add image button text"
+msgid "Add image"
+msgstr "Afegeix imatge"
+
+#: templates/dashboard/product/product_image/list.html:73
+msgctxt "Image card text"
+msgid "No description"
+msgstr "Sense descripció"
+
+#: templates/dashboard/product/product_image/list.html:87
+#: templates/dashboard/product/product_image/list.html:131
+msgctxt "Dashboard remove action"
+msgid "Remove"
+msgstr "Elimina"
+
+#: templates/dashboard/product/product_image/list.html:101
+msgctxt "Image gallery upload box text"
+msgid "Drop images here to upload"
+msgstr "Arrossega la imatge aquí per pujar-la"
+
+#: templates/dashboard/product/product_image/list.html:120
+msgctxt "Empty image gallery message"
+msgid "No description"
+msgstr "Sense descripció"
+
+#: templates/dashboard/product/product_image/modal/confirm_delete.html:12
+msgctxt "Modal remove image text"
+msgid "Remove product image"
+msgstr "Elimina imatge del producte"
+
+#: templates/dashboard/product/product_image/modal/confirm_delete.html:20
+msgctxt "Modal remove image text"
+msgid "Are you sure you want to remove product image?"
+msgstr "Segur que vols eliminar la imatge del producte?"
+
+#: templates/dashboard/product/product_image/versatile_image.html:7
+msgid "Primary Point of Interest"
+msgstr "Punt d'interès primari"
+
+#: templates/dashboard/product/product_image/versatile_image.html:10
+msgctxt "Image form text"
+msgid "Pick the most relevant part of the image using the red circle."
+msgstr ""
+"Selecciona la part més important de la imatge utilitzant el cercle vermell"
+
+#: templates/dashboard/product/product_type/form.html:10
+msgctxt "Product type page title"
+msgid "Add new product type"
+msgstr "Afegeix una nova tipologia de producte"
+
+#: templates/dashboard/product/product_type/form.html:41
+msgctxt "Product type breadcrumbs"
+msgid "Add new product type"
+msgstr "Afegeix una nova tipologia de producte"
+
+#: templates/dashboard/product/product_type/form.html:57
+msgctxt "Product type action"
+msgid "Remove product type"
+msgstr "Elimina el tipus de producte"
+
+#: templates/dashboard/product/product_type/form.html:95
+msgid "Taxes"
+msgstr "Impostos"
+
+#: templates/dashboard/product/product_type/form.html:132
+msgctxt "Product type help text"
+msgid ""
+"Product Type is a template used for creating new products. It also controls "
+"which attributes can be used during product creation process."
+msgstr ""
+"El tipus de producte és una plantilla utilitzada per crear nous productes. "
+"També controla quins atributs es poden utilitzar durant el procés de creació"
+" del producte."
+
+#: templates/dashboard/product/product_type/list.html:18
+msgctxt "Product type list add button text"
+msgid "Add product type"
+msgstr "Afegeix tipologia de producte"
+
+#: templates/dashboard/product/product_type/list.html:44
+msgctxt "Dashboard product types list table header name"
+msgid "Name"
+msgstr "Nom"
+
+#: templates/dashboard/product/product_type/list.html:48
+msgctxt "Product type item list text"
+msgid "Product attributes"
+msgstr "Atributs de producte"
+
+#: templates/dashboard/product/product_type/list.html:51
+msgctxt "Product type item list text"
+msgid "Variant attributes"
+msgstr "Variants de producte"
+
+#: templates/dashboard/product/product_type/list.html:89
+msgctxt "Empty product type list message"
+msgid "No product types found."
+msgstr "No s'han trobat tipus de productes"
+
+#: templates/dashboard/product/product_type/modal/confirm_delete.html:13
+#, python-format
+msgctxt "Modal remove product type text"
+msgid "Remove product type %(product_type)s"
+msgstr "Elimina el tipus de producte %(product_type)s"
+
+#: templates/dashboard/product/product_type/modal/confirm_delete.html:21
+#, python-format
+msgctxt "Modal remove product type text"
+msgid ""
+"Are you sure you want to remove product type "
+"<strong>%(product_type)s</strong>?"
+msgstr ""
+"Segur que vols eliminar el tipus de producte "
+"<strong>%(product_type)s</strong>?"
+
+#: templates/dashboard/product/product_type/modal/confirm_delete.html:27
+#, python-format
+msgctxt "Modal remove product type text"
+msgid "There are %(product_count)s products in product type."
+msgstr "Hi han %(product_count)s productes de la tipologia."
+
+#: templates/dashboard/product/product_type/modal/confirm_delete.html:31
+msgctxt "Modal remove product type text"
+msgid "There are no products in this product type."
+msgstr "No hi ha més productes d'aquest tipus."
+
+#: templates/dashboard/product/product_type/zero_page.html:5
+msgid "No product types found."
+msgstr "No s'han trobat tipus de productes"
+
+#: templates/dashboard/product/product_type/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Product types are templates used to create new products. They allow assigning custom attributes to the products of the same type.<br>\n"
+"    You can add product types by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+"\n"
+"Els tipus de producte són plantilles que s'utilitzen per crear nous productes. Permeten assignar atributs personalitzats als productes del mateix tipus.<br>\n"
+"     Pots afegir tipus de productes mitjançant el botó <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span>."
+
+#: templates/dashboard/product/product_variant/detail.html:52
+msgctxt "Dashboard variant details view"
+msgid "SKU"
+msgstr "SKU"
+
+#: templates/dashboard/product/product_variant/detail.html:62
+msgctxt "Dashboard action"
+msgid "Edit variant"
+msgstr "Edita variant"
+
+#: templates/dashboard/product/product_variant/detail.html:65
+msgctxt "Dashboard action"
+msgid "Remove variant"
+msgstr "Elimina variant"
+
+#: templates/dashboard/product/product_variant/detail.html:175
+msgctxt "Dashboard variant details view"
+msgid "Variant Images"
+msgstr "Imatges de variants"
+
+#: templates/dashboard/product/product_variant/detail.html:183
+msgid "No images"
+msgstr "Sense imatges"
+
+#: templates/dashboard/product/product_variant/detail.html:190
+msgctxt "Dashboard action"
+msgid "Select images"
+msgstr "Selecciona imatges"
+
+#: templates/dashboard/product/product_variant/form.html:8
+msgctxt "Variant form page title"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/product/product_variant/form.html:10
+msgctxt "Variant form page title"
+msgid "Add variant"
+msgstr "Afegeix variant"
+
+#: templates/dashboard/product/product_variant/form.html:47
+msgctxt "Variant form breadcrumbs"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/product/product_variant/form.html:53
+msgctxt "Variant form breadcrumbs"
+msgid "Add variant"
+msgstr "Afegeix variant"
+
+#: templates/dashboard/product/product_variant/form.html:56
+#, python-format
+msgctxt "Variant form breadcrumbs"
+msgid "Add variant for %(product)s"
+msgstr "Afegeix variant per %(product)s"
+
+#: templates/dashboard/product/product_variant/modal/confirm_delete.html:13
+#, python-format
+msgctxt "Dashboard confirmation modal"
+msgid ""
+"\n"
+"  Remove variant %(variant)s\n"
+msgstr ""
+"\n"
+"  Elimina variant %(variant)s\n"
+
+#: templates/dashboard/product/product_variant/modal/confirm_delete.html:21
+#, python-format
+msgctxt "Dashboard confirmation modal"
+msgid ""
+"\n"
+"        Are you sure you want to remove variant <strong>%(variant)s</strong> of product %(product)s?\n"
+"      "
+msgstr ""
+"\n"
+"        Segur que vols eliminar la variant  <strong>%(variant)s</strong> del producte %(product)s?\n"
+"      "
+
+#: templates/dashboard/product/product_variant/modal/confirm_delete.html:27
+msgctxt "Dashboard confirmation modal"
+msgid ""
+"This is the only variant of this product. If you remove it, the product will"
+" become unavailable."
+msgstr ""
+"Aquesta és la única variant d'aquest producte. Si l'elimines, el producte "
+"passarà a ser no disponible."
+
+#: templates/dashboard/product/product_variant/modal/select_images.html:14
+msgctxt "Dashboard variant images modal"
+msgid "Select variant images"
+msgstr "Selecciona imatges de variants"
+
+#: templates/dashboard/product/product_variant/modal/select_images.html:24
+msgctxt "Dashboard modal action"
+msgid "Save"
+msgstr "Desa"
+
+#: templates/dashboard/product/zero_page.html:5
+msgid "No products found."
+msgstr "No s'han trobat productes."
+
+#: templates/dashboard/product/zero_page.html:10
+#, python-format
+msgid ""
+"\n"
+"      You can create products by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"    "
+msgstr ""
+"\n"
+"Pots crear productes mitjançant el botó <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span>."
+
+#: templates/dashboard/product/zero_page.html:14
+#, python-format
+msgid ""
+"\n"
+"      In order to create products, you have to first <a href=\"%(product_type_url)s\">add a product type </a>.\n"
+"    "
+msgstr ""
+"\n"
+"     Per crear productes, primer cal <a href=\"%(product_type_url)s\">afegir un tipus de producte</a>."
+
+#: templates/dashboard/search/results.html:9 templates/search/results.html:6
+msgctxt "Search page title"
+msgid "Search results"
+msgstr "Resultats de cerca"
+
+#: templates/dashboard/search/results.html:14
+msgctxt "Dashboard search"
+msgid "Search results"
+msgstr "Resultats de cerca"
+
+#: templates/dashboard/search/results.html:25
+msgctxt "Search results list products"
+msgid "Products"
+msgstr "Productes"
+
+#: templates/dashboard/search/results.html:47
+msgctxt "Search results list orders"
+msgid "Orders"
+msgstr "Comandes"
+
+#: templates/dashboard/search/results.html:54
+#, python-format
+msgctxt "Dashboard order"
+msgid "Order #%(order_number)s"
+msgstr "Comanda #%(order_number)s"
+
+#: templates/dashboard/search/results.html:60
+#, python-format
+msgctxt "Dashboard customer"
+msgid "Customer: %(email)s"
+msgstr "Client: %(email)s"
+
+#: templates/dashboard/search/results.html:65
+#, python-format
+msgctxt "Dashboard order info"
+msgid "Placed on: %(placed)s"
+msgstr "Realitzada el: %(placed)s"
+
+#: templates/dashboard/search/results.html:76
+msgctxt "Search results list users"
+msgid "Users"
+msgstr "Usuaris"
+
+#: templates/dashboard/search/results.html:83
+#, python-format
+msgctxt "Dashboard user"
+msgid "User %(full_name)s"
+msgstr "Usuari %(full_name)s"
+
+#: templates/dashboard/search/results.html:100
+#, python-format
+msgctxt "No Search result message"
+msgid "No results for query \"%(query)s\"."
+msgstr "No tenim resultats per \"%(query)s\"."
+
+#: templates/dashboard/shipping/detail.html:19
+msgctxt "Shipping zone form breadcrumbs"
+msgid "Shipping zones"
+msgstr "Zones d'enviament"
+
+#: templates/dashboard/shipping/detail.html:39
+#, python-format
+msgid ""
+"\n"
+"              %(shipping_name)s  <small>(ships to %(list_of_countries)s)</small>\n"
+"            "
+msgstr ""
+"\n"
+"              %(shipping_name)s  <small>(s'envia a %(list_of_countries)s)</small>\n"
+"            "
+
+#: templates/dashboard/shipping/detail.html:46
+msgctxt "Shipping zone action"
+msgid "Edit shipping zone"
+msgstr "Edita zona d'enviament"
+
+#: templates/dashboard/shipping/detail.html:49
+msgctxt "Shipping zone action"
+msgid "Remove shipping zone"
+msgstr "Elimina la zona d'enviament"
+
+#: templates/dashboard/shipping/detail.html:54
+msgctxt "Title of the shipping methods list"
+msgid "Price based shipping"
+msgstr "Preu basat en l'enviament"
+
+#: templates/dashboard/shipping/detail.html:55
+msgctxt "Title of the shipping methods list"
+msgid "Weight based shipping"
+msgstr "Enviament basat en el pes"
+
+#: templates/dashboard/shipping/form.html:9
+msgctxt "Dashboard shipping zones"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/shipping/form.html:11
+#: templates/dashboard/shipping/form.html:24
+msgctxt "Shipping zone form page title"
+msgid "Add new shipping zone"
+msgstr "Afegeix nova zona de d'enviament"
+
+#: templates/dashboard/shipping/form.html:32
+msgctxt "Dashboard shipping zone"
+msgid "Shipping zones"
+msgstr "Zones d'enviament"
+
+#: templates/dashboard/shipping/form.html:48
+msgctxt "Shipping zone form page title"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/shipping/form.html:54
+msgctxt "Shipping zone form breadcrumbs"
+msgid "Add new shipping zone"
+msgstr "Afegeix nova zona de d'enviament"
+
+#: templates/dashboard/shipping/list.html:10
+#: templates/dashboard/shipping/list.html:20
+msgctxt "Dashboard shipping zones list"
+msgid "Shipping zones"
+msgstr "Zones d'enviament"
+
+#: templates/dashboard/shipping/list.html:27
+msgctxt "Shipping zone list add button text"
+msgid "Add shipping zone"
+msgstr "Afegeix zona d'enviament"
+
+#: templates/dashboard/shipping/list.html:42
+msgctxt "Shipping zones table header, name of the shipping zone"
+msgid "Shipping zone"
+msgstr "Zona d'enviament"
+
+#: templates/dashboard/shipping/list.html:46
+msgctxt ""
+"Shipping zones table header, price range of shipping methods within shipping"
+" zone"
+msgid "Price range"
+msgstr "Rang de preus"
+
+#: templates/dashboard/shipping/list.html:49
+msgctxt ""
+"Shipping zones table header, list of countries within of shipping zone"
+msgid "Countries"
+msgstr "Països"
+
+#: templates/dashboard/shipping/list.html:83
+msgctxt "Empty shipping list message"
+msgid "No shipping zones found."
+msgstr "No s'han trobat zones d'enviament."
+
+#: templates/dashboard/shipping/list.html:95
+msgid "Default Weight Unit"
+msgstr "Pes de la unitat per defecte"
+
+#: templates/dashboard/shipping/methods/_shipping_methods_table.html:21
+msgctxt "Header of the shipping methods list"
+msgid "Name"
+msgstr "Nom"
+
+#: templates/dashboard/shipping/methods/_shipping_methods_table.html:24
+msgctxt "Header of the shipping methods list"
+msgid "Range"
+msgstr "Rang"
+
+#: templates/dashboard/shipping/methods/_shipping_methods_table.html:27
+msgctxt "Header of the shipping methods list"
+msgid "Price"
+msgstr "Preu"
+
+#: templates/dashboard/shipping/methods/_shipping_methods_table.html:42
+msgctxt "Attribute value remove action"
+msgid "Remove"
+msgstr "Elimina"
+
+#: templates/dashboard/shipping/methods/_shipping_methods_table.html:48
+msgctxt "Empty list of shipping methods prices"
+msgid "No shipping methods"
+msgstr "No hi ha mètodes d'enviament"
+
+#: templates/dashboard/shipping/methods/form.html:8
+msgctxt "Dashboard shipping method edit page"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/shipping/methods/form.html:10
+msgctxt "Shipping method edit page title"
+msgid "Add new shipping method"
+msgstr "Afegeix nou mètode d'enviament"
+
+#: templates/dashboard/shipping/methods/form.html:31
+msgctxt "Dashboard attributes list"
+msgid "Shipping zones"
+msgstr "Zones d'enviament"
+
+#: templates/dashboard/shipping/methods/form.html:49
+msgctxt "Shipping method breadcrumbs"
+msgid "Edit shipping method"
+msgstr "Edita mètode d'enviament"
+
+#: templates/dashboard/shipping/methods/form.html:55
+msgctxt "Shipping method breadcrumbs"
+msgid "Add shipping method"
+msgstr "Afegeix mètode d'enviament"
+
+#: templates/dashboard/shipping/methods/form.html:72
+msgctxt "Shipping method form title"
+msgid "Shipping method"
+msgstr "Mètode d'enviament"
+
+#: templates/dashboard/shipping/modal/confirm_delete.html:13
+#, python-format
+msgctxt "Dashboard confirmation modal"
+msgid ""
+"\n"
+"Remove shipping zone %(shipping_zone)s\n"
+msgstr ""
+"\n"
+"Elimina la zona d'enviament %(shipping_zone)s\n"
+
+#: templates/dashboard/shipping/modal/confirm_delete.html:20
+#, python-format
+msgctxt "Dashboard confirmation modal"
+msgid ""
+"\n"
+"      Are you sure you want to remove shipping zone <strong>%(shipping_zone)s</strong>?\n"
+"    "
+msgstr ""
+"\n"
+"      Segur que vols eliminar la zona d'enviament <strong>%(shipping_zone)s</strong>?\n"
+"    "
+
+#: templates/dashboard/shipping/modal/method_confirm_delete.html:12
+#, python-format
+msgctxt "Modal remove shipping method title"
+msgid "Remove shipping method %(shipping_method)s"
+msgstr "Elimina mètode d'enviament %(shipping_method)s"
+
+#: templates/dashboard/shipping/modal/method_confirm_delete.html:19
+#, python-format
+msgctxt "Modal remove shipping method shipping method text"
+msgid ""
+"Are you sure you want to remove shipping method "
+"<strong>%(shipping_method)s</strong>?"
+msgstr ""
+"Segur que vols eliminar el mètode d'enviament "
+"<strong>%(shipping_method)s</strong>?"
+
+#: templates/dashboard/shipping/zero_page.html:5
+msgid "No shipping zones found."
+msgstr "No s'han trobat zones d'enviament."
+
+#: templates/dashboard/shipping/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Shipping zones allows defining shipping zones that are available in the shop.<br>\n"
+"    You can add shipping zones by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+"\n"
+"Les zones d'enviament permeten definir les zones d'enviament disponibles a la botiga.<br>\n"
+"     Podeu afegir zones d'enviament mitjançant el botó<span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span>."
+
+#: templates/dashboard/sites/authorization_keys/form.html:8
+msgctxt "Dashboard authorization key list"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/sites/authorization_keys/form.html:10
+msgctxt "Add new authorization key page title"
+msgid "Add new authorization key"
+msgstr "Afegeix nova clau d'autorització"
+
+#: templates/dashboard/sites/authorization_keys/form.html:29
+msgctxt "Dashboard site setting detail"
+msgid "Site settings"
+msgstr "Configuració del lloc web"
+
+#: templates/dashboard/sites/authorization_keys/form.html:40
+msgctxt "Authorization key breadcrumbs"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/sites/authorization_keys/form.html:46
+msgctxt "Authorization key breadcrumbs"
+msgid "Add new authorization key"
+msgstr "Afegeix nova clau d'autorització"
+
+#: templates/dashboard/sites/authorization_keys/form.html:63
+msgctxt "Authorization key form title"
+msgid "Authorization key"
+msgstr "Clau d'autorització"
+
+#: templates/dashboard/sites/detail.html:33
+msgctxt "Site settings field"
+msgid "Domain"
+msgstr "Domini"
+
+#: templates/dashboard/sites/detail.html:43
+msgctxt "Site settings field"
+msgid "Header text"
+msgstr "Text de capçalera"
+
+#: templates/dashboard/sites/detail.html:53
+msgctxt "Site settings field"
+msgid "Description"
+msgstr "Descripció"
+
+#: templates/dashboard/sites/detail.html:63
+msgctxt "Site settings action"
+msgid "Edit site settings"
+msgstr "Edita configuració del lloc"
+
+#: templates/dashboard/sites/detail.html:72
+msgctxt "Title of the authorization keys list"
+msgid "Authorization keys"
+msgstr "Claus d'accés"
+
+#: templates/dashboard/sites/detail.html:85
+msgctxt "Header of authorization keys list"
+msgid "Name"
+msgstr "Nom"
+
+#: templates/dashboard/sites/detail.html:88
+msgctxt "Header of authorization keys list"
+msgid "Key"
+msgstr "Clau"
+
+#: templates/dashboard/sites/detail.html:99
+msgctxt "Authorization key edit action"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/sites/detail.html:102
+msgctxt "Authorization key remove action"
+msgid "Remove"
+msgstr "Elimina"
+
+#: templates/dashboard/sites/detail.html:108
+msgctxt "Empty list of authorization keys"
+msgid "No authorization keys"
+msgstr "No hi ha claus d'autorització"
+
+#: templates/dashboard/sites/form.html:9
+#: templates/dashboard/taxes/form.html:10
+msgctxt "Site settings page title"
+msgid "Add new site settings"
+msgstr "Afegeix nova configuració del lloc"
+
+#: templates/dashboard/sites/form.html:22
+msgctxt "Dashboard attributes list"
+msgid "Site settings"
+msgstr "Configuració del lloc web"
+
+#: templates/dashboard/sites/form.html:27
+msgctxt "Dashboard site settings"
+msgid "Edit"
+msgstr "Edita"
+
+#: templates/dashboard/sites/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Modal delete authorization key text"
+msgid "Delete authorization key %(key)s"
+msgstr "Elimina clau d'autorització %(key)s"
+
+#: templates/dashboard/sites/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Modal delete authorization key text"
+msgid ""
+"Are you sure you want to remove authorization key <strong>%(key)s</strong>?"
+msgstr ""
+"Segur que vols eliminar la clau d'autorització <strong>%(key)s</strong>?"
+
+#: templates/dashboard/staff/detail.html:10
+msgctxt "Dashboard add staff member"
+msgid "Add new staff member"
+msgstr "Afegeix nou treballador"
+
+#: templates/dashboard/staff/detail.html:12
+msgctxt "Dashboard staff"
+msgid "Staff"
+msgstr "Treballadors"
+
+#: templates/dashboard/staff/detail.html:28
+msgctxt "Dashboard staff list"
+msgid "Staff"
+msgstr "Treballadors"
+
+#: templates/dashboard/staff/detail.html:36
+msgctxt "Dashboard add staff member action"
+msgid "Add staff member"
+msgstr "Afegeix treballador"
+
+#: templates/dashboard/staff/detail.html:48
+msgctxt "Staff member form action"
+msgid "Remove staff member"
+msgstr "Elimina treballador"
+
+#: templates/dashboard/staff/detail.html:62
+msgctxt "Staff member details header"
+msgid "Staff member details"
+msgstr "Detalls del treballador"
+
+#: templates/dashboard/staff/list.html:8
+#: templates/dashboard/staff/list.html:28
+msgctxt "Dashboard staff members list"
+msgid "Staff"
+msgstr "Treballadors"
+
+#: templates/dashboard/staff/list.html:18
+msgctxt "Staff members list add button text"
+msgid "Add staff member"
+msgstr "Afegeix treballador"
+
+#: templates/dashboard/staff/list.html:42
+msgctxt "Staff members table header"
+msgid "Name"
+msgstr "Nom"
+
+#: templates/dashboard/staff/list.html:45
+msgctxt "Staff members table header"
+msgid "Email"
+msgstr "Email"
+
+#: templates/dashboard/staff/list.html:48
+msgctxt "Staff members table header"
+msgid "Location"
+msgstr "Localització"
+
+#: templates/dashboard/staff/list.html:88
+msgctxt "Empty staff table message"
+msgid "No staff members found."
+msgstr "No s'han trobat treballadors"
+
+#: templates/dashboard/staff/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Modal remove group text"
+msgid "Remove staff member <strong>%(staff)s</strong>"
+msgstr "Elimina treballador <strong>%(staff)s</strong>"
+
+#: templates/dashboard/staff/modal/confirm_delete.html:19
+msgctxt "Modal remove group text"
+msgid "Are you sure you want to remove staff member?"
+msgstr "Segur que vols eliminar el treballador?"
+
+#: templates/dashboard/staff/zero_page.html:5
+msgid "No staff members found."
+msgstr "No s'han trobat treballadors"
+
+#: templates/dashboard/staff/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Staff members are users who have access to the dashboard.<br>\n"
+"    You can create staff members by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button or by using option \"Promote to staff\" in the customer details view.\n"
+"  "
+msgstr ""
+"\n"
+"Els treballadors de l'equip són usuaris que tenen accés al tauler.<br>\n"
+"Podeu crear treballadors mitjançant el botó <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> o utilitzant l'opció \"Promociona treballador\" a la vista de detalls del client."
+
+#: templates/dashboard/taxes/details.html:18
+msgctxt "Tax details breadcrumbs"
+msgid "Taxes"
+msgstr "Impostos"
+
+#: templates/dashboard/taxes/details.html:40
+#, python-format
+msgctxt "Country tax rates list title"
+msgid "Tax rates in %(country_name)s"
+msgstr "Taxes d'impostos a %(country_name)s"
+
+#: templates/dashboard/taxes/details.html:50
+msgctxt "Country tax rates list header"
+msgid "Name"
+msgstr "Nom"
+
+#: templates/dashboard/taxes/details.html:53
+msgctxt "Country tax rates list header"
+msgid "Value"
+msgstr "Valor"
+
+#: templates/dashboard/taxes/details.html:62
+#, python-format
+msgctxt "Order line tax rate value"
+msgid ""
+"\n"
+"                      %(tax_rate)s %%\n"
+"                    "
+msgstr ""
+"\n"
+"                      %(tax_rate)s %%\n"
+"                    "
+
+#: templates/dashboard/taxes/details.html:69
+msgctxt "Empty country tax rates list"
+msgid "No tax rates"
+msgstr "Sense impostos"
+
+#: templates/dashboard/taxes/form.html:23
+#: templates/dashboard/taxes/list.html:7
+#: templates/dashboard/taxes/list.html:15
+msgctxt "Dashboard taxes list"
+msgid "Taxes"
+msgstr "Impostos"
+
+#: templates/dashboard/taxes/form.html:28
+msgctxt "Dashboard configure taxes settings"
+msgid "Configure taxes"
+msgstr "Configurar impostos"
+
+#: templates/dashboard/taxes/form.html:42
+msgctxt "Dashboard site taxes settings form title"
+msgid "Taxes"
+msgstr "Impostos"
+
+#: templates/dashboard/taxes/form.html:46
+msgid "Dashboard"
+msgstr "Panell"
+
+#: templates/dashboard/taxes/form.html:54
+msgctxt "Dashboard site taxes settings form help text"
+msgid ""
+"\n"
+"                    If selected, taxes will be calculated using below formula:\n"
+"                  "
+msgstr ""
+"\n"
+"Si es selecciona, els impostos es calcularan mitjançant la fórmula següent:"
+
+#: templates/dashboard/taxes/form.html:59
+msgctxt "Dashboard site taxes settings form help text"
+msgid ""
+"\n"
+"                    tax_amount = (tax_rate * price) / (1 + tax_rate)\n"
+"                  "
+msgstr ""
+"\n"
+" tax_amount = (tax_rate * price) / (1 + tax_rate)"
+
+#: templates/dashboard/taxes/form.html:64
+#, python-format
+msgctxt "Dashboard site taxes settings form help text"
+msgid ""
+"\n"
+"                    For example: product with price 4.00 € and 19%% VAT will have net price calculated to 3.36 € and tax to 0.64 € (rounded)\n"
+"                  "
+msgstr ""
+
+#: templates/dashboard/taxes/form.html:71
+msgid "Storefront"
+msgstr "Aparador"
+
+#: templates/dashboard/taxes/form.html:79
+msgctxt "Dashboard site taxes settings form help text"
+msgid ""
+"\n"
+"                    If selected, prices displayed for customers in the storefront will be gross and taxes will be calculated at checkout.\n"
+"                  "
+msgstr ""
+"\n"
+"Si es selecciona, els preus que es mostren per als clients a la botiga seran bruts i els impostos es calcularan durant el procés de compra ."
+
+#: templates/dashboard/taxes/form.html:91
+msgctxt "Dashboard site taxes settings form help text"
+msgid ""
+"\n"
+"                    If selected, standard tax rate will be charged on a shipping price.\n"
+"                  "
+msgstr ""
+
+#: templates/dashboard/taxes/form.html:112
+msgctxt "Taxes help text"
+msgid ""
+"Taxes are charged according to the rates applicable in the country to which "
+"the order is delivered. For now, only rates in European Union are handled."
+msgstr ""
+"Els impostos es cobren segons les tarifes aplicables al país al qual s'envia"
+" la comanda. De moment, només es gestionen taxes de la Unió Europea."
+
+#: templates/dashboard/taxes/list.html:29
+msgctxt "Taxes table header"
+msgid "Country code"
+msgstr "Codi de país"
+
+#: templates/dashboard/taxes/list.html:33
+msgctxt "Taxes table header"
+msgid "Country name"
+msgstr "Nom de país"
+
+#: templates/dashboard/taxes/list.html:61
+msgctxt "Empty taxes message"
+msgid "No taxes found."
+msgstr "No hi ha impostos."
+
+#: templates/dashboard/taxes/list.html:75
+msgctxt "Taxes site settings title"
+msgid "Configuration"
+msgstr "Configuraicó"
+
+#: templates/dashboard/taxes/list.html:80
+msgctxt "Site settings field"
+msgid "All products prices are entered with tax included"
+msgstr "Tots els preus dels productes entrats inclouen taxes."
+
+#: templates/dashboard/taxes/list.html:84
+msgctxt "Include taxes in prices setting description"
+msgid "Yes"
+msgstr "Sí"
+
+#: templates/dashboard/taxes/list.html:86
+msgctxt "Include taxes in prices setting description"
+msgid "No"
+msgstr "No"
+
+#: templates/dashboard/taxes/list.html:94
+msgctxt "Site settings field"
+msgid "Show gross prices to customers in the storefront"
+msgstr "Mostra els preus bruts als clients de la botiga"
+
+#: templates/dashboard/taxes/list.html:98
+msgctxt "Show customers gross prices setting description"
+msgid "Yes"
+msgstr "Sí"
+
+#: templates/dashboard/taxes/list.html:100
+msgctxt "Show customers gross prices setting description"
+msgid "No"
+msgstr "No"
+
+#: templates/dashboard/taxes/list.html:108
+msgctxt "Site settings field"
+msgid "Charge taxes on shipping rates"
+msgstr "Carregar impostos a les despeses d'enviament"
+
+#: templates/dashboard/taxes/list.html:112
+msgctxt "Charge taxes on shipping rates setting description"
+msgid "Yes"
+msgstr "Sí"
+
+#: templates/dashboard/taxes/list.html:114
+msgctxt "Charge taxes on shipping rates setting description"
+msgid "No"
+msgstr "No"
+
+#: templates/dashboard/taxes/list.html:122
+msgctxt "Site settings configure taxes action"
+msgid "Configure taxes"
+msgstr "Configurar impostos"
+
+#: templates/dashboard/taxes/list.html:127
+msgctxt "Site settings fetch tax rates action"
+msgid "Fetch tax rates"
+msgstr "Obtenir taxes d'impostos"
+
+#: templates/dashboard/taxes/zero_page.html:4
+msgid "No taxes found."
+msgstr "No hi ha impostos."
+
+#: templates/dashboard/taxes/zero_page.html:6
+msgid ""
+"\n"
+"    Taxes define tax rates used in European Union countries and needs to be fetched manually.<br>\n"
+"    To enable fetching taxes, please provide your access key to <a href=\"https://vatlayer.com/\">vatlayer</a> API in settings file.\n"
+"  "
+msgstr ""
+"\n"
+"Els impostos defineixen els tipus d'impostos utilitzats als països de la Unió Europea i s'han d'obtenir manualment.<br>\n"
+"     Per habilitar l'obtenció d'impostos, proporcioneu la clau d'accés a l'API de<a href=\"https://vatlayer.com/\"> Vatlayer al fitxer de configuració."
+
+#: templates/home.html:12
+msgctxt "Homepage title"
+msgid "Promo & Sale"
+msgstr "Promoció i saldos"
+
+#: templates/home.html:13
+msgctxt "Homepage title"
+msgid "from the Northpole"
+msgstr "des del Pol Nord"
+
+#: templates/home.html:15 templates/home.html:30 templates/home.html:42
+msgctxt "Homepage action"
+msgid "Shop now"
+msgstr "Comprar ara"
+
+#: templates/home.html:29
+msgctxt "Homepage title"
+msgid "Size & Colours"
+msgstr "Mida i colors"
+
+#: templates/home.html:41
+msgctxt "Homepage title"
+msgid "Digital Downloads"
+msgstr "Descàrregues digitals"
+
+#: templates/home.html:51
+msgctxt "Homepage title"
+msgid "Featured products"
+msgstr "Productes destacats"
+
+#: templates/materializecssform/field.html:32
+#: templates/materializecssform/field.html:59
+#: templates/materializecssform/field.html:86
+#: templates/materializecssform/field.html:109
+#: templates/materializecssform/field.html:135
+#: templates/materializecssform/field.html:160
+#: templates/materializecssform/field.html:180
+#: templates/materializecssform/field.html:194
+#: templates/materializecssform/field.html:228
+#: templates/materializecssform/field.html:257
+#: templates/materializecssform/field.html:283
+#: templates/materializecssform/field.html:316
+#: templates/materializecssform/field.html:344
+#: templates/materializecssform/field.html:370
+msgctxt "Dashboard form labels"
+msgid "(optional)"
+msgstr "(opcional)"
+
+#: templates/materializecssform/field.html:200
+#: templates/materializecssform/field.html:234
+msgid "File"
+msgstr "Fitxer"
+
+#: templates/materializecssform/field.html:349
+#, python-format
+msgctxt ""
+"Message showing how many chars were used out of maximum field's length"
+msgid ""
+"\n"
+"          %(current_chars_count)s</span> of %(max_chars_count)s characters used\n"
+"        "
+msgstr ""
+"\n"
+"          %(current_chars_count)s</span> de %(max_chars_count)s caràcters utilitzats\n"
+"        "
+
+#: templates/order/_ordered_items_table.html:14
+msgctxt "Order details address title"
+msgid "Shipping address"
+msgstr "Adreça d'enviament"
+
+#: templates/order/_ordered_items_table.html:21
+msgctxt "Order details address title"
+msgid "Billing address"
+msgstr "Adreça de facturació"
+
+#: templates/order/_ordered_items_table.html:32
+#: templates/order/_ordered_items_table.html:173
+msgctxt "Order details column title"
+msgid "Product"
+msgstr "Producte"
+
+#: templates/order/_ordered_items_table.html:37
+#: templates/order/_ordered_items_table.html:178
+msgctxt "Order details column title"
+msgid "Quantity"
+msgstr "Quantitat"
+
+#: templates/order/_ordered_items_table.html:42
+msgctxt "Order details column title"
+msgid "Price"
+msgstr "Preu"
+
+#: templates/order/_ordered_items_table.html:85
+msgctxt "Order details subtotal row text"
+msgid "Subtotal"
+msgstr "Subtotal"
+
+#: templates/order/_ordered_items_table.html:102
+msgctxt "Order details shipment row text"
+msgid "Shipping"
+msgstr "Enviament"
+
+#: templates/order/_ordered_items_table.html:134
+msgctxt "Order details taxes text"
+msgid "Taxes (included)"
+msgstr "Impostos (inclosos)"
+
+#: templates/order/_ordered_items_table.html:136
+msgctxt "Order details taxes text"
+msgid "Taxes"
+msgstr "Impostos"
+
+#: templates/order/_ordered_items_table.html:150
+msgctxt "Order details total text"
+msgid "Total"
+msgstr "Total"
+
+#: templates/order/_ordered_items_table.html:164
+#, python-format
+msgctxt "Order details fulfillment title"
+msgid "Fulfillment #%(fulfillment)s"
+msgstr ""
+
+#: templates/order/_ordered_items_table.html:207
+msgctxt "Fulfillment tracking number details"
+msgid "Tracking number"
+msgstr "Codi de seguiment"
+
+#: templates/order/checkout_success.html:8
+#: templates/order/checkout_success_anonymous.html:8
+msgctxt "Checkout success page title"
+msgid "Thank you"
+msgstr "Gràcies"
+
+#: templates/order/checkout_success.html:16
+#: templates/order/checkout_success_anonymous.html:16
+#, python-format
+msgctxt "Checkout title"
+msgid "Thank you for your <a href=\"%(order_url)s\">order</a>!"
+msgstr "Gràcies per la seva <a href=\"%(order_url)s\">comanda</a>!"
+
+#: templates/order/checkout_success.html:20
+#: templates/order/checkout_success_anonymous.html:20
+#, python-format
+msgctxt "Checkout text"
+msgid ""
+"We've sent a confirmation email with details to <span>%(email)s</span>.<br> "
+"In case of any problems or questions please contact us."
+msgstr ""
+"Hem enviat un correu electrònic de confirmació amb els detalls a "
+"<span>%(email)s</span>.<br> En cas de problemes o preguntes, poseu-vos en "
+"contacte amb nosaltres."
+
+#: templates/order/checkout_success.html:29
+#: templates/order/checkout_success_anonymous.html:58
+msgctxt "Checkout secondary action"
+msgid "Continue shopping"
+msgstr "Continua comprant"
+
+#: templates/order/checkout_success_anonymous.html:27
+msgctxt "Checkout text"
+msgid ""
+"It looks like you already are our customer! <br> Please log in to connect "
+"order with your account."
+msgstr ""
+"Sembla que ja ets client nostre! <br> Si us plau identificat per connectar "
+"la comanda amb el teu compte."
+
+#: templates/order/checkout_success_anonymous.html:37
+msgctxt "Checkout title"
+msgid "Why not to create an account"
+msgstr "Per què no crees un compte?"
+
+#: templates/order/checkout_success_anonymous.html:38
+msgid ""
+"Make your shopping experience even better! Save your shipping and payment "
+"details for faster checkout."
+msgstr ""
+"Feu que la vostra experiència de compra sigui encara millor. Deseu els "
+"detalls d'enviament i de pagament per experimentar un pagament més ràpid."
+
+#: templates/order/checkout_success_anonymous.html:47
+msgctxt "Checkout primary action"
+msgid "Create an account"
+msgstr "Crea un compte"
+
+#: templates/order/details.html:8
+#, python-format
+msgctxt "Order details page title"
+msgid "Order %(order)s"
+msgstr "Comanda %(order)s"
+
+#: templates/order/details.html:28 templates/order/payment/details.html:22
+#, python-format
+msgctxt "Order details breadcrumb"
+msgid "Order %(order)s"
+msgstr "Comanda %(order)s"
+
+#: templates/order/details.html:49
+#, python-format
+msgctxt "Order detail text"
+msgid "Order %(order)s: %(order_status)s"
+msgstr "Comanda %(order)s: %(order_status)s"
+
+#: templates/order/details.html:56
+msgctxt "Order details link text"
+msgid "Payment details"
+msgstr "Detalls del pagament"
+
+#: templates/order/details.html:60
+msgctxt "Order details primary action"
+msgid "Pay for order"
+msgstr "Pagar la comanda"
+
+#: templates/order/details.html:67
+msgctxt "Customer order note"
+msgid "Your note"
+msgstr "Nota"
+
+#: templates/order/details.html:73
+msgctxt "Order note title"
+msgid "Add a note to your order"
+msgstr "Afegeix una nota a la comanda"
+
+#: templates/order/details.html:75
+msgctxt "Customer panel - order details: add note submit button"
+msgid "Submit note"
+msgstr "Enviar nota"
+
+#: templates/order/payment.html:8
+#, python-format
+msgctxt "Payment details page title"
+msgid "Pay for order %(order)s"
+msgstr "Pagar per la comanda %(order)s"
+
+#: templates/order/payment.html:28
+#, python-format
+msgctxt "Payment details breadcrumb"
+msgid "Order %(order)s"
+msgstr "Comanda %(order)s"
+
+#: templates/order/payment.html:44
+msgctxt "Payment details title"
+msgid "Payment pending"
+msgstr "Pagament pendent"
+
+#: templates/order/payment.html:48
+msgctxt "Payment pending text"
+msgid ""
+"We are currently waiting for an external service to authorize your payment "
+"for this order."
+msgstr ""
+"Estem esperant a que un servei extern ens autoritzi el pagament per aquest "
+"comanda"
+
+#: templates/order/payment.html:52
+msgctxt "Payment status text"
+msgid "Current status:"
+msgstr "Estat actual:"
+
+#: templates/order/payment.html:58
+msgctxt "Payment pending text"
+msgid ""
+"Unless you are absolutely sure that the process will not complete (for "
+"example you have closed the browser window before paying), you should wait "
+"before attempting a new payment. Please be warned that if you try again and "
+"the previous transaction succeeds you might end up being charged twice."
+msgstr ""
+"A menys que estigui totalment segur que el procés de compra no es completarà"
+" (per exemple, has tancat la finestra del navegador abans de pagar), hauries"
+" d'esperar abans d'intentar un pagament nou. Tingues en compte que si tornes"
+" a intentar-ho i la transacció anterior és correcta, és possible que acabis "
+"pagant dues vegades."
+
+#: templates/order/payment.html:67
+msgctxt "Payment pending action"
+msgid "I understand, allow me to pay again"
+msgstr "Entès, permetre pagar una altra vegada"
+
+#: templates/order/payment.html:72
+#, python-format
+msgctxt "Payment details title"
+msgid "Pay for order %(order)s"
+msgstr "Pagar per la comanda %(order)s"
+
+#: templates/order/payment.html:81
+msgctxt "Payment details primary action"
+msgid "Proceed to payment"
+msgstr "Procedir al pagament"
+
+#: templates/order/payment.html:86
+msgctxt "Payment details text"
+msgid "You've authorized transaction. Order is in processing"
+msgstr "Ha autoritzat la transacció. La comanda està en processament"
+
+#: templates/order/payment/braintree.html:28
+#: templates/order/payment/dummy.html:20
+msgctxt "Payment form primary action"
+msgid "Make payment"
+msgstr "Realitzar pagament"
+
+#: templates/order/payment/details.html:4
+msgctxt "Payment form page title"
+msgid "Payment"
+msgstr "Pagament"
+
+#: templates/order/payment/details.html:28
+msgctxt "Payment form breadcrumb"
+msgid "Payment"
+msgstr "Pagament"
+
+#: templates/order/payment/details.html:39
+msgctxt "Payment form title"
+msgid "Payment"
+msgstr "Pagament"
+
+#: templates/order/payment/details.html:44
+msgctxt "Header of the order summary table"
+msgid "Order details"
+msgstr "Detalls de comanda"
+
+#: templates/order/payment/dummy.html:12
+msgctxt "Payment form (Stripe) secondary action"
+msgid "Change payment"
+msgstr "Canvia pagament"
+
+#: templates/order/payment/razorpay.html:11
+msgctxt "Payment form (Razorpay) secondary action"
+msgid "Change payment"
+msgstr "Canvia pagament"
+
+#: templates/page/details.html:41
+msgctxt "Unavailable page detail text"
+msgid ""
+"\n"
+"        <strong>Warning!</strong>\n"
+"        You are previewing a page that is not visible.\n"
+"      "
+msgstr ""
+"\n"
+"<strong>Atenció!</strong>\n"
+"Estàs previsualitzant una pàgina que no és visible."
+
+#: templates/page/details.html:48
+#, python-format
+msgctxt "Unpublished page details text"
+msgid ""
+"<strong>Warning!</strong> You are previewing a page that will become visible"
+" on <strong>%(date)s</strong>."
+msgstr ""
+"<strong>Atenció!</strong>Estàs previsualitzant una pàgina que serà visible "
+"el <strong>%(date)s</strong>."
+
+#: templates/product/_filters.html:14
+#: templates/product/product_list_base.html:57
+msgctxt "Filter heading title"
+msgid "Filters"
+msgstr "Filtres"
+
+#: templates/product/_filters.html:17
+msgctxt "Product list page filters"
+msgid "Clear filters"
+msgstr "Neteja filtres"
+
+#: templates/product/_filters.html:63
+msgctxt "Product price filter"
+msgid "from"
+msgstr "de"
+
+#: templates/product/_filters.html:65
+msgctxt "Product price filter"
+msgid "to"
+msgstr "per"
+
+#: templates/product/_filters.html:71
+msgctxt "Apply filters button"
+msgid "Update"
+msgstr "Actualitza"
+
+#. Translators: Layout may break if character length is different than four.
+#: templates/product/_items.html:30
+msgctxt "Sale (discount) label for item in product list"
+msgid "Sale"
+msgstr "Oferta"
+
+#: templates/product/_price_range.html:6
+msgctxt "product price range"
+msgid "from"
+msgstr "des de"
+
+#: templates/product/details.html:61
+#, python-format
+msgctxt "Product details text"
+msgid ""
+"<strong>Warning!</strong> You are previewing a product that will become "
+"visible on <strong>%(date)s</strong>."
+msgstr ""
+"<strong>Atenció!</strong>Estàs previsualitzant un producte que serà visible "
+"el <strong>%(date)s</strong>."
+
+#: templates/product/details.html:123
+msgctxt "Product details link text"
+msgid "Edit in dashboard"
+msgstr "Edita al panell"
+
+#: templates/product/details.html:149
+#, python-format
+msgctxt "Product details page vat rate value"
+msgid "including %(tax_rate)s%% VAT"
+msgstr "inclòs %(tax_rate)s%%IVA"
+
+#: templates/product/details.html:153
+#, python-format
+msgctxt "Product details page vat rate value"
+msgid "excluding %(tax_rate)s%% VAT"
+msgstr "exclòs %(tax_rate)s%% IVA"
+
+#: templates/product/details.html:177
+msgctxt "Product details primary action"
+msgid "Add to cart"
+msgstr "Afegeix al carret"
+
+#: templates/product/details.html:189
+msgctxt "Product details text"
+msgid "This product is currently <strong>unavailable</strong>."
+msgstr "Aquest producte <strong>no està disponible</strong>."
+
+#: templates/product/details.html:193
+msgctxt "Product details title"
+msgid "Description"
+msgstr "Descripció"
+
+#: templates/product/product_list_base.html:65
+msgid "Sort by: <b>name</b>"
+msgstr "Ordena per <b>nom</b>"
+
+#: templates/product/product_list_base.html:69
+msgid "Sort by: <b>price</b>"
+msgstr "Ordena per: <b>preu</b>"
+
+#: templates/product/product_list_base.html:88
+msgctxt "Product list filters"
+msgid "Sort by"
+msgstr "Orderna per"
+
+#: templates/product/product_list_base.html:94
+msgctxt "sort by option"
+msgid "ascending"
+msgstr "ascendent"
+
+#: templates/product/product_list_base.html:100
+msgctxt "sort by option"
+msgid "descending"
+msgstr "descendent"
+
+#: templates/product/product_list_base.html:152
+#: templates/search/results.html:34
+msgctxt "Search without results text"
+msgid "Sorry, no matches found for your request."
+msgstr "No s'ha trobat cap coincidència per a la vostra petició."
+
+#: templates/product/product_list_base.html:153
+#: templates/search/results.html:35
+msgctxt "Search without results text"
+msgid "Try again or shop new arrivals."
+msgstr "Torna-ho a provar o comprova les novetats."
+
+#: templates/search/results.html:32
+msgid "Search:"
+msgstr "Cerca:"
+
+#: templates/templated_email/account/account_delete.email:4
+msgctxt "Account delete reset e-mail subject"
+msgid "Delete your account"
+msgstr "Elimina el teu compte"
+
+#: templates/templated_email/account/account_delete.email:8
+#, python-format
+msgctxt "Account delete reset e-mail text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(domain)s.\n"
+"Click the link below to delete your account.\n"
+"\n"
+"Please note that this action is permanent and cannot be reversed.\n"
+msgstr ""
+"\n"
+"Hola!\n"
+"\n"
+"Has rebut aquest correu electrònic perquè tu o una altra persona heu sol·licitat l'eliminació del vostre compte d'usuari a %(domain)s.\n"
+"Fes clic a l'enllaç següent per eliminar el compte.\n"
+"\n"
+"Tingues en compte que aquesta acció és permanent i no es pot revertir.\n"
+
+#: templates/templated_email/account/account_delete.email:21
+#, python-format
+msgctxt "Account delete reset e-mail text"
+msgid ""
+"\n"
+"Sincerely,\n"
+"%(site_name)s\n"
+msgstr ""
+"\n"
+"Atentament,\n"
+"%(site_name)s\n"
+
+#: templates/templated_email/account/password_reset.email:4
+msgctxt "Password reset e-mail subject"
+msgid "Password reset e-mail"
+msgstr "Correu de restauració de contrasenya"
+
+#: templates/templated_email/account/password_reset.email:8
+#, python-format
+msgctxt "Password reset e-mail text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
+msgstr ""
+"\n"
+"Hola!\n"
+"\n"
+"Has rebut aquest correu electrònic perquè tu o una altra persona heu sol·licitat una contrasenya pel vostre compte d'usuari a %(domain)s.\n"
+"Si no heu sol·licitat un restabliment de la contrasenya, no cal que facis res. Si l'has sol·licitat, fes clic a l'enllaç següent per a restablir la contrasenya.\n"
+
+#: templates/templated_email/account/password_reset.email:19
+#, python-format
+msgctxt "Password reset e-mail text"
+msgid ""
+"\n"
+"Sincerely,\n"
+"%(site_name)s\n"
+msgstr ""
+"\n"
+"Atentament,\n"
+"%(site_name)s\n"
+
+#: templates/templated_email/dashboard/staff/promote_customer.email:2
+#, python-format
+msgid "Hello from %(site_name)s!"
+msgstr "Hola des de %(site_name)s!"
+
+#: templates/templated_email/dashboard/staff/promote_customer.email:5
+#, python-format
+msgctxt "Promote customer to staff member confirmation e-mail text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"You're receiving this e-mail because you have been promoted to staff member at %(domain)s."
+msgstr ""
+"\n"
+"Hola!\n"
+"\n"
+"Has rebut aquest correu perquè has estat seleccionat com a usuari treballador  a %(domain)s."
+
+#: templates/templated_email/dashboard/staff/promote_customer.email:10
+msgctxt "Promote customer to staff member confirmation e-mail text"
+msgid ""
+"\n"
+"This is an automatically generated email, please do not reply.\n"
+msgstr ""
+"\n"
+"Aquest és un correu electrònic generat automàticament, no el responguis.\n"
+
+#: templates/templated_email/dashboard/staff/set_password.email:2
+#, python-format
+msgctxt "Set password for staff member e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr "Hola des de %(site_name)s!"
+
+#: templates/templated_email/dashboard/staff/set_password.email:5
+#, python-format
+msgctxt "Set password for staff member e-mail text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"You're receiving this e-mail because you have to set password for your staff member account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+"\n"
+"Hola!\n"
+"\n"
+"Has rebut aquest correu electrònic perquè has d'establir la contrasenya del vostre compte de %(domain)s.\n"
+"Fes clic al següent enllaç per a restablir la contrasenya.\n"
+
+#: templates/templated_email/dashboard/staff/set_password.email:14
+msgctxt "Set password for staff member e-mail text"
+msgid ""
+"\n"
+"This is an automatically generated email, please do not reply.\n"
+msgstr ""
+"\n"
+"Aquest és un correu electrònic generat automàticament, no el responguis.\n"
+
+#: templates/templated_email/order/confirm_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment confirmation email subject"
+msgid "A shipment from order %(order)s is on the way"
+msgstr "Ja està de camí l'enviament de la comanda %(order)s"
+
+#: templates/templated_email/order/confirm_fulfillment.email:10
+msgctxt "Fulfillment confirmation email text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"Thank you for your order. Below is the list of shipped products.\n"
+msgstr ""
+"\n"
+"Hola!\n"
+"\n"
+"Gràcies per la teva comanda. A sota hi pots veure el llistat de productes enviats.\n"
+
+#: templates/templated_email/order/confirm_fulfillment.email:16
+#: templates/templated_email/source/confirm_fulfillment.mjml:20
+#, python-format
+msgctxt "Fulfillment confirmation email text"
+msgid "You can track your shipment with %(tracking_number)s code."
+msgstr ""
+"Pots fer el seguiment del teu enviament amb aquest codi de seguiment: "
+"%(tracking_number)s"
+
+#: templates/templated_email/order/confirm_fulfillment.email:25
+#, python-format
+msgctxt "Fulfillment confirmation email text"
+msgid ""
+"\n"
+"This is an automatically generated email, please do not reply.\n"
+"\n"
+"Sincerely,\n"
+"%(site_name)s\n"
+msgstr ""
+"\n"
+"Aquest és un correu electrònic generat automàticament, no el responguis.\n"
+"\n"
+"Atentament,\n"
+"%(site_name)s\n"
+
+#: templates/templated_email/order/confirm_order.email:6
+msgctxt "Order confirmation e-mail subject"
+msgid "Order details"
+msgstr "Detalls de comanda"
+
+#: templates/templated_email/order/confirm_order.email:10
+#, python-format
+msgctxt "Order confirmation e-mail text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"Thank you for your order. Below is the list of ordered products. To see your payment details please visit:\n"
+"%(order_details_url)s"
+msgstr ""
+"\n"
+"Hola!\n"
+"\n"
+"Gràcies per la teva comanda. A continuació es mostra la llista de productes de la comanda. Per veure les dades del vostre pagament, visiteu:\n"
+"%(order_details_url)s"
+
+#: templates/templated_email/order/confirm_order.email:18
+msgctxt "Order confirmation e-mail table header"
+msgid "Order summary"
+msgstr "Resum de comanda"
+
+#: templates/templated_email/order/confirm_order.email:19
+msgctxt "Order confirmation e-mail table header"
+msgid "Subtotal"
+msgstr "Subtotal"
+
+#: templates/templated_email/order/confirm_order.email:20
+msgctxt "Order confirmation e-mail table header"
+msgid "Shipping"
+msgstr "Enviament"
+
+#: templates/templated_email/order/confirm_order.email:21
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes (included)"
+msgstr "Impostos (inclosos)"
+
+#: templates/templated_email/order/confirm_order.email:21
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes"
+msgstr "Impostos"
+
+#: templates/templated_email/order/confirm_order.email:22
+msgctxt "Order confirmation e-mail table header"
+msgid "Discount:"
+msgstr "Descompte:"
+
+#: templates/templated_email/order/confirm_order.email:23
+msgctxt "Order confirmation e-mail table header"
+msgid "Total"
+msgstr "Total"
+
+#: templates/templated_email/order/confirm_order.email:25
+#: templates/templated_email/source/confirm_order.mjml:29
+msgctxt "Order confirmation e-mail billing address"
+msgid "Billing address"
+msgstr "Adreça de facturació"
+
+#: templates/templated_email/order/confirm_order.email:28
+#: templates/templated_email/source/confirm_order.mjml:30
+msgctxt "Order confirmation e-mail shipping address"
+msgid "Shipping address"
+msgstr "Adreça d'enviament"
+
+#: templates/templated_email/order/confirm_order.email:29
+#: templates/templated_email/source/confirm_order.mjml:42
+msgctxt "Order confirmation e-mail text"
+msgid "No shipping required"
+msgstr "No es necessita enviament"
+
+#: templates/templated_email/order/confirm_order.email:31
+#, python-format
+msgctxt "Order confirmation e-mail text"
+msgid ""
+"\n"
+"This is an automatically generated e-mail, please do not reply.\n"
+"\n"
+"Sincerely,\n"
+"%(site_name)s\n"
+msgstr ""
+"\n"
+"Correu electrònic generat automàticament, si us plau no respondre.\n"
+"\n"
+"Atentament,\n"
+"%(site_name)s\n"
+
+#: templates/templated_email/order/payment/confirm_payment.email:4
+msgctxt "Payment confirmation subject"
+msgid "Payment details"
+msgstr "Detalls del pagament"
+
+#: templates/templated_email/order/payment/confirm_payment.email:8
+#, python-format
+msgctxt "Payment confirmation email text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"Thank you for your payment. To see your payment details please visit:\n"
+"%(order_details_url)s\n"
+"\n"
+"This is an automatically generated email, please do not reply.\n"
+"\n"
+"Sincerely,\n"
+"%(site_name)s\n"
+msgstr ""
+"\n"
+"Hola!\n"
+"\n"
+"Gràcies pel teu pagament. Per veure els detalls del pagament, visiteu:\n"
+"%(order_details_url)s\n"
+"\n"
+"Aquest és un correu electrònic generat automàticament, no el responguis.\n"
+"\n"
+"Atentament,\n"
+"%(site_name)s\n"
+
+#: templates/templated_email/order/update_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment update email subject"
+msgid "Shipping update for order %(order)s"
+msgstr "Enviament actualitzat per la comanda %(order)s"
+
+#: templates/templated_email/order/update_fulfillment.email:10
+msgctxt "Fulfillment update email text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
+msgstr ""
+"\n"
+"Hola!\n"
+"\n"
+"S'ha actualitzat l'estat d'enviament. A continuació es mostra la llista de productes de la teva comanda, que s'ha actualitzat amb un nou número de seguiment.\n"
+
+#: templates/templated_email/order/update_fulfillment.email:16
+#: templates/templated_email/source/update_fulfillment.mjml:20
+#, python-format
+msgctxt "Fulfillment update email text"
+msgid "You can track your shipment with %(tracking_number)s code."
+msgstr ""
+"Pots fer el seguiment del teu enviament amb aquest codi de seguiment: "
+"%(tracking_number)s"
+
+#: templates/templated_email/order/update_fulfillment.email:25
+#, python-format
+msgctxt "Fulfillment update email text"
+msgid ""
+"\n"
+"This is an automatically generated email, please do not reply.\n"
+"\n"
+"Sincerely,\n"
+"%(site_name)s\n"
+msgstr ""
+"\n"
+"Aquest és un correu electrònic generat automàticament, no el responguis.\n"
+"\n"
+"Atentament,\n"
+"%(site_name)s\n"
+
+#: templates/templated_email/source/account_delete.mjml:13
+msgctxt "Account delete e-mail text"
+msgid "Hi!"
+msgstr "Hola!"
+
+#: templates/templated_email/source/account_delete.mjml:16
+#, python-format
+msgctxt "Account delete e-mail text"
+msgid ""
+"You're receiving this e-mail because you or someone else has requested a "
+"deletion of your user account at %(domain)s.<br/> Click the link below to "
+"delete your account. Please note that this action is permanent and cannot be"
+" reversed."
+msgstr ""
+"Has rebut aquest correu electrònic perquè tu o una altra persona heu "
+"sol·licitat l'eliminació del compte d'usuari a %(domain)s. <br/>Fes clic al "
+"següent enllaç per eliminar el compte. Tingues en compte que aquesta acció "
+"és permanent i no es pot revertir."
+
+#: templates/templated_email/source/confirm_fulfillment.mjml:13
+msgctxt "Fulfillment confirmation email text"
+msgid "Hi!"
+msgstr "Hola!"
+
+#: templates/templated_email/source/confirm_fulfillment.mjml:16
+msgctxt "Fulfillment confirmation email text"
+msgid "Thank you for your order. Below is the list of shipped products."
+msgstr ""
+"Gràcies per la seva comanda. A continuació hi ha la llista de productes "
+"enviats."
+
+#: templates/templated_email/source/confirm_order.mjml:14
+msgctxt "Order confirmation e-mail text"
+msgid "Hi!"
+msgstr "Hola!"
+
+#: templates/templated_email/source/confirm_order.mjml:17
+#, python-format
+msgctxt "Order confirmation e-mail text"
+msgid ""
+"Thank you for your order. Below is the list of ordered products. To see your"
+" payment details please visit: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+msgstr ""
+"Gràcies per la teva comanda. A continuació es mostra la llista de productes "
+"de la comanda. Per veure'n els detalls de pagament, visita: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+
+#: templates/templated_email/source/confirm_payment.mjml:13
+msgctxt "Payment confirmation e-mail text"
+msgid "Hi!"
+msgstr "Hola!"
+
+#: templates/templated_email/source/confirm_payment.mjml:16
+#, python-format
+msgctxt "Payment confirmation e-mail text"
+msgid ""
+"Thank you for your payment. To see your payment details please visit: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+msgstr ""
+"Gràcies pel pagament. Per veure els detalls de pagament visitar: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:11
+msgctxt "E-mail order lines summary table"
+msgid "Subtotal"
+msgstr "Subtotal"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:19
+msgctxt "E-mail order lines summary table"
+msgid "Shipping"
+msgstr "Enviament"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:28
+msgctxt "E-mail order lines summary table"
+msgid "Taxes (included)"
+msgstr "Impostos (inclosos)"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:30
+msgctxt "E-mail order lines summary table"
+msgid "Taxes"
+msgstr "Impostos"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:40
+msgctxt "E-mail order lines summary table"
+msgid "Discount"
+msgstr "Descompte"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:49
+msgctxt "E-mail order lines summary table"
+msgid "Total"
+msgstr "Total"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:58
+msgctxt "Ordered item name"
+msgid "Item"
+msgstr "Article"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:59
+msgctxt "Quantity ordered of a product"
+msgid "Quantity"
+msgstr "Quantitat"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:60
+msgctxt "Unit price of a product"
+msgid "Per unit"
+msgstr "Per unitat"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:61
+msgctxt "Ordered item subtotal (unit price * quantity)"
+msgid "Subtotal"
+msgstr "Subtotal"
+
+#: templates/templated_email/source/password_reset.mjml:13
+msgctxt "Password reset e-mail text"
+msgid "Hi!"
+msgstr "Hola!"
+
+#: templates/templated_email/source/password_reset.mjml:16
+#, python-format
+msgctxt "Password reset e-mail text"
+msgid ""
+"You're receiving this e-mail because you or someone else has requested a "
+"password for your user account at %(domain)s.<br/> It can be safely ignored "
+"if you did not request a password reset. Click the link below to reset your "
+"password."
+msgstr ""
+"Has rebut aquest correu electrònic perquè tu o una altra persona heu "
+"sol·licitat una contrasenya pel vostre compte d'usuari a %(domain)s. <br/> "
+"Si no heu sol·licitat un restabliment de la contrasenya ignora aquest "
+"correu. Si heu sol·licitat una nova contrasenya, feu clic al següent enllaç "
+"per a restabli-la."
+
+#: templates/templated_email/source/promote_customer.mjml:13
+msgctxt "Promote customer to staff member confirmation e-mail text"
+msgid "Hi!"
+msgstr "Hola!"
+
+#: templates/templated_email/source/promote_customer.mjml:16
+#, python-format
+msgctxt "Promote customer to staff member confirmation e-mail text"
+msgid ""
+"You're receiving this e-mail because you have been promoted to staff member "
+"at %(domain)s.<br/> To access dashboard please visit: <a "
+"href=\"%(dashboard_url)s\">%(dashboard_url)s</a>"
+msgstr ""
+"Has rebut aquest correu electrònic perquè has estat seleccionat com a usuari"
+" treballador a %(domain)s. <br/>Per accedir al tauler, visita: <a "
+"href=\"%(dashboard_url)s\">%(dashboard_url)s</a>"
+
+#: templates/templated_email/source/set_password.mjml:13
+msgctxt "Set password for staff member e-mail text"
+msgid "Hi!"
+msgstr "Hola!"
+
+#: templates/templated_email/source/set_password.mjml:16
+#, python-format
+msgctxt "Set password for staff member e-mail text"
+msgid ""
+"You're receiving this e-mail because you have to set password for your staff"
+" member account at %(domain)s.<br/> Click the link below to set up your "
+"password."
+msgstr ""
+"Has rebut aquest correu electrònic perquè has d'establir la contrasenya del"
+"  compte de treballador per a %(domain)s. Fes clic al següent enllaç per a "
+"configurar la contrasenya."
+
+#: templates/templated_email/source/shared/footer.mjml:4
+msgctxt "Base email text"
+msgid "This is an automatically generated email, please do not reply."
+msgstr ""
+"Aquestcorreu electrònic ha estat generat automàticament, si us plau no el "
+"respongui."
+
+#: templates/templated_email/source/shared/footer.mjml:13
+#, python-format
+msgctxt "Base email footer"
+msgid "Sincerely, %(site_name)s"
+msgstr "Atentament, %(site_name)s"
+
+#: templates/templated_email/source/update_fulfillment.mjml:13
+msgctxt "Fulfillment update email text"
+msgid "Hi!"
+msgstr "Hola!"
+
+#: templates/templated_email/source/update_fulfillment.mjml:16
+msgctxt "Fulfillment update email text"
+msgid ""
+"Your shipping status has been updated. Below is the list of ordered products"
+" that have been updated with new tracking number."
+msgstr ""

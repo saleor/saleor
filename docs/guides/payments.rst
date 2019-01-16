@@ -229,7 +229,7 @@ Handling errors
 ---------------
 
 Gateway-specific errors should be parsed to Saleor's universal format.
-More on this can be found in :ref:`payments`.
+More on this can be found in :ref:`payments-architecture`.
 
 Adding payment method to the old checkout (optional)
 ----------------------------------------------------

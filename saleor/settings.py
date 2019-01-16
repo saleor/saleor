@@ -58,30 +58,38 @@ DATABASES = {
 TIME_ZONE = 'America/Chicago'
 LANGUAGE_CODE = 'en'
 LANGUAGES = [
+    ('ar', _('Arabic')),
+    ('az', _('Azerbaijani')),
     ('bg', _('Bulgarian')),
+    ('bn', _('Bengali')),
+    ('ca', _('Catalan')),
     ('cs', _('Czech')),
+    ('da', _('Danish')),
     ('de', _('German')),
     ('en', _('English')),
     ('es', _('Spanish')),
-    ('fa-ir', _('Persian (Iran)')),
+    ('fa', _('Persian')),
     ('fr', _('French')),
+    ('hi', _('Hindi')),
     ('hu', _('Hungarian')),
     ('it', _('Italian')),
     ('ja', _('Japanese')),
     ('ko', _('Korean')),
+    ('mn', _('Mongolian')),
     ('nb', _('Norwegian')),
     ('nl', _('Dutch')),
     ('pl', _('Polish')),
-    ('pt-br', _('Portuguese (Brazil)')),
+    ('pt-br', _('Brazilian Portuguese')),
     ('ro', _('Romanian')),
     ('ru', _('Russian')),
-    ('ru-ru', _('Russian (Russia)')),
     ('sk', _('Slovak')),
+    ('sr', _('Serbian')),
+    ('sv', _('Swedish')),
     ('tr', _('Turkish')),
     ('uk', _('Ukrainian')),
     ('vi', _('Vietnamese')),
-    ('zh-hans', _('Chinese')),
-    ('zh-tw', _('Chinese (Taiwan)'))]
+    ('zh-hans', _('Simplified Chinese')),
+    ('zh-hant', _('Traditional Chinese'))]
 LOCALE_PATHS = [os.path.join(PROJECT_ROOT, 'locale')]
 USE_I18N = True
 USE_L10N = True
@@ -367,10 +375,11 @@ bootstrap4 = {
     'form_renderers': {
         'default': 'saleor.core.utils.form_renderer.FormRenderer'}}
 
-TEST_RUNNER = ''
+TEST_RUNNER = 'tests.runner.PytestTestRunner'
 
 ALLOWED_HOSTS = get_list(
     os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1'))
+ALLOWED_GRAPHQL_ORIGINS = os.environ.get('ALLOWED_GRAPHQL_ORIGINS', '*')
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
@@ -381,8 +390,10 @@ AWS_MEDIA_BUCKET_NAME = os.environ.get('AWS_MEDIA_BUCKET_NAME')
 AWS_MEDIA_CUSTOM_DOMAIN = os.environ.get('AWS_MEDIA_CUSTOM_DOMAIN')
 AWS_QUERYSTRING_AUTH = get_bool_from_env('AWS_QUERYSTRING_AUTH', False)
 AWS_S3_CUSTOM_DOMAIN = os.environ.get('AWS_STATIC_CUSTOM_DOMAIN')
+AWS_S3_ENDPOINT_URL = os.environ.get('AWS_S3_ENDPOINT_URL', None)
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+AWS_DEFAULT_ACL = os.environ.get('AWS_DEFAULT_ACL', None)
 
 if AWS_STORAGE_BUCKET_NAME:
     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
@@ -400,7 +411,9 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
         ('product_small', 'thumbnail__60x60'),
         ('product_small_2x', 'thumbnail__120x120'),
         ('product_list', 'thumbnail__255x255'),
-        ('product_list_2x', 'thumbnail__510x510')]}
+        ('product_list_2x', 'thumbnail__510x510')],
+    'background_images': [
+        ('header_image', 'thumbnail__1080x440')]}
 
 VERSATILEIMAGEFIELD_SETTINGS = {
     # Images should be pre-generated on Production environment
@@ -545,9 +558,11 @@ SERIALIZATION_MODULES = {
 
 DUMMY = 'dummy'
 BRAINTREE = 'braintree'
+RAZORPAY = 'razorpay'
+STRIPE = 'stripe'
+
 CHECKOUT_PAYMENT_GATEWAYS = {
-    DUMMY: pgettext_lazy('Payment method name', 'Dummy gateway')
-}
+    DUMMY: pgettext_lazy('Payment method name', 'Dummy gateway')}
 
 PAYMENT_GATEWAYS = {
     DUMMY: {
@@ -561,5 +576,37 @@ PAYMENT_GATEWAYS = {
             'public_key': os.environ.get('BRAINTREE_PUBLIC_KEY'),
             'private_key': os.environ.get('BRAINTREE_PRIVATE_KEY')
         }
+    },
+    RAZORPAY: {
+        'module': 'saleor.payment.gateways.razorpay',
+        'connection_params': {
+            'public_key': os.environ.get('RAZORPAY_PUBLIC_KEY'),
+            'secret_key': os.environ.get('RAZORPAY_SECRET_KEY'),
+            'prefill': get_bool_from_env('RAZORPAY_PREFILL', True),
+            'store_name': os.environ.get('RAZORPAY_STORE_NAME'),
+            'store_image': os.environ.get('RAZORPAY_STORE_IMAGE')
+        }
+    },
+    STRIPE: {
+        'module': 'saleor.payment.gateways.stripe',
+        'connection_params': {
+            'public_key': os.environ.get('STRIPE_PUBLIC_KEY'),
+            'secret_key': os.environ.get('STRIPE_SECRET_KEY'),
+            'store_name': os.environ.get(
+                'STRIPE_STORE_NAME', 'Saleor'),
+            'store_image': os.environ.get('STRIPE_STORE_IMAGE', None),
+            'prefill': get_bool_from_env('STRIPE_PREFILL', True),
+            'remember_me': os.environ.get('STRIPE_REMEMBER_ME', True),
+            'locale': os.environ.get('STRIPE_LOCALE', 'auto'),
+            'enable_billing_address': os.environ.get(
+                'STRIPE_ENABLE_BILLING_ADDRESS', False),
+            'enable_shipping_address': os.environ.get(
+                'STRIPE_ENABLE_SHIPPING_ADDRESS', False)
+        }
     }
+}
+
+GRAPHENE = {
+    'RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST': True,
+    'RELAY_CONNECTION_MAX_LIMIT': 100
 }

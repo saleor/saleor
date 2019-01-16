@@ -1,3 +1,4 @@
+import { Omit } from "@material-ui/core";
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
@@ -16,12 +17,12 @@ const user = {
   note: null,
   permissions: staffMember.permissions
 };
-const props: ConfigurationPageProps = {
+const props: Omit<ConfigurationPageProps, "classes"> = {
   menu: configurationMenu,
   onSectionClick: () => undefined,
   user
 };
-const partialAccessProps: ConfigurationPageProps = {
+const partialAccessProps: Omit<ConfigurationPageProps, "classes"> = {
   ...props,
   user: {
     ...user,

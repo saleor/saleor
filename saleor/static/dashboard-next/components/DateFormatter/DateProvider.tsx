@@ -18,7 +18,7 @@ export class DateProvider extends React.Component<{}, DateProviderState> {
   componentDidMount() {
     this.intervalId = window.setInterval(
       () => this.setState({ date: Date.now() }),
-      60_000
+      10_000
     );
   }
 

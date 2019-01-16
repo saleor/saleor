@@ -27,11 +27,32 @@ export const collectionDetailsFragment = gql`
   fragment CollectionDetailsFragment on Collection {
     ...CollectionFragment
     backgroundImage {
+      alt
       url
     }
+    description
     seoDescription
     seoTitle
     isPublished
+  }
+`;
+
+// This fragment is used to make sure that product's fields that are returned
+// are always the same - fixes apollo cache
+// https://github.com/apollographql/apollo-client/issues/2496
+// https://github.com/apollographql/apollo-client/issues/3468
+export const collectionProductFragment = gql`
+  fragment CollectionProductFragment on Product {
+    id
+    isPublished
+    name
+    productType {
+      id
+      name
+    }
+    thumbnail {
+      url
+    }
   }
 `;
 
@@ -68,6 +89,7 @@ export const TypedCollectionListQuery = TypedQuery<
 
 export const collectionDetails = gql`
   ${collectionDetailsFragment}
+  ${collectionProductFragment}
   query CollectionDetails(
     $id: ID!
     $first: Int
@@ -80,14 +102,7 @@ export const collectionDetails = gql`
       products(first: $first, after: $after, before: $before, last: $last) {
         edges {
           node {
-            id
-            isPublished
-            name
-            productType {
-              id
-              name
-            }
-            thumbnailUrl
+            ...CollectionProductFragment
           }
         }
         pageInfo {
@@ -111,12 +126,12 @@ export const TypedCollectionDetailsQuery = TypedQuery<
 >(collectionDetails);
 
 export const searchProducts = gql`
+  ${collectionProductFragment}
   query SearchProducts($query: String!) {
     products(first: 5, query: $query) {
       edges {
         node {
-          id
-          name
+          ...CollectionProductFragment
         }
       }
     }

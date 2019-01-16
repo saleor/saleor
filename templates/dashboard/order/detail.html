@@ -162,7 +162,8 @@
                 <a href="#base-modal" data-href="{% url 'dashboard:capture-payment' order_pk=order.pk payment_pk=payment.pk %}" class="btn-flat modal-trigger-custom waves-effect">
                   {% trans "Capture" context "Order summary card action" %}
                 </a>
-              {% elif order.can_refund %}
+              {% endif %}
+              {% if order.can_refund %}
                 <a href="#base-modal" data-href="{% url 'dashboard:refund-payment' order_pk=order.pk payment_pk=payment.pk %}" class="btn-flat modal-trigger-custom waves-effect">
                   {% trans "Refund" context "Order summary card action" %}
                 </a>
@@ -198,6 +199,9 @@
               </span>
               {% if order.user %}
                 <a href="{% url 'dashboard:customer-details' pk=order.user.pk %}">{{ order.user }}</a>
+                {% if order.user.get_full_name != order.user.email %}
+                  <p>{{ order.user.get_full_name|truncatechars:80 }}</p>
+                {% endif %}
                 {% if order.user.note %}
                   <p>{{ order.user.note|truncatechars:80 }}</p>
                 {% endif %}

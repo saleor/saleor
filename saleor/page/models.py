@@ -38,7 +38,7 @@ class Page(SeoModel):
     translated = TranslationProxy()
 
     class Meta:
-        ordering = ('slug',)
+        ordering = ('slug', )
         permissions = ((
             'manage_pages', pgettext_lazy(
                 'Permission description', 'Manage pages.')),)

@@ -1,4 +1,4 @@
-import { PageListProps } from ".";
+import { PageListProps } from "./types";
 
 const pageInfo = {
   hasNextPage: true,

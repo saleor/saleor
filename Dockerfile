@@ -22,7 +22,7 @@ ARG STATIC_URL
 ENV STATIC_URL ${STATIC_URL:-/static/}
 
 # Install node_modules
-ADD webpack.config.js app.json package.json package-lock.json tsconfig.json webpack.d.ts /app/
+ADD webpack.config.js app.json package.json package-lock.json tsconfig.json tslint.json webpack.d.ts /app/
 WORKDIR /app
 RUN npm install
 
@@ -57,12 +57,12 @@ WORKDIR /app
 
 
 RUN SECRET_KEY=dummy \
-    STATIC_URL=${STATIC_URL} \
-    python3 manage.py collectstatic --no-input
+  STATIC_URL=${STATIC_URL} \
+  python3 manage.py collectstatic --no-input
 
 RUN useradd --system saleor && \
-    mkdir -p /app/media /app/static && \
-    chown -R saleor:saleor /app/
+  mkdir -p /app/media /app/static && \
+  chown -R saleor:saleor /app/
 
 USER saleor
 

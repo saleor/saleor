@@ -12,8 +12,9 @@ from ...core.permissions import MODELS_PERMISSIONS, get_permissions
 from ...dashboard.staff.utils import remove_staff_member
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, User
+from ..core.enums import PermissionEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.types.common import Error
+from ..core.types import Error
 
 
 def send_user_password_reset_email(user, site):
@@ -55,6 +56,8 @@ class CustomerRegister(ModelMutation):
 
 
 class UserInput(graphene.InputObjectType):
+    first_name = graphene.String(description='Given name.')
+    last_name = graphene.String(description='Family name.')
     email = graphene.String(
         description='The unique email address of the user.')
     is_active = graphene.Boolean(
@@ -62,11 +65,15 @@ class UserInput(graphene.InputObjectType):
     note = graphene.String(description='A note about the user.')
 
 
-class CustomerInput(UserInput):
+class UserAddressInput(graphene.InputObjectType):
     default_billing_address = AddressInput(
         description='Billing address of the customer.')
     default_shipping_address = AddressInput(
         description='Shipping address of the customer.')
+
+
+class CustomerInput(UserInput, UserAddressInput):
+    pass
 
 
 class UserCreateInput(CustomerInput):
@@ -76,7 +83,7 @@ class UserCreateInput(CustomerInput):
 
 class StaffInput(UserInput):
     permissions = graphene.List(
-        graphene.String,
+        PermissionEnum,
         description='List of permission code names to assign to this user.')
 
 
@@ -148,6 +155,28 @@ class CustomerUpdate(CustomerCreate):
         model = models.User
 
 
+class LoggedUserUpdate(CustomerCreate):
+    class Arguments:
+        input = UserAddressInput(
+            description='Fields required to update logged in user.',
+            required=True)
+
+    class Meta:
+        description = 'Updates data of the logged in user.'
+        exclude = ['password']
+        model = models.User
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.is_authenticated
+
+    @classmethod
+    def mutate(cls, root, info, **data):
+        user = info.context.user
+        data['id'] = graphene.Node.to_global_id('User', user.id)
+        return super().mutate(root, info, **data)
+
+
 class UserDelete(ModelDeleteMutation):
     class Meta:
         abstract = True
@@ -161,7 +190,6 @@ class UserDelete(ModelDeleteMutation):
         elif instance.is_superuser:
             cls.add_error(
                 errors, 'id', 'Only superuser can delete his own account.')
-        return errors
 
 
 class CustomerDelete(UserDelete):
@@ -182,7 +210,6 @@ class CustomerDelete(UserDelete):
         super().clean_instance(info, instance, errors)
         if instance.is_staff:
             cls.add_error(errors, 'id', 'Cannot delete a staff account.')
-        return errors
 
 
 class StaffCreate(ModelMutation):
@@ -286,7 +313,6 @@ class StaffDelete(UserDelete):
         if not instance.is_staff:
             cls.add_error(
                 errors, 'id', 'Cannot delete a non-staff user.')
-        return errors
 
     @classmethod
     def mutate(cls, root, info, **data):

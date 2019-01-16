@@ -23,7 +23,7 @@ export interface AssignHomepageCollection_homepageCollectionUpdate_shop {
 
 export interface AssignHomepageCollection_homepageCollectionUpdate {
   __typename: "HomepageCollectionUpdate";
-  errors: (AssignHomepageCollection_homepageCollectionUpdate_errors | null)[] | null;
+  errors: AssignHomepageCollection_homepageCollectionUpdate_errors[] | null;
   shop: AssignHomepageCollection_homepageCollectionUpdate_shop | null;
 }
 

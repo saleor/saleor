@@ -19,20 +19,10 @@ export interface ProductUpdate_productUpdate_product_category {
   name: string;
 }
 
-export interface ProductUpdate_productUpdate_product_collections_edges_node {
+export interface ProductUpdate_productUpdate_product_collections {
   __typename: "Collection";
   id: string;
   name: string;
-}
-
-export interface ProductUpdate_productUpdate_product_collections_edges {
-  __typename: "CollectionCountableEdge";
-  node: ProductUpdate_productUpdate_product_collections_edges_node;
-}
-
-export interface ProductUpdate_productUpdate_product_collections {
-  __typename: "CollectionCountableConnection";
-  edges: ProductUpdate_productUpdate_product_collections_edges[];
 }
 
 export interface ProductUpdate_productUpdate_product_price {
@@ -88,8 +78,8 @@ export interface ProductUpdate_productUpdate_product_attributes_value {
 
 export interface ProductUpdate_productUpdate_product_attributes {
   __typename: "SelectedAttribute";
-  attribute: ProductUpdate_productUpdate_product_attributes_attribute | null;
-  value: ProductUpdate_productUpdate_product_attributes_value | null;
+  attribute: ProductUpdate_productUpdate_product_attributes_attribute;
+  value: ProductUpdate_productUpdate_product_attributes_value;
 }
 
 export interface ProductUpdate_productUpdate_product_availability_priceRange_start_net {
@@ -126,7 +116,7 @@ export interface ProductUpdate_productUpdate_product_availability {
   priceRange: ProductUpdate_productUpdate_product_availability_priceRange | null;
 }
 
-export interface ProductUpdate_productUpdate_product_images_edges_node {
+export interface ProductUpdate_productUpdate_product_images {
   __typename: "ProductImage";
   id: string;
   alt: string;
@@ -134,40 +124,22 @@ export interface ProductUpdate_productUpdate_product_images_edges_node {
   url: string;
 }
 
-export interface ProductUpdate_productUpdate_product_images_edges {
-  __typename: "ProductImageCountableEdge";
-  node: ProductUpdate_productUpdate_product_images_edges_node;
-}
-
-export interface ProductUpdate_productUpdate_product_images {
-  __typename: "ProductImageCountableConnection";
-  edges: ProductUpdate_productUpdate_product_images_edges[];
-}
-
-export interface ProductUpdate_productUpdate_product_variants_edges_node_priceOverride {
+export interface ProductUpdate_productUpdate_product_variants_priceOverride {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface ProductUpdate_productUpdate_product_variants_edges_node {
+export interface ProductUpdate_productUpdate_product_variants {
   __typename: "ProductVariant";
   id: string;
   sku: string;
   name: string;
-  priceOverride: ProductUpdate_productUpdate_product_variants_edges_node_priceOverride | null;
-  stockQuantity: number;
+  priceOverride: ProductUpdate_productUpdate_product_variants_priceOverride | null;
   margin: number | null;
-}
-
-export interface ProductUpdate_productUpdate_product_variants_edges {
-  __typename: "ProductVariantCountableEdge";
-  node: ProductUpdate_productUpdate_product_variants_edges_node;
-}
-
-export interface ProductUpdate_productUpdate_product_variants {
-  __typename: "ProductVariantCountableConnection";
-  edges: ProductUpdate_productUpdate_product_variants_edges[];
+  quantity: number;
+  quantityAllocated: number;
+  stockQuantity: number;
 }
 
 export interface ProductUpdate_productUpdate_product_productType {
@@ -185,24 +157,24 @@ export interface ProductUpdate_productUpdate_product {
   seoTitle: string | null;
   seoDescription: string | null;
   category: ProductUpdate_productUpdate_product_category;
-  collections: ProductUpdate_productUpdate_product_collections | null;
+  collections: (ProductUpdate_productUpdate_product_collections | null)[] | null;
   price: ProductUpdate_productUpdate_product_price | null;
   margin: ProductUpdate_productUpdate_product_margin | null;
   purchaseCost: ProductUpdate_productUpdate_product_purchaseCost | null;
   isPublished: boolean;
   chargeTaxes: boolean;
   availableOn: any | null;
-  attributes: (ProductUpdate_productUpdate_product_attributes | null)[] | null;
+  attributes: ProductUpdate_productUpdate_product_attributes[];
   availability: ProductUpdate_productUpdate_product_availability | null;
-  images: ProductUpdate_productUpdate_product_images | null;
-  variants: ProductUpdate_productUpdate_product_variants | null;
+  images: (ProductUpdate_productUpdate_product_images | null)[] | null;
+  variants: (ProductUpdate_productUpdate_product_variants | null)[] | null;
   productType: ProductUpdate_productUpdate_product_productType;
   url: string;
 }
 
 export interface ProductUpdate_productUpdate {
   __typename: "ProductUpdate";
-  errors: (ProductUpdate_productUpdate_errors | null)[] | null;
+  errors: ProductUpdate_productUpdate_errors[] | null;
   product: ProductUpdate_productUpdate_product | null;
 }
 

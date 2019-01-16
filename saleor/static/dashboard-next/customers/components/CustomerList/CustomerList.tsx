@@ -1,5 +1,5 @@
 import Card from "@material-ui/core/Card";
-import { withStyles } from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -8,29 +8,32 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import { ListProps } from "../../..";
 import Skeleton from "../../../components/Skeleton";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
-import { maybe, renderCollection } from "../../../misc";
+import { getUserName, maybe, renderCollection } from "../../../misc";
+import { ListProps } from "../../../types";
 import { ListCustomers_customers_edges_node } from "../../types/ListCustomers";
 
-export interface CustomerListProps extends ListProps {
-  customers: ListCustomers_customers_edges_node[];
-}
-
-const decorate = withStyles({
+const styles = createStyles({
   tableRow: {
-    cursor: "pointer" as "pointer"
+    cursor: "pointer"
   },
-  textRight: {
-    textAlign: "right" as "right"
+  textCenter: {
+    textAlign: "center"
   },
   wideCell: {
     width: "60%"
   }
 });
-const CustomerList = decorate<CustomerListProps>(
+
+export interface CustomerListProps
+  extends ListProps,
+    WithStyles<typeof styles> {
+  customers: ListCustomers_customers_edges_node[];
+}
+
+const CustomerList = withStyles(styles, { name: "CustomerList" })(
   ({
     classes,
     disabled,
@@ -39,15 +42,18 @@ const CustomerList = decorate<CustomerListProps>(
     onNextPage,
     onPreviousPage,
     onRowClick
-  }) => (
+  }: CustomerListProps) => (
     <Card>
       <Table>
         <TableHead>
           <TableRow>
+            <TableCell>
+              {i18n.t("Customer Name", { context: "table header" })}
+            </TableCell>
             <TableCell className={classes.wideCell}>
               {i18n.t("Customer e-mail", { context: "table header" })}
             </TableCell>
-            <TableCell className={classes.textRight}>
+            <TableCell className={classes.textCenter}>
               {i18n.t("Orders", { context: "table header" })}
             </TableCell>
           </TableRow>
@@ -55,7 +61,7 @@ const CustomerList = decorate<CustomerListProps>(
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={2}
+              colSpan={3}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
               hasPreviousPage={
@@ -77,9 +83,12 @@ const CustomerList = decorate<CustomerListProps>(
                 <TableCell
                   onClick={customer ? onRowClick(customer.id) : undefined}
                 >
+                  {getUserName(customer)}
+                </TableCell>
+                <TableCell>
                   {maybe<React.ReactNode>(() => customer.email, <Skeleton />)}
                 </TableCell>
-                <TableCell className={classes.textRight}>
+                <TableCell className={classes.textCenter}>
                   {maybe<React.ReactNode>(
                     () => customer.orders.totalCount,
                     <Skeleton />
@@ -89,7 +98,7 @@ const CustomerList = decorate<CustomerListProps>(
             ),
             () => (
               <TableRow>
-                <TableCell colSpan={2}>
+                <TableCell colSpan={3}>
                   {i18n.t("No customers found")}
                 </TableCell>
               </TableRow>

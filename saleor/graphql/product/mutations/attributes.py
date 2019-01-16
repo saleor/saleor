@@ -8,7 +8,8 @@ from ....product import models
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...product.types import ProductType
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
-from ..types import Attribute, AttributeTypeEnum
+from ..enums import AttributeTypeEnum
+from ..types import Attribute
 
 
 class AttributeValueCreateInput(graphene.InputObjectType):

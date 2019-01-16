@@ -1,7 +1,12 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import IconButton from "@material-ui/core/IconButton";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -11,7 +16,6 @@ import TableRow from "@material-ui/core/TableRow";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
-import { PageListProps } from "../../..";
 import CardTitle from "../../../components/CardTitle";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
@@ -19,28 +23,33 @@ import TableCellAvatar from "../../../components/TableCellAvatar";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
+import { PageListProps } from "../../../types";
 import { CollectionDetails_collection } from "../../types/CollectionDetails";
 
-export interface CollectionProductsProps extends PageListProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    iconCell: {
+      "&:last-child": {
+        paddingRight: 0
+      },
+      width: 48 + theme.spacing.unit / 2
+    },
+    tableRow: {
+      cursor: "pointer"
+    },
+    textCenter: {
+      textAlign: "center"
+    }
+  });
+
+export interface CollectionProductsProps
+  extends PageListProps,
+    WithStyles<typeof styles> {
   collection: CollectionDetails_collection;
   onProductUnassign: (id: string, event: React.MouseEvent<any>) => void;
 }
 
-const decorate = withStyles(theme => ({
-  iconCell: {
-    "&:last-child": {
-      paddingRight: 0
-    },
-    width: 48 + theme.spacing.unit / 2
-  },
-  tableRow: {
-    cursor: "pointer" as "pointer"
-  },
-  textCenter: {
-    textAlign: "center" as "center"
-  }
-}));
-const CollectionProducts = decorate<CollectionProductsProps>(
+const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
   ({
     classes,
     collection,
@@ -51,7 +60,7 @@ const CollectionProducts = decorate<CollectionProductsProps>(
     onProductUnassign,
     onRowClick,
     pageInfo
-  }) => (
+  }: CollectionProductsProps) => (
     <Card>
       <CardTitle
         title={
@@ -66,7 +75,7 @@ const CollectionProducts = decorate<CollectionProductsProps>(
         toolbar={
           <Button
             disabled={disabled}
-            variant="flat"
+            variant="text"
             color="secondary"
             onClick={onAdd}
           >
@@ -93,7 +102,7 @@ const CollectionProducts = decorate<CollectionProductsProps>(
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={4}
+              colSpan={5}
               hasNextPage={maybe(() => pageInfo.hasNextPage)}
               onNextPage={onNextPage}
               hasPreviousPage={maybe(() => pageInfo.hasPreviousPage)}
@@ -112,7 +121,7 @@ const CollectionProducts = decorate<CollectionProductsProps>(
                 key={product ? product.id : "skeleton"}
               >
                 <TableCellAvatar
-                  thumbnail={maybe(() => product.thumbnailUrl)}
+                  thumbnail={maybe(() => product.thumbnail.url)}
                 />
                 <TableCell>
                   {maybe<React.ReactNode>(() => product.name, <Skeleton />)}
@@ -140,6 +149,7 @@ const CollectionProducts = decorate<CollectionProductsProps>(
                 </TableCell>
                 <TableCell className={classes.iconCell}>
                   <IconButton
+                    disabled={!product}
                     onClick={event => onProductUnassign(product.id, event)}
                   >
                     <DeleteIcon color="secondary" />
@@ -150,7 +160,7 @@ const CollectionProducts = decorate<CollectionProductsProps>(
             () => (
               <TableRow>
                 <TableCell />
-                <TableCell colSpan={4}>{i18n.t("No products found")}</TableCell>
+                <TableCell colSpan={5}>{i18n.t("No products found")}</TableCell>
               </TableRow>
             )
           )}

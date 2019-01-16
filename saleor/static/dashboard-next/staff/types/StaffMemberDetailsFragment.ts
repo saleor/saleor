@@ -17,6 +17,8 @@ export interface StaffMemberDetailsFragment {
   __typename: "User";
   id: string;
   email: string;
+  firstName: string;
   isActive: boolean;
+  lastName: string;
   permissions: (StaffMemberDetailsFragment_permissions | null)[] | null;
 }

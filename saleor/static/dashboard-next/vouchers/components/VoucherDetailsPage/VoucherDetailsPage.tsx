@@ -1,23 +1,42 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as CRC from "crc-32";
 import * as React from "react";
 
 import { createVoucherName, VoucherType } from "../..";
 import ActionDialog from "../../../components/ActionDialog";
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar, {
-  SaveButtonBarState
-} from "../../../components/SaveButtonBar";
+import SaveButtonBar from "../../../components/SaveButtonBar";
 import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
 import VoucherDetails from "../VoucherDetails/VoucherDetails";
 import VoucherProperties from "../VoucherProperties/VoucherProperties";
 import VoucherUsability from "../VoucherUsability";
 
-interface VoucherDetailsPageProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    cardSpacer: {
+      marginTop: theme.spacing.unit * 2,
+      [theme.breakpoints.down("md")]: {
+        marginTop: theme.spacing.unit
+      }
+    },
+    root: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "2fr 1fr"
+    }
+  });
+
+interface VoucherDetailsPageProps extends WithStyles<typeof styles> {
   disabled?: boolean;
   voucher?: {
     id: string;
@@ -56,7 +75,7 @@ interface VoucherDetailsPageProps {
     label: string;
     code: string;
   }>;
-  saveButtonBarState?: SaveButtonBarState;
+  saveButtonBarState?: ConfirmButtonTransitionState;
   loadingCategories?: boolean;
   loadingProducts?: boolean;
   loadingShipping?: boolean;
@@ -67,20 +86,7 @@ interface VoucherDetailsPageProps {
   onVoucherDelete?();
 }
 
-const decorate = withStyles(theme => ({
-  cardSpacer: {
-    marginTop: theme.spacing.unit * 2,
-    [theme.breakpoints.down("md")]: {
-      marginTop: theme.spacing.unit
-    }
-  },
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "2fr 1fr"
-  }
-}));
-const VoucherDetailsPage = decorate<VoucherDetailsPageProps>(
+const VoucherDetailsPage = withStyles(styles, { name: "VoucherDetailsPage" })(
   ({
     classes,
     currency,
@@ -98,7 +104,7 @@ const VoucherDetailsPage = decorate<VoucherDetailsPageProps>(
     voucher,
     onBack,
     onVoucherDelete
-  }) => (
+  }: VoucherDetailsPageProps) => (
     <Toggle>
       {(openedVoucherDeleteDialog, { toggle: toggleVoucherDeleteDialog }) => (
         <>
@@ -196,6 +202,7 @@ const VoucherDetailsPage = decorate<VoucherDetailsPageProps>(
           </Form>
           {voucher !== undefined && (
             <ActionDialog
+              confirmButtonState="default"
               open={openedVoucherDeleteDialog}
               onClose={toggleVoucherDeleteDialog}
               onConfirm={onVoucherDelete}

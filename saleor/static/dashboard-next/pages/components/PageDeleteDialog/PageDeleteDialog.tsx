@@ -4,30 +4,37 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
 import i18n from "../../../i18n";
 
-const decorate = withStyles(theme => ({
-  deleteButton: {
-    "&:hover": {
-      backgroundColor: theme.palette.error.main
-    },
-    backgroundColor: theme.palette.error.main,
-    color: theme.palette.error.contrastText
-  }
-}));
+const styles = (theme: Theme) =>
+  createStyles({
+    deleteButton: {
+      "&:hover": {
+        backgroundColor: theme.palette.error.main
+      },
+      backgroundColor: theme.palette.error.main,
+      color: theme.palette.error.contrastText
+    }
+  });
 
-interface PageDeleteDialogProps {
+interface PageDeleteDialogProps extends WithStyles<typeof styles> {
+  children?: React.ReactNode;
   opened?: boolean;
   title: string;
   onClose?();
   onConfirm?();
 }
 
-const PageDeleteDialog = decorate<PageDeleteDialogProps>(props => {
-  const {
+const PageDeleteDialog = withStyles(styles, { name: "PageDeleteDialog" })(
+  ({
     children,
     classes,
     opened,
@@ -35,8 +42,7 @@ const PageDeleteDialog = decorate<PageDeleteDialogProps>(props => {
     onConfirm,
     onClose,
     ...dialogProps
-  } = props;
-  return (
+  }: PageDeleteDialogProps) => (
     <Dialog open={opened} {...dialogProps}>
       <DialogTitle>{i18n.t("Delete page", { context: "title" })}</DialogTitle>
       <DialogContent>
@@ -55,14 +61,14 @@ const PageDeleteDialog = decorate<PageDeleteDialogProps>(props => {
         </Button>
         <Button
           className={classes.deleteButton}
-          variant="raised"
+          variant="contained"
           onClick={onConfirm}
         >
           {i18n.t("Delete page", { context: "button" })}
         </Button>
       </DialogActions>
     </Dialog>
-  );
-});
-
+  )
+);
+PageDeleteDialog.displayName = "PageDeleteDialog";
 export default PageDeleteDialog;

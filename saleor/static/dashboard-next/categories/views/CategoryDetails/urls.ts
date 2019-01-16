@@ -1,3 +1,7 @@
-import { categoryUrl } from "../..";
+import * as urlJoin from "url-join";
+import { categoryPath } from "../../urls";
 
-export const categoryDeleteUrl = (id: string) => categoryUrl(id) + "delete";
+export const categoryDeletePath = (id: string) =>
+  urlJoin(categoryPath(id), "delete");
+export const categoryDeleteUrl = (id: string) =>
+  categoryDeletePath(encodeURIComponent(id));

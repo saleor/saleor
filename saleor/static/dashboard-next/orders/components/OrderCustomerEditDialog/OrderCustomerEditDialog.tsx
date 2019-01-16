@@ -3,13 +3,40 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
+import ConfirmButton, {
+  ConfirmButtonTransitionState
+} from "../../../components/ConfirmButton/ConfirmButton";
 import { SingleAutocompleteSelectField } from "../../../components/SingleAutocompleteSelectField";
 import i18n from "../../../i18n";
 
-interface OrderCustomerEditDialogProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    dialog: {
+      overflowY: "visible"
+    },
+    root: {
+      overflowY: "visible",
+      width: theme.breakpoints.values.sm
+    },
+    select: {
+      flex: 1,
+      marginRight: theme.spacing.unit * 2
+    },
+    textRight: {
+      textAlign: "right"
+    }
+  });
+
+interface OrderCustomerEditDialogProps extends WithStyles<typeof styles> {
+  confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
   user?: {
     label: string;
@@ -26,28 +53,12 @@ interface OrderCustomerEditDialogProps {
   onConfirm?(event: React.FormEvent<any>);
 }
 
-const decorate = withStyles(
-  theme => ({
-    dialog: {
-      overflowY: "visible" as "visible"
-    },
-    root: {
-      overflowY: "visible" as "visible",
-      width: theme.breakpoints.values.sm
-    },
-    select: {
-      flex: 1,
-      marginRight: theme.spacing.unit * 2
-    },
-    textRight: {
-      textAlign: "right" as "right"
-    }
-  }),
-  { name: "OrderCustomerEditDialog" }
-);
-const OrderCustomerEditDialog = decorate<OrderCustomerEditDialogProps>(
+const OrderCustomerEditDialog = withStyles(styles, {
+  name: "OrderCustomerEditDialog"
+})(
   ({
     classes,
+    confirmButtonState,
     open,
     loading,
     user,
@@ -56,7 +67,7 @@ const OrderCustomerEditDialog = decorate<OrderCustomerEditDialogProps>(
     onChange,
     onClose,
     onConfirm
-  }) => {
+  }: OrderCustomerEditDialogProps) => {
     const choices =
       !loading && users
         ? users.map(v => ({
@@ -82,12 +93,18 @@ const OrderCustomerEditDialog = decorate<OrderCustomerEditDialogProps>(
           <Button onClick={onClose}>
             {i18n.t("Cancel", { context: "button" })}
           </Button>
-          <Button color="primary" variant="raised" onClick={onConfirm}>
+          <ConfirmButton
+            transitionState={confirmButtonState}
+            color="primary"
+            variant="contained"
+            onClick={onConfirm}
+          >
             {i18n.t("Confirm", { context: "button" })}
-          </Button>
+          </ConfirmButton>
         </DialogActions>
       </Dialog>
     );
   }
 );
+OrderCustomerEditDialog.displayName = "OrderCustomerEditDialog";
 export default OrderCustomerEditDialog;

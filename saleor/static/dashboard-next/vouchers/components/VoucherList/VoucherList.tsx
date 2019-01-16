@@ -1,5 +1,10 @@
 import Card from "@material-ui/core/Card";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -9,7 +14,6 @@ import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
 import { createVoucherName, VoucherType } from "../..";
-import { ListProps } from "../../..";
 import DateFormatter from "../../../components/DateFormatter";
 import Money from "../../../components/Money";
 import Percent from "../../../components/Percent";
@@ -17,8 +21,18 @@ import Skeleton from "../../../components/Skeleton";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
+import { ListProps } from "../../../types";
 
-interface VoucherListProps extends ListProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    link: {
+      color: theme.palette.secondary.main,
+      cursor: "pointer"
+    },
+    textRight: { textAlign: "right" }
+  });
+
+interface VoucherListProps extends ListProps, WithStyles<typeof styles> {
   currency?: string;
   vouchers?: Array<{
     id: string;
@@ -28,7 +42,10 @@ interface VoucherListProps extends ListProps {
     endDate: string | null;
     discountValueType: "PERCENTAGE" | "FIXED" | string;
     discountValue: number;
-    limit: { amount: number; currency: string } | null;
+    limit: {
+      amount: number;
+      currency: string;
+    } | null;
     product: {
       name: string;
     } | null;
@@ -38,14 +55,7 @@ interface VoucherListProps extends ListProps {
   }>;
 }
 
-const decorate = withStyles(theme => ({
-  link: { color: theme.palette.secondary.main, cursor: "pointer" as "pointer" },
-  tableCellFont: {
-    fontSize: "0.8125rem"
-  },
-  textRight: { textAlign: "right" as "right" }
-}));
-const VoucherList = decorate<VoucherListProps>(
+const VoucherList = withStyles(styles, { name: "VoucherList" })(
   ({
     classes,
     currency,
@@ -55,7 +65,7 @@ const VoucherList = decorate<VoucherListProps>(
     onNextPage,
     onPreviousPage,
     onRowClick
-  }) => (
+  }: VoucherListProps) => (
     <Card>
       <Table>
         <TableHead>
@@ -138,15 +148,13 @@ const VoucherList = decorate<VoucherListProps>(
                   voucher.discountValueType &&
                   voucher.discountValue ? (
                     voucher.discountValueType === "PERCENTAGE" ? (
-                      <Percent
-                        amount={voucher.discountValue}
-                        typographyProps={{ className: classes.tableCellFont }}
-                      />
+                      <Percent amount={voucher.discountValue} />
                     ) : (
                       <Money
-                        amount={voucher.discountValue}
-                        currency={currency}
-                        typographyProps={{ className: classes.tableCellFont }}
+                        money={{
+                          amount: voucher.discountValue,
+                          currency
+                        }}
                       />
                     )
                   ) : (
@@ -156,11 +164,7 @@ const VoucherList = decorate<VoucherListProps>(
                 <TableCell className={classes.textRight}>
                   {voucher ? (
                     voucher.limit !== null ? (
-                      <Money
-                        amount={voucher.limit.amount}
-                        currency={voucher.limit.currency}
-                        typographyProps={{ className: classes.tableCellFont }}
-                      />
+                      <Money money={voucher.limit} />
                     ) : (
                       "-"
                     )

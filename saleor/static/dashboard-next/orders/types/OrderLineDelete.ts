@@ -53,56 +53,47 @@ export interface OrderLineDelete_draftOrderLineDelete_order_events {
   user: OrderLineDelete_draftOrderLineDelete_order_events_user | null;
 }
 
-export interface OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_edges_node_orderLine_unitPrice_gross {
+export interface OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_orderLine_unitPrice_gross {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_edges_node_orderLine_unitPrice_net {
+export interface OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_orderLine_unitPrice_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_edges_node_orderLine_unitPrice {
+export interface OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_orderLine_unitPrice {
   __typename: "TaxedMoney";
-  gross: OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_edges_node_orderLine_unitPrice_gross;
-  net: OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_edges_node_orderLine_unitPrice_net;
+  gross: OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_orderLine_unitPrice_gross;
+  net: OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_orderLine_unitPrice_net;
 }
 
-export interface OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_edges_node_orderLine {
+export interface OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
   quantityFulfilled: number;
-  unitPrice: OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_edges_node_orderLine_unitPrice | null;
+  unitPrice: OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_orderLine_unitPrice | null;
   thumbnailUrl: string | null;
 }
 
-export interface OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_edges_node {
+export interface OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines {
   __typename: "FulfillmentLine";
   id: string;
   quantity: number;
-  orderLine: OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_edges_node_orderLine | null;
-}
-
-export interface OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_edges {
-  __typename: "FulfillmentLineCountableEdge";
-  node: OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_edges_node;
-}
-
-export interface OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines {
-  __typename: "FulfillmentLineCountableConnection";
-  edges: OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_edges[];
+  orderLine: OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_orderLine | null;
 }
 
 export interface OrderLineDelete_draftOrderLineDelete_order_fulfillments {
   __typename: "Fulfillment";
   id: string;
-  lines: OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines | null;
+  lines: (OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines | null)[] | null;
   fulfillmentOrder: number;
   status: FulfillmentStatus;
   trackingNumber: string;
@@ -129,6 +120,7 @@ export interface OrderLineDelete_draftOrderLineDelete_order_lines_unitPrice {
 export interface OrderLineDelete_draftOrderLineDelete_order_lines {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -239,7 +231,9 @@ export interface OrderLineDelete_draftOrderLineDelete_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderLineDelete_draftOrderLineDelete_order_billingAddress | null;
+  canFinalize: boolean;
   created: any;
+  customerNote: string;
   events: (OrderLineDelete_draftOrderLineDelete_order_events | null)[] | null;
   fulfillments: (OrderLineDelete_draftOrderLineDelete_order_fulfillments | null)[];
   lines: (OrderLineDelete_draftOrderLineDelete_order_lines | null)[];
@@ -262,7 +256,7 @@ export interface OrderLineDelete_draftOrderLineDelete_order {
 
 export interface OrderLineDelete_draftOrderLineDelete {
   __typename: "DraftOrderLineDelete";
-  errors: (OrderLineDelete_draftOrderLineDelete_errors | null)[] | null;
+  errors: OrderLineDelete_draftOrderLineDelete_errors[] | null;
   order: OrderLineDelete_draftOrderLineDelete_order | null;
 }
 

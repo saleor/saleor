@@ -1,6 +1,6 @@
+import graphene
 import pytest
 
-import graphene
 from saleor.graphql.menu.mutations import NavigationType
 from saleor.menu.models import MenuItem
 from tests.api.utils import get_graphql_content

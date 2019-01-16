@@ -1,4 +1,9 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import AttachMoney from "@material-ui/icons/AttachMoney";
 import LocalShipping from "@material-ui/icons/LocalShipping";
 import * as React from "react";
@@ -7,7 +12,6 @@ import CardSpacer from "../../../components/CardSpacer";
 import Container from "../../../components/Container";
 import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
-import { maybe } from "../../../misc";
 import {
   Home_activities_edges_node,
   Home_productTopToday_edges_node,
@@ -19,7 +23,34 @@ import HomeHeader from "../HomeHeader";
 import HomeNotificationTable from "../HomeNotificationTable/HomeNotificationTable";
 import HomeProductListCard from "../HomeProductListCard";
 
-export interface HomePageProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    cardContainer: {
+      display: "grid",
+      gridColumnGap: `${theme.spacing.unit * 3}px`,
+      gridTemplateColumns: "1fr 1fr",
+      [theme.breakpoints.down("sm")]: {
+        gridColumnGap: `${theme.spacing.unit}px`
+      },
+      [theme.breakpoints.down("xs")]: {
+        gridTemplateColumns: "1fr"
+      }
+    },
+
+    root: {
+      display: "grid",
+      gridColumnGap: `${theme.spacing.unit * 3}px`,
+      gridTemplateColumns: "2fr 1fr",
+      [theme.breakpoints.down("sm")]: {
+        gridColumnGap: `${theme.spacing.unit}px`
+      },
+      [theme.breakpoints.down("sm")]: {
+        gridTemplateColumns: "1fr"
+      }
+    }
+  });
+
+export interface HomePageProps extends WithStyles<typeof styles> {
   activities: Home_activities_edges_node[];
   orders: number;
   ordersToCapture: number;
@@ -34,32 +65,7 @@ export interface HomePageProps {
   onProductsOutOfStockClick: () => void;
 }
 
-const decorate = withStyles(theme => ({
-  cardContainer: {
-    display: "grid",
-    gridColumnGap: `${theme.spacing.unit * 3}px`,
-    gridTemplateColumns: "1fr 1fr",
-    [theme.breakpoints.down("sm")]: {
-      gridColumnGap: `${theme.spacing.unit}px`
-    },
-    [theme.breakpoints.down("xs")]: {
-      gridTemplateColumns: "1fr"
-    }
-  },
-
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: `${theme.spacing.unit * 3}px`,
-    gridTemplateColumns: "2fr 1fr",
-    [theme.breakpoints.down("sm")]: {
-      gridColumnGap: `${theme.spacing.unit}px`
-    },
-    [theme.breakpoints.down("sm")]: {
-      gridTemplateColumns: "1fr"
-    }
-  }
-}));
-const HomePage = decorate<HomePageProps>(
+const HomePage = withStyles(styles, { name: "HomePage" })(
   ({
     userName,
     classes,
@@ -74,7 +80,7 @@ const HomePage = decorate<HomePageProps>(
     ordersToCapture,
     ordersToFulfill,
     productsOutOfStock
-  }) => (
+  }: HomePageProps) => (
     <Container width="md">
       <HomeHeader userName={userName} />
       <CardSpacer />
@@ -85,10 +91,9 @@ const HomePage = decorate<HomePageProps>(
               title={"Sales"}
               icon={<AttachMoney fontSize={"inherit"} />}
             >
-              {maybe(
-                () => (
-                  <Money amount={sales.amount} currency={sales.currency} />
-                ),
+              {sales ? (
+                <Money money={sales} />
+              ) : (
                 <Skeleton style={{ width: "5em" }} />
               )}
             </HomeAnalyticsCard>
@@ -125,4 +130,5 @@ const HomePage = decorate<HomePageProps>(
     </Container>
   )
 );
+HomePage.displayName = "HomePage";
 export default HomePage;

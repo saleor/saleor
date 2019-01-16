@@ -3,7 +3,7 @@ from textwrap import dedent
 from graphene import relay
 
 from ...page import models
-from ..core.types.common import CountableDjangoObjectType
+from ..core.connection import CountableDjangoObjectType
 
 
 class Page(CountableDjangoObjectType):

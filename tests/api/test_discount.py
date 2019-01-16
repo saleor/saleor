@@ -1,8 +1,8 @@
+import graphene
 import pytest
 
-import graphene
 from saleor.discount import DiscountValueType, VoucherType
-from saleor.graphql.discount.types import (
+from saleor.graphql.discount.enums import (
     DiscountValueTypeEnum, VoucherTypeEnum)
 from tests.api.utils import get_graphql_content
 

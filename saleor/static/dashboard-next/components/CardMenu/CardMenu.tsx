@@ -77,5 +77,4 @@ export class CardMenu extends React.Component<CardMenuProps, CardMenuState> {
     );
   }
 }
-
 export default CardMenu;

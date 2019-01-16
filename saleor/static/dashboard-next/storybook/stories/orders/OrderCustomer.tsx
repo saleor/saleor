@@ -1,3 +1,4 @@
+import { Omit } from "@material-ui/core";
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
@@ -9,7 +10,7 @@ import Decorator from "../../Decorator";
 
 const order = orderFixture("");
 
-const props: OrderCustomerProps = {
+const props: Omit<OrderCustomerProps, "classes"> = {
   canEditAddresses: false,
   canEditCustomer: true,
   fetchUsers: () => undefined,

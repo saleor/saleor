@@ -1,5 +1,10 @@
 import IconButton from "@material-ui/core/IconButton";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -10,7 +15,7 @@ import Typography from "@material-ui/core/Typography";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
-import Debounce from "../../../components/Debounce";
+import { DebounceForm } from "../../../components/DebounceForm";
 import Form from "../../../components/Form";
 import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
@@ -23,31 +28,40 @@ export interface FormData {
   quantity: number;
 }
 
-interface OrderDraftDetailsProductsProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    iconCell: {
+      "&:last-child": {
+        paddingRight: 0
+      },
+      width: 48 + theme.spacing.unit / 2
+    },
+    quantityField: {
+      "& input": {
+        textAlign: "right"
+      },
+      width: 60
+    },
+    textRight: {
+      textAlign: "right"
+    }
+  });
+
+interface OrderDraftDetailsProductsProps extends WithStyles<typeof styles> {
   lines: OrderDetails_order_lines[];
   onOrderLineChange: (id: string, data: FormData) => void;
   onOrderLineRemove: (id: string) => void;
 }
 
-const decorate = withStyles(theme => ({
-  iconCell: {
-    "&:last-child": {
-      paddingRight: 0
-    },
-    width: 48 + theme.spacing.unit / 2
-  },
-  quantityField: {
-    "& input": {
-      textAlign: "right" as "right"
-    },
-    width: 60
-  },
-  textRight: {
-    textAlign: "right" as "right"
-  }
-}));
-const OrderDraftDetailsProducts = decorate<OrderDraftDetailsProductsProps>(
-  ({ classes, lines, onOrderLineChange, onOrderLineRemove }) => (
+const OrderDraftDetailsProducts = withStyles(styles, {
+  name: "OrderDraftDetailsProducts"
+})(
+  ({
+    classes,
+    lines,
+    onOrderLineChange,
+    onOrderLineRemove
+  }: OrderDraftDetailsProductsProps) => (
     <Table>
       {maybe(() => !!lines.length) && (
         <TableHead>
@@ -96,7 +110,7 @@ const OrderDraftDetailsProducts = decorate<OrderDraftDetailsProductsProps>(
                     onSubmit={data => onOrderLineChange(line.id, data)}
                   >
                     {({ change, data, hasChanged, submit }) => (
-                      <Debounce
+                      <DebounceForm
                         change={change}
                         submit={hasChanged ? submit : undefined}
                         time={200}
@@ -111,7 +125,7 @@ const OrderDraftDetailsProducts = decorate<OrderDraftDetailsProductsProps>(
                             onChange={debounce}
                           />
                         )}
-                      </Debounce>
+                      </DebounceForm>
                     )}
                   </Form>
                 ) : (
@@ -120,10 +134,7 @@ const OrderDraftDetailsProducts = decorate<OrderDraftDetailsProductsProps>(
               </TableCell>
               <TableCell className={classes.textRight}>
                 {maybe(() => line.unitPrice.net) ? (
-                  <Money
-                    amount={line.unitPrice.net.amount}
-                    currency={line.unitPrice.net.currency}
-                  />
+                  <Money money={line.unitPrice.net} />
                 ) : (
                   <Skeleton />
                 )}
@@ -131,8 +142,10 @@ const OrderDraftDetailsProducts = decorate<OrderDraftDetailsProductsProps>(
               <TableCell className={classes.textRight}>
                 {maybe(() => line.unitPrice.net && line.quantity) ? (
                   <Money
-                    amount={line.unitPrice.net.amount * line.quantity}
-                    currency={line.unitPrice.net.currency}
+                    money={{
+                      amount: line.unitPrice.net.amount * line.quantity,
+                      currency: line.unitPrice.net.currency
+                    }}
                   />
                 ) : (
                   <Skeleton />

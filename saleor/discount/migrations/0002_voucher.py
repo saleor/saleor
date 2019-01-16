@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 
 import datetime
+from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 import django_prices.models
@@ -27,10 +28,10 @@ class Migration(migrations.Migration):
                 ('used', models.PositiveIntegerField(default=0, editable=False)),
                 ('start_date', models.DateField(default=datetime.date.today)),
                 ('end_date', models.DateField(blank=True, help_text='Never expire if empty', null=True)),
-                ('discount_value_type', models.CharField(choices=[('fixed', 'USD'), ('percentage', '%')], default='fixed', max_length=10)),
+                ('discount_value_type', models.CharField(choices=[('fixed', settings.DEFAULT_CURRENCY), ('percentage', '%')], default='fixed', max_length=10)),
                 ('discount_value', models.DecimalField(decimal_places=2, max_digits=12)),
                 ('apply_to', models.CharField(blank=True, max_length=20, null=True)),
-                ('limit', django_prices.models.MoneyField(blank=True, currency='USD', decimal_places=2, max_digits=12, null=True)),
+                ('limit', django_prices.models.MoneyField(blank=True, currency=settings.DEFAULT_CURRENCY, decimal_places=2, max_digits=12, null=True)),
                 ('category', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='product.Category')),
                 ('product', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='product.Product')),
             ],

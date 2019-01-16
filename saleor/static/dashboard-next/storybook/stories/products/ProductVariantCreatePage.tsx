@@ -30,6 +30,7 @@ storiesOf("Views / Products / Create product variant", module)
   .addDecorator(Decorator)
   .add("default", () => (
     <ProductVariantCreatePage
+      currencySymbol="USD"
       errors={[]}
       header="Add variant"
       loading={false}
@@ -37,10 +38,12 @@ storiesOf("Views / Products / Create product variant", module)
       onBack={() => undefined}
       onSubmit={() => undefined}
       onVariantClick={undefined}
+      saveButtonBarState="default"
     />
   ))
   .add("with errors", () => (
     <ProductVariantCreatePage
+      currencySymbol="USD"
       errors={errors}
       header="Add variant"
       loading={false}
@@ -48,10 +51,12 @@ storiesOf("Views / Products / Create product variant", module)
       onBack={() => undefined}
       onSubmit={() => undefined}
       onVariantClick={undefined}
+      saveButtonBarState="default"
     />
   ))
   .add("when loading data", () => (
     <ProductVariantCreatePage
+      currencySymbol="USD"
       errors={[]}
       header="Add variant"
       loading={true}
@@ -59,5 +64,6 @@ storiesOf("Views / Products / Create product variant", module)
       onBack={() => undefined}
       onSubmit={() => undefined}
       onVariantClick={undefined}
+      saveButtonBarState="default"
     />
   ));

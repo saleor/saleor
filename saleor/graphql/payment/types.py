@@ -1,36 +1,13 @@
 import graphene
+import graphene_django_optimizer as gql_optimizer
 from django_countries.fields import Country
 from graphene import relay
 
-from ...payment import GATEWAYS_ENUM, ChargeStatus, models
+from ...payment import models
 from ..account.types import Address
-from ..core.types.common import CountableDjangoObjectType, CountryDisplay
-from ..core.types.money import Money
-from ..core.utils import str_to_enum
-
-PaymentGatewayEnum = graphene.Enum.from_enum(GATEWAYS_ENUM)
-PaymentChargeStatusEnum = graphene.Enum(
-    'PaymentChargeStatusEnum',
-    [(str_to_enum(code.upper()), code) for code, name in ChargeStatus.CHOICES])
-
-
-class OrderAction(graphene.Enum):
-    # FIXME could use a better name
-    CAPTURE = 'CAPTURE'
-    MARK_AS_PAID = 'MARK_AS_PAID'
-    REFUND = 'REFUND'
-    VOID = 'VOID'
-
-    @property
-    def description(self):
-        if self == OrderAction.CAPTURE:
-            return 'Represents the capture action.'
-        if self == OrderAction.MARK_AS_PAID:
-            return 'Represents a mark-as-paid action.'
-        if self == OrderAction.REFUND:
-            return 'Represents a refund action.'
-        if self == OrderAction.VOID:
-            return 'Represents a void action.'
+from ..core.connection import CountableDjangoObjectType
+from ..core.types import Money
+from .enums import OrderAction, PaymentChargeStatusEnum
 
 
 class Transaction(CountableDjangoObjectType):
@@ -44,7 +21,6 @@ class Transaction(CountableDjangoObjectType):
         filter_fields = ['id']
         exclude_fields = ['currency']
 
-    @staticmethod
     def resolve_amount(self, info):
         return self.get_amount()
 
@@ -67,9 +43,6 @@ class CreditCard(graphene.ObjectType):
 
 
 class Payment(CountableDjangoObjectType):
-    # FIXME gateway_response field should be resolved
-    # if we want to use it on the frontend
-    # otherwise it should be removed from this type
     charge_status = PaymentChargeStatusEnum(
         description='Internal payment status.', required=True)
     actions = graphene.List(
@@ -103,6 +76,7 @@ class Payment(CountableDjangoObjectType):
             'billing_postal_code', 'billing_country_code',
             'billing_country_area', 'currency', 'billing_city_area']
 
+    @gql_optimizer.resolver_hints(prefetch_related='transactions')
     def resolve_actions(self, info):
         actions = []
         if self.can_capture():
@@ -132,6 +106,7 @@ class Payment(CountableDjangoObjectType):
             country=Country(self.billing_country_code),
             country_area=self.billing_country_area)
 
+    @gql_optimizer.resolver_hints(prefetch_related='transactions')
     def resolve_transactions(self, info):
         return self.transactions.all()
 
@@ -141,6 +116,7 @@ class Payment(CountableDjangoObjectType):
             return None
         return self.get_captured_amount()
 
+    @gql_optimizer.resolver_hints(prefetch_related='transactions')
     def resolve_available_capture_amount(self, info):
         # FIXME TESTME
         if not self.can_capture():

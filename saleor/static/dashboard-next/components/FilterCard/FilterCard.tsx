@@ -29,5 +29,5 @@ const FilterCard: React.StatelessComponent<FilterCardProps> = ({
     </form>
   </Card>
 );
-
+FilterCard.displayName = "FilterCard";
 export default FilterCard;

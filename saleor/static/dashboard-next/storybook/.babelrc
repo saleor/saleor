@@ -1,12 +1,3 @@
 {
-  "presets": [
-    "@babel/preset-stage-0",
-    "@babel/preset-es2015",
-    "@babel/preset-react"
-  ],
-  "plugins": [
-    "@babel/plugin-proposal-class-properties",
-    "@babel/plugin-proposal-decorators",
-    "@babel/plugin-proposal-object-rest-spread"
-  ]
+  "presets": ["@babel/preset-env", "@babel/preset-react"]
 }

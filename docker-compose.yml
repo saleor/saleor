@@ -16,7 +16,6 @@ services:
     depends_on:
       - db
       - redis
-      - search
     command: python manage.py runserver 0.0.0.0:8000
 
   db:
@@ -58,26 +57,10 @@ services:
     depends_on:
       - redis
 
-  search:
-    image: elasticsearch:6.4.2
-    restart: unless-stopped
-    networks:
-      - saleor-backend-tier
-    volumes:
-      - saleor-search:/usr/share/elasticsearch/
-    ports:
-      - 9200:9200
-    # See https://github.com/docker/compose/issues/4513 if updating to version '3'
-    mem_limit: 512m
-    environment:
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m -Dlog4j2.disable.jmx=true"
-
 volumes:
   saleor-db:
     driver: local
   saleor-redis:
-    driver: local
-  saleor-search:
     driver: local
 
 networks:

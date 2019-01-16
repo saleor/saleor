@@ -2,7 +2,9 @@ from itertools import chain
 from textwrap import dedent
 
 import graphene
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured, ValidationError
+from django.db.models.fields.files import FileField
 from graphene.types.mutation import MutationOptions
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
@@ -11,9 +13,8 @@ from graphql_jwt.exceptions import JSONWebTokenError, PermissionDenied
 
 from ...account import models
 from ..account.types import User
-from ..file_upload.types import Upload
 from ..utils import get_nodes
-from .types.common import Error
+from .types import Error, Upload
 from .utils import snake_to_camel_case
 
 registry = get_global_registry()
@@ -44,7 +45,7 @@ class ModelMutationOptions(MutationOptions):
 
 class BaseMutation(graphene.Mutation):
     errors = graphene.List(
-        Error,
+        graphene.NonNull(Error),
         description='List of errors that occurred executing the mutation.')
 
     class Meta:
@@ -80,6 +81,9 @@ class BaseMutation(graphene.Mutation):
 
     @classmethod
     def get_node_or_error(cls, info, global_id, errors, field, only_type=None):
+        if not global_id:
+            return None
+
         node = None
         try:
             node = graphene.Node.get_node_from_global_id(
@@ -119,7 +123,6 @@ class BaseMutation(graphene.Mutation):
                 for message in message_dict[field]:
                     field = snake_to_camel_case(field)
                     cls.add_error(errors, field, message)
-        return errors
 
     @classmethod
     def construct_instance(cls, instance, cleaned_data):
@@ -138,8 +141,15 @@ class BaseMutation(graphene.Mutation):
                     f.name not in cleaned_data]):
                 continue
             data = cleaned_data[f.name]
-            if not f.null and data is None:
-                data = f._get_default()
+            if data is None:
+                # We want to reset the file field value when None was passed
+                # in the input, but `FileField.save_form_data` ignores None
+                # values. In that case we manually pass False which clears
+                # the file.
+                if isinstance(f, FileField):
+                    data = False
+                if not f.null:
+                    data = f._get_default()
             f.save_form_data(instance, data)
         return instance
 
@@ -371,5 +381,6 @@ class VerifyToken(Verify):
     user = graphene.Field(User)
 
     def resolve_user(self, info, **kwargs):
-        email = self.payload.get('email')
-        return models.User.objects.get(email=email)
+        username_field = get_user_model().USERNAME_FIELD
+        kwargs = {username_field: self.payload.get(username_field)}
+        return models.User.objects.get(**kwargs)

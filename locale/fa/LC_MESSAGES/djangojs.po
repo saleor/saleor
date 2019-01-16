@@ -1,0 +1,376 @@
+# Saleor
+# Copyright (C) 2017 Mirumee Software
+# This file is distributed under the same license as the Saleor package.
+# Mirumee Software <hello@mirumee.com>, 2017.
+# 
+# Translators:
+# Patryk Zawadzki <patrys@room-303.com>, 2018
+# shahnaz sehati <shahnazsehati@gmail.com>, 2018
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-12-18 08:53-0600\n"
+"PO-Revision-Date: 2017-02-08 11:00+0000\n"
+"Last-Translator: shahnaz sehati <shahnazsehati@gmail.com>, 2018\n"
+"Language-Team: Persian (https://www.transifex.com/mirumee/teams/34782/fa/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fa\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:75
+msgid "Missing source"
+msgstr ""
+
+#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:136
+msgid "\n"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/bulk-actions.js:89
+msgid "item selected"
+msgid_plural "items selected"
+msgstr[0] "ب"
+msgstr[1] "مورد انتخاب شده"
+
+#: saleor/static/dashboard/js/components/datepicker.js:4
+msgctxt "Datepicker option"
+msgid "Next month"
+msgstr "ماه بعد"
+
+#: saleor/static/dashboard/js/components/datepicker.js:5
+msgctxt "Datepicker option"
+msgid "Previous month"
+msgstr "ماه قبل"
+
+#: saleor/static/dashboard/js/components/datepicker.js:8
+msgctxt "Datepicker option"
+msgid "Select a month"
+msgstr "انتخاب ماه"
+
+#: saleor/static/dashboard/js/components/datepicker.js:9
+msgctxt "Datepicker option"
+msgid "Select a year"
+msgstr "انتخاب سال"
+
+#: saleor/static/dashboard/js/components/datepicker.js:13
+msgctxt "Datepicker month"
+msgid "January"
+msgstr "ژانویه"
+
+#: saleor/static/dashboard/js/components/datepicker.js:14
+msgctxt "Datepicker month"
+msgid "February"
+msgstr "فوریه"
+
+#: saleor/static/dashboard/js/components/datepicker.js:15
+msgctxt "Datepicker month"
+msgid "March"
+msgstr "مارس"
+
+#: saleor/static/dashboard/js/components/datepicker.js:16
+msgctxt "Datepicker month"
+msgid "April"
+msgstr "آوریل"
+
+#: saleor/static/dashboard/js/components/datepicker.js:17
+msgctxt "Datepicker month"
+msgid "May"
+msgstr "می"
+
+#: saleor/static/dashboard/js/components/datepicker.js:18
+msgctxt "Datepicker month"
+msgid "June"
+msgstr "ژون"
+
+#: saleor/static/dashboard/js/components/datepicker.js:19
+msgctxt "Datepicker month"
+msgid "July"
+msgstr "جولای"
+
+#: saleor/static/dashboard/js/components/datepicker.js:20
+msgctxt "Datepicker month"
+msgid "August"
+msgstr "آگوست"
+
+#: saleor/static/dashboard/js/components/datepicker.js:21
+msgctxt "Datepicker month"
+msgid "September"
+msgstr "سپتامبر"
+
+#: saleor/static/dashboard/js/components/datepicker.js:22
+msgctxt "Datepicker month"
+msgid "October"
+msgstr "اکتبر"
+
+#: saleor/static/dashboard/js/components/datepicker.js:23
+msgctxt "Datepicker month"
+msgid "November"
+msgstr "نوامبر"
+
+#: saleor/static/dashboard/js/components/datepicker.js:24
+msgctxt "Datepicker month"
+msgid "December"
+msgstr "دسامبر"
+
+#: saleor/static/dashboard/js/components/datepicker.js:26
+msgctxt "Datepicker month shortcut"
+msgid "Jan"
+msgstr "ژان"
+
+#: saleor/static/dashboard/js/components/datepicker.js:27
+msgctxt "Datepicker month shortcut"
+msgid "Feb"
+msgstr "فور"
+
+#: saleor/static/dashboard/js/components/datepicker.js:28
+msgctxt "Datepicker month shortcut"
+msgid "Mar"
+msgstr "مار"
+
+#: saleor/static/dashboard/js/components/datepicker.js:29
+msgctxt "Datepicker month shortcut"
+msgid "Apr"
+msgstr "آور"
+
+#: saleor/static/dashboard/js/components/datepicker.js:30
+msgctxt "Datepicker month shortcut"
+msgid "May"
+msgstr "می"
+
+#: saleor/static/dashboard/js/components/datepicker.js:31
+msgctxt "Datepicker month shortcut"
+msgid "Jun"
+msgstr "ژون"
+
+#: saleor/static/dashboard/js/components/datepicker.js:32
+msgctxt "Datepicker month shortcut"
+msgid "Jul"
+msgstr "جول"
+
+#: saleor/static/dashboard/js/components/datepicker.js:33
+msgctxt "Datepicker month shortcut"
+msgid "Aug"
+msgstr "آوگ"
+
+#: saleor/static/dashboard/js/components/datepicker.js:34
+msgctxt "Datepicker month shortcut"
+msgid "Sep"
+msgstr "سپت"
+
+#: saleor/static/dashboard/js/components/datepicker.js:35
+msgctxt "Datepicker month shortcut"
+msgid "Oct"
+msgstr "اکت"
+
+#: saleor/static/dashboard/js/components/datepicker.js:36
+msgctxt "Datepicker month shortcut"
+msgid "Nov"
+msgstr "نوا"
+
+#: saleor/static/dashboard/js/components/datepicker.js:37
+msgctxt "Datepicker month shortcut"
+msgid "Dec"
+msgstr "دسا"
+
+#: saleor/static/dashboard/js/components/datepicker.js:39
+msgctxt "Datepicker weekday"
+msgid "Sunday"
+msgstr "یکشنبه"
+
+#: saleor/static/dashboard/js/components/datepicker.js:40
+msgctxt "Datepicker weekday"
+msgid "Monday"
+msgstr "دوشنبه"
+
+#: saleor/static/dashboard/js/components/datepicker.js:41
+msgctxt "Datepicker weekday"
+msgid "Tuesday"
+msgstr "سه شنبه"
+
+#: saleor/static/dashboard/js/components/datepicker.js:42
+msgctxt "Datepicker weekday"
+msgid "Wednesday"
+msgstr "چهارشنبه"
+
+#: saleor/static/dashboard/js/components/datepicker.js:43
+msgctxt "Datepicker weekday"
+msgid "Thursday"
+msgstr "پنج شنبه"
+
+#: saleor/static/dashboard/js/components/datepicker.js:44
+msgctxt "Datepicker weekday"
+msgid "Friday"
+msgstr "جمعه"
+
+#: saleor/static/dashboard/js/components/datepicker.js:45
+msgctxt "Datepicker weekday"
+msgid "Saturday"
+msgstr "شنبه"
+
+#: saleor/static/dashboard/js/components/datepicker.js:47
+msgctxt "Datepicker weekday shortcut"
+msgid "Sun"
+msgstr "یکش"
+
+#: saleor/static/dashboard/js/components/datepicker.js:48
+msgctxt "Datepicker weekday shortcut"
+msgid "Mon"
+msgstr "دوش"
+
+#: saleor/static/dashboard/js/components/datepicker.js:49
+msgctxt "Datepicker weekday shortcut"
+msgid "Tue"
+msgstr "سه ش"
+
+#: saleor/static/dashboard/js/components/datepicker.js:50
+msgctxt "Datepicker weekday shortcut"
+msgid "Wed"
+msgstr "چهار ش"
+
+#: saleor/static/dashboard/js/components/datepicker.js:51
+msgctxt "Datepicker weekday shortcut"
+msgid "Thu"
+msgstr "پنج ش"
+
+#: saleor/static/dashboard/js/components/datepicker.js:52
+msgctxt "Datepicker weekday shortcut"
+msgid "Fri"
+msgstr "جمع"
+
+#: saleor/static/dashboard/js/components/datepicker.js:53
+msgctxt "Datepicker weekday shortcut"
+msgid "Sat"
+msgstr "شنب"
+
+#: saleor/static/dashboard/js/components/datepicker.js:57
+msgctxt "Sunday shortcut"
+msgid "S"
+msgstr "ش"
+
+#: saleor/static/dashboard/js/components/datepicker.js:58
+msgctxt "Monday shortcut"
+msgid "M"
+msgstr "د"
+
+#: saleor/static/dashboard/js/components/datepicker.js:59
+msgctxt "Tuesday shortcut"
+msgid "T"
+msgstr "پ"
+
+#: saleor/static/dashboard/js/components/datepicker.js:60
+msgctxt "Wednesday shortcut"
+msgid "W"
+msgstr "چ"
+
+#: saleor/static/dashboard/js/components/datepicker.js:61
+msgctxt "Thursday shortcut"
+msgid "T"
+msgstr "پ"
+
+#: saleor/static/dashboard/js/components/datepicker.js:62
+msgctxt "Friday shortcut"
+msgid "F"
+msgstr "ج"
+
+#: saleor/static/dashboard/js/components/datepicker.js:63
+msgctxt "Saturday shortcut"
+msgid "S"
+msgstr "ش"
+
+#: saleor/static/dashboard/js/components/datepicker.js:64
+msgctxt "Datepicker option"
+msgid "Today"
+msgstr "امروز"
+
+#: saleor/static/dashboard/js/components/datepicker.js:65
+msgctxt "Datepicker option"
+msgid "Clear"
+msgstr "پاک کن"
+
+#: saleor/static/dashboard/js/components/datepicker.js:66
+msgctxt "Datepicker option"
+msgid "Close"
+msgstr "ببند"
+
+#: saleor/static/dashboard/js/components/editor.js:27
+msgctxt "Rich text editor option"
+msgid "Bold text"
+msgstr "متن برجسته"
+
+#: saleor/static/dashboard/js/components/editor.js:31
+msgctxt "Rich text editor option"
+msgid "Italic text"
+msgstr "متن ایتالیک"
+
+#: saleor/static/dashboard/js/components/editor.js:35
+msgctxt "Rich text editor option"
+msgid "Header"
+msgstr "سر صفحه"
+
+#: saleor/static/dashboard/js/components/editor.js:42
+msgctxt "Rich text editor option"
+msgid "Subheader"
+msgstr "زیر عنوان"
+
+#: saleor/static/dashboard/js/components/editor.js:49
+msgctxt "Rich text editor option"
+msgid "Quote"
+msgstr "نقل قول"
+
+#: saleor/static/dashboard/js/components/editor.js:54
+msgctxt "Rich text editor option"
+msgid "Link"
+msgstr "پیوند"
+
+#: saleor/static/dashboard/js/components/editor.js:61
+msgctxt "Rich text editor option"
+msgid "Image (converts selected text to an image tag)"
+msgstr "تصویر (تبدیل متن انتخاب شده به یک برچسب عکس تصویر)"
+
+#: saleor/static/dashboard/js/components/editor.js:66
+msgctxt "Rich text editor option"
+msgid "Left align"
+msgstr "تراز از چپ"
+
+#: saleor/static/dashboard/js/components/editor.js:71
+msgctxt "Rich text editor option"
+msgid "Center align"
+msgstr "تراز وسط"
+
+#: saleor/static/dashboard/js/components/editor.js:76
+msgctxt "Rich text editor option"
+msgid "Right align"
+msgstr "تراز از راست"
+
+#: saleor/static/dashboard/js/components/editor.js:81
+msgctxt "Rich text editor option"
+msgid "Justify"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/editor.js:86
+msgctxt "Rich text editor option"
+msgid "Remove formatting"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/google-preview.js:46
+msgid ""
+"Your input might be a little too short, think of something more descriptive"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/google-preview.js:50
+msgid "Your input fits between the recommended lengths"
+msgstr ""
+
+#: saleor/static/js/components/variantPicker/QuantityInput.js:22
+msgctxt "Add to cart form field label"
+msgid "Quantity"
+msgstr "تعداد"
+
+#: saleor/static/js/components/variantPicker/VariantPicker.js:167
+msgctxt "Product details primary action"
+msgid "Add to cart"
+msgstr "به سبد خرید اضافه کن"
