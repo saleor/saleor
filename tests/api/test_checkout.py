@@ -238,6 +238,27 @@ def test_checkout_lines_add_check_lines_quantity(
     assert data['errors'][0]['field'] == 'quantity'
 
 
+def test_checkout_lines_wrong_variant_id(
+        user_api_client, cart, variant):
+    variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)
+    wrong_variant_id = 'WrongId'
+    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
+
+    variables = {
+        'checkoutId': checkout_id,
+        'lines': [
+            {'variantId': variant_id, 'quantity': 1},
+            {'wrong_variant_id': variant_id, 'quantity': 3}]}
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)
+    data = content['data']['checkoutLinesAdd']
+    error_msg = 'Could not resolve to a nodes with the global id list of {}}.'.format(
+        [wrong_variant_id])
+    assert data['errors'][0]['message'] == error_msg
+    assert data['errors'][0]['field'] == 'variantId'
+
+
 MUTATION_CHECKOUT_LINES_UPDATE = """
     mutation checkoutLinesUpdate($checkoutId: ID!, $lines: [CheckoutLineInput!]!) {
         checkoutLinesUpdate(checkoutId: $checkoutId, lines: $lines) {
