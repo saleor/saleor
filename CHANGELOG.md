@@ -16,3 +16,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add charges taxes on shipping field to shop settings in GraphQL Api - #3603 by @fowczarek
 - Make order fields sequence same as dashboard 2.0 - #3606 by @jxltom
 - Fix bug where orders can not be filtered by payment status - #3608 by @jxltom
+- Fix logo placement in dashboard 2.0 when the svg has specific width - #3609 by @jxltom
