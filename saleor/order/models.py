@@ -179,7 +179,7 @@ class Order(models.Model):
     def get_payment_status(self):
         last_payment = self.get_last_payment()
         if last_payment:
-            return last_payment.get_charge_status_display()
+            return last_payment.charge_status
         return ChargeStatus.NOT_CHARGED
 
     def get_payment_status_display(self):
