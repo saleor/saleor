@@ -26,7 +26,6 @@
     "@types/react-helmet": "^5.0.7",
     "@types/react-infinite-scroller": "^1.2.0",
     "@types/storybook__addon-storyshots": "^3.4.3",
-    "@types/storybook__react": "^4.0.0",
     "@types/string-similarity": "^1.2.0",
     "@types/url-join": "^0.8.2",
     "apollo": "^2.1.7",
@@ -103,6 +102,7 @@
     "@types/react-dom": "^16.0.11",
     "@types/react-router-dom": "^4.2.6",
     "@types/react-test-renderer": "^16.0.3",
+    "@types/storybook__react": "^4.0.0",
     "autoprefixer": "^8.2.0",
     "babel-core": "^7.0.0-bridge.0",
     "babel-eslint": "^10.0.1",
@@ -134,7 +134,7 @@
     "react-test-renderer": "^16.6.3",
     "regenerator-runtime": "^0.11.1",
     "sass-loader": "^7.1.0",
-    "ts-jest": "^23.1.4",
+    "ts-jest": "^23.10.5",
     "ts-loader": "^5.3.2",
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.15.0",
@@ -165,7 +165,11 @@
     }
   },
   "jest": {
-    "globals": {},
+    "globals": {
+      "ts-jest": {
+        "tsConfig": "tsconfig.json"
+      }
+    },
     "transform": {
       "^.+\\.tsx?$": "ts-jest",
       "^.+\\.(png|svg|jpe?g)$": "jest-file"

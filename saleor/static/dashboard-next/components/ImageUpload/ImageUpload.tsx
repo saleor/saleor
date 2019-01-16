@@ -9,7 +9,8 @@ import Typography from "@material-ui/core/Typography";
 import AddPhotoIcon from "@material-ui/icons/AddAPhoto";
 import classNames from "classnames";
 import * as React from "react";
-import Dropzone from "react-dropzone";
+/* tslint:disable:no-submodule-imports */
+import * as Dropzone from "react-dropzone/dist/index";
 import i18n from "../../i18n";
 
 interface ImageUploadProps {
@@ -56,31 +57,27 @@ export const ImageUpload = withStyles(styles, { name: "ImageUpload" })(
   ({
     classes,
     onImageUpload
-  }: ImageUploadProps & WithStyles<typeof styles>) => {
-    // console.log(DropzoneComponent);
-    // throw DropzoneComponent;
-    return (
-      <Dropzone onDrop={files => onImageUpload(files[0])}>
-        {({ isDragActive, getInputProps, getRootProps }) => (
-          <div
-            {...getRootProps()}
-            className={classNames({
-              [classes.photosIconContainer]: true,
-              [classes.containerDragActive]: isDragActive
+  }: ImageUploadProps & WithStyles<typeof styles>) => (
+    <Dropzone onDrop={files => onImageUpload(files[0])}>
+      {({ isDragActive, getInputProps, getRootProps }) => (
+        <div
+          {...getRootProps()}
+          className={classNames({
+            [classes.photosIconContainer]: true,
+            [classes.containerDragActive]: isDragActive
+          })}
+        >
+          <input {...getInputProps()} className={classes.fileField} />
+          <AddPhotoIcon className={classes.photosIcon} />
+          <Typography className={classes.uploadText} variant="body2">
+            {i18n.t("Drop here to upload", {
+              context: "image upload"
             })}
-          >
-            <input {...getInputProps()} className={classes.fileField} />
-            <AddPhotoIcon className={classes.photosIcon} />
-            <Typography className={classes.uploadText} variant="body2">
-              {i18n.t("Drop here to upload", {
-                context: "image upload"
-              })}
-            </Typography>
-          </div>
-        )}
-      </Dropzone>
-    );
-  }
+          </Typography>
+        </div>
+      )}
+    </Dropzone>
+  )
 );
 ImageUpload.displayName = "ImageUpload";
 export default ImageUpload;

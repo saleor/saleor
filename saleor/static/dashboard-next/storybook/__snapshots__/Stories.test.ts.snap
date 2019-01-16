@@ -13344,29 +13344,39 @@ exports[`Storyshots Views / Collections / Create collection default 1`] = `
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id"
+              class="ImageUpload-photosIconContainer-id"
+              tabindex="0"
             >
-              <div
-                class="CollectionImageComponent-PhotosIconContainer-id"
+              <input
+                autocomplete="off"
+                class="ImageUpload-fileField-id"
+                multiple=""
+                style="display:none"
+                tabindex="-1"
+                type="file"
+              />
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id ImageUpload-photosIcon-id"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
               >
-                <svg
-                  aria-hidden="true"
-                  class="MuiSvgIcon-root-id CollectionImageComponent-PhotosIcon-id"
-                  focusable="false"
-                  role="presentation"
-                  viewBox="0 0 24 24"
-                >
-                  <defs>
-                    <path
-                      d="M24 24H0V0h24v24z"
-                      id="a"
-                    />
-                  </defs>
+                <defs>
                   <path
-                    d="M3 4V1h2v3h3v2H5v3H3V6H0V4h3zm3 6V7h3V4h7l1.83 2H21c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V10h3zm7 9c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-3.2-5c0 1.77 1.43 3.2 3.2 3.2s3.2-1.43 3.2-3.2-1.43-3.2-3.2-3.2-3.2 1.43-3.2 3.2z"
+                    d="M24 24H0V0h24v24z"
+                    id="a"
                   />
-                </svg>
-              </div>
+                </defs>
+                <path
+                  d="M3 4V1h2v3h3v2H5v3H3V6H0V4h3zm3 6V7h3V4h7l1.83 2H21c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V10h3zm7 9c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-3.2-5c0 1.77 1.43 3.2 3.2 3.2s3.2-1.43 3.2-3.2-1.43-3.2-3.2-3.2-3.2 1.43-3.2 3.2z"
+                />
+              </svg>
+              <p
+                class="MuiTypography-root-id MuiTypography-body2-id ImageUpload-uploadText-id"
+              >
+                Drop here to upload
+              </p>
             </div>
           </div>
           <div
@@ -13742,29 +13752,39 @@ exports[`Storyshots Views / Collections / Create collection loading 1`] = `
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id"
+              class="ImageUpload-photosIconContainer-id"
+              tabindex="0"
             >
-              <div
-                class="CollectionImageComponent-PhotosIconContainer-id"
+              <input
+                autocomplete="off"
+                class="ImageUpload-fileField-id"
+                multiple=""
+                style="display:none"
+                tabindex="-1"
+                type="file"
+              />
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id ImageUpload-photosIcon-id"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
               >
-                <svg
-                  aria-hidden="true"
-                  class="MuiSvgIcon-root-id CollectionImageComponent-PhotosIcon-id"
-                  focusable="false"
-                  role="presentation"
-                  viewBox="0 0 24 24"
-                >
-                  <defs>
-                    <path
-                      d="M24 24H0V0h24v24z"
-                      id="a"
-                    />
-                  </defs>
+                <defs>
                   <path
-                    d="M3 4V1h2v3h3v2H5v3H3V6H0V4h3zm3 6V7h3V4h7l1.83 2H21c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V10h3zm7 9c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-3.2-5c0 1.77 1.43 3.2 3.2 3.2s3.2-1.43 3.2-3.2-1.43-3.2-3.2-3.2-3.2 1.43-3.2 3.2z"
+                    d="M24 24H0V0h24v24z"
+                    id="a"
                   />
-                </svg>
-              </div>
+                </defs>
+                <path
+                  d="M3 4V1h2v3h3v2H5v3H3V6H0V4h3zm3 6V7h3V4h7l1.83 2H21c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V10h3zm7 9c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-3.2-5c0 1.77 1.43 3.2 3.2 3.2s3.2-1.43 3.2-3.2-1.43-3.2-3.2-3.2-3.2 1.43-3.2 3.2z"
+                />
+              </svg>
+              <p
+                class="MuiTypography-root-id MuiTypography-body2-id ImageUpload-uploadText-id"
+              >
+                Drop here to upload
+              </p>
             </div>
           </div>
           <div
