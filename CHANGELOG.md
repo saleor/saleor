@@ -13,3 +13,5 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add checkout assignment to the logged in customer - #3587 by @fowczarek
 - Refactor `clean_instance`, so it does not returns errors anymore - #3597 by @akjanik
 - Fix logo placement - #3602 by @dominik-zeglen
+- Add drag'n'drop image upload - #3611 by @dominik-zeglen
+- Throw typescript errors while snapshotting - #3611 by @dominik-zeglen
