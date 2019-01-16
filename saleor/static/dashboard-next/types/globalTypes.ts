@@ -62,6 +62,11 @@ export enum OrderStatus {
   UNFULFILLED = "UNFULFILLED",
 }
 
+export enum OrderStatusFilter {
+  READY_TO_CAPTURE = "READY_TO_CAPTURE",
+  READY_TO_FULFILL = "READY_TO_FULFILL",
+}
+
 export enum PaymentChargeStatusEnum {
   CHARGED = "CHARGED",
   FULLY_REFUNDED = "FULLY_REFUNDED",
@@ -79,6 +84,11 @@ export enum PermissionEnum {
   MANAGE_SHIPPING = "MANAGE_SHIPPING",
   MANAGE_STAFF = "MANAGE_STAFF",
   MANAGE_USERS = "MANAGE_USERS",
+}
+
+export enum StockAvailability {
+  IN_STOCK = "IN_STOCK",
+  OUT_OF_STOCK = "OUT_OF_STOCK",
 }
 
 export enum TaxRateType {
@@ -106,6 +116,7 @@ export enum TaxRateType {
   SOCIAL_HOUSING = "SOCIAL_HOUSING",
   STANDARD = "STANDARD",
   WATER = "WATER",
+  WINE = "WINE",
 }
 
 export enum WeightUnitsEnum {
@@ -161,14 +172,18 @@ export interface CategoryInput {
   slug?: string | null;
   seo?: SeoInput | null;
   backgroundImage?: any | null;
+  backgroundImageAlt?: string | null;
 }
 
 export interface CollectionCreateInput {
   isPublished?: boolean | null;
   name?: string | null;
   slug?: string | null;
+  description?: string | null;
   backgroundImage?: any | null;
+  backgroundImageAlt?: string | null;
   seo?: SeoInput | null;
+  publishedDate?: any | null;
   products?: (string | null)[] | null;
 }
 
@@ -176,16 +191,21 @@ export interface CollectionInput {
   isPublished?: boolean | null;
   name?: string | null;
   slug?: string | null;
+  description?: string | null;
   backgroundImage?: any | null;
+  backgroundImageAlt?: string | null;
   seo?: SeoInput | null;
+  publishedDate?: any | null;
 }
 
 export interface CustomerInput {
+  defaultBillingAddress?: AddressInput | null;
+  defaultShippingAddress?: AddressInput | null;
+  firstName?: string | null;
+  lastName?: string | null;
   email?: string | null;
   isActive?: boolean | null;
   note?: string | null;
-  defaultBillingAddress?: AddressInput | null;
-  defaultShippingAddress?: AddressInput | null;
 }
 
 export interface DraftOrderInput {
@@ -251,6 +271,16 @@ export interface ProductTypeInput {
   taxRate?: TaxRateType | null;
 }
 
+export interface ProductVariantInput {
+  attributes?: (AttributeValueInput | null)[] | null;
+  costPrice?: any | null;
+  priceOverride?: any | null;
+  sku?: string | null;
+  quantity?: number | null;
+  trackInventory?: boolean | null;
+  weight?: any | null;
+}
+
 export interface SeoInput {
   title?: string | null;
   description?: string | null;
@@ -261,6 +291,7 @@ export interface ShopSettingsInput {
   description?: string | null;
   includeTaxesInPrices?: boolean | null;
   displayGrossPrices?: boolean | null;
+  chargeTaxesOnShipping?: boolean | null;
   trackInventoryByDefault?: boolean | null;
   defaultWeightUnit?: WeightUnitsEnum | null;
 }
@@ -271,26 +302,32 @@ export interface SiteDomainInput {
 }
 
 export interface StaffCreateInput {
+  firstName?: string | null;
+  lastName?: string | null;
   email?: string | null;
   isActive?: boolean | null;
   note?: string | null;
-  permissions?: (string | null)[] | null;
+  permissions?: (PermissionEnum | null)[] | null;
   sendPasswordEmail?: boolean | null;
 }
 
 export interface StaffInput {
+  firstName?: string | null;
+  lastName?: string | null;
   email?: string | null;
   isActive?: boolean | null;
   note?: string | null;
-  permissions?: (string | null)[] | null;
+  permissions?: (PermissionEnum | null)[] | null;
 }
 
 export interface UserCreateInput {
+  defaultBillingAddress?: AddressInput | null;
+  defaultShippingAddress?: AddressInput | null;
+  firstName?: string | null;
+  lastName?: string | null;
   email?: string | null;
   isActive?: boolean | null;
   note?: string | null;
-  defaultBillingAddress?: AddressInput | null;
-  defaultShippingAddress?: AddressInput | null;
   sendPasswordEmail?: boolean | null;
 }
 

@@ -130,6 +130,17 @@ def orders_with_addresses():
     return orders
 
 
+@pytest.fixture
+def orders_with_user_names():
+    orders = []
+    for pk, first_name, last_name, email in ORDERS:
+        user = User.objects.create(
+            email=email, first_name=first_name, last_name=last_name)
+        order = Order.objects.create(user=user, pk=pk)
+        orders.append(order)
+    return orders
+
+
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 def test_find_order_by_id_with_no_result(admin_client, orders_with_addresses):
@@ -169,6 +180,17 @@ def test_find_order_with_user_name(admin_client, orders_with_addresses, phrase,
     assert orders_with_addresses[order_num] in orders
 
 
+@pytest.mark.integration
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.parametrize('phrase,order_num', [('knop', 0), ('ZIEMniak', 1),
+                                              ('  john  ', 2), ('ANDREAS', 0)])
+def test_find_order_with_user_name_without_addres(
+        admin_client, orders_with_user_names, phrase, order_num):
+    _, orders, _ = search_dashboard(admin_client, phrase)
+    assert 1 == len(orders)
+    assert orders_with_user_names[order_num] in orders
+
+
 ORDER_PHRASE_WITH_RESULT = 'Andreas'
 ORDER_RESULTS_PERMISSION = 'order.manage_orders'
 
@@ -203,6 +225,16 @@ def users_with_addresses():
     return users
 
 
+@pytest.fixture
+def users_with_names():
+    users = []
+    for firstname, lastname, email in USERS:
+        user = User.objects.create(
+            email=email, first_name=firstname, last_name=lastname)
+        users.append(user)
+    return users
+
+
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.parametrize('phrase,user_num', [('adreas.knop@example.com', 0),
@@ -223,6 +255,17 @@ def test_find_user_by_name(admin_client, users_with_addresses, phrase,
     _, _, users = search_dashboard(admin_client, phrase)
     assert 1 == len(users)
     assert users_with_addresses[user_num] in users
+
+
+@pytest.mark.integration
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.parametrize('phrase,user_num', [('Andreas Knop', 0),
+                                             (' Euzebiusz ', 1), ('DOE', 2)])
+def test_find_user_by_name_without_address(admin_client, users_with_names,
+                                           phrase, user_num):
+    _, _, users = search_dashboard(admin_client, phrase)
+    assert 1 == len(users)
+    assert users_with_names[user_num] in users
 
 
 USER_PHRASE_WITH_RESULT = 'adreas.knop@example.com'

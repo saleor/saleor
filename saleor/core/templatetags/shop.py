@@ -23,6 +23,12 @@ def menu(site_menu=None, horizontal=False):
         'horizontal': horizontal}
 
 
+@register.inclusion_tag('footer_menu.html')
+def footer_menu(site_menu=None):
+    menu_items = site_menu.json_content if site_menu else []
+    return {'menu_items': menu_items}
+
+
 @register.simple_tag
 def get_menu_item_name(menu_item, lang_code):
     translated = menu_item['translations'].get(lang_code)

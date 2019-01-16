@@ -4,13 +4,13 @@ from unittest.mock import Mock, patch
 from urllib.parse import urljoin
 
 import pytest
-
 from django.db.models import Case, F, When
 from django.shortcuts import reverse
 from django.templatetags.static import static
 from django.urls import translate_url
 from measurement.measures import Weight
 from prices import Money
+
 from saleor.account.models import Address, User
 from saleor.core.storages import S3MediaStorage
 from saleor.core.utils import (
@@ -112,16 +112,16 @@ def test_create_address(db):
     assert Address.objects.all().count() == 1
 
 
-def test_create_fake_order(db, monkeypatch, product_image):
+def test_create_fake_order(db, monkeypatch, image):
     # Tests shouldn't depend on images present in placeholder folder
     monkeypatch.setattr(
         'saleor.core.utils.random_data.get_image',
-        Mock(return_value=product_image))
+        Mock(return_value=image))
     for _ in random_data.create_shipping_zones():
         pass
     for _ in random_data.create_users(3):
         pass
-        random_data.create_products_by_schema('/', 10, False)
+        random_data.create_products_by_schema('/', 10)
     how_many = 5
     for _ in random_data.create_orders(how_many):
         pass

@@ -2,14 +2,21 @@ import { parse as parseQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
+import { WindowTitle } from "../components/WindowTitle";
+import i18n from "../i18n";
+import {
+  staffListPath,
+  staffMemberAddPath,
+  staffMemberDetailsPath
+} from "./urls";
 import StaffDetailsComponent from "./views/StaffDetails";
-import StaffListComponent from "./views/StaffList";
+import StaffListComponent, { StaffListQueryParams } from "./views/StaffList";
 
 const StaffList: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params = {
+  const params: StaffListQueryParams = {
     after: qs.after,
     before: qs.before
   };
@@ -25,16 +32,15 @@ const StaffDetails: React.StatelessComponent<
   <StaffDetailsComponent id={decodeURIComponent(match.params.id)} />
 );
 
-const Component = ({ match }) => (
-  <Switch>
-    <Route exact path={match.url} component={StaffList} />
-    <Route exact path={`${match.url}/:id/`} component={StaffDetails} />
-  </Switch>
+const Component = () => (
+  <>
+    <WindowTitle title={i18n.t("Staff")} />
+    <Switch>
+      <Route exact path={staffListPath} component={StaffList} />
+      <Route exact path={staffMemberAddPath} component={StaffList} />
+      <Route path={staffMemberDetailsPath(":id")} component={StaffDetails} />
+    </Switch>
+  </>
 );
-
-export const staffListUrl = "/staff/";
-export const staffMemberDetailsUrl = (id: string) => {
-  return `/staff/${id}/`;
-};
 
 export default Component;

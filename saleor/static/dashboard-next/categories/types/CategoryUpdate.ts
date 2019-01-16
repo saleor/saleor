@@ -13,6 +13,12 @@ export interface CategoryUpdate_categoryUpdate_errors {
   message: string | null;
 }
 
+export interface CategoryUpdate_categoryUpdate_category_backgroundImage {
+  __typename: "Image";
+  alt: string | null;
+  url: string;
+}
+
 export interface CategoryUpdate_categoryUpdate_category_parent {
   __typename: "Category";
   id: string;
@@ -21,6 +27,7 @@ export interface CategoryUpdate_categoryUpdate_category_parent {
 export interface CategoryUpdate_categoryUpdate_category {
   __typename: "Category";
   id: string;
+  backgroundImage: CategoryUpdate_categoryUpdate_category_backgroundImage | null;
   name: string;
   description: string;
   seoDescription: string | null;
@@ -30,7 +37,7 @@ export interface CategoryUpdate_categoryUpdate_category {
 
 export interface CategoryUpdate_categoryUpdate {
   __typename: "CategoryUpdate";
-  errors: (CategoryUpdate_categoryUpdate_errors | null)[] | null;
+  errors: CategoryUpdate_categoryUpdate_errors[] | null;
   category: CategoryUpdate_categoryUpdate_category | null;
 }
 

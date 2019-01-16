@@ -18,19 +18,8 @@ type Address implements Node {
   phone: String
 }
 
-type AddressCountableConnection {
-  pageInfo: PageInfo!
-  edges: [AddressCountableEdge!]!
-  totalCount: Int
-}
-
-type AddressCountableEdge {
-  node: Address!
-  cursor: String!
-}
-
 type AddressCreate {
-  errors: [Error]
+  errors: [Error!]
   address: Address
 }
 
@@ -50,7 +39,7 @@ input AddressCreateInput {
 }
 
 type AddressDelete {
-  errors: [Error]
+  errors: [Error!]
   address: Address
 }
 
@@ -69,7 +58,7 @@ input AddressInput {
 }
 
 type AddressUpdate {
-  errors: [Error]
+  errors: [Error!]
   address: Address
 }
 
@@ -98,7 +87,7 @@ input AddressValidationInput {
 }
 
 type AssignNavigation {
-  errors: [Error]
+  errors: [Error!]
   menu: Menu
 }
 
@@ -123,7 +112,7 @@ type AttributeCountableEdge {
 }
 
 type AttributeCreate {
-  errors: [Error]
+  errors: [Error!]
   attribute: Attribute
   productType: ProductType
 }
@@ -134,7 +123,7 @@ input AttributeCreateInput {
 }
 
 type AttributeDelete {
-  errors: [Error]
+  errors: [Error!]
   productType: ProductType
   attribute: Attribute
 }
@@ -147,7 +136,7 @@ enum AttributeTypeEnum {
 }
 
 type AttributeUpdate {
-  errors: [Error]
+  errors: [Error!]
   productType: ProductType
   attribute: Attribute
 }
@@ -168,7 +157,7 @@ type AttributeValue implements Node {
 }
 
 type AttributeValueCreate {
-  errors: [Error]
+  errors: [Error!]
   attribute: Attribute
   attributeValue: AttributeValue
 }
@@ -179,7 +168,7 @@ input AttributeValueCreateInput {
 }
 
 type AttributeValueDelete {
-  errors: [Error]
+  errors: [Error!]
   attribute: Attribute
   attributeValue: AttributeValue
 }
@@ -197,7 +186,7 @@ enum AttributeValueType {
 }
 
 type AttributeValueUpdate {
-  errors: [Error]
+  errors: [Error!]
   attribute: Attribute
   attributeValue: AttributeValue
 }
@@ -208,13 +197,13 @@ type AuthorizationKey {
 }
 
 type AuthorizationKeyAdd {
-  errors: [Error]
+  errors: [Error!]
   authorizationKey: AuthorizationKey
   shop: Shop
 }
 
 type AuthorizationKeyDelete {
-  errors: [Error]
+  errors: [Error!]
   authorizationKey: AuthorizationKey
   shop: Shop
 }
@@ -237,12 +226,12 @@ type Category implements Node {
   slug: String!
   description: String!
   parent: Category
-  backgroundImage: Image
+  backgroundImage(size: Int): Image
   level: Int!
   children(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
-  url: String
   ancestors(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
+  url: String
 }
 
 type CategoryCountableConnection {
@@ -257,12 +246,12 @@ type CategoryCountableEdge {
 }
 
 type CategoryCreate {
-  errors: [Error]
+  errors: [Error!]
   category: Category
 }
 
 type CategoryDelete {
-  errors: [Error]
+  errors: [Error!]
   category: Category
 }
 
@@ -272,10 +261,11 @@ input CategoryInput {
   slug: String
   seo: SeoInput
   backgroundImage: Upload
+  backgroundImageAlt: String
 }
 
 type CategoryUpdate {
-  errors: [Error]
+  errors: [Error!]
   category: Category
 }
 
@@ -295,22 +285,21 @@ type Checkout implements Node {
   translatedDiscountName: String
   voucherCode: String
   lines: [CheckoutLine]
-  payments(before: String, after: String, first: Int, last: Int, id: ID): PaymentCountableConnection
   id: ID!
-  totalPrice: TaxedMoney
-  subtotalPrice: TaxedMoney
-  shippingPrice: TaxedMoney
   availableShippingMethods: [ShippingMethod]
-  isShippingRequired: Boolean
+  isShippingRequired: Boolean!
+  shippingPrice: TaxedMoney
+  subtotalPrice: TaxedMoney
+  totalPrice: TaxedMoney
 }
 
 type CheckoutBillingAddressUpdate {
-  errors: [Error]
+  errors: [Error!]
   checkout: Checkout
 }
 
 type CheckoutComplete {
-  errors: [Error]
+  errors: [Error!]
   order: Order
 }
 
@@ -326,7 +315,7 @@ type CheckoutCountableEdge {
 }
 
 type CheckoutCreate {
-  errors: [Error]
+  errors: [Error!]
   checkout: Checkout
 }
 
@@ -334,20 +323,21 @@ input CheckoutCreateInput {
   lines: [CheckoutLineInput]
   email: String
   shippingAddress: AddressInput
+  billingAddress: AddressInput
 }
 
 type CheckoutCustomerAttach {
-  errors: [Error]
+  errors: [Error!]
   checkout: Checkout
 }
 
 type CheckoutCustomerDetach {
-  errors: [Error]
+  errors: [Error!]
   checkout: Checkout
 }
 
 type CheckoutEmailUpdate {
-  errors: [Error]
+  errors: [Error!]
   checkout: Checkout
 }
 
@@ -371,37 +361,37 @@ type CheckoutLineCountableEdge {
 }
 
 type CheckoutLineDelete {
-  errors: [Error]
+  errors: [Error!]
   checkout: Checkout
 }
 
 input CheckoutLineInput {
-  quantity: Int
-  variantId: ID
+  quantity: Int!
+  variantId: ID!
 }
 
 type CheckoutLinesAdd {
-  errors: [Error]
+  errors: [Error!]
   checkout: Checkout
 }
 
 type CheckoutLinesUpdate {
-  errors: [Error]
+  errors: [Error!]
   checkout: Checkout
 }
 
 type CheckoutPaymentCreate {
-  errors: [Error]
+  errors: [Error!]
   payment: Payment
 }
 
 type CheckoutShippingAddressUpdate {
-  errors: [Error]
+  errors: [Error!]
   checkout: Checkout
 }
 
 type CheckoutShippingMethodUpdate {
-  errors: [Error]
+  errors: [Error!]
   checkout: Checkout
 }
 
@@ -417,12 +407,14 @@ type Collection implements Node {
   name: String!
   slug: String!
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
-  backgroundImage: Image
+  backgroundImage(size: Int): Image
   isPublished: Boolean!
+  description: String!
+  publishedDate: Date
 }
 
 type CollectionAddProducts {
-  errors: [Error]
+  errors: [Error!]
   collection: Collection
 }
 
@@ -438,7 +430,7 @@ type CollectionCountableEdge {
 }
 
 type CollectionCreate {
-  errors: [Error]
+  errors: [Error!]
   collection: Collection
 }
 
@@ -446,13 +438,16 @@ input CollectionCreateInput {
   isPublished: Boolean
   name: String
   slug: String
+  description: String
   backgroundImage: Upload
+  backgroundImageAlt: String
   seo: SeoInput
+  publishedDate: Date
   products: [ID]
 }
 
 type CollectionDelete {
-  errors: [Error]
+  errors: [Error!]
   collection: Collection
 }
 
@@ -460,23 +455,27 @@ input CollectionInput {
   isPublished: Boolean
   name: String
   slug: String
+  description: String
   backgroundImage: Upload
+  backgroundImageAlt: String
   seo: SeoInput
+  publishedDate: Date
 }
 
 type CollectionRemoveProducts {
-  errors: [Error]
+  errors: [Error!]
   collection: Collection
 }
 
 type CollectionUpdate {
-  errors: [Error]
+  errors: [Error!]
   collection: Collection
 }
 
 type CountryDisplay {
   code: String!
   country: String!
+  vat: VAT
 }
 
 type CreateToken {
@@ -494,25 +493,27 @@ type CreditCard {
 }
 
 type CustomerCreate {
-  errors: [Error]
+  errors: [Error!]
   user: User
 }
 
 type CustomerDelete {
-  errors: [Error]
+  errors: [Error!]
   user: User
 }
 
 input CustomerInput {
+  defaultBillingAddress: AddressInput
+  defaultShippingAddress: AddressInput
+  firstName: String
+  lastName: String
   email: String
   isActive: Boolean
   note: String
-  defaultBillingAddress: AddressInput
-  defaultShippingAddress: AddressInput
 }
 
 type CustomerPasswordReset {
-  errors: [Error]
+  errors: [Error!]
 }
 
 input CustomerPasswordResetInput {
@@ -520,7 +521,7 @@ input CustomerPasswordResetInput {
 }
 
 type CustomerRegister {
-  errors: [Error]
+  errors: [Error!]
   user: User
 }
 
@@ -530,7 +531,7 @@ input CustomerRegisterInput {
 }
 
 type CustomerUpdate {
-  errors: [Error]
+  errors: [Error!]
   user: User
 }
 
@@ -552,12 +553,12 @@ type Domain {
 }
 
 type DraftOrderComplete {
-  errors: [Error]
+  errors: [Error!]
   order: Order
 }
 
 type DraftOrderCreate {
-  errors: [Error]
+  errors: [Error!]
   order: Order
 }
 
@@ -573,7 +574,7 @@ input DraftOrderCreateInput {
 }
 
 type DraftOrderDelete {
-  errors: [Error]
+  errors: [Error!]
   order: Order
 }
 
@@ -587,26 +588,26 @@ input DraftOrderInput {
   voucher: ID
 }
 
-type DraftOrderLineCreate {
-  errors: [Error]
-  order: Order
-  orderLine: OrderLine
-}
-
 type DraftOrderLineDelete {
-  errors: [Error]
+  errors: [Error!]
   order: Order
   orderLine: OrderLine
 }
 
 type DraftOrderLineUpdate {
-  errors: [Error]
+  errors: [Error!]
   order: Order
   orderLine: OrderLine
 }
 
+type DraftOrderLinesCreate {
+  errors: [Error!]
+  order: Order!
+  orderLines: [OrderLine!]!
+}
+
 type DraftOrderUpdate {
-  errors: [Error]
+  errors: [Error!]
   order: Order
 }
 
@@ -621,12 +622,12 @@ type Fulfillment implements Node {
   status: FulfillmentStatus!
   trackingNumber: String!
   shippingDate: DateTime!
-  lines(before: String, after: String, first: Int, last: Int): FulfillmentLineCountableConnection
+  lines: [FulfillmentLine]
   statusDisplay: String
 }
 
 type FulfillmentCancel {
-  errors: [Error]
+  errors: [Error!]
   fulfillment: Fulfillment
   order: Order
 }
@@ -636,7 +637,7 @@ input FulfillmentCancelInput {
 }
 
 type FulfillmentCreate {
-  errors: [Error]
+  errors: [Error!]
   fulfillment: Fulfillment
   order: Order
 }
@@ -653,17 +654,6 @@ type FulfillmentLine implements Node {
   quantity: Int!
 }
 
-type FulfillmentLineCountableConnection {
-  pageInfo: PageInfo!
-  edges: [FulfillmentLineCountableEdge!]!
-  totalCount: Int
-}
-
-type FulfillmentLineCountableEdge {
-  node: FulfillmentLine!
-  cursor: String!
-}
-
 input FulfillmentLineInput {
   orderLineId: ID
   quantity: Int
@@ -675,7 +665,7 @@ enum FulfillmentStatus {
 }
 
 type FulfillmentUpdateTracking {
-  errors: [Error]
+  errors: [Error!]
   fulfillment: Fulfillment
   order: Order
 }
@@ -688,6 +678,8 @@ input FulfillmentUpdateTrackingInput {
 enum GatewaysEnum {
   DUMMY
   BRAINTREE
+  RAZORPAY
+  STRIPE
 }
 
 scalar GenericScalar
@@ -697,12 +689,13 @@ type Geolocalization {
 }
 
 type HomepageCollectionUpdate {
-  errors: [Error]
+  errors: [Error!]
   shop: Shop
 }
 
 type Image {
-  url(size: Int): String!
+  url: String!
+  alt: String
 }
 
 scalar JSONString
@@ -710,6 +703,11 @@ scalar JSONString
 type LanguageDisplay {
   code: String!
   language: String!
+}
+
+type LoggedUserUpdate {
+  errors: [Error!]
+  user: User
 }
 
 type Margin {
@@ -736,7 +734,7 @@ type MenuCountableEdge {
 }
 
 type MenuCreate {
-  errors: [Error]
+  errors: [Error!]
   menu: Menu
 }
 
@@ -746,7 +744,7 @@ input MenuCreateInput {
 }
 
 type MenuDelete {
-  errors: [Error]
+  errors: [Error!]
   menu: Menu
 }
 
@@ -779,7 +777,7 @@ type MenuItemCountableEdge {
 }
 
 type MenuItemCreate {
-  errors: [Error]
+  errors: [Error!]
   menuItem: MenuItem
 }
 
@@ -794,7 +792,7 @@ input MenuItemCreateInput {
 }
 
 type MenuItemDelete {
-  errors: [Error]
+  errors: [Error!]
   menuItem: MenuItem
 }
 
@@ -807,12 +805,12 @@ input MenuItemInput {
 }
 
 type MenuItemUpdate {
-  errors: [Error]
+  errors: [Error!]
   menuItem: MenuItem
 }
 
 type MenuUpdate {
-  errors: [Error]
+  errors: [Error!]
   menu: Menu
 }
 
@@ -828,6 +826,17 @@ type MoneyRange {
 }
 
 type Mutations {
+  authorizationKeyAdd(input: AuthorizationKeyInput!, keyType: AuthorizationKeyType!): AuthorizationKeyAdd
+  authorizationKeyDelete(keyType: AuthorizationKeyType!): AuthorizationKeyDelete
+  homepageCollectionUpdate(collection: ID): HomepageCollectionUpdate
+  shopDomainUpdate(input: SiteDomainInput): ShopDomainUpdate
+  shopSettingsUpdate(input: ShopSettingsInput!): ShopSettingsUpdate
+  shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
+  shippingPriceDelete(id: ID!): ShippingPriceDelete
+  shippingPriceUpdate(id: ID!, input: ShippingPriceInput!): ShippingPriceUpdate
+  shippingZoneCreate(input: ShippingZoneInput!): ShippingZoneCreate
+  shippingZoneDelete(id: ID!): ShippingZoneDelete
+  shippingZoneUpdate(id: ID!, input: ShippingZoneInput!): ShippingZoneUpdate
   attributeCreate(id: ID!, input: AttributeCreateInput!, type: AttributeTypeEnum!): AttributeCreate
   attributeDelete(id: ID!): AttributeDelete
   attributeUpdate(id: ID!, input: AttributeUpdateInput!): AttributeUpdate
@@ -837,102 +846,94 @@ type Mutations {
   categoryCreate(input: CategoryInput!, parent: ID): CategoryCreate
   categoryDelete(id: ID!): CategoryDelete
   categoryUpdate(id: ID!, input: CategoryInput!): CategoryUpdate
-  collectionCreate(input: CollectionCreateInput!): CollectionCreate
-  collectionUpdate(id: ID!, input: CollectionInput!): CollectionUpdate
-  collectionDelete(id: ID!): CollectionDelete
   collectionAddProducts(collectionId: ID!, products: [ID]!): CollectionAddProducts
+  collectionCreate(input: CollectionCreateInput!): CollectionCreate
+  collectionDelete(id: ID!): CollectionDelete
   collectionRemoveProducts(collectionId: ID!, products: [ID]!): CollectionRemoveProducts
+  collectionUpdate(id: ID!, input: CollectionInput!): CollectionUpdate
   productCreate(input: ProductCreateInput!): ProductCreate
   productDelete(id: ID!): ProductDelete
   productUpdate(id: ID!, input: ProductInput!): ProductUpdate
   productImageCreate(input: ProductImageCreateInput!): ProductImageCreate
-  productImageReorder(imagesIds: [ID]!, productId: ID!): ProductImageReorder
   productImageDelete(id: ID!): ProductImageDelete
+  productImageReorder(imagesIds: [ID]!, productId: ID!): ProductImageReorder
   productImageUpdate(id: ID!, input: ProductImageUpdateInput!): ProductImageUpdate
   productTypeCreate(input: ProductTypeInput!): ProductTypeCreate
-  productTypeUpdate(id: ID!, input: ProductTypeInput!): ProductTypeUpdate
   productTypeDelete(id: ID!): ProductTypeDelete
+  productTypeUpdate(id: ID!, input: ProductTypeInput!): ProductTypeUpdate
   productVariantCreate(input: ProductVariantCreateInput!): ProductVariantCreate
   productVariantDelete(id: ID!): ProductVariantDelete
   productVariantUpdate(id: ID!, input: ProductVariantInput!): ProductVariantUpdate
   variantImageAssign(imageId: ID!, variantId: ID!): VariantImageAssign
   variantImageUnassign(imageId: ID!, variantId: ID!): VariantImageUnassign
-  authorizationKeyAdd(input: AuthorizationKeyInput!, keyType: AuthorizationKeyType!): AuthorizationKeyAdd
-  authorizationKeyDelete(keyType: AuthorizationKeyType!): AuthorizationKeyDelete
+  paymentAuthorize(paymentId: ID!, paymentToken: String!): PaymentAuthorize
+  paymentCapture(amount: Decimal, paymentId: ID!): PaymentCapture
+  paymentCharge(amount: Decimal, paymentId: ID!, paymentToken: String!): PaymentCharge
+  paymentRefund(amount: Decimal, paymentId: ID!): PaymentRefund
+  paymentVoid(paymentId: ID!): PaymentVoid
+  pageCreate(input: PageInput!): PageCreate
+  pageDelete(id: ID!): PageDelete
+  pageUpdate(id: ID!, input: PageInput!): PageUpdate
+  draftOrderComplete(id: ID!): DraftOrderComplete
+  draftOrderCreate(input: DraftOrderCreateInput!): DraftOrderCreate
+  draftOrderDelete(id: ID!): DraftOrderDelete
+  draftOrderLinesCreate(id: ID!, input: [OrderLineCreateInput]!): DraftOrderLinesCreate
+  draftOrderLineDelete(id: ID!): DraftOrderLineDelete
+  draftOrderLineUpdate(id: ID!, input: OrderLineInput!): DraftOrderLineUpdate
+  draftOrderUpdate(id: ID!, input: DraftOrderInput!): DraftOrderUpdate
+  orderAddNote(order: ID!, input: OrderAddNoteInput!): OrderAddNote
+  orderCancel(id: ID!, restock: Boolean!): OrderCancel
+  orderCapture(amount: Decimal!, id: ID!): OrderCapture
+  orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
+  orderFulfillmentCreate(input: FulfillmentCreateInput!, order: ID): FulfillmentCreate
+  orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
+  orderMarkAsPaid(id: ID!): OrderMarkAsPaid
+  orderRefund(amount: Decimal!, id: ID!): OrderRefund
+  orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
+  orderUpdateShipping(order: ID!, input: OrderUpdateShippingInput): OrderUpdateShipping
+  orderVoid(id: ID!): OrderVoid
   assignNavigation(menu: ID, navigationType: NavigationType!): AssignNavigation
-  tokenCreate(email: String!, password: String!): CreateToken
-  tokenRefresh(token: String): Refresh
-  tokenVerify(token: String): VerifyToken
-  setPassword(id: ID!, input: SetPasswordInput!): SetPassword
-  passwordReset(email: String!): PasswordReset
-  customerCreate(input: UserCreateInput!): CustomerCreate
-  customerUpdate(id: ID!, input: CustomerInput!): CustomerUpdate
-  customerDelete(id: ID!): CustomerDelete
-  customerPasswordReset(input: CustomerPasswordResetInput!): CustomerPasswordReset
-  customerRegister(input: CustomerRegisterInput!): CustomerRegister
-  staffCreate(input: StaffCreateInput!): StaffCreate
-  staffUpdate(id: ID!, input: StaffInput!): StaffUpdate
-  staffDelete(id: ID!): StaffDelete
-  addressCreate(input: AddressCreateInput!): AddressCreate
-  addressUpdate(id: ID!, input: AddressInput!): AddressUpdate
-  addressDelete(id: ID!): AddressDelete
-  checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
-  checkoutLinesAdd(checkoutId: ID!, lines: [CheckoutLineInput]!): CheckoutLinesAdd
-  checkoutLinesUpdate(checkoutId: ID!, lines: [CheckoutLineInput]!): CheckoutLinesUpdate
-  checkoutLineDelete(checkoutId: ID!, lineId: ID): CheckoutLineDelete
-  checkoutCustomerAttach(checkoutId: ID!, customerId: ID!): CheckoutCustomerAttach
-  checkoutCustomerDetach(checkoutId: ID!): CheckoutCustomerDetach
-  checkoutBillingAddressUpdate(billingAddress: AddressInput, checkoutId: ID): CheckoutBillingAddressUpdate
-  checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput): CheckoutShippingAddressUpdate
-  checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
-  checkoutEmailUpdate(checkoutId: ID, email: String!): CheckoutEmailUpdate
-  checkoutPaymentCreate(input: PaymentInput!): CheckoutPaymentCreate
-  checkoutComplete(checkoutId: ID): CheckoutComplete
   menuCreate(input: MenuCreateInput!): MenuCreate
   menuDelete(id: ID!): MenuDelete
   menuUpdate(id: ID!, input: MenuInput!): MenuUpdate
   menuItemCreate(input: MenuItemCreateInput!): MenuItemCreate
   menuItemDelete(id: ID!): MenuItemDelete
   menuItemUpdate(id: ID!, input: MenuItemInput!): MenuItemUpdate
-  draftOrderCreate(input: DraftOrderCreateInput!): DraftOrderCreate
-  draftOrderComplete(id: ID!): DraftOrderComplete
-  draftOrderDelete(id: ID!): DraftOrderDelete
-  draftOrderLineCreate(id: ID!, input: OrderLineCreateInput!): DraftOrderLineCreate
-  draftOrderLineDelete(id: ID!): DraftOrderLineDelete
-  draftOrderLineUpdate(id: ID!, input: OrderLineInput!): DraftOrderLineUpdate
-  draftOrderUpdate(id: ID!, input: DraftOrderInput!): DraftOrderUpdate
-  orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
-  orderFulfillmentCreate(input: FulfillmentCreateInput!, order: ID): FulfillmentCreate
-  orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
-  orderAddNote(order: ID!, input: OrderAddNoteInput!): OrderAddNote
-  orderCancel(id: ID!, restock: Boolean!): OrderCancel
-  orderCapture(amount: Decimal!, id: ID!): OrderCapture
-  orderMarkAsPaid(id: ID!): OrderMarkAsPaid
-  orderUpdateShipping(order: ID!, input: OrderUpdateShippingInput): OrderUpdateShipping
-  orderRefund(amount: Decimal!, id: ID!): OrderRefund
-  orderVoid(id: ID!): OrderVoid
-  orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
-  pageCreate(input: PageInput!): PageCreate
-  pageDelete(id: ID!): PageDelete
-  pageUpdate(id: ID!, input: PageInput!): PageUpdate
-  paymentCapture(amount: Decimal, paymentId: ID!): PaymentCapture
-  paymentRefund(amount: Decimal, paymentId: ID!): PaymentRefund
-  paymentVoid(paymentId: ID!): PaymentVoid
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleUpdate(id: ID!, input: SaleInput!): SaleUpdate
-  shopDomainUpdate(input: SiteDomainInput): ShopDomainUpdate
-  shopSettingsUpdate(input: ShopSettingsInput!): ShopSettingsUpdate
-  homepageCollectionUpdate(collection: ID): HomepageCollectionUpdate
   voucherCreate(input: VoucherInput!): VoucherCreate
   voucherDelete(id: ID!): VoucherDelete
   voucherUpdate(id: ID!, input: VoucherInput!): VoucherUpdate
-  shippingZoneCreate(input: ShippingZoneInput!): ShippingZoneCreate
-  shippingZoneDelete(id: ID!): ShippingZoneDelete
-  shippingZoneUpdate(id: ID!, input: ShippingZoneInput!): ShippingZoneUpdate
-  shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
-  shippingPriceDelete(id: ID!): ShippingPriceDelete
-  shippingPriceUpdate(id: ID!, input: ShippingPriceInput!): ShippingPriceUpdate
+  tokenCreate(email: String!, password: String!): CreateToken
+  tokenRefresh(token: String!): Refresh
+  tokenVerify(token: String!): VerifyToken
+  checkoutBillingAddressUpdate(billingAddress: AddressInput, checkoutId: ID): CheckoutBillingAddressUpdate
+  checkoutComplete(checkoutId: ID): CheckoutComplete
+  checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
+  checkoutCustomerAttach(checkoutId: ID!, customerId: ID!): CheckoutCustomerAttach
+  checkoutCustomerDetach(checkoutId: ID!): CheckoutCustomerDetach
+  checkoutEmailUpdate(checkoutId: ID, email: String!): CheckoutEmailUpdate
+  checkoutLineDelete(checkoutId: ID!, lineId: ID): CheckoutLineDelete
+  checkoutLinesAdd(checkoutId: ID!, lines: [CheckoutLineInput]!): CheckoutLinesAdd
+  checkoutLinesUpdate(checkoutId: ID!, lines: [CheckoutLineInput]!): CheckoutLinesUpdate
+  checkoutPaymentCreate(input: PaymentInput!): CheckoutPaymentCreate
+  checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput): CheckoutShippingAddressUpdate
+  checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
+  passwordReset(email: String!): PasswordReset
+  setPassword(id: ID!, input: SetPasswordInput!): SetPassword
+  customerCreate(input: UserCreateInput!): CustomerCreate
+  customerDelete(id: ID!): CustomerDelete
+  customerPasswordReset(input: CustomerPasswordResetInput!): CustomerPasswordReset
+  customerRegister(input: CustomerRegisterInput!): CustomerRegister
+  customerUpdate(id: ID!, input: CustomerInput!): CustomerUpdate
+  loggedUserUpdate(input: UserAddressInput!): LoggedUserUpdate
+  staffCreate(input: StaffCreateInput!): StaffCreate
+  staffDelete(id: ID!): StaffDelete
+  staffUpdate(id: ID!, input: StaffInput!): StaffUpdate
+  addressCreate(input: AddressCreateInput!): AddressCreate
+  addressDelete(id: ID!): AddressDelete
+  addressUpdate(id: ID!, input: AddressInput!): AddressUpdate
 }
 
 type Navigation {
@@ -974,7 +975,7 @@ type Order implements Node {
   lines: [OrderLine]!
   fulfillments: [Fulfillment]!
   events: [OrderEvent]
-  payments(before: String, after: String, first: Int, last: Int, id: ID): PaymentCountableConnection
+  payments: [Payment]
   actions: [OrderAction]!
   availableShippingMethods: [ShippingMethod]
   number: String
@@ -983,10 +984,11 @@ type Order implements Node {
   paymentStatusDisplay: String
   subtotal: TaxedMoney
   statusDisplay: String
+  canFinalize: Boolean!
   totalAuthorized: Money
   totalCaptured: Money
   totalBalance: Money!
-  isShippingRequired: Boolean
+  isShippingRequired: Boolean!
 }
 
 enum OrderAction {
@@ -997,7 +999,7 @@ enum OrderAction {
 }
 
 type OrderAddNote {
-  errors: [Error]
+  errors: [Error!]
   order: Order
   event: OrderEvent
 }
@@ -1007,12 +1009,12 @@ input OrderAddNoteInput {
 }
 
 type OrderCancel {
-  errors: [Error]
+  errors: [Error!]
   order: Order
 }
 
 type OrderCapture {
-  errors: [Error]
+  errors: [Error!]
   order: Order
 }
 
@@ -1025,6 +1027,11 @@ type OrderCountableConnection {
 type OrderCountableEdge {
   node: Order!
   cursor: String!
+}
+
+enum OrderDirection {
+  ASC
+  DESC
 }
 
 type OrderEvent implements Node {
@@ -1093,17 +1100,6 @@ type OrderLine implements Node {
   thumbnailUrl(size: Int): String
 }
 
-type OrderLineCountableConnection {
-  pageInfo: PageInfo!
-  edges: [OrderLineCountableEdge!]!
-  totalCount: Int
-}
-
-type OrderLineCountableEdge {
-  node: OrderLine!
-  cursor: String!
-}
-
 input OrderLineCreateInput {
   quantity: Int!
   variantId: ID!
@@ -1114,12 +1110,12 @@ input OrderLineInput {
 }
 
 type OrderMarkAsPaid {
-  errors: [Error]
+  errors: [Error!]
   order: Order
 }
 
 type OrderRefund {
-  errors: [Error]
+  errors: [Error!]
   order: Order
 }
 
@@ -1137,7 +1133,7 @@ enum OrderStatusFilter {
 }
 
 type OrderUpdate {
-  errors: [Error]
+  errors: [Error!]
   order: Order
 }
 
@@ -1148,7 +1144,7 @@ input OrderUpdateInput {
 }
 
 type OrderUpdateShipping {
-  errors: [Error]
+  errors: [Error!]
   order: Order
 }
 
@@ -1157,7 +1153,7 @@ input OrderUpdateShippingInput {
 }
 
 type OrderVoid {
-  errors: [Error]
+  errors: [Error!]
   order: Order
 }
 
@@ -1185,12 +1181,12 @@ type PageCountableEdge {
 }
 
 type PageCreate {
-  errors: [Error]
+  errors: [Error!]
   page: Page
 }
 
 type PageDelete {
-  errors: [Error]
+  errors: [Error!]
   page: Page
 }
 
@@ -1211,12 +1207,12 @@ input PageInput {
 }
 
 type PageUpdate {
-  errors: [Error]
+  errors: [Error!]
   page: Page
 }
 
 type PasswordReset {
-  errors: [Error]
+  errors: [Error!]
 }
 
 type Payment implements Node {
@@ -1247,8 +1243,18 @@ type Payment implements Node {
   creditCard: CreditCard
 }
 
+type PaymentAuthorize {
+  errors: [Error!]
+  payment: Payment
+}
+
 type PaymentCapture {
-  errors: [Error]
+  errors: [Error!]
+  payment: Payment
+}
+
+type PaymentCharge {
+  errors: [Error!]
   payment: Payment
 }
 
@@ -1278,12 +1284,12 @@ input PaymentInput {
 }
 
 type PaymentRefund {
-  errors: [Error]
+  errors: [Error!]
   payment: Payment
 }
 
 type PaymentVoid {
-  errors: [Error]
+  errors: [Error!]
   payment: Payment
 }
 
@@ -1316,18 +1322,17 @@ type Product implements Node {
   price: Money
   availableOn: Date
   isPublished: Boolean!
-  attributes: [SelectedAttribute]
+  attributes: [SelectedAttribute!]!
   updatedAt: DateTime
   chargeTaxes: Boolean!
-  taxRate: String!
+  taxRate: TaxRateType
   weight: Weight
-  voucherSet(before: String, after: String, first: Int, last: Int): VoucherCountableConnection
-  saleSet(before: String, after: String, first: Int, last: Int): SaleCountableConnection
-  variants(before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
-  images(before: String, after: String, first: Int, last: Int): ProductImageCountableConnection
-  collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
+  variants: [ProductVariant]
+  images: [ProductImage]
+  collections: [Collection]
   url: String!
-  thumbnailUrl(size: Int): String
+  thumbnailUrl(size: Int): String @deprecated(reason: "thumbnailUrl is deprecated, use\\n         thumbnail instead")
+  thumbnail(size: Int): Image
   availability: ProductAvailability
   purchaseCost: MoneyRange
   margin: Margin
@@ -1356,7 +1361,7 @@ type ProductCountableEdge {
 }
 
 type ProductCreate {
-  errors: [Error]
+  errors: [Error!]
   product: Product
 }
 
@@ -1373,11 +1378,14 @@ input ProductCreateInput {
   taxRate: TaxRateType
   seo: SeoInput
   weight: WeightScalar
+  sku: String
+  quantity: Int
+  trackInventory: Boolean
   productType: ID!
 }
 
 type ProductDelete {
-  errors: [Error]
+  errors: [Error!]
   product: Product
 }
 
@@ -1388,19 +1396,8 @@ type ProductImage implements Node {
   url(size: Int): String!
 }
 
-type ProductImageCountableConnection {
-  pageInfo: PageInfo!
-  edges: [ProductImageCountableEdge!]!
-  totalCount: Int
-}
-
-type ProductImageCountableEdge {
-  node: ProductImage!
-  cursor: String!
-}
-
 type ProductImageCreate {
-  errors: [Error]
+  errors: [Error!]
   product: Product
   image: ProductImage
 }
@@ -1412,19 +1409,19 @@ input ProductImageCreateInput {
 }
 
 type ProductImageDelete {
-  errors: [Error]
+  errors: [Error!]
   product: Product
   image: ProductImage
 }
 
 type ProductImageReorder {
-  errors: [Error]
+  errors: [Error!]
   product: Product
   images: [ProductImage]
 }
 
 type ProductImageUpdate {
-  errors: [Error]
+  errors: [Error!]
   product: Product
   image: ProductImage
 }
@@ -1446,6 +1443,20 @@ input ProductInput {
   taxRate: TaxRateType
   seo: SeoInput
   weight: WeightScalar
+  sku: String
+  quantity: Int
+  trackInventory: Boolean
+}
+
+input ProductOrder {
+  field: ProductOrderField!
+  direction: OrderDirection!
+}
+
+enum ProductOrderField {
+  NAME
+  PRICE
+  DATE
 }
 
 type ProductType implements Node {
@@ -1472,12 +1483,12 @@ type ProductTypeCountableEdge {
 }
 
 type ProductTypeCreate {
-  errors: [Error]
+  errors: [Error!]
   productType: ProductType
 }
 
 type ProductTypeDelete {
-  errors: [Error]
+  errors: [Error!]
   productType: ProductType
 }
 
@@ -1492,12 +1503,12 @@ input ProductTypeInput {
 }
 
 type ProductTypeUpdate {
-  errors: [Error]
+  errors: [Error!]
   productType: ProductType
 }
 
 type ProductUpdate {
-  errors: [Error]
+  errors: [Error!]
   product: Product
 }
 
@@ -1508,13 +1519,12 @@ type ProductVariant implements Node {
   priceOverride: Money
   product: Product!
   attributes: [SelectedAttribute!]!
-  images(before: String, after: String, first: Int, last: Int): ProductImageCountableConnection
+  images: [ProductImage]
   trackInventory: Boolean!
   quantity: Int!
   quantityAllocated: Int!
   costPrice: Money
   weight: Weight
-  orderLines(before: String, after: String, first: Int, last: Int): OrderLineCountableConnection
   stockQuantity: Int!
   price: Money
   margin: Int
@@ -1534,7 +1544,7 @@ type ProductVariantCountableEdge {
 }
 
 type ProductVariantCreate {
-  errors: [Error]
+  errors: [Error!]
   productVariant: ProductVariant
 }
 
@@ -1550,7 +1560,7 @@ input ProductVariantCreateInput {
 }
 
 type ProductVariantDelete {
-  errors: [Error]
+  errors: [Error!]
   productVariant: ProductVariant
 }
 
@@ -1565,52 +1575,58 @@ input ProductVariantInput {
 }
 
 type ProductVariantUpdate {
-  errors: [Error]
+  errors: [Error!]
   productVariant: ProductVariant
 }
 
 type Query {
-  attributes(query: String, inCategory: ID, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
+  shop: Shop
+  shippingZone(id: ID!): ShippingZone
+  shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
+  attributes(query: String, inCategory: ID, inCollection: ID, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
   categories(query: String, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   category(id: ID!): Category
   collection(id: ID!): Collection
   collections(query: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   product(id: ID!): Product
-  products(attributes: [AttributeScalar], categories: [ID], collections: [ID], priceLte: Float, priceGte: Float, sortBy: String, stockAvailability: StockAvailability, query: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  products(attributes: [AttributeScalar], categories: [ID], collections: [ID], priceLte: Float, priceGte: Float, sortBy: ProductOrder, stockAvailability: StockAvailability, query: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   productType(id: ID!): ProductType
   productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   productVariant(id: ID!): ProductVariant
   productVariants(ids: [ID], before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   reportProductSales(period: ReportingPeriod!, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
-  addressValidator(input: AddressValidationInput!): AddressValidationData
-  checkout(token: UUID): Checkout
-  checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
-  checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
-  checkoutLine(id: ID): CheckoutLine
+  payment(id: ID): Payment
+  payments(before: String, after: String, first: Int, last: Int): PaymentCountableConnection
+  paymentClientToken(gateway: GatewaysEnum): String
+  page(id: ID, slug: String): Page
+  pages(query: String, before: String, after: String, first: Int, last: Int): PageCountableConnection
+  homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
+  order(id: ID!): Order
+  orders(query: String, created: ReportingPeriod, status: OrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection
+  ordersTotal(period: ReportingPeriod): TaxedMoney
   menu(id: ID, name: String): Menu
   menus(query: String, before: String, after: String, first: Int, last: Int): MenuCountableConnection
   menuItem(id: ID!): MenuItem
   menuItems(query: String, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
-  order(id: ID!): Order
-  ordersTotal(period: ReportingPeriod): TaxedMoney
-  orders(query: String, created: ReportingPeriod, status: OrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection
-  homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
-  page(id: ID, slug: String): Page
-  pages(query: String, before: String, after: String, first: Int, last: Int): PageCountableConnection
-  payment(id: ID): Payment
-  paymentClientToken(gateway: GatewaysEnum): String
-  payments(before: String, after: String, first: Int, last: Int): PaymentCountableConnection
   sale(id: ID!): Sale
   sales(query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
-  shop: Shop
   voucher(id: ID!): Voucher
   vouchers(query: String, before: String, after: String, first: Int, last: Int): VoucherCountableConnection
-  shippingZone(id: ID!): ShippingZone
-  shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
-  user(id: ID!): User
+  checkout(token: UUID): Checkout
+  checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
+  checkoutLine(id: ID): CheckoutLine
+  checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
+  addressValidator(input: AddressValidationInput!): AddressValidationData
   customers(query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
+  me: User
   staffUsers(query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
+  user(id: ID!): User
   node(id: ID!): Node
+}
+
+type ReducedRate {
+  rate: Float!
+  rateType: TaxRateType!
 }
 
 type Refresh {
@@ -1647,12 +1663,12 @@ type SaleCountableEdge {
 }
 
 type SaleCreate {
-  errors: [Error]
+  errors: [Error!]
   sale: Sale
 }
 
 type SaleDelete {
-  errors: [Error]
+  errors: [Error!]
   sale: Sale
 }
 
@@ -1673,13 +1689,13 @@ enum SaleType {
 }
 
 type SaleUpdate {
-  errors: [Error]
+  errors: [Error!]
   sale: Sale
 }
 
 type SelectedAttribute {
-  attribute: Attribute
-  value: AttributeValue
+  attribute: Attribute!
+  value: AttributeValue!
 }
 
 input SeoInput {
@@ -1688,7 +1704,7 @@ input SeoInput {
 }
 
 type SetPassword {
-  errors: [Error]
+  errors: [Error!]
   user: User
 }
 
@@ -1706,7 +1722,6 @@ type ShippingMethod implements Node {
   maximumOrderPrice: Money
   minimumOrderWeight: Weight
   maximumOrderWeight: Weight
-  carts(before: String, after: String, first: Int, last: Int, token: UUID): CheckoutCountableConnection
 }
 
 enum ShippingMethodTypeEnum {
@@ -1715,12 +1730,12 @@ enum ShippingMethodTypeEnum {
 }
 
 type ShippingPriceCreate {
-  errors: [Error]
+  errors: [Error!]
   shippingMethod: ShippingMethod
 }
 
 type ShippingPriceDelete {
-  errors: [Error]
+  errors: [Error!]
   shippingMethod: ShippingMethod
 }
 
@@ -1736,7 +1751,7 @@ input ShippingPriceInput {
 }
 
 type ShippingPriceUpdate {
-  errors: [Error]
+  errors: [Error!]
   shippingMethod: ShippingMethod
 }
 
@@ -1761,12 +1776,12 @@ type ShippingZoneCountableEdge {
 }
 
 type ShippingZoneCreate {
-  errors: [Error]
+  errors: [Error!]
   shippingZone: ShippingZone
 }
 
 type ShippingZoneDelete {
-  errors: [Error]
+  errors: [Error!]
   shippingZone: ShippingZone
 }
 
@@ -1777,7 +1792,7 @@ input ShippingZoneInput {
 }
 
 type ShippingZoneUpdate {
-  errors: [Error]
+  errors: [Error!]
   shippingZone: ShippingZone
 }
 
@@ -1799,12 +1814,13 @@ type Shop {
   headerText: String
   includeTaxesInPrices: Boolean
   displayGrossPrices: Boolean
+  chargeTaxesOnShipping: Boolean
   trackInventoryByDefault: Boolean
   defaultWeightUnit: WeightUnitsEnum
 }
 
 type ShopDomainUpdate {
-  errors: [Error]
+  errors: [Error!]
   shop: Shop
 }
 
@@ -1813,12 +1829,13 @@ input ShopSettingsInput {
   description: String
   includeTaxesInPrices: Boolean
   displayGrossPrices: Boolean
+  chargeTaxesOnShipping: Boolean
   trackInventoryByDefault: Boolean
   defaultWeightUnit: WeightUnitsEnum
 }
 
 type ShopSettingsUpdate {
-  errors: [Error]
+  errors: [Error!]
   shop: Shop
 }
 
@@ -1828,32 +1845,36 @@ input SiteDomainInput {
 }
 
 type StaffCreate {
-  errors: [Error]
+  errors: [Error!]
   user: User
 }
 
 input StaffCreateInput {
+  firstName: String
+  lastName: String
   email: String
   isActive: Boolean
   note: String
-  permissions: [String]
+  permissions: [PermissionEnum]
   sendPasswordEmail: Boolean
 }
 
 type StaffDelete {
-  errors: [Error]
+  errors: [Error!]
   user: User
 }
 
 input StaffInput {
+  firstName: String
+  lastName: String
   email: String
   isActive: Boolean
   note: String
-  permissions: [String]
+  permissions: [PermissionEnum]
 }
 
 type StaffUpdate {
-  errors: [Error]
+  errors: [Error!]
   user: User
 }
 
@@ -1887,6 +1908,7 @@ enum TaxRateType {
   SOCIAL_HOUSING
   STANDARD
   WATER
+  WINE
 }
 
 type TaxedMoney {
@@ -1942,7 +1964,9 @@ type User implements Node {
   id: ID!
   lastLogin: DateTime
   email: String!
-  addresses(before: String, after: String, first: Int, last: Int): AddressCountableConnection
+  firstName: String!
+  lastName: String!
+  addresses: [Address]
   isStaff: Boolean!
   token: UUID!
   isActive: Boolean!
@@ -1950,9 +1974,14 @@ type User implements Node {
   dateJoined: DateTime!
   defaultShippingAddress: Address
   defaultBillingAddress: Address
-  carts(before: String, after: String, first: Int, last: Int, token: UUID): CheckoutCountableConnection
   orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
+  checkout: Checkout
   permissions: [PermissionDisplay]
+}
+
+input UserAddressInput {
+  defaultBillingAddress: AddressInput
+  defaultShippingAddress: AddressInput
 }
 
 type UserCountableConnection {
@@ -1967,22 +1996,30 @@ type UserCountableEdge {
 }
 
 input UserCreateInput {
+  defaultBillingAddress: AddressInput
+  defaultShippingAddress: AddressInput
+  firstName: String
+  lastName: String
   email: String
   isActive: Boolean
   note: String
-  defaultBillingAddress: AddressInput
-  defaultShippingAddress: AddressInput
   sendPasswordEmail: Boolean
 }
 
+type VAT {
+  countryCode: String!
+  standardRate: Float
+  reducedRates: [ReducedRate]
+}
+
 type VariantImageAssign {
-  errors: [Error]
+  errors: [Error!]
   productVariant: ProductVariant
   image: ProductImage
 }
 
 type VariantImageUnassign {
-  errors: [Error]
+  errors: [Error!]
   productVariant: ProductVariant
   image: ProductImage
 }
@@ -2276,12 +2313,12 @@ enum VoucherCountries {
 }
 
 type VoucherCreate {
-  errors: [Error]
+  errors: [Error!]
   voucher: Voucher
 }
 
 type VoucherDelete {
-  errors: [Error]
+  errors: [Error!]
   voucher: Voucher
 }
 
@@ -2322,7 +2359,7 @@ enum VoucherTypeEnum {
 }
 
 type VoucherUpdate {
-  errors: [Error]
+  errors: [Error!]
   voucher: Voucher
 }
 

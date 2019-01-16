@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { UserError } from "../../..";
+import { UserError } from "../../../types";
 
 interface ProductTypeUpdateErrorsState {
   addAttributeErrors: UserError[];

@@ -11,7 +11,8 @@ from ....payment.utils import get_billing_data
 from ....shipping.models import ShippingMethod as ShippingMethodModel
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation
-from ...core.types.common import Decimal, Error
+from ...core.scalars import Decimal
+from ...core.types.common import Error
 from ...order.mutations.draft_orders import DraftOrderUpdate
 from ...order.types import Order, OrderEvent
 from ...shipping.types import ShippingMethod
@@ -125,16 +126,6 @@ class OrderUpdate(DraftOrderUpdate):
         model = models.Order
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
-        if not instance.user and not cleaned_input.get('user_email'):
-            cls.add_error(
-                errors, field='user_email',
-                message='User_email field is null while order was created by '
-                        'anonymous user')
-        return cleaned_input
-
-    @classmethod
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
         if instance.user_email:
@@ -171,7 +162,7 @@ class OrderUpdateShipping(BaseMutation):
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
 
         if not input['shipping_method']:
-            if order.is_shipping_required():
+            if not order.is_draft() and order.is_shipping_required():
                 cls.add_error(
                     errors, 'shippingMethod',
                     'Shipping method is required for this order.')

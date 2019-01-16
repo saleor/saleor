@@ -3,13 +3,16 @@
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
 # 
+# Translators:
+# Filip Pytloun <filip@pytloun.cz>, 2018
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-25 05:21-0500\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"POT-Creation-Date: 2018-12-03 09:23-0600\n"
+"PO-Revision-Date: 2017-02-08 11:00+0000\n"
 "Last-Translator: Filip Pytloun <filip@pytloun.cz>, 2018\n"
 "Language-Team: Czech (https://www.transifex.com/mirumee/teams/34782/cs/)\n"
 "MIME-Version: 1.0\n"
@@ -17,6 +20,14 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: cs\n"
 "Plural-Forms: nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;\n"
+
+#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:75
+msgid "Missing source"
+msgstr ""
+
+#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:136
+msgid "\n"
+msgstr ""
 
 #: saleor/static/dashboard/js/components/bulk-actions.js:89
 msgid "item selected"
@@ -239,37 +250,37 @@ msgstr "So"
 #: saleor/static/dashboard/js/components/datepicker.js:57
 msgctxt "Sunday shortcut"
 msgid "S"
-msgstr ""
+msgstr "Ne"
 
 #: saleor/static/dashboard/js/components/datepicker.js:58
 msgctxt "Monday shortcut"
 msgid "M"
-msgstr ""
+msgstr "Po"
 
 #: saleor/static/dashboard/js/components/datepicker.js:59
 msgctxt "Tuesday shortcut"
 msgid "T"
-msgstr ""
+msgstr "Út"
 
 #: saleor/static/dashboard/js/components/datepicker.js:60
 msgctxt "Wednesday shortcut"
 msgid "W"
-msgstr ""
+msgstr "St"
 
 #: saleor/static/dashboard/js/components/datepicker.js:61
 msgctxt "Thursday shortcut"
 msgid "T"
-msgstr ""
+msgstr "Čt"
 
 #: saleor/static/dashboard/js/components/datepicker.js:62
 msgctxt "Friday shortcut"
 msgid "F"
-msgstr ""
+msgstr "Pá"
 
 #: saleor/static/dashboard/js/components/datepicker.js:63
 msgctxt "Saturday shortcut"
 msgid "S"
-msgstr ""
+msgstr "So"
 
 #: saleor/static/dashboard/js/components/datepicker.js:64
 msgctxt "Datepicker option"
@@ -286,62 +297,62 @@ msgctxt "Datepicker option"
 msgid "Close"
 msgstr "Zavřít"
 
-#: saleor/static/dashboard/js/components/editor.js:24
+#: saleor/static/dashboard/js/components/editor.js:27
 msgctxt "Rich text editor option"
 msgid "Bold text"
 msgstr "Tučně"
 
-#: saleor/static/dashboard/js/components/editor.js:28
+#: saleor/static/dashboard/js/components/editor.js:31
 msgctxt "Rich text editor option"
 msgid "Italic text"
 msgstr "Kursivou"
 
-#: saleor/static/dashboard/js/components/editor.js:32
+#: saleor/static/dashboard/js/components/editor.js:35
 msgctxt "Rich text editor option"
 msgid "Header"
 msgstr "Záhlaví"
 
-#: saleor/static/dashboard/js/components/editor.js:39
+#: saleor/static/dashboard/js/components/editor.js:42
 msgctxt "Rich text editor option"
 msgid "Subheader"
 msgstr "Zápatí"
 
-#: saleor/static/dashboard/js/components/editor.js:46
+#: saleor/static/dashboard/js/components/editor.js:49
 msgctxt "Rich text editor option"
 msgid "Quote"
 msgstr "Citovat"
 
-#: saleor/static/dashboard/js/components/editor.js:51
+#: saleor/static/dashboard/js/components/editor.js:54
 msgctxt "Rich text editor option"
 msgid "Link"
 msgstr "Odkaz"
 
-#: saleor/static/dashboard/js/components/editor.js:58
+#: saleor/static/dashboard/js/components/editor.js:61
 msgctxt "Rich text editor option"
 msgid "Image (converts selected text to an image tag)"
 msgstr "Obrázek (převede vybraný text na štítek obrázku)"
 
-#: saleor/static/dashboard/js/components/editor.js:63
+#: saleor/static/dashboard/js/components/editor.js:66
 msgctxt "Rich text editor option"
 msgid "Left align"
 msgstr "Zarovnání vlevo"
 
-#: saleor/static/dashboard/js/components/editor.js:68
+#: saleor/static/dashboard/js/components/editor.js:71
 msgctxt "Rich text editor option"
 msgid "Center align"
 msgstr "Zarovnání na střed"
 
-#: saleor/static/dashboard/js/components/editor.js:73
+#: saleor/static/dashboard/js/components/editor.js:76
 msgctxt "Rich text editor option"
 msgid "Right align"
 msgstr "Zarovnání vpravo"
 
-#: saleor/static/dashboard/js/components/editor.js:78
+#: saleor/static/dashboard/js/components/editor.js:81
 msgctxt "Rich text editor option"
 msgid "Justify"
 msgstr "Zdůvodnění"
 
-#: saleor/static/dashboard/js/components/editor.js:83
+#: saleor/static/dashboard/js/components/editor.js:86
 msgctxt "Rich text editor option"
 msgid "Remove formatting"
 msgstr "Odebrat formátování"
@@ -355,12 +366,12 @@ msgstr "Váš vstup může být příliš krátký, přemýšlejte o něčem pop
 msgid "Your input fits between the recommended lengths"
 msgstr "Váš vstup odpovídá doporučeným délkám"
 
-#: saleor/static/js/components/variantPicker/QuantityInput.js:21
+#: saleor/static/js/components/variantPicker/QuantityInput.js:22
 msgctxt "Add to cart form field label"
 msgid "Quantity"
 msgstr "Množství"
 
-#: saleor/static/js/components/variantPicker/VariantPicker.js:166
+#: saleor/static/js/components/variantPicker/VariantPicker.js:167
 msgctxt "Product details primary action"
 msgid "Add to cart"
 msgstr "Do košíku"

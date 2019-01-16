@@ -44,4 +44,5 @@ const AddressFormatter: React.StatelessComponent<AddressFormatterProps> = ({
     </address>
   );
 };
+AddressFormatter.displayName = "AddressFormatter";
 export default AddressFormatter;

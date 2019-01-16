@@ -53,56 +53,47 @@ export interface OrderMarkAsPaid_orderMarkAsPaid_order_events {
   user: OrderMarkAsPaid_orderMarkAsPaid_order_events_user | null;
 }
 
-export interface OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_edges_node_orderLine_unitPrice_gross {
+export interface OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_orderLine_unitPrice_gross {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_edges_node_orderLine_unitPrice_net {
+export interface OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_orderLine_unitPrice_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_edges_node_orderLine_unitPrice {
+export interface OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_orderLine_unitPrice {
   __typename: "TaxedMoney";
-  gross: OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_edges_node_orderLine_unitPrice_gross;
-  net: OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_edges_node_orderLine_unitPrice_net;
+  gross: OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_orderLine_unitPrice_gross;
+  net: OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_orderLine_unitPrice_net;
 }
 
-export interface OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_edges_node_orderLine {
+export interface OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
   quantityFulfilled: number;
-  unitPrice: OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_edges_node_orderLine_unitPrice | null;
+  unitPrice: OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_orderLine_unitPrice | null;
   thumbnailUrl: string | null;
 }
 
-export interface OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_edges_node {
+export interface OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines {
   __typename: "FulfillmentLine";
   id: string;
   quantity: number;
-  orderLine: OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_edges_node_orderLine | null;
-}
-
-export interface OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_edges {
-  __typename: "FulfillmentLineCountableEdge";
-  node: OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_edges_node;
-}
-
-export interface OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines {
-  __typename: "FulfillmentLineCountableConnection";
-  edges: OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_edges[];
+  orderLine: OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_orderLine | null;
 }
 
 export interface OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments {
   __typename: "Fulfillment";
   id: string;
-  lines: OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines | null;
+  lines: (OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines | null)[] | null;
   fulfillmentOrder: number;
   status: FulfillmentStatus;
   trackingNumber: string;
@@ -129,6 +120,7 @@ export interface OrderMarkAsPaid_orderMarkAsPaid_order_lines_unitPrice {
 export interface OrderMarkAsPaid_orderMarkAsPaid_order_lines {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -239,7 +231,9 @@ export interface OrderMarkAsPaid_orderMarkAsPaid_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderMarkAsPaid_orderMarkAsPaid_order_billingAddress | null;
+  canFinalize: boolean;
   created: any;
+  customerNote: string;
   events: (OrderMarkAsPaid_orderMarkAsPaid_order_events | null)[] | null;
   fulfillments: (OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments | null)[];
   lines: (OrderMarkAsPaid_orderMarkAsPaid_order_lines | null)[];
@@ -262,7 +256,7 @@ export interface OrderMarkAsPaid_orderMarkAsPaid_order {
 
 export interface OrderMarkAsPaid_orderMarkAsPaid {
   __typename: "OrderMarkAsPaid";
-  errors: (OrderMarkAsPaid_orderMarkAsPaid_errors | null)[] | null;
+  errors: OrderMarkAsPaid_orderMarkAsPaid_errors[] | null;
   order: OrderMarkAsPaid_orderMarkAsPaid_order | null;
 }
 

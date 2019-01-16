@@ -5,6 +5,7 @@ import unicodedata
 import uuid
 from collections import defaultdict
 from datetime import date
+from textwrap import dedent
 from unittest.mock import patch
 
 from django.conf import settings
@@ -34,7 +35,9 @@ from ...payment.utils import get_billing_data
 from ...product.models import (
     Attribute, AttributeValue, Category, Collection, Product, ProductImage,
     ProductType, ProductVariant)
-from ...product.thumbnails import create_product_thumbnails
+from ...product.thumbnails import (
+    create_category_background_image_thumbnails,
+    create_collection_background_image_thumbnails, create_product_thumbnails)
 from ...shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
 from ...shipping.utils import get_taxed_shipping_price
 
@@ -47,10 +50,17 @@ GROCERIES_CATEGORY = {'name': 'Groceries', 'image_name': 'groceries.jpg'}
 COLLECTIONS_SCHEMA = [
     {
         'name': 'Summer collection',
-        'image_name': 'summer.jpg'},
+        'image_name': 'summer.jpg',
+        'description': dedent('''The Saleor Summer Collection features a range
+            of products that feel the heat of the market. A demo store for all
+            seasons. Saleor captures the open source, e-commerce sun.''')},
     {
         'name': 'Winter sale',
-        'image_name': 'clothing.jpg'}]
+        'image_name': 'clothing.jpg',
+        'description': dedent('''The Saleor Winter Sale is snowed under with
+            seasonal offers. Unreal products at unreal prices. Literally,
+            they are not real products, but the Saleor demo store is a
+            genuine e-commerce leader.''')}]
 
 IMAGES_MAPPING = {
     61: ['saleordemoproduct_paints_01.png'],
@@ -142,6 +152,7 @@ def create_categories(categories_data, placeholder_dir):
         background_image = get_image(placeholder_dir, image_name)
         defaults['background_image'] = background_image
         Category.objects.update_or_create(pk=pk, defaults=defaults)
+        create_category_background_image_thumbnails.delay(pk)
 
 
 def create_attributes(attributes_data):
@@ -172,6 +183,8 @@ def create_products(products_data, placeholder_dir, create_images):
         defaults['weight'] = get_weight(defaults['weight'])
         defaults['category_id'] = defaults.pop('category')
         defaults['product_type_id'] = defaults.pop('product_type')
+        defaults['price'] = get_in_default_currency(
+            defaults, 'price', settings.DEFAULT_CURRENCY)
         defaults['attributes'] = json.loads(defaults['attributes'])
         product, _ = Product.objects.update_or_create(pk=pk, defaults=defaults)
 
@@ -192,11 +205,22 @@ def create_product_variants(variants_data):
             continue
         defaults['product_id'] = product_id
         defaults['attributes'] = json.loads(defaults['attributes'])
+        defaults['price_override'] = get_in_default_currency(
+            defaults, 'price_override', settings.DEFAULT_CURRENCY)
+        defaults['cost_price'] = get_in_default_currency(
+            defaults, 'cost_price', settings.DEFAULT_CURRENCY)
         ProductVariant.objects.update_or_create(pk=pk, defaults=defaults)
 
 
-def create_products_by_schema(placeholder_dir, create_images, stdout=None):
-    with open('saleor/static/db.json') as f:
+def get_in_default_currency(defaults, field, currency):
+    if field in defaults and defaults[field] is not None:
+        return Money(defaults[field].amount, currency)
+    return None
+
+
+def create_products_by_schema(placeholder_dir, create_images):
+    path = os.path.join(settings.PROJECT_ROOT, 'saleor', 'static', 'db.json')
+    with open(path) as f:
         db_items = json.load(f, object_hook=object_hook)
     types = defaultdict(list)
     # Sort db objects by its model
@@ -235,11 +259,12 @@ def get_email(first_name, last_name):
         _first.lower().decode('utf-8'), _last.lower().decode('utf-8'))
 
 
-def get_or_create_collection(name, placeholder_dir, image_name):
+def get_or_create_collection(name, placeholder_dir, image_name, description):
     background_image = get_image(placeholder_dir, image_name)
     defaults = {
         'slug': fake.slug(name),
-        'background_image': background_image}
+        'background_image': background_image,
+        'description': description}
     return Collection.objects.get_or_create(name=name, defaults=defaults)[0]
 
 
@@ -269,7 +294,11 @@ def create_fake_user():
     address = create_address()
     email = get_email(address.first_name, address.last_name)
 
-    user = User.objects.create_user(email=email, password='password')
+    user = User.objects.create_user(
+        first_name=address.first_name,
+        last_name=address.last_name,
+        email=email,
+        password='password')
 
     user.addresses.add(address)
     user.default_billing_address = address
@@ -425,8 +454,8 @@ def create_shipping_zone(
             type=(
                 ShippingMethodType.PRICE_BASED if random.randint(0, 1)
                 else ShippingMethodType.WEIGHT_BASED),
-            minimum_order_price=fake.money(), maximum_order_price=None,
-            minimum_order_weight=fake.weight(), maximum_order_weight=None)
+            minimum_order_price=0, maximum_order_price=None,
+            minimum_order_weight=0, maximum_order_weight=None)
         for name in shipping_methods_names])
     return 'Shipping Zone: %s' % shipping_zone
 
@@ -524,9 +553,11 @@ def create_fake_collection(placeholder_dir, collection_data):
     image_dir = get_product_list_images_dir(placeholder_dir)
     collection = get_or_create_collection(
         name=collection_data['name'], placeholder_dir=image_dir,
-        image_name=collection_data['image_name'])
+        image_name=collection_data['image_name'],
+        description=collection_data['description'])
     products = Product.objects.order_by('?')[:4]
     collection.products.add(*products)
+    create_collection_background_image_thumbnails.delay(collection.pk)
     return collection
 
 

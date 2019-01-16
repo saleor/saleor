@@ -1,11 +1,10 @@
 import gql from "graphql-tag";
 
 import { TypedMutation } from "../mutations";
-import { collectionDetailsFragment } from "./queries";
 import {
-  AssignHomepageCollection,
-  AssignHomepageCollectionVariables
-} from "./types/AssignHomepageCollection";
+  collectionDetailsFragment,
+  collectionProductFragment
+} from "./queries";
 import {
   CollectionAssignProduct,
   CollectionAssignProductVariables
@@ -14,6 +13,10 @@ import {
   CollectionUpdate,
   CollectionUpdateVariables
 } from "./types/CollectionUpdate";
+import {
+  CollectionUpdateWithHomepage,
+  CollectionUpdateWithHomepageVariables
+} from "./types/CollectionUpdateWithHomepage";
 import {
   CreateCollection,
   CreateCollectionVariables
@@ -46,9 +49,14 @@ export const TypedCollectionUpdateMutation = TypedMutation<
   CollectionUpdateVariables
 >(collectionUpdate);
 
-const assignHomepageCollection = gql`
-  mutation AssignHomepageCollection($id: ID) {
-    homepageCollectionUpdate(collection: $id) {
+const collectionUpdateWithHomepage = gql`
+  ${collectionDetailsFragment}
+  mutation CollectionUpdateWithHomepage(
+    $id: ID!
+    $input: CollectionInput!
+    $homepageId: ID
+  ) {
+    homepageCollectionUpdate(collection: $homepageId) {
       errors {
         field
         message
@@ -59,37 +67,43 @@ const assignHomepageCollection = gql`
         }
       }
     }
+    collectionUpdate(id: $id, input: $input) {
+      errors {
+        field
+        message
+      }
+      collection {
+        ...CollectionDetailsFragment
+      }
+    }
   }
 `;
-export const TypedAssignHomepageCollectionMutation = TypedMutation<
-  AssignHomepageCollection,
-  AssignHomepageCollectionVariables
->(assignHomepageCollection);
+export const TypedCollectionUpdateWithHomepageMutation = TypedMutation<
+  CollectionUpdateWithHomepage,
+  CollectionUpdateWithHomepageVariables
+>(collectionUpdateWithHomepage);
 
 const assignCollectionProduct = gql`
+  ${collectionProductFragment}
   mutation CollectionAssignProduct(
     $collectionId: ID!
-    $productId: ID!
-    $first: Int!
+    $productIds: [ID!]!
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
   ) {
-    collectionAddProducts(collectionId: $collectionId, products: [$productId]) {
+    collectionAddProducts(collectionId: $collectionId, products: $productIds) {
       errors {
         field
         message
       }
       collection {
         id
-        products(first: $first) {
+        products(first: $first, after: $after, before: $before, last: $last) {
           edges {
             node {
-              id
-              isPublished
-              name
-              productType {
-                id
-                name
-              }
-              thumbnailUrl
+              ...CollectionProductFragment
             }
           }
           pageInfo {

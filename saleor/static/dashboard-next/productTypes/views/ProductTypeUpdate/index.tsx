@@ -1,11 +1,13 @@
+import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 import { Route } from "react-router-dom";
 
-import { productTypeDetailsUrl, productTypeListUrl } from "../../";
+import ActionDialog from "../../../components/ActionDialog";
 import Messages from "../../../components/messages";
 import Navigator from "../../../components/Navigator";
+import { WindowTitle } from "../../../components/WindowTitle";
 import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
+import { getMutationState, maybe } from "../../../misc";
 import { AttributeTypeEnum } from "../../../types/globalTypes";
 import ProductTypeAttributeEditDialog, {
   FormData as AttributeForm
@@ -20,8 +22,16 @@ import { AttributeDelete } from "../../types/AttributeDelete";
 import { AttributeUpdate } from "../../types/AttributeUpdate";
 import { ProductTypeDelete } from "../../types/ProductTypeDelete";
 import { ProductTypeUpdate as ProductTypeUpdateMutation } from "../../types/ProductTypeUpdate";
+import { productTypeListUrl, productTypeUrl } from "../../urls";
 import { ProductTypeUpdateErrors } from "./errors";
-import { addAttributeUrl, editAttributeUrl } from "./urls";
+import {
+  addAttributePath,
+  addAttributeUrl,
+  editAttributePath,
+  editAttributeUrl,
+  productTypeRemovePath,
+  productTypeRemoveUrl
+} from "./urls";
 
 interface ProductTypeUpdateProps {
   id: string;
@@ -36,23 +46,21 @@ export const ProductTypeUpdate: React.StatelessComponent<
         {navigate => (
           <ProductTypeUpdateErrors>
             {({ errors, set: setErrors }) => (
-              <TypedProductTypeDetailsQuery variables={{ id }}>
+              <TypedProductTypeDetailsQuery
+                displayLoader
+                variables={{ id }}
+                require={["productType"]}
+              >
                 {({ data, loading: dataLoading }) => {
                   const closeModal = () => {
-                    navigate(
-                      productTypeDetailsUrl(encodeURIComponent(id)),
-                      true
-                    );
+                    navigate(productTypeUrl(id), true);
                     setErrors.addAttributeErrors([]);
                     setErrors.editAttributeErrors([]);
                   };
                   const handleAttributeCreateSuccess = (
                     data: AttributeCreate
                   ) => {
-                    if (
-                      !data.attributeCreate.errors ||
-                      data.attributeCreate.errors.length === 0
-                    ) {
+                    if (data.attributeCreate.errors.length === 0) {
                       pushMessage({
                         text: i18n.t("Attribute created", {
                           context: "notification"
@@ -80,10 +88,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                   const handleAttributeUpdateSuccess = (
                     data: AttributeUpdate
                   ) => {
-                    if (
-                      !data.attributeUpdate.errors ||
-                      data.attributeUpdate.errors.length === 0
-                    ) {
+                    if (data.attributeUpdate.errors.length === 0) {
                       pushMessage({
                         text: i18n.t("Attribute updated", {
                           context: "notification"
@@ -133,7 +138,6 @@ export const ProductTypeUpdate: React.StatelessComponent<
 
                   return (
                     <ProductTypeOperations
-                      id={id}
                       onAttributeCreate={handleAttributeCreateSuccess}
                       onAttributeDelete={handleAttributeDeleteSuccess}
                       onAttributeUpdate={handleAttributeUpdateSuccess}
@@ -144,7 +148,6 @@ export const ProductTypeUpdate: React.StatelessComponent<
                         attributeCreate,
                         deleteAttribute,
                         deleteProductType,
-                        loading: mutationLoading,
                         updateAttribute,
                         updateProductType
                       }) => {
@@ -223,9 +226,22 @@ export const ProductTypeUpdate: React.StatelessComponent<
                             }
                           });
                         };
-                        const loading = mutationLoading || dataLoading;
+                        const loading =
+                          updateProductType.opts.loading || dataLoading;
+                        const deleteTransactionState = getMutationState(
+                          deleteProductType.opts.called,
+                          deleteProductType.opts.loading,
+                          maybe(
+                            () =>
+                              deleteProductType.opts.data.productTypeDelete
+                                .errors
+                          )
+                        );
                         return (
                           <>
+                            <WindowTitle
+                              title={maybe(() => data.productType.name)}
+                            />
                             <ProductTypeDetailsPage
                               defaultWeightUnit={maybe(
                                 () => data.shop.defaultWeightUnit
@@ -252,7 +268,9 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                 )
                               }
                               onBack={() => navigate(productTypeListUrl)}
-                              onDelete={handleProductTypeDelete}
+                              onDelete={() =>
+                                navigate(productTypeRemoveUrl(id))
+                              }
                               onSubmit={handleProductTypeUpdate}
                             />
                             {!dataLoading && (
@@ -260,7 +278,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                 {Object.keys(AttributeTypeEnum).map(key => (
                                   <Route
                                     exact
-                                    path={addAttributeUrl(
+                                    path={addAttributePath(
                                       encodeURIComponent(id),
                                       AttributeTypeEnum[key]
                                     )}
@@ -268,7 +286,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                   >
                                     {({ match }) => (
                                       <ProductTypeAttributeEditDialog
-                                        disabled={attributeCreate.loading}
+                                        disabled={attributeCreate.opts.loading}
                                         errors={errors.addAttributeErrors}
                                         name=""
                                         values={[]}
@@ -289,8 +307,8 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                 ))}
                                 <Route
                                   exact
-                                  path={editAttributeUrl(
-                                    encodeURIComponent(id),
+                                  path={editAttributePath(
+                                    ":productTypeId",
                                     ":id"
                                   )}
                                 >
@@ -311,7 +329,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                     );
                                     return (
                                       <ProductTypeAttributeEditDialog
-                                        disabled={updateAttribute.loading}
+                                        disabled={updateAttribute.opts.loading}
                                         errors={errors.editAttributeErrors}
                                         name={maybe(() => attribute.name)}
                                         values={maybe(() =>
@@ -335,6 +353,36 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                     );
                                   }}
                                 </Route>
+                                <Route
+                                  path={productTypeRemovePath(":id")}
+                                  render={({ match }) => (
+                                    <ActionDialog
+                                      confirmButtonState={
+                                        deleteTransactionState
+                                      }
+                                      open={!!match}
+                                      onClose={() =>
+                                        navigate(productTypeUrl(id))
+                                      }
+                                      onConfirm={handleProductTypeDelete}
+                                      title={i18n.t("Remove product type")}
+                                      variant="delete"
+                                    >
+                                      <DialogContentText
+                                        dangerouslySetInnerHTML={{
+                                          __html: i18n.t(
+                                            "Are you sure you want to remove <strong>{{ name }}</strong>?",
+                                            {
+                                              name: maybe(
+                                                () => data.productType.name
+                                              )
+                                            }
+                                          )
+                                        }}
+                                      />
+                                    </ActionDialog>
+                                  )}
+                                />
                               </>
                             )}
                           </>

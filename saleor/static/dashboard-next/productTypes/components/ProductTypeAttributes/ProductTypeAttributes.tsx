@@ -1,7 +1,12 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import IconButton from "@material-ui/core/IconButton";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -20,7 +25,23 @@ import {
   ProductTypeDetails_productType_variantAttributes
 } from "../../types/ProductTypeDetails";
 
-interface ProductTypeAttributesProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    iconCell: {
+      "&:last-child": {
+        paddingRight: 0
+      },
+      width: 48 + theme.spacing.unit / 2
+    },
+    link: {
+      cursor: "pointer"
+    },
+    textLeft: {
+      textAlign: "left"
+    }
+  });
+
+interface ProductTypeAttributesProps extends WithStyles<typeof styles> {
   attributes:
     | ProductTypeDetails_productType_productAttributes[]
     | ProductTypeDetails_productType_variantAttributes[];
@@ -30,21 +51,9 @@ interface ProductTypeAttributesProps {
   onAttributeUpdate: (id: string) => void;
 }
 
-const decorate = withStyles(theme => ({
-  iconCell: {
-    "&:last-child": {
-      paddingRight: 0
-    },
-    width: 48 + theme.spacing.unit / 2
-  },
-  link: {
-    cursor: "pointer" as "pointer"
-  },
-  textLeft: {
-    textAlign: "left" as "left"
-  }
-}));
-const ProductTypeAttributes = decorate<ProductTypeAttributesProps>(
+const ProductTypeAttributes = withStyles(styles, {
+  name: "ProductTypeAttributes"
+})(
   ({
     attributes,
     classes,
@@ -52,7 +61,7 @@ const ProductTypeAttributes = decorate<ProductTypeAttributesProps>(
     onAttributeAdd,
     onAttributeDelete,
     onAttributeUpdate
-  }) => (
+  }: ProductTypeAttributesProps) => (
     <Card>
       <CardTitle
         title={
@@ -63,7 +72,7 @@ const ProductTypeAttributes = decorate<ProductTypeAttributesProps>(
         toolbar={
           <Button
             color="secondary"
-            variant="flat"
+            variant="text"
             onClick={() => onAttributeAdd(type)}
           >
             {i18n.t("Add attribute", { context: "button" })}

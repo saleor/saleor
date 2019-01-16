@@ -4,6 +4,7 @@ import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.conf import settings
 from django_countries import countries
+from django_prices_vatlayer.models import VAT
 from graphql_jwt.decorators import permission_required
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
@@ -11,13 +12,14 @@ from ...core.permissions import get_permissions
 from ...core.utils import get_client_ip, get_country_by_ip
 from ...menu import models as menu_models
 from ...product import models as product_models
-from ...site import AuthenticationBackends, models as site_models
+from ...site import models as site_models
+from ..core.enums import WeightUnitsEnum
 from ..core.types.common import (
-    CountryDisplay, LanguageDisplay, PermissionDisplay, WeightUnitsEnum)
-from ..core.utils import str_to_enum
+    CountryDisplay, LanguageDisplay, PermissionDisplay)
 from ..menu.types import Menu
 from ..product.types import Collection
 from ..utils import format_permissions_for_display
+from .enums import AuthorizationKeyType
 
 
 class Navigation(graphene.ObjectType):
@@ -26,11 +28,6 @@ class Navigation(graphene.ObjectType):
 
     class Meta:
         description = 'Represents shop\'s navigation menus.'
-
-
-AuthorizationKeyType = graphene.Enum(
-    'AuthorizationKeyType', [(str_to_enum(auth_type[0]), auth_type[0])
-                             for auth_type in AuthenticationBackends.BACKENDS])
 
 
 class AuthorizationKey(graphene.ObjectType):
@@ -103,6 +100,8 @@ class Shop(graphene.ObjectType):
         description='Include taxes in prices')
     display_gross_prices = graphene.Boolean(
         description='Display prices with tax in store')
+    charge_taxes_on_shipping = graphene.Boolean(
+        description='Charge taxes on shipping')
     track_inventory_by_default = graphene.Boolean(
         description='Enable inventory tracking')
     default_weight_unit = WeightUnitsEnum(description='Default weight unit')
@@ -117,8 +116,10 @@ class Shop(graphene.ObjectType):
         return site_models.AuthorizationKey.objects.all()
 
     def resolve_countries(self, info):
+        taxes = {vat.country_code: vat for vat in VAT.objects.all()}
         return [
-            CountryDisplay(code=country[0], country=country[1])
+            CountryDisplay(
+                code=country[0], country=country[1], vat=taxes.get(country[0]))
             for country in countries]
 
     def resolve_currencies(self, info):
@@ -185,6 +186,9 @@ class Shop(graphene.ObjectType):
     def resolve_display_gross_prices(self, info):
         return info.context.site.settings.display_gross_prices
 
+    def resolve_charge_taxes_on_shipping(self, info):
+        return info.context.site.settings.charge_taxes_on_shipping
+
     def resolve_track_inventory_by_default(self, info):
         return info.context.site.settings.track_inventory_by_default
 
@@ -195,8 +199,11 @@ class Shop(graphene.ObjectType):
         default_country_code = settings.DEFAULT_COUNTRY
         default_country_name = countries.countries.get(default_country_code)
         if default_country_name:
+            vat = VAT.objects.filter(country_code=default_country_code).first()
             default_country = CountryDisplay(
-                code=default_country_code, country=default_country_name)
+                code=default_country_code,
+                country=default_country_name,
+                vat=vat)
         else:
             default_country = None
         return default_country

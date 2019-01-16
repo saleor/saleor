@@ -1,12 +1,16 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import { Container } from "../../../components/Container";
 import Form, { FormProps } from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar, {
-  SaveButtonBarState
-} from "../../../components/SaveButtonBar";
+import SaveButtonBar from "../../../components/SaveButtonBar";
 import Toggle from "../../../components/Toggle";
 import PageContent from "../PageContent";
 import PageDeleteDialog from "../PageDeleteDialog";
@@ -19,7 +23,27 @@ interface PageInput {
   availableOn: string;
   isVisible: boolean;
 }
-interface PageDetailsPageProps {
+
+const defaultPage = {
+  availableOn: "",
+  content: "",
+  isVisible: false,
+  slug: "",
+  title: ""
+};
+
+const PageForm: React.ComponentType<FormProps<PageInput>> = Form;
+
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      display: "grid",
+      gridColumnGap: `${theme.spacing.unit * 2}px`,
+      gridTemplateColumns: "3fr 1fr"
+    }
+  });
+
+export interface PageDetailsPageProps extends WithStyles<typeof styles> {
   page?: PageInput & {
     created?: string;
   };
@@ -29,28 +53,13 @@ interface PageDetailsPageProps {
   }>;
   disabled?: boolean;
   title?: string;
-  saveButtonBarState?: SaveButtonBarState;
+  saveButtonBarState: ConfirmButtonTransitionState;
   onBack?();
   onDelete?();
   onSubmit(data: PageInput);
 }
 
-const defaultPage = {
-  availableOn: "",
-  content: "",
-  isVisible: false,
-  slug: "",
-  title: ""
-};
-const PageForm: React.ComponentType<FormProps<PageInput>> = Form;
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: `${theme.spacing.unit * 2}px`,
-    gridTemplateColumns: "3fr 1fr"
-  }
-}));
-const PageDetailsPage = decorate<PageDetailsPageProps>(
+const PageDetailsPage = withStyles(styles, { name: "PageDetailsPage" })(
   ({
     classes,
     errors,
@@ -61,7 +70,7 @@ const PageDetailsPage = decorate<PageDetailsPageProps>(
     onBack,
     onDelete,
     onSubmit
-  }) => (
+  }: PageDetailsPageProps) => (
     <PageForm
       errors={errors}
       key={page ? "ready" : "loading"}
@@ -118,4 +127,5 @@ const PageDetailsPage = decorate<PageDetailsPageProps>(
     </PageForm>
   )
 );
+PageDetailsPage.displayName = "PageDetailsPage";
 export default PageDetailsPage;

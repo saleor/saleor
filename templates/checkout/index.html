@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% load get_thumbnail from product_images %}
+{% load get_product_image_thumbnail from product_images %}
 {% load price from taxed_prices %}
 {% load static %}
 
@@ -42,8 +42,8 @@
           <div class="row">
             <div class="col-7 cart__line__product">
               <a class="link--clean" href="{{ line.variant.get_absolute_url }}">
-                <img class="lazyload lazypreload" data-src="{% get_thumbnail line.variant.get_first_image method="thumbnail" size=60 %}"
-                     data-srcset="{% get_thumbnail line.variant.get_first_image method="thumbnail" size=60 %} 1x, {% get_thumbnail line.variant.get_first_image method="thumbnail" size=120 %} 2x"
+                <img class="lazyload lazypreload" data-src="{% get_product_image_thumbnail line.variant.get_first_image method="thumbnail" size=60 %}"
+                     data-srcset="{% get_product_image_thumbnail line.variant.get_first_image method="thumbnail" size=60 %} 1x, {% get_product_image_thumbnail line.variant.get_first_image method="thumbnail" size=120 %} 2x"
                      alt="">
                 <p>{{ line.variant.product.translated }}<br><small>{{ line.variant.translated }}</small></p>
               </a>
@@ -77,7 +77,7 @@
       </div>
       <div class="row">
         <div class="col-md-12">
-            <a href="{% url "checkout:login" %}" class="btn primary float-right cart__submit">
+            <a href="{% url "checkout:login" %}" class="btn btn-primary float-right cart__submit">
             {% trans "Checkout" context "Cart primary action" %}
           </a>
             <button class="btn secondary float-right cart__clear" data-action="{% url 'cart:clear-cart' %}">
@@ -89,7 +89,7 @@
       <div class="cart__empty">
         <img class="lazyload lazypreload" data-src="{% static 'images/empty-cart-bg.png' %}" data-srcset="{% static 'images/empty-cart-bg.png' %} 1x, {% static 'images/empty-cart-bg2x.png' %} 2x">
         <h2>{% trans "There are no products in your shopping cart." context "Empty cart message" %}</h2>
-        <a href="{% url 'home' %}" class="btn primary">{% trans "Check out our sales" context "Empty cart link" %}</a>
+        <a href="{% url 'home' %}" class="btn btn-primary">{% trans "Check out our sales" context "Empty cart link" %}</a>
       </div>
     {% endif %}
   </div>

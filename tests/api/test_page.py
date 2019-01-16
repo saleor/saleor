@@ -1,9 +1,8 @@
+import graphene
 import pytest
 
-import graphene
 from saleor.page.models import Page
 from tests.api.utils import get_graphql_content
-
 
 PAGE_QUERY = """
     query PageQuery($id: ID, $slug: String) {

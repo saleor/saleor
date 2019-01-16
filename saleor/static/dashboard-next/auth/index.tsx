@@ -1,7 +1,6 @@
 import * as React from "react";
 
 import { User } from "./types/User";
-import Login from "./views/Login";
 
 const TOKEN_STORAGE_KEY = "dashboardAuth";
 
@@ -29,5 +28,3 @@ export const removeAuthToken = () => {
   localStorage.removeItem(TOKEN_STORAGE_KEY);
   sessionStorage.removeItem(TOKEN_STORAGE_KEY);
 };
-
-export default Login;

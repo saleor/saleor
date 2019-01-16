@@ -33,8 +33,10 @@ export const collection: (
   __typename: "Collection",
   backgroundImage: {
     __typename: "Image",
+    alt: "Alt text",
     url: placeholderCollectionImage
   },
+  description: "Lorem ipsum dolor sit amet",
   id: "Q29sbGVjdGlvbjox",
   isPublished: true,
   name: "Summer collection",
@@ -54,7 +56,7 @@ export const collection: (
             id: "UHJvZHVjdFR5cGU6Mg==",
             name: "Mugs"
           },
-          thumbnailUrl: placeholderImage
+          thumbnail: { __typename: "Image", url: placeholderImage }
         }
       },
       {
@@ -70,7 +72,7 @@ export const collection: (
             id: "UHJvZHVjdFR5cGU6Mw==",
             name: "Coffee"
           },
-          thumbnailUrl: placeholderImage
+          thumbnail: { __typename: "Image", url: placeholderImage }
         }
       },
       {
@@ -86,7 +88,7 @@ export const collection: (
             id: "UHJvZHVjdFR5cGU6Mw==",
             name: "Coffee"
           },
-          thumbnailUrl: placeholderImage
+          thumbnail: { __typename: "Image", url: placeholderImage }
         }
       },
       {
@@ -102,7 +104,7 @@ export const collection: (
             id: "UHJvZHVjdFR5cGU6Ng==",
             name: "Books"
           },
-          thumbnailUrl: placeholderImage
+          thumbnail: { __typename: "Image", url: placeholderImage }
         }
       }
     ],

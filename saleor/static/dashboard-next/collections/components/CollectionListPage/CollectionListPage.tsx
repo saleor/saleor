@@ -2,10 +2,10 @@ import Button from "@material-ui/core/Button";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
-import { PageListProps } from "../../..";
 import { Container } from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
+import { PageListProps } from "../../../types";
 import { CollectionList_collections_edges_node } from "../../types/CollectionList";
 import CollectionList from "../CollectionList/CollectionList";
 

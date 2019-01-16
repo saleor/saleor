@@ -3,24 +3,33 @@
 {% load i18n %}
 
 {% block forms %}
-<form method="POST" id="payment-form" class="form-horizontal"{% if form.action %} action="{{ form.action }}"{% endif %} novalidate>
-  {% csrf_token %}
-  {{ form.media }}
-  {% bootstrap_form form layout="vertical" %}
-  {% if form.errors %}
-    <a class="btn" href="{% url "order:details" token=payment.order.token %}">
-      {% trans "Change payment" context "Payment form (Stripe) secondary action" %}
-    </a>
-  {% endif %}
-  {% if not form.autosubmit %}
-    <div class="form-group">
-      <div class="col-sm-2"></div>
-      <div class="col-sm-10">
-        <button type="submit" class="btn primary">
-          {% trans "Make payment" context "Payment form primary action" %}
-        </button>
+<div class="checkout__payment-form">
+  <form method="POST" id="payment-form" class="form-horizontal"{% if form.action %} action="{{ form.action }}"{% endif %} novalidate>
+    {% csrf_token %}
+    {{ form.media }}
+    {% for choice in form.charge_status %}
+      <div class="radio">
+        <label>
+          <div class="card card-default">
+            <div class="card-body">
+              <strong>
+                {{choice}}
+              </strong>
+            </div>
+          </div>
+        </label>
       </div>
-    </div>
-  {% endif %}
-</form>
+    {% endfor %}
+    {% if form.errors %}
+      <a class="btn" href="{% url "order:details" token=payment.order.token %}">
+        {% trans "Change payment" context "Payment form (Stripe) secondary action" %}
+      </a>
+    {% endif %}
+    {% if not form.autosubmit %}
+      <button type="submit" class="btn btn-primary">
+        {% trans "Make payment" context "Payment form primary action" %}
+      </button>
+    {% endif %}
+  </form>
+</div>
 {% endblock forms %}

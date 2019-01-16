@@ -13,9 +13,10 @@ from ....order.utils import (
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.types.common import Decimal, Error
+from ...core.scalars import Decimal
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
+from ..utils import can_finalize_draft_order
 
 
 class OrderLineInput(graphene.InputObjectType):
@@ -153,32 +154,6 @@ class DraftOrderDelete(ModelDeleteMutation):
         return user.has_perm('order.manage_orders')
 
 
-def check_for_draft_order_errors(order, errors):
-    """Return a list of errors associated with the order.
-
-    Checks, if given order has a proper shipping address and method
-    set up and return list of errors if not.
-    """
-    if order.get_total_quantity() == 0:
-        errors.append(
-            Error(
-                field='lines',
-                message='Could not create order without any products.'))
-    if order.is_shipping_required():
-        method = order.shipping_method
-        shipping_address = order.shipping_address
-        shipping_not_valid = (
-            method and shipping_address and
-            shipping_address.country.code not in method.shipping_zone.countries)  # noqa
-        if shipping_not_valid:
-            errors.append(
-                Error(
-                    field='shipping',
-                    message='Shipping method is not valid for chosen shipping '
-                            'address'))
-    return errors
-
-
 class DraftOrderComplete(BaseMutation):
     order = graphene.Field(Order, description='Completed order.')
 
@@ -191,7 +166,7 @@ class DraftOrderComplete(BaseMutation):
         description = 'Completes creating an order.'
 
     @classmethod
-    def update_user_fields(cls, order, errors):
+    def update_user_fields(cls, order):
         if order.user:
             order.user_email = order.user.email
         elif order.user_email:
@@ -199,21 +174,18 @@ class DraftOrderComplete(BaseMutation):
                 order.user = User.objects.get(email=order.user_email)
             except User.DoesNotExist:
                 order.user = None
-        else:
-            cls.add_error(
-                errors, field=None,
-                message='Both user and user_email fields are null')
 
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id):
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
-        errors = check_for_draft_order_errors(order, errors)
-        cls.update_user_fields(order, errors)
+        if order:
+            errors = can_finalize_draft_order(order, errors)
         if errors:
             return cls(errors=errors)
 
+        cls.update_user_fields(order)
         order.status = OrderStatus.UNFULFILLED
         if not order.is_shipping_required():
             order.shipping_method_name = None
@@ -240,53 +212,54 @@ class DraftOrderComplete(BaseMutation):
         return DraftOrderComplete(order=order)
 
 
-class DraftOrderLineCreate(BaseMutation):
-    order = graphene.Field(Order, description='A related draft order.')
-    order_line = graphene.Field(
-        OrderLine, description='A newly created order line.')
+class DraftOrderLinesCreate(BaseMutation):
+    order = graphene.Field(
+        graphene.NonNull(Order), description='A related draft order.')
+    order_lines = graphene.List(
+        graphene.NonNull(OrderLine),
+        description='List of newly added order lines.', required=True)
 
     class Arguments:
         id = graphene.ID(
             required=True,
             description='ID of the draft order to add the lines to.')
-        input = OrderLineCreateInput(
-            required=True,
-            description=dedent("""
-            Variant line input consisting of variant ID and quantity of
-            products."""))
+        input = graphene.List(
+            OrderLineCreateInput, required=True,
+            description=dedent("""Fields required to add order lines."""))
 
     class Meta:
-        description = 'Create an order line for a draft order.'
+        description = 'Create order lines for a draft order.'
 
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, input):
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
-        variant_id = input['variant_id']
-        variant = cls.get_node_or_error(
-            info, variant_id, errors, 'lines', ProductVariant)
-
-        if not (order or variant):
-            return DraftOrderLineCreate(errors=errors)
-
+        if not order:
+            return DraftOrderLinesCreate(errors=errors)
         if order.status != OrderStatus.DRAFT:
             cls.add_error(
                 errors, 'order_id', 'Only draft orders can be edited.')
 
-        quantity = input['quantity']
-        if quantity <= 0:
-            cls.add_error(
-                errors, 'quantity',
-                'Ensure this value is greater than or equal to 1.')
+        lines = []
+        for input_line in input:
+            variant_id = input_line['variant_id']
+            variant = cls.get_node_or_error(
+                info, variant_id, errors, 'variant_id', ProductVariant)
+            quantity = input_line['quantity']
+            if quantity > 0:
+                if variant:
+                    line = add_variant_to_order(
+                        order, variant, quantity, allow_overselling=True)
+                    lines.append(line)
+            else:
+                cls.add_error(
+                    errors, 'quantity',
+                    'Ensure this value is greater than or equal to 1.')
 
-        line = None
-        if not errors:
-            line = add_variant_to_order(
-                order, variant, quantity, allow_overselling=True)
-            recalculate_order(order)
-        return DraftOrderLineCreate(
-            order=order, order_line=line, errors=errors)
+        recalculate_order(order)
+        return DraftOrderLinesCreate(
+            order=order, order_lines=lines, errors=errors)
 
 
 class DraftOrderLineDelete(BaseMutation):

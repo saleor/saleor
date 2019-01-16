@@ -2,16 +2,22 @@ import { parse as parseQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
-import { collectionAddUrl, collectionListUrl, collectionUrl } from "./urls";
+import { WindowTitle } from "../components/WindowTitle";
+import i18n from "../i18n";
+import { collectionAddPath, collectionListPath, collectionPath } from "./urls";
 import CollectionCreate from "./views/CollectionCreate";
-import CollectionDetailsView from "./views/CollectionDetails";
-import CollectionListView from "./views/CollectionList";
+import CollectionDetailsView, {
+  CollectionDetailsQueryParams
+} from "./views/CollectionDetails";
+import CollectionListView, {
+  CollectionListQueryParams
+} from "./views/CollectionList";
 
 const CollectionList: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params = {
+  const params: CollectionListQueryParams = {
     after: qs.after,
     before: qs.before
   };
@@ -25,7 +31,7 @@ const CollectionDetails: React.StatelessComponent<
   RouteComponentProps<CollectionDetailsRouteProps>
 > = ({ location, match }) => {
   const qs = parseQs(location.search.substr(1));
-  const params = {
+  const params: CollectionDetailsQueryParams = {
     after: qs.after,
     before: qs.before
   };
@@ -38,10 +44,13 @@ const CollectionDetails: React.StatelessComponent<
 };
 
 const Component = () => (
-  <Switch>
-    <Route exact path={collectionListUrl} component={CollectionList} />
-    <Route exact path={collectionAddUrl} component={CollectionCreate} />
-    <Route path={collectionUrl(":id")} component={CollectionDetails} />
-  </Switch>
+  <>
+    <WindowTitle title={i18n.t("Collections")} />
+    <Switch>
+      <Route exact path={collectionListPath} component={CollectionList} />
+      <Route exact path={collectionAddPath} component={CollectionCreate} />
+      <Route path={collectionPath(":id")} component={CollectionDetails} />
+    </Switch>
+  </>
 );
 export default Component;

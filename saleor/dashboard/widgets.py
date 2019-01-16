@@ -1,25 +1,25 @@
 from django import forms
 from django.conf import settings
 from django.forms import Textarea, TextInput
-from django_filters.widgets import RangeWidget
+from django_filters import widgets
 from django_prices.widgets import MoneyInput
 
 from ..account.widgets import PhonePrefixWidget as StorefrontPhonePrefixWidget
 
 
-class DateRangeWidget(RangeWidget):
+class DateRangeWidget(widgets.DateRangeWidget):
     def __init__(self, attrs=None):
-        widgets = (forms.DateInput, forms.DateInput)
+        date_widgets = (forms.DateInput, forms.DateInput)
         # pylint: disable=bad-super-call
-        super(RangeWidget, self).__init__(widgets, attrs)
+        super(widgets.RangeWidget, self).__init__(date_widgets, attrs)
 
 
-class MoneyRangeWidget(RangeWidget):
+class MoneyRangeWidget(widgets.RangeWidget):
     def __init__(self, attrs=None):
         self.currency = getattr(settings, 'DEFAULT_CURRENCY')
-        widgets = (MoneyInput(self.currency), MoneyInput(self.currency))
+        money_widgets = (MoneyInput(self.currency), MoneyInput(self.currency))
         # pylint: disable=bad-super-call
-        super(RangeWidget, self).__init__(widgets, attrs)
+        super(widgets.RangeWidget, self).__init__(money_widgets, attrs)
 
 
 class PhonePrefixWidget(StorefrontPhonePrefixWidget):

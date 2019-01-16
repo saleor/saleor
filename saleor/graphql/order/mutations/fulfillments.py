@@ -78,7 +78,7 @@ class FulfillmentCreate(BaseMutation):
                     'Fulfill order line mutation error',
                     'Only %(quantity)d item remaining to fulfill.',
                     'Only %(quantity)d items remaining to fulfill.',
-                    'quantity') % {
+                    number='quantity') % {
                         'quantity': order_line.quantity_unfulfilled,
                         'order_line': order_line}
                 cls.add_error(errors, order_line, msg)

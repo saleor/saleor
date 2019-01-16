@@ -1,31 +1,39 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
-import { AttributeType } from "../../";
-import { UserError } from "../../../";
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar, {
-  SaveButtonBarState
-} from "../../../components/SaveButtonBar/SaveButtonBar";
+import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
 import i18n from "../../../i18n";
+import { UserError } from "../../../types";
+import { ProductCreateData_productTypes_edges_node_productAttributes } from "../../types/ProductCreateData";
 import ProductAvailabilityForm from "../ProductAvailabilityForm";
 import ProductDetailsForm from "../ProductDetailsForm";
 import ProductOrganization from "../ProductOrganization";
 import ProductPricing from "../ProductPricing";
 
-interface FormData {
+interface ChoiceType {
+  label: string;
+  value: string;
+}
+export interface FormData {
   attributes: Array<{
     slug: string;
     value: string;
   }>;
   available: boolean;
   availableOn: string;
-  category: string;
+  category: ChoiceType;
   chargeTaxes: boolean;
-  collections: string[];
+  collections: ChoiceType[];
   description: string;
   name: string;
   price: number;
@@ -35,7 +43,7 @@ interface FormData {
       hasVariants: boolean;
       id: string;
       name: string;
-      productAttributes: AttributeType[];
+      productAttributes: ProductCreateData_productTypes_edges_node_productAttributes[];
     };
   };
   seoDescription: string;
@@ -43,7 +51,29 @@ interface FormData {
   sku: string;
   stockQuantity: number;
 }
-interface ProductCreatePageProps {
+
+const styles = (theme: Theme) =>
+  createStyles({
+    cardContainer: {
+      marginTop: theme.spacing.unit * 2,
+      [theme.breakpoints.down("sm")]: {
+        marginTop: theme.spacing.unit
+      }
+    },
+    root: {
+      display: "grid",
+      gridGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "9fr 4fr",
+      marginTop: theme.spacing.unit * 2,
+      [theme.breakpoints.down("sm")]: {
+        gridGap: theme.spacing.unit + "px",
+        gridTemplateColumns: "1fr",
+        marginTop: theme.spacing.unit
+      }
+    }
+  });
+
+interface ProductCreatePageProps extends WithStyles<typeof styles> {
   errors: UserError[];
   collections?: Array<{
     id: string;
@@ -59,36 +89,20 @@ interface ProductCreatePageProps {
     id: string;
     name: string;
     hasVariants: boolean;
-    productAttributes: AttributeType[];
+    productAttributes: ProductCreateData_productTypes_edges_node_productAttributes[];
   }>;
   header: string;
-  saveButtonBarState?: SaveButtonBarState;
+  saveButtonBarState: ConfirmButtonTransitionState;
+  fetchCategories: (data: string) => void;
+  fetchCollections: (data: string) => void;
   onAttributesEdit: () => void;
   onBack?();
   onSubmit?(data: FormData);
 }
 
-const decorate = withStyles(theme => ({
-  cardContainer: {
-    marginTop: theme.spacing.unit * 2,
-    [theme.breakpoints.down("sm")]: {
-      marginTop: theme.spacing.unit
-    }
-  },
-  root: {
-    display: "grid",
-    gridGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "9fr 4fr",
-    marginTop: theme.spacing.unit * 2,
-    [theme.breakpoints.down("sm")]: {
-      gridGap: theme.spacing.unit + "px",
-      gridTemplateColumns: "1fr",
-      marginTop: theme.spacing.unit
-    }
-  }
-}));
-
-export const ProductCreatePage = decorate<ProductCreatePageProps>(
+export const ProductCreatePage = withStyles(styles, {
+  name: "ProductCreatePage"
+})(
   ({
     classes,
     currency,
@@ -96,17 +110,22 @@ export const ProductCreatePage = decorate<ProductCreatePageProps>(
     categories,
     collections,
     errors: userErrors,
+    fetchCategories,
+    fetchCollections,
     header,
     productTypes,
     saveButtonBarState,
     onBack,
     onSubmit
-  }) => {
+  }: ProductCreatePageProps) => {
     const initialData: FormData = {
       attributes: [],
       available: false,
       availableOn: "",
-      category: "",
+      category: {
+        label: "",
+        value: ""
+      },
       chargeTaxes: false,
       collections: [],
       description: "",
@@ -118,7 +137,7 @@ export const ProductCreatePage = decorate<ProductCreatePageProps>(
           hasVariants: false,
           id: "",
           name: "",
-          productAttributes: [] as AttributeType[]
+          productAttributes: [] as ProductCreateData_productTypes_edges_node_productAttributes[]
         }
       },
       seoDescription: "",
@@ -127,7 +146,12 @@ export const ProductCreatePage = decorate<ProductCreatePageProps>(
       stockQuantity: null
     };
     return (
-      <Form onSubmit={onSubmit} errors={userErrors} initial={initialData}>
+      <Form
+        onSubmit={onSubmit}
+        errors={userErrors}
+        initial={initialData}
+        confirmLeave
+      >
         {({ change, data, errors, hasChanged, submit }) => (
           <Container width="md">
             <PageHeader title={header} onBack={onBack} />
@@ -163,7 +187,6 @@ export const ProductCreatePage = decorate<ProductCreatePageProps>(
               </div>
               <div>
                 <ProductOrganization
-                  category={data.category}
                   categories={
                     categories !== undefined && categories !== null
                       ? categories.map(category => ({
@@ -173,7 +196,8 @@ export const ProductCreatePage = decorate<ProductCreatePageProps>(
                       : []
                   }
                   errors={errors}
-                  productCollections={data.collections}
+                  fetchCategories={fetchCategories}
+                  fetchCollections={fetchCollections}
                   collections={
                     collections !== undefined && collections !== null
                       ? collections.map(collection => ({
@@ -209,4 +233,5 @@ export const ProductCreatePage = decorate<ProductCreatePageProps>(
     );
   }
 );
+ProductCreatePage.displayName = "ProductCreatePage";
 export default ProductCreatePage;

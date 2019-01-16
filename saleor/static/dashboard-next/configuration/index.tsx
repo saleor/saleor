@@ -2,6 +2,7 @@ import * as React from "react";
 import Navigator from "../components/Navigator";
 
 import { UserContext } from "../auth";
+import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
 import AccountCircle from "../icons/AccountCircle";
 import Folder from "../icons/Folder";
@@ -10,9 +11,9 @@ import Monetization from "../icons/Monetization";
 import Navigation from "../icons/Navigation";
 import Pages from "../icons/Pages";
 import StoreMall from "../icons/StoreMall";
-import { productTypeListUrl } from "../productTypes";
-import { siteSettingsUrl } from "../siteSettings";
-import { staffListUrl } from "../staff";
+import { productTypeListUrl } from "../productTypes/urls";
+import { siteSettingsUrl } from "../siteSettings/urls";
+import { staffListUrl } from "../staff/urls";
 import { PermissionEnum } from "../types/globalTypes";
 import ConfigurationPage, { MenuItem } from "./ConfigurationPage";
 
@@ -71,11 +72,14 @@ export const ConfigurationSection: React.StatelessComponent = () => (
     {({ user }) => (
       <Navigator>
         {navigate => (
-          <ConfigurationPage
-            menu={configurationMenu}
-            user={user}
-            onSectionClick={navigate}
-          />
+          <>
+            <WindowTitle title={i18n.t("Configuration")} />
+            <ConfigurationPage
+              menu={configurationMenu}
+              user={user}
+              onSectionClick={navigate}
+            />
+          </>
         )}
       </Navigator>
     )}

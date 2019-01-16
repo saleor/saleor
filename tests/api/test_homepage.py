@@ -1,11 +1,12 @@
 from saleor.order import OrderEvents
+
 from .utils import get_graphql_content
 
 
 def test_homepage_events(order_events, staff_api_client, permission_manage_orders):
     query = """
     {
-        homepageEvents {
+        homepageEvents(first: 20) {
             edges {
                 node {
                     date

@@ -1,15 +1,19 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
-import { UserError } from "../../..";
 import { CardSpacer } from "../../../components/CardSpacer";
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar, {
-  SaveButtonBarState
-} from "../../../components/SaveButtonBar";
+import SaveButtonBar from "../../../components/SaveButtonBar";
 import i18n from "../../../i18n";
+import { UserError } from "../../../types";
 import { AddressTypeInput } from "../../types";
 import { CustomerCreateData_shop_countries } from "../../types/CustomerCreateData";
 import CustomerCreateAddress from "../CustomerCreateAddress/CustomerCreateAddress";
@@ -21,20 +25,14 @@ export interface CustomerCreatePageFormData extends AddressTypeInput {
   note: string;
 }
 
-export interface CustomerCreatePageProps {
-  countries: CustomerCreateData_shop_countries[];
-  disabled: boolean;
-  errors: UserError[];
-  saveButtonBar: SaveButtonBarState;
-  onBack: () => void;
-  onSubmit: (data: CustomerCreatePageFormData) => void;
-}
-
 const initialForm: CustomerCreatePageFormData = {
   city: "",
   cityArea: "",
   companyName: "",
-  country: "",
+  country: {
+    label: "",
+    value: ""
+  },
   countryArea: "",
   email: "",
   firstName: "",
@@ -46,14 +44,25 @@ const initialForm: CustomerCreatePageFormData = {
   streetAddress2: ""
 };
 
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 3 + "px",
-    gridTemplateColumns: "9fr 4fr"
-  }
-}));
-const CustomerCreatePage = decorate<CustomerCreatePageProps>(
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 3 + "px",
+      gridTemplateColumns: "9fr 4fr"
+    }
+  });
+
+export interface CustomerCreatePageProps extends WithStyles<typeof styles> {
+  countries: CustomerCreateData_shop_countries[];
+  disabled: boolean;
+  errors: UserError[];
+  saveButtonBar: ConfirmButtonTransitionState;
+  onBack: () => void;
+  onSubmit: (data: CustomerCreatePageFormData) => void;
+}
+
+const CustomerCreatePage = withStyles(styles, { name: "CustomerCreatePage" })(
   ({
     classes,
     countries,
@@ -62,8 +71,13 @@ const CustomerCreatePage = decorate<CustomerCreatePageProps>(
     saveButtonBar,
     onBack,
     onSubmit
-  }) => (
-    <Form initial={initialForm} onSubmit={onSubmit} errors={errors}>
+  }: CustomerCreatePageProps) => (
+    <Form
+      initial={initialForm}
+      onSubmit={onSubmit}
+      errors={errors}
+      confirmLeave
+    >
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container width="md">
           <PageHeader title={i18n.t("Add customer")} onBack={onBack} />

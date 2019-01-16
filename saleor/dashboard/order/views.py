@@ -116,7 +116,7 @@ def remove_draft_order(request, order_pk):
 def order_details(request, order_pk):
     qs = Order.objects.select_related(
         'user', 'shipping_address', 'billing_address').prefetch_related(
-        'payments', 'events__user', 'lines__variant__product',
+        'payments__transactions', 'events__user', 'lines__variant__product',
         'fulfillments__lines__order_line')
     order = get_object_or_404(qs, pk=order_pk)
     all_payments = order.payments.all()
@@ -609,7 +609,7 @@ def fulfill_order_lines(request, order_pk):
                 'Dashboard message related to an order',
                 'Fulfilled %(quantity_fulfilled)d item',
                 'Fulfilled %(quantity_fulfilled)d items',
-                'quantity_fulfilled') % {
+                number='quantity_fulfilled') % {
                     'quantity_fulfilled': quantity_fulfilled}
             order.events.create(
                 parameters={'quantity': quantity_fulfilled},

@@ -1,10 +1,10 @@
 from decimal import Decimal
 
 import pytest
-
 from django.urls import reverse
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
+
 from saleor.account.models import User
 from saleor.checkout.utils import create_order
 from saleor.core.exceptions import InsufficientStock

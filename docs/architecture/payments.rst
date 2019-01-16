@@ -1,25 +1,7 @@
-.. _payments:
+.. _payments-architecture:
 
-Payments
-========
-
-Supported Gateways
-------------------
-
-The default configuration uses the `dummy` backend.
-It's meant to allow developers to easily simulate different payment results.
-
-Supported payment gateways:
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-* Braintree (supports PayPal and Credit Cards)
-
-For how-to guide on adding new payments into your Saleor project please check :ref:`adding-payments`
-
-.. note::
-
-    All payment backends default to using sandbox mode.
-    This is very useful for development but make sure you use production mode when deploying to a production server.
+Payments Architecture
+=====================
 
 Authorization and Capture
 -------------------------

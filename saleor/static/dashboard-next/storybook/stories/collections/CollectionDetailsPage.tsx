@@ -1,3 +1,4 @@
+import { Omit } from "@material-ui/core";
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
@@ -15,7 +16,7 @@ const collection = collectionFixture(
   placeholderProductImage
 );
 
-const props: CollectionDetailsPageProps = {
+const props: Omit<CollectionDetailsPageProps, "classes"> = {
   ...pageListProps.default,
   collection,
   disabled: false,
@@ -25,7 +26,8 @@ const props: CollectionDetailsPageProps = {
   onImageDelete: () => undefined,
   onImageUpload: () => undefined,
   onProductUnassign: () => undefined,
-  onSubmit: () => undefined
+  onSubmit: () => undefined,
+  saveButtonBarState: "default"
 };
 
 storiesOf("Views / Collections / Collection details", module)

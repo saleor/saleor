@@ -116,8 +116,9 @@ def item_group_id(item):
 
 
 def item_image_link(item, current_site):
-    image = item.get_first_image()
-    if image:
+    product_image = item.get_first_image()
+    if product_image:
+        image = product_image.image
         return add_domain(current_site.domain, image.url, False)
     return None
 

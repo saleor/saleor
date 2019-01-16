@@ -13,3 +13,6 @@ package-lock.json linguist-generated -diff -merge
 
 # Precompiled emails templates
 *.mjml linguist-generated
+
+# Automatically resolve changelog conflicts
+CHANGELOG.md merge=union

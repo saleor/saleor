@@ -36,7 +36,7 @@ const OrderDraftDetails: React.StatelessComponent<OrderDraftDetailsProps> = ({
         context: "card title"
       })}
       toolbar={
-        <Button color="secondary" variant="flat" onClick={onOrderLineAdd}>
+        <Button color="secondary" variant="text" onClick={onOrderLineAdd}>
           {i18n.t("Add products", {
             context: "button"
           })}

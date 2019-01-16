@@ -62,7 +62,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='order',
             name='discount_amount',
-            field=django_prices.models.MoneyField(blank=True, currency='USD', decimal_places=2, max_digits=12, null=True, verbose_name='discount amount'),
+            field=django_prices.models.MoneyField(blank=True, currency=settings.DEFAULT_CURRENCY, decimal_places=2, max_digits=12, null=True, verbose_name='discount amount'),
         ),
         migrations.AlterField(
             model_name='order',
@@ -77,12 +77,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='order',
             name='total_net',
-            field=django_prices.models.MoneyField(blank=True, currency='USD', decimal_places=2, max_digits=12, null=True, verbose_name='total net'),
+            field=django_prices.models.MoneyField(blank=True, currency=settings.DEFAULT_CURRENCY, decimal_places=2, max_digits=12, null=True, verbose_name='total net'),
         ),
         migrations.AlterField(
             model_name='order',
             name='total_tax',
-            field=django_prices.models.MoneyField(blank=True, currency='USD', decimal_places=2, max_digits=12, null=True, verbose_name='total tax'),
+            field=django_prices.models.MoneyField(blank=True, currency=settings.DEFAULT_CURRENCY, decimal_places=2, max_digits=12, null=True, verbose_name='total tax'),
         ),
         migrations.AlterField(
             model_name='order',

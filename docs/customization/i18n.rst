@@ -4,11 +4,7 @@ Internationalization
 Pulling Translations From Transifex
 -----------------------------------
 
-First make sure you have the Transifex command-line client installed:
-
-.. code-block:: console
-
- $ python -m pip install transifex-client
+First make sure you have the Transifex command-line client installed by ``python -m pip install transifex-client`` or ``python -m pip install -r requirements_dev.txt``. For Pipenv users, it can also be installed by ``pipenv install --dev``.
 
 Then use the ``pull`` command to pull translations:
 

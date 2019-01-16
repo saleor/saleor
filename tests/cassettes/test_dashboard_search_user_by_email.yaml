@@ -41,11 +41,11 @@ interactions:
     method: GET
     uri: http://search:9200/users/doc/_search
   response:
-    body: {string: '{"took":3,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":1,"max_score":5.115776,"hits":[{"_index":"users","_type":"doc","_id":"9","_score":5.115776,"_source":{}}]}}'}
+    body: {string: '{"took":3,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":1,"max_score":5.115776,"hits":[{"_index":"users","_type":"doc","_id":"109","_score":5.115776,"_source":{}}]}}'}
     headers:
       Warning: ['299 Elasticsearch-5.4.3-eed30a8 "Deprecated field [exclude] used,
           expected [excludes] instead" "Thu, 16 Nov 2017 09:44:26 GMT"']
-      content-length: ['209']
+      content-length: ['211']
       content-type: [application/json; charset=UTF-8]
     status: {code: 200, message: OK}
 version: 1

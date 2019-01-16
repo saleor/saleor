@@ -2,16 +2,17 @@ import json
 import re
 from unittest.mock import Mock, patch
 
-import pytest
-
 import graphene
+import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import reverse
+from tests.api.utils import get_graphql_content
+
 from saleor.account.models import Address, User
 from saleor.graphql.account.mutations import (
     CustomerDelete, SetPassword, StaffDelete, StaffUpdate, UserDelete)
-from tests.api.utils import get_graphql_content
+from saleor.graphql.core.enums import PermissionEnum
 
 from .utils import assert_no_permission, convert_dict_keys_to_camel_case
 
@@ -28,7 +29,7 @@ def test_create_token_mutation(admin_client, staff_user):
         }
     }
     """
-    variables = json.dumps({'email': staff_user.email, 'password': 'password'})
+    variables = {'email': staff_user.email, 'password': 'password'}
     response = admin_client.post(
         reverse('api'), json.dumps({'query': query, 'variables': variables}),
         content_type='application/json')
@@ -37,8 +38,7 @@ def test_create_token_mutation(admin_client, staff_user):
     assert token_data['token']
     assert not token_data['errors']
 
-    incorrect_variables = json.dumps(
-        {'email': staff_user.email, 'password': 'incorrect'})
+    incorrect_variables = {'email': staff_user.email, 'password': 'incorrect'}
     response = admin_client.post(
         reverse('api'),
         json.dumps({'query': query, 'variables': incorrect_variables}),
@@ -89,10 +89,12 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
     query User($id: ID!) {
         user(id: $id) {
             email
+            firstName
+            lastName
             isStaff
             isActive
             addresses {
-                totalCount
+                id
             }
             orders {
                 totalCount
@@ -119,14 +121,16 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
     """
     ID = graphene.Node.to_global_id('User', customer_user.id)
     variables = {'id': ID}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_users])
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['user']
     assert data['email'] == user.email
+    assert data['firstName'] == user.first_name
+    assert data['lastName'] == user.last_name
     assert data['isStaff'] == user.is_staff
     assert data['isActive'] == user.is_active
-    assert data['addresses']['totalCount'] == user.addresses.count()
+    assert len(data['addresses']) == user.addresses.count()
     assert data['orders']['totalCount'] == user.orders.count()
     address = data['defaultShippingAddress']
     user_address = user.default_shipping_address
@@ -143,11 +147,35 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
     assert address['phone'] == user_address.phone.as_e164
 
 
+USER_QUERY = """
+    query User($id: ID!) {
+        user(id: $id) {
+            email
+        }
+    }
+"""
+
+
+def test_customer_can_not_see_other_users_data(user_api_client,
+                                               staff_user):
+    id = graphene.Node.to_global_id('User', staff_user.id)
+    variables = {'id': id}
+    response = user_api_client.post_graphql(USER_QUERY, variables)
+    assert_no_permission(response)
+
+
+def test_user_query_anonymous_user(api_client):
+    variables = {'id': ''}
+    response = api_client.post_graphql(
+        USER_QUERY, variables)
+    assert_no_permission(response)
+
+
 def test_query_customers(
         staff_api_client, user_api_client, permission_manage_users):
     query = """
     query Users {
-        customers {
+        customers(first: 20) {
             totalCount
             edges {
                 node {
@@ -171,11 +199,11 @@ def test_query_customers(
 
 
 def test_query_staff(
-        staff_api_client, user_api_client, staff_user, customer_user,
-        admin_user, permission_manage_staff):
+        staff_api_client, user_api_client, staff_user, admin_user,
+        permission_manage_staff):
     query = """
     {
-        staffUsers {
+        staffUsers(first: 20) {
             edges {
                 node {
                     email
@@ -201,17 +229,8 @@ def test_query_staff(
 
 
 def test_who_can_see_user(
-        staff_user, customer_user, staff_api_client, user_api_client,
-        permission_manage_users):
+        staff_user, customer_user, staff_api_client, permission_manage_users):
     query = """
-    query User($id: ID!) {
-        user(id: $id) {
-            email
-        }
-    }
-    """
-
-    query_2 = """
     query Users {
         customers {
             totalCount
@@ -222,21 +241,81 @@ def test_who_can_see_user(
     # Random person (even staff) can't see users data without permissions
     ID = graphene.Node.to_global_id('User', customer_user.id)
     variables = {'id': ID}
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(USER_QUERY, variables)
     assert_no_permission(response)
 
-    response = staff_api_client.post_graphql(query_2)
+    response = staff_api_client.post_graphql(query)
     assert_no_permission(response)
 
     # Add permission and ensure staff can see user(s)
     staff_user.user_permissions.add(permission_manage_users)
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(USER_QUERY, variables)
     content = get_graphql_content(response)
     assert content['data']['user']['email'] == customer_user.email
 
-    response = staff_api_client.post_graphql(query_2)
+    response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     assert content['data']['customers']['totalCount'] == 1
+
+
+ME_QUERY = """
+    query Me {
+        me {
+            id
+            email
+            checkout {
+                token
+            }
+        }
+    }
+"""
+
+
+def test_me_query(user_api_client):
+    response = user_api_client.post_graphql(ME_QUERY)
+    content = get_graphql_content(response)
+    data = content['data']['me']
+    assert data['email'] == user_api_client.user.email
+
+
+def test_me_query_anonymous_client(api_client):
+    response = api_client.post_graphql(ME_QUERY)
+    assert_no_permission(response)
+
+
+def test_me_query_customer_can_not_see_note(
+        staff_user, staff_api_client, permission_manage_users):
+    query = """
+    query Me {
+        me {
+            id
+            email
+            note
+        }
+    }
+    """
+    # Random person (even staff) can't see own note without permissions
+    response = staff_api_client.post_graphql(query)
+    assert_no_permission(response)
+
+    # Add permission and ensure staff can see own note
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    data = content['data']['me']
+    assert data['email'] == staff_api_client.user.email
+    assert data['note'] == staff_api_client.user.note
+
+
+def test_me_query_checkout(user_api_client, cart):
+    user = user_api_client.user
+    cart.user = user
+    cart.save()
+
+    response = user_api_client.post_graphql(ME_QUERY)
+    content = get_graphql_content(response)
+    data = content['data']['me']
+    assert data['checkout']['token'] == str(cart.token)
 
 
 def test_customer_register(user_api_client):
@@ -272,14 +351,17 @@ def test_customer_register(user_api_client):
 
 @patch('saleor.account.emails.send_password_reset_email.delay')
 def test_customer_create(
-        send_password_reset_mock, staff_api_client, user_api_client, address,
+        send_password_reset_mock, staff_api_client, address,
         permission_manage_users):
     query = """
     mutation CreateCustomer(
-        $email: String, $note: String, $billing: AddressInput,
-        $shipping: AddressInput, $send_mail: Boolean) {
+        $email: String, $firstName: String, $lastName: String,
+        $note: String, $billing: AddressInput, $shipping: AddressInput,
+        $send_mail: Boolean) {
         customerCreate(input: {
             email: $email,
+            firstName: $firstName,
+            lastName: $lastName,
             note: $note,
             defaultShippingAddress: $shipping,
             defaultBillingAddress: $billing
@@ -298,6 +380,8 @@ def test_customer_create(
                     id
                 }
                 email
+                firstName
+                lastName
                 isActive
                 isStaff
                 note
@@ -306,11 +390,15 @@ def test_customer_create(
     }
     """
     email = 'api_user@example.com'
+    first_name = "api_first_name"
+    last_name = "api_last_name"
     note = 'Test user'
     address_data = convert_dict_keys_to_camel_case(address.as_data())
 
     variables = {
         'email': email,
+        'firstName': first_name,
+        'lastName': last_name,
         'note': note,
         'shipping': address_data,
         'billing': address_data,
@@ -330,6 +418,8 @@ def test_customer_create(
     data = content['data']['customerCreate']
     assert data['errors'] == []
     assert data['user']['email'] == email
+    assert data['user']['firstName'] == first_name
+    assert data['user']['lastName'] == last_name
     assert data['user']['note'] == note
     assert data['user']['isStaff'] == False
     assert data['user']['isActive'] == True
@@ -345,9 +435,11 @@ def test_customer_create(
 def test_customer_update(
         staff_api_client, customer_user, address, permission_manage_users):
     query = """
-    mutation UpdateCustomer($id: ID!, $isActive: Boolean, $note: String, $billing: AddressInput, $shipping: AddressInput) {
+    mutation UpdateCustomer($id: ID!, $firstName: String, $lastName: String, $isActive: Boolean, $note: String, $billing: AddressInput, $shipping: AddressInput) {
         customerUpdate(id: $id, input: {
             isActive: $isActive,
+            firstName: $firstName,
+            lastName: $lastName,
             note: $note,
             defaultBillingAddress: $billing
             defaultShippingAddress: $shipping
@@ -358,6 +450,8 @@ def test_customer_update(
             }
             user {
                 id
+                firstName
+                lastName
                 defaultBillingAddress {
                     id
                 }
@@ -379,6 +473,8 @@ def test_customer_update(
     shipping_address_pk = customer_user.default_shipping_address.pk
 
     id = graphene.Node.to_global_id('User', customer_user.id)
+    first_name = 'new_first_name'
+    last_name = 'new_last_name'
     note = 'Test update note'
     address_data = convert_dict_keys_to_camel_case(address.as_data())
 
@@ -386,7 +482,12 @@ def test_customer_update(
     address_data['streetAddress1'] = new_street_address
 
     variables = {
-        'id': id, 'isActive': False, 'note': note, 'billing': address_data,
+        'id': id,
+        'firstName': first_name,
+        'lastName': last_name,
+        'isActive': False,
+        'note': note,
+        'billing': address_data,
         'shipping': address_data}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_users])
@@ -404,8 +505,71 @@ def test_customer_update(
 
     data = content['data']['customerUpdate']
     assert data['errors'] == []
+    assert data['user']['firstName'] == first_name
+    assert data['user']['lastName'] == last_name
     assert data['user']['note'] == note
     assert not data['user']['isActive']
+
+
+UPDATE_LOGGED_CUSTOMER_QUERY = """
+    mutation UpdateLoggedCustomer($billing: AddressInput,
+                                  $shipping: AddressInput) {
+        loggedUserUpdate(
+          input: {
+            defaultBillingAddress: $billing,
+            defaultShippingAddress: $shipping,
+        }) {
+            errors {
+                field
+                message
+            }
+            user {
+                email
+                defaultBillingAddress {
+                    id
+                }
+                defaultShippingAddress {
+                    id
+                }
+            }
+        }
+    }
+"""
+
+
+def test_logged_customer_update(user_api_client, graphql_address_data):
+    # this test requires addresses to be set and checks whether new address
+    # instances weren't created, but the existing ones got updated
+    user = user_api_client.user
+    new_first_name = graphql_address_data['firstName']
+    assert user.default_billing_address
+    assert user.default_shipping_address
+    assert user.default_billing_address.first_name != new_first_name
+    assert user.default_shipping_address.first_name != new_first_name
+    variables = {
+        'billing': graphql_address_data,
+        'shipping': graphql_address_data}
+    response = user_api_client.post_graphql(
+        UPDATE_LOGGED_CUSTOMER_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content['data']['loggedUserUpdate']
+    assert not data['errors']
+
+    # check that existing instances are updated
+    billing_address_pk = user.default_billing_address.pk
+    shipping_address_pk = user.default_shipping_address.pk
+    user = User.objects.get(email=user.email)
+    assert user.default_billing_address.pk == billing_address_pk
+    assert user.default_shipping_address.pk == shipping_address_pk
+
+    assert user.default_billing_address.first_name == new_first_name
+    assert user.default_shipping_address.first_name == new_first_name
+
+
+def test_logged_customer_update_anonymus_user(api_client):
+    response = api_client.post_graphql(
+        UPDATE_LOGGED_CUSTOMER_QUERY, {})
+    assert_no_permission(response)
 
 
 def test_customer_delete(staff_api_client, customer_user, permission_manage_users):
@@ -434,20 +598,21 @@ def test_customer_delete(staff_api_client, customer_user, permission_manage_user
 
 def test_customer_delete_errors(customer_user, admin_user, staff_user):
     info = Mock(context=Mock(user=admin_user))
-    errors = CustomerDelete.clean_instance(info, staff_user, [])
+    errors = []
+    CustomerDelete.clean_instance(info, staff_user, errors)
     assert errors[0].field == 'id'
     assert errors[0].message == 'Cannot delete a staff account.'
 
-    errors = CustomerDelete.clean_instance(info, customer_user, [])
+    errors = []
+    CustomerDelete.clean_instance(info, customer_user, errors)
     assert errors == []
 
 
 @patch('saleor.account.emails.send_password_reset_email.delay')
 def test_staff_create(
-        send_password_reset_mock, staff_api_client,
-        permission_manage_staff, permission_manage_products, staff_user):
+        send_password_reset_mock, staff_api_client, permission_manage_staff):
     query = """
-    mutation CreateStaff($email: String, $permissions: [String], $send_mail: Boolean) {
+    mutation CreateStaff($email: String, $permissions: [PermissionEnum], $send_mail: Boolean) {
         staffCreate(input: {email: $email, permissions: $permissions, sendPasswordEmail: $send_mail}) {
             errors {
                 field
@@ -466,14 +631,10 @@ def test_staff_create(
     }
     """
 
-    permission_manage_products_codename = '%s.%s' % (
-        permission_manage_products.content_type.app_label,
-        permission_manage_products.codename)
-
     email = 'api_user@example.com'
     variables = {
         'email': email,
-        'permissions': [permission_manage_products_codename],
+        'permissions': [PermissionEnum.MANAGE_PRODUCTS.name],
         'send_mail': True}
 
     response = staff_api_client.post_graphql(
@@ -498,7 +659,7 @@ def test_staff_create(
 def test_staff_update(staff_api_client, permission_manage_staff):
     query = """
     mutation UpdateStaff(
-            $id: ID!, $permissions: [String], $is_active: Boolean) {
+            $id: ID!, $permissions: [PermissionEnum], $is_active: Boolean) {
         staffUpdate(
                 id: $id,
                 input: {permissions: $permissions, isActive: $is_active}) {
@@ -556,42 +717,50 @@ def test_staff_delete(staff_api_client, permission_manage_staff):
     assert not User.objects.filter(pk=staff_user.id).exists()
 
 
-def test_user_delete_errors(staff_user, customer_user, admin_user):
+def test_user_delete_errors(staff_user, admin_user):
     info = Mock(context=Mock(user=staff_user))
-    errors = UserDelete.clean_instance(info, staff_user, [])
+    errors = []
+    UserDelete.clean_instance(info, staff_user, errors)
     assert errors[0].field == 'id'
     assert errors[0].message == 'You cannot delete your own account.'
 
     info = Mock(context=Mock(user=staff_user))
-    errors = UserDelete.clean_instance(info, admin_user, [])
+    errors = []
+    UserDelete.clean_instance(info, admin_user, errors)
     assert errors[0].field == 'id'
     assert errors[0].message == 'Only superuser can delete his own account.'
 
 
 def test_staff_delete_errors(staff_user, customer_user, admin_user):
     info = Mock(context=Mock(user=staff_user))
-    errors = StaffDelete.clean_instance(info, customer_user, [])
+    errors = []
+    StaffDelete.clean_instance(info, customer_user, errors)
     assert errors[0].field == 'id'
     assert errors[0].message == 'Cannot delete a non-staff user.'
 
     info = Mock(context=Mock(user=admin_user))
-    errors = StaffDelete.clean_instance(info, staff_user, [])
+    errors = []
+    StaffDelete.clean_instance(info, staff_user, errors)
     assert not errors
 
 
 def test_staff_update_errors(staff_user, customer_user, admin_user):
-    errors = StaffUpdate.clean_is_active(None, customer_user, staff_user, [])
+    errors = []
+    StaffUpdate.clean_is_active(None, customer_user, staff_user, errors)
     assert not errors
 
-    errors = StaffUpdate.clean_is_active(False, staff_user, staff_user, [])
+    errors = []
+    StaffUpdate.clean_is_active(False, staff_user, staff_user, errors)
     assert errors[0].field == 'isActive'
     assert errors[0].message == 'Cannot deactivate your own account.'
 
-    errors = StaffUpdate.clean_is_active(False, admin_user, staff_user, [])
+    errors = []
+    StaffUpdate.clean_is_active(False, admin_user, staff_user, errors)
     assert errors[0].field == 'isActive'
     assert errors[0].message == 'Cannot deactivate superuser\'s account.'
 
-    errors = StaffUpdate.clean_is_active(False, customer_user, staff_user, [])
+    errors = []
+    StaffUpdate.clean_is_active(False, customer_user, staff_user, errors)
     assert not errors
 
 
@@ -661,8 +830,7 @@ def test_password_reset_email(
 
 @patch('saleor.account.emails.send_password_reset_email.delay')
 def test_password_reset_email_non_existing_user(
-        send_password_reset_mock, staff_api_client, customer_user,
-        permission_manage_users):
+        send_password_reset_mock, staff_api_client, permission_manage_users):
     query = """
     mutation ResetPassword($email: String!) {
         passwordReset(email: $email) {
@@ -847,4 +1015,3 @@ def test_customer_reset_password(
     content = get_graphql_content(response)
     assert send_password_reset_mock.called
     assert send_password_reset_mock.mock_calls[0][1][1] == customer_user.email
-

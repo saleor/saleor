@@ -63,7 +63,7 @@ export interface AttributeDelete_attributeDelete_productType {
 
 export interface AttributeDelete_attributeDelete {
   __typename: "AttributeDelete";
-  errors: (AttributeDelete_attributeDelete_errors | null)[] | null;
+  errors: AttributeDelete_attributeDelete_errors[] | null;
   productType: AttributeDelete_attributeDelete_productType | null;
 }
 

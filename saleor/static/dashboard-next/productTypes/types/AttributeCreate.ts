@@ -63,7 +63,7 @@ export interface AttributeCreate_attributeCreate_productType {
 
 export interface AttributeCreate_attributeCreate {
   __typename: "AttributeCreate";
-  errors: (AttributeCreate_attributeCreate_errors | null)[] | null;
+  errors: AttributeCreate_attributeCreate_errors[] | null;
   productType: AttributeCreate_attributeCreate_productType | null;
 }
 

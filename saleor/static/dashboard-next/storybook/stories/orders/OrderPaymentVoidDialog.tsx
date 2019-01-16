@@ -8,6 +8,7 @@ storiesOf("Orders / OrderPaymentVoidDialog", module)
   .addDecorator(Decorator)
   .add("default", () => (
     <OrderPaymentVoidDialog
+      confirmButtonState="default"
       open={true}
       onConfirm={undefined}
       onClose={undefined}

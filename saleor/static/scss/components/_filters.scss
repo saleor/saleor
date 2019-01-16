@@ -1,5 +1,8 @@
 .product-filters {
   padding-bottom: $global-padding * 2;
+  .btn {
+    padding: $global-padding;
+  }
   .hide {
     display: none;
   }
@@ -12,19 +15,20 @@
           }
         }
         &__content {
-          max-height: $global-padding * .5;
+          max-height: $global-padding * 0.5;
         }
       }
     }
     &__header {
+      border-bottom: 1px solid $gray;
+      cursor: pointer;
       display: grid;
       grid-template-columns: calc(100% - 20px) 20px;
-      background: $light-gray;
-      padding: $global-padding;
-      cursor: pointer;
+      margin-bottom: 0.5rem;
+      padding-bottom: 0.5rem;
       h3 {
         font-weight: bold;
-        padding-right: $global-padding * .5;
+        padding-right: $global-padding * 0.5;
         margin: 0;
         text-overflow: ellipsis;
         overflow: hidden;
@@ -53,8 +57,8 @@
       justify-content: center;
       transition: $transition-base;
       img {
-        width: 20px;
-        height: 20px;
+        width: 8px;
+        height: 8px;
       }
     }
   }
@@ -63,8 +67,9 @@
     list-style: none;
     margin-bottom: 0;
     li {
-      padding-left: $global-padding;
       input {
+        position: relative;
+        top: -2px;
         margin-right: $global-margin;
       }
     }
@@ -80,19 +85,6 @@
           outline: 0;
         }
       }
-    }
-  }
-  &__title {
-    @include media-breakpoint-down(sm) {
-      padding: $global-padding *2 0;
-    }
-    @media (max-width: 370px) {
-      padding-top: 5rem;
-    }
-    h2 {
-      font-size: 1.8rem;
-      color: $body-color;
-      padding-bottom: 0;
     }
   }
   &__categories {
@@ -169,12 +161,14 @@
   cursor: pointer;
 }
 .sort-by {
-  text-align: right;
+  text-align: left;
   position: relative;
-  margin: 1rem 0 1rem 5rem;
+  margin-bottom: $global-margin;
   .btn-link {
+    font-size: 14px;
     padding-right: $global-padding;
     color: $body-color;
+    text-transform: uppercase;
     outline: 0;
     svg {
       vertical-align: baseline;
@@ -190,7 +184,6 @@
     box-shadow: 3px 3px 3px 0px rgba($gray, 0.75);
     position: absolute;
     top: 2.5rem;
-    right: 0;
     z-index: 999;
     padding: $global-padding $global-padding * 2;
     li {
@@ -254,15 +247,16 @@
     img {
       height: 10px;
     }
+    svg {
+      width: 8px;
+      height: 8px;
+    }
   }
 }
 
 .clear-filters {
-  color: $body-color;
-  font-weight: 400;
-  cursor: pointer;
-  font-size: 0.8rem;
-  line-height: 1.3rem;
+  display: inline-block;
+  margin: $global-margin * 0.5 0 $global-margin;
 }
 
 .load-more {

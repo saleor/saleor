@@ -7,6 +7,12 @@ import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusE
 // GraphQL mutation operation: OrderVoid
 // ====================================================
 
+export interface OrderVoid_orderVoid_errors {
+  __typename: "Error";
+  field: string | null;
+  message: string | null;
+}
+
 export interface OrderVoid_orderVoid_order_billingAddress_country {
   __typename: "CountryDisplay";
   code: string;
@@ -47,56 +53,47 @@ export interface OrderVoid_orderVoid_order_events {
   user: OrderVoid_orderVoid_order_events_user | null;
 }
 
-export interface OrderVoid_orderVoid_order_fulfillments_lines_edges_node_orderLine_unitPrice_gross {
+export interface OrderVoid_orderVoid_order_fulfillments_lines_orderLine_unitPrice_gross {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderVoid_orderVoid_order_fulfillments_lines_edges_node_orderLine_unitPrice_net {
+export interface OrderVoid_orderVoid_order_fulfillments_lines_orderLine_unitPrice_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderVoid_orderVoid_order_fulfillments_lines_edges_node_orderLine_unitPrice {
+export interface OrderVoid_orderVoid_order_fulfillments_lines_orderLine_unitPrice {
   __typename: "TaxedMoney";
-  gross: OrderVoid_orderVoid_order_fulfillments_lines_edges_node_orderLine_unitPrice_gross;
-  net: OrderVoid_orderVoid_order_fulfillments_lines_edges_node_orderLine_unitPrice_net;
+  gross: OrderVoid_orderVoid_order_fulfillments_lines_orderLine_unitPrice_gross;
+  net: OrderVoid_orderVoid_order_fulfillments_lines_orderLine_unitPrice_net;
 }
 
-export interface OrderVoid_orderVoid_order_fulfillments_lines_edges_node_orderLine {
+export interface OrderVoid_orderVoid_order_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
   quantityFulfilled: number;
-  unitPrice: OrderVoid_orderVoid_order_fulfillments_lines_edges_node_orderLine_unitPrice | null;
+  unitPrice: OrderVoid_orderVoid_order_fulfillments_lines_orderLine_unitPrice | null;
   thumbnailUrl: string | null;
 }
 
-export interface OrderVoid_orderVoid_order_fulfillments_lines_edges_node {
+export interface OrderVoid_orderVoid_order_fulfillments_lines {
   __typename: "FulfillmentLine";
   id: string;
   quantity: number;
-  orderLine: OrderVoid_orderVoid_order_fulfillments_lines_edges_node_orderLine | null;
-}
-
-export interface OrderVoid_orderVoid_order_fulfillments_lines_edges {
-  __typename: "FulfillmentLineCountableEdge";
-  node: OrderVoid_orderVoid_order_fulfillments_lines_edges_node;
-}
-
-export interface OrderVoid_orderVoid_order_fulfillments_lines {
-  __typename: "FulfillmentLineCountableConnection";
-  edges: OrderVoid_orderVoid_order_fulfillments_lines_edges[];
+  orderLine: OrderVoid_orderVoid_order_fulfillments_lines_orderLine | null;
 }
 
 export interface OrderVoid_orderVoid_order_fulfillments {
   __typename: "Fulfillment";
   id: string;
-  lines: OrderVoid_orderVoid_order_fulfillments_lines | null;
+  lines: (OrderVoid_orderVoid_order_fulfillments_lines | null)[] | null;
   fulfillmentOrder: number;
   status: FulfillmentStatus;
   trackingNumber: string;
@@ -123,6 +120,7 @@ export interface OrderVoid_orderVoid_order_lines_unitPrice {
 export interface OrderVoid_orderVoid_order_lines {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -233,7 +231,9 @@ export interface OrderVoid_orderVoid_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderVoid_orderVoid_order_billingAddress | null;
+  canFinalize: boolean;
   created: any;
+  customerNote: string;
   events: (OrderVoid_orderVoid_order_events | null)[] | null;
   fulfillments: (OrderVoid_orderVoid_order_fulfillments | null)[];
   lines: (OrderVoid_orderVoid_order_lines | null)[];
@@ -256,6 +256,7 @@ export interface OrderVoid_orderVoid_order {
 
 export interface OrderVoid_orderVoid {
   __typename: "OrderVoid";
+  errors: OrderVoid_orderVoid_errors[] | null;
   order: OrderVoid_orderVoid_order | null;
 }
 

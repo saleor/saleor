@@ -2,6 +2,7 @@ from unittest import mock
 
 from django.forms.models import model_to_dict
 from django.urls import reverse
+
 from saleor.dashboard.page.forms import PageForm
 
 

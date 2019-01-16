@@ -13,7 +13,7 @@ export interface StaffMemberDelete_staffDelete_errors {
 
 export interface StaffMemberDelete_staffDelete {
   __typename: "StaffDelete";
-  errors: (StaffMemberDelete_staffDelete_errors | null)[] | null;
+  errors: StaffMemberDelete_staffDelete_errors[] | null;
 }
 
 export interface StaffMemberDelete {

@@ -3,8 +3,9 @@ import * as React from "react";
 import { UserContext } from "../../auth";
 import Navigator from "../../components/Navigator";
 import { maybe } from "../../misc";
-import { orderListUrl } from "../../orders";
-import { productListUrl, productVariantEditUrl } from "../../products";
+import { orderListUrl } from "../../orders/urls";
+import { productListUrl, productVariantEditUrl } from "../../products/urls";
+import { OrderStatusFilter, StockAvailability } from "../../types/globalTypes";
 import HomePage from "../components/HomePage";
 import { HomePageQuery } from "../queries";
 
@@ -13,7 +14,7 @@ const HomeSection = () => (
     {navigate => (
       <UserContext.Consumer>
         {({ user }) => (
-          <HomePageQuery>
+          <HomePageQuery displayLoader>
             {({ data }) => (
               <HomePage
                 activities={maybe(() =>
@@ -25,16 +26,29 @@ const HomeSection = () => (
                   data.productTopToday.edges.map(edge => edge.node)
                 )}
                 onProductClick={(productId, variantId) =>
+                  navigate(productVariantEditUrl(productId, variantId))
+                }
+                onOrdersToCaptureClick={() =>
                   navigate(
-                    productVariantEditUrl(
-                      encodeURIComponent(productId),
-                      encodeURIComponent(variantId)
-                    )
+                    orderListUrl({
+                      status: OrderStatusFilter.READY_TO_CAPTURE
+                    })
                   )
                 }
-                onOrdersToCaptureClick={() => navigate(orderListUrl)} // TODO: #3172
-                onOrdersToFulfillClick={() => navigate(orderListUrl)} // TODO: #3172
-                onProductsOutOfStockClick={() => navigate(productListUrl)} // TODO: #3184
+                onOrdersToFulfillClick={() =>
+                  navigate(
+                    orderListUrl({
+                      status: OrderStatusFilter.READY_TO_FULFILL
+                    })
+                  )
+                }
+                onProductsOutOfStockClick={() =>
+                  navigate(
+                    productListUrl({
+                      status: StockAvailability.OUT_OF_STOCK
+                    })
+                  )
+                }
                 ordersToCapture={maybe(() => data.ordersToCapture.totalCount)}
                 ordersToFulfill={maybe(() => data.ordersToFulfill.totalCount)}
                 productsOutOfStock={maybe(

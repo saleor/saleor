@@ -2,7 +2,12 @@ import Avatar from "@material-ui/core/Avatar";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import * as colors from "@material-ui/core/colors";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import PersonIcon from "@material-ui/icons/Person";
 import * as CRC from "crc-32";
@@ -10,14 +15,6 @@ import * as React from "react";
 
 import DateFormatter from "../DateFormatter";
 import Hr from "../Hr";
-
-interface TimelineNoteProps {
-  date: string;
-  message: string | null;
-  user: {
-    email: string;
-  };
-}
 
 const palette = [
   colors.amber,
@@ -38,37 +35,47 @@ const palette = [
   colors.yellow
 ].map(color => color[500]);
 
-const decorate = withStyles(theme => ({
-  avatar: {
-    left: -45,
-    position: "absolute" as "absolute",
-    top: 0
-  },
-  card: {
-    marginBottom: theme.spacing.unit * 3,
-    marginLeft: theme.spacing.unit * 3,
-    position: "relative" as "relative"
-  },
-  cardContent: {
-    "&:last-child": {
-      paddingBottom: 16
+const styles = (theme: Theme) =>
+  createStyles({
+    avatar: {
+      left: -45,
+      position: "absolute",
+      top: 0
+    },
+    card: {
+      marginBottom: theme.spacing.unit * 3,
+      marginLeft: theme.spacing.unit * 3,
+      position: "relative"
+    },
+    cardContent: {
+      "&:last-child": {
+        paddingBottom: 16
+      }
+    },
+    content: {
+      marginTop: theme.spacing.unit * 2
+    },
+    root: {
+      position: "relative"
+    },
+    title: {
+      alignItems: "center",
+      display: "flex",
+      justifyContent: "space-between",
+      marginBottom: theme.spacing.unit
     }
-  },
-  content: {
-    marginTop: theme.spacing.unit * 2
-  },
-  root: {
-    position: "relative" as "relative"
-  },
-  title: {
-    alignItems: "center" as "center",
-    display: "flex" as "flex",
-    justifyContent: "space-between" as "space-between",
-    marginBottom: theme.spacing.unit
-  }
-}));
-export const TimelineNote = decorate<TimelineNoteProps>(
-  ({ classes, date, user, message }) => (
+  });
+
+interface TimelineNoteProps extends WithStyles<typeof styles> {
+  date: string;
+  message: string | null;
+  user: {
+    email: string;
+  };
+}
+
+export const TimelineNote = withStyles(styles, { name: "TimelineNote" })(
+  ({ classes, date, user, message }: TimelineNoteProps) => (
     <div className={classes.root}>
       <Avatar
         className={classes.avatar}

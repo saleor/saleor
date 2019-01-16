@@ -67,7 +67,7 @@ class Cart(models.Model):
     objects = CartQueryset.as_manager()
 
     class Meta:
-        ordering = ('-last_change',)
+        ordering = ('-last_change', )
 
     def __repr__(self):
         return 'Cart(quantity=%s)' % (self.quantity,)
@@ -128,6 +128,7 @@ class CartLine(models.Model):
 
     class Meta:
         unique_together = ('cart', 'variant', 'data')
+        ordering = ('id',)
 
     def __str__(self):
         return smart_str(self.variant)

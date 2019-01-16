@@ -1,6 +1,11 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
@@ -8,7 +13,16 @@ import FormSpacer from "../../../components/FormSpacer";
 import SingleSelectField from "../../../components/SingleSelectField";
 import i18n from "../../../i18n";
 
-interface VoucherDetailsProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    grid: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "1fr 10rem"
+    }
+  });
+
+interface VoucherDetailsProps extends WithStyles<typeof styles> {
   currency?: string;
   disabled?: boolean;
   voucher?: {
@@ -43,15 +57,8 @@ interface VoucherDetailsProps {
   onChange?(event: React.ChangeEvent<any>);
 }
 
-const decorate = withStyles(theme => ({
-  grid: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "1fr 10rem"
-  }
-}));
-const VoucherDetails = decorate<VoucherDetailsProps>(
-  ({ classes, currency, data, disabled, onChange }) => (
+const VoucherDetails = withStyles(styles, { name: "VoucherDetails" })(
+  ({ classes, currency, data, disabled, onChange }: VoucherDetailsProps) => (
     <Card>
       <CardContent>
         <TextField
