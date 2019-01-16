@@ -162,7 +162,8 @@ const styles = (theme: Theme) =>
     },
     logo: {
       "& svg": {
-        height: "100%"
+        height: "100%",
+        width: "auto"
       },
       height: 32
     },
