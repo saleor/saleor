@@ -14,3 +14,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Refactor `clean_instance`, so it does not returns errors anymore - #3597 by @akjanik
 - Fix logo placement - #3602 by @dominik-zeglen
 - Add charges taxes on shipping field to shop settings in GraphQL Api - #3603 by @fowczarek
+- Make order fields sequence same as dashboard 2.0 - #3606 by @jxltom
