@@ -119,13 +119,14 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 ids=variant_ids, errors=errors, field='variant_id',
                 only_type=ProductVariant)
             quantities = [line.get('quantity') for line in lines]
-            line_errors = check_lines_quantity(variants, quantities)
-            if line_errors:
-                for err in line_errors:
-                    cls.add_error(errors, field=err[0], message=err[1])
-            else:
-                cleaned_input['variants'] = variants
-                cleaned_input['quantities'] = quantities
+            if not errors:
+                line_errors = check_lines_quantity(variants, quantities)
+                if line_errors:
+                    for err in line_errors:
+                        cls.add_error(errors, field=err[0], message=err[1])
+                else:
+                    cleaned_input['variants'] = variants
+                    cleaned_input['quantities'] = quantities
 
         default_shipping_address = None
         default_billing_address = None
@@ -207,10 +208,11 @@ class CheckoutLinesAdd(BaseMutation):
                     ids=variant_ids, errors=errors, field='variant_id',
                     only_type=ProductVariant)
                 quantities = [line.get('quantity') for line in lines]
-                line_errors = check_lines_quantity(variants, quantities)
-                if line_errors:
-                    for err in line_errors:
-                        cls.add_error(errors, field=err[0], message=err[1])
+                if not errors:
+                    line_errors = check_lines_quantity(variants, quantities)
+                    if line_errors:
+                        for err in line_errors:
+                            cls.add_error(errors, field=err[0], message=err[1])
 
             # FIXME test if below function is called
             clean_shipping_method(
