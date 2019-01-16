@@ -1,3 +1,5 @@
+from django_countries import countries
+
 from ...account.forms import get_address_form
 from ...account.models import Address
 
@@ -19,8 +21,14 @@ class I18nMixin:
     def validate_address(
             cls, address_data, errors, parent_field_name=None,
             instance=None):
-        address_form, _ = get_address_form(
-            address_data, address_data['country'])
+        country_code = address_data.get('country')
+        if country_code in countries.countries.keys():
+            address_form, _ = get_address_form(
+                address_data, address_data['country'])
+        else:
+            error_msg = 'Invalid country code.'
+            cls.add_error(errors, 'country', error_msg)
+            return None, errors
         if not address_form.is_valid():
             for field_name, field_errors in address_form.errors.items():
                 error_field = get_field_name(field_name, parent_field_name)
