@@ -5,6 +5,7 @@ import Navigator from "../../components/Navigator";
 import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
+import { CollectionCreateInput } from "../../types/globalTypes";
 import CollectionCreatePage from "../components/CollectionCreatePage/CollectionCreatePage";
 import { TypedCollectionCreateMutation } from "../mutations";
 import { CreateCollection } from "../types/CreateCollection";
@@ -23,6 +24,17 @@ export const CollectionCreate: React.StatelessComponent<{}> = () => (
                 })
               });
               navigate(collectionUrl(data.collectionCreate.collection.id));
+            } else {
+              const backgroundImageError = data.collectionCreate.errors.find(
+                error =>
+                  error.field ===
+                  ("backgroundImage" as keyof CollectionCreateInput)
+              );
+              if (backgroundImageError) {
+                pushMessage({
+                  text: backgroundImageError.message
+                });
+              }
             }
           };
           return (

@@ -10,6 +10,7 @@ import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import { productUrl } from "../../products/urls";
+import { CollectionInput } from "../../types/globalTypes";
 import CollectionAssignProductDialog from "../components/CollectionAssignProductDialog/CollectionAssignProductDialog";
 import CollectionDetailsPage, {
   CollectionDetailsPageFormData
@@ -68,6 +69,17 @@ export const CollectionDetails: React.StatelessComponent<
                       })
                     });
                     navigate(collectionUrl(id));
+                  } else {
+                    const backgroundImageError = data.collectionUpdate.errors.find(
+                      error =>
+                        error.field ===
+                        ("backgroundImage" as keyof CollectionInput)
+                    );
+                    if (backgroundImageError) {
+                      pushMessage({
+                        text: backgroundImageError.message
+                      });
+                    }
                   }
                 };
 
