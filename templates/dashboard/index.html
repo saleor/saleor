@@ -24,15 +24,17 @@
                   <th>
                     #
                   </th>
-                  <th></th>
-                  <th>
-                    {% trans "Customer" context "Orders table header" %}
-                  </th>
                   <th>
                     {% trans "Placed on" context "Orders table header" %}
                   </th>
                   <th>
+                    {% trans "Customer" context "Orders table header" %}
+                  </th>
+                  <th>
                     {% trans "Payment status" context "Orders table header" %}
+                  </th>
+                  <th>
+                    {% trans "Order status" context "Orders table header" %}
                   </th>
                   <th>
                     {% trans "Total" context "Orders table header" %}
@@ -46,17 +48,17 @@
                       #{{ order.id }}
                     </td>
                     <td>
-                      {% render_order_status order.status order.get_status_display %}
+                      {{ order.created }}
                     </td>
                     {% trans "Guest" context "Anonymous user account value" as guest %}
                     <td>
                       {{ order.user|default:guest }}
                     </td>
                     <td>
-                      {{ order.created }}
+                      {% render_status order.get_payment_status order.get_payment_status_display %}
                     </td>
                     <td>
-                      {% render_status order.get_last_payment_status order.get_last_payment_status_display %}
+                      {% render_order_status order.status order.get_status_display %}
                     </td>
                     <td class="right-align">
                       {% price order.total.gross %}
