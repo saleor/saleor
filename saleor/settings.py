@@ -287,7 +287,8 @@ CONSTANCE_CONFIG_FIELDSETS = {
     'Search': (
         'SEARCH_FUZZINESS',
         'SEARCH_PREFIX_LENGTH',
-        'SEARCH_PHRASE_PREFIX'
+        'SEARCH_PHRASE_PREFIX',
+        'SEARCH_UPDATE_THRESHOLD_HOURS'
     ),
     'Payments': (
         'PAYMENTS_RECURRING_ENABLED',
@@ -336,7 +337,7 @@ CONSTANCE_CONFIG = {
     'DISCOVER_DISCOGS_RELEASES_ENABLED': (False, 'If set to true fetch for Discogs releases'),
     'RESERVATION_CANCELLED_RECIPIENT': ('order@oye-records.com,mail@oye-records.com', 'Comma separated list of receipients for order cancellations'),
     'SEND_RESERVATION_CANCELLED_MAIL': (False, 'If set to True a mail is send out after a reservation has been cancelled'),
-    'ELASTIC_UPDATE_THRESHOLD_HOURS': (24, 'Passed hours before trying update on elastic search index item.'),
+    'SEARCH_UPDATE_THRESHOLD_HOURS': (24, 'Passed hours before trying update on elastic search index item.'),
 }
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 
