@@ -6,7 +6,7 @@ import pytest
 from tests.api.utils import get_graphql_content
 
 from saleor.checkout.models import Cart
-from saleor.checkout.utils import ready_to_place_order
+from saleor.checkout.utils import is_fully_paid, ready_to_place_order
 from saleor.order.models import Order
 
 MUTATION_CHECKOUT_CREATE = """
@@ -884,3 +884,59 @@ def test_checkout_complete_no_payment(
     ready, error = ready_to_place_order(checkout, None, None)
     assert not ready
     assert error == 'Checkout is not fully paid'
+
+
+def test_is_fully_paid(cart_with_item, payment_dummy):
+    checkout = cart_with_item
+    total = checkout.get_total()
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    is_paid = is_fully_paid(checkout)
+    assert is_paid
+
+
+def test_is_fully_paid_many_payments(cart_with_item, payment_dummy):
+    checkout = cart_with_item
+    total = checkout.get_total()
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount - 1
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    payment2 = payment_dummy
+    payment2.pk = None
+    payment2.is_active = True
+    payment2.order = None
+    payment2.total = 1
+    payment2.currency = total.gross.currency
+    payment2.checkout = checkout
+    payment2.save()
+    is_paid = is_fully_paid(checkout)
+    assert is_paid
+
+
+def test_is_fully_paid_partially_paid(cart_with_item, payment_dummy):
+    checkout = cart_with_item
+    total = checkout.get_total()
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount - 1
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    is_paid = is_fully_paid(checkout)
+    assert not is_paid
+
+
+def test_is_fully_paid_no_paiment(cart_with_item):
+    checkout = cart_with_item
+    is_paid = is_fully_paid(checkout)
+    assert not is_paid
