@@ -262,11 +262,11 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                                             variantId
                                           )
                                         )}
-                                      onImageUpload={event => {
+                                      onImageUpload={file => {
                                         if (product) {
                                           createProductImage.mutate({
                                             alt: "",
-                                            image: event.target.files[0],
+                                            image: file,
                                             product: product.id
                                           });
                                         }

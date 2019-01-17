@@ -9,11 +9,21 @@ import Typography from "@material-ui/core/Typography";
 import AddPhotoIcon from "@material-ui/icons/AddAPhoto";
 import classNames from "classnames";
 import * as React from "react";
-/* tslint:disable:no-submodule-imports */
-import * as Dropzone from "react-dropzone/dist/index";
+
 import i18n from "../../i18n";
+import Dropzone from "../Dropzone";
 
 interface ImageUploadProps {
+  children?: (
+    props: {
+      isDragActive: boolean;
+    }
+  ) => React.ReactNode;
+  className?: string;
+  disableClick?: boolean;
+  isActiveClassName?: string;
+  iconContainerClassName?: string;
+  iconContainerActiveClassName?: string;
   onImageUpload: (file: File) => void;
 }
 
@@ -55,26 +65,48 @@ const styles = (theme: Theme) =>
 
 export const ImageUpload = withStyles(styles, { name: "ImageUpload" })(
   ({
+    children,
     classes,
+    className,
+    disableClick,
+    isActiveClassName,
+    iconContainerActiveClassName,
+    iconContainerClassName,
     onImageUpload
   }: ImageUploadProps & WithStyles<typeof styles>) => (
-    <Dropzone onDrop={files => onImageUpload(files[0])}>
+    <Dropzone
+      disableClick={disableClick}
+      onDrop={files => onImageUpload(files[0])}
+    >
       {({ isDragActive, getInputProps, getRootProps }) => (
-        <div
-          {...getRootProps()}
-          className={classNames({
-            [classes.photosIconContainer]: true,
-            [classes.containerDragActive]: isDragActive
-          })}
-        >
-          <input {...getInputProps()} className={classes.fileField} />
-          <AddPhotoIcon className={classes.photosIcon} />
-          <Typography className={classes.uploadText} variant="body2">
-            {i18n.t("Drop here to upload", {
-              context: "image upload"
+        <>
+          <div
+            {...getRootProps()}
+            className={classNames({
+              [classes.photosIconContainer]: true,
+              [classes.containerDragActive]: isDragActive,
+              [className]: !!className,
+              [isActiveClassName]: !!isActiveClassName && isDragActive
             })}
-          </Typography>
-        </div>
+          >
+            <div
+              className={classNames({
+                [iconContainerClassName]: !!iconContainerClassName,
+                [iconContainerActiveClassName]:
+                  !!iconContainerActiveClassName && isDragActive
+              })}
+            >
+              <input {...getInputProps()} className={classes.fileField} />
+              <AddPhotoIcon className={classes.photosIcon} />
+              <Typography className={classes.uploadText} variant="body2">
+                {i18n.t("Drop here to upload", {
+                  context: "image upload"
+                })}
+              </Typography>
+            </div>
+          </div>
+          {children({ isDragActive })}
+        </>
       )}
     </Dropzone>
   )
