@@ -79,7 +79,7 @@ interface ProductUpdateProps extends WithStyles<typeof styles> {
   onDelete();
   onImageEdit?(id: string);
   onImageReorder?(event: { oldIndex: number; newIndex: number });
-  onImageUpload?(event: React.ChangeEvent<any>);
+  onImageUpload(file: File);
   onProductShow?();
   onSeoClick?();
   onSubmit?(data: any);
