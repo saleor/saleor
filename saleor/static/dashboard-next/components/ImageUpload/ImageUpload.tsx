@@ -105,7 +105,7 @@ export const ImageUpload = withStyles(styles, { name: "ImageUpload" })(
               </Typography>
             </div>
           </div>
-          {children({ isDragActive })}
+          {children && children({ isDragActive })}
         </>
       )}
     </Dropzone>
