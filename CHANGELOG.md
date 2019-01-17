@@ -1,7 +1,9 @@
 # Changelog
+
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
+
 - Use USERNAME_FIELD instead of hard-code email field when resolving user - #3577 by @jxltom
 - Support returning user's checkouts in GraphQL API - #3578 by @fowczarek
 - Catch GraphqQL syntax errors and output it to errors field - #3576 by @jxltom
@@ -23,3 +25,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add drag'n'drop image upload - #3611 by @dominik-zeglen
 - Throw typescript errors while snapshotting - #3611 by @dominik-zeglen
 - Fix order cancelling - #3624 by @dominik-zeglen
+- Unify grid handling - #3520 by @dominik-zeglen
