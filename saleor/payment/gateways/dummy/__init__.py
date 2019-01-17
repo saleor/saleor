@@ -7,6 +7,8 @@ from prices import Money
 
 from .forms import DummyPaymentForm
 
+TEMPLATE_PATH = 'order/payment/dummy.html'
+
 
 class TransactionKind:
     AUTH = 'auth'
@@ -20,27 +22,15 @@ def dummy_success():
     return True
 
 
-def get_client_token(**connection_params):
+def get_client_token(**_):
     return str(uuid.uuid4())
 
 
-def get_template():
-    return 'order/payment/dummy.html'
+def create_form(data, payment_information, connection_params):
+    return DummyPaymentForm(data=data)
 
 
-def get_form_class():
-    return DummyPaymentForm
-
-
-def process_payment(payment_information: Dict, **connection_params) -> Dict:
-    """Process the whole payment, by calling authorize and capture."""
-    auth_resp = authorize(payment_information, **connection_params)
-    if not auth_resp['is_success']:
-        return auth_resp
-    return [auth_resp, capture(payment_information, **connection_params)]
-
-
-def authorize(payment_information: Dict, **connection_params) -> Dict:
+def authorize(payment_information: Dict, connection_params) -> Dict:
     success = dummy_success()
     error = None
     if not success:
@@ -54,7 +44,7 @@ def authorize(payment_information: Dict, **connection_params) -> Dict:
         'error': error}
 
 
-def void(payment_information: Dict, **connection_params) -> Dict:
+def void(payment_information: Dict, connection_params) -> Dict:
     error = None
     success = dummy_success()
     if not success:
@@ -68,7 +58,7 @@ def void(payment_information: Dict, **connection_params) -> Dict:
         'error': error}
 
 
-def capture(payment_information: Dict, **connection_params: Dict) -> Dict:
+def capture(payment_information: Dict, connection_params: Dict) -> Dict:
     error = None
     success = dummy_success()
     if not success:
@@ -82,7 +72,7 @@ def capture(payment_information: Dict, **connection_params: Dict) -> Dict:
         'error': error}
 
 
-def refund(payment_information: Dict, **connection_params: Dict):
+def refund(payment_information: Dict, connection_params: Dict):
     error = None
     success = dummy_success()
     if not success:
@@ -96,9 +86,17 @@ def refund(payment_information: Dict, **connection_params: Dict):
         'error': error}
 
 
-def charge(payment_information: Dict, **connection_params):
+def charge(payment_information: Dict, connection_params):
     """Performs Authorize and Capture transactions in a single run."""
-    auth_resp = authorize(payment_information, **connection_params)
+    auth_resp = authorize(payment_information, connection_params)
     if not auth_resp['is_success']:
         return auth_resp
-    return [auth_resp, capture(payment_information, **connection_params)]
+    return [auth_resp, capture(payment_information, connection_params)]
+
+
+def process_payment(payment_information: Dict, connection_params) -> Dict:
+    """Process the whole payment, by calling authorize and capture."""
+    auth_resp = authorize(payment_information, connection_params)
+    if not auth_resp['is_success']:
+        return auth_resp
+    return [auth_resp, capture(payment_information, connection_params)]

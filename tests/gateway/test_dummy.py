@@ -237,16 +237,11 @@ def test_dummy_payment_form(kind, charge_status, settings, payment_dummy):
     payment_gateway, gateway_params = get_payment_gateway(payment.gateway)
     payment_info = create_payment_information(payment)
 
-    form = DummyPaymentForm(
+    form = payment_gateway.create_form(
         data=data, payment_information=payment_info,
-        gateway_params=gateway_params)
+        connection_params=gateway_params)
     assert form.is_valid()
     gateway_process_payment(
         payment=payment, payment_token=form.get_payment_token())
     payment.refresh_from_db()
     assert payment.transactions.last().kind == kind
-
-
-def test_get_form_class(settings):
-    payment_gateway, gateway_params = get_payment_gateway(settings.DUMMY)
-    assert payment_gateway.get_form_class() == DummyPaymentForm

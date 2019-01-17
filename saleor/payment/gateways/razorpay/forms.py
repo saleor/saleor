@@ -60,10 +60,11 @@ class RazorPaymentForm(forms.Form):
     razorpay_payment_id = forms.CharField(
         required=True, widget=forms.HiddenInput)
 
-    def __init__(self, payment_information, gateway_params, *args, **kwargs):
+    def __init__(
+            self, payment_information, connection_params, *args, **kwargs):
         super().__init__(*args, **kwargs)
         widget = RazorPayCheckoutWidget(
-            payment_information=payment_information, **gateway_params)
+            payment_information=payment_information, **connection_params)
         self.fields['razorpay'] = forms.CharField(
             widget=widget, required=False)
 

@@ -17,8 +17,8 @@ Your changes should live under the
     After completing those steps you will also need to integrate your payment
     gateway into your SPA Storefront's workflow.
 
-get_client_token(\*\*connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+get_client_token(connection_params)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A client token is a signed data blob that includes configuration and
 authorization information required by the payment gateway.
@@ -31,13 +31,13 @@ Example
 
 .. code-block:: python
 
-    def get_client_token(**connection_params: Dict) -> str:
+    def get_client_token(connection_params: Dict) -> str:
         gateway = get_payment_gateway(**connection_params)
         client_token = gateway.client_token.generate()
         return client_token
 
-authorize(payment_information, \*\*connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+authorize(payment_information, connection_params)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A process of reserving the amount of money against the customer's funding
 source. Money does not change hands until the authorization is captured.
@@ -49,7 +49,7 @@ Example
 
     def authorize(
             payment_information: Dict,
-            **connection_params: Dict) -> Dict:
+            connection_params: Dict) -> Dict:
 
         # Handle connecting to the gateway and sending the auth request here
         response = gateway.authorize(token=payment_information['token'])
@@ -66,8 +66,8 @@ Example
             'raw_response': get_payment_gateway_response(response),
         }
 
-refund(payment_information, \*\*connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+refund(payment_information, connection_params)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Full or partial return of captured funds to the customer.
 
@@ -95,8 +95,8 @@ Example
             'raw_response': get_payment_gateway_response(response),
         }
 
-capture(payment_information, \*\*connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+capture(payment_information, connection_params)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A transfer of the money that was reserved during the authorization stage.
 
@@ -107,7 +107,7 @@ Example
 
     def capture(
             payment_information: Dict,
-            **connection_params: Dict) -> Dict:
+            connection_params: Dict) -> Dict:
 
         # Handle connecting to the gateway and sending the capture request here
         response = gateway.capture(token=payment_information['token'])
@@ -124,8 +124,8 @@ Example
             'raw_response': get_payment_gateway_response(response),
         }
 
-void(payment_information, \*\*connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+void(payment_information, connection_params)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A cancellation of a pending authorization or capture.
 
@@ -136,7 +136,7 @@ Example
 
     def void(
             payment_information: Dict,
-            **connection_params: Dict) -> Dict:
+            connection_params: Dict) -> Dict:
 
         # Handle connecting to the gateway and sending the void request here
         response = gateway.void(token=payment_information['token'])
@@ -153,8 +153,8 @@ Example
             'raw_response': get_payment_gateway_response(response),
         }
 
-charge(payment_information, \*\*connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+charge(payment_information, connection_params)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Authorization and capture in a single step.
 
@@ -165,7 +165,7 @@ Example
 
     def charge(
             payment_information: Dict,
-            **connection_params: Dict) -> Dict:
+            connection_params: Dict) -> Dict:
 
         # Handle connecting to the gateway and sending the charge request here
         response = gateway.charge(
@@ -184,8 +184,8 @@ Example
             'raw_response': get_payment_gateway_response(response),
         }
 
-process_payment(payment_information, \*\*connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+process_payment(payment_information, connection_params)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Used for the checkout process, it should perform all the necessary
 steps to process a payment. It should use already defined functions,
@@ -198,15 +198,15 @@ Example
 
     def process_payment(
             payment_information: Dict,
-            **connection_params: Dict) -> Dict:
+            connection_params: Dict) -> Dict:
 
         # Authorize, update the token, then capture
         authorize_response = authorize(
-            payment_information, **connection_params)
+            payment_information, connection_params)
         payment_information['token'] = authorize_response['transaction_id']
 
         capture_response = capture(
-            payment_information, **connection_params)
+            payment_information, connection_params)
 
         # Return a list of responses, each response must be json serializable
         return [authorize_response, capture_response]
@@ -347,8 +347,8 @@ Example
         def get_payment_token(self):
             return self.cleaned_data['payment_method_nonce']
 
-Implement get_form_class()
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Implement create_form(data, payment_information, connection_params)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Should return the form that will be used for the checkout process.
 
@@ -360,22 +360,22 @@ Example
 
     .. code-block:: python
 
-        def get_form_class():
-            return BraintreePaymentForm
+        def create_form(data, payment_information, connection_params):
+            return BraintreePaymentForm(
+                data, payment_information, connection_params)
 
 
-Implement get_template()
-^^^^^^^^^^^^^^^^^^^^^^^^
+Implement TEMPLATE_PATH
+^^^^^^^^^^^^^^^^^^^^^^^
 
-Should return a path to a template that will be rendered for the checkout.
+Should specify a path to a template that will be rendered for the checkout.
 
 Example
 """""""
 
     .. code-block:: python
 
-        def get_template():
-            return 'order/payment/braintree.html'
+        TEMPLATE_PATH = 'order/payment/braintree.html'
 
 Add template
 ^^^^^^^^^^^^

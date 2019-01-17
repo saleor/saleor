@@ -10,6 +10,8 @@ from .utils import (
     get_currency_from_stripe, get_payment_billing_fullname,
     shipping_to_stripe_dict)
 
+TEMPLATE_PATH = 'order/payment/stripe.html'
+
 
 class TransactionKind:
     AUTH = 'auth'
@@ -26,7 +28,7 @@ def get_client_token(**_):
     return
 
 
-def authorize(payment_information, **connection_params):
+def authorize(payment_information, connection_params):
     client, error = _get_client(**connection_params), None
 
     try:
@@ -44,7 +46,7 @@ def authorize(payment_information, **connection_params):
         kind=TransactionKind.AUTH, response=response, error=error)
 
 
-def capture(payment_information, **connection_params):
+def capture(payment_information, connection_params):
     client, error = _get_client(**connection_params), None
 
     # Get amount from argument or payment, and convert to stripe's amount
@@ -66,7 +68,7 @@ def capture(payment_information, **connection_params):
         kind=TransactionKind.CAPTURE, response=response, error=error)
 
 
-def charge(payment_information, **connection_params):
+def charge(payment_information, connection_params):
     client, error = _get_client(**connection_params), None
 
     try:
@@ -84,7 +86,7 @@ def charge(payment_information, **connection_params):
         kind=TransactionKind.CHARGE, response=response, error=error)
 
 
-def refund(payment_information, **connection_params):
+def refund(payment_information, connection_params):
     client, error = _get_client(**connection_params), None
 
     # Get amount from payment, and convert to stripe's amount
@@ -107,7 +109,7 @@ def refund(payment_information, **connection_params):
         kind=TransactionKind.REFUND, response=response, error=error)
 
 
-def void(payment_information, **connection_params):
+def void(payment_information, connection_params):
     client, error = _get_client(**connection_params), None
 
     try:
@@ -124,16 +126,14 @@ def void(payment_information, **connection_params):
         kind=TransactionKind.VOID, response=response, error=error)
 
 
-def process_payment(payment_information, **connection_params):
-    return charge(payment_information, **connection_params)
+def process_payment(payment_information, connection_params):
+    return charge(payment_information, connection_params)
 
 
-def get_template():
-    return 'order/payment/stripe.html'
-
-
-def get_form_class():
-    return StripePaymentModalForm
+def create_form(data, payment_information, connection_params):
+    return StripePaymentModalForm(
+        data=data, payment_information=payment_information,
+        gateway_params=connection_params)
 
 
 def _get_client(**connection_params):

@@ -10,7 +10,7 @@ from django.template.loader import get_template
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.views import PAYMENT_TEMPLATE
 from saleor.payment import (
-    ChargeStatus, GatewayError, PaymentError, TransactionKind,
+    ChargeStatus, GatewayError, OperationType, PaymentError, TransactionKind,
     get_payment_gateway)
 from saleor.payment.models import Payment
 from saleor.payment.utils import (
@@ -174,9 +174,6 @@ def test_create_transaction(transaction_data):
     assert txn.is_success == transaction_data['gateway_response']['is_success']
     assert txn.gateway_response == transaction_data['gateway_response']
 
-    same_txn = create_transaction(**transaction_data)
-    assert txn == same_txn
-
 
 def test_create_transaction_no_gateway_response(transaction_data):
     transaction_data.pop('gateway_response')
@@ -231,7 +228,7 @@ def test_gateway_process_payment(
 
     mock_get_payment_gateway.assert_called_with(payment.gateway)
     mock_process_payment.assert_called_once_with(
-        payment_information=payment_info, **gateway_params)
+        payment_information=payment_info, connection_params=gateway_params)
 
 
 @patch('saleor.payment.utils.get_payment_gateway')
@@ -250,7 +247,7 @@ def test_gateway_authorize(
 
     mock_get_payment_gateway.assert_called_once_with(payment.gateway)
     mock_authorize.assert_called_once_with(
-        payment_information=payment_info, **gateway_params)
+        payment_information=payment_info, connection_params=gateway_params)
 
 
 @patch('saleor.payment.utils.get_payment_gateway')
@@ -299,7 +296,7 @@ def test_gateway_capture(
 
     mock_get_payment_gateway.assert_called_once_with(payment.gateway)
     mock_capture.assert_called_once_with(
-        payment_information=payment_info, **gateway_params)
+        payment_information=payment_info, connection_params=gateway_params)
 
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.CHARGED
@@ -396,7 +393,7 @@ def test_gateway_charge(
 
     mock_get_payment_gateway.assert_called_once_with(payment.gateway)
     mock_charge.assert_called_once_with(
-        payment_information=payment_info, **gateway_params)
+        payment_information=payment_info, connection_params=gateway_params)
 
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.CHARGED
@@ -494,7 +491,7 @@ def test_gateway_void(
 
     mock_get_payment_gateway.assert_called_once_with(payment.gateway)
     mock_void.assert_called_once_with(
-        payment_information=payment_info, **gateway_params)
+        payment_information=payment_info, connection_params=gateway_params)
 
     payment.refresh_from_db()
     assert payment.is_active == False
@@ -545,7 +542,7 @@ def test_gateway_refund(
 
     mock_get_payment_gateway.assert_called_once_with(payment.gateway)
     mock_refund.assert_called_once_with(
-        payment_information=payment_info, **gateway_params)
+        payment_information=payment_info, connection_params=gateway_params)
 
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.FULLY_REFUNDED
@@ -629,9 +626,9 @@ def test_payment_gateway_form_exists(gateway_name, payment_dummy):
 
     An error will be raised if it's missing.
     """
-    payment_gateway, gateway_params = get_payment_gateway(
-        gateway_name)
-    payment_gateway.get_form_class()
+    payment_gateway, gateway_params = get_payment_gateway(gateway_name)
+    payment_info = create_payment_information(payment_dummy)
+    payment_gateway.create_form(None, payment_info, gateway_params)
 
 
 def test_clean_authorize():
@@ -852,7 +849,7 @@ def test_call_gateway_invalid_response(
 
     with pytest.raises(PaymentError) as e:
         call_gateway(
-            func_name='auth', transaction_kind='auth',
+            operation_type=OperationType.AUTH, transaction_kind='auth',
             payment=payment_dummy, payment_token='token')
     assert str(e.value) == 'Gateway response validation failed'
 
@@ -867,19 +864,20 @@ def test_call_gateway_function_not_implemented(
 
     with pytest.raises(PaymentError) as e:
         call_gateway(
-            func_name='func', transaction_kind='auth',
+            operation_type=OperationType.AUTH, transaction_kind='auth',
             payment=payment_dummy, payment_token='token')
-    assert str(e.value) == 'Gateway doesn\'t implement func'
+    assert str(e.value) == 'Gateway doesn\'t implement AUTH operation'
 
 
 @patch('saleor.payment.utils.get_payment_gateway')
 def test_call_gateway_generic_error(
         mock_get_payment_gateway, payment_dummy):
     mock_get_payment_gateway.return_value = (
-        Mock(auth=Mock(side_effect=Exception('something went wrong'))), {})
+        Mock(authorize=Mock(
+            side_effect=Exception('something went wrong'))), {})
 
     with pytest.raises(PaymentError) as e:
         call_gateway(
-            func_name='auth', transaction_kind='auth',
+            operation_type=OperationType.AUTH, transaction_kind='auth',
             payment=payment_dummy, payment_token='token')
     assert str(e.value) == 'Gateway encountered an error'

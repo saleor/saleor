@@ -6,9 +6,9 @@ from razorpay.errors import BadRequestError, ServerError
 
 from saleor.payment import ChargeStatus
 from saleor.payment.gateways.razorpay import (
-    charge, check_payment_supported, clean_razorpay_response, errors,
-    get_amount_for_razorpay, get_client, get_client_token, get_form_class,
-    logger, refund, TransactionKind)
+    TransactionKind, charge, check_payment_supported, clean_razorpay_response,
+    create_form, errors, get_amount_for_razorpay, get_client, get_client_token,
+    logger, refund)
 from saleor.payment.gateways.razorpay.forms import (
     RazorPayCheckoutWidget, RazorPaymentForm)
 from saleor.payment.utils import create_payment_information
@@ -83,10 +83,12 @@ def test_checkout_widget_render_with_prefill(razorpay_payment, gateway_params):
 
 def test_checkout_form(razorpay_payment, gateway_params):
     payment_info = create_payment_information(razorpay_payment)
-    form = RazorPaymentForm(
+    form = create_form(
         data={'razorpay_payment_id': '123'},
         payment_information=payment_info,
-        gateway_params=gateway_params)
+        connection_params=gateway_params)
+
+    assert isinstance(form, RazorPaymentForm)
     assert form.is_valid()
 
 
@@ -123,10 +125,6 @@ def test_get_client_token():
     assert get_client_token()
 
 
-def test_get_form_class():
-    assert get_form_class() == RazorPaymentForm
-
-
 @pytest.mark.integration
 @patch('razorpay.Client')
 def test_charge(
@@ -147,7 +145,7 @@ def test_charge(
         amount=TRANSACTION_AMOUNT)
 
     # Attempt charging
-    response = charge(payment_info, **gateway_params)
+    response = charge(payment_info, gateway_params)
 
     # Ensure the was no error returned
     assert not response['error']
@@ -173,7 +171,7 @@ def test_charge_unsupported_currency(razorpay_payment, gateway_params):
         amount=TRANSACTION_AMOUNT)
 
     # Attempt charging
-    response = charge(payment_info, **gateway_params)
+    response = charge(payment_info, gateway_params)
 
     # Ensure a error was returned
     assert response['error'] == (
@@ -205,7 +203,7 @@ def test_charge_invalid_request(
         amount=TRANSACTION_AMOUNT)
 
     # Attempt charging
-    response = charge(payment_info, **gateway_params)
+    response = charge(payment_info, gateway_params)
 
     # Ensure an error was returned
     assert response['error'] == errors.INVALID_REQUEST
@@ -235,7 +233,7 @@ def test_refund(
         charged_payment, amount=TRANSACTION_AMOUNT)
 
     # Attempt charging
-    response = refund(payment_info, **gateway_params)
+    response = refund(payment_info, gateway_params)
 
     # Ensure the was no error returned
     assert not response['error']
@@ -258,7 +256,7 @@ def test_refund_unsupported_currency(
         razorpay_payment, amount=TRANSACTION_AMOUNT)
 
     # Attempt charging
-    response = refund(payment_info, **gateway_params)
+    response = refund(payment_info, gateway_params)
 
     # Ensure a error was returned
     assert response['error'] == (
@@ -286,7 +284,7 @@ def test_refund_invalid_data(
     # Attempt charging
     payment_info = create_payment_information(
         charged_payment, amount=TRANSACTION_AMOUNT)
-    response = refund(payment_info, **gateway_params)
+    response = refund(payment_info, gateway_params)
 
     # Ensure a error was returned
     assert response['error'] == errors.SERVER_ERROR

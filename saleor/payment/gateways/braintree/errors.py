@@ -118,9 +118,4 @@ DEFAULT_ERROR_MESSAGE = (
 
 
 class BraintreeException(Exception):
-
-    def __init__(self, *args, **kwargs):
-        if args or kwargs:
-            super().__init__(*args, **kwargs)
-        else:
-            super().__init__(DEFAULT_ERROR_MESSAGE)
+    pass

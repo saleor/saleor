@@ -44,13 +44,6 @@ def clean_order_update_shipping(order, method, errors):
     return errors
 
 
-def try_payment_action(action, payment, amount, errors):
-    try:
-        action(payment, amount)
-    except (PaymentError, ValueError) as e:
-        errors.append(Error(field='payment', message=str(e)))
-
-
 def clean_order_cancel(order, errors):
     if order and not order.can_cancel():
         errors.append(
@@ -322,7 +315,12 @@ class OrderCapture(BaseMutation):
         # FIXME adjust to multiple payments in the future
         payment = order.get_last_payment()
         clean_order_capture(payment, amount, errors)
-        try_payment_action(gateway_capture, payment, amount, errors)
+
+        try:
+            gateway_capture(payment, amount)
+        except PaymentError as e:
+            errors.append(Error(field='payment', message=str(e)))
+
         if errors:
             return OrderCapture(errors=errors)
 
@@ -384,7 +382,11 @@ class OrderRefund(BaseMutation):
         if order:
             payment = order.get_last_payment()
             clean_refund_payment(payment, amount, errors)
-            try_payment_action(gateway_refund, payment, amount, errors)
+            try:
+                gateway_refund(payment, amount)
+            except PaymentError as e:
+                errors.append(Error(field='payment', message=str(e)))
+
         if errors:
             return OrderRefund(errors=errors)
 
