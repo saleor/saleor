@@ -56,6 +56,7 @@ export interface HomePageProps extends WithStyles<typeof styles> {
 
 const HomePage = withStyles(styles, { name: "HomePage" })(
   ({
+    classes,
     userName,
     orders,
     sales,

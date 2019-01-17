@@ -1,14 +1,10 @@
-import {
-  createStyles,
-  Theme,
-  withStyles,
-  WithStyles
-} from "@material-ui/core/styles";
 import * as React from "react";
 
+import CardSpacer from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
+import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
@@ -27,31 +23,8 @@ import ProductOrganization from "../ProductOrganization";
 import ProductPricing from "../ProductPricing";
 import ProductStock from "../ProductStock";
 import ProductVariants from "../ProductVariants";
-import Grid from "../../../components/Grid";
-import CardSpacer from "../../../components/CardSpacer";
 
-const styles = (theme: Theme) =>
-  createStyles({
-    cardContainer: {
-      marginTop: theme.spacing.unit * 2,
-      [theme.breakpoints.down("sm")]: {
-        marginTop: theme.spacing.unit
-      }
-    },
-    root: {
-      display: "grid",
-      gridGap: theme.spacing.unit * 2 + "px",
-      gridTemplateColumns: "9fr 4fr",
-      marginTop: theme.spacing.unit * 2,
-      [theme.breakpoints.down("sm")]: {
-        gridGap: theme.spacing.unit + "px",
-        gridTemplateColumns: "1fr",
-        marginTop: theme.spacing.unit
-      }
-    }
-  });
-
-interface ProductUpdateProps extends WithStyles<typeof styles> {
+interface ProductUpdateProps {
   errors: UserError[];
   placeholderImage: string;
   collections?: Array<{
