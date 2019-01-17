@@ -49,7 +49,7 @@ const styles = (theme: Theme) =>
         display: "block",
         height: "38px",
         margin: `0 auto ${theme.spacing.unit * 7}px`,
-        width: "auto"
+        width: "100%"
       }
     },
     panel: {
