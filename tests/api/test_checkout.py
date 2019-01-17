@@ -647,6 +647,68 @@ def test_checkout_complete(
     assert payment.transactions.count() == 2
 
 
+def test_checkout_complete_invalid_checkout_id(user_api_client):
+    checkout_id = 'invalidId'
+    variables = {'checkoutId': checkout_id}
+    orders_count = Order.objects.count()
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_COMPLEATE, variables)
+    content = get_graphql_content(response)
+    data = content['data']['checkoutComplete']
+    error_message = 'Couldn\'t resolve to a node: %s' % checkout_id
+    assert data['errors'][0]['message'] == error_message
+    assert data['errors'][0]['field'] == 'checkoutId'
+    assert orders_count == Order.objects.count()
+
+
+def test_checkout_complete_no_payment(
+        user_api_client, cart_with_item, address,
+        shipping_method):
+    checkout = cart_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.save()
+    checkout_id = graphene.Node.to_global_id('Checkout', checkout.pk)
+    variables = {'checkoutId': checkout_id}
+    orders_count = Order.objects.count()
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_COMPLEATE, variables)
+    content = get_graphql_content(response)
+    data = content['data']['checkoutComplete']
+    assert data['errors'][0]['message'] == 'Checkout is not fully paid'
+    assert orders_count == Order.objects.count()
+
+
+def test_checkout_complete_insufficient_stock(
+        user_api_client, cart_with_item, address, payment_dummy,
+        shipping_method):
+    checkout = cart_with_item
+    cart_line = checkout.lines.first()
+    quantity_available = cart_line.variant.quantity_available
+    cart_line.quantity = quantity_available + 1
+    cart_line.save()
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.save()
+    total = checkout.get_total()
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    checkout_id = graphene.Node.to_global_id('Checkout', checkout.pk)
+    variables = {'checkoutId': checkout_id}
+    orders_count = Order.objects.count()
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_COMPLEATE, variables)
+    content = get_graphql_content(response)
+    data = content['data']['checkoutComplete']
+    assert data['errors'][0]['message'] == 'Insufficient product stock.'
+    assert orders_count == Order.objects.count()
+
+
 def test_fetch_checkout_by_token(user_api_client, cart_with_item):
     query = """
     query getCheckout($token: UUID!) {
@@ -936,7 +998,7 @@ def test_is_fully_paid_partially_paid(cart_with_item, payment_dummy):
     assert not is_paid
 
 
-def test_is_fully_paid_no_paiment(cart_with_item):
+def test_is_fully_paid_no_payment(cart_with_item):
     checkout = cart_with_item
     is_paid = is_fully_paid(checkout)
     assert not is_paid
