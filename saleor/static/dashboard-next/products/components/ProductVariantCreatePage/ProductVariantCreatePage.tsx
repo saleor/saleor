@@ -86,69 +86,65 @@ const ProductVariantCreatePage = withStyles(styles, {
       sku: ""
     };
     return (
-      <Container width="md">
-        <PageHeader title={header} onBack={onBack} />
-        <Form
-          initial={initialForm}
-          errors={formErrors}
-          onSubmit={onSubmit}
-          key={product ? JSON.stringify(product) : "noproduct"}
-        >
-          {({ change, data, errors, hasChanged, submit }) => {
-            return (
-              <>
-                <div className={classes.root}>
-                  <div>
-                    <ProductVariantNavigation
-                      variants={maybe(() => product.variants)}
-                      onRowClick={(variantId: string) => {
-                        if (product && product.variants) {
-                          return onVariantClick(variantId);
-                        }
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <ProductVariantAttributes
-                      attributes={maybe(
-                        () => product.productType.variantAttributes
-                      )}
-                      data={data}
-                      disabled={loading}
-                      onChange={change}
-                    />
-                    <ProductVariantPrice
-                      errors={errors}
-                      priceOverride={data.priceOverride}
-                      currencySymbol={currencySymbol}
-                      costPrice={data.costPrice}
-                      loading={loading}
-                      onChange={change}
-                    />
-                    <ProductVariantStock
-                      errors={errors}
-                      sku={data.sku}
-                      quantity={data.quantity}
-                      loading={loading}
-                      onChange={change}
-                    />
-                  </div>
-                </div>
-                <SaveButtonBar
-                  disabled={loading || !onSubmit || !hasChanged}
-                  labels={{
-                    delete: i18n.t("Remove variant"),
-                    save: i18n.t("Save variant")
+      <Form
+        initial={initialForm}
+        errors={formErrors}
+        onSubmit={onSubmit}
+        key={product ? JSON.stringify(product) : "noproduct"}
+      >
+        {({ change, data, errors, hasChanged, submit }) => (
+          <Container width="md">
+            <PageHeader title={header} onBack={onBack} />
+            <div className={classes.root}>
+              <div>
+                <ProductVariantNavigation
+                  variants={maybe(() => product.variants)}
+                  onRowClick={(variantId: string) => {
+                    if (product && product.variants) {
+                      return onVariantClick(variantId);
+                    }
                   }}
-                  state={saveButtonBarState}
-                  onCancel={onBack}
-                  onSave={submit}
                 />
-              </>
-            );
-          }}
-        </Form>
-      </Container>
+              </div>
+              <div>
+                <ProductVariantAttributes
+                  attributes={maybe(
+                    () => product.productType.variantAttributes
+                  )}
+                  data={data}
+                  disabled={loading}
+                  onChange={change}
+                />
+                <ProductVariantPrice
+                  errors={errors}
+                  priceOverride={data.priceOverride}
+                  currencySymbol={currencySymbol}
+                  costPrice={data.costPrice}
+                  loading={loading}
+                  onChange={change}
+                />
+                <ProductVariantStock
+                  errors={errors}
+                  sku={data.sku}
+                  quantity={data.quantity}
+                  loading={loading}
+                  onChange={change}
+                />
+              </div>
+            </div>
+            <SaveButtonBar
+              disabled={loading || !onSubmit || !hasChanged}
+              labels={{
+                delete: i18n.t("Remove variant"),
+                save: i18n.t("Save variant")
+              }}
+              state={saveButtonBarState}
+              onCancel={onBack}
+              onSave={submit}
+            />
+          </Container>
+        )}
+      </Form>
     );
   }
 );

@@ -1,14 +1,10 @@
-import {
-  createStyles,
-  Theme,
-  withStyles,
-  WithStyles
-} from "@material-ui/core/styles";
 import * as React from "react";
 
+import CardSpacer from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
+import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
 import { TaxRateType, WeightUnitsEnum } from "../../../types/globalTypes";
@@ -24,19 +20,7 @@ export interface ProductTypeForm {
   weight: number;
 }
 
-const styles = (theme: Theme) =>
-  createStyles({
-    cardContainer: {
-      marginTop: theme.spacing.unit * 2
-    },
-    root: {
-      display: "grid",
-      gridColumnGap: theme.spacing.unit * 2 + "px",
-      gridTemplateColumns: "2fr 1fr"
-    }
-  });
-
-export interface ProductTypeCreatePageProps extends WithStyles<typeof styles> {
+export interface ProductTypeCreatePageProps {
   errors: Array<{
     field: string;
     message: string;
@@ -49,71 +33,67 @@ export interface ProductTypeCreatePageProps extends WithStyles<typeof styles> {
   onSubmit: (data: ProductTypeForm) => void;
 }
 
-const ProductTypeCreatePage = withStyles(styles, {
-  name: "ProductTypeCreatePage"
-})(
-  ({
-    classes,
-    defaultWeightUnit,
-    disabled,
-    errors,
-    pageTitle,
-    saveButtonBarState,
-    onBack,
-    onSubmit
-  }: ProductTypeCreatePageProps) => {
-    const formInitialData: ProductTypeForm = {
-      chargeTaxes: true,
-      isShippingRequired: false,
-      name: "",
-      taxRate: TaxRateType.STANDARD,
-      weight: 0
-    };
-    return (
-      <Form
-        errors={errors}
-        initial={formInitialData}
-        onSubmit={onSubmit}
-        confirmLeave
-      >
-        {({ change, data, hasChanged, submit }) => (
-          <Container width="md">
-            <PageHeader title={pageTitle} onBack={onBack} />
-            <div className={classes.root}>
-              <div>
-                <ProductTypeDetails
-                  data={data}
-                  disabled={disabled}
-                  onChange={change}
-                />
-              </div>
-              <div>
-                <ProductTypeShipping
-                  disabled={disabled}
-                  data={data}
-                  defaultWeightUnit={defaultWeightUnit}
-                  onChange={change}
-                />
-                <div className={classes.cardContainer}>
-                  <ProductTypeTaxes
-                    disabled={disabled}
-                    data={data}
-                    onChange={change}
-                  />
-                </div>
-              </div>
+const ProductTypeCreatePage: React.StatelessComponent<
+  ProductTypeCreatePageProps
+> = ({
+  defaultWeightUnit,
+  disabled,
+  errors,
+  pageTitle,
+  saveButtonBarState,
+  onBack,
+  onSubmit
+}: ProductTypeCreatePageProps) => {
+  const formInitialData: ProductTypeForm = {
+    chargeTaxes: true,
+    isShippingRequired: false,
+    name: "",
+    taxRate: TaxRateType.STANDARD,
+    weight: 0
+  };
+  return (
+    <Form
+      errors={errors}
+      initial={formInitialData}
+      onSubmit={onSubmit}
+      confirmLeave
+    >
+      {({ change, data, hasChanged, submit }) => (
+        <Container width="md">
+          <PageHeader title={pageTitle} onBack={onBack} />
+          <Grid>
+            <div>
+              <ProductTypeDetails
+                data={data}
+                disabled={disabled}
+                onChange={change}
+              />
             </div>
-            <SaveButtonBar
-              onCancel={onBack}
-              onSave={submit}
-              disabled={disabled || !hasChanged}
-              state={saveButtonBarState}
-            />
-          </Container>
-        )}
-      </Form>
-    );
-  }
-);
+            <div>
+              <ProductTypeShipping
+                disabled={disabled}
+                data={data}
+                defaultWeightUnit={defaultWeightUnit}
+                onChange={change}
+              />
+              <CardSpacer />
+              <ProductTypeTaxes
+                disabled={disabled}
+                data={data}
+                onChange={change}
+              />
+            </div>
+          </Grid>
+          <SaveButtonBar
+            onCancel={onBack}
+            onSave={submit}
+            disabled={disabled || !hasChanged}
+            state={saveButtonBarState}
+          />
+        </Container>
+      )}
+    </Form>
+  );
+};
 ProductTypeCreatePage.displayName = "ProductTypeCreatePage";
 export default ProductTypeCreatePage;
