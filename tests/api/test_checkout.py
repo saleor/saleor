@@ -3,11 +3,11 @@ from unittest.mock import ANY, patch
 
 import graphene
 import pytest
-
-from saleor.checkout.models import Cart
-from saleor.order.models import Order
 from tests.api.utils import get_graphql_content
 
+from saleor.checkout.models import Cart
+from saleor.checkout.utils import ready_to_place_order
+from saleor.order.models import Order
 
 MUTATION_CHECKOUT_CREATE = """
     mutation createCheckout($checkoutInput: CheckoutCreateInput!) {
@@ -589,6 +589,22 @@ def test_checkout_email_update(user_api_client, cart_with_item):
     assert cart.email == email
 
 
+MUTATION_CHECKOUT_COMPLEATE = """
+    mutation checkoutComplete($checkoutId: ID!) {
+        checkoutComplete(checkoutId: $checkoutId) {
+            order {
+                id,
+                token
+            },
+            errors {
+                field,
+                message
+            }
+        }
+    }
+    """
+
+
 @pytest.mark.integration
 def test_checkout_complete(
         user_api_client, cart_with_item, payment_dummy, address,
@@ -607,23 +623,10 @@ def test_checkout_complete(
     payment.save()
     checkout_id = graphene.Node.to_global_id('Checkout', checkout.pk)
     assert not payment.transactions.exists()
-    query = """
-    mutation checkoutComplete($checkoutId: ID!) {
-        checkoutComplete(checkoutId: $checkoutId) {
-            order {
-                id,
-                token
-            },
-            errors {
-                field,
-                message
-            }
-        }
-    }
-    """
     variables = {'checkoutId': checkout_id}
     orders_count = Order.objects.count()
-    response = user_api_client.post_graphql(query, variables)
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_COMPLEATE, variables)
     content = get_graphql_content(response)
     data = content['data']['checkoutComplete']
     assert not data['errors']
@@ -819,3 +822,65 @@ def test_query_checkout_lines(
         graphene.Node.to_global_id('CheckoutLine', item.pk)
         for item in checkout]
     assert expected_lines_ids == checkout_lines_ids
+
+
+def test_ready_to_place_order(
+        cart_with_item, payment_dummy, address, shipping_method):
+    checkout = cart_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.save()
+    total = checkout.get_total()
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    ready, error = ready_to_place_order(checkout, None, None)
+    assert ready
+    assert not error
+
+
+def test_checkout_complete_no_shipping_method(
+        cart_with_item, address):
+    checkout = cart_with_item
+    checkout.shipping_address = address
+    checkout.save()
+    ready, error = ready_to_place_order(checkout, None, None)
+    assert not ready
+    assert error == 'Shipping method is not set'
+
+
+def test_checkout_complete_no_shipping_addres(
+        cart_with_item, shipping_method):
+    checkout = cart_with_item
+    checkout.shipping_method = shipping_method
+    checkout.save()
+    ready, error = ready_to_place_order(checkout, None, None)
+    assert not ready
+    assert error == 'Shipping address is not set'
+
+
+def test_checkout_complete_invalid_shipping_method(
+        cart_with_item, address, shipping_zone_without_countries):
+    checkout = cart_with_item
+    checkout.shipping_address = address
+    shipping_method = shipping_zone_without_countries.shipping_methods.first()
+    checkout.shipping_method = shipping_method
+    checkout.save()
+    ready, error = ready_to_place_order(checkout, None, None)
+    assert not ready
+    assert error == 'Shipping method is not valid for your shipping address'
+
+
+def test_checkout_complete_no_payment(
+        cart_with_item, shipping_method, address):
+    checkout = cart_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.save()
+    ready, error = ready_to_place_order(checkout, None, None)
+    assert not ready
+    assert error == 'Checkout is not fully paid'
