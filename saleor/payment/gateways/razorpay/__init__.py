@@ -10,6 +10,8 @@ from . import errors
 from .forms import RazorPaymentForm
 from .utils import get_amount_for_razorpay, get_error_response
 
+TEMPLATE_PATH = 'order/payment/razorpay.html'
+
 # The list of currencies supported by razorpay
 SUPPORTED_CURRENCIES = 'INR',
 
@@ -34,11 +36,7 @@ class TransactionKind:
 
 
 def _generate_response(
-        payment_information: Dict,
-        kind: str,
-        *,
-        is_success=True,
-        **data) -> Dict:
+        payment_information: Dict, kind: str, data: Dict) -> Dict:
     """Generate Saleor transaction information from
     Razorpay's success payload or from passed data."""
     return {
@@ -47,7 +45,7 @@ def _generate_response(
         'amount': data.get('amount', payment_information['amount']),
         'currency': data.get('currency', payment_information['currency']),
         'error': data.get('error', None),
-        'is_success': is_success,
+        'is_success': data.get('is_success', True),
         'raw_response': data}
 
 
@@ -74,13 +72,12 @@ def clean_razorpay_response(response: dict):
     response['amount'] = Decimal(response['amount']) / 100
 
 
-def get_template():
-    return 'order/payment/razorpay.html'
-
-
-def get_form_class():
+def create_form(data, payment_information, connection_params):
     """Return the associated razorpay payment form."""
-    return RazorPaymentForm
+    return RazorPaymentForm(
+        data=data, payment_information=payment_information,
+        connection_params=connection_params,
+    )
 
 
 def get_client(public_key: str, secret_key: str, **_):
@@ -94,7 +91,7 @@ def get_client_token(**_):
     return str(uuid.uuid4())
 
 
-def charge(payment_information: Dict, **connection_params: Dict) -> Dict:
+def charge(payment_information: Dict, connection_params: Dict) -> Dict:
     """Charge a authorized payment using the razorpay client.
 
     But it first check if the given payment instance is supported
@@ -125,10 +122,10 @@ def charge(payment_information: Dict, **connection_params: Dict) -> Dict:
 
     return _generate_response(
         payment_information=payment_information,
-        kind=TransactionKind.CHARGE, **response)
+        kind=TransactionKind.CHARGE, data=response)
 
 
-def refund(payment_information: Dict, **connection_params) -> Dict:
+def refund(payment_information: Dict, connection_params) -> Dict:
     """Refund a payment using the razorpay client.
 
     But it first check if the given payment instance is supported
@@ -158,8 +155,10 @@ def refund(payment_information: Dict, **connection_params) -> Dict:
 
     return _generate_response(
         payment_information=payment_information,
-        kind=TransactionKind.REFUND, **response)
+        kind=TransactionKind.REFUND, data=response)
 
 
-def process_payment(payment_information: Dict, **connection_params) -> Dict:
-    return charge(payment_information=payment_information, **connection_params)
+def process_payment(payment_information: Dict, connection_params) -> Dict:
+    return charge(
+        payment_information=payment_information,
+        connection_params=connection_params)

@@ -8,10 +8,12 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import pgettext_lazy
 from prices import Money
 
+from .errors import DEFAULT_ERROR_MESSAGE, BraintreeException
 from .forms import BraintreePaymentForm
-from .errors import BraintreeException
 
 logger = logging.getLogger(__name__)
+
+TEMPLATE_PATH = 'order/payment/braintree.html'
 
 # FIXME: Move to SiteSettings
 
@@ -93,12 +95,9 @@ def extract_gateway_response(braintree_result) -> Dict:
         'errors': errors}
 
 
-def get_template():
-    return 'order/payment/braintree.html'
-
-
-def get_form_class():
-    return BraintreePaymentForm
+def create_form(data, payment_information, connection_params):
+    return BraintreePaymentForm(
+        data=data, payment_information=payment_information)
 
 
 def get_braintree_gateway(sandbox_mode, merchant_id, public_key, private_key):
@@ -117,13 +116,13 @@ def get_braintree_gateway(sandbox_mode, merchant_id, public_key, private_key):
     return gateway
 
 
-def get_client_token(**connection_params: Dict) -> str:
+def get_client_token(connection_params: Dict) -> str:
     gateway = get_braintree_gateway(**connection_params)
     client_token = gateway.client_token.generate()
     return client_token
 
 
-def authorize(payment_information: Dict, **connection_params: Dict) -> Dict:
+def authorize(payment_information: Dict, connection_params: Dict) -> Dict:
     gateway = get_braintree_gateway(**connection_params)
 
     try:
@@ -136,7 +135,7 @@ def authorize(payment_information: Dict, **connection_params: Dict) -> Dict:
                     'required': THREE_D_SECURE_REQUIRED}},
             **get_customer_data(payment_information)})
     except braintree_sdk.exceptions.NotFoundError:
-        raise BraintreeException
+        raise BraintreeException(DEFAULT_ERROR_MESSAGE)
 
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
@@ -154,7 +153,7 @@ def authorize(payment_information: Dict, **connection_params: Dict) -> Dict:
         'raw_response': gateway_response}
 
 
-def capture(payment_information: Dict, **connection_params: Dict) -> Dict:
+def capture(payment_information: Dict, connection_params: Dict) -> Dict:
     gateway = get_braintree_gateway(**connection_params)
 
     try:
@@ -162,7 +161,7 @@ def capture(payment_information: Dict, **connection_params: Dict) -> Dict:
             transaction_id=payment_information['token'],
             amount=str(payment_information['amount']))
     except braintree_sdk.exceptions.NotFoundError:
-        raise BraintreeException
+        raise BraintreeException(DEFAULT_ERROR_MESSAGE)
 
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
@@ -180,14 +179,14 @@ def capture(payment_information: Dict, **connection_params: Dict) -> Dict:
         'raw_response': gateway_response}
 
 
-def void(payment_information: Dict, **connection_params: Dict) -> Dict:
+def void(payment_information: Dict, connection_params: Dict) -> Dict:
     gateway = get_braintree_gateway(**connection_params)
 
     try:
         result = gateway.transaction.void(
             transaction_id=payment_information['token'])
     except braintree_sdk.exceptions.NotFoundError:
-        raise BraintreeException
+        raise BraintreeException(DEFAULT_ERROR_MESSAGE)
 
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
@@ -205,7 +204,7 @@ def void(payment_information: Dict, **connection_params: Dict) -> Dict:
         'raw_response': gateway_response}
 
 
-def refund(payment_information: Dict, **connection_params: Dict) -> Dict:
+def refund(payment_information: Dict, connection_params: Dict) -> Dict:
     gateway = get_braintree_gateway(**connection_params)
 
     try:
@@ -213,7 +212,7 @@ def refund(payment_information: Dict, **connection_params: Dict) -> Dict:
             transaction_id=payment_information['token'],
             amount_or_options=str(payment_information['amount']))
     except braintree_sdk.exceptions.NotFoundError:
-        raise BraintreeException
+        raise BraintreeException(DEFAULT_ERROR_MESSAGE)
 
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
@@ -232,9 +231,9 @@ def refund(payment_information: Dict, **connection_params: Dict) -> Dict:
 
 
 def process_payment(
-        payment_information: Dict, **connection_params: Dict) -> Dict:
-    auth_resp = authorize(payment_information, **connection_params)
+        payment_information: Dict, connection_params: Dict) -> Dict:
+    auth_resp = authorize(payment_information, connection_params)
     if auth_resp['is_success']:
         payment_information['token'] = auth_resp['transaction_id']
-        return [auth_resp, capture(payment_information, **connection_params)]
-    return [auth_resp, void(payment_information, **connection_params)]
+        return [auth_resp, capture(payment_information, connection_params)]
+    return [auth_resp, void(payment_information, connection_params)]

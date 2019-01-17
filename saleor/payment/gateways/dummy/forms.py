@@ -12,10 +12,5 @@ class DummyPaymentForm(forms.Form):
         choices=ChargeStatus.CHOICES, initial=ChargeStatus.NOT_CHARGED,
         widget=forms.RadioSelect)
 
-    def __init__(self, payment_information, gateway_params, *args, **kwargs):
-        self.payment_information = payment_information
-        self.gateway_params = gateway_params
-        super().__init__(*args, **kwargs)
-
     def get_payment_token(self):
         return str(uuid.uuid4())

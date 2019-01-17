@@ -13,9 +13,8 @@ class BraintreePaymentForm(forms.Form):
     # response
     payment_method_nonce = forms.CharField()
 
-    def __init__(self, payment_information, gateway_params, *args, **kwargs):
+    def __init__(self, payment_information, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.gateway_params = gateway_params
         self.payment_information = payment_information
         self.fields['amount'].initial = payment_information['amount']
 

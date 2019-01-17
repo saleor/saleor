@@ -8,11 +8,11 @@ from django_countries import countries
 
 from saleor.payment import ChargeStatus
 from saleor.payment.gateways.stripe import (
-    _create_response, _get_client, _get_error_response_from_exc,
-    _get_stripe_charge_payload, authorize, capture, charge,
-    get_amount_for_stripe, get_amount_from_stripe, get_client_token,
-    get_currency_for_stripe, get_currency_from_stripe, get_form_class, refund,
-    void, TransactionKind)
+    TransactionKind, _create_response, _get_client,
+    _get_error_response_from_exc, _get_stripe_charge_payload, authorize,
+    capture, charge, create_form, get_amount_for_stripe,
+    get_amount_from_stripe, get_client_token, get_currency_for_stripe,
+    get_currency_from_stripe, refund, void)
 from saleor.payment.gateways.stripe.errors import (
     ORDER_NOT_AUTHORIZED, ORDER_NOT_CHARGED)
 from saleor.payment.gateways.stripe.forms import (
@@ -245,18 +245,17 @@ def test_widget_with_enable_shipping_address_option(stripe_payment, gateway_para
 
 def test_stripe_payment_form(stripe_payment, gateway_params):
     payment_info = create_payment_information(stripe_payment, FAKE_TOKEN)
-    form = StripePaymentModalForm(
-        payment_information=payment_info, gateway_params=gateway_params)
+    form = create_form(
+        None, payment_information=payment_info,
+        connection_params=gateway_params)
+    assert isinstance(form, StripePaymentModalForm)
     assert not form.is_valid()
 
-    form = StripePaymentModalForm(
+    form = create_form(
         data={'stripeToken': FAKE_TOKEN}, payment_information=payment_info,
-        gateway_params=gateway_params)
+        connection_params=gateway_params)
+    assert isinstance(form, StripePaymentModalForm)
     assert form.is_valid()
-
-
-def test_get_form_class():
-    assert get_form_class() == StripePaymentModalForm
 
 
 def test_get_client(gateway_params):
@@ -387,7 +386,7 @@ def test_authorize(
     response = stripe_charge_success_response
     mock_charge_create.return_value = response
 
-    response = authorize(payment_info, **gateway_params)
+    response = authorize(payment_info, gateway_params)
 
     assert not response['error']
     assert response['transaction_id'] == TRANSACTION_TOKEN
@@ -410,7 +409,7 @@ def test_authorize_error_response(
         message=ERROR_MESSAGE, param=None)
     mock_charge_create.side_effect = stripe_error
 
-    response = authorize(payment_info, **gateway_params)
+    response = authorize(payment_info, gateway_params)
 
     assert response['error'] == ERROR_MESSAGE
     assert response['transaction_id'] == FAKE_TOKEN
@@ -436,7 +435,7 @@ def test_capture(
     mock_charge_retrieve.return_value = Mock(
         capture=Mock(return_value=response))
 
-    response = capture(payment_info, **gateway_params)
+    response = capture(payment_info, gateway_params)
 
     assert not response['error']
     assert response['transaction_id'] == TRANSACTION_TOKEN
@@ -461,7 +460,7 @@ def test_partial_capture(
     mock_charge_retrieve.return_value = Mock(
         capture=Mock(return_value=response))
 
-    response = capture(payment_info, **gateway_params)
+    response = capture(payment_info, gateway_params)
 
     assert not response['error']
     assert response['transaction_id'] == TRANSACTION_TOKEN
@@ -485,7 +484,7 @@ def test_capture_error_response(
         message=ERROR_MESSAGE, param=None)
     mock_charge_retrieve.side_effect = stripe_error
 
-    response = capture(payment_info, **gateway_params)
+    response = capture(payment_info, gateway_params)
 
     assert response['error'] == ERROR_MESSAGE
     assert response['transaction_id'] == TRANSACTION_TOKEN
@@ -510,7 +509,7 @@ def test_charge(
     response = stripe_charge_success_response
     mock_charge_create.return_value = response
 
-    response = charge(payment_info, **gateway_params)
+    response = charge(payment_info, gateway_params)
 
     assert not response['error']
     assert response['transaction_id'] == TRANSACTION_TOKEN
@@ -534,7 +533,7 @@ def test_charge_error_response(
         message=ERROR_MESSAGE, param=None)
     mock_charge_create.side_effect = stripe_error
 
-    response = charge(payment_info, **gateway_params)
+    response = charge(payment_info, gateway_params)
 
     assert response['error'] == ERROR_MESSAGE
     assert response['transaction_id'] == FAKE_TOKEN
@@ -562,7 +561,7 @@ def test_refund_charged(
     mock_charge_retrieve.return_value = Mock(id='')
     mock_refund_create.return_value = response
 
-    response = refund(payment_info, **gateway_params)
+    response = refund(payment_info, gateway_params)
 
     assert not response['error']
     assert response['transaction_id'] == TRANSACTION_TOKEN
@@ -589,7 +588,7 @@ def test_refund_captured(
     mock_charge_retrieve.return_value = Mock(id='')
     mock_refund_create.return_value = response
 
-    response = refund(payment_info, **gateway_params)
+    response = refund(payment_info, gateway_params)
 
     assert not response['error']
     assert response['transaction_id'] == TRANSACTION_TOKEN
@@ -616,7 +615,7 @@ def test_refund_error_response(
         message=ERROR_MESSAGE, param=None)
     mock_refund_create.side_effect = stripe_error
 
-    response = refund(payment_info, **gateway_params)
+    response = refund(payment_info, gateway_params)
 
     assert response['error'] == ERROR_MESSAGE
     assert response['transaction_id'] == TRANSACTION_TOKEN
@@ -643,7 +642,7 @@ def test_void(
     mock_charge_retrieve.return_value = Mock(id='')
     mock_refund_create.return_value = response
 
-    response = void(payment_info, **gateway_params)
+    response = void(payment_info, gateway_params)
 
     assert not response['error']
     assert response['transaction_id'] == TRANSACTION_TOKEN
@@ -669,7 +668,7 @@ def test_void_error_response(
         message=ERROR_MESSAGE, param=None)
     mock_refund_create.side_effect = stripe_error
 
-    response = void(payment_info, **gateway_params)
+    response = void(payment_info, gateway_params)
 
     assert response['error'] == ERROR_MESSAGE
     assert response['transaction_id'] == TRANSACTION_TOKEN

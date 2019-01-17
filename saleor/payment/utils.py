@@ -11,7 +11,7 @@ from django.forms.models import model_to_dict
 from prices import Money
 
 from . import (
-    ChargeStatus, GatewayError, PaymentError, TransactionKind,
+    ChargeStatus, GatewayError, OperationType, PaymentError, TransactionKind,
     get_payment_gateway)
 from ..core import analytics
 from ..order import OrderEvents, OrderEventsEmails
@@ -24,6 +24,22 @@ GENERIC_TRANSACTION_ERROR = 'Transaction was unsuccessful'
 REQUIRED_GATEWAY_KEYS = {
     'transaction_id', 'is_success', 'kind', 'error', 'amount', 'currency'}
 ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
+
+
+def get_gateway_operation_func(gateway, operation_type):
+    """Return gateway method based on the operation type to be performed."""
+    if operation_type == OperationType.PROCESS_PAYMENT:
+        return gateway.process_payment
+    if operation_type == OperationType.AUTH:
+        return gateway.authorize
+    if operation_type == OperationType.CAPTURE:
+        return gateway.capture
+    if operation_type == OperationType.CHARGE:
+        return gateway.charge
+    if operation_type == OperationType.VOID:
+        return gateway.void
+    if operation_type == OperationType.REFUND:
+        return gateway.refund
 
 
 def get_billing_data(order):
@@ -110,7 +126,7 @@ def create_transaction(
 
     # Default values for token, amount, currency are only used in cases where
     # response from gateway was invalid or an exception occured
-    txn, _ = Transaction.objects.get_or_create(
+    txn = Transaction.objects.create(
         payment=payment,
         kind=gateway_response.get('kind', kind),
         token=gateway_response.get(
@@ -161,11 +177,12 @@ def clean_authorize(payment: Payment):
 
 
 def call_gateway(
-        func_name, transaction_kind, payment, payment_token, **extra_params):
+        operation_type, transaction_kind,
+        payment, payment_token, **extra_params):
     """Helper that calls the passed gateway function and handles exceptions.
 
     Additionally does validation of the returned gateway response."""
-    gateway, gateway_params = get_payment_gateway(payment.gateway)
+    gateway, connection_params = get_payment_gateway(payment.gateway)
     gateway_response = None
     error_msg = None
 
@@ -174,12 +191,18 @@ def call_gateway(
     )
 
     try:
-        gateway_response = getattr(gateway, func_name)(
-            payment_information=payment_information, **gateway_params)
-        validate_gateway_response(gateway_response)
+        func = get_gateway_operation_func(gateway, operation_type)
     except AttributeError:
-        error_msg = 'Gateway doesn\'t implement {}'.format(func_name)
+        error_msg = 'Gateway doesn\'t implement {} operation'.format(
+            operation_type.name)
         logger.exception(error_msg)
+        raise PaymentError(error_msg)
+
+    try:
+        gateway_response = func(
+            payment_information=payment_information,
+            connection_params=connection_params)
+        validate_gateway_response(gateway_response)
     except GatewayError:
         error_msg = 'Gateway response validation failed'
         logger.exception(error_msg)
@@ -256,16 +279,16 @@ def gateway_process_payment(
         payment: Payment, payment_token: str) -> Transaction:
     """Performs whole payment process on a gateway."""
     transaction = call_gateway(
-        func_name='process_payment', transaction_kind=TransactionKind.CAPTURE,
+        operation_type=OperationType.PROCESS_PAYMENT,
+        transaction_kind=TransactionKind.CAPTURE,
         payment=payment, payment_token=payment_token, amount=payment.total)
 
-    if transaction.is_success:
-        payment.charge_status = ChargeStatus.CHARGED
-        payment.captured_amount += transaction.amount
-        payment.save(update_fields=['charge_status', 'captured_amount'])
-        order = payment.order
-        if order and order.is_fully_paid():
-            handle_fully_paid_order(order)
+    payment.charge_status = ChargeStatus.CHARGED
+    payment.captured_amount += transaction.amount
+    payment.save(update_fields=['charge_status', 'captured_amount'])
+    order = payment.order
+    if order and order.is_fully_paid():
+        handle_fully_paid_order(order)
 
     return transaction
 
@@ -288,16 +311,16 @@ def gateway_charge(
     clean_charge(payment, amount)
 
     transaction = call_gateway(
-        func_name='charge', transaction_kind=TransactionKind.CHARGE,
+        operation_type=OperationType.CHARGE,
+        transaction_kind=TransactionKind.CHARGE,
         payment=payment, payment_token=payment_token, amount=amount)
 
-    if transaction.is_success:
-        payment.charge_status = ChargeStatus.CHARGED
-        payment.captured_amount += transaction.amount
-        payment.save(update_fields=['charge_status', 'captured_amount'])
-        order = payment.order
-        if order and order.is_fully_paid():
-            handle_fully_paid_order(order)
+    payment.charge_status = ChargeStatus.CHARGED
+    payment.captured_amount += transaction.amount
+    payment.save(update_fields=['charge_status', 'captured_amount'])
+    order = payment.order
+    if order and order.is_fully_paid():
+        handle_fully_paid_order(order)
 
     return transaction
 
@@ -312,7 +335,8 @@ def gateway_authorize(payment: Payment, payment_token: str) -> Transaction:
     clean_authorize(payment)
 
     return call_gateway(
-        func_name='authorize', transaction_kind=TransactionKind.AUTH,
+        operation_type=OperationType.AUTH,
+        transaction_kind=TransactionKind.AUTH,
         payment=payment, payment_token=payment_token)
 
 
@@ -330,16 +354,16 @@ def gateway_capture(payment: Payment, amount: Decimal = None) -> Transaction:
     payment_token = auth_transaction.token
 
     transaction = call_gateway(
-        func_name='capture', transaction_kind=TransactionKind.CAPTURE,
+        operation_type=OperationType.CAPTURE,
+        transaction_kind=TransactionKind.CAPTURE,
         payment=payment, payment_token=payment_token, amount=amount)
 
-    if transaction.is_success:
-        payment.charge_status = ChargeStatus.CHARGED
-        payment.captured_amount += transaction.amount
-        payment.save(update_fields=['charge_status', 'captured_amount'])
-        order = payment.order
-        if order and order.is_fully_paid():
-            handle_fully_paid_order(order)
+    payment.charge_status = ChargeStatus.CHARGED
+    payment.captured_amount += transaction.amount
+    payment.save(update_fields=['charge_status', 'captured_amount'])
+    order = payment.order
+    if order and order.is_fully_paid():
+        handle_fully_paid_order(order)
 
     return transaction
 
@@ -356,12 +380,12 @@ def gateway_void(payment) -> Transaction:
     payment_token = auth_transaction.token
 
     transaction = call_gateway(
-        func_name='void', transaction_kind=TransactionKind.VOID,
+        operation_type=OperationType.VOID,
+        transaction_kind=TransactionKind.VOID,
         payment=payment, payment_token=payment_token)
 
-    if transaction.is_success:
-        payment.is_active = False
-        payment.save(update_fields=['is_active'])
+    payment.is_active = False
+    payment.save(update_fields=['is_active'])
 
     return transaction
 
@@ -391,16 +415,16 @@ def gateway_refund(payment, amount: Decimal = None) -> Transaction:
     payment_token = transaction.token
 
     transaction = call_gateway(
-        func_name='refund', transaction_kind=TransactionKind.REFUND,
+        operation_type=OperationType.REFUND,
+        transaction_kind=TransactionKind.REFUND,
         payment=payment, payment_token=payment_token, amount=amount)
 
-    if transaction.is_success:
-        changed_fields = ['captured_amount']
-        payment.captured_amount -= transaction.amount
-        if not payment.captured_amount:
-            payment.charge_status = ChargeStatus.FULLY_REFUNDED
-            payment.is_active = False
-            changed_fields += ['charge_status', 'is_active']
-        payment.save(update_fields=changed_fields)
+    changed_fields = ['captured_amount']
+    payment.captured_amount -= transaction.amount
+    if not payment.captured_amount:
+        payment.charge_status = ChargeStatus.FULLY_REFUNDED
+        payment.is_active = False
+        changed_fields += ['charge_status', 'is_active']
+    payment.save(update_fields=changed_fields)
 
     return transaction

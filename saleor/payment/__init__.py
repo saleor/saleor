@@ -1,7 +1,8 @@
 import importlib
 from enum import Enum
-from django.core.exceptions import ImproperlyConfigured
+
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import pgettext_lazy
 
 
@@ -12,7 +13,7 @@ class PaymentError(Exception):
         self.message = message
 
 
-class GatewayError(Exception):
+class GatewayError(IOError):
     pass
 
 
@@ -21,6 +22,15 @@ class CustomPaymentChoices:
 
     CHOICES = [
         (MANUAL, pgettext_lazy('Custom payment choice type', 'Manual'))]
+
+
+class OperationType(Enum):
+    PROCESS_PAYMENT = 'process_payment'
+    AUTH = 'authorize'
+    CAPTURE = 'capture'
+    CHARGE = 'charge'
+    VOID = 'void'
+    REFUND = 'refund'
 
 
 class TransactionError(Enum):
