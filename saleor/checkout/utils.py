@@ -886,7 +886,6 @@ def create_order(cart, tracking_code, discounts, taxes):
 
 
 def is_fully_paid(cart: Cart):
-    # FIXME test me
     payments = cart.payments.filter(is_active=True)
     total_paid = sum(
         [p.total for p in payments])
