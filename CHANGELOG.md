@@ -18,3 +18,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix bug where orders can not be filtered by payment status - #3608 by @jxltom
 - Fix logo placement in dashboard 2.0 when the svg has specific width - #3609 by @jxltom
 - Support get correct payment status for order without any payments - #3605 by @jxltom
+- Continue fixing logo placement in storefront 1.0 and dashboard 2.0's login page - #3616 by @jxltom
