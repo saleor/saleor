@@ -47,7 +47,9 @@ const styles = (theme: Theme) =>
     logo: {
       "& svg": {
         display: "block",
-        margin: `0 auto ${theme.spacing.unit * 7}px`
+        height: "38px",
+        margin: `0 auto ${theme.spacing.unit * 7}px`,
+        width: "auto"
       }
     },
     panel: {
