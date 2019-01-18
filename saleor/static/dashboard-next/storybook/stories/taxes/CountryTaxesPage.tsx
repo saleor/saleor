@@ -9,6 +9,7 @@ import { countries } from "./fixtures";
 
 const props: CountryTaxesPageProps = {
   countryName: "Austria",
+  onBack: () => undefined,
   taxCategories: countries[0].vat.reducedRates
 };
 
