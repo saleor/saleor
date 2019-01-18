@@ -1,13 +1,15 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
+import { TaxRateType } from "./../../types/globalTypes";
+
 // ====================================================
 // GraphQL query operation: CountryList
 // ====================================================
 
 export interface CountryList_shop_countries_vat_reducedRates {
   __typename: "ReducedRate";
-  rateType: string;
+  rateType: TaxRateType;
   rate: number;
 }
 
@@ -26,6 +28,7 @@ export interface CountryList_shop_countries {
 
 export interface CountryList_shop {
   __typename: "Shop";
+  chargeTaxesOnShipping: boolean | null;
   includeTaxesInPrices: boolean | null;
   displayGrossPrices: boolean | null;
   countries: (CountryList_shop_countries | null)[];

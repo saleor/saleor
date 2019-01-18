@@ -47,9 +47,7 @@ const CountryListPage = withStyles(styles, { name: "CountryListPage" })(
     onTaxFetch
   }: CountryListPageProps & WithStyles<typeof styles>) => {
     const initialForm: FormData = {
-      // TODO: connect to API
-      // chargeTaxesOnShipping: maybe(() => shop.chargeTaxesOnShipping),
-      chargeTaxesOnShipping: false,
+      chargeTaxesOnShipping: maybe(() => shop.chargeTaxesOnShipping, false),
       includeTax: maybe(() => shop.includeTaxesInPrices, false),
       showGross: maybe(() => shop.displayGrossPrices, false)
     };
