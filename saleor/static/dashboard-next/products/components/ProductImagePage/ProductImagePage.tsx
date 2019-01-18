@@ -13,6 +13,7 @@ import CardTitle from "../../../components/CardTitle";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
+import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
 import Skeleton from "../../../components/Skeleton";
@@ -33,11 +34,6 @@ const styles = (theme: Theme) =>
       margin: `0 auto ${theme.spacing.unit * 2}px`,
       maxWidth: 552,
       padding: theme.spacing.unit * 2
-    },
-    root: {
-      display: "grid",
-      gridColumnGap: theme.spacing.unit * 2 + "px",
-      gridTemplateColumns: "4fr 9fr"
     }
   });
 
@@ -80,7 +76,7 @@ const ProductImagePage = withStyles(styles, { name: "ProductImagePage" })(
         return (
           <Container width="md">
             <PageHeader title={i18n.t("Edit Photo")} onBack={onBack} />
-            <div className={classes.root}>
+            <Grid variant="inverted">
               <div>
                 <ProductImageNavigation
                   disabled={disabled}
@@ -118,7 +114,7 @@ const ProductImagePage = withStyles(styles, { name: "ProductImagePage" })(
                   </CardContent>
                 </Card>
               </div>
-            </div>
+            </Grid>
             <SaveButtonBar
               disabled={disabled || !onSubmit || !hasChanged}
               state={saveButtonBarState}

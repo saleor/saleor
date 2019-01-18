@@ -7,7 +7,7 @@ import {
 import classNames from "classnames";
 import * as React from "react";
 
-export type GridVariant = "default" | "inverted" | "uniform";
+export type GridVariant = "default" | "inverted";
 export interface GridProps extends WithStyles<typeof styles> {
   children: React.ReactNodeArray | React.ReactNode;
   variant?: GridVariant;
@@ -24,15 +24,11 @@ const styles = (theme: Theme) =>
     root: {
       display: "grid",
       gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridRowGap: theme.spacing.unit * 3 + "px",
       [theme.breakpoints.down("sm")]: {
-        "& > div": {
-          marginBottom: theme.spacing.unit
-        },
+        gridRowGap: theme.spacing.unit + "px",
         gridTemplateColumns: "1fr"
       }
-    },
-    uniform: {
-      gridTemplateColumns: "1fr 1fr"
     }
   });
 
@@ -42,8 +38,7 @@ export const Grid = withStyles(styles, { name: "Grid" })(
       className={classNames({
         [classes.root]: true,
         [classes.default]: variant === "default",
-        [classes.inverted]: variant === "inverted",
-        [classes.uniform]: variant === "uniform"
+        [classes.inverted]: variant === "inverted"
       })}
     >
       {children}
