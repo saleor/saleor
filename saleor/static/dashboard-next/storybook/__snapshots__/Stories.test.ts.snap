@@ -14107,7 +14107,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
         </div>
       </div>
       <div
-        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ConfigurationPage-cardDisabled-id"
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ConfigurationPage-card-id"
       >
         <div
           class="MuiCardContent-root-id ConfigurationPage-cardContent-id"
@@ -14418,7 +14418,7 @@ exports[`Storyshots Views / Configuration partial access 1`] = `
         </div>
       </div>
       <div
-        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ConfigurationPage-cardDisabled-id"
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ConfigurationPage-card-id"
       >
         <div
           class="MuiCardContent-root-id ConfigurationPage-cardContent-id"
@@ -57738,6 +57738,1332 @@ exports[`Storyshots Views / Staff / Staff members when loading 1`] = `
           </tr>
         </tbody>
       </table>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Taxes / Country List default 1`] = `
+<div>
+  <form>
+    <div
+      class="Container-md-id"
+    >
+      <div
+        class="ExtendedPageHeader-root-id"
+      >
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
+        >
+          Taxes
+        </h2>
+        <div
+          class="ExtendedPageHeader-action-id"
+        />
+      </div>
+      <div
+        class="CountryListPage-root-id"
+      >
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <table
+              class="MuiTable-root-id"
+            >
+              <thead
+                class="MuiTableHead-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-head-id"
+                >
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  >
+                    Country Code
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  >
+                    Country Name
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id CountryList-textRight-id"
+                    scope="col"
+                  >
+                    No of Reduced Tax Rates
+                  </th>
+                </tr>
+              </thead>
+              <tbody
+                class="MuiTableBody-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    AT
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Austria
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    8
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    BE
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Belgia
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    10
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    BG
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Bułgaria
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    1
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    CY
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Cypr
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    11
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    CZ
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Czechy
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    11
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    DE
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Niemcy
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    8
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    DK
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Dania
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    0
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    EE
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Estonia
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    4
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    ES
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Hiszpania
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    8
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    FI
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Finlandia
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    10
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    FR
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Francja
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    13
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    GB
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Wielka Brytania
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    8
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    GR
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Grecja
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    9
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    HR
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Chorwacja
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    2
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    HU
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Węgry
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    5
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    IE
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Irlandia
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    10
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    IT
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Włochy
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    10
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    LT
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Litwa
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    3
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    LU
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Luksemburg
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    17
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    LV
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Łotwa
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    5
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    MT
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Malta
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    8
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    NL
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Holandia
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    9
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    PL
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Polska
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    10
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    PT
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Portugalia
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    8
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    RO
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Rumunia
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    9
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    SE
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Szwecja
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    2
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    SI
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Słowenia
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    9
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id CountryList-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    SK
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Słowacja
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    6
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
+                Configuration
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id TaxConfiguration-content-id"
+            >
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id"
+                      />
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        name="includeTax"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    All products prices are entered with tax included
+                  </div>
+                </span>
+              </label>
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
+                      />
+                      <input
+                        checked=""
+                        class="MuiPrivateSwitchBase-input-id"
+                        name="showGross"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    Show gross prices to customers in the storefront
+                  </div>
+                </span>
+              </label>
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id"
+                      />
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        name="chargeTaxesOnShipping"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    Charge taxes on shipping rates
+                  </div>
+                </span>
+              </label>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+            </div>
+            <hr
+              class="Hr-root-id"
+            />
+            <div
+              class="MuiCardActions-root-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiButton-label-id"
+                >
+                  Fetch taxes
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Taxes / Country List loading 1`] = `
+<div>
+  <form>
+    <div
+      class="Container-md-id"
+    >
+      <div
+        class="ExtendedPageHeader-root-id"
+      >
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
+        >
+          Taxes
+        </h2>
+        <div
+          class="ExtendedPageHeader-action-id"
+        />
+      </div>
+      <div
+        class="CountryListPage-root-id"
+      >
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <table
+              class="MuiTable-root-id"
+            >
+              <thead
+                class="MuiTableHead-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-head-id"
+                >
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  >
+                    Country Code
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  >
+                    Country Name
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id CountryList-textRight-id"
+                    scope="col"
+                  >
+                    No of Reduced Tax Rates
+                  </th>
+                </tr>
+              </thead>
+              <tbody
+                class="MuiTableBody-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    <span
+                      class="Skeleton-skeleton-id"
+                    >
+                      ‌
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    <span
+                      class="Skeleton-skeleton-id"
+                    >
+                      ‌
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id"
+                  >
+                    <span
+                      class="Skeleton-skeleton-id"
+                    >
+                      ‌
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
+                Configuration
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id TaxConfiguration-content-id"
+            >
+              <label
+                class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiSwitch-disabled-id"
+                    tabindex="-1"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id"
+                      />
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        disabled=""
+                        name="includeTax"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    All products prices are entered with tax included
+                  </div>
+                </span>
+              </label>
+              <label
+                class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiSwitch-disabled-id"
+                    tabindex="-1"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id"
+                      />
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        disabled=""
+                        name="showGross"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    Show gross prices to customers in the storefront
+                  </div>
+                </span>
+              </label>
+              <label
+                class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiSwitch-disabled-id"
+                    tabindex="-1"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id"
+                      />
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        disabled=""
+                        name="chargeTaxesOnShipping"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    Charge taxes on shipping rates
+                  </div>
+                </span>
+              </label>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+            </div>
+            <hr
+              class="Hr-root-id"
+            />
+            <div
+              class="MuiCardActions-root-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id MuiCardActions-action-id"
+                disabled=""
+                tabindex="-1"
+                type="button"
+              >
+                <span
+                  class="MuiButton-label-id"
+                >
+                  Fetch taxes
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Taxes / Reduced Tax Categories default 1`] = `
+<div>
+  <div
+    class="Container-md-id"
+  >
+    <div
+      class="ExtendedPageHeader-root-id"
+    >
+      <button
+        class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id ExtendedPageHeader-menuButton-id"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiIconButton-label-id"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-id"
+            focusable="false"
+            role="presentation"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M0 0h24v24H0z"
+              fill="none"
+            />
+            <path
+              d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+            />
+          </svg>
+        </span>
+      </button>
+      <h2
+        class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
+      >
+        Tax Rates in Austria
+      </h2>
+      <div
+        class="ExtendedPageHeader-action-id"
+      />
+    </div>
+    <div
+      class="CountryTaxesPage-root-id"
+    >
+      <div>
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <table
+            class="MuiTable-root-id"
+          >
+            <thead
+              class="MuiTableHead-root-id"
+            >
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-head-id"
+              >
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id CountryTaxesPage-wideColumn-id"
+                  scope="col"
+                >
+                  Category
+                </th>
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id"
+                  scope="col"
+                >
+                  Tax Rate
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              class="MuiTableBody-root-id"
+            >
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  Admission to cultural events
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  10
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  Admission to entertainment events
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  10
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  Books
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  10
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  Foodstuffs
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  10
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  Hotels
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  10
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  Newspapers
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  10
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  Passenger transport
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  10
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  Pharmaceuticals
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  10
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Taxes / Reduced Tax Categories loading 1`] = `
+<div>
+  <div
+    class="Container-md-id"
+  >
+    <div
+      class="ExtendedPageHeader-root-id"
+    >
+      <button
+        class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id ExtendedPageHeader-menuButton-id"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiIconButton-label-id"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-id"
+            focusable="false"
+            role="presentation"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M0 0h24v24H0z"
+              fill="none"
+            />
+            <path
+              d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+            />
+          </svg>
+        </span>
+      </button>
+      <h2
+        class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
+      >
+        <span
+          class="Skeleton-skeleton-id"
+          style="width:10em"
+        >
+          ‌
+        </span>
+      </h2>
+      <div
+        class="ExtendedPageHeader-action-id"
+      />
+    </div>
+    <div
+      class="CountryTaxesPage-root-id"
+    >
+      <div>
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <table
+            class="MuiTable-root-id"
+          >
+            <thead
+              class="MuiTableHead-root-id"
+            >
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-head-id"
+              >
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id CountryTaxesPage-wideColumn-id"
+                  scope="col"
+                >
+                  Category
+                </th>
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id"
+                  scope="col"
+                >
+                  Tax Rate
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              class="MuiTableBody-root-id"
+            >
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 </div>
