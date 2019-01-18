@@ -10512,7 +10512,7 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -11447,7 +11447,7 @@ exports[`Storyshots Views / Collections / Collection details loading 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -12125,7 +12125,7 @@ exports[`Storyshots Views / Collections / Collection details no products 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -13204,7 +13204,7 @@ exports[`Storyshots Views / Collections / Create collection default 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -13614,7 +13614,7 @@ exports[`Storyshots Views / Collections / Create collection loading 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -14614,7 +14614,7 @@ exports[`Storyshots Views / Customers / Create customer default 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -15221,7 +15221,7 @@ exports[`Storyshots Views / Customers / Create customer form errors 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -15898,7 +15898,7 @@ exports[`Storyshots Views / Customers / Create customer loading 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -16519,7 +16519,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -17070,7 +17070,7 @@ exports[`Storyshots Views / Customers / Customer details different addresses 1`]
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -17658,7 +17658,7 @@ exports[`Storyshots Views / Customers / Customer details form errors 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -18222,7 +18222,7 @@ exports[`Storyshots Views / Customers / Customer details loading 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -18750,7 +18750,7 @@ exports[`Storyshots Views / Customers / Customer details never logged 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -19295,7 +19295,7 @@ exports[`Storyshots Views / Customers / Customer details never placed order 1`] 
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -20771,7 +20771,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
       class="CardSpacer-spacer-id"
     />
     <div
-      class="Grid-root-id"
+      class="Grid-root-id Grid-default-id"
     >
       <div>
         <div
@@ -21436,7 +21436,7 @@ exports[`Storyshots Views / HomePage loading 1`] = `
       class="CardSpacer-spacer-id"
     />
     <div
-      class="Grid-root-id"
+      class="Grid-root-id Grid-default-id"
     >
       <div>
         <div
@@ -21808,7 +21808,7 @@ exports[`Storyshots Views / HomePage no data 1`] = `
       class="CardSpacer-spacer-id"
     />
     <div
-      class="Grid-root-id"
+      class="Grid-root-id Grid-default-id"
     >
       <div>
         <div
@@ -22220,7 +22220,7 @@ exports[`Storyshots Views / Orders / Order details cancelled 1`] = `
       </span>
     </div>
     <div
-      class="Grid-root-id"
+      class="Grid-root-id Grid-default-id"
     >
       <div>
         <div
@@ -23060,7 +23060,7 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
       </span>
     </div>
     <div
-      class="Grid-root-id"
+      class="Grid-root-id Grid-default-id"
     >
       <div>
         <div
@@ -24086,7 +24086,7 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
       </span>
     </div>
     <div
-      class="Grid-root-id"
+      class="Grid-root-id Grid-default-id"
     >
       <div>
         <div
@@ -25112,7 +25112,7 @@ exports[`Storyshots Views / Orders / Order details loading 1`] = `
       </span>
     </div>
     <div
-      class="Grid-root-id"
+      class="Grid-root-id Grid-default-id"
     >
       <div>
         <div
@@ -25703,7 +25703,7 @@ exports[`Storyshots Views / Orders / Order details no customer note 1`] = `
       </span>
     </div>
     <div
-      class="Grid-root-id"
+      class="Grid-root-id Grid-default-id"
     >
       <div>
         <div
@@ -26729,7 +26729,7 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
       </span>
     </div>
     <div
-      class="Grid-root-id"
+      class="Grid-root-id Grid-default-id"
     >
       <div>
         <div
@@ -27755,7 +27755,7 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
       </span>
     </div>
     <div
-      class="Grid-root-id"
+      class="Grid-root-id Grid-default-id"
     >
       <div>
         <div
@@ -28781,7 +28781,7 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
       </span>
     </div>
     <div
-      class="Grid-root-id"
+      class="Grid-root-id Grid-default-id"
     >
       <div>
         <div
@@ -29807,7 +29807,7 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
       </span>
     </div>
     <div
-      class="Grid-root-id"
+      class="Grid-root-id Grid-default-id"
     >
       <div>
         <div
@@ -30833,7 +30833,7 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
       </span>
     </div>
     <div
-      class="Grid-root-id"
+      class="Grid-root-id Grid-default-id"
     >
       <div>
         <div
@@ -31859,7 +31859,7 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
       </span>
     </div>
     <div
-      class="Grid-root-id"
+      class="Grid-root-id Grid-default-id"
     >
       <div>
         <div
@@ -32885,7 +32885,7 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
       </span>
     </div>
     <div
-      class="Grid-root-id"
+      class="Grid-root-id Grid-default-id"
     >
       <div>
         <div
@@ -33911,7 +33911,7 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
       </span>
     </div>
     <div
-      class="Grid-root-id"
+      class="Grid-root-id Grid-default-id"
     >
       <div>
         <div
@@ -34937,7 +34937,7 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
       </span>
     </div>
     <div
-      class="Grid-root-id"
+      class="Grid-root-id Grid-default-id"
     >
       <div>
         <div
@@ -35963,7 +35963,7 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
       </span>
     </div>
     <div
-      class="Grid-root-id"
+      class="Grid-root-id Grid-default-id"
     >
       <div>
         <div
@@ -36670,7 +36670,7 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
       </span>
     </div>
     <div
-      class="Grid-root-id"
+      class="Grid-root-id Grid-default-id"
     >
       <div>
         <div
@@ -37186,7 +37186,7 @@ exports[`Storyshots Views / Orders / Order draft without lines 1`] = `
       </span>
     </div>
     <div
-      class="Grid-root-id"
+      class="Grid-root-id Grid-default-id"
     >
       <div>
         <div
@@ -40708,7 +40708,7 @@ exports[`Storyshots Views / Pages / Page details when loading 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -41025,7 +41025,7 @@ exports[`Storyshots Views / Pages / Page details with initial data 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -41886,7 +41886,7 @@ exports[`Storyshots Views / Product types / Create product type default 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -42194,7 +42194,7 @@ exports[`Storyshots Views / Product types / Create product type loading 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -42499,7 +42499,7 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -43053,7 +43053,7 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -43989,7 +43989,7 @@ exports[`Storyshots Views / Products / Create product When loading 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -44647,7 +44647,7 @@ exports[`Storyshots Views / Products / Create product default 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -45296,7 +45296,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
         />
       </div>
       <div
-        class="ProductVariantCreatePage-root-id"
+        class="Grid-root-id Grid-inverted-id"
       >
         <div>
           <div
@@ -45446,7 +45446,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
             </div>
           </div>
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductVariantPrice-root-id"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
               class="CardTitle-root-id"
@@ -45552,7 +45552,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
             </div>
           </div>
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductVariantStock-root-id"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
               class="CardTitle-root-id"
@@ -45746,7 +45746,7 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
         />
       </div>
       <div
-        class="ProductVariantCreatePage-root-id"
+        class="Grid-root-id Grid-inverted-id"
       >
         <div>
           <div
@@ -45849,7 +45849,7 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
             </div>
           </div>
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductVariantPrice-root-id"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
               class="CardTitle-root-id"
@@ -45957,7 +45957,7 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
             </div>
           </div>
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductVariantStock-root-id"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
               class="CardTitle-root-id"
@@ -46153,7 +46153,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
         />
       </div>
       <div
-        class="ProductVariantCreatePage-root-id"
+        class="Grid-root-id Grid-inverted-id"
       >
         <div>
           <div
@@ -46303,7 +46303,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
             </div>
           </div>
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductVariantPrice-root-id"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
               class="CardTitle-root-id"
@@ -46409,7 +46409,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
             </div>
           </div>
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductVariantStock-root-id"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
               class="CardTitle-root-id"
@@ -46608,7 +46608,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -47716,7 +47716,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -48510,7 +48510,7 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -49525,7 +49525,7 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -50571,7 +50571,7 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
         />
       </div>
       <div
-        class="ProductImagePage-root-id"
+        class="Grid-root-id Grid-inverted-id"
       >
         <div>
           <div
@@ -50897,7 +50897,7 @@ exports[`Storyshots Views / Products / Product image details when loading data 1
         />
       </div>
       <div
-        class="ProductImagePage-root-id"
+        class="Grid-root-id Grid-inverted-id"
       >
         <div>
           <div
@@ -53108,7 +53108,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
     </div>
     <form>
       <div
-        class="ProductVariantPage-root-id"
+        class="Grid-root-id Grid-inverted-id"
       >
         <div>
           <div
@@ -53346,7 +53346,10 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
             </div>
           </div>
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductVariantImages-card-id"
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
               class="CardTitle-root-id"
@@ -53420,7 +53423,10 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
             </div>
           </div>
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductVariantPrice-root-id"
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
               class="CardTitle-root-id"
@@ -53526,7 +53532,10 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
             </div>
           </div>
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductVariantStock-root-id"
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
               class="CardTitle-root-id"
@@ -53730,7 +53739,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
     </div>
     <form>
       <div
-        class="ProductVariantPage-root-id"
+        class="Grid-root-id Grid-inverted-id"
       >
         <div>
           <div
@@ -53833,7 +53842,10 @@ exports[`Storyshots Views / Products / Product variant details when loading data
             </div>
           </div>
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductVariantImages-card-id"
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
               class="CardTitle-root-id"
@@ -53881,7 +53893,10 @@ exports[`Storyshots Views / Products / Product variant details when loading data
             </div>
           </div>
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductVariantPrice-root-id"
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
               class="CardTitle-root-id"
@@ -53973,7 +53988,10 @@ exports[`Storyshots Views / Products / Product variant details when loading data
             </div>
           </div>
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductVariantStock-root-id"
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
               class="CardTitle-root-id"
@@ -54143,7 +54161,7 @@ exports[`Storyshots Views / Site settings / Page default 1`] = `
         />
       </div>
       <div
-        class="SiteSettingsPage-root-id"
+        class="Grid-root-id Grid-inverted-id"
       >
         <h2
           class="MuiTypography-root-id MuiTypography-title-id"
@@ -54462,7 +54480,7 @@ exports[`Storyshots Views / Site settings / Page form errors 1`] = `
         />
       </div>
       <div
-        class="SiteSettingsPage-root-id"
+        class="Grid-root-id Grid-inverted-id"
       >
         <h2
           class="MuiTypography-root-id MuiTypography-title-id"
@@ -54786,7 +54804,7 @@ exports[`Storyshots Views / Site settings / Page loading 1`] = `
         />
       </div>
       <div
-        class="SiteSettingsPage-root-id"
+        class="Grid-root-id Grid-inverted-id"
       >
         <h2
           class="MuiTypography-root-id MuiTypography-title-id"
@@ -55142,7 +55160,7 @@ exports[`Storyshots Views / Staff / Staff member details default 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -55536,7 +55554,7 @@ exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -56296,7 +56314,7 @@ exports[`Storyshots Views / Staff / Staff member details not admin 1`] = `
         />
       </div>
       <div
-        class="Grid-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
