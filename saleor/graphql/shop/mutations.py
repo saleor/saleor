@@ -105,7 +105,7 @@ class ShopFetchTaxRates(BaseMutation):
             logger.exception(exc)
             cls.add_error(
                 errors, None, 'Could not fetch tax rates. '
-                'Make sure you have supplied a valid API Access Key.'
+                'Make sure you have supplied a valid API Access Key. '
                 'Check the server logs for more information about this error.')
         return ShopFetchTaxRates(shop=Shop(), errors=errors)
 
