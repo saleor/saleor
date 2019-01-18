@@ -34,13 +34,15 @@ const styles = (theme: Theme) =>
 export interface CountryTaxesPageProps {
   countryName: string;
   taxCategories: CountryList_shop_countries_vat_reducedRates[];
+  onBack: () => void;
 }
 
 const CountryTaxesPage = withStyles(styles, { name: "CountryTaxesPage" })(
   ({
     classes,
     countryName,
-    taxCategories
+    taxCategories,
+    onBack
   }: CountryTaxesPageProps & WithStyles<typeof styles>) => {
     const taxRates = translatedTaxRates();
     return (
@@ -54,6 +56,7 @@ const CountryTaxesPage = withStyles(styles, { name: "CountryTaxesPage" })(
                 })
               : undefined
           }
+          onBack={onBack}
         />
         <div className={classes.root}>
           <div>
