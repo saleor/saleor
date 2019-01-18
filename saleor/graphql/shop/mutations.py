@@ -1,4 +1,8 @@
+import logging
+
 import graphene
+from django.core.exceptions import ImproperlyConfigured
+from django.core.management import call_command
 from graphql_jwt.decorators import permission_required
 
 from ...site import models as site_models
@@ -6,6 +10,8 @@ from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation
 from ..product.types import Collection
 from .types import AuthorizationKey, AuthorizationKeyType, Shop
+
+logger = logging.getLogger(__name__)
 
 
 class ShopSettingsInput(graphene.InputObjectType):
@@ -81,6 +87,27 @@ class ShopDomainUpdate(BaseMutation):
             return ShopDomainUpdate(errors=errors)
         site.save()
         return ShopDomainUpdate(shop=Shop(), errors=errors)
+
+
+class ShopFetchTaxRates(BaseMutation):
+    shop = graphene.Field(Shop, description='Updated Shop')
+
+    class Meta:
+        description = 'Fetch tax rates'
+
+    @classmethod
+    @permission_required('site.manage_settings')
+    def mutate(cls, root, info):
+        errors = []
+        try:
+            call_command('get_vat_rates')
+        except ImproperlyConfigured as exc:
+            logger.exception(exc)
+            cls.add_error(
+                errors, None, 'Could not fetch tax rates. '
+                'Make sure you have supplied a valid API Access Key.'
+                'Check the server logs for more information about this error.')
+        return ShopFetchTaxRates(shop=Shop(), errors=errors)
 
 
 class HomepageCollectionUpdate(BaseMutation):
