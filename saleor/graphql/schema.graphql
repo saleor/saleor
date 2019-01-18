@@ -831,6 +831,7 @@ type Mutations {
   homepageCollectionUpdate(collection: ID): HomepageCollectionUpdate
   shopDomainUpdate(input: SiteDomainInput): ShopDomainUpdate
   shopSettingsUpdate(input: ShopSettingsInput!): ShopSettingsUpdate
+  shopFetchTaxRates: ShopFetchTaxRates
   shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
   shippingPriceDelete(id: ID!): ShippingPriceDelete
   shippingPriceUpdate(id: ID!, input: ShippingPriceInput!): ShippingPriceUpdate
@@ -1820,6 +1821,11 @@ type Shop {
 }
 
 type ShopDomainUpdate {
+  errors: [Error!]
+  shop: Shop
+}
+
+type ShopFetchTaxRates {
   errors: [Error!]
   shop: Shop
 }
