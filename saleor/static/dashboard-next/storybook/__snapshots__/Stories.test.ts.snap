@@ -14107,7 +14107,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
         </div>
       </div>
       <div
-        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ConfigurationPage-card-id"
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ConfigurationPage-cardDisabled-id"
       >
         <div
           class="MuiCardContent-root-id ConfigurationPage-cardContent-id"
@@ -14153,7 +14153,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
         </div>
       </div>
       <div
-        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ConfigurationPage-cardDisabled-id"
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ConfigurationPage-card-id"
       >
         <div
           class="MuiCardContent-root-id ConfigurationPage-cardContent-id"
@@ -57762,7 +57762,7 @@ exports[`Storyshots Views / Taxes / Country List default 1`] = `
         />
       </div>
       <div
-        class="CountryListPage-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -58519,7 +58519,7 @@ exports[`Storyshots Views / Taxes / Country List loading 1`] = `
         />
       </div>
       <div
-        class="CountryListPage-root-id"
+        class="Grid-root-id Grid-default-id"
       >
         <div>
           <div
@@ -58805,7 +58805,7 @@ exports[`Storyshots Views / Taxes / Reduced Tax Categories default 1`] = `
       />
     </div>
     <div
-      class="CountryTaxesPage-root-id"
+      class="Grid-root-id Grid-default-id"
     >
       <div>
         <div
@@ -59006,7 +59006,7 @@ exports[`Storyshots Views / Taxes / Reduced Tax Categories loading 1`] = `
       />
     </div>
     <div
-      class="CountryTaxesPage-root-id"
+      class="Grid-root-id Grid-default-id"
     >
       <div>
         <div
