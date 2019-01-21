@@ -115,13 +115,13 @@ const CollectionCreatePage = withStyles(styles, {
                     }
                   } as any)
                 }
-                onImageUpload={event =>
+                onImageUpload={file =>
                   change({
                     target: {
                       name: "backgroundImage",
                       value: {
-                        url: URL.createObjectURL(event.target.files[0]),
-                        value: event.target.files[0]
+                        url: URL.createObjectURL(file),
+                        value: file
                       }
                     }
                   } as any)
