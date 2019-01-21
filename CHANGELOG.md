@@ -20,3 +20,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Support get correct payment status for order without any payments - #3605 by @jxltom
 - Continue fixing logo placement in storefront 1.0 and dashboard 2.0's login page - #3616 by @jxltom
 - Refactor checkout mutations - #3610 by @fowczarek
+- Fix order cancelling - #3624 by @dominik-zeglen
