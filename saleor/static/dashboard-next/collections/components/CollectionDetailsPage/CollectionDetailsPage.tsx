@@ -50,7 +50,7 @@ export interface CollectionDetailsPageProps
   onBack: () => void;
   onCollectionRemove: () => void;
   onImageDelete: () => void;
-  onImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onImageUpload: (file: File) => void;
   onProductUnassign: (id: string, event: React.MouseEvent<any>) => void;
   onSubmit: (data: CollectionDetailsPageFormData) => void;
 }

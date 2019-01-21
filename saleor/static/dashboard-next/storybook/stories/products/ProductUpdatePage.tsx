@@ -31,6 +31,7 @@ storiesOf("Views / Products / Product edit", module)
       onVariantAdd={undefined}
       onVariantShow={() => undefined}
       onImageDelete={() => undefined}
+      onImageUpload={() => undefined}
       saveButtonBarState="default"
     />
   ))
@@ -55,6 +56,7 @@ storiesOf("Views / Products / Product edit", module)
       onImageDelete={() => undefined}
       onVariantAdd={undefined}
       onVariantShow={() => undefined}
+      onImageUpload={() => undefined}
       saveButtonBarState="default"
     />
   ))
@@ -84,6 +86,7 @@ storiesOf("Views / Products / Product edit", module)
       onVariantAdd={undefined}
       onImageDelete={() => undefined}
       onVariantShow={() => undefined}
+      onImageUpload={() => undefined}
       saveButtonBarState="default"
     />
   ))
@@ -102,6 +105,7 @@ storiesOf("Views / Products / Product edit", module)
       onDelete={undefined}
       onImageDelete={() => undefined}
       onVariantShow={() => undefined}
+      onImageUpload={() => undefined}
       saveButtonBarState="default"
       variants={undefined}
     />

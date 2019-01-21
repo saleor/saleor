@@ -14,6 +14,7 @@ import { WindowTitle } from "../../../components/WindowTitle";
 import i18n from "../../../i18n";
 import { getMutationState, maybe } from "../../../misc";
 import { productAddUrl, productUrl } from "../../../products/urls";
+import { CategoryInput } from "../../../types/globalTypes";
 import {
   CategoryPageTab,
   CategoryUpdatePage
@@ -24,6 +25,7 @@ import {
 } from "../../mutations";
 import { TypedCategoryDetailsQuery } from "../../queries";
 import { CategoryDelete } from "../../types/CategoryDelete";
+import { CategoryUpdate } from "../../types/CategoryUpdate";
 import { categoryAddUrl, categoryListUrl, categoryUrl } from "../../urls";
 import { categoryDeletePath, categoryDeleteUrl } from "./urls";
 
@@ -52,7 +54,7 @@ export const CategoryDetails: React.StatelessComponent<
     {navigate => (
       <Messages>
         {pushMessage => {
-          const onCategoryDelete = (data: CategoryDelete) => {
+          const handleCategoryDelete = (data: CategoryDelete) => {
             if (data.categoryDelete.errors.length === 0) {
               pushMessage({
                 text: i18n.t("Category deleted", {
@@ -60,6 +62,19 @@ export const CategoryDetails: React.StatelessComponent<
                 })
               });
               navigate(categoryListUrl);
+            }
+          };
+          const handleCategoryUpdate = (data: CategoryUpdate) => {
+            if (data.categoryUpdate.errors.length > 0) {
+              const backgroundImageError = data.categoryUpdate.errors.find(
+                error =>
+                  error.field === ("backgroundImage" as keyof CategoryInput)
+              );
+              if (backgroundImageError) {
+                pushMessage({
+                  text: backgroundImageError.message
+                });
+              }
             }
           };
 
@@ -72,9 +87,9 @@ export const CategoryDetails: React.StatelessComponent<
             );
 
           return (
-            <TypedCategoryDeleteMutation onCompleted={onCategoryDelete}>
+            <TypedCategoryDeleteMutation onCompleted={handleCategoryDelete}>
               {(deleteCategory, deleteResult) => (
-                <TypedCategoryUpdateMutation>
+                <TypedCategoryUpdateMutation onCompleted={handleCategoryUpdate}>
                   {(updateCategory, updateResult) => {
                     const paginationState = createPaginationState(
                       PAGINATE_BY,
@@ -150,12 +165,12 @@ export const CategoryDetails: React.StatelessComponent<
                                       }
                                     })
                                   }
-                                  onImageUpload={event =>
+                                  onImageUpload={file =>
                                     updateCategory({
                                       variables: {
                                         id,
                                         input: {
-                                          backgroundImage: event.target.files[0]
+                                          backgroundImage: file
                                         }
                                       }
                                     })
