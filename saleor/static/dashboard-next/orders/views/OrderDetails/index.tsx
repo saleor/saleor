@@ -477,28 +477,6 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                     />
                                   )}
                                 />
-                                <Route
-                                  path={orderCancelPath(":id")}
-                                  render={({ match }) => (
-                                    <OrderDraftCancelDialog
-                                      confirmButtonState={getMutationState(
-                                        orderDraftCancel.opts.called,
-                                        orderDraftCancel.opts.loading,
-                                        maybe(
-                                          () =>
-                                            orderDraftCancel.opts.data
-                                              .draftOrderDelete.errors
-                                        )
-                                      )}
-                                      onClose={onModalClose}
-                                      onConfirm={() =>
-                                        orderDraftCancel.mutate({ id })
-                                      }
-                                      open={!!match}
-                                      orderNumber={maybe(() => order.number)}
-                                    />
-                                  )}
-                                />
                               </>
                             ) : (
                               <>
