@@ -13,23 +13,18 @@ import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
 import { Container } from "../../../components/Container";
+import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe, renderCollection, translatedTaxRates } from "../../../misc";
 import { CountryList_shop_countries_vat_reducedRates } from "../../types/CountryList";
 
-const styles = (theme: Theme) =>
-  createStyles({
-    root: {
-      display: "grid",
-      gridColumnGap: theme.spacing.unit * 2 + "px",
-      gridTemplateColumns: "9fr 4fr"
-    },
-    wideColumn: {
-      width: "80%"
-    }
-  });
+const styles = createStyles({
+  wideColumn: {
+    width: "80%"
+  }
+});
 
 export interface CountryTaxesPageProps {
   countryName: string;
@@ -58,7 +53,7 @@ const CountryTaxesPage = withStyles(styles, { name: "CountryTaxesPage" })(
           }
           onBack={onBack}
         />
-        <div className={classes.root}>
+        <Grid>
           <div>
             <Card>
               <Table>
@@ -105,7 +100,7 @@ const CountryTaxesPage = withStyles(styles, { name: "CountryTaxesPage" })(
               </Table>
             </Card>
           </div>
-        </div>
+        </Grid>
       </Container>
     );
   }
