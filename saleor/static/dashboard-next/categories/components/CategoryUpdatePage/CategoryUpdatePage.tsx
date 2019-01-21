@@ -56,7 +56,7 @@ export interface CategoryUpdatePageProps extends WithStyles<typeof styles> {
   saveButtonBarState: ConfirmButtonTransitionState;
   onImageDelete: () => void;
   onSubmit: (data: FormData) => void;
-  onImageUpload(event: React.ChangeEvent<any>);
+  onImageUpload(file: File);
   onNextPage();
   onPreviousPage();
   onProductClick(id: string): () => void;
