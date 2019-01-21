@@ -27,3 +27,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix order cancelling - #3624 by @dominik-zeglen
 - Unify grid handling - #3520 by @dominik-zeglen
 - Add ShopFetchTaxRates mutation - #3622 by @fowczarek
+- Add taxes section - #3622 by @dominik-zeglen
