@@ -30,14 +30,24 @@ def get_nodes(ids, graphene_type=None):
     """
     pks = []
     types = []
+    invalid_ids = []
+    error_msg = "Could not resolve to a nodes with the global id list of '%s'."
     for graphql_id in ids:
         if graphql_id:
-            _type, _id = from_global_id(graphql_id)
-            if graphene_type:
-                assert str(graphene_type) == _type, (
-                    'Must receive an {} id.').format(graphene_type._meta.name)
-            pks.append(_id)
-            types.append(_type)
+            try:
+                _type, _id = from_global_id(graphql_id)
+            except Exception:
+                invalid_ids.append(graphql_id)
+            else:
+                if graphene_type:
+                    assert str(graphene_type) == _type, (
+                        'Must receive an {} id.').format(
+                            graphene_type._meta.name)
+                pks.append(_id)
+                types.append(_type)
+    if invalid_ids:
+        raise GraphQLError(
+            error_msg % invalid_ids)
 
     # If `graphene_type` was not provided, check if all resolved types are
     # the same. This prevents from accidentally mismatching IDs of different
@@ -54,8 +64,7 @@ def get_nodes(ids, graphene_type=None):
     nodes = list(graphene_type._meta.model.objects.filter(pk__in=pks))
     if not nodes:
         raise GraphQLError(
-            "Could not resolve to a nodes with the global id list of '%s'."
-            % ids)
+            error_msg % ids)
     nodes_pk_list = [str(node.pk) for node in nodes]
     for pk in pks:
         assert pk in nodes_pk_list, (
