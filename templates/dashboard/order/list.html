@@ -41,16 +41,17 @@
                 <tr>
                   {% sorting_header 'pk' '#' %}
 
-                  <th></th>
+                  {% trans "Placed on" context "Orders table header" as label %}
+                  {% sorting_header 'created' label %}
 
                   {% trans "Customer" context "Orders table header" as label %}
                   {% sorting_header 'email' label %}
 
-                  {% trans "Placed on" context "Orders table header" as label %}
-                  {% sorting_header 'created' label %}
-
                   {% trans "Payment status" context "Orders table header" as label %}
                   {% sorting_header 'payment_status' label %}
+
+                  {% trans "Order status" context "Orders table header" as label %}
+                  {% sorting_header 'order_status' label %}
 
                   {% trans "Total" context "Orders table header" as label %}
                   {% sorting_header 'total' label %}
@@ -63,17 +64,17 @@
                       #{{ order.id }}
                     </td>
                     <td>
-                      {% render_order_status order.status order.get_status_display %}
+                      {{ order.created }}
                     </td>
                     {% trans "Guest" context "Anonymous user account value" as guest %}
                     <td>
                       {{ order.user|default:guest }}
                     </td>
                     <td>
-                      {{ order.created }}
+                      {% render_status order.get_payment_status order.get_payment_status_display %}
                     </td>
                     <td>
-                      {% render_status order.get_last_payment_status order.get_last_payment_status_display %}
+                      {% render_order_status order.status order.get_status_display %}
                     </td>
                     <td class="right-align">
                       {% price order.total.gross %}
