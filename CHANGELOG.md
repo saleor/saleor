@@ -22,3 +22,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Refactor checkout mutations - #3610 by @fowczarek
 - Add drag'n'drop image upload - #3611 by @dominik-zeglen
 - Throw typescript errors while snapshotting - #3611 by @dominik-zeglen
+- Fix order cancelling - #3624 by @dominik-zeglen
