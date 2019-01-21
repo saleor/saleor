@@ -1,15 +1,11 @@
-import {
-  createStyles,
-  Theme,
-  withStyles,
-  WithStyles
-} from "@material-ui/core/styles";
 import * as React from "react";
 
+import CardSpacer from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import { ControlledCheckbox } from "../../../components/ControlledCheckbox";
 import Form from "../../../components/Form";
+import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
 import i18n from "../../../i18n";
@@ -40,19 +36,7 @@ export interface ProductTypeForm {
   weight: number;
 }
 
-const styles = (theme: Theme) =>
-  createStyles({
-    cardContainer: {
-      marginTop: theme.spacing.unit * 2
-    },
-    root: {
-      display: "grid",
-      gridColumnGap: theme.spacing.unit * 2 + "px",
-      gridTemplateColumns: "2fr 1fr"
-    }
-  });
-
-export interface ProductTypeDetailsPageProps extends WithStyles<typeof styles> {
+export interface ProductTypeDetailsPageProps {
   errors: Array<{
     field: string;
     message: string;
@@ -70,129 +54,124 @@ export interface ProductTypeDetailsPageProps extends WithStyles<typeof styles> {
   onSubmit: (data: ProductTypeForm) => void;
 }
 
-const ProductTypeDetailsPage = withStyles(styles, {
-  name: "ProductTypeDetailsPage"
-})(
-  ({
-    classes,
-    defaultWeightUnit,
-    disabled,
-    errors,
-    pageTitle,
-    productType,
-    saveButtonBarState,
-    onAttributeAdd,
-    onAttributeDelete,
-    onAttributeUpdate,
-    onBack,
-    onDelete,
-    onSubmit
-  }: ProductTypeDetailsPageProps) => {
-    const formInitialData: ProductTypeForm = {
-      hasVariants:
-        maybe(() => productType.hasVariants) !== undefined
-          ? productType.hasVariants
-          : false,
-      isShippingRequired:
-        maybe(() => productType.isShippingRequired) !== undefined
-          ? productType.isShippingRequired
-          : false,
-      name: maybe(() => productType.name) !== undefined ? productType.name : "",
-      productAttributes:
-        maybe(() => productType.productAttributes) !== undefined
-          ? productType.productAttributes.map(attribute => ({
-              label: attribute.name,
-              value: attribute.id
-            }))
-          : [],
-      taxRate:
-        maybe(() => productType.taxRate) !== undefined
-          ? productType.taxRate
-          : null,
-      variantAttributes:
-        maybe(() => productType.variantAttributes) !== undefined
-          ? productType.variantAttributes.map(attribute => ({
-              label: attribute.name,
-              value: attribute.id
-            }))
-          : [],
-      weight: maybe(() => productType.weight.value)
-    };
-    return (
-      <Form
-        errors={errors}
-        initial={formInitialData}
-        onSubmit={onSubmit}
-        confirmLeave
-      >
-        {({ change, data, hasChanged, submit }) => (
-          <Container width="md">
-            <PageHeader title={pageTitle} onBack={onBack} />
-            <div className={classes.root}>
-              <div>
-                <ProductTypeDetails
-                  data={data}
-                  disabled={disabled}
-                  onChange={change}
-                />
-                <div className={classes.cardContainer}>
+const ProductTypeDetailsPage: React.StatelessComponent<
+  ProductTypeDetailsPageProps
+> = ({
+  defaultWeightUnit,
+  disabled,
+  errors,
+  pageTitle,
+  productType,
+  saveButtonBarState,
+  onAttributeAdd,
+  onAttributeDelete,
+  onAttributeUpdate,
+  onBack,
+  onDelete,
+  onSubmit
+}) => {
+  const formInitialData: ProductTypeForm = {
+    hasVariants:
+      maybe(() => productType.hasVariants) !== undefined
+        ? productType.hasVariants
+        : false,
+    isShippingRequired:
+      maybe(() => productType.isShippingRequired) !== undefined
+        ? productType.isShippingRequired
+        : false,
+    name: maybe(() => productType.name) !== undefined ? productType.name : "",
+    productAttributes:
+      maybe(() => productType.productAttributes) !== undefined
+        ? productType.productAttributes.map(attribute => ({
+            label: attribute.name,
+            value: attribute.id
+          }))
+        : [],
+    taxRate:
+      maybe(() => productType.taxRate) !== undefined
+        ? productType.taxRate
+        : null,
+    variantAttributes:
+      maybe(() => productType.variantAttributes) !== undefined
+        ? productType.variantAttributes.map(attribute => ({
+            label: attribute.name,
+            value: attribute.id
+          }))
+        : [],
+    weight: maybe(() => productType.weight.value)
+  };
+  return (
+    <Form
+      errors={errors}
+      initial={formInitialData}
+      onSubmit={onSubmit}
+      confirmLeave
+    >
+      {({ change, data, hasChanged, submit }) => (
+        <Container width="md">
+          <PageHeader title={pageTitle} onBack={onBack} />
+          <Grid>
+            <div>
+              <ProductTypeDetails
+                data={data}
+                disabled={disabled}
+                onChange={change}
+              />
+              <CardSpacer />
+              <ProductTypeAttributes
+                attributes={maybe(() => productType.productAttributes)}
+                type={AttributeTypeEnum.PRODUCT}
+                onAttributeAdd={onAttributeAdd}
+                onAttributeDelete={onAttributeDelete}
+                onAttributeUpdate={onAttributeUpdate}
+              />
+              <CardSpacer />
+              <ControlledCheckbox
+                checked={data.hasVariants}
+                disabled={disabled}
+                label={i18n.t("This product type has variants")}
+                name="hasVariants"
+                onChange={change}
+              />
+              {data.hasVariants && (
+                <>
+                  <CardSpacer />
                   <ProductTypeAttributes
-                    attributes={maybe(() => productType.productAttributes)}
-                    type={AttributeTypeEnum.PRODUCT}
+                    attributes={maybe(() => productType.variantAttributes)}
+                    type={AttributeTypeEnum.VARIANT}
                     onAttributeAdd={onAttributeAdd}
                     onAttributeDelete={onAttributeDelete}
                     onAttributeUpdate={onAttributeUpdate}
                   />
-                </div>
-                <div className={classes.cardContainer}>
-                  <ControlledCheckbox
-                    checked={data.hasVariants}
-                    disabled={disabled}
-                    label={i18n.t("This product type has variants")}
-                    name="hasVariants"
-                    onChange={change}
-                  />
-                </div>
-                {data.hasVariants && (
-                  <div className={classes.cardContainer}>
-                    <ProductTypeAttributes
-                      attributes={maybe(() => productType.variantAttributes)}
-                      type={AttributeTypeEnum.VARIANT}
-                      onAttributeAdd={onAttributeAdd}
-                      onAttributeDelete={onAttributeDelete}
-                      onAttributeUpdate={onAttributeUpdate}
-                    />
-                  </div>
-                )}
-              </div>
-              <div>
-                <ProductTypeShipping
-                  disabled={disabled}
-                  data={data}
-                  defaultWeightUnit={defaultWeightUnit}
-                  onChange={change}
-                />
-                <div className={classes.cardContainer}>
-                  <ProductTypeTaxes
-                    disabled={disabled}
-                    data={data}
-                    onChange={change}
-                  />
-                </div>
-              </div>
+                </>
+              )}
             </div>
-            <SaveButtonBar
-              onCancel={onBack}
-              onDelete={onDelete}
-              onSave={submit}
-              disabled={disabled || !hasChanged}
-              state={saveButtonBarState}
-            />
-          </Container>
-        )}
-      </Form>
-    );
-  }
-);
+            <div>
+              <ProductTypeShipping
+                disabled={disabled}
+                data={data}
+                defaultWeightUnit={defaultWeightUnit}
+                onChange={change}
+              />
+              <CardSpacer />
+              <ProductTypeTaxes
+                disabled={disabled}
+                data={data}
+                onChange={change}
+              />
+            </div>
+          </Grid>
+          <SaveButtonBar
+            onCancel={onBack}
+            onDelete={onDelete}
+            onSave={submit}
+            disabled={disabled || !hasChanged}
+            state={saveButtonBarState}
+          />
+        </Container>
+      )}
+    </Form>
+  );
+};
 ProductTypeDetailsPage.displayName = "ProductTypeDetailsPage";
 export default ProductTypeDetailsPage;
