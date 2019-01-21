@@ -86,6 +86,11 @@ export enum PermissionEnum {
   MANAGE_USERS = "MANAGE_USERS",
 }
 
+export enum SaleType {
+  FIXED = "FIXED",
+  PERCENTAGE = "PERCENTAGE",
+}
+
 export enum StockAvailability {
   IN_STOCK = "IN_STOCK",
   OUT_OF_STOCK = "OUT_OF_STOCK",
