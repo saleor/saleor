@@ -269,12 +269,12 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related='payments')
     def resolve_payment_status(self, info):
-        return self.get_last_payment_status()
+        return self.get_payment_status()
 
     @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related='payments')
     def resolve_payment_status_display(self, info):
-        return self.get_last_payment_status_display()
+        return self.get_payment_status_display()
 
     @staticmethod
     def resolve_payments(self, info):
