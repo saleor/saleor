@@ -53,10 +53,7 @@ export const CategoryDetails: React.StatelessComponent<
       <Messages>
         {pushMessage => {
           const onCategoryDelete = (data: CategoryDelete) => {
-            if (
-              data.categoryDelete.errors === null ||
-              data.categoryDelete.errors.length === 0
-            ) {
+            if (data.categoryDelete.errors.length === 0) {
               pushMessage({
                 text: i18n.t("Category deleted", {
                   context: "notification"

@@ -45,7 +45,7 @@ class OrderFilter(SortedFilterSet):
         widget=forms.Select)
     payment_status = ChoiceFilter(
         label=pgettext_lazy('Order list filter label', 'Payment status'),
-        field_name='payments__status',
+        field_name='payments__charge_status',
         choices=ChargeStatus.CHOICES,
         empty_label=pgettext_lazy('Filter empty choice label', 'All'),
         widget=forms.Select)

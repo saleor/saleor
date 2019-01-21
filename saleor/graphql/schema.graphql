@@ -323,6 +323,7 @@ input CheckoutCreateInput {
   lines: [CheckoutLineInput]
   email: String
   shippingAddress: AddressInput
+  billingAddress: AddressInput
 }
 
 type CheckoutCustomerAttach {
@@ -365,8 +366,8 @@ type CheckoutLineDelete {
 }
 
 input CheckoutLineInput {
-  quantity: Int
-  variantId: ID
+  quantity: Int!
+  variantId: ID!
 }
 
 type CheckoutLinesAdd {
@@ -1625,7 +1626,7 @@ type Query {
 
 type ReducedRate {
   rate: Float!
-  rateType: String!
+  rateType: TaxRateType!
 }
 
 type Refresh {
@@ -1813,6 +1814,7 @@ type Shop {
   headerText: String
   includeTaxesInPrices: Boolean
   displayGrossPrices: Boolean
+  chargeTaxesOnShipping: Boolean
   trackInventoryByDefault: Boolean
   defaultWeightUnit: WeightUnitsEnum
 }
@@ -1827,6 +1829,7 @@ input ShopSettingsInput {
   description: String
   includeTaxesInPrices: Boolean
   displayGrossPrices: Boolean
+  chargeTaxesOnShipping: Boolean
   trackInventoryByDefault: Boolean
   defaultWeightUnit: WeightUnitsEnum
 }
@@ -1905,6 +1908,7 @@ enum TaxRateType {
   SOCIAL_HOUSING
   STANDARD
   WATER
+  WINE
 }
 
 type TaxedMoney {

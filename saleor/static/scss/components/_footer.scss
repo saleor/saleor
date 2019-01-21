@@ -35,6 +35,10 @@
   }
   &__logo {
     margin-bottom: $global-margin;
+    svg {
+      height: 38px;
+      width: 100%;
+    }
   }
   hr {
     margin-top: 0;

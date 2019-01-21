@@ -1,6 +1,4 @@
 language: python
-addons:
-  postgresql: "9.4"
 sudo: false
 python:
   - "3.5"
@@ -50,4 +48,4 @@ matrix:
 services:
   - postgresql
 addons:
-  postgresql: 9.6
+  postgresql: 9.4
