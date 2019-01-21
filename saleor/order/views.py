@@ -110,7 +110,8 @@ def start_payment(request, order, gateway):
 
         payment_gateway, connection_params = get_payment_gateway(
             payment.gateway)
-        client_token = payment_gateway.get_client_token(connection_params)
+        client_token = payment_gateway.get_client_token(
+            connection_params=connection_params)
         payment_info = create_payment_information(payment)
         form = payment_gateway.create_form(
             data=request.POST or None, payment_information=payment_info,
