@@ -18,12 +18,6 @@ const styles = (theme: Theme) =>
       display: "grid",
       gridColumnGap: `${theme.spacing.unit * 2}px`,
       gridTemplateColumns: "1fr 1fr"
-    },
-    root: {
-      marginTop: theme.spacing.unit * 2,
-      [theme.breakpoints.down("sm")]: {
-        marginTop: theme.spacing.unit
-      }
     }
   });
 
@@ -49,7 +43,7 @@ const ProductVariantStock = withStyles(styles, { name: "ProductVariantStock" })(
     loading,
     onChange
   }: ProductVariantStockProps) => (
-    <Card className={classes.root}>
+    <Card>
       <CardTitle title={i18n.t("Stock")} />
       <CardContent>
         <div className={classes.grid}>
