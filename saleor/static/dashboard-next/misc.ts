@@ -7,8 +7,11 @@ import {
   AuthorizationKeyType,
   OrderStatus,
   PaymentChargeStatusEnum,
-  TaxRateType
+  TaxRateType,
+  SaleType
 } from "./types/globalTypes";
+import { SaleList_sales_edges_node } from "./discounts/types/SaleList";
+import Money from "./components/Money";
 
 export type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<
   T,
