@@ -19,6 +19,10 @@ import { CollectionSearchProvider } from "../../containers/CollectionSearch";
 import ProductUpdateOperations from "../../containers/ProductUpdateOperations";
 import { TypedProductDetailsQuery } from "../../queries";
 import {
+  ProductImageCreate,
+  ProductImageCreateVariables
+} from "../../types/ProductImageCreate";
+import {
   productImageUrl,
   productListUrl,
   productUrl,
@@ -26,10 +30,6 @@ import {
   productVariantEditUrl
 } from "../../urls";
 import { productRemovePath, productRemoveUrl } from "./urls";
-import {
-  ProductImageCreate,
-  ProductImageCreateVariables
-} from "../../types/ProductImageCreate";
 
 interface ProductUpdateProps {
   id: string;
