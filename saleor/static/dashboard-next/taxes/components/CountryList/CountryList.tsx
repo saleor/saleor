@@ -40,7 +40,7 @@ const CountryList = withStyles(styles, { name: "CountryList" })(
               {i18n.t("Country Name", { context: "object" })}
             </TableCell>
             <TableCell className={classes.textRight}>
-              {i18n.t("No of Reduced Tax Rates", { context: "object" })}
+              {i18n.t("Reduced Tax Rates", { context: "object" })}
             </TableCell>
           </TableRow>
         </TableHead>
