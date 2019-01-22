@@ -345,7 +345,7 @@ class Attribute(models.Model):
 
     def get_formfield_name(self):
         return slugify(
-            'attribute-%s-%s' % (self.slug, self.id), allow_unicode=True)
+            'attribute-%s-%s' % (self.slug, self.pk), allow_unicode=True)
 
     def has_values(self):
         return self.values.exists()
