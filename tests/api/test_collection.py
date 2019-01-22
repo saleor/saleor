@@ -1,13 +1,13 @@
+from datetime import date
 from unittest.mock import Mock
 
 import graphene
 import pytest
-from datetime import date
 from django.utils.text import slugify
 from graphql_relay import to_global_id
+from tests.utils import create_image, create_pdf_file_with_image_ext
 
 from saleor.product.models import Collection
-from tests.utils import create_image
 
 from .utils import get_graphql_content, get_multipart_request_body
 
@@ -180,34 +180,33 @@ def test_update_collection(
     assert mock_create_thumbnails.call_count == 0
 
 
-def test_update_collection_with_background_image(
-        monkeypatch, staff_api_client, collection, permission_manage_products):
-    query = """
-        mutation updateCollection(
-            $name: String!, $slug: String!, $id: ID!, $backgroundImage: Upload, $backgroundImageAlt: String, $isPublished: Boolean!) {
-            collectionUpdate(
-                id: $id, input: {
-                    name: $name,
-                    slug: $slug,
-                    backgroundImage: $backgroundImage,
-                    backgroundImageAlt: $backgroundImageAlt,
-                    isPublished: $isPublished
-                }
-            ) {
-                collection {
-                    slug
-                    backgroundImage{
-                        alt
-                    }
-                }
-                errors {
-                    field
-                    message
+MUTATION_UPDATE_COLLECTION_WITH_BACKGROUND_IMAGE = """
+    mutation updateCollection($name: String!, $slug: String!, $id: ID!, $backgroundImage: Upload, $backgroundImageAlt: String, $isPublished: Boolean!) {
+        collectionUpdate(
+            id: $id, input: {
+                name: $name,
+                slug: $slug,
+                backgroundImage: $backgroundImage,
+                backgroundImageAlt: $backgroundImageAlt,
+                isPublished: $isPublished
+            }
+        ) {
+            collection {
+                slug
+                backgroundImage{
+                    alt
                 }
             }
+            errors {
+                field
+                message
+            }
         }
-    """
+    }"""
 
+
+def test_update_collection_with_background_image(
+        monkeypatch, staff_api_client, collection, permission_manage_products):
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         ('saleor.dashboard.collection.forms.'
@@ -223,7 +222,9 @@ def test_update_collection_with_background_image(
         'backgroundImage': image_name,
         'backgroundImageAlt': image_alt,
         'isPublished': True}
-    body = get_multipart_request_body(query, variables, image_file, image_name)
+    body = get_multipart_request_body(
+        MUTATION_UPDATE_COLLECTION_WITH_BACKGROUND_IMAGE, variables,
+        image_file, image_name)
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products])
     content = get_graphql_content(response)
@@ -234,6 +235,28 @@ def test_update_collection_with_background_image(
     assert collection.background_image
     mock_create_thumbnails.assert_called_once_with(collection.pk)
     assert data['collection']['backgroundImage']['alt'] == image_alt
+
+
+def test_update_collection_invalid_background_image(
+        staff_api_client, collection, permission_manage_products):
+    image_file, image_name = create_pdf_file_with_image_ext()
+    image_alt = 'Alt text for an image.'
+    variables = {
+        'name': 'new-name',
+        'slug': 'new-slug',
+        'id': to_global_id('Collection', collection.id),
+        'backgroundImage': image_name,
+        'backgroundImageAlt': image_alt,
+        'isPublished': True}
+    body = get_multipart_request_body(
+        MUTATION_UPDATE_COLLECTION_WITH_BACKGROUND_IMAGE, variables,
+        image_file, image_name)
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products])
+    content = get_graphql_content(response)
+    data = content['data']['collectionUpdate']
+    assert data['errors'][0]['field'] == 'image'
+    assert data['errors'][0]['message'] == 'Invalid file type'
 
 
 def test_delete_collection(
