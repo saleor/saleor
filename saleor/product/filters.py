@@ -17,6 +17,22 @@ SORT_BY_FIELDS = OrderedDict([
         'Product list sorting option', 'last updated'))])
 
 
+def serialize_attribute(value):
+    """Serialize attribute as a tuple to a string."""
+    if isinstance(value, tuple) and len(value) == 2:
+        return ':'.join(value)
+    return None
+
+
+def parse_attribute(value):
+    """Parse attribute as a string to a tuple."""
+    if isinstance(value, str):
+        split = value.split(':')
+        if len(split) == 2:
+            return tuple(split)
+    return None
+
+
 class MergedAttributes:
     """Merge attribute queryset into a dictionary by attribute slug.
     Note that the attribute values should be prefetched for
