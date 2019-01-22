@@ -29,3 +29,5 @@ All notable, unreleased changes to this project will be documented in this file.
 - Refactor payments - #3519 by @michaljelonek
 - Fix bug where product variant can not have attributes with same slug - #3626 by @jxltom
 - Add missing migrations for tax rate choices - #3629 by @jxltom
+- Add ShopFetchTaxRates mutation - #3622 by @fowczarek
+- Add taxes section - #3622 by @dominik-zeglen
