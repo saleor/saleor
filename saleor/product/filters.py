@@ -56,24 +56,16 @@ class ProductFilter(SortedFilterSet):
     def _get_variant_attributes_lookup(self):
         raise NotImplementedError()
 
-    def _get_product_attributes_filters(self):
-        filters = {}
-        for attribute in self.product_attributes:
-            filters[attribute.slug] = MultipleChoiceFilter(
-                field_name='attributes__%s' % attribute.pk,
-                label=attribute.translated.name,
+    def _get_attributes_filters(self):
+        filters, attributes = {}, self._merged_attributes.get_attributes()
+        for attr_slug in attributes:
+            filters[attr_slug] = AttributeMultipleChoiceFilter(
+                merged_attributes=self._merged_attributes,
+                # By default the translated name of the first one in
+                # # attributes with same slug is used
+                label=attributes[attr_slug][0].translated.name,
                 widget=CheckboxSelectMultiple,
-                choices=self._get_attribute_choices(attribute))
-        return filters
-
-    def _get_product_variants_attributes_filters(self):
-        filters = {}
-        for attribute in self.variant_attributes:
-            filters[attribute.slug] = MultipleChoiceFilter(
-                field_name='variants__attributes__%s' % attribute.pk,
-                label=attribute.translated.name,
-                widget=CheckboxSelectMultiple,
-                choices=self._get_attribute_choices(attribute))
+                choices=self._merged_attributes.get_choices(attr_slug))
         return filters
 
     def _get_attribute_choices(self, attribute):
