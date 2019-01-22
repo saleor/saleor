@@ -26,3 +26,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Throw typescript errors while snapshotting - #3611 by @dominik-zeglen
 - Fix order cancelling - #3624 by @dominik-zeglen
 - Unify grid handling - #3520 by @dominik-zeglen
+- Support filtering products by same attribute slug and value slug - #3628 by @jxltom
