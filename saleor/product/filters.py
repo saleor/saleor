@@ -1,3 +1,5 @@
+import functools
+import operator
 from collections import OrderedDict
 
 from django.db.models import Q
@@ -13,6 +15,80 @@ SORT_BY_FIELDS = OrderedDict([
     ('price', pgettext_lazy('Product list sorting option', 'price')),
     ('updated_at', pgettext_lazy(
         'Product list sorting option', 'last updated'))])
+
+
+class MergedAttributes:
+    """Merge attribute queryset into a dictionary by attribute slug.
+    Note that the attribute values should be prefetched for
+    optimizing performance."""
+    def __init__(self, attributes):
+        self._merged_attributes = self._get_merged_attributes(attributes)
+
+    def _get_merged_attributes(self, attributes):
+        """Merge attributes with same slug into one item in dictionary."""
+        merged_attributes = {}
+        for attribute in attributes:
+            same_slug_attrs = merged_attributes.setdefault(attribute.slug, [])
+            same_slug_attrs.append(attribute)
+        return merged_attributes
+
+    def get_kvs(self, attr_slug, value_slug):
+        """Get a list of attribute-pk/value-pk pairs
+        for attributes with same attribute slug and value slug."""
+        kvs = []
+        for attr in self._merged_attributes[attr_slug]:
+            for value in attr.values.all():
+                if value_slug == value.slug:
+                    kvs.append((attr.pk, value.pk))
+        return kvs
+
+    def get_attributes(self):
+        """Get attributes as a dict."""
+        return self._merged_attributes
+
+    def get_values(self, attr_slug):
+        """Get attributes values for attributes with same attribute slug."""
+        values = dict()
+        for attr in self._merged_attributes[attr_slug]:
+            for value in attr.values.all():
+                values.setdefault(value.slug, []).append(value)
+        return values
+
+    def get_choices(self, attr_slug):
+        """Get attributes values as choices for MultipleChoiceFilter."""
+        values, choices = self.get_values(attr_slug), []
+        for value_slug, value_list in values.items():
+            v = serialize_attribute((attr_slug, value_slug))
+            # By default the translated name of the first one in
+            # attribute values with same slug is used
+            label = value_list[0].translated.name
+            choices.append((v, label))
+        return choices
+
+    def _product_attr_or_product_variant_attr_query(self, attr_k, attr_v):
+        product_attr_query = Q(**{'attributes__%s' % (attr_k, ): attr_v})
+        variant_attr_query = Q(
+            **{'variants__attributes__%s' % (attr_k, ): attr_v})
+        return product_attr_query | variant_attr_query
+
+    def get_query(self, attr_slug, value_slug):
+        """Get query for attributes with same attribute slug and value slug."""
+        # Validate attribute slug and value slug
+        if attr_slug not in self.get_attributes():
+            raise ValueError('Unknown attribute slug: %r' % (attr_slug,))
+        if value_slug not in self.get_values(attr_slug):
+            raise ValueError(
+                'Unknown attribute value slug: %r' % (value_slug,))
+
+        # Combine filters of attributes
+        # with same attribute slug and value slug using OR operator
+        kvs = self.get_kvs(attr_slug, value_slug)
+        query = functools.reduce(
+            operator.or_,
+            [self._product_attr_or_product_variant_attr_query(
+                attr_pk, value_pk) for attr_pk, value_pk in kvs])
+
+        return query
 
 
 class AttributeMultipleChoiceFilter(MultipleChoiceFilter):
