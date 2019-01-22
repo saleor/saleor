@@ -5,92 +5,98 @@ from typing import Dict
 from django.conf import settings
 from prices import Money
 
-from ... import TransactionKind
-from ...models import Payment
-from ...utils import create_transaction
 from .forms import DummyPaymentForm
+
+TEMPLATE_PATH = 'order/payment/dummy.html'
+
+
+class TransactionKind:
+    AUTH = 'auth'
+    CAPTURE = 'capture'
+    CHARGE = 'charge'
+    REFUND = 'refund'
+    VOID = 'void'
 
 
 def dummy_success():
     return True
 
 
-def get_client_token(**connection_params):
+def get_client_token(**_):
     return str(uuid.uuid4())
 
 
-def get_form_class():
-    return DummyPaymentForm
+def create_form(data, payment_information, connection_params):
+    return DummyPaymentForm(data=data)
 
 
-def authorize(payment: Payment, payment_token: str, **connection_params):
+def authorize(payment_information: Dict, connection_params) -> Dict:
     success = dummy_success()
     error = None
     if not success:
         error = 'Unable to authorize transaction'
-    txn = create_transaction(
-        payment=payment,
-        kind=TransactionKind.AUTH,
-        amount=payment.total,
-        currency=payment.currency,
-        gateway_response={},
-        token=payment_token,
-        is_success=success)
-    return txn, error
+    return {
+        'is_success': success,
+        'kind': TransactionKind.AUTH,
+        'amount': payment_information['amount'],
+        'currency': payment_information['currency'],
+        'transaction_id': payment_information['token'],
+        'error': error}
 
 
-def void(payment: Payment, **connection_params: Dict):
+def void(payment_information: Dict, connection_params) -> Dict:
     error = None
     success = dummy_success()
     if not success:
         error = 'Unable to void the transaction.'
-    txn = create_transaction(
-        payment=payment,
-        kind=TransactionKind.VOID,
-        amount=payment.total,
-        currency=payment.currency,
-        gateway_response={},
-        token=str(uuid.uuid4()),
-        is_success=success)
-    return txn, error
+    return {
+        'is_success': success,
+        'kind': TransactionKind.VOID,
+        'amount': payment_information['amount'],
+        'currency': payment_information['currency'],
+        'transaction_id': payment_information['token'],
+        'error': error}
 
 
-def capture(payment: Payment, amount: Decimal):
+def capture(payment_information: Dict, connection_params: Dict) -> Dict:
     error = None
     success = dummy_success()
     if not success:
         error = 'Unable to process capture'
-    txn = create_transaction(
-        payment=payment,
-        kind=TransactionKind.CAPTURE,
-        amount=amount,
-        currency=payment.currency,
-        token=str(uuid.uuid4()),
-        is_success=success)
-    return txn, error
+    return {
+        'is_success': success,
+        'kind': TransactionKind.CAPTURE,
+        'amount': payment_information['amount'],
+        'currency': payment_information['currency'],
+        'transaction_id': payment_information['token'],
+        'error': error}
 
 
-def refund(payment: Payment, amount: Decimal):
+def refund(payment_information: Dict, connection_params: Dict):
     error = None
     success = dummy_success()
     if not success:
         error = 'Unable to process refund'
-    txn = create_transaction(
-        payment=payment,
-        kind=TransactionKind.REFUND,
-        amount=amount,
-        currency=payment.currency,
-        token=str(uuid.uuid4()),
-        is_success=success)
-    return txn, error
+    return {
+        'is_success': success,
+        'kind': TransactionKind.REFUND,
+        'amount': payment_information['amount'],
+        'currency': payment_information['currency'],
+        'transaction_id': payment_information['token'],
+        'error': error}
 
 
-def charge(
-        payment: Payment, payment_token: str, amount: Decimal,
-        **connection_params):
+def charge(payment_information: Dict, connection_params):
     """Performs Authorize and Capture transactions in a single run."""
-    txn, error = authorize(payment, payment_token)
-    if error:
-        return txn, error
-    capture_txn, capture_error = capture(payment, amount)
-    return capture_txn, capture_error
+    auth_resp = authorize(payment_information, connection_params)
+    if not auth_resp['is_success']:
+        return auth_resp
+    return [auth_resp, capture(payment_information, connection_params)]
+
+
+def process_payment(payment_information: Dict, connection_params) -> Dict:
+    """Process the whole payment, by calling authorize and capture."""
+    auth_resp = authorize(payment_information, connection_params)
+    if not auth_resp['is_success']:
+        return auth_resp
+    return [auth_resp, capture(payment_information, connection_params)]
