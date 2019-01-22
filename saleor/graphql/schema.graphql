@@ -1813,9 +1813,9 @@ type Shop {
   permissions: [PermissionDisplay]!
   phonePrefixes: [String]!
   headerText: String
-  includeTaxesInPrices: Boolean
-  displayGrossPrices: Boolean
-  chargeTaxesOnShipping: Boolean
+  includeTaxesInPrices: Boolean!
+  displayGrossPrices: Boolean!
+  chargeTaxesOnShipping: Boolean!
   trackInventoryByDefault: Boolean
   defaultWeightUnit: WeightUnitsEnum
 }
@@ -2015,7 +2015,7 @@ input UserCreateInput {
 type VAT {
   countryCode: String!
   standardRate: Float
-  reducedRates: [ReducedRate]
+  reducedRates: [ReducedRate]!
 }
 
 type VariantImageAssign {

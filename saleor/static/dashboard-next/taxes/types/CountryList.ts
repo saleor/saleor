@@ -16,7 +16,7 @@ export interface CountryList_shop_countries_vat_reducedRates {
 export interface CountryList_shop_countries_vat {
   __typename: "VAT";
   standardRate: number | null;
-  reducedRates: (CountryList_shop_countries_vat_reducedRates | null)[] | null;
+  reducedRates: (CountryList_shop_countries_vat_reducedRates | null)[];
 }
 
 export interface CountryList_shop_countries {
@@ -28,9 +28,9 @@ export interface CountryList_shop_countries {
 
 export interface CountryList_shop {
   __typename: "Shop";
-  chargeTaxesOnShipping: boolean | null;
-  includeTaxesInPrices: boolean | null;
-  displayGrossPrices: boolean | null;
+  chargeTaxesOnShipping: boolean;
+  includeTaxesInPrices: boolean;
+  displayGrossPrices: boolean;
   countries: (CountryList_shop_countries | null)[];
 }
 

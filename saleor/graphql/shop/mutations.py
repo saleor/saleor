@@ -1,7 +1,5 @@
-import logging
-
 import graphene
-from django.core.exceptions import ImproperlyConfigured
+from django.conf import settings
 from django.core.management import call_command
 from graphql_jwt.decorators import permission_required
 
@@ -10,8 +8,6 @@ from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation
 from ..product.types import Collection
 from .types import AuthorizationKey, AuthorizationKeyType, Shop
-
-logger = logging.getLogger(__name__)
 
 
 class ShopSettingsInput(graphene.InputObjectType):
@@ -99,14 +95,12 @@ class ShopFetchTaxRates(BaseMutation):
     @permission_required('site.manage_settings')
     def mutate(cls, root, info):
         errors = []
-        try:
+        if settings.VATLAYER_ACCESS_KEY:
             call_command('get_vat_rates')
-        except ImproperlyConfigured as exc:
-            logger.exception(exc)
+        else:
             cls.add_error(
                 errors, None, 'Could not fetch tax rates. '
-                'Make sure you have supplied a valid API Access Key. '
-                'Check the server logs for more information about this error.')
+                'Make sure you have supplied a valid API Access Key.')
         return ShopFetchTaxRates(shop=Shop(), errors=errors)
 
 

@@ -22,7 +22,7 @@ export interface FetchTaxes_shopFetchTaxRates_shop_countries_vat_reducedRates {
 export interface FetchTaxes_shopFetchTaxRates_shop_countries_vat {
   __typename: "VAT";
   standardRate: number | null;
-  reducedRates: (FetchTaxes_shopFetchTaxRates_shop_countries_vat_reducedRates | null)[] | null;
+  reducedRates: (FetchTaxes_shopFetchTaxRates_shop_countries_vat_reducedRates | null)[];
 }
 
 export interface FetchTaxes_shopFetchTaxRates_shop_countries {
