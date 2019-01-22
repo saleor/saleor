@@ -26,3 +26,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Throw typescript errors while snapshotting - #3611 by @dominik-zeglen
 - Fix order cancelling - #3624 by @dominik-zeglen
 - Unify grid handling - #3520 by @dominik-zeglen
+- Add missing migrations for tax rate choices - #3629 by @jxltom
