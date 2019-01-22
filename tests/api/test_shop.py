@@ -486,7 +486,8 @@ MUTATION_SHOP_FETCH_TAX_RATES = """
                 message
             }
         }
-    }"""
+    }
+    """
 
 
 def test_shop_fetch_tax_rates_no_api_access_key(
@@ -497,14 +498,15 @@ def test_shop_fetch_tax_rates_no_api_access_key(
     content = get_graphql_content(response)
     data = content['data']['shopFetchTaxRates']
     error_message =('Could not fetch tax rates. '
-        'Make sure you have supplied a valid API Access Key. '
-        'Check the server logs for more information about this error.')
+        'Make sure you have supplied a valid API Access Key.')
     assert data['errors'][0]['message'] == error_message
 
 
 @patch('saleor.graphql.shop.mutations.call_command')
 def test_shop_fetch_tax_rates(
-        mock_call_command, staff_api_client, permission_manage_settings):
+        mock_call_command, staff_api_client, permission_manage_settings,
+        settings):
+    settings.VATLAYER_ACCESS_KEY = 'KEY'
     staff_api_client.user.user_permissions.add(permission_manage_settings)
     response = staff_api_client.post_graphql(
         MUTATION_SHOP_FETCH_TAX_RATES)

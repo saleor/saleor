@@ -16,7 +16,7 @@ export interface CountryFragment_vat_reducedRates {
 export interface CountryFragment_vat {
   __typename: "VAT";
   standardRate: number | null;
-  reducedRates: (CountryFragment_vat_reducedRates | null)[] | null;
+  reducedRates: (CountryFragment_vat_reducedRates | null)[];
 }
 
 export interface CountryFragment {
