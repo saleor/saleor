@@ -1,4 +1,6 @@
 import graphene
+from django.conf import settings
+from django.core.management import call_command
 from graphql_jwt.decorators import permission_required
 
 from ...site import models as site_models
@@ -81,6 +83,25 @@ class ShopDomainUpdate(BaseMutation):
             return ShopDomainUpdate(errors=errors)
         site.save()
         return ShopDomainUpdate(shop=Shop(), errors=errors)
+
+
+class ShopFetchTaxRates(BaseMutation):
+    shop = graphene.Field(Shop, description='Updated Shop')
+
+    class Meta:
+        description = 'Fetch tax rates'
+
+    @classmethod
+    @permission_required('site.manage_settings')
+    def mutate(cls, root, info):
+        errors = []
+        if settings.VATLAYER_ACCESS_KEY:
+            call_command('get_vat_rates')
+        else:
+            cls.add_error(
+                errors, None, 'Could not fetch tax rates. '
+                'Make sure you have supplied a valid API Access Key.')
+        return ShopFetchTaxRates(shop=Shop(), errors=errors)
 
 
 class HomepageCollectionUpdate(BaseMutation):

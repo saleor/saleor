@@ -40,6 +40,7 @@ import ProductSection from "./products";
 import ProductTypesSection from "./productTypes";
 import SiteSettingsSection from "./siteSettings";
 import StaffSection from "./staff";
+import TaxesSection from "./taxes";
 import theme from "./theme";
 import { PermissionEnum } from "./types/globalTypes";
 
@@ -172,6 +173,11 @@ render(
                               permissions={[PermissionEnum.MANAGE_SETTINGS]}
                               path="/site-settings"
                               component={SiteSettingsSection}
+                            />
+                            <SectionRoute
+                              permissions={[PermissionEnum.MANAGE_SETTINGS]}
+                              path="/taxes"
+                              component={TaxesSection}
                             />
                             {configurationMenu.filter(menuItem =>
                               hasPermission(menuItem.permission, user)
