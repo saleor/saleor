@@ -27,3 +27,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix order cancelling - #3624 by @dominik-zeglen
 - Unify grid handling - #3520 by @dominik-zeglen
 - Fix bug where product variant can not have attributes with same slug - #3626 by @jxltom
+- Add missing migrations for tax rate choices - #3629 by @jxltom
