@@ -57793,7 +57793,7 @@ exports[`Storyshots Views / Taxes / Country List default 1`] = `
                     class="MuiTableCell-root-id MuiTableCell-head-id CountryList-textRight-id"
                     scope="col"
                   >
-                    No of Reduced Tax Rates
+                    Reduced Tax Rates
                   </th>
                 </tr>
               </thead>
@@ -58550,7 +58550,7 @@ exports[`Storyshots Views / Taxes / Country List loading 1`] = `
                     class="MuiTableCell-root-id MuiTableCell-head-id CountryList-textRight-id"
                     scope="col"
                   >
-                    No of Reduced Tax Rates
+                    Reduced Tax Rates
                   </th>
                 </tr>
               </thead>
