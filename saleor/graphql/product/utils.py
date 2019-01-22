@@ -41,3 +41,9 @@ def attributes_to_hstore(attribute_value_input, attributes_queryset):
         attributes_hstore[str(attribute_id)] = str(value_id)
 
     return attributes_hstore
+
+
+def validate_image_file(mutation_cls, file, field_name, errors):
+    """Validate if the file is an image."""
+    if not file.content_type.startswith('image/'):
+        mutation_cls.add_error(errors, field_name, 'Invalid file type')

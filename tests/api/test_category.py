@@ -257,7 +257,7 @@ def test_category_update_mutation_invalid_background_image(
         body, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     data = content['data']['categoryUpdate']
-    assert data['errors'][0]['field'] == 'image'
+    assert data['errors'][0]['field'] == 'backgroundImage'
     assert data['errors'][0]['message'] == 'Invalid file type'
 
 
