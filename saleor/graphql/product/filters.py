@@ -1,37 +1,22 @@
 import functools
 import operator
-from collections import defaultdict
 
-from django.db.models import Q
-
+from ...product.filters import MergedAttributes
 from ...product.models import Attribute
 
 
 def filter_products_by_attributes(qs, filter_value):
     attributes = Attribute.objects.prefetch_related('values')
-    attributes_map = {
-        attribute.slug: attribute.pk for attribute in attributes}
-    values_map = {
-        attr.slug: {value.slug: value.pk for value in attr.values.all()}
-        for attr in attributes}
-    queries = defaultdict(list)
-    # Convert attribute:value pairs into a dictionary where
-    # attributes are keys and values are grouped in lists
-    for attr_name, val_slug in filter_value:
-        if attr_name not in attributes_map:
-            raise ValueError('Unknown attribute name: %r' % (attr_name, ))
-        attr_pk = attributes_map[attr_name]
-        attr_val_pk = values_map[attr_name].get(val_slug, val_slug)
-        queries[attr_pk].append(attr_val_pk)
-    # Combine filters of the same attribute with OR operator
-    # and then combine full query with AND operator.
-    combine_and = [
-        functools.reduce(
-            operator.or_, [
-                Q(**{'variants__attributes__%s' % (key, ): v}) |
-                Q(**{'attributes__%s' % (key, ): v}) for v in values])
-        for key, values in queries.items()]
-    query = functools.reduce(operator.and_, combine_and)
+    merged_attributes = MergedAttributes(attributes)
+
+    # Convert attribute:value pairs into a list of query
+    queries = []
+    for attr_slug, value_slug in filter_value:
+        query = merged_attributes.get_query(attr_slug, value_slug)
+        queries.append(query)
+
+    # Combine full query with AND operator.
+    query = functools.reduce(operator.and_, queries)
     return qs.filter(query).distinct()
 
 
