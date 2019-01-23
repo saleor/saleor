@@ -1803,6 +1803,7 @@ type Shop {
   countries: [CountryDisplay]!
   currencies: [String]!
   defaultCurrency: String!
+  availablePaymentGateways: [GatewaysEnum]!
   defaultCountry: CountryDisplay
   description: String
   domain: Domain!
