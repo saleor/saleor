@@ -124,6 +124,11 @@ export enum TaxRateType {
   WINE = "WINE",
 }
 
+export enum VoucherDiscountValueType {
+  FIXED = "FIXED",
+  PERCENTAGE = "PERCENTAGE",
+}
+
 export enum WeightUnitsEnum {
   g = "g",
   kg = "kg",
