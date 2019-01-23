@@ -514,12 +514,12 @@ def test_shop_fetch_tax_rates(
     mock_call_command.assert_called_once_with('get_vat_rates')
 
 
-def test_shop_enabled_gateways(
+def test_shop_available_payment_gateways(
         api_client, settings):
     query = """
     query {
         shop {
-            enabledGateways
+            availablePaymentGateways
         }
     }
     """
@@ -528,4 +528,4 @@ def test_shop_enabled_gateways(
     data = content['data']['shop']
     checkout_payment_gateways = [
         str_to_enum(gateway) for gateway in settings.CHECKOUT_PAYMENT_GATEWAYS.keys()]
-    assert data['enabledGateways'] == checkout_payment_gateways
+    assert data['availablePaymentGateways'] == checkout_payment_gateways
