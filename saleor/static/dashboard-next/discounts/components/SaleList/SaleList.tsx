@@ -32,7 +32,7 @@ const styles = createStyles({
     textAlign: "right"
   },
   wideColumn: {
-    width: "60%"
+    width: "40%"
   }
 });
 
