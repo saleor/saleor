@@ -7,7 +7,7 @@ import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
 import { PageListProps } from "../../../types";
 import { SaleList_sales_edges_node } from "../../types/SaleList";
-import SaleList from "../SaleList/SaleList";
+import SaleList from "../SaleList";
 
 export interface SaleListPageProps extends PageListProps {
   defaultCurrency: string;
