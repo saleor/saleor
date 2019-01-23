@@ -17,6 +17,7 @@ from ..core.enums import WeightUnitsEnum
 from ..core.types.common import (
     CountryDisplay, LanguageDisplay, PermissionDisplay)
 from ..menu.types import Menu
+from ..payment.enums import PaymentGatewayEnum
 from ..product.types import Collection
 from ..utils import format_permissions_for_display
 from .enums import AuthorizationKeyType
@@ -76,6 +77,8 @@ class Shop(graphene.ObjectType):
         required=True)
     default_currency = graphene.String(
         description='Default shop\'s currency.', required=True)
+    enabled_gateways = graphene.List(
+        PaymentGatewayEnum, description='List of available payment gateways.')
     default_country = graphene.Field(
         CountryDisplay, description='Default shop\'s country')
     description = graphene.String(description='Shop\'s description.')
@@ -143,6 +146,9 @@ class Shop(graphene.ObjectType):
 
     def resolve_default_currency(self, info):
         return settings.DEFAULT_CURRENCY
+
+    def resolve_enabled_gateways(self, info):
+        return settings.CHECKOUT_PAYMENT_GATEWAYS.keys()
 
     def resolve_description(self, info):
         return info.context.site.settings.description
