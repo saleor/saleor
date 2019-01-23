@@ -22,9 +22,18 @@ export interface SaleList_sales_edges {
   node: SaleList_sales_edges_node;
 }
 
+export interface SaleList_sales_pageInfo {
+  __typename: "PageInfo";
+  endCursor: string | null;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  startCursor: string | null;
+}
+
 export interface SaleList_sales {
   __typename: "SaleCountableConnection";
   edges: SaleList_sales_edges[];
+  pageInfo: SaleList_sales_pageInfo;
 }
 
 export interface SaleList {
