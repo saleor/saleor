@@ -31,3 +31,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add missing migrations for tax rate choices - #3629 by @jxltom
 - Add ShopFetchTaxRates mutation - #3622 by @fowczarek
 - Add taxes section - #3622 by @dominik-zeglen
+- Display payment status in account order list page and account order detail page - #3637 by @jxltom
