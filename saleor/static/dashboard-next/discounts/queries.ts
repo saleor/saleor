@@ -1,10 +1,11 @@
 import gql from "graphql-tag";
 
-import { TypedQuery } from "../queries";
+import { pageInfoFragment, TypedQuery } from "../queries";
 import { SaleList, SaleListVariables } from "./types/SaleList";
 import { VoucherList, VoucherListVariables } from "./types/VoucherList";
 
 export const saleList = gql`
+  ${pageInfoFragment}
   query SaleList($after: String, $before: String, $first: Int, $last: Int) {
     sales(after: $after, before: $before, first: $first, last: $last) {
       edges {
@@ -18,10 +19,7 @@ export const saleList = gql`
         }
       }
       pageInfo {
-        endCursor
-        hasNextPage
-        hasPreviousPage
-        startCursor
+        ...PageInfoFragment
       }
     }
   }
@@ -29,6 +27,7 @@ export const saleList = gql`
 export const TypedSaleList = TypedQuery<SaleList, SaleListVariables>(saleList);
 
 export const voucherList = gql`
+  ${pageInfoFragment}
   query VoucherList($after: String, $before: String, $first: Int, $last: Int) {
     vouchers(after: $after, before: $before, first: $first, last: $last) {
       edges {
@@ -47,10 +46,7 @@ export const voucherList = gql`
         }
       }
       pageInfo {
-        endCursor
-        hasNextPage
-        hasPreviousPage
-        startCursor
+        ...PageInfoFragment
       }
     }
   }
@@ -58,3 +54,67 @@ export const voucherList = gql`
 export const TypedVoucherList = TypedQuery<VoucherList, VoucherListVariables>(
   voucherList
 );
+
+export const saleDetails = gql`
+  ${pageInfoFragment}
+  query SaleDetails(
+    $id: ID!
+    $after: String
+    $before: String
+    $first: Int
+    $last: Int
+  ) {
+    sale(id: $id) {
+      id
+      name
+      type
+      value
+      products(after: $after, before: $before, first: $first, last: $last) {
+        edges {
+          node {
+            id
+            name
+            isPublished
+            productType {
+              id
+              name
+            }
+          }
+        }
+        pageInfo {
+          ...PageInfoFragment
+        }
+      }
+      categories(after: $after, before: $before, first: $first, last: $last) {
+        edges {
+          node {
+            id
+            name
+            products {
+              totalCount
+            }
+          }
+        }
+        pageInfo {
+          ...PageInfoFragment
+        }
+      }
+      collections(after: $after, before: $before, first: $first, last: $last) {
+        edges {
+          node {
+            id
+            name
+            products {
+              totalCount
+            }
+          }
+        }
+        pageInfo {
+          ...PageInfoFragment
+        }
+      }
+      startDate
+      endDate
+    }
+  }
+`;

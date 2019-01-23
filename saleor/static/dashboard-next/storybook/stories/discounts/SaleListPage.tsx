@@ -14,7 +14,7 @@ const props: SaleListPageProps = {
   sales: saleList
 };
 
-storiesOf("Views / Discounts / Sale List", module)
+storiesOf("Views / Discounts / Sale list", module)
   .addDecorator(Decorator)
   .add("default", () => <SaleListPage {...props} />)
   .add("loading", () => <SaleListPage {...props} sales={undefined} />)

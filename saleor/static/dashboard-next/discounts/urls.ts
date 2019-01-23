@@ -10,5 +10,10 @@ export const saleUrl = (id: string) => salePath(encodeURIComponent(id));
 export const saleAddPath = urlJoin(saleSection, "add");
 export const saleAddUrl = saleAddPath;
 
-export const voucherListPath = urlJoin(discountSection, "vouchers");
+export const voucherSection = urlJoin(discountSection, "vouchers");
+export const voucherListPath = voucherSection;
 export const voucherListUrl = voucherListPath;
+export const voucherPath = (id: string) => urlJoin(voucherSection, id);
+export const voucherUrl = (id: string) => voucherPath(encodeURIComponent(id));
+export const voucherAddPath = urlJoin(voucherSection, "add");
+export const voucherAddUrl = voucherAddPath;

@@ -3,12 +3,12 @@ import * as React from "react";
 import Navigator from "../../components/Navigator";
 import { createPaginationState, Paginator } from "../../components/Paginator";
 import Shop from "../../components/Shop";
+import { WindowTitle } from "../../components/WindowTitle";
+import i18n from "../../i18n";
 import { maybe } from "../../misc";
 import VoucherListPage from "../components/VoucherListPage";
 import { TypedVoucherList } from "../queries";
 import { voucherAddUrl, voucherUrl } from "../urls";
-import { WindowTitle } from "../../components/WindowTitle";
-import i18n from "../../i18n";
 
 const PAGINATE_BY = 20;
 
