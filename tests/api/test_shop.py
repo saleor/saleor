@@ -512,20 +512,3 @@ def test_shop_fetch_tax_rates(
         MUTATION_SHOP_FETCH_TAX_RATES)
     get_graphql_content(response)
     mock_call_command.assert_called_once_with('get_vat_rates')
-
-
-def test_shop_available_payment_gateways(
-        api_client, settings):
-    query = """
-    query {
-        shop {
-            availablePaymentGateways
-        }
-    }
-    """
-    response = api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    data = content['data']['shop']
-    checkout_payment_gateways = [
-        str_to_enum(gateway) for gateway in settings.CHECKOUT_PAYMENT_GATEWAYS.keys()]
-    assert data['availablePaymentGateways'] == checkout_payment_gateways
