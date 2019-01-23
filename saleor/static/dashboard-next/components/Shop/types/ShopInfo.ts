@@ -24,9 +24,9 @@ export interface ShopInfo_shop {
   defaultCountry: ShopInfo_shop_defaultCountry | null;
   defaultCurrency: string;
   defaultWeightUnit: WeightUnitsEnum | null;
-  displayGrossPrices: boolean | null;
+  displayGrossPrices: boolean;
   domain: ShopInfo_shop_domain;
-  includeTaxesInPrices: boolean | null;
+  includeTaxesInPrices: boolean;
   name: string;
   trackInventoryByDefault: boolean | null;
 }

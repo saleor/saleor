@@ -97,11 +97,11 @@ class Shop(graphene.ObjectType):
         required=True)
     header_text = graphene.String(description='Header text')
     include_taxes_in_prices = graphene.Boolean(
-        description='Include taxes in prices')
+        description='Include taxes in prices', required=True)
     display_gross_prices = graphene.Boolean(
-        description='Display prices with tax in store')
+        description='Display prices with tax in store', required=True)
     charge_taxes_on_shipping = graphene.Boolean(
-        description='Charge taxes on shipping')
+        description='Charge taxes on shipping', required=True)
     track_inventory_by_default = graphene.Boolean(
         description='Enable inventory tracking')
     default_weight_unit = WeightUnitsEnum(description='Default weight unit')
