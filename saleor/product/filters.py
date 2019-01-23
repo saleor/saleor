@@ -190,14 +190,14 @@ class ProductFilter(SortedFilterSet):
         for attr_slug in attributes:
             choices = self._merged_attributes.get_choices(attr_slug)
 
-            # Add attribute with empty values is unnecessary
+            # Rendering attribute with empty values is unnecessary
             if not choices:
                 continue
 
             filters[attr_slug] = AttributeMultipleChoiceFilter(
                 merged_attributes=self._merged_attributes,
                 # By default the translated name of the first one in
-                # # attributes with same slug is used
+                # attributes with same slug is used
                 label=attributes[attr_slug][0].translated.name,
                 widget=CheckboxSelectMultiple,
                 choices=choices)
