@@ -78,7 +78,8 @@ class Shop(graphene.ObjectType):
     default_currency = graphene.String(
         description='Default shop\'s currency.', required=True)
     available_payment_gateways = graphene.List(
-        PaymentGatewayEnum, description='List of available payment gateways.')
+        PaymentGatewayEnum, description='List of available payment gateways.',
+        required=True)
     default_country = graphene.Field(
         CountryDisplay, description='Default shop\'s country')
     description = graphene.String(description='Shop\'s description.')
