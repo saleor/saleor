@@ -1,5 +1,6 @@
-import { SaleType } from "../types/globalTypes";
+import { SaleType, VoucherDiscountValueType } from "../types/globalTypes";
 import { SaleList_sales_edges_node } from "./types/SaleList";
+import { VoucherList_vouchers_edges_node } from "./types/VoucherList";
 
 export const saleList: SaleList_sales_edges_node[] = [
   {
@@ -46,5 +47,34 @@ export const saleList: SaleList_sales_edges_node[] = [
     startDate: "2019-01-03",
     type: "PERCENTAGE" as SaleType,
     value: 10
+  }
+];
+
+export const voucherList: VoucherList_vouchers_edges_node[] = [
+  {
+    __typename: "Voucher" as "Voucher",
+    discountValue: 100,
+    discountValueType: "PERCENTAGE" as VoucherDiscountValueType,
+    endDate: null,
+    id: "Vm91Y2hlcjox",
+    minAmountSpent: null,
+    name: "Free shipping",
+    startDate: "2019-01-03",
+    usageLimit: null
+  },
+  {
+    __typename: "Voucher" as "Voucher",
+    discountValue: 25,
+    discountValueType: "FIXED" as VoucherDiscountValueType,
+    endDate: null,
+    id: "Vm91Y2hlcjoy",
+    minAmountSpent: {
+      __typename: "Money" as "Money",
+      amount: 200,
+      currency: "USD"
+    },
+    name: "Big order discount",
+    startDate: "2019-01-03",
+    usageLimit: 150
   }
 ];
