@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock, Mock, patch
 
 import graphene
 import pytest
@@ -1112,8 +1112,10 @@ def test_clean_order_void_payment():
 
     payment.is_active = True
     error_msg = 'error has happened.'
-    payment.void = Mock(side_effect=ValueError(error_msg))
-    errors = clean_void_payment(payment, [])
+    with patch(
+        'saleor.graphql.order.mutations.orders.gateway_void',
+        side_effect=ValueError(error_msg)):
+            errors = clean_void_payment(payment, [])
     assert errors[0].field == 'payment'
     assert errors[0].message == error_msg
 

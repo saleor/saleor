@@ -61,7 +61,8 @@ class VAT(graphene.ObjectType):
     reduced_rates = graphene.List(
         lambda: ReducedRate,
         description=dedent('''
-        Country\'s VAT rate exceptions for specific types of goods.'''))
+        Country\'s VAT rate exceptions for specific types of goods.'''),
+        required=True)
 
     class Meta:
         description = 'Represents a VAT rate for a country.'
