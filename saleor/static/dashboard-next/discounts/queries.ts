@@ -17,6 +17,12 @@ export const saleList = gql`
           value
         }
       }
+      pageInfo {
+        endCursor
+        hasNextPage
+        hasPreviousPage
+        startCursor
+      }
     }
   }
 `;
@@ -39,6 +45,12 @@ export const voucherList = gql`
             amount
           }
         }
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
+        hasPreviousPage
+        startCursor
       }
     }
   }

@@ -18,6 +18,7 @@ import {
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import MenuIcon from "@material-ui/icons/Menu";
+import MoneyIcon from "@material-ui/icons/MoneyOutlined";
 import Person from "@material-ui/icons/Person";
 import PersonOutline from "@material-ui/icons/PersonOutline";
 import SettingsIcon from "@material-ui/icons/Settings";
@@ -37,6 +38,7 @@ import Navigator from "./components/Navigator";
 import Toggle from "./components/Toggle";
 import { configurationMenu, configurationMenuUrl } from "./configuration";
 import { customerListUrl } from "./customers/urls";
+import { saleListUrl, voucherListUrl } from "./discounts/urls";
 import i18n from "./i18n";
 import ArrowDropdown from "./icons/ArrowDropdown";
 import Home from "./icons/Home";
@@ -96,6 +98,26 @@ const menuStructure: IMenuItem[] = [
     label: i18n.t("Customers", { context: "Menu label" }),
     permission: PermissionEnum.MANAGE_USERS,
     url: customerListUrl
+  },
+  {
+    ariaLabel: "discounts",
+    children: [
+      {
+        ariaLabel: "sales",
+        icon: <MoneyIcon />,
+        label: i18n.t("Sales", { context: "Menu label" }),
+        url: saleListUrl
+      },
+      {
+        ariaLabel: "vouchers",
+        icon: <MoneyIcon />,
+        label: i18n.t("Vouchers", { context: "Menu label" }),
+        url: voucherListUrl
+      }
+    ],
+    icon: <MoneyIcon />,
+    label: i18n.t("Discounts", { context: "Menu label" }),
+    permission: PermissionEnum.MANAGE_DISCOUNTS
   }
 ];
 

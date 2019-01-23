@@ -30,9 +30,18 @@ export interface VoucherList_vouchers_edges {
   node: VoucherList_vouchers_edges_node;
 }
 
+export interface VoucherList_vouchers_pageInfo {
+  __typename: "PageInfo";
+  endCursor: string | null;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  startCursor: string | null;
+}
+
 export interface VoucherList_vouchers {
   __typename: "VoucherCountableConnection";
   edges: VoucherList_vouchers_edges[];
+  pageInfo: VoucherList_vouchers_pageInfo;
 }
 
 export interface VoucherList {
