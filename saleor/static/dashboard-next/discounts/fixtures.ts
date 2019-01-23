@@ -1,4 +1,5 @@
 import { SaleType, VoucherDiscountValueType } from "../types/globalTypes";
+import { SaleDetails_sale } from "./types/SaleDetails";
 import { SaleList_sales_edges_node } from "./types/SaleList";
 import { VoucherList_vouchers_edges_node } from "./types/VoucherList";
 
@@ -78,3 +79,103 @@ export const voucherList: VoucherList_vouchers_edges_node[] = [
     usageLimit: 150
   }
 ];
+
+export const sale: SaleDetails_sale = {
+  __typename: "Sale",
+  categories: {
+    __typename: "CategoryCountableConnection",
+    edges: [],
+    pageInfo: {
+      __typename: "PageInfo",
+      endCursor: null,
+      hasNextPage: false,
+      hasPreviousPage: false,
+      startCursor: null
+    }
+  },
+  collections: {
+    __typename: "CollectionCountableConnection",
+    edges: [],
+    pageInfo: {
+      __typename: "PageInfo",
+      endCursor: null,
+      hasNextPage: false,
+      hasPreviousPage: false,
+      startCursor: null
+    }
+  },
+  endDate: null,
+  id: "U2FsZTo1",
+  name: "Happy minute day!",
+  products: {
+    __typename: "ProductCountableConnection",
+    edges: [
+      {
+        __typename: "ProductCountableEdge",
+        node: {
+          __typename: "Product",
+          id: "UHJvZHVjdDo3MQ==",
+          isPublished: true,
+          name: "Orange Juice",
+          productType: {
+            __typename: "ProductType",
+            id: "UHJvZHVjdFR5cGU6OQ==",
+            name: "Juice"
+          }
+        }
+      },
+      {
+        __typename: "ProductCountableEdge",
+        node: {
+          __typename: "Product",
+          id: "UHJvZHVjdDo3Mw==",
+          isPublished: true,
+          name: "Carrot Juice",
+          productType: {
+            __typename: "ProductType",
+            id: "UHJvZHVjdFR5cGU6OQ==",
+            name: "Juice"
+          }
+        }
+      },
+      {
+        __typename: "ProductCountableEdge",
+        node: {
+          __typename: "Product",
+          id: "UHJvZHVjdDo3OQ==",
+          isPublished: true,
+          name: "Bean Juice",
+          productType: {
+            __typename: "ProductType",
+            id: "UHJvZHVjdFR5cGU6OQ==",
+            name: "Juice"
+          }
+        }
+      },
+      {
+        __typename: "ProductCountableEdge",
+        node: {
+          __typename: "Product",
+          id: "UHJvZHVjdDoxMTU=",
+          isPublished: true,
+          name: "Black Hoodie",
+          productType: {
+            __typename: "ProductType",
+            id: "UHJvZHVjdFR5cGU6MTQ=",
+            name: "Top (clothing)"
+          }
+        }
+      }
+    ],
+    pageInfo: {
+      __typename: "PageInfo",
+      endCursor: "YXJyYXljb25uZWN0aW9uOjM=",
+      hasNextPage: false,
+      hasPreviousPage: false,
+      startCursor: "YXJyYXljb25uZWN0aW9uOjA="
+    }
+  },
+  startDate: "2019-01-03",
+  type: "PERCENTAGE" as SaleType,
+  value: 30
+};
