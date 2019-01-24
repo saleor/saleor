@@ -19,6 +19,7 @@ import { SaleDetails_sale } from "../../types/SaleDetails";
 
 export interface SaleCategoriesProps extends ListProps {
   sale: SaleDetails_sale;
+  onCategoryAssign: () => void;
 }
 
 const styles = createStyles({
@@ -40,6 +41,7 @@ const SaleCategories = withStyles(styles, {
     classes,
     disabled,
     pageInfo,
+    onCategoryAssign,
     onRowClick,
     onPreviousPage,
     onNextPage
@@ -50,7 +52,7 @@ const SaleCategories = withStyles(styles, {
           saleName: maybe(() => sale.name)
         })}
         toolbar={
-          <Button variant="flat" color="secondary">
+          <Button variant="flat" color="secondary" onClick={onCategoryAssign}>
             {i18n.t("Assign categories")}
           </Button>
         }

@@ -21,6 +21,7 @@ import { SaleDetails_sale } from "../../types/SaleDetails";
 
 export interface SaleProductsProps extends ListProps {
   sale: SaleDetails_sale;
+  onProductAssign: () => void;
 }
 
 const styles = createStyles({
@@ -44,6 +45,7 @@ const SaleProducts = withStyles(styles, {
     pageInfo,
     onRowClick,
     onPreviousPage,
+    onProductAssign,
     onNextPage
   }: SaleProductsProps & WithStyles<typeof styles>) => (
     <Card>
@@ -52,7 +54,7 @@ const SaleProducts = withStyles(styles, {
           saleName: maybe(() => sale.name)
         })}
         toolbar={
-          <Button variant="flat" color="secondary">
+          <Button variant="flat" color="secondary" onClick={onProductAssign}>
             {i18n.t("Assign products")}
           </Button>
         }
