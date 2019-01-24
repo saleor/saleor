@@ -5,6 +5,7 @@ from typing import Dict
 from django.conf import settings
 from prices import Money
 
+from ... import ChargeStatus
 from .forms import DummyPaymentForm
 
 TEMPLATE_PATH = 'order/payment/dummy.html'
@@ -95,8 +96,20 @@ def charge(payment_information: Dict, connection_params):
 
 
 def process_payment(payment_information: Dict, connection_params) -> Dict:
-    """Process the whole payment, by calling authorize and capture."""
-    auth_resp = authorize(payment_information, connection_params)
-    if not auth_resp['is_success']:
-        return auth_resp
-    return [auth_resp, capture(payment_information, connection_params)]
+    """Process the payment."""
+    token = payment_information.get('token')
+
+    # Process payment normally if payment token is valid
+    if token not in dict(ChargeStatus.CHOICES):
+        return charge(payment_information, connection_params)
+
+    # Process payment by charge status which is selected in the payment form
+    # Note that is for testing by dummy gateway only
+    charge_status = token
+    responses = [authorize(payment_information, connection_params)]
+    if charge_status == ChargeStatus.NOT_CHARGED:
+        return responses
+    responses.append(capture(payment_information, connection_params))
+    if charge_status == ChargeStatus.FULLY_REFUNDED:
+        responses.append(refund(payment_information, connection_params))
+    return responses
