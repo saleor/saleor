@@ -1,9 +1,6 @@
 import uuid
-from decimal import Decimal
 from typing import Dict
 
-from django.conf import settings
-from prices import Money
 
 from ... import ChargeStatus
 from .forms import DummyPaymentForm
