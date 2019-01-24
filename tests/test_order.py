@@ -464,7 +464,7 @@ def test_order_payment_flow(
         'is_active': True,
         'total': order.total.gross.amount,
         'currency': order.total.gross.currency,
-        'charge_status': ChargeStatus.NOT_CHARGED}
+        'charge_status': ChargeStatus.CHARGED}
     response = client.post(redirect_url, data)
 
     assert response.status_code == 302
