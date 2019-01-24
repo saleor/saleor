@@ -13,12 +13,18 @@ export interface SaleDetails_sale_products_edges_node_productType {
   name: string;
 }
 
+export interface SaleDetails_sale_products_edges_node_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface SaleDetails_sale_products_edges_node {
   __typename: "Product";
   id: string;
   name: string;
   isPublished: boolean;
   productType: SaleDetails_sale_products_edges_node_productType;
+  thumbnail: SaleDetails_sale_products_edges_node_thumbnail | null;
 }
 
 export interface SaleDetails_sale_products_edges {

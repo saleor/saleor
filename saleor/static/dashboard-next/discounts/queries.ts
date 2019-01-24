@@ -79,6 +79,9 @@ export const saleDetails = gql`
               id
               name
             }
+            thumbnail {
+              url
+            }
           }
         }
         pageInfo {

@@ -1,3 +1,4 @@
+import * as placeholderImage from "../../images/placeholder60x60.png";
 import { SaleType, VoucherDiscountValueType } from "../types/globalTypes";
 import { SaleDetails_sale } from "./types/SaleDetails";
 import { SaleList_sales_edges_node } from "./types/SaleList";
@@ -84,7 +85,20 @@ export const sale: SaleDetails_sale = {
   __typename: "Sale",
   categories: {
     __typename: "CategoryCountableConnection",
-    edges: [],
+    edges: [
+      {
+        __typename: "CategoryCountableEdge",
+        node: {
+          __typename: "Category",
+          id: "U2FsZTo1=",
+          name: "Apparel",
+          products: {
+            __typename: "ProductCountableConnection",
+            totalCount: 18
+          }
+        }
+      }
+    ],
     pageInfo: {
       __typename: "PageInfo",
       endCursor: null,
@@ -95,7 +109,20 @@ export const sale: SaleDetails_sale = {
   },
   collections: {
     __typename: "CollectionCountableConnection",
-    edges: [],
+    edges: [
+      {
+        __typename: "CollectionCountableEdge",
+        node: {
+          __typename: "Collection",
+          id: "U2FsZBo4=",
+          name: "Winter Collection",
+          products: {
+            __typename: "ProductCountableConnection",
+            totalCount: 110
+          }
+        }
+      }
+    ],
     pageInfo: {
       __typename: "PageInfo",
       endCursor: null,
@@ -121,6 +148,10 @@ export const sale: SaleDetails_sale = {
             __typename: "ProductType",
             id: "UHJvZHVjdFR5cGU6OQ==",
             name: "Juice"
+          },
+          thumbnail: {
+            __typename: "Image",
+            url: placeholderImage
           }
         }
       },
@@ -135,6 +166,10 @@ export const sale: SaleDetails_sale = {
             __typename: "ProductType",
             id: "UHJvZHVjdFR5cGU6OQ==",
             name: "Juice"
+          },
+          thumbnail: {
+            __typename: "Image",
+            url: placeholderImage
           }
         }
       },
@@ -149,6 +184,10 @@ export const sale: SaleDetails_sale = {
             __typename: "ProductType",
             id: "UHJvZHVjdFR5cGU6OQ==",
             name: "Juice"
+          },
+          thumbnail: {
+            __typename: "Image",
+            url: placeholderImage
           }
         }
       },
@@ -163,6 +202,10 @@ export const sale: SaleDetails_sale = {
             __typename: "ProductType",
             id: "UHJvZHVjdFR5cGU6MTQ=",
             name: "Top (clothing)"
+          },
+          thumbnail: {
+            __typename: "Image",
+            url: placeholderImage
           }
         }
       }
