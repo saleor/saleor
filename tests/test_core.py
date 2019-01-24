@@ -4,7 +4,6 @@ from unittest.mock import Mock, patch
 from urllib.parse import urljoin
 
 import pytest
-from django.db.models import Case, F, When
 from django.shortcuts import reverse
 from django.templatetags.static import static
 from django.urls import translate_url
@@ -20,7 +19,7 @@ from saleor.core.utils.text import get_cleaner, strip_html
 from saleor.core.weight import WeightUnits, convert_weight
 from saleor.discount.models import Sale, Voucher
 from saleor.order.models import Order
-from saleor.product.models import Product, ProductImage, ProductVariant
+from saleor.product.models import ProductImage
 from saleor.shipping.models import ShippingZone
 
 type_schema = {
@@ -120,7 +119,6 @@ def test_create_fake_order(db, monkeypatch, image):
     for _ in random_data.create_shipping_zones():
         pass
     for _ in random_data.create_users(3):
-        pass
         random_data.create_products_by_schema('/', 10)
     how_many = 5
     for _ in random_data.create_orders(how_many):
