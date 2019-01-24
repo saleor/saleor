@@ -274,6 +274,31 @@ def validate_gateway_response(responses):
                 'Gateway response needs to be json serializable')
 
 
+def _gateway_postprocess(transaction, payment):
+    transaction_kind = transaction.kind
+
+    if transaction_kind in [TransactionKind.CHARGE, TransactionKind.CAPTURE]:
+        payment.charge_status = ChargeStatus.CHARGED
+        payment.captured_amount += transaction.amount
+        payment.save(update_fields=['charge_status', 'captured_amount'])
+        order = payment.order
+        if order and order.is_fully_paid():
+            handle_fully_paid_order(order)
+
+    elif transaction_kind == TransactionKind.VOID:
+        payment.is_active = False
+        payment.save(update_fields=['is_active'])
+
+    elif transaction_kind == TransactionKind.REFUND:
+        changed_fields = ['captured_amount']
+        payment.captured_amount -= transaction.amount
+        if payment.captured_amount <= 0:
+            payment.charge_status = ChargeStatus.FULLY_REFUNDED
+            payment.is_active = False
+            changed_fields += ['charge_status', 'is_active']
+        payment.save(update_fields=changed_fields)
+
+
 @validate_payment
 def gateway_process_payment(
         payment: Payment, payment_token: str) -> Transaction:
@@ -283,13 +308,7 @@ def gateway_process_payment(
         transaction_kind=TransactionKind.CAPTURE,
         payment=payment, payment_token=payment_token, amount=payment.total)
 
-    payment.charge_status = ChargeStatus.CHARGED
-    payment.captured_amount += transaction.amount
-    payment.save(update_fields=['charge_status', 'captured_amount'])
-    order = payment.order
-    if order and order.is_fully_paid():
-        handle_fully_paid_order(order)
-
+    _gateway_postprocess(transaction, payment)
     return transaction
 
 
@@ -315,13 +334,7 @@ def gateway_charge(
         transaction_kind=TransactionKind.CHARGE,
         payment=payment, payment_token=payment_token, amount=amount)
 
-    payment.charge_status = ChargeStatus.CHARGED
-    payment.captured_amount += transaction.amount
-    payment.save(update_fields=['charge_status', 'captured_amount'])
-    order = payment.order
-    if order and order.is_fully_paid():
-        handle_fully_paid_order(order)
-
+    _gateway_postprocess(transaction, payment)
     return transaction
 
 
@@ -358,13 +371,7 @@ def gateway_capture(payment: Payment, amount: Decimal = None) -> Transaction:
         transaction_kind=TransactionKind.CAPTURE,
         payment=payment, payment_token=payment_token, amount=amount)
 
-    payment.charge_status = ChargeStatus.CHARGED
-    payment.captured_amount += transaction.amount
-    payment.save(update_fields=['charge_status', 'captured_amount'])
-    order = payment.order
-    if order and order.is_fully_paid():
-        handle_fully_paid_order(order)
-
+    _gateway_postprocess(transaction, payment)
     return transaction
 
 
@@ -384,9 +391,7 @@ def gateway_void(payment) -> Transaction:
         transaction_kind=TransactionKind.VOID,
         payment=payment, payment_token=payment_token)
 
-    payment.is_active = False
-    payment.save(update_fields=['is_active'])
-
+    _gateway_postprocess(transaction, payment)
     return transaction
 
 
@@ -419,12 +424,5 @@ def gateway_refund(payment, amount: Decimal = None) -> Transaction:
         transaction_kind=TransactionKind.REFUND,
         payment=payment, payment_token=payment_token, amount=amount)
 
-    changed_fields = ['captured_amount']
-    payment.captured_amount -= transaction.amount
-    if not payment.captured_amount:
-        payment.charge_status = ChargeStatus.FULLY_REFUNDED
-        payment.is_active = False
-        changed_fields += ['charge_status', 'is_active']
-    payment.save(update_fields=changed_fields)
-
+    _gateway_postprocess(transaction, payment)
     return transaction
