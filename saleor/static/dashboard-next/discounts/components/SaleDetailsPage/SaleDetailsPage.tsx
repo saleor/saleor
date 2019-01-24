@@ -87,11 +87,11 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
   onProductClick
 }) => {
   const initialForm: FormData = {
-    endDate: maybe(() => sale.endDate),
-    name: maybe(() => sale.name),
-    startDate: maybe(() => sale.startDate),
-    type: maybe(() => sale.type),
-    value: maybe(() => sale.value.toString())
+    endDate: maybe(() => (sale.endDate ? sale.endDate : ""), ""),
+    name: maybe(() => sale.name, ""),
+    startDate: maybe(() => sale.startDate, ""),
+    type: maybe(() => sale.type, SaleType.FIXED),
+    value: maybe(() => sale.value.toString(), "")
   };
   return (
     <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
