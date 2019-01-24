@@ -12,10 +12,14 @@ import * as React from "react";
 import CardTitle from "../../../components/CardTitle";
 import i18n from "../../../i18n";
 import { FormData } from "../SaleDetailsPage";
+import { errors } from "../../../categories/fixtures";
 
 export interface SaleInfoProps {
   data: FormData;
   disabled: boolean;
+  errors: {
+    name?: string;
+  };
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
@@ -35,6 +39,7 @@ const SaleInfo = withStyles(styles, {
     classes,
     data,
     disabled,
+    errors,
     onChange
   }: SaleInfoProps & WithStyles<typeof styles>) => (
     <Card>
@@ -42,6 +47,8 @@ const SaleInfo = withStyles(styles, {
       <CardContent className={classes.root}>
         <TextField
           disabled={disabled}
+          error={!!errors.name}
+          helperText={errors.name}
           name={"name" as keyof FormData}
           onChange={onChange}
           label={i18n.t("Name")}

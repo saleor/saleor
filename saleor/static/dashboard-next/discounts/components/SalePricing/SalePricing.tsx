@@ -28,6 +28,11 @@ export interface SalePricingProps {
   data: FormData;
   defaultCurrency: string;
   disabled: boolean;
+  errors: {
+    startDate?: string;
+    endDate?: string;
+    value?: string;
+  };
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
@@ -61,7 +66,14 @@ const SalePricing = withStyles(styles, {
     anchor = React.createRef<HTMLDivElement>();
 
     render() {
-      const { classes, data, defaultCurrency, disabled, onChange } = this.props;
+      const {
+        classes,
+        data,
+        defaultCurrency,
+        disabled,
+        errors,
+        onChange
+      } = this.props;
 
       return (
         <Card>
@@ -69,12 +81,17 @@ const SalePricing = withStyles(styles, {
           <CardContent className={classes.root}>
             <TextField
               disabled={disabled}
+              error={!!errors.value}
+              helperText={errors.value}
               name={"value" as keyof FormData}
               onChange={onChange}
               label={i18n.t("Discount Value")}
               value={data.value}
               type="number"
               fullWidth
+              inputProps={{
+                min: 0
+              }}
               InputProps={{
                 endAdornment: (
                   <MenuToggle ariaOwns="user-menu">
@@ -165,6 +182,8 @@ const SalePricing = withStyles(styles, {
             </Typography>
             <TextField
               disabled={disabled}
+              error={!!errors.startDate}
+              helperText={errors.startDate}
               name={"startDate" as keyof FormData}
               onChange={onChange}
               label={i18n.t("Start Date")}
@@ -174,6 +193,8 @@ const SalePricing = withStyles(styles, {
             />
             <TextField
               disabled={disabled}
+              error={!!errors.endDate}
+              helperText={errors.endDate}
               name={"endDate" as keyof FormData}
               onChange={onChange}
               label={i18n.t("End Date")}
