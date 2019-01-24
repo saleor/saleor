@@ -26,7 +26,8 @@ const styles = (theme: Theme) =>
       display: "inline-block",
       fontWeight: theme.typography.fontWeightRegular,
       marginRight: theme.spacing.unit * 4,
-      minWidth: 40
+      minWidth: 40,
+      transition: theme.transitions.duration.short + "ms"
     }
   });
 
