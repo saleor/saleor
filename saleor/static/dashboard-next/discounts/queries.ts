@@ -1,6 +1,7 @@
 import gql from "graphql-tag";
 
 import { pageInfoFragment, TypedQuery } from "../queries";
+import { SaleDetails, SaleDetailsVariables } from "./types/SaleDetails";
 import { SaleList, SaleListVariables } from "./types/SaleList";
 import { VoucherList, VoucherListVariables } from "./types/VoucherList";
 
@@ -121,3 +122,6 @@ export const saleDetails = gql`
     }
   }
 `;
+export const TypedSaleDetails = TypedQuery<SaleDetails, SaleDetailsVariables>(
+  saleDetails
+);
