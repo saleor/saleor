@@ -19,7 +19,7 @@ class OrderStatus:
             'staff users',
             'Draft')),
         (UNFULFILLED, pgettext_lazy(
-            'Status for an order with any items marked as fulfilled',
+            'Status for an order with no items marked as fulfilled',
             'Unfulfilled')),
         (PARTIALLY_FULFILLED, pgettext_lazy(
             'Status for an order with some items marked as fulfilled',
