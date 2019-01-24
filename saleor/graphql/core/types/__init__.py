@@ -3,3 +3,4 @@ from .common import (
     Weight)
 from .money import (
     Money, MoneyRange, ReducedRate, TaxedMoney, TaxedMoneyRange, VAT)
+from .upload import Upload
