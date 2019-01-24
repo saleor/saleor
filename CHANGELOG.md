@@ -29,6 +29,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Refactor payments - #3519 by @michaljelonek
 - Fix bug where product variant can not have attributes with same slug - #3626 by @jxltom
 - Add missing migrations for tax rate choices - #3629 by @jxltom
+- Validate files uploaded in API in a unified way - #3633 by @fowczarek
 - Add ShopFetchTaxRates mutation - #3622 by @fowczarek
 - Add taxes section - #3622 by @dominik-zeglen
+- Expose in API list of supported payment gateways - #3639 by @fowczarek
 - Display payment status in account order list page and account order detail page - #3637 by @jxltom
