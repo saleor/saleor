@@ -33,3 +33,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add ShopFetchTaxRates mutation - #3622 by @fowczarek
 - Add taxes section - #3622 by @dominik-zeglen
 - Expose in API list of supported payment gateways - #3639 by @fowczarek
+- Add missing margin for order notes section - #3650 by @jxltom
