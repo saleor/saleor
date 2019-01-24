@@ -32,4 +32,5 @@ All notable, unreleased changes to this project will be documented in this file.
 - Validate files uploaded in API in a unified way - #3633 by @fowczarek
 - Add ShopFetchTaxRates mutation - #3622 by @fowczarek
 - Add taxes section - #3622 by @dominik-zeglen
+- Expose in API list of supported payment gateways - #3639 by @fowczarek
 - Support filtering products by same attribute slug and value slug - #3628 by @jxltom
