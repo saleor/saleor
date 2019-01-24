@@ -24,7 +24,7 @@
   <div class="account">
     <div class="account__nav container">
       <h2>{% trans "My account" %}</h2>
-      <ul class="nav nav-tabs col-lg-10 m-auto" role="tablist">
+      <ul class="nav nav-tabs col-lg-11 m-auto" role="tablist">
         <li class="nav-item">
           <a class="nav-link active" data-toggle="tab" href="#orders" role="tab">
             <h3>{% trans "Recent Orders" context "User profile tab" %}</h3>
@@ -49,45 +49,49 @@
         </li>
       </ul>
     </div>
-    <div class="tab-content col-lg-10 m-auto">
+    <div class="tab-content col-lg-11 m-auto">
       <div class="tab-pane active fade show" id="orders" role="tabpanel">
         <div id="accordion" role="tablist" aria-multiselectable="true">
           {% if orders|length %}
             <div class="table__header">
               <div class="row">
-                <div class="col-md-2 col-3">
+                <div class="col-md-2 col-4">
                   <small>{% trans "Order" context "Recent orders column title" %}</small>
                 </div>
                 <div class="col-md-3 d-none d-md-block">
                   <small>{% trans "Date" context "Recent orders column title" %}</small>
                 </div>
-                <div class="col-md-2 col-4 text-right">
+                <div class="col-md-2 col-6">
                   <small>{% trans "Summary" context "Recent orders column title" %}</small>
                 </div>
-                <div class="col-md-4 d-none d-md-block">
-                  <small>{% trans "Status" context "Recent orders column title" %}</small>
+                <div class="col-md-2 d-none d-md-block">
+                  <small>{% trans "Payment status" context "Recent orders column title" %}</small>
                 </div>
-                <div class="col-md-1 col-5"></div>
+                <div class="col-md-2 d-none d-md-block">
+                  <small>{% trans "Order status" context "Recent orders column title" %}</small>
+                </div>
+                <div class="col-md-1 col-2"></div>
               </div>
             </div>
             {% for order in orders %}
               <div class="table__row">
                 <div class="row">
-                  <div class="col-md-2 col-3">
+                  <div class="col-md-2 col-4">
                     {{ order }}
                   </div>
                   <div class="col-md-3 d-none d-md-block">
                     {{ order.created }}
                   </div>
-                  <div class="col-md-2 col-4">
-                    <span class="float-right">
-                      {% price order.total.gross %}
-                    </span>
+                  <div class="col-md-2 col-6">
+                    {% price order.total.gross %}
                   </div>
-                  <div class="col-md-4 d-none d-md-block">
+                  <div class="col-md-2 d-none d-md-block">
+                    {% render_status order.get_payment_status order.get_payment_status_display %}
+                  </div>
+                  <div class="col-md-2 d-none d-md-block">
                     {% render_order_status order.status order.get_status_display %}
                   </div>
-                  <div class="col-md-1 col-5">
+                  <div class="col-md-1 col-2">
                     <a href="{{ order.get_absolute_url }}" class="float-right link--styled">
                       {% trans "Details" context "Recent orders link text" %}
                     </a>
