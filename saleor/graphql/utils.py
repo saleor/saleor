@@ -62,6 +62,7 @@ def get_nodes(ids, graphene_type=None):
                 break
 
     nodes = list(graphene_type._meta.model.objects.filter(pk__in=pks))
+    nodes.sort(key=lambda e: pks.index(str(e.pk)))  # preserve order in pks
     if not nodes:
         raise GraphQLError(
             error_msg % ids)
