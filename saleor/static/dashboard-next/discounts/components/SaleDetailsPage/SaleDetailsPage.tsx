@@ -30,9 +30,16 @@ export interface FormData {
 }
 
 export enum SaleDetailsPageTab {
-  "categories",
-  "collections",
-  "products"
+  categories = "categories",
+  collections = "collections",
+  products = "products"
+}
+export function saleDetailsPageTab(tab: string): SaleDetailsPageTab {
+  return tab === SaleDetailsPageTab.products
+    ? SaleDetailsPageTab.products
+    : tab === SaleDetailsPageTab.collections
+    ? SaleDetailsPageTab.collections
+    : SaleDetailsPageTab.categories;
 }
 
 export interface SaleDetailsPageProps

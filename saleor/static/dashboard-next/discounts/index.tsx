@@ -4,7 +4,11 @@ import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
-import { saleListPath, voucherListPath } from "./urls";
+import { saleDetailsPageTab } from "./components/SaleDetailsPage";
+import { saleListPath, salePath, voucherListPath } from "./urls";
+import SaleDetailsViewComponent, {
+  SaleDetailsQueryParams
+} from "./views/SaleDetails";
 import SaleListViewComponent, { SaleListQueryParams } from "./views/SaleList";
 import VoucherListViewComponent, {
   VoucherListQueryParams
@@ -19,6 +23,18 @@ const SaleListView: React.StatelessComponent<RouteComponentProps<{}>> = ({
     before: qs.before
   };
   return <SaleListViewComponent params={params} />;
+};
+
+const SaleDetailsView: React.StatelessComponent<
+  RouteComponentProps<{ id: string }>
+> = ({ match, location }) => {
+  const qs = parseQs(location.search.substr(1));
+  const params: SaleDetailsQueryParams = {
+    after: qs.after,
+    before: qs.before,
+    tab: saleDetailsPageTab(qs.tab)
+  };
+  return <SaleDetailsViewComponent id={match.params.id} params={params} />;
 };
 
 const VoucherListView: React.StatelessComponent<RouteComponentProps<{}>> = ({
@@ -37,6 +53,7 @@ export const DiscountSection: React.StatelessComponent<{}> = () => (
     <WindowTitle title={i18n.t("Discounts")} />
     <Switch>
       <Route exact path={saleListPath} component={SaleListView} />
+      <Route exact path={salePath(":id")} component={SaleDetailsView} />
       <Route exact path={voucherListPath} component={VoucherListView} />
     </Switch>
   </>
