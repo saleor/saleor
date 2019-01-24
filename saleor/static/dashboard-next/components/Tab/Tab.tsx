@@ -25,7 +25,7 @@ const styles = (theme: Theme) =>
       cursor: "pointer",
       display: "inline-block",
       fontWeight: theme.typography.fontWeightRegular,
-      marginRight: theme.spacing.unit * 4,
+      marginRight: theme.spacing.unit * 2,
       minWidth: 40,
       padding: `0 ${theme.spacing.unit}px`,
       transition: theme.transitions.duration.short + "ms"
