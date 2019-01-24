@@ -12,8 +12,9 @@ from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from satchless.item import InsufficientStock
 
+from saleor.cart.models import Cart
 from . import CartStatus
-from .models import Cart
+# from .models import Cart
 
 COOKIE_NAME = 'cart'
 
@@ -136,31 +137,6 @@ def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
     return get_cart
 
 
-def get_or_create_anonymous_cart_from_token(
-        token, cart_queryset=Cart.objects.all()):
-    """Returns open anonymous cart with given token or creates new.
-    :type cart_queryset: saleor.cart.models.CartQueryset
-    :type token: string
-    :rtype: Cart
-    """
-    return cart_queryset.open().filter(token=token, user=None).get_or_create(
-        defaults={'user': None})[0]
-
-
-def get_or_create_user_cart(user, cart_queryset=Cart.objects.all()):
-    """Returns open cart for given user or creates one.
-    :type cart_queryset: saleor.cart.models.CartQueryset
-    :type user: User
-    :rtype: Cart
-    """
-    with redis.lock('get_user_cart_{}'.format(user.pk), timeout=5):
-        open_carts = cart_queryset.open().filter(user=user).order_by('-pk')
-        # In case of canceled orders stacking up
-        for cart in open_carts[1:]:
-            cart.change_status(CartStatus.CANCELED)
-        return cart_queryset.open().get_or_create(user=user)[0]
-
-
 def get_anonymous_cart_from_token(token, cart_queryset=Cart.objects.all()):
     """Returns open anonymous cart with given token or None if not found.
     :rtype: Cart | None
@@ -175,20 +151,6 @@ def get_user_cart(user, cart_queryset=Cart.objects.all()):
     :rtype: Cart | None
     """
     return cart_queryset.open().filter(user=user).first()
-
-
-def get_or_create_cart_from_request(request, cart_queryset=Cart.objects.all()):
-    """Get cart from database or create new Cart if not found
-    :type cart_queryset: saleor.cart.models.CartQueryset
-    :type request: django.http.HttpRequest
-    :rtype: Cart
-    """
-    if request.user.is_authenticated():
-        return get_or_create_user_cart(request.user, cart_queryset)
-    else:
-        token = request.META.get('HTTP_X_CART_TOKEN', None)
-        unsigned_token = None if not token else signing.get_cookie_signer(salt='cart').unsign(token)
-        return get_or_create_anonymous_cart_from_token(unsigned_token, cart_queryset)
 
 
 def get_cart_from_request(request, cart_queryset=Cart.objects.all()):

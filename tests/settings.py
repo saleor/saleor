@@ -1,7 +1,11 @@
 # pylint: disable=W0401, W0614
+SECRET_KEY = 'NOTREALLY'
 from saleor.settings import *  # noqa
 
-SECRET_KEY = 'NOTREALLY'
+IS_TESTING = True
+import logging
+from django.db import connection
+connection.force_debug_cursor = True
 
 DEFAULT_CURRENCY = 'USD'
 

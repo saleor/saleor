@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-from functools import wraps
-
 from django.conf import settings
 from django.db import transaction
 from django.forms.models import model_to_dict
@@ -9,11 +7,9 @@ from django.utils.encoding import smart_text
 from django.utils.translation import get_language
 from prices import FixedDiscount, Price
 
-from ..cart.models import Cart
-from ..cart.utils import get_or_empty_db_cart
 from ..discount.models import NotApplicable, Voucher
-from ..order.models import Order
-from ..order.utils import add_items_to_delivery_group
+# from ..order.models import Order
+# from ..order.utils import add_items_to_delivery_group
 from ..shipping.models import ANY_COUNTRY, ShippingMethodCountry
 from ..userprofile.models import Address
 from ..userprofile.utils import store_user_address
@@ -229,62 +225,8 @@ class Checkout(object):
 
     @transaction.atomic
     def create_order(self):
-        voucher = self._get_voucher(
-            vouchers=Voucher.objects.active().select_for_update())
-        if self.voucher_code is not None and voucher is None:
-            # Voucher expired in meantime, abort order placement
-            return
-
-        if self.is_shipping_required:
-            shipping_address = self._save_order_shipping_address()
-            self._add_to_user_address_book(
-                self.shipping_address, is_shipping=True)
-        else:
-            shipping_address = None
-        billing_address = self._save_order_billing_address()
-        self._add_to_user_address_book(
-            self.billing_address, is_billing=True)
-
-        order_data = {
-            'language_code': get_language(),
-            'billing_address': billing_address,
-            'shipping_address': shipping_address,
-            'tracking_client_id': self.tracking_code,
-            'total': self.get_total()}
-
-        if self.user.is_authenticated():
-            order_data['user'] = self.user
-            order_data['user_email'] = self.user.email
-
-        else:
-            order_data['user_email'] = self.email
-
-        if voucher is not None:
-            discount = self.discount
-            order_data['voucher'] = voucher
-            order_data['discount_amount'] = discount.amount
-            order_data['discount_name'] = discount.name
-
-        order = Order.objects.create(**order_data)
-
-        for partition in self.cart.partition():
-            shipping_required = partition.is_shipping_required()
-            if shipping_required:
-                shipping_price = self.shipping_method.get_total()
-                shipping_method_name = smart_text(self.shipping_method)
-            else:
-                shipping_price = 0
-                shipping_method_name = None
-            group = order.groups.create(
-                shipping_price=shipping_price,
-                shipping_method_name=shipping_method_name)
-            add_items_to_delivery_group(
-                group, partition, discounts=self.cart.discounts)
-
-        if voucher is not None:
-            Voucher.objects.increase_usage(voucher)
-
-        return order
+        pass
+        # return order
 
     def _get_voucher(self, vouchers=None):
         voucher_code = self.voucher_code

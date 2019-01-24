@@ -12,12 +12,12 @@ from django.template.defaultfilters import slugify
 from django.utils.six import moves
 from faker import Factory
 from faker.providers import BaseProvider
-from payments import PaymentStatus
+# from payments import PaymentStatus
 from prices import Price
 
 from ...discount.models import Sale, Voucher
-from ...order import OrderStatus
-from ...order.models import DeliveryGroup, Order, OrderedItem, Payment
+# from ...order import OrderStatus
+# from ...order.models import DeliveryGroup, Order, OrderedItem, Payment
 from ...product.models import (AttributeChoiceValue, Category, Product,
                                ProductAttribute, ProductClass, ProductImage,
                                ProductVariant, Stock, StockLocation)
@@ -369,96 +369,96 @@ def create_fake_user():
     user.save()
     return user
 
+#
+# def create_payment(delivery_group):
+#     order = delivery_group.order
+#     status = random.choice(
+#         [PaymentStatus.WAITING, PaymentStatus.PREAUTH, PaymentStatus.CONFIRMED])
+#     payment = Payment.objects.create(
+#         order=order,
+#         status=status,
+#         variant='default',
+#         transaction_id=str(fake.random_int(1, 100000)),
+#         currency=settings.DEFAULT_CURRENCY,
+#         total=order.get_total().gross,
+#         delivery=delivery_group.shipping_price.gross,
+#         customer_ip_address=fake.ipv4(),
+#         billing_first_name=order.billing_address.first_name,
+#         billing_last_name=order.billing_address.last_name,
+#         billing_address_1=order.billing_address.street_address_1,
+#         billing_city=order.billing_address.city,
+#         billing_postcode=order.billing_address.postal_code,
+#         billing_country_code=order.billing_address.country)
+#     if status == PaymentStatus.CONFIRMED:
+#         payment.captured_amount = payment.total
+#         payment.save()
+#     return payment
 
-def create_payment(delivery_group):
-    order = delivery_group.order
-    status = random.choice(
-        [PaymentStatus.WAITING, PaymentStatus.PREAUTH, PaymentStatus.CONFIRMED])
-    payment = Payment.objects.create(
-        order=order,
-        status=status,
-        variant='default',
-        transaction_id=str(fake.random_int(1, 100000)),
-        currency=settings.DEFAULT_CURRENCY,
-        total=order.get_total().gross,
-        delivery=delivery_group.shipping_price.gross,
-        customer_ip_address=fake.ipv4(),
-        billing_first_name=order.billing_address.first_name,
-        billing_last_name=order.billing_address.last_name,
-        billing_address_1=order.billing_address.street_address_1,
-        billing_city=order.billing_address.city,
-        billing_postcode=order.billing_address.postal_code,
-        billing_country_code=order.billing_address.country)
-    if status == PaymentStatus.CONFIRMED:
-        payment.captured_amount = payment.total
-        payment.save()
-    return payment
+#
+# def create_delivery_group(order):
+#     region = order.shipping_address.country
+#     if region not in DELIVERY_REGIONS:
+#         region = ANY_COUNTRY
+#     shipping_method = fake.shipping_method()
+#     shipping_country = shipping_method.price_per_country.get_or_create(
+#         country_code=region, defaults={'price': fake.price()})[0]
+#     delivery_group = DeliveryGroup.objects.create(
+#         status=random.choice(['new', 'shipped']),
+#         order=order,
+#         shipping_method_name=str(shipping_country),
+#         shipping_price=shipping_country.price)
+#     return delivery_group
+#
+#
+# def create_order_line(delivery_group):
+#     product = Product.objects.all().order_by('?')[0]
+#     variant = product.variants.all()[0]
+#     return OrderedItem.objects.create(
+#         delivery_group=delivery_group,
+#         product=product,
+#         product_name=product.name,
+#         product_sku=variant.sku,
+#         quantity=random.randrange(1, 5),
+#         unit_price_net=product.price.net,
+#         unit_price_gross=product.price.gross)
+
+#
+# def create_order_lines(delivery_group, how_many=10):
+#     for dummy in range(how_many):
+#         yield create_order_line(delivery_group)
 
 
-def create_delivery_group(order):
-    region = order.shipping_address.country
-    if region not in DELIVERY_REGIONS:
-        region = ANY_COUNTRY
-    shipping_method = fake.shipping_method()
-    shipping_country = shipping_method.price_per_country.get_or_create(
-        country_code=region, defaults={'price': fake.price()})[0]
-    delivery_group = DeliveryGroup.objects.create(
-        status=random.choice(['new', 'shipped']),
-        order=order,
-        shipping_method_name=str(shipping_country),
-        shipping_price=shipping_country.price)
-    return delivery_group
-
-
-def create_order_line(delivery_group):
-    product = Product.objects.all().order_by('?')[0]
-    variant = product.variants.all()[0]
-    return OrderedItem.objects.create(
-        delivery_group=delivery_group,
-        product=product,
-        product_name=product.name,
-        product_sku=variant.sku,
-        quantity=random.randrange(1, 5),
-        unit_price_net=product.price.net,
-        unit_price_gross=product.price.gross)
-
-
-def create_order_lines(delivery_group, how_many=10):
-    for dummy in range(how_many):
-        yield create_order_line(delivery_group)
-
-
-def create_fake_order():
-    user = random.choice([None, User.objects.filter(
-        is_superuser=False).order_by('?').first()])
-    if user:
-        user_data = {
-            'user': user,
-            'billing_address': user.default_billing_address,
-            'shipping_address': user.default_shipping_address}
-    else:
-        address = create_address()
-        user_data = {
-            'billing_address': address,
-            'shipping_address': address,
-            'user_email': get_email(
-                address.first_name, address.last_name)}
-    order = Order.objects.create(**user_data)
-    order.change_status(OrderStatus.PAYMENT_PENDING)
-
-    delivery_group = create_delivery_group(order)
-    lines = create_order_lines(delivery_group, random.randrange(1, 5))
-
-    order.total = sum(
-        [line.get_total() for line in lines], delivery_group.shipping_price)
-    order.save()
-
-    payment = create_payment(delivery_group)
-    if payment.status == PaymentStatus.CONFIRMED:
-        order.change_status(OrderStatus.FULLY_PAID)
-        if random.choice([True, False]):
-            order.change_status(OrderStatus.SHIPPED)
-    return order
+# def create_fake_order():
+#     user = random.choice([None, User.objects.filter(
+#         is_superuser=False).order_by('?').first()])
+#     if user:
+#         user_data = {
+#             'user': user,
+#             'billing_address': user.default_billing_address,
+#             'shipping_address': user.default_shipping_address}
+#     else:
+#         address = create_address()
+#         user_data = {
+#             'billing_address': address,
+#             'shipping_address': address,
+#             'user_email': get_email(
+#                 address.first_name, address.last_name)}
+#     order = Order.objects.create(**user_data)
+#     order.change_status(OrderStatus.PAYMENT_PENDING)
+#
+#     delivery_group = create_delivery_group(order)
+#     lines = create_order_lines(delivery_group, random.randrange(1, 5))
+#
+#     order.total = sum(
+#         [line.get_total() for line in lines], delivery_group.shipping_price)
+#     order.save()
+#
+#     payment = create_payment(delivery_group)
+#     if payment.status == PaymentStatus.CONFIRMED:
+#         order.change_status(OrderStatus.FULLY_PAID)
+#         if random.choice([True, False]):
+#             order.change_status(OrderStatus.SHIPPED)
+#     return order
 
 
 def create_fake_sale():
@@ -477,10 +477,10 @@ def create_users(how_many=10):
         yield 'User: %s' % (user.email,)
 
 
-def create_orders(how_many=10):
-    for dummy in range(how_many):
-        order = create_fake_order()
-        yield 'Order: %s' % (order,)
+# def create_orders(how_many=10):
+#     for dummy in range(how_many):
+        # order = create_fake_order()
+        # yield 'Order: %s' % (order,)
 
 
 def create_product_sales(how_many=5):
