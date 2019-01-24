@@ -15,17 +15,23 @@ const props: SaleDetailsPageProps = {
   disabled: false,
   errors: [],
   onBack: () => undefined,
+  onCategoryAssign: () => undefined,
+  onCategoryClick: () => undefined,
+  onCollectionAssign: () => undefined,
+  onCollectionClick: () => undefined,
   onNextPage: () => undefined,
   onPreviousPage: () => undefined,
+  onProductAssign: () => undefined,
+  onProductClick: () => undefined,
   onRemove: () => undefined,
-  onRowClick: () => () => undefined,
   onSubmit: () => undefined,
   onTabClick: () => undefined,
   pageInfo: {
     hasNextPage: true,
     hasPreviousPage: false
   },
-  sale
+  sale,
+  saveButtonBarState: "default"
 };
 
 storiesOf("Views / Discounts / Sale details", module)

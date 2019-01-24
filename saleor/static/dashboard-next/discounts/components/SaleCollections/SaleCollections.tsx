@@ -19,6 +19,7 @@ import { SaleDetails_sale } from "../../types/SaleDetails";
 
 export interface SaleCollectionsProps extends ListProps {
   sale: SaleDetails_sale;
+  onCollectionAssign: () => void;
 }
 
 const styles = createStyles({
@@ -40,6 +41,7 @@ const SaleCollections = withStyles(styles, {
     classes,
     disabled,
     pageInfo,
+    onCollectionAssign,
     onRowClick,
     onPreviousPage,
     onNextPage
@@ -50,7 +52,7 @@ const SaleCollections = withStyles(styles, {
           saleName: maybe(() => sale.name)
         })}
         toolbar={
-          <Button variant="flat" color="secondary">
+          <Button variant="flat" color="secondary" onClick={onCollectionAssign}>
             {i18n.t("Assign collections")}
           </Button>
         }
