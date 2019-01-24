@@ -9,15 +9,15 @@ import { Tab } from "../../../components/Tab";
 import TabContainer from "../../../components/Tab/TabContainer";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { ListProps } from "../../../types";
+import { ListProps, UserError } from "../../../types";
 import { SaleType } from "../../../types/globalTypes";
 import { SaleDetails_sale } from "../../types/SaleDetails";
-import SaleInfo from "../SaleInfo";
-import SalePricing from "../SalePricing";
-import SaleSummary from "../SaleSummary";
 import SaleCategories from "../SaleCategories";
 import SaleCollections from "../SaleCollections";
+import SaleInfo from "../SaleInfo";
+import SalePricing from "../SalePricing";
 import SaleProducts from "../SaleProducts";
+import SaleSummary from "../SaleSummary";
 
 export interface FormData {
   name: string;
@@ -36,6 +36,7 @@ export enum SaleDetailsPageTab {
 export interface SaleDetailsPageProps extends ListProps {
   activeTab: SaleDetailsPageTab;
   defaultCurrency: string;
+  errors: UserError[];
   sale: SaleDetails_sale;
   onBack: () => void;
   onRemove: () => void;
@@ -52,6 +53,7 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
   onTabClick,
   defaultCurrency,
   disabled,
+  errors,
   sale,
   pageInfo,
   onBack,
@@ -69,18 +71,24 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
     value: maybe(() => sale.value.toString())
   };
   return (
-    <Form initial={initialForm} onSubmit={onSubmit}>
-      {({ change, data, errors, hasChanged, submit }) => (
+    <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
+      {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container width="md">
           <PageHeader title={maybe(() => sale.name)} onBack={onBack} />
           <Grid>
             <div>
-              <SaleInfo data={data} disabled={disabled} onChange={change} />
+              <SaleInfo
+                data={data}
+                disabled={disabled}
+                errors={formErrors}
+                onChange={change}
+              />
               <CardSpacer />
               <SalePricing
                 data={data}
                 defaultCurrency={defaultCurrency}
                 disabled={disabled}
+                errors={formErrors}
                 onChange={change}
               />
               <CardSpacer />
