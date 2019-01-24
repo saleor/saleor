@@ -35,3 +35,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Expose in API list of supported payment gateways - #3639 by @fowczarek
 - Support set arbitary charge status for dummy gateway in storefront 1.0 - #3648 by @jxltom
 - Fix typo in the definition of order UNFULFILLED status - #3649 by @jxltom
+- Add missing margin for order notes section - #3650 by @jxltom
