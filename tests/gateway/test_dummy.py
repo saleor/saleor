@@ -223,8 +223,6 @@ def test_refund_gateway_error(payment_txn_captured, monkeypatch):
     assert payment.captured_amount == Decimal('80.00')
 
 
-@pytest.mark.xfail(
-    reason='Setting payment status through the form is currently not supported')
 @pytest.mark.parametrize(
     'kind, charge_status',
     (
