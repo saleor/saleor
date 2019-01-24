@@ -831,6 +831,7 @@ type Mutations {
   homepageCollectionUpdate(collection: ID): HomepageCollectionUpdate
   shopDomainUpdate(input: SiteDomainInput): ShopDomainUpdate
   shopSettingsUpdate(input: ShopSettingsInput!): ShopSettingsUpdate
+  shopFetchTaxRates: ShopFetchTaxRates
   shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
   shippingPriceDelete(id: ID!): ShippingPriceDelete
   shippingPriceUpdate(id: ID!, input: ShippingPriceInput!): ShippingPriceUpdate
@@ -1802,6 +1803,7 @@ type Shop {
   countries: [CountryDisplay]!
   currencies: [String]!
   defaultCurrency: String!
+  availablePaymentGateways: [GatewaysEnum]!
   defaultCountry: CountryDisplay
   description: String
   domain: Domain!
@@ -1812,14 +1814,19 @@ type Shop {
   permissions: [PermissionDisplay]!
   phonePrefixes: [String]!
   headerText: String
-  includeTaxesInPrices: Boolean
-  displayGrossPrices: Boolean
-  chargeTaxesOnShipping: Boolean
+  includeTaxesInPrices: Boolean!
+  displayGrossPrices: Boolean!
+  chargeTaxesOnShipping: Boolean!
   trackInventoryByDefault: Boolean
   defaultWeightUnit: WeightUnitsEnum
 }
 
 type ShopDomainUpdate {
+  errors: [Error!]
+  shop: Shop
+}
+
+type ShopFetchTaxRates {
   errors: [Error!]
   shop: Shop
 }
@@ -2009,7 +2016,7 @@ input UserCreateInput {
 type VAT {
   countryCode: String!
   standardRate: Float
-  reducedRates: [ReducedRate]
+  reducedRates: [ReducedRate]!
 }
 
 type VariantImageAssign {

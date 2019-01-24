@@ -2,7 +2,7 @@ import graphene
 
 from .mutations import (
     AuthorizationKeyAdd, AuthorizationKeyDelete, HomepageCollectionUpdate,
-    ShopDomainUpdate, ShopSettingsUpdate)
+    ShopDomainUpdate, ShopFetchTaxRates, ShopSettingsUpdate)
 from .types import Shop
 
 
@@ -20,3 +20,4 @@ class ShopMutations(graphene.ObjectType):
     homepage_collection_update = HomepageCollectionUpdate.Field()
     shop_domain_update = ShopDomainUpdate.Field()
     shop_settings_update = ShopSettingsUpdate.Field()
+    shop_fetch_tax_rates = ShopFetchTaxRates.Field()

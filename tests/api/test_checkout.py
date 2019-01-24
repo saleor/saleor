@@ -7,6 +7,7 @@ from tests.api.utils import get_graphql_content
 
 from saleor.checkout.models import Cart
 from saleor.checkout.utils import is_fully_paid, ready_to_place_order
+from saleor.graphql.core.utils import str_to_enum
 from saleor.order.models import Order
 
 MUTATION_CHECKOUT_CREATE = """
@@ -160,6 +161,24 @@ def test_checkout_create_check_lines_quantity(
     data = content['data']['checkoutCreate']
     assert data['errors'][0]['message'] == 'Could not add item Test product (SKU_A). Only 2 remaining in stock.'
     assert data['errors'][0]['field'] == 'quantity'
+
+
+def test_checkout_available_payment_gateways(
+        api_client, cart_with_item, settings):
+    query = """
+    query getCheckout($token: UUID!) {
+        checkout(token: $token) {
+           availablePaymentGateways
+        }
+    }
+    """
+    variables = {'token': str(cart_with_item.token)}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['checkout']
+    checkout_payment_gateways = [
+        str_to_enum(gateway) for gateway in settings.CHECKOUT_PAYMENT_GATEWAYS.keys()]
+    assert data['availablePaymentGateways'] == checkout_payment_gateways
 
 
 MUTATION_CHECKOUT_LINES_ADD = """
