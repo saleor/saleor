@@ -1,5 +1,3 @@
-import uuid
-
 from django import forms
 from django.utils.translation import pgettext_lazy
 
@@ -13,4 +11,7 @@ class DummyPaymentForm(forms.Form):
         widget=forms.RadioSelect)
 
     def get_payment_token(self):
-        return str(uuid.uuid4())
+        """Return selected charge status instead of token for testing only.
+        Gateways used for production should return an actual token instead."""
+        charge_status = self.cleaned_data['charge_status']
+        return charge_status
