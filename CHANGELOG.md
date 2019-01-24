@@ -34,3 +34,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add taxes section - #3622 by @dominik-zeglen
 - Expose in API list of supported payment gateways - #3639 by @fowczarek
 - Display payment status in account order list page and account order detail page - #3637 by @jxltom
+- Fix bug where node order is not preserved in GraphQL API - #3632 by @jxltom
+- Support set arbitary charge status for dummy gateway in storefront 1.0 - #3648 by @jxltom
+- Fix typo in the definition of order UNFULFILLED status - #3649 by @jxltom
+- Add missing margin for order notes section - #3650 by @jxltom
