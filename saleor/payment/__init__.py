@@ -74,22 +74,25 @@ class TransactionKind:
 
 class ChargeStatus:
     """
+    - Not charged: No funds were take off the customer founding source yet.
     - Charged: Funds were taken off the customer founding source, partly or
                completely covering the payment amount.
-    - Not charged: No funds were take off the customer founding source yet.
+    - Partially refunded: Part of charged funds were returned to the customer.
     - Fully refunded: All charged funds were returned to the customer.
     """
-    CHARGED = 'charged'
     NOT_CHARGED = 'not-charged'
+    CHARGED = 'charged'
+    PARTIALLY_REFUNDED = 'partially-refunded'
     FULLY_REFUNDED = 'fully-refunded'
     # FIXME
     # We could probably support other statuses, like:
-    # partially refunded
     # fully charged
     # ...?
     CHOICES = [
-        (CHARGED, pgettext_lazy('payment status', 'Charged')),
         (NOT_CHARGED, pgettext_lazy('payment status', 'Not charged')),
+        (CHARGED, pgettext_lazy('payment status', 'Charged')),
+        (PARTIALLY_REFUNDED, pgettext_lazy(
+            'payment status', 'Partially refunded')),
         (FULLY_REFUNDED, pgettext_lazy('payment status', 'Fully refunded'))]
 
 
