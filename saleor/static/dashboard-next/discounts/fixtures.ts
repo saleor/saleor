@@ -1,7 +1,13 @@
 import * as placeholderImage from "../../images/placeholder60x60.png";
-import { SaleType, VoucherDiscountValueType } from "../types/globalTypes";
+import {
+  SaleType,
+  VoucherCountries,
+  VoucherDiscountValueType,
+  VoucherType
+} from "../types/globalTypes";
 import { SaleDetails_sale } from "./types/SaleDetails";
 import { SaleList_sales_edges_node } from "./types/SaleList";
+import { VoucherDetails_voucher } from "./types/VoucherDetails";
 import { VoucherList_vouchers_edges_node } from "./types/VoucherList";
 
 export const saleList: SaleList_sales_edges_node[] = [
@@ -221,4 +227,61 @@ export const sale: SaleDetails_sale = {
   startDate: "2019-01-03",
   type: "PERCENTAGE" as SaleType,
   value: 30
+};
+
+export const voucherDetails: VoucherDetails_voucher = {
+  __typename: "Voucher",
+  applyOncePerOrder: false,
+  categories: {
+    __typename: "CategoryCountableConnection",
+    edges: [],
+    pageInfo: {
+      __typename: "PageInfo",
+      endCursor: "YXJyYXljb25uZWN0aW9uOjM=",
+      hasNextPage: false,
+      hasPreviousPage: false,
+      startCursor: "YXJyYXljb25uZWN0aW9uOjA="
+    },
+    totalCount: 0
+  },
+  code: "DISCOUNT",
+  collections: {
+    __typename: "CollectionCountableConnection",
+    edges: [],
+    pageInfo: {
+      __typename: "PageInfo",
+      endCursor: "YXJyYXljb25uZWN0aW9uOjM=",
+      hasNextPage: false,
+      hasPreviousPage: false,
+      startCursor: "YXJyYXljb25uZWN0aW9uOjA="
+    },
+    totalCount: 0
+  },
+  countries: VoucherCountries.DE,
+  discountValue: 25,
+  discountValueType: VoucherDiscountValueType.FIXED,
+  endDate: null,
+  id: "Vm91Y2hlcjoy",
+  minAmountSpent: {
+    __typename: "Money",
+    amount: 200,
+    currency: "USD"
+  },
+  name: "Big order discount",
+  products: {
+    __typename: "ProductCountableConnection",
+    edges: [],
+    pageInfo: {
+      __typename: "PageInfo",
+      endCursor: "YXJyYXljb25uZWN0aW9uOjM=",
+      hasNextPage: false,
+      hasPreviousPage: false,
+      startCursor: "YXJyYXljb25uZWN0aW9uOjA="
+    },
+    totalCount: 0
+  },
+  startDate: "2018-11-27",
+  type: VoucherType.VALUE,
+  usageLimit: null,
+  used: 0
 };
