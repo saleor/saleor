@@ -3,7 +3,91 @@ import gql from "graphql-tag";
 import { pageInfoFragment, TypedQuery } from "../queries";
 import { SaleDetails, SaleDetailsVariables } from "./types/SaleDetails";
 import { SaleList, SaleListVariables } from "./types/SaleList";
+import {
+  VoucherDetails,
+  VoucherDetailsVariables
+} from "./types/VoucherDetails";
 import { VoucherList, VoucherListVariables } from "./types/VoucherList";
+
+export const voucherFragment = gql`
+  fragment VoucherFragment on Voucher {
+    id
+    name
+    startDate
+    endDate
+    usageLimit
+    discountValueType
+    discountValue
+    minAmountSpent {
+      currency
+      amount
+    }
+  }
+`;
+
+export const voucherDetailsFragment = gql`
+  ${pageInfoFragment}
+  ${voucherFragment}
+  fragment VoucherDetailsFragment on Voucher {
+    ...VoucherFragment
+    type
+    code
+    usageLimit
+    used
+    applyOncePerOrder
+    products(after: $after, before: $before, first: $first, last: $last) {
+      edges {
+        node {
+          id
+          name
+          productType {
+            id
+            name
+          }
+          isPublished
+          thumbnail {
+            url
+          }
+        }
+      }
+      totalCount
+      pageInfo {
+        ...PageInfoFragment
+      }
+    }
+    collections(after: $after, before: $before, first: $first, last: $last) {
+      edges {
+        node {
+          id
+          name
+          products {
+            totalCount
+          }
+        }
+      }
+      totalCount
+      pageInfo {
+        ...PageInfoFragment
+      }
+    }
+    categories(after: $after, before: $before, first: $first, last: $last) {
+      edges {
+        node {
+          id
+          name
+          products {
+            totalCount
+          }
+        }
+      }
+      totalCount
+      pageInfo {
+        ...PageInfoFragment
+      }
+    }
+    countries
+  }
+`;
 
 export const saleList = gql`
   ${pageInfoFragment}
@@ -29,21 +113,12 @@ export const TypedSaleList = TypedQuery<SaleList, SaleListVariables>(saleList);
 
 export const voucherList = gql`
   ${pageInfoFragment}
+  ${voucherFragment}
   query VoucherList($after: String, $before: String, $first: Int, $last: Int) {
     vouchers(after: $after, before: $before, first: $first, last: $last) {
       edges {
         node {
-          id
-          name
-          startDate
-          endDate
-          usageLimit
-          discountValueType
-          discountValue
-          minAmountSpent {
-            currency
-            amount
-          }
+          ...VoucherFragment
         }
       }
       pageInfo {
@@ -125,3 +200,22 @@ export const saleDetails = gql`
 export const TypedSaleDetails = TypedQuery<SaleDetails, SaleDetailsVariables>(
   saleDetails
 );
+
+const voucherDetails = gql`
+  ${voucherDetailsFragment}
+  query VoucherDetails(
+    $id: ID!
+    $after: String
+    $before: String
+    $first: Int
+    $last: Int
+  ) {
+    voucher(id: $id) {
+      ...VoucherDetailsFragment
+    }
+  }
+`;
+export const TypedVoucherDetails = TypedQuery<
+  VoucherDetails,
+  VoucherDetailsVariables
+>(voucherDetails);

@@ -57,6 +57,7 @@ function loadStories() {
   require("./stories/discounts/SaleDetailsPage");
   require("./stories/discounts/SaleListPage");
   require("./stories/discounts/VoucherListPage");
+  require("./stories/discounts/VoucherDetailsPage");
 
   // Homepage
   require("./stories/home/HomePage");
