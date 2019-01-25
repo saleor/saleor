@@ -10,7 +10,7 @@ from ..descriptions import DESCRIPTIONS
 from .enums import OrderStatusFilter
 from .mutations.draft_orders import (
     DraftOrderComplete, DraftOrderCreate, DraftOrderDelete,
-    DraftOrderLinesCreate, DraftOrderLineDelete, DraftOrderLineUpdate,
+    DraftOrderLineDelete, DraftOrderLinesCreate, DraftOrderLineUpdate,
     DraftOrderUpdate)
 from .mutations.fulfillments import (
     FulfillmentCancel, FulfillmentCreate, FulfillmentUpdateTracking)
