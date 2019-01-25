@@ -39,3 +39,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix typo in the definition of order UNFULFILLED status - #3649 by @jxltom
 - Add missing margin for order notes section - #3650 by @jxltom
 - Infer default transaction kind from operation type instead of passing it manually  - #3646 by @jxltom
+- Set shipping required as default for product type - #3655 by @jxltom
