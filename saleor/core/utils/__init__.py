@@ -17,7 +17,6 @@ from django_countries import countries
 from django_countries.fields import Country
 from django_prices_openexchangerates import exchange_currency
 from django_prices_openexchangerates.tasks import update_conversion_rates
-
 from geolite2 import geolite2
 from prices import MoneyRange
 from versatileimagefield.image_warmer import VersatileImageFieldWarmer

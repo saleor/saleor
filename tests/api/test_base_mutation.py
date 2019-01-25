@@ -1,7 +1,8 @@
+from unittest.mock import Mock
+
 import graphene
 import pytest
 from django.core.exceptions import ImproperlyConfigured
-from unittest.mock import Mock
 
 from saleor.graphql.core.mutations import BaseMutation
 from saleor.graphql.product import types as product_types

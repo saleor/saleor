@@ -1,7 +1,6 @@
 import uuid
 from typing import Dict
 
-
 from ... import ChargeStatus
 from .forms import DummyPaymentForm
 

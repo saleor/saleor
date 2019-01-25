@@ -1,5 +1,7 @@
-from django.urls import reverse
 from datetime import date, timedelta
+
+from django.urls import reverse
+
 from .utils import get_redirect_location
 
 
