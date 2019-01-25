@@ -44,7 +44,7 @@ For the backend code and templates:
 
 .. code-block:: console
 
- $ python manage.py makemessages -l en --extension=email,html,mjml,py,txt --ignore="templates/templated_email/compiled/*"
+ $ python manage.py makemessages -l en --extension=email,html,py,txt
 
 For JavaScript code:
 
