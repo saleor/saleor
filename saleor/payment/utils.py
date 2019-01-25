@@ -366,10 +366,11 @@ def _gateway_postprocess(transaction, payment):
     elif transaction_kind == TransactionKind.REFUND:
         changed_fields = ['captured_amount']
         payment.captured_amount -= transaction.amount
+        payment.charge_status = ChargeStatus.PARTIALLY_REFUNDED
         if payment.captured_amount <= 0:
             payment.charge_status = ChargeStatus.FULLY_REFUNDED
             payment.is_active = False
-            changed_fields += ['charge_status', 'is_active']
+        changed_fields += ['charge_status', 'is_active']
         payment.save(update_fields=changed_fields)
 
 
