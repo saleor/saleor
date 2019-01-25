@@ -76,7 +76,7 @@ class CategoryTranslation(SeoModelTranslation):
 class ProductType(models.Model):
     name = models.CharField(max_length=128)
     has_variants = models.BooleanField(default=True)
-    is_shipping_required = models.BooleanField(default=False)
+    is_shipping_required = models.BooleanField(default=True)
     tax_rate = models.CharField(
         max_length=128, default=DEFAULT_TAX_RATE_NAME,
         choices=TaxRateType.CHOICES)
