@@ -145,7 +145,7 @@ def gateway_get_client_token(gateway_name: str):
     client-side tokenization of the chosen payment method.
     """
     gateway, gateway_params = get_payment_gateway(gateway_name)
-    return gateway.get_client_token(**gateway_params)
+    return gateway.get_client_token(connection_params=gateway_params)
 
 
 def clean_charge(payment: Payment, amount: Decimal):
