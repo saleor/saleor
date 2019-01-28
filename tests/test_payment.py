@@ -2,9 +2,8 @@ from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import pytest
-from django.conf import settings
+from django.conf import settings as dj_settings
 from django.core.exceptions import ImproperlyConfigured
-from django.forms.models import model_to_dict
 from django.template.loader import get_template
 
 from saleor.order import OrderEvents, OrderEventsEmails
@@ -181,13 +180,17 @@ def test_create_transaction_no_gateway_response(transaction_data):
     assert txn.gateway_response == {}
 
 
-def test_gateway_get_client_token(settings):
-    gateway_name = list(settings.PAYMENT_GATEWAYS.keys())[0]
-    gateway = settings.PAYMENT_GATEWAYS[gateway_name]
-    module = gateway['module']
-    with patch('%s.get_client_token' % module) as transaction_token_mock:
-        gateway_get_client_token(gateway_name)
-        assert transaction_token_mock.called
+@patch('saleor.payment.utils.get_payment_gateway')
+def test_gateway_get_client_token(get_payment_gateway_mock, gateway_params):
+    get_client_token_mock = Mock(return_value='client-token')
+    get_payment_gateway_mock.return_value = (
+        Mock(get_client_token=get_client_token_mock), gateway_params)
+
+    token = gateway_get_client_token('some-gateway')
+
+    assert token == 'client-token'
+    get_client_token_mock.assert_called_once_with(
+        connection_params=gateway_params)
 
 
 def test_gateway_get_client_token_not_allowed_gateway(settings):
@@ -610,7 +613,7 @@ def test_gateway_refund_errors(payment_txn_captured):
     assert exc.value.message == 'This payment cannot be refunded.'
 
 
-@pytest.mark.parametrize('gateway_name', settings.PAYMENT_GATEWAYS.keys())
+@pytest.mark.parametrize('gateway_name', dj_settings.PAYMENT_GATEWAYS.keys())
 def test_payment_gateway_templates_exists(gateway_name):
     """Test if for each payment gateway there's a corresponding
     template for the old checkout.
@@ -619,7 +622,7 @@ def test_payment_gateway_templates_exists(gateway_name):
     get_template(template)
 
 
-@pytest.mark.parametrize('gateway_name', settings.PAYMENT_GATEWAYS.keys())
+@pytest.mark.parametrize('gateway_name', dj_settings.PAYMENT_GATEWAYS.keys())
 def test_payment_gateway_form_exists(gateway_name, payment_dummy):
     """Test if for each payment gateway there's a corresponding
     form for the old checkout.
