@@ -14,11 +14,11 @@ Using Docker to build software allows you to run and test code without having to
 Local Prerequisites
 -------------------
 
-You will need to install Docker and `docker-compose <https://docs.docker.com/compose/install/>`_ before performing the following steps.
+You will need to install `Docker <https://docs.docker.com/install/>`_ and `docker-compose <https://docs.docker.com/compose/install/>`_ before performing the following steps.
 
 .. note::
 
-   Our configuration exposes PostgreSQL, Redis and Elasticsearch ports. If you have problems running this docker file because of port conflicts, you can remove ``ports`` section from ``docker-compose.yml``.
+   Our configuration uses `docker-compose.override.yml <https://docs.docker.com/compose/extends/#understanding-multiple-compose-files>`_ that exposes Saleor, PostgreSQL and Redis ports and runs Saleor via ``python manage.py runserver`` for local development. If you do not wish to use any overrides then you can tell compose to only use `docker-compose.yml` configuration using `-f`, like so `docker-compose -f docker-compose.yml up`.
 
 
 Usage
