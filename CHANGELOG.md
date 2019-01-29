@@ -43,3 +43,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Docker and compose improvements - #3657 by @michaljelonek
 - Fix TypeError on calling get_client_token - #3660 by @michaljelonek
 - Fix countries in Voucher - #3664 by @michaljelonek
+- Make tokenCreate errors return [] when there are no errors - #3666 by @michaljelonek
