@@ -4,17 +4,17 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 # 
 # Translators:
-# Patryk Zawadzki <patrys@room-303.com>, 2018
 # SALAH EDDINE BOUZELZEL <salah.bouzelzel@gmail.com>, 2018
+# Patryk Zawadzki <patrys@room-303.com>, 2018
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-03 09:23-0600\n"
+"POT-Creation-Date: 2019-01-07 11:01-0600\n"
 "PO-Revision-Date: 2017-02-09 15:43+0000\n"
-"Last-Translator: SALAH EDDINE BOUZELZEL <salah.bouzelzel@gmail.com>, 2018\n"
+"Last-Translator: Patryk Zawadzki <patrys@room-303.com>, 2018\n"
 "Language-Team: Arabic (https://www.transifex.com/mirumee/teams/34782/ar/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -73,6 +73,11 @@ msgstr "الوصف"
 msgctxt "Category form"
 msgid "Background Image"
 msgstr "صورة الخلفية"
+
+#: saleor/dashboard/category/forms.py:31
+msgctxt "Description of a category image"
+msgid "Image description"
+msgstr ""
 
 #: saleor/dashboard/category/views.py:47
 #, python-format
@@ -156,12 +161,24 @@ msgctxt "Background image of a collection"
 msgid "Background image"
 msgstr ""
 
-#: saleor/dashboard/collection/forms.py:30
+#: saleor/dashboard/collection/forms.py:29
+msgctxt "Description of a collection image"
+msgid "Image description"
+msgstr ""
+
+#: saleor/dashboard/collection/forms.py:32
 msgctxt "Collection published toggle"
 msgid "Published"
 msgstr "منشور"
 
-#: saleor/dashboard/collection/forms.py:33
+#: saleor/dashboard/collection/forms.py:36
+msgctxt ""
+"The publication date field, can be a posterior date for a planned "
+"publication."
+msgid "Published date"
+msgstr ""
+
+#: saleor/dashboard/collection/forms.py:39
 msgctxt "Description field of a collection"
 msgid "Description"
 msgstr "الوصف"
@@ -187,19 +204,19 @@ msgid "Deleted collection"
 msgstr ""
 
 #: saleor/dashboard/customer/filters.py:17
-#: saleor/dashboard/staff/filters.py:17
+#: saleor/dashboard/staff/filters.py:16
 msgctxt "Customer list sorting option"
 msgid "email"
 msgstr "البريد الإلكتروني"
 
 #: saleor/dashboard/customer/filters.py:19
-#: saleor/dashboard/staff/filters.py:19
+#: saleor/dashboard/staff/filters.py:18
 msgctxt "Customer list sorting option"
 msgid "name"
 msgstr "الاسم"
 
 #: saleor/dashboard/customer/filters.py:21
-#: saleor/dashboard/staff/filters.py:21
+#: saleor/dashboard/staff/filters.py:20
 msgctxt "Customer list sorting option"
 msgid "location"
 msgstr "الموقع"
@@ -234,7 +251,7 @@ msgctxt "Customer list filter label"
 msgid "Sort by"
 msgstr "ترتيب بحسب"
 
-#: saleor/dashboard/customer/filters.py:74
+#: saleor/dashboard/customer/filters.py:76
 #, python-format
 msgctxt "Number of matching records in the dashboard customers list"
 msgid "Found %(counter)d matching customer"
@@ -246,7 +263,13 @@ msgstr[3] ""
 msgstr[4] ""
 msgstr[5] ""
 
-#: saleor/dashboard/customer/forms.py:22
+#: saleor/dashboard/customer/forms.py:10
+#, python-format
+msgctxt "Customer form: Name field placeholder"
+msgid "%(name)s (Inherit from default billing address)"
+msgstr ""
+
+#: saleor/dashboard/customer/forms.py:29
 msgctxt "Edit customer details in order form error"
 msgid ""
 "You can't delete your own account via dashboard, please try from the "
@@ -255,37 +278,47 @@ msgstr ""
 "لا يمكنك حف حسابك عبر الواجهة الرئيسية\n"
 "من فضلك جرب من صفحة المتجر"
 
-#: saleor/dashboard/customer/forms.py:27
+#: saleor/dashboard/customer/forms.py:34
 msgctxt "Edit customer details in order form error"
 msgid "Only superuser can delete his own account."
 msgstr ""
 
-#: saleor/dashboard/customer/forms.py:32
+#: saleor/dashboard/customer/forms.py:39
 msgctxt "Edit customer details in order form error"
 msgid "You have insufficient permissions, to edit staff users."
 msgstr ""
 
-#: saleor/dashboard/customer/forms.py:50
+#: saleor/dashboard/customer/forms.py:67 saleor/dashboard/staff/forms.py:23
+msgctxt "Customer form: Given name field"
+msgid "Given name"
+msgstr "الاسم الأول"
+
+#: saleor/dashboard/customer/forms.py:69 saleor/dashboard/staff/forms.py:25
+msgctxt "Customer form: Family name field"
+msgid "Family name"
+msgstr "اسم العائلة"
+
+#: saleor/dashboard/customer/forms.py:71
 msgctxt "Customer form: email address field"
 msgid "Email"
 msgstr "البريد الإلكترونى"
 
-#: saleor/dashboard/customer/forms.py:52
+#: saleor/dashboard/customer/forms.py:73
 msgctxt "Customer form: is active toggle"
 msgid "User is active"
 msgstr "المستخدم فعال"
 
-#: saleor/dashboard/customer/forms.py:54
+#: saleor/dashboard/customer/forms.py:75
 msgctxt "Customer form: customer note field"
 msgid "Notes"
 msgstr "ملاحظات "
 
-#: saleor/dashboard/customer/forms.py:64
+#: saleor/dashboard/customer/forms.py:85
 msgctxt "Customer note"
 msgid "Note"
 msgstr "ملاحظة"
 
-#: saleor/dashboard/customer/forms.py:67
+#: saleor/dashboard/customer/forms.py:88
 msgctxt "Allow customers to see note toggle"
 msgid "Customer can see this note"
 msgstr "العميل يستطيع مشاهدة هذه الملاحظة"
@@ -835,7 +868,7 @@ msgctxt "Order list filter label"
 msgid "Sort by"
 msgstr "ترتيب بحسب"
 
-#: saleor/dashboard/order/filters.py:74
+#: saleor/dashboard/order/filters.py:76
 #, python-format
 msgctxt "Number of matching records in the dashboard orders list"
 msgid "Found %(counter)d matching order"
@@ -1981,17 +2014,17 @@ msgctxt "Dashboard message"
 msgid "Removed site authorization key %s"
 msgstr ""
 
-#: saleor/dashboard/staff/filters.py:30
+#: saleor/dashboard/staff/filters.py:29
 msgctxt "Group list filter label"
 msgid "Permissions"
 msgstr ""
 
-#: saleor/dashboard/staff/filters.py:34
+#: saleor/dashboard/staff/filters.py:33
 msgctxt "Staff list filter label"
 msgid "Sort by"
 msgstr "ترتيب بحسب"
 
-#: saleor/dashboard/staff/filters.py:46
+#: saleor/dashboard/staff/filters.py:45
 #, python-format
 msgctxt "Number of matching records in the dashboard staff members list"
 msgid "Found %(counter)d matching staff member"
@@ -2003,17 +2036,17 @@ msgstr[3] ""
 msgstr[4] ""
 msgstr[5] ""
 
-#: saleor/dashboard/staff/forms.py:14
+#: saleor/dashboard/staff/forms.py:15
 msgctxt "Label above the permissions choicefield"
 msgid "Permissions"
 msgstr ""
 
-#: saleor/dashboard/staff/forms.py:21
+#: saleor/dashboard/staff/forms.py:27
 msgctxt "Email"
 msgid "Email"
 msgstr "البريد الإلكترونى"
 
-#: saleor/dashboard/staff/forms.py:23
+#: saleor/dashboard/staff/forms.py:29
 msgctxt "User active toggle"
 msgid "User is active"
 msgstr "المستخدم فعال"
