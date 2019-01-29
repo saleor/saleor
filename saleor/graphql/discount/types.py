@@ -4,11 +4,11 @@ import graphene
 import graphene_django_optimizer as gql_optimizer
 from graphene import relay
 
+from ...discount import models
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
 from ..core.types import CountryDisplay
 from ..product.types import Category, Collection, Product
-from ...discount import models
 
 
 class Sale(CountableDjangoObjectType):
