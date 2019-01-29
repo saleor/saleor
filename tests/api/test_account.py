@@ -36,7 +36,7 @@ def test_create_token_mutation(admin_client, staff_user):
     content = get_graphql_content(response)
     token_data = content['data']['tokenCreate']
     assert token_data['token']
-    assert not token_data['errors']
+    assert token_data['errors'] == []
 
     incorrect_variables = {'email': staff_user.email, 'password': 'incorrect'}
     response = admin_client.post(

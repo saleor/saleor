@@ -372,7 +372,7 @@ class CreateToken(ObtainJSONWebToken):
 
     @classmethod
     def resolve(cls, root, info):
-        return cls(user=info.context.user)
+        return cls(user=info.context.user, errors=[])
 
 
 class VerifyToken(Verify):
