@@ -1,5 +1,5 @@
 ### Build and install packages
-FROM python:3.6 as build-python
+FROM python:3.7 as build-python
 
 RUN apt-get -y update \
   && apt-get install -y gettext \
@@ -31,7 +31,7 @@ RUN STATIC_URL=${STATIC_URL} npm run build-assets --production \
   && npm run build-emails --production
 
 ### Final image
-FROM python:3.6-slim
+FROM python:3.7-slim
 
 ARG STATIC_URL
 ENV STATIC_URL ${STATIC_URL:-/static/}
