@@ -52,7 +52,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 COPY . /app
-COPY --from=build-python /usr/local/lib/python3.6/site-packages/ /usr/local/lib/python3.6/site-packages/
+COPY --from=build-python /usr/local/lib/python3.7/site-packages/ /usr/local/lib/python3.7/site-packages/
 COPY --from=build-python /usr/local/bin/ /usr/local/bin/
 COPY --from=build-nodejs /app/saleor/static /app/saleor/static
 COPY --from=build-nodejs /app/webpack-bundle.json /app/
