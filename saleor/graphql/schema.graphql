@@ -286,7 +286,7 @@ type Checkout implements Node {
   voucherCode: String
   lines: [CheckoutLine]
   id: ID!
-  availableShippingMethods: [ShippingMethod]
+  availableShippingMethods: [ShippingMethod]!
   availablePaymentGateways: [GatewaysEnum]!
   isShippingRequired: Boolean!
   shippingPrice: TaxedMoney
@@ -481,7 +481,7 @@ type CountryDisplay {
 
 type CreateToken {
   token: String
-  errors: [Error]
+  errors: [Error]!
   user: User
 }
 
