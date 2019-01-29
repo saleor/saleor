@@ -1,5 +1,6 @@
 import graphene
 import pytest
+from django_countries import countries
 
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.graphql.discount.enums import (
@@ -7,7 +8,15 @@ from saleor.graphql.discount.enums import (
 from tests.api.utils import get_graphql_content
 
 
-def test_voucher_query(staff_api_client, voucher, permission_manage_discounts):
+@pytest.fixture
+def voucher_countries(voucher):
+    voucher.countries = countries
+    voucher.save(update_fields=['countries'])
+    return voucher
+
+
+def test_voucher_query(
+        staff_api_client, voucher_countries, permission_manage_discounts):
     query = """
     query vouchers {
         vouchers(first: 1) {
@@ -21,6 +30,10 @@ def test_voucher_query(staff_api_client, voucher, permission_manage_discounts):
                     startDate
                     discountValueType
                     discountValue
+                    countries {
+                        code
+                        country
+                    }
                 }
             }
         }
@@ -30,14 +43,19 @@ def test_voucher_query(staff_api_client, voucher, permission_manage_discounts):
         query, permissions=[permission_manage_discounts])
     content = get_graphql_content(response)
     data = content['data']['vouchers']['edges'][0]['node']
-    assert data['type'] == voucher.type.upper()
-    assert data['name'] == voucher.name
-    assert data['code'] == voucher.code
-    assert data['usageLimit'] == voucher.usage_limit
-    assert data['used'] == voucher.used
-    assert data['startDate'] == voucher.start_date.isoformat()
-    assert data['discountValueType'] == voucher.discount_value_type.upper()
-    assert data['discountValue'] == voucher.discount_value
+
+    assert data['type'] == voucher_countries.type.upper()
+    assert data['name'] == voucher_countries.name
+    assert data['code'] == voucher_countries.code
+    assert data['usageLimit'] == voucher_countries.usage_limit
+    assert data['used'] == voucher_countries.used
+    assert data['startDate'] == voucher_countries.start_date.isoformat()
+    assert data[
+        'discountValueType'] == voucher_countries.discount_value_type.upper()
+    assert data['discountValue'] == voucher_countries.discount_value
+    assert data['countries'] == [{
+        'country': country.name,
+        'code': country.code} for country in voucher_countries.countries]
 
 
 def test_sale_query(staff_api_client, sale, permission_manage_discounts):
