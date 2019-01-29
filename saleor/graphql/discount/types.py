@@ -1,12 +1,14 @@
 from textwrap import dedent
 
+import graphene
 import graphene_django_optimizer as gql_optimizer
 from graphene import relay
 
-from ...discount import models
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
+from ..core.types import CountryDisplay
 from ..product.types import Category, Collection, Product
+from ...discount import models
 
 
 class Sale(CountableDjangoObjectType):
@@ -59,6 +61,9 @@ class Voucher(CountableDjangoObjectType):
             Product,
             description='List of products this voucher applies to.'),
         model_field='products')
+    countries = graphene.List(
+        CountryDisplay,
+        description='List of countries available for the shipping voucher.')
 
     class Meta:
         description = dedent("""
@@ -76,3 +81,8 @@ class Voucher(CountableDjangoObjectType):
 
     def resolve_products(self, info, **kwargs):
         return self.products.visible_to_user(info.context.user)
+
+    def resolve_countries(self, info, **kwargs):
+        return [
+            CountryDisplay(code=country.code, country=country.name)
+            for country in self.countries]
