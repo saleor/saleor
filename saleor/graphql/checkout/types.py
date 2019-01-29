@@ -36,7 +36,7 @@ class CheckoutLine(CountableDjangoObjectType):
 
 class Checkout(CountableDjangoObjectType):
     available_shipping_methods = graphene.List(
-        ShippingMethod, required=False,
+        ShippingMethod, required=True,
         description='Shipping methods that can be used with this order.')
     available_payment_gateways = graphene.List(
         PaymentGatewayEnum, description='List of available payment gateways.',
