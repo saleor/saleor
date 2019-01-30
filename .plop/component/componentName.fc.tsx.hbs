@@ -1,0 +1,26 @@
+{{#if styled}}
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
+{{/if}}
+import * as React from "react";
+
+export interface {{ name }}Props {
+  
+}
+
+{{#if styled}}
+const styles = (theme: Theme) => createStyles({
+    
+});
+const {{ name }} = withStyles(styles, { name: "{{ name }}" })(
+  ({ classes }: {{ name }}Props & WithStyles<typeof styles>) => <div />
+);
+{{else}}
+const {{ name }}: React.StatelessComponent<{{ name }}Props> = () => <div />;
+{{/if}}
+{{ name }}.displayName = "{{ name }}";
+export default {{ name }};

@@ -1,0 +1,15 @@
+import { storiesOf } from "@storybook/react";
+import * as React from "react";
+
+import {{ name }}, {
+  {{ name }}Props
+} from "../../../{{ section }}/components/{{ name }}";
+import Decorator from "../../Decorator";
+
+const props: {{ name }}Props = {
+
+};
+
+storiesOf("{{ sentenceCase section }} / {{ name }}", module)
+  .addDecorator(Decorator)
+  .add("default", () => <{{ name }} {...props} />);
