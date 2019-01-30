@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { VoucherDiscountValueType, VoucherType, VoucherCountries } from "./../../types/globalTypes";
+import { VoucherDiscountValueType, VoucherType } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL fragment: VoucherDetailsFragment
@@ -117,6 +117,12 @@ export interface VoucherDetailsFragment_categories {
   pageInfo: VoucherDetailsFragment_categories_pageInfo;
 }
 
+export interface VoucherDetailsFragment_countries {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
 export interface VoucherDetailsFragment {
   __typename: "Voucher";
   id: string;
@@ -134,5 +140,5 @@ export interface VoucherDetailsFragment {
   products: VoucherDetailsFragment_products | null;
   collections: VoucherDetailsFragment_collections | null;
   categories: VoucherDetailsFragment_categories | null;
-  countries: VoucherCountries;
+  countries: (VoucherDetailsFragment_countries | null)[] | null;
 }

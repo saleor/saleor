@@ -18,9 +18,10 @@ import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { ListProps } from "../../../types";
 import { SaleDetails_sale } from "../../types/SaleDetails";
+import { VoucherDetails_voucher } from "../../types/VoucherDetails";
 
 export interface SaleProductsProps extends ListProps {
-  sale: SaleDetails_sale;
+  discount: SaleDetails_sale | VoucherDetails_voucher;
   onProductAssign: () => void;
 }
 
@@ -35,11 +36,11 @@ const styles = createStyles({
     width: "40%"
   }
 });
-const SaleProducts = withStyles(styles, {
-  name: "SaleProducts"
+const DiscountProducts = withStyles(styles, {
+  name: "DiscountProducts"
 })(
   ({
-    sale,
+    discount: sale,
     classes,
     disabled,
     pageInfo,
@@ -138,5 +139,5 @@ const SaleProducts = withStyles(styles, {
     </Card>
   )
 );
-SaleProducts.displayName = "SaleProducts";
-export default SaleProducts;
+DiscountProducts.displayName = "DiscountProducts";
+export default DiscountProducts;

@@ -14,11 +14,11 @@ import { maybe } from "../../../misc";
 import { ListProps, UserError } from "../../../types";
 import { SaleType } from "../../../types/globalTypes";
 import { SaleDetails_sale } from "../../types/SaleDetails";
-import SaleCategories from "../SaleCategories";
-import SaleCollections from "../SaleCollections";
+import DiscountCategories from "../DiscountCategories";
+import DiscountCollections from "../DiscountCollections";
+import DiscountProducts from "../DiscountProducts";
 import SaleInfo from "../SaleInfo";
 import SalePricing from "../SalePricing";
-import SaleProducts from "../SaleProducts";
 import SaleSummary from "../SaleSummary";
 
 export interface FormData {
@@ -137,34 +137,34 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
               </TabContainer>
               <CardSpacer />
               {activeTab === SaleDetailsPageTab.categories ? (
-                <SaleCategories
+                <DiscountCategories
                   disabled={disabled}
                   onCategoryAssign={onCategoryAssign}
                   onNextPage={onNextPage}
                   onPreviousPage={onPreviousPage}
                   onRowClick={onCategoryClick}
                   pageInfo={pageInfo}
-                  sale={sale}
+                  discount={sale}
                 />
               ) : activeTab === SaleDetailsPageTab.collections ? (
-                <SaleCollections
+                <DiscountCollections
                   disabled={disabled}
                   onCollectionAssign={onCollectionAssign}
                   onNextPage={onNextPage}
                   onPreviousPage={onPreviousPage}
                   onRowClick={onCollectionClick}
                   pageInfo={pageInfo}
-                  sale={sale}
+                  discount={sale}
                 />
               ) : (
-                <SaleProducts
+                <DiscountProducts
                   disabled={disabled}
                   onNextPage={onNextPage}
                   onPreviousPage={onPreviousPage}
                   onProductAssign={onProductAssign}
                   onRowClick={onProductClick}
                   pageInfo={pageInfo}
-                  sale={sale}
+                  discount={sale}
                 />
               )}
             </div>
