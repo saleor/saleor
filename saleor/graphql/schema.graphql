@@ -321,8 +321,8 @@ type CheckoutCreate {
 }
 
 input CheckoutCreateInput {
-  lines: [CheckoutLineInput]
-  email: String
+  lines: [CheckoutLineInput]!
+  email: String!
   shippingAddress: AddressInput
   billingAddress: AddressInput
 }
