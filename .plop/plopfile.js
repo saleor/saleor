@@ -63,8 +63,6 @@ const componentGeneratorConfig = {
   }
 };
 
-const 
-
 module.exports = plop => {
   plop.setGenerator('component', componentGeneratorConfig);
 };
