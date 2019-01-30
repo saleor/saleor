@@ -36,13 +36,13 @@ const componentGeneratorConfig = {
     const actions = [
       {
         type: "add",
-        path: `${ROOT}/{{ section }}/{{ name }}/index.ts`,
+        path: `${ROOT}/{{ dashCase section }}/{{ properCase name }}/index.ts`,
         templateFile: './component/index.ts.hbs',
         abortOnFail: true
       },
       {
         type: "add",
-        path: `${ROOT}/{{ section }}/{{ name }}/{{ name }}.tsx`,
+        path: `${ROOT}/{{ dashCase section }}/{{ properCase name }}/{{ properCase name }}.tsx`,
         templateFile: fc
           ? "./component/componentName.fc.tsx.hbs"
           : "./component/componentName.class.tsx.hbs",
@@ -53,7 +53,7 @@ const componentGeneratorConfig = {
     if (story) {
       actions.push({
         type: "add",
-        path: `${ROOT}/storybook/stories/{{ section }}/{{ name }}.tsx`,
+        path: `${ROOT}/storybook/stories/{{ dashCase section }}/{{ properCase name }}.tsx`,
         templateFile: "./component/componentName.story.tsx.hbs",
         abortOnFail: true
       });
