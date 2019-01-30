@@ -138,8 +138,7 @@ class CartLine(models.Model):
             return NotImplemented
 
         return (
-            self.variant == other.variant and
-            self.quantity == other.quantity)
+            self.variant == other.variant and self.quantity == other.quantity)
 
     def __ne__(self, other):
         return not self == other  # pragma: no cover
