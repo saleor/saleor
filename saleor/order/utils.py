@@ -13,6 +13,7 @@ from ..discount.models import NotApplicable
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import OrderLine
 from ..payment import ChargeStatus
+from ..payment.utils import gateway_refund, gateway_void
 from ..product.utils import allocate_stock, deallocate_stock, increase_stock
 
 
@@ -114,9 +115,9 @@ def cancel_order(order, restock):
 
     for payment in payments:
         if payment.can_refund():
-            payment.refund()
+            gateway_refund(payment)
         elif payment.can_void():
-            payment.void()
+            gateway_void(payment)
 
 
 def update_order_status(order):

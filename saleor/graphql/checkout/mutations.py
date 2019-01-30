@@ -89,13 +89,14 @@ class CheckoutCreateInput(graphene.InputObjectType):
         CheckoutLineInput,
         description=(
             'A list of checkout lines, each containing information about '
-            'an item in the checkout.'))
-    email = graphene.String(description='The customer\'s email address.')
+            'an item in the checkout.'), required=True)
+    email = graphene.String(
+        description='The customer\'s email address.', required=True)
     shipping_address = AddressInput(
         description=(
             'The mailling address to where the checkout will be shipped.'))
     billing_address = AddressInput(
-        description=('Billing address of the customer.'))
+        description='Billing address of the customer.')
 
 
 class CheckoutCreate(ModelMutation, I18nMixin):
@@ -404,6 +405,9 @@ class CheckoutEmailUpdate(BaseMutation):
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
         if checkout is not None:
             checkout.email = email
+            cls.clean_instance(checkout, errors)
+            if errors:
+                return CheckoutEmailUpdate(errors=errors)
             checkout.save(update_fields=['email'])
 
         return CheckoutEmailUpdate(checkout=checkout, errors=errors)

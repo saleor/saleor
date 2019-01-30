@@ -19,6 +19,10 @@ import { CollectionSearchProvider } from "../../containers/CollectionSearch";
 import ProductUpdateOperations from "../../containers/ProductUpdateOperations";
 import { TypedProductDetailsQuery } from "../../queries";
 import {
+  ProductImageCreate,
+  ProductImageCreateVariables
+} from "../../types/ProductImageCreate";
+import {
   productImageUrl,
   productListUrl,
   productUrl,
@@ -62,10 +66,20 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                           };
                           const handleUpdate = () =>
                             pushMessage({ text: i18n.t("Saved changes") });
-                          const handleImageCreate = () =>
-                            pushMessage({
-                              text: i18n.t("Image successfully uploaded")
-                            });
+                          const handleImageCreate = (
+                            data: ProductImageCreate
+                          ) => {
+                            const imageError = data.productImageCreate.errors.find(
+                              error =>
+                                error.field ===
+                                ("image" as keyof ProductImageCreateVariables)
+                            );
+                            if (imageError) {
+                              pushMessage({
+                                text: imageError.message
+                              });
+                            }
+                          };
                           const handleImageDeleteSuccess = () =>
                             pushMessage({
                               text: i18n.t("Image successfully deleted")
@@ -262,11 +276,11 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                                             variantId
                                           )
                                         )}
-                                      onImageUpload={event => {
+                                      onImageUpload={file => {
                                         if (product) {
                                           createProductImage.mutate({
                                             alt: "",
-                                            image: event.target.files[0],
+                                            image: file,
                                             product: product.id
                                           });
                                         }

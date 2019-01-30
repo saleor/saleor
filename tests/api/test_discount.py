@@ -1,5 +1,6 @@
 import graphene
 import pytest
+from django_countries import countries
 
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.graphql.discount.enums import (
@@ -7,7 +8,15 @@ from saleor.graphql.discount.enums import (
 from tests.api.utils import get_graphql_content
 
 
-def test_voucher_query(staff_api_client, voucher, permission_manage_discounts):
+@pytest.fixture
+def voucher_countries(voucher):
+    voucher.countries = countries
+    voucher.save(update_fields=['countries'])
+    return voucher
+
+
+def test_voucher_query(
+        staff_api_client, voucher_countries, permission_manage_discounts):
     query = """
     query vouchers {
         vouchers(first: 1) {
@@ -21,6 +30,10 @@ def test_voucher_query(staff_api_client, voucher, permission_manage_discounts):
                     startDate
                     discountValueType
                     discountValue
+                    countries {
+                        code
+                        country
+                    }
                 }
             }
         }
@@ -30,14 +43,19 @@ def test_voucher_query(staff_api_client, voucher, permission_manage_discounts):
         query, permissions=[permission_manage_discounts])
     content = get_graphql_content(response)
     data = content['data']['vouchers']['edges'][0]['node']
-    assert data['type'] == voucher.type.upper()
-    assert data['name'] == voucher.name
-    assert data['code'] == voucher.code
-    assert data['usageLimit'] == voucher.usage_limit
-    assert data['used'] == voucher.used
-    assert data['startDate'] == voucher.start_date.isoformat()
-    assert data['discountValueType'] == voucher.discount_value_type.upper()
-    assert data['discountValue'] == voucher.discount_value
+
+    assert data['type'] == voucher_countries.type.upper()
+    assert data['name'] == voucher_countries.name
+    assert data['code'] == voucher_countries.code
+    assert data['usageLimit'] == voucher_countries.usage_limit
+    assert data['used'] == voucher_countries.used
+    assert data['startDate'] == voucher_countries.start_date.isoformat()
+    assert data[
+        'discountValueType'] == voucher_countries.discount_value_type.upper()
+    assert data['discountValue'] == voucher_countries.discount_value
+    assert data['countries'] == [{
+        'country': country.name,
+        'code': country.code} for country in voucher_countries.countries]
 
 
 def test_sale_query(staff_api_client, sale, permission_manage_discounts):
@@ -257,8 +275,13 @@ def test_sale_delete_mutation(
         sale.refresh_from_db()
 
 
+@pytest.mark.parametrize('voucher_type,field_name', (
+    (VoucherTypeEnum.CATEGORY, 'categories'),
+    (VoucherTypeEnum.PRODUCT, 'products'),
+    (VoucherTypeEnum.COLLECTION, 'collections')))
 def test_validate_voucher(
-        voucher, staff_api_client, permission_manage_discounts):
+        voucher_type, field_name, voucher,
+        staff_api_client, permission_manage_discounts):
     query = """
     mutation  voucherUpdate(
         $id: ID!, $type: VoucherTypeEnum) {
@@ -271,19 +294,12 @@ def test_validate_voucher(
             }
         }
     """
-    # apparently can't do so via pytest parametrize
-    # as it parses VoucherTypeEnum into str format
-    fields = (
-        (VoucherTypeEnum.CATEGORY, 'categories'),
-        (VoucherTypeEnum.PRODUCT, 'products'),
-        (VoucherTypeEnum.COLLECTION, 'collections'))
     staff_api_client.user.user_permissions.add(permission_manage_discounts)
-    for voucher_type, field_name in fields:
-        variables = {
-            'type': voucher_type.name,
-            'id': graphene.Node.to_global_id('Voucher', voucher.id)}
-        response = staff_api_client.post_graphql(query, variables)
-        content = get_graphql_content(response)
-        data = content['data']['voucherUpdate']['errors'][0]
-        assert data['field'] == field_name
-        assert data['message'] == 'This field is required.'
+    response = staff_api_client.post_graphql(query, {
+        'type': voucher_type.name,
+        'id': graphene.Node.to_global_id('Voucher', voucher.id)})
+
+    content = get_graphql_content(response)
+    data = content['data']['voucherUpdate']['errors'][0]
+    assert data['field'] == field_name
+    assert data['message'] == 'This field is required.'

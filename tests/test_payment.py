@@ -2,36 +2,52 @@ from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import pytest
-from django.conf import settings
+from django.conf import settings as dj_settings
 from django.core.exceptions import ImproperlyConfigured
 from django.template.loader import get_template
 
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.views import PAYMENT_TEMPLATE
 from saleor.payment import (
-    ChargeStatus, PaymentError, TransactionKind, get_payment_gateway)
+    ChargeStatus, GatewayError, OperationType, PaymentError, TransactionKind,
+    get_payment_gateway)
 from saleor.payment.models import Payment
 from saleor.payment.utils import (
+    ALLOWED_GATEWAY_KINDS, REQUIRED_GATEWAY_KEYS, call_gateway,
     clean_authorize, clean_capture, clean_charge, create_payment,
-    create_transaction, gateway_authorize, gateway_capture, gateway_charge,
-    gateway_get_client_token, gateway_refund, gateway_void, get_billing_data,
-    handle_fully_paid_order, validate_payment)
+    create_payment_information, create_transaction, gateway_authorize,
+    gateway_capture, gateway_charge, gateway_get_client_token,
+    gateway_process_payment, gateway_refund, gateway_void, get_billing_data,
+    handle_fully_paid_order, validate_gateway_response, validate_payment)
 
 NOT_ACTIVE_PAYMENT_ERROR = 'This payment is no longer active.'
 EXAMPLE_ERROR = 'Example dummy error'
 
 
 @pytest.fixture
-def transaction_data(payment_dummy, settings):
+def gateway_response(settings):
+    return {
+        'is_success': True,
+        'transaction_id': 'transaction-token',
+        'amount': Decimal(14.50),
+        'currency': settings.DEFAULT_CURRENCY,
+        'kind': TransactionKind.CAPTURE,
+        'error': None,
+        'raw_response': {
+            'credit_card_four': '1234',
+            'transaction-id': 'transaction-token',
+        }
+    }
+
+
+@pytest.fixture
+def transaction_data(payment_dummy, gateway_response):
     return {
         'payment': payment_dummy,
-        'token': 'token',
+        'payment_information': create_payment_information(
+            payment_dummy, 'payment-token'),
         'kind': TransactionKind.CAPTURE,
-        'is_success': True,
-        'amount': Decimal('10.00'),
-        'currency': settings.DEFAULT_CURRENCY,
-        'gateway_response': {
-            'credit_cart': '4321'}}
+        'gateway_response': gateway_response}
 
 
 @pytest.fixture
@@ -42,6 +58,18 @@ def gateway_params():
 @pytest.fixture
 def transaction_token():
     return 'transaction-token'
+
+
+@pytest.fixture
+def dummy_response(payment_dummy, transaction_data, transaction_token):
+    return {
+        'is_success': True,
+        'transaction_id': transaction_token,
+        'error': EXAMPLE_ERROR,
+        'amount': payment_dummy.total,
+        'currency': payment_dummy.currency,
+        'kind': TransactionKind.AUTH,
+    }
 
 
 def test_get_billing_data(order):
@@ -138,14 +166,12 @@ def test_create_transaction(transaction_data):
     txn = create_transaction(**transaction_data)
 
     assert txn.payment == transaction_data['payment']
-    assert txn.token == transaction_data['token']
-    assert txn.kind == transaction_data['kind']
-    assert txn.is_success == transaction_data['is_success']
-    assert txn.amount == transaction_data['amount']
+    assert txn.kind == transaction_data['gateway_response']['kind']
+    assert txn.amount == transaction_data['gateway_response']['amount']
+    assert txn.currency == transaction_data['gateway_response']['currency']
+    assert txn.token == transaction_data['gateway_response']['transaction_id']
+    assert txn.is_success == transaction_data['gateway_response']['is_success']
     assert txn.gateway_response == transaction_data['gateway_response']
-
-    same_txn = create_transaction(**transaction_data)
-    assert txn == same_txn
 
 
 def test_create_transaction_no_gateway_response(transaction_data):
@@ -154,13 +180,17 @@ def test_create_transaction_no_gateway_response(transaction_data):
     assert txn.gateway_response == {}
 
 
-def test_gateway_get_client_token(settings):
-    gateway_name = list(settings.PAYMENT_GATEWAYS.keys())[0]
-    gateway = settings.PAYMENT_GATEWAYS[gateway_name]
-    module = gateway['module']
-    with patch('%s.get_client_token' % module) as transaction_token_mock:
-        gateway_get_client_token(gateway_name)
-        assert transaction_token_mock.called
+@patch('saleor.payment.utils.get_payment_gateway')
+def test_gateway_get_client_token(get_payment_gateway_mock, gateway_params):
+    get_client_token_mock = Mock(return_value='client-token')
+    get_payment_gateway_mock.return_value = (
+        Mock(get_client_token=get_client_token_mock), gateway_params)
+
+    token = gateway_get_client_token('some-gateway')
+
+    assert token == 'client-token'
+    get_client_token_mock.assert_called_once_with(
+        connection_params=gateway_params)
 
 
 def test_gateway_get_client_token_not_allowed_gateway(settings):
@@ -187,33 +217,54 @@ def test_payment_needs_to_be_active_for_any_action(func, payment_dummy):
 
 
 @patch('saleor.payment.utils.get_payment_gateway')
+def test_gateway_process_payment(
+        mock_get_payment_gateway, payment_txn_preauth, gateway_params,
+        transaction_token, dummy_response):
+    payment_token = transaction_token
+    payment = payment_txn_preauth
+    mock_process_payment = Mock(return_value=[dummy_response, dummy_response])
+    mock_get_payment_gateway.return_value = (
+        Mock(process_payment=mock_process_payment), gateway_params)
+
+    payment_info = create_payment_information(payment, payment_token)
+    gateway_process_payment(payment, payment_token)
+
+    mock_get_payment_gateway.assert_called_with(payment.gateway)
+    mock_process_payment.assert_called_once_with(
+        payment_information=payment_info, connection_params=gateway_params)
+
+
+@patch('saleor.payment.utils.get_payment_gateway')
 def test_gateway_authorize(
         mock_get_payment_gateway, payment_txn_preauth, gateway_params,
-        transaction_token):
-    payment_token = transaction_token
-    txn = payment_txn_preauth.transactions.first()
+        transaction_token, dummy_response):
     payment = payment_txn_preauth
+    payment_token = transaction_token
 
-    mock_authorize = Mock(return_value=(txn, ''))
+    mock_authorize = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(authorize=mock_authorize), gateway_params)
 
+    payment_info = create_payment_information(payment, payment_token)
     gateway_authorize(payment, payment_token)
+
     mock_get_payment_gateway.assert_called_once_with(payment.gateway)
     mock_authorize.assert_called_once_with(
-        payment=payment, payment_token=payment_token, **gateway_params)
+        payment_information=payment_info, connection_params=gateway_params)
 
 
 @patch('saleor.payment.utils.get_payment_gateway')
 def test_gateway_authorize_failed(
         mock_get_payment_gateway, payment_txn_preauth, gateway_params,
-        transaction_token):
+        transaction_token, dummy_response):
+    payment = payment_txn_preauth
     payment_token = transaction_token
     txn = payment_txn_preauth.transactions.first()
     txn.is_success = False
     payment = payment_txn_preauth
 
-    mock_authorize = Mock(return_value=(txn, EXAMPLE_ERROR))
+    dummy_response['is_success'] = False
+    mock_authorize = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(authorize=mock_authorize), gateway_params)
     with pytest.raises(PaymentError) as exc:
@@ -233,20 +284,22 @@ def test_gateway_authorize_errors(payment_dummy):
 @patch('saleor.payment.utils.get_payment_gateway')
 def test_gateway_capture(
         mock_get_payment_gateway, mock_handle_fully_paid_order, payment_txn_preauth,
-        gateway_params):
-    txn = payment_txn_preauth.transactions.first()
+        gateway_params, dummy_response):
     payment = payment_txn_preauth
     assert not payment.captured_amount
     amount = payment.total
 
-    mock_capture = Mock(return_value=(txn, ''))
+    dummy_response['kind'] = TransactionKind.CAPTURE
+    mock_capture = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(capture=mock_capture), gateway_params)
 
+    payment_info = create_payment_information(payment, '', amount)
     gateway_capture(payment, amount)
+
     mock_get_payment_gateway.assert_called_once_with(payment.gateway)
     mock_capture.assert_called_once_with(
-        payment=payment, amount=amount, **gateway_params)
+        payment_information=payment_info, connection_params=gateway_params)
 
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.CHARGED
@@ -258,14 +311,16 @@ def test_gateway_capture(
 @patch('saleor.payment.utils.get_payment_gateway')
 def test_gateway_capture_partial_capture(
         mock_get_payment_gateway, mock_handle_fully_paid_order, payment_txn_preauth,
-        gateway_params, settings):
+        gateway_params, settings, dummy_response):
     payment = payment_txn_preauth
     amount = payment.total * Decimal('0.5')
     txn = payment.transactions.first()
     txn.amount = amount
     txn.currency = settings.DEFAULT_CURRENCY
 
-    mock_capture = Mock(return_value=(txn, ''))
+    dummy_response['kind'] = TransactionKind.CAPTURE
+    dummy_response['amount'] = amount
+    mock_capture = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(capture=mock_capture), gateway_params)
 
@@ -282,14 +337,16 @@ def test_gateway_capture_partial_capture(
 @patch('saleor.payment.utils.get_payment_gateway')
 def test_gateway_capture_failed(
         mock_get_payment_gateway, mock_handle_fully_paid_order, payment_txn_preauth,
-        gateway_params):
+        gateway_params, dummy_response):
     txn = payment_txn_preauth.transactions.first()
     txn.is_success = False
 
     payment = payment_txn_preauth
     amount = payment.total
 
-    mock_capture = Mock(return_value=(txn, EXAMPLE_ERROR))
+    dummy_response['is_success'] = False
+    dummy_response['kind'] = TransactionKind.CAPTURE
+    mock_capture = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(capture=mock_capture), gateway_params)
     with pytest.raises(PaymentError) as exc:
@@ -322,21 +379,24 @@ def test_gateway_capture_errors(payment_txn_preauth):
 @patch('saleor.payment.utils.get_payment_gateway')
 def test_gateway_charge(
         mock_get_payment_gateway, mock_handle_fully_paid_order, payment_txn_preauth,
-        gateway_params, transaction_token):
+        gateway_params, transaction_token, dummy_response):
     payment_token = transaction_token
     txn = payment_txn_preauth.transactions.first()
     payment = payment_txn_preauth
     assert not payment.captured_amount
     amount = payment.total
 
-    mock_charge = Mock(return_value=(txn, ''))
+    dummy_response['kind'] = TransactionKind.CHARGE
+    mock_charge = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(charge=mock_charge), gateway_params)
 
+    payment_info = create_payment_information(payment, payment_token, amount)
     gateway_charge(payment, payment_token, amount)
+
     mock_get_payment_gateway.assert_called_once_with(payment.gateway)
     mock_charge.assert_called_once_with(
-        payment=payment, payment_token=payment_token, amount=amount, **gateway_params)
+        payment_information=payment_info, connection_params=gateway_params)
 
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.CHARGED
@@ -348,7 +408,7 @@ def test_gateway_charge(
 @patch('saleor.payment.utils.get_payment_gateway')
 def test_gateway_capture_partial_charge(
         mock_get_payment_gateway, mock_handle_fully_paid_order, payment_txn_preauth,
-        gateway_params, transaction_token, settings):
+        gateway_params, transaction_token, settings, dummy_response):
     payment_token = transaction_token
     payment = payment_txn_preauth
     amount = payment.total * Decimal('0.5')
@@ -356,7 +416,9 @@ def test_gateway_capture_partial_charge(
     txn.amount = amount
     txn.currency = settings.DEFAULT_CURRENCY
 
-    mock_charge = Mock(return_value=(txn, ''))
+    dummy_response['kind'] = TransactionKind.CAPTURE
+    dummy_response['amount'] = amount
+    mock_charge = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(charge=mock_charge), gateway_params)
 
@@ -373,7 +435,7 @@ def test_gateway_capture_partial_charge(
 @patch('saleor.payment.utils.get_payment_gateway')
 def test_gateway_charge_failed(
         mock_get_payment_gateway, mock_handle_fully_paid_order, payment_txn_preauth,
-        gateway_params, transaction_token):
+        gateway_params, transaction_token, dummy_response):
     payment_token = transaction_token
     txn = payment_txn_preauth.transactions.first()
     txn.is_success = False
@@ -381,7 +443,9 @@ def test_gateway_charge_failed(
     payment = payment_txn_preauth
     amount = payment.total
 
-    mock_charge = Mock(return_value=(txn, EXAMPLE_ERROR))
+    dummy_response['is_success'] = False
+    dummy_response['kind'] = TransactionKind.CAPTURE
+    mock_charge = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(charge=mock_charge), gateway_params)
     with pytest.raises(PaymentError) as exc:
@@ -414,17 +478,23 @@ def test_gateway_charge_errors(payment_dummy, transaction_token):
 
 
 @patch('saleor.payment.utils.get_payment_gateway')
-def test_gateway_void(mock_get_payment_gateway, payment_txn_preauth, gateway_params):
+def test_gateway_void(
+        mock_get_payment_gateway, payment_txn_preauth,
+        gateway_params, dummy_response):
     txn = payment_txn_preauth.transactions.first()
     payment = payment_txn_preauth
     assert payment.is_active
 
-    mock_void = Mock(return_value=(txn, ''))
+    dummy_response['kind'] = TransactionKind.VOID
+    mock_void = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (Mock(void=mock_void), gateway_params)
 
+    payment_info = create_payment_information(payment, txn.token)
     gateway_void(payment)
+
     mock_get_payment_gateway.assert_called_once_with(payment.gateway)
-    mock_void.assert_called_once_with(payment=payment, **gateway_params)
+    mock_void.assert_called_once_with(
+        payment_information=payment_info, connection_params=gateway_params)
 
     payment.refresh_from_db()
     assert payment.is_active == False
@@ -432,12 +502,15 @@ def test_gateway_void(mock_get_payment_gateway, payment_txn_preauth, gateway_par
 
 @patch('saleor.payment.utils.get_payment_gateway')
 def test_gateway_void_failed(
-        mock_get_payment_gateway, payment_txn_preauth, gateway_params):
+        mock_get_payment_gateway, payment_txn_preauth, gateway_params,
+        dummy_response):
     txn = payment_txn_preauth.transactions.first()
     txn.is_success = False
     payment = payment_txn_preauth
 
-    mock_void = Mock(return_value=(txn, EXAMPLE_ERROR))
+    dummy_response['kind'] = TransactionKind.VOID
+    dummy_response['is_success'] = False
+    mock_void = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (Mock(void=mock_void), gateway_params)
     with pytest.raises(PaymentError) as exc:
         gateway_void(payment)
@@ -456,19 +529,23 @@ def test_gateway_void_errors(payment_dummy):
 
 @patch('saleor.payment.utils.get_payment_gateway')
 def test_gateway_refund(
-        mock_get_payment_gateway, payment_txn_captured, gateway_params):
+        mock_get_payment_gateway, payment_txn_captured, gateway_params,
+        dummy_response):
     txn = payment_txn_captured.transactions.first()
     payment = payment_txn_captured
     amount = payment.total
 
-    mock_refund = Mock(return_value=(txn, ''))
+    dummy_response['kind'] = TransactionKind.REFUND
+    mock_refund = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(refund=mock_refund), gateway_params)
 
+    payment_info = create_payment_information(payment, txn.token, amount)
     gateway_refund(payment, amount)
+
     mock_get_payment_gateway.assert_called_once_with(payment.gateway)
     mock_refund.assert_called_once_with(
-        payment=payment, amount=amount, **gateway_params)
+        payment_information=payment_info, connection_params=gateway_params)
 
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.FULLY_REFUNDED
@@ -477,14 +554,17 @@ def test_gateway_refund(
 
 @patch('saleor.payment.utils.get_payment_gateway')
 def test_gateway_refund_partial_refund(
-        mock_get_payment_gateway, payment_txn_captured, gateway_params, settings):
+        mock_get_payment_gateway, payment_txn_captured, gateway_params,
+        settings, dummy_response):
     payment = payment_txn_captured
     amount = payment.total * Decimal('0.5')
     txn = payment_txn_captured.transactions.first()
     txn.amount = amount
     txn.currency = settings.DEFAULT_CURRENCY
 
-    mock_refund = Mock(return_value=(txn, ''))
+    dummy_response['kind'] = TransactionKind.REFUND
+    dummy_response['amount'] = amount
+    mock_refund = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(refund=mock_refund), gateway_params)
 
@@ -497,13 +577,16 @@ def test_gateway_refund_partial_refund(
 
 @patch('saleor.payment.utils.get_payment_gateway')
 def test_gateway_refund_failed(
-        mock_get_payment_gateway, payment_txn_captured, gateway_params, settings):
+        mock_get_payment_gateway, payment_txn_captured, gateway_params,
+        settings, dummy_response):
     txn = payment_txn_captured.transactions.first()
     payment = payment_txn_captured
     captured_before = payment.captured_amount
     txn.is_success = False
 
-    mock_refund = Mock(return_value=(txn, EXAMPLE_ERROR))
+    dummy_response['kind'] = TransactionKind.REFUND
+    dummy_response['is_success'] = False
+    mock_refund = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(refund=mock_refund), gateway_params)
 
@@ -530,7 +613,7 @@ def test_gateway_refund_errors(payment_txn_captured):
     assert exc.value.message == 'This payment cannot be refunded.'
 
 
-@pytest.mark.parametrize('gateway_name', settings.PAYMENT_GATEWAYS.keys())
+@pytest.mark.parametrize('gateway_name', dj_settings.PAYMENT_GATEWAYS.keys())
 def test_payment_gateway_templates_exists(gateway_name):
     """Test if for each payment gateway there's a corresponding
     template for the old checkout.
@@ -539,16 +622,16 @@ def test_payment_gateway_templates_exists(gateway_name):
     get_template(template)
 
 
-@pytest.mark.parametrize('gateway_name', settings.PAYMENT_GATEWAYS.keys())
+@pytest.mark.parametrize('gateway_name', dj_settings.PAYMENT_GATEWAYS.keys())
 def test_payment_gateway_form_exists(gateway_name, payment_dummy):
     """Test if for each payment gateway there's a corresponding
     form for the old checkout.
 
     An error will be raised if it's missing.
     """
-    payment_gateway, gateway_params = get_payment_gateway(
-        gateway_name)
-    payment_gateway.get_form_class()
+    payment_gateway, gateway_params = get_payment_gateway(gateway_name)
+    payment_info = create_payment_information(payment_dummy)
+    payment_gateway.create_form(None, payment_info, gateway_params)
 
 
 def test_clean_authorize():
@@ -712,3 +795,92 @@ def test_payment_get_authorized_amount(payment_txn_preauth):
 
     payment.transactions.all().delete()
     assert payment.get_authorized_amount().amount == Decimal(0)
+
+
+def test_validate_gateway_response(gateway_response):
+    validate_gateway_response(gateway_response)
+
+
+def test_validate_gateway_response_missing_required_key(gateway_response):
+    del gateway_response['is_success']
+
+    with pytest.raises(GatewayError) as e:
+        validate_gateway_response(gateway_response)
+
+    assert str(e.value) == (
+        'Gateway response needs to contain following keys: {}'.format(
+            sorted(REQUIRED_GATEWAY_KEYS)))
+
+
+def test_validate_gateway_response_incorrect_transaction_kind(gateway_response):
+    gateway_response['kind'] = 'incorrect-kind'
+
+    with pytest.raises(GatewayError) as e:
+        validate_gateway_response(gateway_response)
+
+    assert str(e.value) == (
+        'Gateway response kind must be one of {}'.format(
+            sorted(ALLOWED_GATEWAY_KINDS)))
+
+
+def test_validate_gateway_response_not_json_serializable(gateway_response):
+    class CustomClass(object):
+        pass
+    gateway_response['extra'] = CustomClass()
+
+    with pytest.raises(GatewayError) as e:
+        validate_gateway_response(gateway_response)
+
+    assert str(e.value) == 'Gateway response needs to be json serializable'
+
+
+def test_validate_gateway_response_incorrect_field_type(gateway_response):
+    gateway_response['amount'] = 'should-be-decimal'
+
+    with pytest.raises(GatewayError) as e:
+        validate_gateway_response(gateway_response)
+
+    assert str(e.value) == 'amount must be of type {}, was {}'.format(
+        Decimal, str)
+
+
+@patch('saleor.payment.utils.get_payment_gateway')
+def test_call_gateway_invalid_response(
+        mock_get_payment_gateway, payment_dummy):
+    mock_get_payment_gateway.return_value = (
+        Mock(auth=Mock(return_value=('wrong', 'response'))), {})
+
+    with pytest.raises(PaymentError) as e:
+        call_gateway(
+            operation_type=OperationType.AUTH,
+            payment=payment_dummy, payment_token='token')
+    assert str(e.value) == 'Gateway response validation failed'
+
+
+@patch('saleor.payment.utils.get_payment_gateway')
+def test_call_gateway_function_not_implemented(
+        mock_get_payment_gateway, payment_dummy):
+    class CustomClass:
+        pass
+
+    mock_get_payment_gateway.return_value = (CustomClass(), {})
+
+    with pytest.raises(PaymentError) as e:
+        call_gateway(
+            operation_type=OperationType.AUTH,
+            payment=payment_dummy, payment_token='token')
+    assert str(e.value) == 'Gateway doesn\'t implement AUTH operation'
+
+
+@patch('saleor.payment.utils.get_payment_gateway')
+def test_call_gateway_generic_error(
+        mock_get_payment_gateway, payment_dummy):
+    mock_get_payment_gateway.return_value = (
+        Mock(authorize=Mock(
+            side_effect=Exception('something went wrong'))), {})
+
+    with pytest.raises(PaymentError) as e:
+        call_gateway(
+            operation_type=OperationType.AUTH,
+            payment=payment_dummy, payment_token='token')
+    assert str(e.value) == 'Gateway encountered an error'

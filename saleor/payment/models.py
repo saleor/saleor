@@ -3,6 +3,7 @@ from operator import attrgetter
 
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField
+from django.core.serializers.json import DjangoJSONEncoder
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from prices import Money
@@ -130,35 +131,6 @@ class Payment(models.Model):
         """Retrieve the maximum capture possible."""
         return self.total - self.captured_amount
 
-    def authorize(self, payment_token):
-        from . import utils
-        return utils.gateway_authorize(
-            payment=self, payment_token=payment_token)
-
-    def charge(self, payment_token, amount=None):
-        from . import utils
-        if amount is None:
-            amount = self.get_charge_amount()
-        return utils.gateway_charge(
-            payment=self, payment_token=payment_token, amount=amount)
-
-    def void(self):
-        from . import utils
-        return utils.gateway_void(payment=self)
-
-    def capture(self, amount=None):
-        from . import utils
-        if amount is None:
-            amount = self.get_charge_amount()
-        return utils.gateway_capture(payment=self, amount=amount)
-
-    def refund(self, amount=None):
-        from . import utils
-        if amount is None:
-            # If no amount is specified, refund the maximum possible
-            amount = self.captured_amount
-        return utils.gateway_refund(payment=self, amount=amount)
-
     @property
     def is_authorized(self):
         return any([
@@ -214,7 +186,7 @@ class Transaction(models.Model):
     error = models.CharField(
         choices=[(tag, tag.value) for tag in TransactionError],
         max_length=256, null=True)
-    gateway_response = JSONField()
+    gateway_response = JSONField(encoder=DjangoJSONEncoder)
 
     def __repr__(self):
         return 'Transaction(type=%s, is_success=%s, created=%s)' % (

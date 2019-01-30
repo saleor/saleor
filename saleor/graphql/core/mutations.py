@@ -118,7 +118,8 @@ class BaseMutation(graphene.Mutation):
         except ValidationError as validation_errors:
             message_dict = validation_errors.message_dict
             for field in message_dict:
-                if hasattr(cls._meta, 'exclude') and field in cls._meta.exclude:
+                if hasattr(cls._meta,
+                           'exclude') and field in cls._meta.exclude:
                     continue
                 for message in message_dict[field]:
                     field = snake_to_camel_case(field)
@@ -160,8 +161,13 @@ class ModelMutation(BaseMutation):
 
     @classmethod
     def __init_subclass_with_meta__(
-            cls, arguments=None, model=None, exclude=None,
-            return_field_name=None, _meta=None, **options):
+            cls,
+            arguments=None,
+            model=None,
+            exclude=None,
+            return_field_name=None,
+            _meta=None,
+            **options):
         if not model:
             raise ImproperlyConfigured('model is required for ModelMutation')
         if not _meta:
@@ -358,7 +364,7 @@ class CreateToken(ObtainJSONWebToken):
     the mutation works.
     """
 
-    errors = graphene.List(Error)
+    errors = graphene.List(Error, required=True)
     user = graphene.Field(User)
 
     @classmethod
@@ -372,7 +378,7 @@ class CreateToken(ObtainJSONWebToken):
 
     @classmethod
     def resolve(cls, root, info):
-        return cls(user=info.context.user)
+        return cls(user=info.context.user, errors=[])
 
 
 class VerifyToken(Verify):

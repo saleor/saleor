@@ -1,14 +1,10 @@
-import {
-  createStyles,
-  Theme,
-  withStyles,
-  WithStyles
-} from "@material-ui/core/styles";
 import * as React from "react";
 
+import CardSpacer from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
+import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
 import { getUserName, maybe } from "../../../misc";
@@ -30,19 +26,7 @@ interface FormData {
   email: string;
 }
 
-const styles = (theme: Theme) =>
-  createStyles({
-    card: {
-      marginBottom: theme.spacing.unit * 2 + "px"
-    },
-    root: {
-      display: "grid",
-      gridColumnGap: theme.spacing.unit * 2 + "px",
-      gridTemplateColumns: "9fr 4fr"
-    }
-  });
-
-export interface StaffDetailsPageProps extends WithStyles<typeof styles> {
+export interface StaffDetailsPageProps {
   disabled: boolean;
   permissions: StaffMemberDetails_shop_permissions[];
   saveButtonBarState: ConfirmButtonTransitionState;
@@ -52,79 +36,68 @@ export interface StaffDetailsPageProps extends WithStyles<typeof styles> {
   onSubmit: (data: FormData) => void;
 }
 
-const StaffDetailsPage = withStyles(styles, { name: "StaffDetailsPage" })(
-  ({
-    classes,
-    disabled,
-    permissions,
-    saveButtonBarState,
-    staffMember,
-    onBack,
-    onDelete,
-    onSubmit
-  }: StaffDetailsPageProps) => {
-    const initialForm: FormData = {
-      email: maybe(() => staffMember.email),
-      firstName: maybe(() => staffMember.firstName),
-      hasFullAccess: maybe(
-        () =>
-          permissions.filter(
-            perm =>
-              maybe(() => staffMember.permissions, []).filter(
-                userPerm => userPerm.code === perm.code
-              ).length === 0
-          ).length === 0,
-        false
-      ),
-      isActive: maybe(() => staffMember.isActive, false),
-      lastName: maybe(() => staffMember.lastName),
-      permissions: maybe(() => staffMember.permissions, []).map(
-        perm => perm.code
-      )
-    };
-    return (
-      <Form initial={initialForm} onSubmit={onSubmit} confirmLeave>
-        {({ data, change, hasChanged, submit }) => (
-          <Container width="md">
-            <PageHeader title={getUserName(staffMember)} onBack={onBack} />
-            <div className={classes.root}>
-              <div>
-                <StaffProperties
-                  className={classes.card}
-                  data={data}
-                  disabled={disabled}
-                  staffMember={staffMember}
-                  onChange={change}
-                />
-              </div>
-              <div>
-                <div className={classes.card}>
-                  <StaffPermissions
-                    data={data}
-                    disabled={disabled}
-                    permissions={permissions}
-                    onChange={change}
-                  />
-                </div>
-                <StaffStatus
-                  data={data}
-                  disabled={disabled}
-                  onChange={change}
-                />
-              </div>
+const StaffDetailsPage: React.StatelessComponent<StaffDetailsPageProps> = ({
+  disabled,
+  permissions,
+  saveButtonBarState,
+  staffMember,
+  onBack,
+  onDelete,
+  onSubmit
+}: StaffDetailsPageProps) => {
+  const initialForm: FormData = {
+    email: maybe(() => staffMember.email),
+    firstName: maybe(() => staffMember.firstName),
+    hasFullAccess: maybe(
+      () =>
+        permissions.filter(
+          perm =>
+            maybe(() => staffMember.permissions, []).filter(
+              userPerm => userPerm.code === perm.code
+            ).length === 0
+        ).length === 0,
+      false
+    ),
+    isActive: maybe(() => staffMember.isActive, false),
+    lastName: maybe(() => staffMember.lastName),
+    permissions: maybe(() => staffMember.permissions, []).map(perm => perm.code)
+  };
+  return (
+    <Form initial={initialForm} onSubmit={onSubmit} confirmLeave>
+      {({ data, change, hasChanged, submit }) => (
+        <Container width="md">
+          <PageHeader title={getUserName(staffMember)} onBack={onBack} />
+          <Grid>
+            <div>
+              <StaffProperties
+                data={data}
+                disabled={disabled}
+                staffMember={staffMember}
+                onChange={change}
+              />
             </div>
-            <SaveButtonBar
-              disabled={disabled || !hasChanged}
-              state={saveButtonBarState}
-              onCancel={onBack}
-              onSave={submit}
-              onDelete={onDelete}
-            />
-          </Container>
-        )}
-      </Form>
-    );
-  }
-);
+            <div>
+              <StaffPermissions
+                data={data}
+                disabled={disabled}
+                permissions={permissions}
+                onChange={change}
+              />
+              <CardSpacer />
+              <StaffStatus data={data} disabled={disabled} onChange={change} />
+            </div>
+          </Grid>
+          <SaveButtonBar
+            disabled={disabled || !hasChanged}
+            state={saveButtonBarState}
+            onCancel={onBack}
+            onSave={submit}
+            onDelete={onDelete}
+          />
+        </Container>
+      )}
+    </Form>
+  );
+};
 StaffDetailsPage.displayName = "StaffDetailsPage";
 export default StaffDetailsPage;
