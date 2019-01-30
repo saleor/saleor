@@ -11,7 +11,8 @@ const componentGeneratorConfig = {
     {
       type: "input",
       name: "section",
-      message: "Component path?"
+      message: "Component path?",
+      default: 'components'
     },
     {
       type: "confirm",
@@ -32,22 +33,28 @@ const componentGeneratorConfig = {
       default: "y"
     }
   ],
-  actions: ({ fc, story }) => {
+  actions: ({ fc, section, story }) => {
     const actions = [
       {
         type: "add",
-        path: `${ROOT}/{{ dashCase section }}/{{ properCase name }}/index.ts`,
-        templateFile: './component/index.ts.hbs',
+        path:
+          section === "components"
+            ? `${ROOT}/{{ dashCase section }}/{{ properCase name }}/index.ts`
+            : `${ROOT}/{{ dashCase section }}/components/{{ properCase name }}/index.ts`,
+        templateFile: "./component/index.ts.hbs",
         abortOnFail: true
       },
       {
         type: "add",
-        path: `${ROOT}/{{ dashCase section }}/{{ properCase name }}/{{ properCase name }}.tsx`,
+        path:
+          section === "components"
+            ? `${ROOT}/{{ dashCase section }}/{{ properCase name }}/{{ properCase name }}.tsx`
+            : `${ROOT}/{{ dashCase section }}/components/{{ properCase name }}/{{ properCase name }}.tsx`,
         templateFile: fc
           ? "./component/componentName.fc.tsx.hbs"
           : "./component/componentName.class.tsx.hbs",
         abortOnFail: true
-      },
+      }
     ];
 
     if (story) {
@@ -64,5 +71,5 @@ const componentGeneratorConfig = {
 };
 
 module.exports = plop => {
-  plop.setGenerator('component', componentGeneratorConfig);
+  plop.setGenerator("component", componentGeneratorConfig);
 };
