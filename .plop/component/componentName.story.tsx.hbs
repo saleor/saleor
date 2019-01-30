@@ -1,15 +1,15 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import {{ name }}, {
-  {{ name }}Props
-} from "../../../{{ section }}/components/{{ name }}";
+import {{ properCase name }}, {
+  {{ properCase name }}Props
+} from "../../../{{ section }}/components/{{ properCase name }}";
 import Decorator from "../../Decorator";
 
-const props: {{ name }}Props = {
+const props: {{ properCase name }}Props = {
 
 };
 
 storiesOf("{{ sentenceCase section }} / {{ name }}", module)
   .addDecorator(Decorator)
-  .add("default", () => <{{ name }} {...props} />);
+  .add("default", () => <{{ properCase name }} {...props} />);

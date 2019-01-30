@@ -8,10 +8,10 @@ import {
 {{/if}}
 import * as React from "react";
 
-export interface {{ name }}Props {
+export interface {{ properCase name }}Props {
   
 }
-interface {{ name }}State {
+interface {{ properCase name }}State {
   
 }
 
@@ -19,9 +19,9 @@ interface {{ name }}State {
 const styles = (theme: Theme) => createStyles({
     
 });
-const {{ name }} = withStyles(styles, { name: "{{ name }}" })(
-  class Inner{{ name }} extends React.Component<{{ name }}Props, {{ name }}State> {
-    state: {{ name }}State = {
+const {{ properCase name }} = withStyles(styles, { name: "{{ properCase name }}" })(
+  class Inner{{ properCase name }} extends React.Component<{{ properCase name }}Props, {{ properCase name }}State> {
+    state: {{ properCase name }}State = {
 
     }
 
@@ -31,8 +31,8 @@ const {{ name }} = withStyles(styles, { name: "{{ name }}" })(
   }
 );
 {{else}}
-class {{ name }} extends React.Component<{{ name }}Props, {{ name }}State> {
-  state: {{ name }}State = {
+class {{ properCase name }} extends React.Component<{{ properCase name }}Props, {{ properCase name }}State> {
+  state: {{ properCase name }}State = {
 
   }
 
@@ -41,5 +41,5 @@ class {{ name }} extends React.Component<{{ name }}Props, {{ name }}State> {
   }
 }
 {{/if}}
-{{ name }}.displayName = "{{ name }}";
-export default {{ name }};
+{{ properCase name }}.displayName = "{{ properCase name }}";
+export default {{ properCase name }};

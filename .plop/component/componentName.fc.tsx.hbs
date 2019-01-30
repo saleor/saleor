@@ -8,7 +8,7 @@ import {
 {{/if}}
 import * as React from "react";
 
-export interface {{ name }}Props {
+export interface {{ properCase name }}Props {
   
 }
 
@@ -16,11 +16,11 @@ export interface {{ name }}Props {
 const styles = (theme: Theme) => createStyles({
     
 });
-const {{ name }} = withStyles(styles, { name: "{{ name }}" })(
-  ({ classes }: {{ name }}Props & WithStyles<typeof styles>) => <div />
+const {{ properCase name }} = withStyles(styles, { name: "{{ properCase name }}" })(
+  ({ classes }: {{ properCase name }}Props & WithStyles<typeof styles>) => <div />
 );
 {{else}}
-const {{ name }}: React.StatelessComponent<{{ name }}Props> = () => <div />;
+const {{ properCase name }}: React.StatelessComponent<{{ properCase name }}Props> = () => <div />;
 {{/if}}
-{{ name }}.displayName = "{{ name }}";
-export default {{ name }};
+{{ properCase name }}.displayName = "{{ properCase name }}";
+export default {{ properCase name }};
