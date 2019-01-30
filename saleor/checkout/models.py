@@ -41,7 +41,7 @@ class Cart(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='carts',
         on_delete=models.CASCADE)
-    email = models.EmailField(blank=True, default='')
+    email = models.EmailField()
     token = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     quantity = models.PositiveIntegerField(default=0)
     billing_address = models.ForeignKey(
