@@ -284,8 +284,9 @@ def test_payment_charge_success(
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.CHARGED
     assert payment.transactions.count() == 2
-    txn = payment.transactions.last()
-    assert txn.kind == TransactionKind.CAPTURE
+    capture_txn, auth_txn = payment.transactions.all()
+    assert auth_txn.kind == TransactionKind.AUTH
+    assert capture_txn.kind == TransactionKind.CAPTURE
 
 
 def test_payment_charge_gateway_error(
@@ -335,8 +336,8 @@ REFUND_QUERY = """
 
 
 def test_payment_refund_success(
-        staff_api_client, permission_manage_orders, payment_dummy):
-    payment = payment_dummy
+        staff_api_client, permission_manage_orders, payment_txn_captured):
+    payment = payment_txn_captured
     payment.charge_status = ChargeStatus.CHARGED
     payment.captured_amount = payment.total
     payment.save()
@@ -345,28 +346,28 @@ def test_payment_refund_success(
 
     variables = {
         'paymentId': payment_id,
-        'amount': str(payment_dummy.total)}
+        'amount': str(payment.total)}
     response = staff_api_client.post_graphql(
         REFUND_QUERY, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
     data = content['data']['paymentRefund']
     assert not data['errors']
-    payment_dummy.refresh_from_db()
+    payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.FULLY_REFUNDED
-    assert payment.transactions.count() == 1
+    assert payment.transactions.count() == 2
     txn = payment.transactions.last()
     assert txn.kind == TransactionKind.REFUND
 
 
 def test_payment_refund_error(
-        staff_api_client, permission_manage_orders, payment_dummy,
+        staff_api_client, permission_manage_orders, payment_txn_captured,
         monkeypatch):
-    payment = payment_dummy
+    payment = payment_txn_captured
     payment.charge_status = ChargeStatus.CHARGED
     payment.captured_amount = payment.total
     payment.save()
     payment_id = graphene.Node.to_global_id(
-        'Payment', payment_dummy.pk)
+        'Payment', payment.pk)
     variables = {
         'paymentId': payment_id,
         'amount': str(payment.total)}
@@ -380,9 +381,9 @@ def test_payment_refund_error(
     assert data['errors']
     assert data['errors'][0]['field'] is None
     assert data['errors'][0]['message']
-    payment_dummy.refresh_from_db()
+    payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.CHARGED
-    assert payment.transactions.count() == 1
+    assert payment.transactions.count() == 2
     txn = payment.transactions.last()
     assert txn.kind == TransactionKind.REFUND
     assert not txn.is_success

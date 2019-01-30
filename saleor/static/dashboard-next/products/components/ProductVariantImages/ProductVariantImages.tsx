@@ -17,12 +17,6 @@ import { ProductImage } from "../../types/ProductImage";
 
 const styles = (theme: Theme) =>
   createStyles({
-    card: {
-      marginTop: theme.spacing.unit * 2,
-      [theme.breakpoints.down("sm")]: {
-        marginTop: 0
-      }
-    },
     gridElement: {
       "& img": {
         width: "100%"
@@ -58,7 +52,7 @@ interface ProductVariantImagesProps extends WithStyles<typeof styles> {
 export const ProductVariantImages = withStyles(styles, {
   name: "ProductVariantImages"
 })(({ classes, disabled, images, onImageAdd }: ProductVariantImagesProps) => (
-  <Card className={classes.card}>
+  <Card>
     <CardTitle
       title={i18n.t("Images")}
       toolbar={

@@ -1,6 +1,7 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
+import classNames from "classnames";
 
 import {
   createStyles,
@@ -8,12 +9,11 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
-import AddPhotoIcon from "@material-ui/icons/AddAPhoto";
 import * as React from "react";
 import { SortableContainer, SortableElement } from "react-sortable-hoc";
 import CardTitle from "../../../components/CardTitle";
 import ImageTile from "../../../components/ImageTile";
+import ImageUpload from "../../../components/ImageUpload";
 import i18n from "../../../i18n";
 import { ProductDetails_product_images } from "../../types/ProductDetails";
 
@@ -53,6 +53,9 @@ const styles = (theme: Theme) =>
       position: "relative",
       width: 140
     },
+    imageGridContainer: {
+      position: "relative"
+    },
     imageOverlay: {
       background: "rgba(0, 0, 0, 0.6)",
       cursor: "move",
@@ -71,19 +74,21 @@ const styles = (theme: Theme) =>
       right: -theme.spacing.unit * 3,
       top: -theme.spacing.unit * 2
     },
-    noPhotosIcon: {
-      height: theme.spacing.unit * 8,
-      margin: "0 auto",
-      width: theme.spacing.unit * 8
+    imageUpload: {
+      height: "100%",
+      left: 0,
+      position: "absolute",
+      top: 0,
+      width: "100%"
     },
-    noPhotosIconContainer: {
-      margin: `${theme.spacing.unit * 5}px 0`,
-      textAlign: "center"
+    imageUploadActive: {
+      zIndex: 1
     },
-    noPhotosIconText: {
-      fontSize: "1rem",
-      fontWeight: 600,
-      marginTop: theme.spacing.unit
+    imageUploadIcon: {
+      display: "none"
+    },
+    imageUploadIconActive: {
+      display: "block"
     },
     root: {
       display: "grid",
@@ -96,6 +101,9 @@ const styles = (theme: Theme) =>
       [theme.breakpoints.down("xs")]: {
         gridTemplateColumns: "repeat(2, 1fr)"
       }
+    },
+    rootDragActive: {
+      opacity: 0.2
     }
   });
 
@@ -105,7 +113,7 @@ interface ProductImagesProps extends WithStyles<typeof styles> {
   loading?: boolean;
   onImageDelete: (id: string) => () => void;
   onImageEdit: (id: string) => () => void;
-  onImageUpload?(event: React.ChangeEvent<any>);
+  onImageUpload(file: File);
   onImageReorder?(event: { oldIndex: number; newIndex: number });
 }
 
@@ -178,40 +186,55 @@ const ProductImages = withStyles(styles, { name: "ProductImages" })(
             <input
               className={classes.fileField}
               id="fileUpload"
-              onChange={onImageUpload}
+              onChange={event => onImageUpload(event.target.files[0])}
               type="file"
               ref={ref => (this.upload = ref)}
             />
           </>
         }
       />
-      <CardContent>
+      <div className={classes.imageGridContainer}>
         {images === undefined ? (
-          <div className={classes.root}>
-            <div className={classes.imageContainer}>
-              <img className={classes.image} src={placeholderImage} />
+          <CardContent>
+            <div className={classes.root}>
+              <div className={classes.imageContainer}>
+                <img className={classes.image} src={placeholderImage} />
+              </div>
             </div>
-          </div>
+          </CardContent>
         ) : images.length > 0 ? (
-          <ImageListContainer
-            distance={20}
-            helperClass="dragged"
-            axis="xy"
-            items={images}
-            onSortEnd={onImageReorder}
-            className={classes.root}
-            onImageDelete={onImageDelete}
-            onImageEdit={onImageEdit}
-          />
+          <>
+            <ImageUpload
+              className={classes.imageUpload}
+              isActiveClassName={classes.imageUploadActive}
+              disableClick={true}
+              iconContainerClassName={classes.imageUploadIcon}
+              iconContainerActiveClassName={classes.imageUploadIconActive}
+              onImageUpload={onImageUpload}
+            >
+              {({ isDragActive }) => (
+                <CardContent>
+                  <ImageListContainer
+                    distance={20}
+                    helperClass="dragged"
+                    axis="xy"
+                    items={images}
+                    onSortEnd={onImageReorder}
+                    className={classNames({
+                      [classes.root]: true,
+                      [classes.rootDragActive]: isDragActive
+                    })}
+                    onImageDelete={onImageDelete}
+                    onImageEdit={onImageEdit}
+                  />
+                </CardContent>
+              )}
+            </ImageUpload>
+          </>
         ) : (
-          <div className={classes.noPhotosIconContainer}>
-            <AddPhotoIcon className={classes.noPhotosIcon} />
-            <Typography className={classes.noPhotosIconText}>
-              {i18n.t("Drop images to upload")}
-            </Typography>
-          </div>
+          <ImageUpload onImageUpload={onImageUpload} />
         )}
-      </CardContent>
+      </div>
     </Card>
   )
 );
