@@ -9,6 +9,72 @@ import {
 } from "./types/VoucherDetails";
 import { VoucherList, VoucherListVariables } from "./types/VoucherList";
 
+export const saleFragment = gql`
+  fragment SaleFragment on Sale {
+    id
+    name
+    type
+    startDate
+    endDate
+    value
+  }
+`;
+
+export const saleDetailsFragment = gql`
+  ${pageInfoFragment}
+  ${saleFragment}
+  fragment SaleDetailsFragment on Sale {
+    ...SaleFragment
+    products(after: $after, before: $before, first: $first, last: $last) {
+      edges {
+        node {
+          id
+          name
+          isPublished
+          productType {
+            id
+            name
+          }
+          thumbnail {
+            url
+          }
+        }
+      }
+      pageInfo {
+        ...PageInfoFragment
+      }
+    }
+    categories(after: $after, before: $before, first: $first, last: $last) {
+      edges {
+        node {
+          id
+          name
+          products {
+            totalCount
+          }
+        }
+      }
+      pageInfo {
+        ...PageInfoFragment
+      }
+    }
+    collections(after: $after, before: $before, first: $first, last: $last) {
+      edges {
+        node {
+          id
+          name
+          products {
+            totalCount
+          }
+        }
+      }
+      pageInfo {
+        ...PageInfoFragment
+      }
+    }
+  }
+`;
+
 export const voucherFragment = gql`
   fragment VoucherFragment on Voucher {
     id
@@ -85,22 +151,21 @@ export const voucherDetailsFragment = gql`
         ...PageInfoFragment
       }
     }
-    countries
+    countries {
+      code
+      country
+    }
   }
 `;
 
 export const saleList = gql`
   ${pageInfoFragment}
+  ${saleFragment}
   query SaleList($after: String, $before: String, $first: Int, $last: Int) {
     sales(after: $after, before: $before, first: $first, last: $last) {
       edges {
         node {
-          id
-          name
-          type
-          startDate
-          endDate
-          value
+          ...SaleFragment
         }
       }
       pageInfo {
@@ -132,7 +197,7 @@ export const TypedVoucherList = TypedQuery<VoucherList, VoucherListVariables>(
 );
 
 export const saleDetails = gql`
-  ${pageInfoFragment}
+  ${saleDetailsFragment}
   query SaleDetails(
     $id: ID!
     $after: String
@@ -141,59 +206,7 @@ export const saleDetails = gql`
     $last: Int
   ) {
     sale(id: $id) {
-      id
-      name
-      type
-      value
-      products(after: $after, before: $before, first: $first, last: $last) {
-        edges {
-          node {
-            id
-            name
-            isPublished
-            productType {
-              id
-              name
-            }
-            thumbnail {
-              url
-            }
-          }
-        }
-        pageInfo {
-          ...PageInfoFragment
-        }
-      }
-      categories(after: $after, before: $before, first: $first, last: $last) {
-        edges {
-          node {
-            id
-            name
-            products {
-              totalCount
-            }
-          }
-        }
-        pageInfo {
-          ...PageInfoFragment
-        }
-      }
-      collections(after: $after, before: $before, first: $first, last: $last) {
-        edges {
-          node {
-            id
-            name
-            products {
-              totalCount
-            }
-          }
-        }
-        pageInfo {
-          ...PageInfoFragment
-        }
-      }
-      startDate
-      endDate
+      ...SaleDetailsFragment
     }
   }
 `;

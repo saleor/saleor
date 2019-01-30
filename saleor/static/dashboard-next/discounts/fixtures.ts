@@ -257,7 +257,13 @@ export const voucherDetails: VoucherDetails_voucher = {
     },
     totalCount: 0
   },
-  countries: VoucherCountries.DE,
+  countries: [
+    {
+      __typename: "CountryDisplay",
+      code: "DE",
+      country: "Germany"
+    }
+  ],
   discountValue: 25,
   discountValueType: VoucherDiscountValueType.FIXED,
   endDate: null,

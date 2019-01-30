@@ -12,10 +12,21 @@ const props: VoucherDetailsPageProps = {
   ...pageListProps.default,
   defaultCurrency: "USD",
   onBack: () => undefined,
+  onCategoryAssign: () => undefined,
+  onCategoryClick: () => undefined,
+  onCollectionAssign: () => undefined,
+  onCollectionClick: () => undefined,
+  onCountryAssign: () => undefined,
+  onCountryUnassign: () => undefined,
+  onProductAssign: () => undefined,
+  onProductClick: () => undefined,
+  onRemove: () => undefined,
+  onSubmit: () => undefined,
+  saveButtonBarState: "default",
   voucher: voucherDetails
 };
 
-storiesOf("Views / Discounts / Voucher Details", module)
+storiesOf("Views / Discounts / Voucher details", module)
   .addDecorator(Decorator)
   .add("default", () => <VoucherDetailsPage {...props} />)
   .add("loading", () => (

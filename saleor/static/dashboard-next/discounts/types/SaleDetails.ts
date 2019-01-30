@@ -113,12 +113,12 @@ export interface SaleDetails_sale {
   id: string;
   name: string;
   type: SaleType;
+  startDate: any;
+  endDate: any | null;
   value: number;
   products: SaleDetails_sale_products | null;
   categories: SaleDetails_sale_categories | null;
   collections: SaleDetails_sale_collections | null;
-  startDate: any;
-  endDate: any | null;
 }
 
 export interface SaleDetails {

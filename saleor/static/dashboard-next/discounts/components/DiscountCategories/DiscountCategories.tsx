@@ -16,9 +16,10 @@ import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { ListProps } from "../../../types";
 import { SaleDetails_sale } from "../../types/SaleDetails";
+import { VoucherDetails_voucher } from "../../types/VoucherDetails";
 
-export interface SaleCategoriesProps extends ListProps {
-  sale: SaleDetails_sale;
+export interface DiscountCategoriesProps extends ListProps {
+  discount: SaleDetails_sale | VoucherDetails_voucher;
   onCategoryAssign: () => void;
 }
 
@@ -33,11 +34,11 @@ const styles = createStyles({
     width: "60%"
   }
 });
-const SaleCategories = withStyles(styles, {
-  name: "SaleCategories"
+const DiscountCategories = withStyles(styles, {
+  name: "DiscountCategories"
 })(
   ({
-    sale,
+    discount: sale,
     classes,
     disabled,
     pageInfo,
@@ -45,7 +46,7 @@ const SaleCategories = withStyles(styles, {
     onRowClick,
     onPreviousPage,
     onNextPage
-  }: SaleCategoriesProps & WithStyles<typeof styles>) => (
+  }: DiscountCategoriesProps & WithStyles<typeof styles>) => (
     <Card>
       <CardTitle
         title={i18n.t("Categories assigned to {{ saleName }}", {
@@ -115,5 +116,5 @@ const SaleCategories = withStyles(styles, {
     </Card>
   )
 );
-SaleCategories.displayName = "SaleCategories";
-export default SaleCategories;
+DiscountCategories.displayName = "DiscountCategories";
+export default DiscountCategories;
