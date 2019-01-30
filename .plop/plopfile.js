@@ -6,12 +6,12 @@ const componentGeneratorConfig = {
     {
       type: "input",
       name: "name",
-      message: "Name"
+      message: "Component name?"
     },
     {
       type: "input",
       name: "section",
-      message: "Section"
+      message: "Component path?"
     },
     {
       type: "confirm",
@@ -62,6 +62,8 @@ const componentGeneratorConfig = {
     return actions;
   }
 };
+
+const 
 
 module.exports = plop => {
   plop.setGenerator('component', componentGeneratorConfig);
