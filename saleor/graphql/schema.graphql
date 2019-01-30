@@ -218,6 +218,12 @@ enum AuthorizationKeyType {
   GOOGLE_OAUTH2
 }
 
+input CatalogueInput {
+  products: [ID]
+  categories: [ID]
+  collections: [ID]
+}
+
 type Category implements Node {
   seoTitle: String
   seoDescription: String
@@ -904,9 +910,13 @@ type Mutations {
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleUpdate(id: ID!, input: SaleInput!): SaleUpdate
+  saleCataloguesAdd(id: ID!, input: CatalogueInput!): SaleAddCatalogues
+  saleCataloguesRemove(id: ID!, input: CatalogueInput!): SaleRemoveCatalogues
   voucherCreate(input: VoucherInput!): VoucherCreate
   voucherDelete(id: ID!): VoucherDelete
   voucherUpdate(id: ID!, input: VoucherInput!): VoucherUpdate
+  voucherCataloguesAdd(id: ID!, input: CatalogueInput!): VoucherAddCatalogues
+  voucherCataloguesRemove(id: ID!, input: CatalogueInput!): VoucherRemoveCatalogues
   tokenCreate(email: String!, password: String!): CreateToken
   tokenRefresh(token: String!): Refresh
   tokenVerify(token: String!): VerifyToken
@@ -1653,6 +1663,11 @@ type Sale implements Node {
   endDate: Date
 }
 
+type SaleAddCatalogues {
+  errors: [Error!]
+  sale: Sale
+}
+
 type SaleCountableConnection {
   pageInfo: PageInfo!
   edges: [SaleCountableEdge!]!
@@ -1683,6 +1698,11 @@ input SaleInput {
   collections: [ID]
   startDate: DateTime
   endDate: DateTime
+}
+
+type SaleRemoveCatalogues {
+  errors: [Error!]
+  sale: Sale
 }
 
 enum SaleType {
@@ -2055,6 +2075,11 @@ type Voucher implements Node {
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
 }
 
+type VoucherAddCatalogues {
+  errors: [Error!]
+  voucher: Voucher
+}
+
 type VoucherCountableConnection {
   pageInfo: PageInfo!
   edges: [VoucherCountableEdge!]!
@@ -2094,6 +2119,11 @@ input VoucherInput {
   categories: [ID]
   minAmountSpent: Decimal
   countries: [String]
+}
+
+type VoucherRemoveCatalogues {
+  errors: [Error!]
+  voucher: Voucher
 }
 
 enum VoucherType {
