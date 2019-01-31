@@ -120,19 +120,34 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
                   isActive={activeTab === SaleDetailsPageTab.categories}
                   changeTab={onTabClick}
                 >
-                  {i18n.t("Categories")}
+                  {i18n.t("Categories ({{ number }})", {
+                    number: maybe(
+                      () => sale.categories.totalCount.toString(),
+                      "…"
+                    )
+                  })}
                 </CategoriesTab>
                 <CollectionsTab
                   isActive={activeTab === SaleDetailsPageTab.collections}
                   changeTab={onTabClick}
                 >
-                  {i18n.t("Collections")}
+                  {i18n.t("Collections ({{ number }})", {
+                    number: maybe(
+                      () => sale.collections.totalCount.toString(),
+                      "…"
+                    )
+                  })}
                 </CollectionsTab>
                 <ProductsTab
                   isActive={activeTab === SaleDetailsPageTab.products}
                   changeTab={onTabClick}
                 >
-                  {i18n.t("Products")}
+                  {i18n.t("Products ({{ number }})", {
+                    number: maybe(
+                      () => sale.products.totalCount.toString(),
+                      "…"
+                    )
+                  })}
                 </ProductsTab>
               </TabContainer>
               <CardSpacer />
