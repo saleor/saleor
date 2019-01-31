@@ -1,7 +1,6 @@
 import * as placeholderImage from "../../images/placeholder60x60.png";
 import {
   SaleType,
-  VoucherCountries,
   VoucherDiscountValueType,
   VoucherType
 } from "../types/globalTypes";

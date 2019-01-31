@@ -189,6 +189,12 @@ export interface AuthorizationKeyInput {
   password: string;
 }
 
+export interface CatalogueInput {
+  products?: (string | null)[] | null;
+  categories?: (string | null)[] | null;
+  collections?: (string | null)[] | null;
+}
+
 export interface CategoryInput {
   description?: string | null;
   name?: string | null;
