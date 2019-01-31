@@ -4,6 +4,8 @@ import { Route } from "react-router-dom";
 
 import { categoryUrl } from "../../../categories/urls";
 import { collectionUrl } from "../../../collections/urls";
+import AssignCategoriesDialog from "../../../components/AssignCategoryDialog";
+import AssignCollectionDialog from "../../../components/AssignCollectionDialog";
 import AssignProductDialog from "../../../components/AssignProductDialog";
 import Messages from "../../../components/messages";
 import Navigator from "../../../components/Navigator";
@@ -13,6 +15,8 @@ import {
 } from "../../../components/Paginator";
 import Shop from "../../../components/Shop";
 import { WindowTitle } from "../../../components/WindowTitle";
+import { SearchCategoriesProvider } from "../../../containers/SearchCategories";
+import { SearchCollectionsProvider } from "../../../containers/SearchCollections";
 import { SearchProductsProvider } from "../../../containers/SearchProducts";
 import i18n from "../../../i18n";
 import { getMutationState, maybe } from "../../../misc";
@@ -25,7 +29,14 @@ import { TypedSaleCataloguesAdd, TypedSaleUpdate } from "../../mutations";
 import { TypedSaleDetails } from "../../queries";
 import { SaleCataloguesAdd } from "../../types/SaleCataloguesAdd";
 import { saleListUrl, saleUrl } from "../../urls";
-import { saleAssignProductsPath, saleAssignProductsUrl } from "./urls";
+import {
+  saleAssignCategoriesPath,
+  saleAssignCategoriesUrl,
+  saleAssignCollectionsPath,
+  saleAssignCollectionsUrl,
+  saleAssignProductsPath,
+  saleAssignProductsUrl
+} from "./urls";
 
 const PAGINATE_BY = 20;
 
@@ -133,11 +144,30 @@ export const SaleDetails: React.StatelessComponent<SaleDetailsProps> = ({
                                         )}
                                         sale={maybe(() => data.sale)}
                                         disabled={loading}
+                                        errors={maybe(
+                                          () =>
+                                            saleUpdateOpts.data.saleUpdate
+                                              .errors
+                                        )}
                                         pageInfo={pageInfo}
                                         onNextPage={loadNextPage}
                                         onPreviousPage={loadPreviousPage}
+                                        onCategoryAssign={() =>
+                                          navigate(
+                                            saleAssignCategoriesUrl(id),
+                                            false,
+                                            true
+                                          )
+                                        }
                                         onCategoryClick={id => () =>
                                           navigate(categoryUrl(id))}
+                                        onCollectionAssign={() =>
+                                          navigate(
+                                            saleAssignCollectionsUrl(id),
+                                            false,
+                                            true
+                                          )
+                                        }
                                         onCollectionClick={id => () =>
                                           navigate(collectionUrl(id))}
                                         onProductAssign={() =>
@@ -221,6 +251,98 @@ export const SaleDetails: React.StatelessComponent<SaleDetailsProps> = ({
                                           />
                                         )}
                                       </SearchProductsProvider>
+                                    )}
+                                  />
+                                  <Route
+                                    path={saleAssignCategoriesPath(":id")}
+                                    render={({ match }) => (
+                                      <SearchCategoriesProvider>
+                                        {(
+                                          searchCategories,
+                                          searchCategoriesOpts
+                                        ) => (
+                                          <AssignCategoriesDialog
+                                            categories={maybe(() =>
+                                              searchCategoriesOpts.data.categories.edges
+                                                .map(edge => edge.node)
+                                                .filter(
+                                                  suggestedCategory =>
+                                                    suggestedCategory.id
+                                                )
+                                            )}
+                                            confirmButtonState={
+                                              assignTransitionState
+                                            }
+                                            open={!!match}
+                                            onFetch={searchCategories}
+                                            loading={
+                                              searchCategoriesOpts.loading
+                                            }
+                                            onClose={() =>
+                                              navigate(saleUrl(id), true, true)
+                                            }
+                                            onSubmit={formData =>
+                                              saleCataloguesAdd({
+                                                variables: {
+                                                  ...paginationState,
+                                                  id,
+                                                  input: {
+                                                    categories: formData.categories.map(
+                                                      product => product.id
+                                                    )
+                                                  }
+                                                }
+                                              })
+                                            }
+                                          />
+                                        )}
+                                      </SearchCategoriesProvider>
+                                    )}
+                                  />
+                                  <Route
+                                    path={saleAssignCollectionsPath(":id")}
+                                    render={({ match }) => (
+                                      <SearchCollectionsProvider>
+                                        {(
+                                          searchCollections,
+                                          searchCollectionsOpts
+                                        ) => (
+                                          <AssignCollectionDialog
+                                            collections={maybe(() =>
+                                              searchCollectionsOpts.data.collections.edges
+                                                .map(edge => edge.node)
+                                                .filter(
+                                                  suggestedCategory =>
+                                                    suggestedCategory.id
+                                                )
+                                            )}
+                                            confirmButtonState={
+                                              assignTransitionState
+                                            }
+                                            open={!!match}
+                                            onFetch={searchCollections}
+                                            loading={
+                                              searchCollectionsOpts.loading
+                                            }
+                                            onClose={() =>
+                                              navigate(saleUrl(id), true, true)
+                                            }
+                                            onSubmit={formData =>
+                                              saleCataloguesAdd({
+                                                variables: {
+                                                  ...paginationState,
+                                                  id,
+                                                  input: {
+                                                    collections: formData.collections.map(
+                                                      product => product.id
+                                                    )
+                                                  }
+                                                }
+                                              })
+                                            }
+                                          />
+                                        )}
+                                      </SearchCollectionsProvider>
                                     )}
                                   />
                                 </>
