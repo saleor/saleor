@@ -25,7 +25,11 @@ import { DiscountValueTypeEnum, SaleType } from "../../../types/globalTypes";
 import SaleDetailsPage, {
   SaleDetailsPageTab
 } from "../../components/SaleDetailsPage";
-import { TypedSaleCataloguesAdd, TypedSaleUpdate } from "../../mutations";
+import {
+  TypedSaleCataloguesAdd,
+  TypedSaleUpdate,
+  TypedSaleCataloguesRemove
+} from "../../mutations";
 import { TypedSaleDetails } from "../../queries";
 import { SaleCataloguesAdd } from "../../types/SaleCataloguesAdd";
 import { saleListUrl, saleUrl } from "../../urls";
@@ -93,262 +97,304 @@ export const SaleDetails: React.StatelessComponent<SaleDetailsProps> = ({
                 };
 
                 return (
-                  <TypedSaleCataloguesAdd onCompleted={handleProductAssign}>
-                    {(saleCataloguesAdd, saleCataloguesAddOpts) => (
-                      <TypedSaleUpdate>
-                        {(saleUpdate, saleUpdateOpts) => (
-                          <TypedSaleDetails
-                            displayLoader
-                            variables={{ id, ...paginationState }}
-                          >
-                            {({ data, loading }) => {
-                              const pageInfo =
-                                params.tab === SaleDetailsPageTab.categories
-                                  ? maybe(() => data.sale.categories.pageInfo)
-                                  : params.tab ===
-                                    SaleDetailsPageTab.collections
-                                  ? maybe(() => data.sale.collections.pageInfo)
-                                  : maybe(() => data.sale.products.pageInfo);
-                              const formTransitionState = getMutationState(
-                                saleUpdateOpts.called,
-                                saleUpdateOpts.loading,
-                                maybe(
-                                  () => saleUpdateOpts.data.saleUpdate.errors
-                                )
-                              );
-                              const assignTransitionState = getMutationState(
-                                saleCataloguesAddOpts.called,
-                                saleCataloguesAddOpts.loading,
-                                maybe(
-                                  () =>
-                                    saleCataloguesAddOpts.data.saleCataloguesAdd
-                                      .errors
-                                )
-                              );
+                  <TypedSaleCataloguesRemove>
+                    {(saleCataloguesRemove, saleCataloguesRemoveOpts) => (
+                      <TypedSaleCataloguesAdd onCompleted={handleProductAssign}>
+                        {(saleCataloguesAdd, saleCataloguesAddOpts) => (
+                          <TypedSaleUpdate>
+                            {(saleUpdate, saleUpdateOpts) => (
+                              <TypedSaleDetails
+                                displayLoader
+                                variables={{ id, ...paginationState }}
+                              >
+                                {({ data, loading }) => {
+                                  const pageInfo =
+                                    params.tab === SaleDetailsPageTab.categories
+                                      ? maybe(
+                                          () => data.sale.categories.pageInfo
+                                        )
+                                      : params.tab ===
+                                        SaleDetailsPageTab.collections
+                                      ? maybe(
+                                          () => data.sale.collections.pageInfo
+                                        )
+                                      : maybe(
+                                          () => data.sale.products.pageInfo
+                                        );
+                                  const formTransitionState = getMutationState(
+                                    saleUpdateOpts.called,
+                                    saleUpdateOpts.loading,
+                                    maybe(
+                                      () =>
+                                        saleUpdateOpts.data.saleUpdate.errors
+                                    )
+                                  );
+                                  const assignTransitionState = getMutationState(
+                                    saleCataloguesAddOpts.called,
+                                    saleCataloguesAddOpts.loading,
+                                    maybe(
+                                      () =>
+                                        saleCataloguesAddOpts.data
+                                          .saleCataloguesAdd.errors
+                                    )
+                                  );
 
-                              return (
-                                <>
-                                  <Paginator
-                                    pageInfo={pageInfo}
-                                    paginationState={paginationState}
-                                    queryString={params}
-                                  >
-                                    {({
-                                      loadNextPage,
-                                      loadPreviousPage,
-                                      pageInfo
-                                    }) => (
-                                      <SaleDetailsPage
-                                        defaultCurrency={maybe(
-                                          () => shop.defaultCurrency
-                                        )}
-                                        sale={maybe(() => data.sale)}
-                                        disabled={loading}
-                                        errors={maybe(
-                                          () =>
-                                            saleUpdateOpts.data.saleUpdate
-                                              .errors
-                                        )}
+                                  return (
+                                    <>
+                                      <Paginator
                                         pageInfo={pageInfo}
-                                        onNextPage={loadNextPage}
-                                        onPreviousPage={loadPreviousPage}
-                                        onCategoryAssign={() =>
-                                          navigate(
-                                            saleAssignCategoriesUrl(id),
-                                            false,
-                                            true
-                                          )
-                                        }
-                                        onCategoryClick={id => () =>
-                                          navigate(categoryUrl(id))}
-                                        onCollectionAssign={() =>
-                                          navigate(
-                                            saleAssignCollectionsUrl(id),
-                                            false,
-                                            true
-                                          )
-                                        }
-                                        onCollectionClick={id => () =>
-                                          navigate(collectionUrl(id))}
-                                        onProductAssign={() =>
-                                          navigate(
-                                            saleAssignProductsUrl(id),
-                                            false,
-                                            true
-                                          )
-                                        }
-                                        onProductClick={id => () =>
-                                          navigate(productUrl(id))}
-                                        activeTab={params.tab}
-                                        onBack={() => navigate(saleListUrl)}
-                                        onTabClick={changeTab}
-                                        onSubmit={formData =>
-                                          saleUpdate({
-                                            variables: {
-                                              id,
-                                              input: {
-                                                endDate:
-                                                  formData.endDate === ""
-                                                    ? null
-                                                    : formData.endDate,
-                                                name: formData.name,
-                                                startDate: formData.startDate,
-                                                type: discountValueTypeEnum(
-                                                  formData.type
-                                                ),
-                                                value: formData.value
-                                              }
+                                        paginationState={paginationState}
+                                        queryString={params}
+                                      >
+                                        {({
+                                          loadNextPage,
+                                          loadPreviousPage,
+                                          pageInfo
+                                        }) => (
+                                          <SaleDetailsPage
+                                            defaultCurrency={maybe(
+                                              () => shop.defaultCurrency
+                                            )}
+                                            sale={maybe(() => data.sale)}
+                                            disabled={
+                                              loading ||
+                                              saleCataloguesRemoveOpts.loading
                                             }
-                                          })
-                                        }
-                                        saveButtonBarState={formTransitionState}
+                                            errors={maybe(
+                                              () =>
+                                                saleUpdateOpts.data.saleUpdate
+                                                  .errors
+                                            )}
+                                            pageInfo={pageInfo}
+                                            onNextPage={loadNextPage}
+                                            onPreviousPage={loadPreviousPage}
+                                            onCategoryAssign={() =>
+                                              navigate(
+                                                saleAssignCategoriesUrl(id),
+                                                false,
+                                                true
+                                              )
+                                            }
+                                            onCategoryClick={id => () =>
+                                              navigate(categoryUrl(id))}
+                                            onCollectionAssign={() =>
+                                              navigate(
+                                                saleAssignCollectionsUrl(id),
+                                                false,
+                                                true
+                                              )
+                                            }
+                                            onCollectionClick={id => () =>
+                                              navigate(collectionUrl(id))}
+                                            onProductAssign={() =>
+                                              navigate(
+                                                saleAssignProductsUrl(id),
+                                                false,
+                                                true
+                                              )
+                                            }
+                                            onProductUnassign={productId =>
+                                              saleCataloguesRemove({
+                                                variables: {
+                                                  ...paginationState,
+                                                  id,
+                                                  input: {
+                                                    products: [productId]
+                                                  }
+                                                }
+                                              })
+                                            }
+                                            onProductClick={id => () =>
+                                              navigate(productUrl(id))}
+                                            activeTab={params.tab}
+                                            onBack={() => navigate(saleListUrl)}
+                                            onTabClick={changeTab}
+                                            onSubmit={formData =>
+                                              saleUpdate({
+                                                variables: {
+                                                  id,
+                                                  input: {
+                                                    endDate:
+                                                      formData.endDate === ""
+                                                        ? null
+                                                        : formData.endDate,
+                                                    name: formData.name,
+                                                    startDate:
+                                                      formData.startDate,
+                                                    type: discountValueTypeEnum(
+                                                      formData.type
+                                                    ),
+                                                    value: formData.value
+                                                  }
+                                                }
+                                              })
+                                            }
+                                            saveButtonBarState={
+                                              formTransitionState
+                                            }
+                                          />
+                                        )}
+                                      </Paginator>
+                                      <Route
+                                        path={saleAssignProductsPath(":id")}
+                                        render={({ match }) => (
+                                          <SearchProductsProvider>
+                                            {(
+                                              searchProducts,
+                                              searchProductsOpts
+                                            ) => (
+                                              <AssignProductDialog
+                                                confirmButtonState={
+                                                  assignTransitionState
+                                                }
+                                                open={!!match}
+                                                onFetch={searchProducts}
+                                                loading={
+                                                  searchProductsOpts.loading
+                                                }
+                                                onClose={() =>
+                                                  navigate(
+                                                    saleUrl(id),
+                                                    true,
+                                                    true
+                                                  )
+                                                }
+                                                onSubmit={formData =>
+                                                  saleCataloguesAdd({
+                                                    variables: {
+                                                      ...paginationState,
+                                                      id,
+                                                      input: {
+                                                        products: formData.products.map(
+                                                          product => product.id
+                                                        )
+                                                      }
+                                                    }
+                                                  })
+                                                }
+                                                products={maybe(() =>
+                                                  searchProductsOpts.data.products.edges
+                                                    .map(edge => edge.node)
+                                                    .filter(
+                                                      suggestedProduct =>
+                                                        suggestedProduct.id
+                                                    )
+                                                )}
+                                              />
+                                            )}
+                                          </SearchProductsProvider>
+                                        )}
                                       />
-                                    )}
-                                  </Paginator>
-                                  <Route
-                                    path={saleAssignProductsPath(":id")}
-                                    render={({ match }) => (
-                                      <SearchProductsProvider>
-                                        {(
-                                          searchProducts,
-                                          searchProductsOpts
-                                        ) => (
-                                          <AssignProductDialog
-                                            confirmButtonState={
-                                              assignTransitionState
-                                            }
-                                            open={!!match}
-                                            onFetch={searchProducts}
-                                            loading={searchProductsOpts.loading}
-                                            onClose={() =>
-                                              navigate(saleUrl(id), true, true)
-                                            }
-                                            onSubmit={formData =>
-                                              saleCataloguesAdd({
-                                                variables: {
-                                                  ...paginationState,
-                                                  id,
-                                                  input: {
-                                                    products: formData.products.map(
-                                                      product => product.id
+                                      <Route
+                                        path={saleAssignCategoriesPath(":id")}
+                                        render={({ match }) => (
+                                          <SearchCategoriesProvider>
+                                            {(
+                                              searchCategories,
+                                              searchCategoriesOpts
+                                            ) => (
+                                              <AssignCategoriesDialog
+                                                categories={maybe(() =>
+                                                  searchCategoriesOpts.data.categories.edges
+                                                    .map(edge => edge.node)
+                                                    .filter(
+                                                      suggestedCategory =>
+                                                        suggestedCategory.id
                                                     )
-                                                  }
+                                                )}
+                                                confirmButtonState={
+                                                  assignTransitionState
                                                 }
-                                              })
-                                            }
-                                            products={maybe(() =>
-                                              searchProductsOpts.data.products.edges
-                                                .map(edge => edge.node)
-                                                .filter(
-                                                  suggestedProduct =>
-                                                    suggestedProduct.id
-                                                )
+                                                open={!!match}
+                                                onFetch={searchCategories}
+                                                loading={
+                                                  searchCategoriesOpts.loading
+                                                }
+                                                onClose={() =>
+                                                  navigate(
+                                                    saleUrl(id),
+                                                    true,
+                                                    true
+                                                  )
+                                                }
+                                                onSubmit={formData =>
+                                                  saleCataloguesAdd({
+                                                    variables: {
+                                                      ...paginationState,
+                                                      id,
+                                                      input: {
+                                                        categories: formData.categories.map(
+                                                          product => product.id
+                                                        )
+                                                      }
+                                                    }
+                                                  })
+                                                }
+                                              />
                                             )}
-                                          />
+                                          </SearchCategoriesProvider>
                                         )}
-                                      </SearchProductsProvider>
-                                    )}
-                                  />
-                                  <Route
-                                    path={saleAssignCategoriesPath(":id")}
-                                    render={({ match }) => (
-                                      <SearchCategoriesProvider>
-                                        {(
-                                          searchCategories,
-                                          searchCategoriesOpts
-                                        ) => (
-                                          <AssignCategoriesDialog
-                                            categories={maybe(() =>
-                                              searchCategoriesOpts.data.categories.edges
-                                                .map(edge => edge.node)
-                                                .filter(
-                                                  suggestedCategory =>
-                                                    suggestedCategory.id
-                                                )
-                                            )}
-                                            confirmButtonState={
-                                              assignTransitionState
-                                            }
-                                            open={!!match}
-                                            onFetch={searchCategories}
-                                            loading={
-                                              searchCategoriesOpts.loading
-                                            }
-                                            onClose={() =>
-                                              navigate(saleUrl(id), true, true)
-                                            }
-                                            onSubmit={formData =>
-                                              saleCataloguesAdd({
-                                                variables: {
-                                                  ...paginationState,
-                                                  id,
-                                                  input: {
-                                                    categories: formData.categories.map(
-                                                      product => product.id
+                                      />
+                                      <Route
+                                        path={saleAssignCollectionsPath(":id")}
+                                        render={({ match }) => (
+                                          <SearchCollectionsProvider>
+                                            {(
+                                              searchCollections,
+                                              searchCollectionsOpts
+                                            ) => (
+                                              <AssignCollectionDialog
+                                                collections={maybe(() =>
+                                                  searchCollectionsOpts.data.collections.edges
+                                                    .map(edge => edge.node)
+                                                    .filter(
+                                                      suggestedCategory =>
+                                                        suggestedCategory.id
                                                     )
-                                                  }
+                                                )}
+                                                confirmButtonState={
+                                                  assignTransitionState
                                                 }
-                                              })
-                                            }
-                                          />
-                                        )}
-                                      </SearchCategoriesProvider>
-                                    )}
-                                  />
-                                  <Route
-                                    path={saleAssignCollectionsPath(":id")}
-                                    render={({ match }) => (
-                                      <SearchCollectionsProvider>
-                                        {(
-                                          searchCollections,
-                                          searchCollectionsOpts
-                                        ) => (
-                                          <AssignCollectionDialog
-                                            collections={maybe(() =>
-                                              searchCollectionsOpts.data.collections.edges
-                                                .map(edge => edge.node)
-                                                .filter(
-                                                  suggestedCategory =>
-                                                    suggestedCategory.id
-                                                )
+                                                open={!!match}
+                                                onFetch={searchCollections}
+                                                loading={
+                                                  searchCollectionsOpts.loading
+                                                }
+                                                onClose={() =>
+                                                  navigate(
+                                                    saleUrl(id),
+                                                    true,
+                                                    true
+                                                  )
+                                                }
+                                                onSubmit={formData =>
+                                                  saleCataloguesAdd({
+                                                    variables: {
+                                                      ...paginationState,
+                                                      id,
+                                                      input: {
+                                                        collections: formData.collections.map(
+                                                          product => product.id
+                                                        )
+                                                      }
+                                                    }
+                                                  })
+                                                }
+                                              />
                                             )}
-                                            confirmButtonState={
-                                              assignTransitionState
-                                            }
-                                            open={!!match}
-                                            onFetch={searchCollections}
-                                            loading={
-                                              searchCollectionsOpts.loading
-                                            }
-                                            onClose={() =>
-                                              navigate(saleUrl(id), true, true)
-                                            }
-                                            onSubmit={formData =>
-                                              saleCataloguesAdd({
-                                                variables: {
-                                                  ...paginationState,
-                                                  id,
-                                                  input: {
-                                                    collections: formData.collections.map(
-                                                      product => product.id
-                                                    )
-                                                  }
-                                                }
-                                              })
-                                            }
-                                          />
+                                          </SearchCollectionsProvider>
                                         )}
-                                      </SearchCollectionsProvider>
-                                    )}
-                                  />
-                                </>
-                              );
-                            }}
-                          </TypedSaleDetails>
+                                      />
+                                    </>
+                                  );
+                                }}
+                              </TypedSaleDetails>
+                            )}
+                          </TypedSaleUpdate>
                         )}
-                      </TypedSaleUpdate>
+                      </TypedSaleCataloguesAdd>
                     )}
-                  </TypedSaleCataloguesAdd>
+                  </TypedSaleCataloguesRemove>
                 );
               }}
             </Navigator>
