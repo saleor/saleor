@@ -46,3 +46,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Make tokenCreate errors return [] when there are no errors - #3666 by @michaljelonek
 - Require email in CheckoutCreate and CheckoutEmailUpdate - #3667 by @michaljelonek
 - Add list mutations to Voucher and Sale - #3669 by @michaljelonek
+- Modify Sale/Voucher Inputs to use Date - #3672 by @michaljelonek
