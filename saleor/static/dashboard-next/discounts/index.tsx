@@ -53,7 +53,7 @@ export const DiscountSection: React.StatelessComponent<{}> = () => (
     <WindowTitle title={i18n.t("Discounts")} />
     <Switch>
       <Route exact path={saleListPath} component={SaleListView} />
-      <Route exact path={salePath(":id")} component={SaleDetailsView} />
+      <Route path={salePath(":id")} component={SaleDetailsView} />
       <Route exact path={voucherListPath} component={VoucherListView} />
     </Switch>
   </>
