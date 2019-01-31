@@ -15,13 +15,13 @@ import * as React from "react";
 
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "../../../components/ConfirmButton/ConfirmButton";
-import Debounce from "../../../components/Debounce";
-import Form from "../../../components/Form";
-import FormSpacer from "../../../components/FormSpacer";
-import TableCellAvatar from "../../../components/TableCellAvatar";
-import i18n from "../../../i18n";
-import { SearchProducts_products_edges_node } from "../../types/SearchProducts";
+} from "../../components/ConfirmButton/ConfirmButton";
+import Debounce from "../../components/Debounce";
+import Form from "../../components/Form";
+import FormSpacer from "../../components/FormSpacer";
+import TableCellAvatar from "../../components/TableCellAvatar";
+import { SearchProducts_products_edges_node } from "../../containers/SearchProducts/types/SearchProducts";
+import i18n from "../../i18n";
 
 export interface FormData {
   products: SearchProducts_products_edges_node[];
@@ -45,7 +45,7 @@ const styles = createStyles({
   }
 });
 
-interface CollectionAssignProductDialogProps extends WithStyles<typeof styles> {
+interface AssignProductDialogProps extends WithStyles<typeof styles> {
   confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
   products: SearchProducts_products_edges_node[];
@@ -59,8 +59,8 @@ const initialForm: FormData = {
   products: [],
   query: ""
 };
-const CollectionAssignProductDialog = withStyles(styles, {
-  name: "CollectionAssignProductDialog"
+const AssignProductDialog = withStyles(styles, {
+  name: "AssignProductDialog"
 })(
   ({
     classes,
@@ -71,7 +71,7 @@ const CollectionAssignProductDialog = withStyles(styles, {
     onClose,
     onFetch,
     onSubmit
-  }: CollectionAssignProductDialogProps) => (
+  }: AssignProductDialogProps) => (
     <Dialog
       open={open}
       classes={{ paper: classes.overflow }}
@@ -81,7 +81,7 @@ const CollectionAssignProductDialog = withStyles(styles, {
       <Form initial={initialForm} onSubmit={onSubmit}>
         {({ data, change }) => (
           <>
-            <DialogTitle>{i18n.t("Assign Product to Collection")}</DialogTitle>
+            <DialogTitle>{i18n.t("Assign Product")}</DialogTitle>
             <DialogContent className={classes.overflow}>
               <Debounce debounceFn={onFetch}>
                 {fetch => (
@@ -177,5 +177,5 @@ const CollectionAssignProductDialog = withStyles(styles, {
     </Dialog>
   )
 );
-CollectionAssignProductDialog.displayName = "CollectionAssignProductDialog";
-export default CollectionAssignProductDialog;
+AssignProductDialog.displayName = "AssignProductDialog";
+export default AssignProductDialog;

@@ -1,10 +1,10 @@
 import * as React from "react";
 import { QueryResult } from "react-apollo";
-import { TypedSearchProductsQuery } from "../queries";
+import { TypedSearchProductsQuery } from "./query";
 import {
   SearchProducts,
   SearchProductsVariables
-} from "../types/SearchProducts";
+} from "./types/SearchProducts";
 
 interface SearchProductsProviderProps {
   children: ((
