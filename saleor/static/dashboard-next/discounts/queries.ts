@@ -43,6 +43,7 @@ export const saleDetailsFragment = gql`
       pageInfo {
         ...PageInfoFragment
       }
+      totalCount
     }
     categories(after: $after, before: $before, first: $first, last: $last) {
       edges {
@@ -57,6 +58,7 @@ export const saleDetailsFragment = gql`
       pageInfo {
         ...PageInfoFragment
       }
+      totalCount
     }
     collections(after: $after, before: $before, first: $first, last: $last) {
       edges {
@@ -71,6 +73,7 @@ export const saleDetailsFragment = gql`
       pageInfo {
         ...PageInfoFragment
       }
+      totalCount
     }
   }
 `;

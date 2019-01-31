@@ -44,6 +44,7 @@ export interface SaleDetails_sale_products {
   __typename: "ProductCountableConnection";
   edges: SaleDetails_sale_products_edges[];
   pageInfo: SaleDetails_sale_products_pageInfo;
+  totalCount: number | null;
 }
 
 export interface SaleDetails_sale_categories_edges_node_products {
@@ -75,6 +76,7 @@ export interface SaleDetails_sale_categories {
   __typename: "CategoryCountableConnection";
   edges: SaleDetails_sale_categories_edges[];
   pageInfo: SaleDetails_sale_categories_pageInfo;
+  totalCount: number | null;
 }
 
 export interface SaleDetails_sale_collections_edges_node_products {
@@ -106,6 +108,7 @@ export interface SaleDetails_sale_collections {
   __typename: "CollectionCountableConnection";
   edges: SaleDetails_sale_collections_edges[];
   pageInfo: SaleDetails_sale_collections_pageInfo;
+  totalCount: number | null;
 }
 
 export interface SaleDetails_sale {
