@@ -50,6 +50,7 @@ export interface SaleCataloguesAdd_saleCataloguesAdd_sale_products {
   __typename: "ProductCountableConnection";
   edges: SaleCataloguesAdd_saleCataloguesAdd_sale_products_edges[];
   pageInfo: SaleCataloguesAdd_saleCataloguesAdd_sale_products_pageInfo;
+  totalCount: number | null;
 }
 
 export interface SaleCataloguesAdd_saleCataloguesAdd_sale_categories_edges_node_products {
@@ -81,6 +82,7 @@ export interface SaleCataloguesAdd_saleCataloguesAdd_sale_categories {
   __typename: "CategoryCountableConnection";
   edges: SaleCataloguesAdd_saleCataloguesAdd_sale_categories_edges[];
   pageInfo: SaleCataloguesAdd_saleCataloguesAdd_sale_categories_pageInfo;
+  totalCount: number | null;
 }
 
 export interface SaleCataloguesAdd_saleCataloguesAdd_sale_collections_edges_node_products {
@@ -112,6 +114,7 @@ export interface SaleCataloguesAdd_saleCataloguesAdd_sale_collections {
   __typename: "CollectionCountableConnection";
   edges: SaleCataloguesAdd_saleCataloguesAdd_sale_collections_edges[];
   pageInfo: SaleCataloguesAdd_saleCataloguesAdd_sale_collections_pageInfo;
+  totalCount: number | null;
 }
 
 export interface SaleCataloguesAdd_saleCataloguesAdd_sale {
