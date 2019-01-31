@@ -6,6 +6,10 @@ import {
   SaleCataloguesAdd,
   SaleCataloguesAddVariables
 } from "./types/SaleCataloguesAdd";
+import {
+  SaleCataloguesRemove,
+  SaleCataloguesRemoveVariables
+} from "./types/SaleCataloguesRemove";
 import { SaleUpdate, SaleUpdateVariables } from "./types/SaleUpdate";
 
 const saleUpdate = gql`
@@ -51,3 +55,29 @@ export const TypedSaleCataloguesAdd = TypedMutation<
   SaleCataloguesAdd,
   SaleCataloguesAddVariables
 >(saleCataloguesAdd);
+
+const saleCataloguesRemove = gql`
+  ${saleDetailsFragment}
+  mutation SaleCataloguesRemove(
+    $input: CatalogueInput!
+    $id: ID!
+    $after: String
+    $before: String
+    $first: Int
+    $last: Int
+  ) {
+    saleCataloguesRemove(id: $id, input: $input) {
+      errors {
+        field
+        message
+      }
+      sale {
+        ...SaleDetailsFragment
+      }
+    }
+  }
+`;
+export const TypedSaleCataloguesRemove = TypedMutation<
+  SaleCataloguesRemove,
+  SaleCataloguesRemoveVariables
+>(saleCataloguesRemove);

@@ -53,6 +53,7 @@ export interface SaleDetailsPageProps
   onCategoryAssign: () => void;
   onCategoryClick: (id: string) => () => void;
   onCollectionAssign: () => void;
+  onProductUnassign: (id: string) => void;
   onCollectionClick: (id: string) => () => void;
   onProductAssign: () => void;
   onProductClick: (id: string) => () => void;
@@ -84,6 +85,7 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
   onNextPage,
   onPreviousPage,
   onProductAssign,
+  onProductUnassign,
   onProductClick
 }) => {
   const initialForm: FormData = {
@@ -177,6 +179,7 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
                   onNextPage={onNextPage}
                   onPreviousPage={onPreviousPage}
                   onProductAssign={onProductAssign}
+                  onProductUnassign={onProductUnassign}
                   onRowClick={onProductClick}
                   pageInfo={pageInfo}
                   discount={sale}
