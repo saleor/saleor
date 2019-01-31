@@ -82,9 +82,9 @@ class VoucherInput(graphene.InputObjectType):
         description='Voucher type: product, category shipping or value.')
     name = graphene.String(description='Voucher name.')
     code = graphene.String(decription='Code to use the voucher.')
-    start_date = graphene.types.datetime.DateTime(
+    start_date = graphene.types.datetime.Date(
         description='Start date of the voucher in ISO 8601 format.')
-    end_date = graphene.types.datetime.DateTime(
+    end_date = graphene.types.datetime.Date(
         description='End date of the voucher in ISO 8601 format.')
     discount_value_type = DiscountValueTypeEnum(
         description='Choices: fixed or percentage.')
@@ -216,9 +216,9 @@ class SaleInput(graphene.InputObjectType):
     collections = graphene.List(
         graphene.ID, description='Collections related to the discount.',
         name='collections')
-    start_date = graphene.types.datetime.DateTime(
+    start_date = graphene.types.datetime.Date(
         description='Start date of the sale in ISO 8601 format.')
-    end_date = graphene.types.datetime.DateTime(
+    end_date = graphene.types.datetime.Date(
         description='End date of the sale in ISO 8601 format.')
 
 
