@@ -1,3 +1,5 @@
+from datetime import date
+
 import graphene
 import pytest
 from django_countries import countries
@@ -99,12 +101,14 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
     mutation  voucherCreate(
         $type: VoucherTypeEnum, $name: String, $code: String,
         $discountValueType: DiscountValueTypeEnum,
-        $discountValue: Decimal, $minAmountSpent: Decimal) {
+        $discountValue: Decimal, $minAmountSpent: Decimal,
+        $startDate: Date, $endDate: Date) {
             voucherCreate(input: {
                     name: $name, type: $type, code: $code,
                     discountValueType: $discountValueType,
                     discountValue: $discountValue,
-                    minAmountSpent: $minAmountSpent}) {
+                    minAmountSpent: $minAmountSpent,
+                    startDate: $startDate, endDate: $endDate}) {
                 errors {
                     field
                     message
@@ -117,17 +121,23 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
                     name
                     code
                     discountValueType
+                    startDate
+                    endDate
                 }
             }
         }
     """
+    start_date = date(day=1, month=1, year=2018)
+    end_date = date(day=1, month=1, year=2019)
     variables = {
         'name': 'test voucher',
         'type': VoucherTypeEnum.VALUE.name,
         'code': 'testcode123',
         'discountValueType': DiscountValueTypeEnum.FIXED.name,
         'discountValue': 10.12,
-        'minAmountSpent': 1.12}
+        'minAmountSpent': 1.12,
+        'startDate': start_date.isoformat(),
+        'endDate': end_date.isoformat()}
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts])
@@ -138,6 +148,8 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
     assert data['name'] == 'test voucher'
     assert data['code'] == 'testcode123'
     assert data['discountValueType'] == DiscountValueType.FIXED.upper()
+    assert data['startDate'] == start_date.isoformat()
+    assert data['endDate'] == end_date.isoformat()
 
 
 def test_update_voucher(
@@ -340,31 +352,44 @@ def test_voucher_remove_no_catalogues(
 def test_create_sale(staff_api_client, permission_manage_discounts):
     query = """
     mutation  saleCreate(
-        $type: DiscountValueTypeEnum, $name: String, $value: Decimal) {
-            saleCreate(input: {name: $name, type: $type, value: $value}) {
-                errors {
-                    field
-                    message
-                }
-                sale {
-                    type
-                    name
-                    value
-                }
+            $type: DiscountValueTypeEnum, $name: String, $value: Decimal,
+            $startDate: Date, $endDate: Date) {
+        saleCreate(input: {
+                name: $name, type: $type, value: $value,
+                startDate: $startDate, endDate: $endDate}) {
+            sale {
+                type
+                name
+                value
+                startDate
+                endDate
+            }
+            errors {
+                field
+                message
             }
         }
+    }
     """
+    start_date = date(day=1, month=1, year=2018)
+    end_date = date(day=1, month=1, year=2019)
     variables = {
         'name': 'test sale',
         'type': DiscountValueTypeEnum.FIXED.name,
-        'value': '10.12'}
+        'value': '10.12',
+        'startDate': start_date.isoformat(),
+        'endDate': end_date.isoformat()}
+
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts])
     content = get_graphql_content(response)
     data = content['data']['saleCreate']['sale']
+
     assert data['type'] == DiscountValueType.FIXED.upper()
     assert data['name'] == 'test sale'
     assert data['value'] == 10.12
+    assert data['startDate'] == start_date.isoformat()
+    assert data['endDate'] == end_date.isoformat()
 
 
 def test_update_sale(staff_api_client, sale, permission_manage_discounts):

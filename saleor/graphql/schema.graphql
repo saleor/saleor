@@ -1696,8 +1696,8 @@ input SaleInput {
   products: [ID]
   categories: [ID]
   collections: [ID]
-  startDate: DateTime
-  endDate: DateTime
+  startDate: Date
+  endDate: Date
 }
 
 type SaleRemoveCatalogues {
@@ -2110,8 +2110,8 @@ input VoucherInput {
   type: VoucherTypeEnum
   name: String
   code: String
-  startDate: DateTime
-  endDate: DateTime
+  startDate: Date
+  endDate: Date
   discountValueType: DiscountValueTypeEnum
   discountValue: Decimal
   products: [ID]
