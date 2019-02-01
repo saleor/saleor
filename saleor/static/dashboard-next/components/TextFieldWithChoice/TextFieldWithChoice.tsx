@@ -41,7 +41,6 @@ const TextFieldWithChoice = withStyles(styles, {
     ChoiceProps,
     InputProps,
     classes,
-    name,
     onChange,
     ...props
   }: TextFieldWithChoiceProps & WithStyles<typeof styles>) => (
@@ -49,6 +48,7 @@ const TextFieldWithChoice = withStyles(styles, {
       {anchor => (
         <TextField
           {...props}
+          onChange={onChange}
           InputProps={{
             ...InputProps,
             endAdornment: (
