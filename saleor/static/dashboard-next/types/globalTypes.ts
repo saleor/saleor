@@ -142,6 +142,14 @@ export enum VoucherType {
   VALUE = "VALUE",
 }
 
+export enum VoucherTypeEnum {
+  CATEGORY = "CATEGORY",
+  COLLECTION = "COLLECTION",
+  PRODUCT = "PRODUCT",
+  SHIPPING = "SHIPPING",
+  VALUE = "VALUE",
+}
+
 export enum WeightUnitsEnum {
   g = "g",
   kg = "kg",
@@ -369,6 +377,21 @@ export interface UserCreateInput {
   isActive?: boolean | null;
   note?: string | null;
   sendPasswordEmail?: boolean | null;
+}
+
+export interface VoucherInput {
+  type?: VoucherTypeEnum | null;
+  name?: string | null;
+  code?: string | null;
+  startDate?: any | null;
+  endDate?: any | null;
+  discountValueType?: DiscountValueTypeEnum | null;
+  discountValue?: any | null;
+  products?: (string | null)[] | null;
+  collections?: (string | null)[] | null;
+  categories?: (string | null)[] | null;
+  minAmountSpent?: any | null;
+  countries?: (string | null)[] | null;
 }
 
 //==============================================================

@@ -7,8 +7,11 @@ import Form from "../../../components/Form";
 import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
+import { Tab } from "../../../components/Tab";
+import TabContainer from "../../../components/Tab/TabContainer";
+import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { ListProps } from "../../../types";
+import { ListProps, UserError } from "../../../types";
 import {
   VoucherDiscountValueType,
   VoucherType
@@ -21,6 +24,19 @@ import VoucherCountries from "../VoucherCountries";
 import VoucherInfo from "../VoucherInfo";
 import VoucherOptions from "../VoucherOptions";
 import VoucherSummary from "../VoucherSummary";
+
+export enum VoucherDetailsPageTab {
+  categories = "categories",
+  collections = "collections",
+  products = "products"
+}
+export function voucherDetailsPageTab(tab: string): VoucherDetailsPageTab {
+  return tab === VoucherDetailsPageTab.products
+    ? VoucherDetailsPageTab.products
+    : tab === VoucherDetailsPageTab.collections
+    ? VoucherDetailsPageTab.collections
+    : VoucherDetailsPageTab.categories;
+}
 
 export interface FormData {
   applyOncePerOrder: boolean;
@@ -37,39 +53,55 @@ export interface FormData {
 
 export interface VoucherDetailsPageProps
   extends Pick<ListProps, Exclude<keyof ListProps, "onRowClick">> {
+  activeTab: VoucherDetailsPageTab;
   defaultCurrency: string;
+  errors: UserError[];
   saveButtonBarState: ConfirmButtonTransitionState;
   voucher: VoucherDetails_voucher;
   onBack: () => void;
   onCategoryAssign: () => void;
+  onCategoryUnassign: (id: string) => void;
   onCategoryClick: (id: string) => () => void;
-  onCountryAssign: () => void;
-  onCountryUnassign: (code: string) => () => void;
   onCollectionAssign: () => void;
+  onCollectionUnassign: (id: string) => void;
   onCollectionClick: (id: string) => () => void;
+  onCountryAssign: () => void;
+  onCountryUnassign: (code: string) => void;
   onProductAssign: () => void;
+  onProductUnassign: (id: string) => void;
   onProductClick: (id: string) => () => void;
   onRemove: () => void;
   onSubmit: (data: FormData) => void;
+  onTabClick: (index: VoucherDetailsPageTab) => void;
 }
 
+const CategoriesTab = Tab(VoucherDetailsPageTab.categories);
+const CollectionsTab = Tab(VoucherDetailsPageTab.collections);
+const ProductsTab = Tab(VoucherDetailsPageTab.products);
+
 const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
+  activeTab,
   defaultCurrency,
   disabled,
+  errors,
   pageInfo,
   saveButtonBarState,
   voucher,
   onBack,
   onCategoryAssign,
   onCategoryClick,
+  onCategoryUnassign,
   onCountryAssign,
   onCountryUnassign,
   onCollectionAssign,
   onCollectionClick,
+  onCollectionUnassign,
   onNextPage,
   onPreviousPage,
   onProductAssign,
   onProductClick,
+  onProductUnassign,
+  onTabClick,
   onRemove,
   onSubmit
 }) => {
@@ -90,7 +122,7 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
   };
 
   return (
-    <Form initial={initialForm} onSubmit={onSubmit}>
+    <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container width="md">
           <PageHeader title={maybe(() => voucher.name)} onBack={onBack} />
@@ -106,36 +138,81 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
                 onChange={change}
               />
               <CardSpacer />
-              {data.type === VoucherType.CATEGORY ? (
-                <DiscountCategories
-                  disabled={disabled}
-                  onCategoryAssign={onCategoryAssign}
-                  onNextPage={onNextPage}
-                  onPreviousPage={onPreviousPage}
-                  onRowClick={onCategoryClick}
-                  pageInfo={pageInfo}
-                  discount={voucher}
-                />
-              ) : data.type === VoucherType.COLLECTION ? (
-                <DiscountCollections
-                  disabled={disabled}
-                  onCollectionAssign={onCollectionAssign}
-                  onNextPage={onNextPage}
-                  onPreviousPage={onPreviousPage}
-                  onRowClick={onCollectionClick}
-                  pageInfo={pageInfo}
-                  discount={voucher}
-                />
-              ) : data.type === VoucherType.PRODUCT ? (
-                <DiscountProducts
-                  disabled={disabled}
-                  onNextPage={onNextPage}
-                  onPreviousPage={onPreviousPage}
-                  onProductAssign={onProductAssign}
-                  onRowClick={onProductClick}
-                  pageInfo={pageInfo}
-                  discount={voucher}
-                />
+              {data.type === VoucherType.CATEGORY ||
+              data.type === VoucherType.COLLECTION ||
+              data.type === VoucherType.PRODUCT ? (
+                <>
+                  <TabContainer>
+                    <CategoriesTab
+                      isActive={activeTab === VoucherDetailsPageTab.categories}
+                      changeTab={onTabClick}
+                    >
+                      {i18n.t("Categories ({{ number }})", {
+                        number: maybe(
+                          () => voucher.categories.totalCount.toString(),
+                          "…"
+                        )
+                      })}
+                    </CategoriesTab>
+                    <CollectionsTab
+                      isActive={activeTab === VoucherDetailsPageTab.collections}
+                      changeTab={onTabClick}
+                    >
+                      {i18n.t("Collections ({{ number }})", {
+                        number: maybe(
+                          () => voucher.collections.totalCount.toString(),
+                          "…"
+                        )
+                      })}
+                    </CollectionsTab>
+                    <ProductsTab
+                      isActive={activeTab === VoucherDetailsPageTab.products}
+                      changeTab={onTabClick}
+                    >
+                      {i18n.t("Products ({{ number }})", {
+                        number: maybe(
+                          () => voucher.products.totalCount.toString(),
+                          "…"
+                        )
+                      })}
+                    </ProductsTab>
+                  </TabContainer>
+                  <CardSpacer />
+                  {activeTab === VoucherDetailsPageTab.categories ? (
+                    <DiscountCategories
+                      disabled={disabled}
+                      onCategoryAssign={onCategoryAssign}
+                      onCategoryUnassign={onCategoryUnassign}
+                      onNextPage={onNextPage}
+                      onPreviousPage={onPreviousPage}
+                      onRowClick={onCategoryClick}
+                      pageInfo={pageInfo}
+                      discount={voucher}
+                    />
+                  ) : activeTab === VoucherDetailsPageTab.collections ? (
+                    <DiscountCollections
+                      disabled={disabled}
+                      onCollectionAssign={onCollectionAssign}
+                      onCollectionUnassign={onCollectionUnassign}
+                      onNextPage={onNextPage}
+                      onPreviousPage={onPreviousPage}
+                      onRowClick={onCollectionClick}
+                      pageInfo={pageInfo}
+                      discount={voucher}
+                    />
+                  ) : (
+                    <DiscountProducts
+                      disabled={disabled}
+                      onNextPage={onNextPage}
+                      onPreviousPage={onPreviousPage}
+                      onProductAssign={onProductAssign}
+                      onProductUnassign={onProductUnassign}
+                      onRowClick={onProductClick}
+                      pageInfo={pageInfo}
+                      discount={voucher}
+                    />
+                  )}
+                </>
               ) : data.type === VoucherType.SHIPPING ? (
                 <VoucherCountries
                   disabled={disabled}
