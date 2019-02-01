@@ -1,12 +1,19 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
-import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
+import IconButton from "@material-ui/core/IconButton";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
+import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
@@ -21,19 +28,27 @@ import { VoucherDetails_voucher } from "../../types/VoucherDetails";
 export interface DiscountCategoriesProps extends ListProps {
   discount: SaleDetails_sale | VoucherDetails_voucher;
   onCategoryAssign: () => void;
+  onCategoryUnassign: (id: string) => void;
 }
 
-const styles = createStyles({
-  tableRow: {
-    cursor: "pointer"
-  },
-  textRight: {
-    textAlign: "right"
-  },
-  wideColumn: {
-    width: "60%"
-  }
-});
+const styles = (theme: Theme) =>
+  createStyles({
+    iconCell: {
+      "&:last-child": {
+        paddingRight: 0
+      },
+      width: 48 + theme.spacing.unit / 2
+    },
+    tableRow: {
+      cursor: "pointer"
+    },
+    textRight: {
+      textAlign: "right"
+    },
+    wideColumn: {
+      width: "60%"
+    }
+  });
 const DiscountCategories = withStyles(styles, {
   name: "DiscountCategories"
 })(
@@ -43,6 +58,7 @@ const DiscountCategories = withStyles(styles, {
     disabled,
     pageInfo,
     onCategoryAssign,
+    onCategoryUnassign,
     onRowClick,
     onPreviousPage,
     onNextPage
@@ -67,12 +83,13 @@ const DiscountCategories = withStyles(styles, {
             <TableCell className={classes.textRight}>
               {i18n.t("Products")}
             </TableCell>
+            <TableCell />
           </TableRow>
         </TableHead>
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={5}
+              colSpan={3}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
               hasPreviousPage={
@@ -101,11 +118,22 @@ const DiscountCategories = withStyles(styles, {
                     <Skeleton />
                   )}
                 </TableCell>
+                <TableCell className={classes.iconCell}>
+                  <IconButton
+                    disabled={!category || disabled}
+                    onClick={event => {
+                      event.stopPropagation();
+                      onCategoryUnassign(category.id);
+                    }}
+                  >
+                    <DeleteIcon color="secondary" />
+                  </IconButton>
+                </TableCell>
               </TableRow>
             ),
             () => (
               <TableRow>
-                <TableCell colSpan={2}>
+                <TableCell colSpan={3}>
                   {i18n.t("No categories found")}
                 </TableCell>
               </TableRow>

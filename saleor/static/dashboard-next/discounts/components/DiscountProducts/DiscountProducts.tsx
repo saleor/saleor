@@ -95,7 +95,7 @@ const DiscountProducts = withStyles(styles, {
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={4}
+              colSpan={5}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
               hasPreviousPage={
@@ -158,7 +158,7 @@ const DiscountProducts = withStyles(styles, {
             ),
             () => (
               <TableRow>
-                <TableCell colSpan={4}>{i18n.t("No products found")}</TableCell>
+                <TableCell colSpan={5}>{i18n.t("No products found")}</TableCell>
               </TableRow>
             )
           )}
