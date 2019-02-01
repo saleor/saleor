@@ -54,6 +54,7 @@ function loadStories() {
   require("./stories/customers/CustomerListPage");
 
   // Discounts
+  require("./stories/discounts/SaleCreatePage");
   require("./stories/discounts/SaleDetailsPage");
   require("./stories/discounts/SaleListPage");
   require("./stories/discounts/VoucherListPage");
