@@ -184,6 +184,28 @@ export const SaleDetails: React.StatelessComponent<SaleDetailsProps> = ({
                                                 true
                                               )
                                             }
+                                            onCollectionUnassign={collectionId =>
+                                              saleCataloguesRemove({
+                                                variables: {
+                                                  ...paginationState,
+                                                  id,
+                                                  input: {
+                                                    collections: [collectionId]
+                                                  }
+                                                }
+                                              })
+                                            }
+                                            onCategoryUnassign={categoryId =>
+                                              saleCataloguesRemove({
+                                                variables: {
+                                                  ...paginationState,
+                                                  id,
+                                                  input: {
+                                                    categories: [categoryId]
+                                                  }
+                                                }
+                                              })
+                                            }
                                             onCollectionClick={id => () =>
                                               navigate(collectionUrl(id))}
                                             onProductAssign={() =>

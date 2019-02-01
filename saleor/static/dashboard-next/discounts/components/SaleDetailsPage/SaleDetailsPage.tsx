@@ -51,11 +51,13 @@ export interface SaleDetailsPageProps
   saveButtonBarState: ConfirmButtonTransitionState;
   onBack: () => void;
   onCategoryAssign: () => void;
+  onCategoryUnassign: (id: string) => void;
   onCategoryClick: (id: string) => () => void;
   onCollectionAssign: () => void;
-  onProductUnassign: (id: string) => void;
+  onCollectionUnassign: (id: string) => void;
   onCollectionClick: (id: string) => () => void;
   onProductAssign: () => void;
+  onProductUnassign: (id: string) => void;
   onProductClick: (id: string) => () => void;
   onRemove: () => void;
   onSubmit: (data: FormData) => void;
@@ -79,8 +81,10 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
   saveButtonBarState,
   onBack,
   onCategoryAssign,
+  onCategoryUnassign,
   onCategoryClick,
   onCollectionAssign,
+  onCollectionUnassign,
   onCollectionClick,
   onNextPage,
   onPreviousPage,
@@ -157,6 +161,7 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
                 <DiscountCategories
                   disabled={disabled}
                   onCategoryAssign={onCategoryAssign}
+                  onCategoryUnassign={onCategoryUnassign}
                   onNextPage={onNextPage}
                   onPreviousPage={onPreviousPage}
                   onRowClick={onCategoryClick}
@@ -167,6 +172,7 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
                 <DiscountCollections
                   disabled={disabled}
                   onCollectionAssign={onCollectionAssign}
+                  onCollectionUnassign={onCollectionUnassign}
                   onNextPage={onNextPage}
                   onPreviousPage={onPreviousPage}
                   onRowClick={onCollectionClick}
