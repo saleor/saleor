@@ -5,7 +5,8 @@ import { Route, RouteComponentProps, Switch } from "react-router-dom";
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
 import { saleDetailsPageTab } from "./components/SaleDetailsPage";
-import { saleListPath, salePath, voucherListPath } from "./urls";
+import { saleAddPath, saleListPath, salePath, voucherListPath } from "./urls";
+import SaleCreateView from "./views/SaleCreate";
 import SaleDetailsViewComponent, {
   SaleDetailsQueryParams
 } from "./views/SaleDetails";
@@ -53,6 +54,7 @@ export const DiscountSection: React.StatelessComponent<{}> = () => (
     <WindowTitle title={i18n.t("Discounts")} />
     <Switch>
       <Route exact path={saleListPath} component={SaleListView} />
+      <Route exact path={saleAddPath} component={SaleCreateView} />
       <Route path={salePath(":id")} component={SaleDetailsView} />
       <Route exact path={voucherListPath} component={VoucherListView} />
     </Switch>
