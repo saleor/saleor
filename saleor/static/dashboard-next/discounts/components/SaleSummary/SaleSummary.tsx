@@ -4,7 +4,7 @@ import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
-import DateFormatter from "../../../components/DateFormatter";
+import Date from "../../../components/Date";
 import FormSpacer from "../../../components/FormSpacer";
 import Hr from "../../../components/Hr";
 import Money from "../../../components/Money";
@@ -59,7 +59,7 @@ const SaleSummary: React.StatelessComponent<SaleSummaryProps> = ({
       <Typography>
         {maybe<React.ReactNode>(
           () => (
-            <DateFormatter date={sale.startDate} />
+            <Date date={sale.startDate} plain />
           ),
           <Skeleton />
         )}
@@ -69,8 +69,7 @@ const SaleSummary: React.StatelessComponent<SaleSummaryProps> = ({
       <Typography variant="body2">{i18n.t("End Date")}</Typography>
       <Typography>
         {maybe<React.ReactNode>(
-          () =>
-            sale.endDate === null ? "-" : <DateFormatter date={sale.endDate} />,
+          () => (sale.endDate === null ? "-" : <Date date={sale.endDate} />),
           <Skeleton />
         )}
       </Typography>
