@@ -8,7 +8,7 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import DateFormatter from "../../../components/DateFormatter";
+import Date from "../../../components/Date";
 import Money from "../../../components/Money";
 import Percent from "../../../components/Percent";
 import Skeleton from "../../../components/Skeleton";
@@ -124,14 +124,14 @@ const VoucherList = withStyles(styles, {
                 </TableCell>
                 <TableCell className={classes.textRight}>
                   {voucher && voucher.startDate ? (
-                    <DateFormatter date={voucher.startDate} />
+                    <Date date={voucher.startDate} />
                   ) : (
                     <Skeleton />
                   )}
                 </TableCell>
                 <TableCell className={classes.textRight}>
                   {voucher && voucher.endDate ? (
-                    <DateFormatter date={voucher.endDate} />
+                    <Date date={voucher.endDate} />
                   ) : voucher && voucher.endDate === null ? (
                     "-"
                   ) : (

@@ -8,7 +8,7 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import DateFormatter from "../../../components/DateFormatter";
+import Date from "../../../components/Date";
 import Money from "../../../components/Money";
 import Percent from "../../../components/Percent";
 import Skeleton from "../../../components/Skeleton";
@@ -105,14 +105,14 @@ const SaleList = withStyles(styles, {
                 </TableCell>
                 <TableCell className={classes.textRight}>
                   {sale && sale.startDate ? (
-                    <DateFormatter date={sale.startDate} />
+                    <Date date={sale.startDate} />
                   ) : (
                     <Skeleton />
                   )}
                 </TableCell>
                 <TableCell className={classes.textRight}>
                   {sale && sale.endDate ? (
-                    <DateFormatter date={sale.endDate} />
+                    <Date date={sale.endDate} />
                   ) : sale && sale.endDate === null ? (
                     "-"
                   ) : (

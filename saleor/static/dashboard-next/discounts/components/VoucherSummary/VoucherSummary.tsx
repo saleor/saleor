@@ -4,7 +4,7 @@ import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
-import DateFormatter from "../../../components/DateFormatter";
+import Date from "../../../components/Date";
 import FormSpacer from "../../../components/FormSpacer";
 import Hr from "../../../components/Hr";
 import Money from "../../../components/Money";
@@ -72,7 +72,7 @@ const VoucherSummary: React.StatelessComponent<VoucherSummaryProps> = ({
         <Typography>
           {maybe<React.ReactNode>(
             () => (
-              <DateFormatter date={voucher.startDate} />
+              <Date date={voucher.startDate} plain />
             ),
             <Skeleton />
           )}
@@ -83,11 +83,7 @@ const VoucherSummary: React.StatelessComponent<VoucherSummaryProps> = ({
         <Typography>
           {maybe<React.ReactNode>(
             () =>
-              voucher.endDate === null ? (
-                "-"
-              ) : (
-                <DateFormatter date={voucher.endDate} />
-              ),
+              voucher.endDate === null ? "-" : <Date date={voucher.endDate} />,
             <Skeleton />
           )}
         </Typography>
