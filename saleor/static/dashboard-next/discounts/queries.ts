@@ -87,6 +87,10 @@ export const voucherFragment = gql`
     usageLimit
     discountValueType
     discountValue
+    countries {
+      code
+      country
+    }
     minAmountSpent {
       currency
       amount
@@ -153,10 +157,6 @@ export const voucherDetailsFragment = gql`
       pageInfo {
         ...PageInfoFragment
       }
-    }
-    countries {
-      code
-      country
     }
   }
 `;

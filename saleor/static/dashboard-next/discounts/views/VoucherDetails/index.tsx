@@ -49,8 +49,11 @@ import {
   voucherAssignProductsPath,
   voucherAssignProductsUrl,
   voucherDeletePath,
-  voucherDeleteUrl
+  voucherDeleteUrl,
+  voucherAssignCountriesPath
 } from "./urls";
+import DiscountCountrySelectDialog from "../../components/DiscountCountrySelectDialog";
+import { VoucherUpdate } from "../../types/VoucherUpdate";
 
 const PAGINATE_BY = 20;
 
@@ -102,6 +105,7 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                     navigate(voucherUrl(id), true, true);
                   }
                 };
+
                 const handleVoucherDelete = (data: VoucherDelete) => {
                   if (data.voucherDelete.errors.length === 0) {
                     pushMessage({
@@ -113,6 +117,12 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                   }
                 };
 
+                const handleVoucherUpdate = (data: VoucherUpdate) => {
+                  if (data.voucherUpdate.errors.length === 0) {
+                    navigate(voucherUrl(id), true, true);
+                  }
+                };
+
                 return (
                   <TypedVoucherCataloguesRemove>
                     {(voucherCataloguesRemove, voucherCataloguesRemoveOpts) => (
@@ -120,7 +130,7 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                         onCompleted={handleCatalogueAdd}
                       >
                         {(voucherCataloguesAdd, voucherCataloguesAddOpts) => (
-                          <TypedVoucherUpdate>
+                          <TypedVoucherUpdate onCompleted={handleVoucherUpdate}>
                             {(voucherUpdate, voucherUpdateOpts) => (
                               <TypedVoucherDelete
                                 onCompleted={handleVoucherDelete}
@@ -549,6 +559,45 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                                       }}
                                                     />
                                                   </ActionDialog>
+                                                )}
+                                              />
+                                              <Route
+                                                path={voucherAssignCountriesPath(
+                                                  ":id"
+                                                )}
+                                                render={({ match }) => (
+                                                  <DiscountCountrySelectDialog
+                                                    confirmButtonState={
+                                                      formTransitionState
+                                                    }
+                                                    countries={maybe(
+                                                      () => shop.countries,
+                                                      []
+                                                    )}
+                                                    onClose={() =>
+                                                      navigate(voucherUrl(id))
+                                                    }
+                                                    onConfirm={formData =>
+                                                      voucherUpdate({
+                                                        variables: {
+                                                          id,
+                                                          input: {
+                                                            countries:
+                                                              formData.countries
+                                                          }
+                                                        }
+                                                      })
+                                                    }
+                                                    open={!!match}
+                                                    initial={maybe(
+                                                      () =>
+                                                        data.voucher.countries.map(
+                                                          country =>
+                                                            country.code
+                                                        ),
+                                                      []
+                                                    )}
+                                                  />
                                                 )}
                                               />
                                             </>
