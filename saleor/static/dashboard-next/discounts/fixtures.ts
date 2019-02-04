@@ -110,7 +110,8 @@ export const sale: SaleDetails_sale = {
       hasNextPage: false,
       hasPreviousPage: false,
       startCursor: null
-    }
+    },
+    totalCount: 2
   },
   collections: {
     __typename: "CollectionCountableConnection",
@@ -134,7 +135,8 @@ export const sale: SaleDetails_sale = {
       hasNextPage: false,
       hasPreviousPage: false,
       startCursor: null
-    }
+    },
+    totalCount: 4
   },
   endDate: null,
   id: "U2FsZTo1",
@@ -221,7 +223,8 @@ export const sale: SaleDetails_sale = {
       hasNextPage: false,
       hasPreviousPage: false,
       startCursor: "YXJyYXljb25uZWN0aW9uOjA="
-    }
+    },
+    totalCount: 4
   },
   startDate: "2019-01-03",
   type: "PERCENTAGE" as SaleType,

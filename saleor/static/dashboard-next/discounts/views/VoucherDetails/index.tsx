@@ -23,7 +23,10 @@ import { SearchProductsProvider } from "../../../containers/SearchProducts";
 import i18n from "../../../i18n";
 import { getMutationState, maybe } from "../../../misc";
 import { productUrl } from "../../../products/urls";
-import { DiscountValueTypeEnum, VoucherType } from "../../../types/globalTypes";
+import {
+  DiscountValueTypeEnum,
+  VoucherDiscountValueType
+} from "../../../types/globalTypes";
 import VoucherDetailsPage, {
   VoucherDetailsPageTab
 } from "../../components/VoucherDetailsPage";
@@ -47,6 +50,7 @@ import {
   voucherDeletePath,
   voucherDeleteUrl
 } from "./urls";
+import { VoucherCataloguesAdd } from "../../types/VoucherCataloguesAdd";
 
 const PAGINATE_BY = 20;
 
@@ -61,7 +65,9 @@ interface VoucherDetailsProps {
   params: VoucherDetailsQueryParams;
 }
 
-function discountValueTypeEnum(type: VoucherType): DiscountValueTypeEnum {
+function discountValueTypeEnum(
+  type: VoucherDiscountValueType
+): DiscountValueTypeEnum {
   return type.toString() === DiscountValueTypeEnum.FIXED
     ? DiscountValueTypeEnum.FIXED
     : DiscountValueTypeEnum.PERCENTAGE;
@@ -91,6 +97,11 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                       })
                   );
 
+                const handleCatalogueAdd = (data: VoucherCataloguesAdd) => {
+                  if (data.voucherCataloguesAdd.errors.length === 0) {
+                    navigate(voucherUrl(id), true, true);
+                  }
+                };
                 const handleVoucherDelete = (data: VoucherDelete) => {
                   if (data.voucherDelete.errors.length === 0) {
                     pushMessage({
@@ -105,7 +116,9 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                 return (
                   <TypedVoucherCataloguesRemove>
                     {(voucherCataloguesRemove, voucherCataloguesRemoveOpts) => (
-                      <TypedVoucherCataloguesAdd>
+                      <TypedVoucherCataloguesAdd
+                        onCompleted={handleCatalogueAdd}
+                      >
                         {(voucherCataloguesAdd, voucherCataloguesAddOpts) => (
                           <TypedVoucherUpdate>
                             {(voucherUpdate, voucherUpdateOpts) => (
@@ -304,6 +317,11 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                                     variables: {
                                                       id,
                                                       input: {
+                                                        discountValue:
+                                                          formData.value,
+                                                        discountValueType: discountValueTypeEnum(
+                                                          formData.discountType
+                                                        ),
                                                         endDate:
                                                           formData.endDate ===
                                                           ""
@@ -311,11 +329,7 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                                             : formData.endDate,
                                                         name: formData.name,
                                                         startDate:
-                                                          formData.startDate,
-                                                        type: discountValueTypeEnum(
-                                                          formData.type
-                                                        ),
-                                                        value: formData.value
+                                                          formData.startDate
                                                       }
                                                     }
                                                   })

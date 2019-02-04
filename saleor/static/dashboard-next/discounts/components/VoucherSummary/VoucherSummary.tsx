@@ -12,10 +12,7 @@ import Percent from "../../../components/Percent";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import {
-  VoucherDiscountValueType,
-  VoucherType
-} from "../../../types/globalTypes";
+import { VoucherDiscountValueType } from "../../../types/globalTypes";
 import { translateVoucherTypes } from "../../translations";
 import { VoucherDetails_voucher } from "../../types/VoucherDetails";
 

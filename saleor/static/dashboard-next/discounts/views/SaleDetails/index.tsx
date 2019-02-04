@@ -34,6 +34,7 @@ import {
   TypedSaleUpdate
 } from "../../mutations";
 import { TypedSaleDetails } from "../../queries";
+import { SaleCataloguesAdd } from "../../types/SaleCataloguesAdd";
 import { SaleDelete } from "../../types/SaleDelete";
 import { saleListUrl, saleUrl } from "../../urls";
 import {
@@ -90,6 +91,12 @@ export const SaleDetails: React.StatelessComponent<SaleDetailsProps> = ({
                       })
                   );
 
+                const handleCatalogueAdd = (data: SaleCataloguesAdd) => {
+                  if (data.saleCataloguesAdd.errors.length === 0) {
+                    navigate(saleUrl(id), true, true);
+                  }
+                };
+
                 const handleSaleDelete = (data: SaleDelete) => {
                   if (data.saleDelete.errors.length === 0) {
                     pushMessage({
@@ -104,7 +111,7 @@ export const SaleDetails: React.StatelessComponent<SaleDetailsProps> = ({
                 return (
                   <TypedSaleCataloguesRemove>
                     {(saleCataloguesRemove, saleCataloguesRemoveOpts) => (
-                      <TypedSaleCataloguesAdd>
+                      <TypedSaleCataloguesAdd onCompleted={handleCatalogueAdd}>
                         {(saleCataloguesAdd, saleCataloguesAddOpts) => (
                           <TypedSaleUpdate>
                             {(saleUpdate, saleUpdateOpts) => (
