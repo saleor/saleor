@@ -76,7 +76,10 @@ export const VoucherDetails: React.StatelessComponent = () => (
                                       : formData.endDate,
                                   minAmountSpent: formData.minAmountSpent,
                                   name: formData.name,
-                                  startDate: formData.startDate,
+                                  startDate:
+                                    formData.startDate === ""
+                                      ? null
+                                      : formData.startDate,
                                   type: VoucherTypeEnum[formData.type]
                                 }
                               }

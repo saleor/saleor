@@ -64,7 +64,10 @@ export const SaleDetails: React.StatelessComponent = () => (
                                       ? null
                                       : formData.endDate,
                                   name: formData.name,
-                                  startDate: formData.startDate,
+                                  startDate:
+                                    formData.startDate === ""
+                                      ? null
+                                      : formData.startDate,
                                   type: discountValueTypeEnum(formData.type),
                                   value: formData.value
                                 }

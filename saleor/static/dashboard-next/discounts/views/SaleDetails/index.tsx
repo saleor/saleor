@@ -278,7 +278,10 @@ export const SaleDetails: React.StatelessComponent<SaleDetailsProps> = ({
                                                             : formData.endDate,
                                                         name: formData.name,
                                                         startDate:
-                                                          formData.startDate,
+                                                          formData.startDate ===
+                                                          ""
+                                                            ? null
+                                                            : formData.startDate,
                                                         type: discountValueTypeEnum(
                                                           formData.type
                                                         ),
