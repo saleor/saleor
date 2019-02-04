@@ -9,7 +9,6 @@ import { getMutationState, maybe } from "../../misc";
 import {
   DiscountValueTypeEnum,
   VoucherDiscountValueType,
-  VoucherType,
   VoucherTypeEnum
 } from "../../types/globalTypes";
 import VoucherCreatePage from "../components/VoucherCreatePage";
