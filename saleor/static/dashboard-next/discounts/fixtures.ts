@@ -60,6 +60,13 @@ export const saleList: SaleList_sales_edges_node[] = [
 export const voucherList: VoucherList_vouchers_edges_node[] = [
   {
     __typename: "Voucher" as "Voucher",
+    countries: [
+      {
+        __typename: "CountryDisplay",
+        code: "DE",
+        country: "Germany"
+      }
+    ],
     discountValue: 100,
     discountValueType: "PERCENTAGE" as VoucherDiscountValueType,
     endDate: null,
@@ -71,6 +78,7 @@ export const voucherList: VoucherList_vouchers_edges_node[] = [
   },
   {
     __typename: "Voucher" as "Voucher",
+    countries: [],
     discountValue: 25,
     discountValueType: "FIXED" as VoucherDiscountValueType,
     endDate: null,
