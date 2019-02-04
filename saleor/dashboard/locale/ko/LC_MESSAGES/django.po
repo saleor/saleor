@@ -6,15 +6,17 @@
 # Translators:
 # Jihan Chung <jihanchung20@gmail.com>, 2018
 # Joonho Eom <jhoeom@gmail.com>, 2019
+# sangmin oh <inkoogoh@gmail.com>, 2019
+# chan hong <hongcoilhouse@gmail.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-18 08:53-0600\n"
+"POT-Creation-Date: 2019-01-28 05:51-0600\n"
 "PO-Revision-Date: 2017-02-09 15:43+0000\n"
-"Last-Translator: Joonho Eom <jhoeom@gmail.com>, 2019\n"
+"Last-Translator: chan hong <hongcoilhouse@gmail.com>, 2019\n"
 "Language-Team: Korean (https://www.transifex.com/mirumee/teams/34782/ko/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -40,14 +42,14 @@ msgstr ""
 #: saleor/dashboard/category/filters.py:18
 msgctxt "Category list sorting filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "정렬 기준"
 
 #: saleor/dashboard/category/filters.py:30
 #, python-format
 msgctxt "Number of matching records in the dashboard categories list"
 msgid "Found %(counter)d matching category"
 msgid_plural "Found %(counter)d matching categories"
-msgstr[0] ""
+msgstr[0] "일치하는 %(counter)d개의 카테고리를 찾았습니다."
 
 #: saleor/dashboard/category/forms.py:25
 #: saleor/dashboard/collection/forms.py:24
@@ -62,7 +64,7 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:406 saleor/dashboard/sites/forms.py:29
 msgctxt "Description"
 msgid "Description"
-msgstr ""
+msgstr "설명"
 
 #: saleor/dashboard/category/forms.py:29
 msgctxt "Category form"
@@ -139,7 +141,7 @@ msgstr "정렬"
 msgctxt "Number of matching records in the dashboard collections list"
 msgid "Found %(counter)d matching collection"
 msgid_plural "Found %(counter)d matching collections"
-msgstr[0] ""
+msgstr[0] "일치하는 %(counter)d개의 컬렉션을 찾았습니다."
 
 #: saleor/dashboard/collection/forms.py:18
 msgctxt "Products selection"
@@ -161,7 +163,14 @@ msgctxt "Collection published toggle"
 msgid "Published"
 msgstr "퍼블리싱 됨"
 
-#: saleor/dashboard/collection/forms.py:35
+#: saleor/dashboard/collection/forms.py:36
+msgctxt ""
+"The publication date field, can be a posterior date for a planned "
+"publication."
+msgid "Published date"
+msgstr ""
+
+#: saleor/dashboard/collection/forms.py:39
 msgctxt "Description field of a collection"
 msgid "Description"
 msgstr "설명"
@@ -174,17 +183,17 @@ msgstr ""
 #: saleor/dashboard/collection/views.py:52
 msgctxt "Collection message"
 msgid "Added collection"
-msgstr ""
+msgstr "컬렉션 추가"
 
 #: saleor/dashboard/collection/views.py:67
 msgctxt "Collection message"
 msgid "Updated collection"
-msgstr ""
+msgstr "컬렉션 수정"
 
 #: saleor/dashboard/collection/views.py:88
 msgctxt "Collection message"
 msgid "Deleted collection"
-msgstr ""
+msgstr "컬렉션 삭제"
 
 #: saleor/dashboard/customer/filters.py:17
 #: saleor/dashboard/staff/filters.py:16
@@ -239,7 +248,7 @@ msgstr "정렬"
 msgctxt "Number of matching records in the dashboard customers list"
 msgid "Found %(counter)d matching customer"
 msgid_plural "Found %(counter)d matching customers"
-msgstr[0] ""
+msgstr[0] "일치하는 %(counter)d명의 고객을 찾았습니다."
 
 #: saleor/dashboard/customer/forms.py:10
 #, python-format
@@ -252,17 +261,17 @@ msgctxt "Edit customer details in order form error"
 msgid ""
 "You can't delete your own account via dashboard, please try from the "
 "storefront."
-msgstr ""
+msgstr "현재 로그인한 계정은 대시보드에서 삭제할 수 없습니다. 스토어 화면에서 시도하세요."
 
 #: saleor/dashboard/customer/forms.py:34
 msgctxt "Edit customer details in order form error"
 msgid "Only superuser can delete his own account."
-msgstr ""
+msgstr "본인 계정 삭제는 슈퍼유저(최고관리자)만 가능합니다."
 
 #: saleor/dashboard/customer/forms.py:39
 msgctxt "Edit customer details in order form error"
 msgid "You have insufficient permissions, to edit staff users."
-msgstr ""
+msgstr "관리자 계정 수정 권한이 없습니다."
 
 #: saleor/dashboard/customer/forms.py:67 saleor/dashboard/staff/forms.py:23
 msgctxt "Customer form: Given name field"
@@ -297,7 +306,7 @@ msgstr "노트"
 #: saleor/dashboard/customer/forms.py:88
 msgctxt "Allow customers to see note toggle"
 msgid "Customer can see this note"
-msgstr ""
+msgstr "이 노트는 소비자에게 노출됩니다."
 
 #: saleor/dashboard/customer/views.py:63
 #, python-format
@@ -320,7 +329,7 @@ msgstr "추가된 요구사항"
 #, python-format
 msgctxt "Dashboard message"
 msgid "%(customer_name)s successfully removed"
-msgstr ""
+msgstr "사용자 %(customer_name)s가 삭제되었습니다."
 
 #: saleor/dashboard/discount/filters.py:14
 msgctxt "Sale list sorting option"
@@ -355,7 +364,7 @@ msgstr "할인가"
 #: saleor/dashboard/discount/filters.py:23
 msgctxt "Voucher list sorting option"
 msgid "countries"
-msgstr ""
+msgstr "국가"
 
 #: saleor/dashboard/discount/filters.py:24
 msgctxt "Voucher list sorting option"
@@ -422,7 +431,7 @@ msgstr "정렬"
 msgctxt "Number of matching records in the dashboard sales list"
 msgid "Found %(counter)d matching sale"
 msgid_plural "Found %(counter)d matching sales"
-msgstr[0] ""
+msgstr[0] "일치하는 %(counter)d개의 상품을 찾았습니다."
 
 #: saleor/dashboard/discount/filters.py:87
 msgctxt "Voucher list name filter label"
@@ -459,7 +468,7 @@ msgstr "정렬"
 msgctxt "Number of matching records in the dashboard vouchers list"
 msgid "Found %(counter)d matching voucher"
 msgid_plural "Found %(counter)d matching vouchers"
-msgstr[0] ""
+msgstr[0] "일치하는 %(counter)d개의 바우처를 찾았습니다."
 
 #: saleor/dashboard/discount/forms.py:22
 msgctxt "Lowest value for order to be able to use the voucher"
@@ -577,7 +586,7 @@ msgstr "상품"
 #: saleor/dashboard/discount/forms.py:191
 msgctxt "Collections"
 msgid "Collections"
-msgstr ""
+msgstr "컬렉션"
 
 #: saleor/dashboard/discount/forms.py:202
 msgctxt "Categories"
@@ -683,7 +692,7 @@ msgstr "이름"
 #: saleor/dashboard/menu/forms.py:54
 msgctxt "Menu item url"
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: saleor/dashboard/menu/forms.py:70
 msgctxt "Menu item form error"
@@ -831,186 +840,186 @@ msgid "Found %(counter)d matching order"
 msgid_plural "Found %(counter)d matching orders"
 msgstr[0] ""
 
-#: saleor/dashboard/order/forms.py:39
+#: saleor/dashboard/order/forms.py:40
 msgctxt "Send email to customer about order created by staff users"
 msgid "Send email with order confirmation to the customer"
-msgstr ""
+msgstr "주문 확인 메일 발송"
 
-#: saleor/dashboard/order/forms.py:57
+#: saleor/dashboard/order/forms.py:58
 msgctxt "Create draft order form error"
 msgid "Could not create order without any products"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:67
+#: saleor/dashboard/order/forms.py:68
 msgctxt "Create draft order form error"
 msgid "Shipping method is not valid for chosen shipping address"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:95
+#: saleor/dashboard/order/forms.py:96
 msgctxt "Update an order with user default addresses"
 msgid "Set billing and shipping address in order to customer defaults"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:103
+#: saleor/dashboard/order/forms.py:104
 msgctxt "Order form: editing customer details - selecting a customer"
 msgid "Customer"
 msgstr "고객"
 
-#: saleor/dashboard/order/forms.py:111
+#: saleor/dashboard/order/forms.py:112
 msgctxt "Order customer email"
 msgid "Email"
 msgstr "이메일"
 
-#: saleor/dashboard/order/forms.py:126
+#: saleor/dashboard/order/forms.py:127
 msgctxt "Edit customer details in order form error"
 msgid ""
 "An order can be related either with an email or an existing user account"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:154
+#: saleor/dashboard/order/forms.py:155
 msgctxt "Shipping method form field label"
 msgid "Shipping method"
 msgstr "배송 방법"
 
-#: saleor/dashboard/order/forms.py:211
+#: saleor/dashboard/order/forms.py:212
 msgctxt "Order discount amount fixed value"
 msgid "Discount amount"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:223
+#: saleor/dashboard/order/forms.py:224
 msgctxt "Order voucher"
 msgid "Voucher"
 msgstr "바우처"
 
-#: saleor/dashboard/order/forms.py:251
+#: saleor/dashboard/order/forms.py:252
 msgctxt "Order note"
 msgid "Note"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:257
+#: saleor/dashboard/order/forms.py:258
 msgctxt "Payment management form (capture, refund, void)"
 msgid "Amount"
 msgstr "총액"
 
-#: saleor/dashboard/order/forms.py:272 saleor/dashboard/order/forms.py:328
+#: saleor/dashboard/order/forms.py:273 saleor/dashboard/order/forms.py:329
 #, python-format
 msgctxt "Payment form error"
 msgid "Payment gateway error: %s"
 msgstr "결제 게이트웨이 오류: %s"
 
-#: saleor/dashboard/order/forms.py:288
+#: saleor/dashboard/order/forms.py:289
 msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be captured"
 msgstr "미리 인증된 결제수단에 한하여 보관 가능"
 
-#: saleor/dashboard/order/forms.py:298
+#: saleor/dashboard/order/forms.py:299
 msgctxt "Payment form error"
 msgid "Only confirmed payments can be refunded"
 msgstr "확인된 결제수단에 한하여 환불"
 
-#: saleor/dashboard/order/forms.py:306
+#: saleor/dashboard/order/forms.py:307
 msgctxt "Payment form error"
 msgid "Manual payments can not be refunded"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:323
+#: saleor/dashboard/order/forms.py:324
 msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be voided"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:352
+#: saleor/dashboard/order/forms.py:353
 msgctxt "Mark order as paid form error"
 msgid "Orders with payments can not be manually marked as paid"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:383
+#: saleor/dashboard/order/forms.py:384
 msgctxt "Integer number"
 msgid "Quantity"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:402
+#: saleor/dashboard/order/forms.py:403
 #, python-format
 msgctxt "Change quantity form error"
 msgid "Only %(remaining)d remaining in stock."
 msgid_plural "Only %(remaining)d remaining in stock."
 msgstr[0] "오직 한개의 %(remaining)d만 남았습니다."
 
-#: saleor/dashboard/order/forms.py:434
+#: saleor/dashboard/order/forms.py:435
 #, python-format
 msgctxt "Cancel order form action"
 msgid "Restock %(quantity)d item"
 msgid_plural "Restock %(quantity)d items"
 msgstr[0] ""
 
-#: saleor/dashboard/order/forms.py:444
+#: saleor/dashboard/order/forms.py:445
 msgctxt "Cancel order form error"
 msgid "This order can't be canceled"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:464
+#: saleor/dashboard/order/forms.py:465
 #, python-format
 msgctxt "Cancel fulfillment form action"
 msgid "Restock %(quantity)d item"
 msgid_plural "Restock %(quantity)d items"
 msgstr[0] ""
 
-#: saleor/dashboard/order/forms.py:474
+#: saleor/dashboard/order/forms.py:475
 msgctxt "Cancel fulfillment form error"
 msgid "This fulfillment can't be canceled"
-msgstr ""
+msgstr "이 완료는 취소 할 수  없습니다."
 
-#: saleor/dashboard/order/forms.py:487
+#: saleor/dashboard/order/forms.py:488
 msgctxt "Send mail to customer"
 msgid "Send notification email to customer"
-msgstr ""
+msgstr "알림 메일 발송"
 
-#: saleor/dashboard/order/forms.py:494
+#: saleor/dashboard/order/forms.py:495
 msgctxt "Fulfillment record"
 msgid "Tracking number"
-msgstr ""
+msgstr "송장 번호"
 
-#: saleor/dashboard/order/forms.py:515
+#: saleor/dashboard/order/forms.py:516
 msgctxt "Remove voucher form error"
 msgid "This order has no voucher"
 msgstr "이 주문은 바우처가 적용되지 않습니다"
 
-#: saleor/dashboard/order/forms.py:528
+#: saleor/dashboard/order/forms.py:529
 msgctxt "Payment status field value"
 msgid "All"
 msgstr "전체"
 
-#: saleor/dashboard/order/forms.py:545
+#: saleor/dashboard/order/forms.py:546
 msgctxt "Order form: subform to add variant to order form: variant field"
 msgid "Variant"
 msgstr "옵션"
 
-#: saleor/dashboard/order/forms.py:548
+#: saleor/dashboard/order/forms.py:549
 msgctxt "Add variant to order form label"
 msgid "Quantity"
 msgstr "수량"
 
-#: saleor/dashboard/order/forms.py:569
+#: saleor/dashboard/order/forms.py:570
 #, python-format
 msgctxt "Add item form error"
 msgid "Could not add item. Only %(remaining)d remaining in stock."
 msgstr "상품을 추가할 수 없습니다. 오직 %(remaining)d 개의 재고만 남아 있습니다."
 
-#: saleor/dashboard/order/forms.py:592
+#: saleor/dashboard/order/forms.py:593
 msgctxt "Order form: address subform - phone number input field"
 msgid "Phone number"
 msgstr "전화번호"
 
-#: saleor/dashboard/order/forms.py:601
+#: saleor/dashboard/order/forms.py:602
 msgctxt "Send mail to customer"
 msgid "Send shipment details to your customer now"
-msgstr ""
+msgstr "배송 안내 메일 발송"
 
-#: saleor/dashboard/order/forms.py:609
+#: saleor/dashboard/order/forms.py:610
 msgctxt "Order tracking number"
 msgid "Tracking number"
-msgstr ""
+msgstr "송장 번호"
 
-#: saleor/dashboard/order/forms.py:639
+#: saleor/dashboard/order/forms.py:640
 #, python-format
 msgctxt "Fulfill order line form error"
 msgid "%(quantity)d item remaining to fulfill."
@@ -1184,12 +1193,12 @@ msgstr ""
 #: saleor/dashboard/page/filters.py:14
 msgctxt "Page list title filter label"
 msgid "Title"
-msgstr ""
+msgstr "제목"
 
 #: saleor/dashboard/page/filters.py:17
 msgctxt "Page list url filter label"
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: saleor/dashboard/page/filters.py:20
 msgctxt "Page list sorting filter label"
@@ -1211,7 +1220,7 @@ msgstr ""
 #: saleor/dashboard/page/forms.py:21
 msgctxt "Page form: title field"
 msgid "Title"
-msgstr ""
+msgstr "제목"
 
 #: saleor/dashboard/page/forms.py:22
 msgctxt "Page form: slug field"
@@ -1287,7 +1296,7 @@ msgstr "카테고리"
 #: saleor/dashboard/product/filters.py:35
 msgctxt "Product list filter label"
 msgid "Product type"
-msgstr ""
+msgstr "상품타입"
 
 #: saleor/dashboard/product/filters.py:39
 msgctxt "Product list filter label"
@@ -1336,7 +1345,7 @@ msgstr "이름"
 #: saleor/dashboard/product/filters.py:92
 msgctxt "Product type list filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "정렬 기준"
 
 #: saleor/dashboard/product/filters.py:97
 msgctxt "Product type list filter label"
@@ -1363,12 +1372,12 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:56
 msgctxt "Product type form label"
 msgid "Product type"
-msgstr ""
+msgstr "상품타입"
 
 #: saleor/dashboard/product/forms.py:73
 msgctxt "Product type tax rate type"
 msgid "Tax rate"
-msgstr ""
+msgstr "세율"
 
 #: saleor/dashboard/product/forms.py:75 saleor/dashboard/product/forms.py:237
 msgctxt "ProductType weight"
@@ -1420,7 +1429,7 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:226
 msgctxt "Product tax rate type"
 msgid "Tax rate"
-msgstr ""
+msgstr "세율"
 
 #: saleor/dashboard/product/forms.py:230
 msgctxt "Category"
@@ -1430,7 +1439,7 @@ msgstr "카테고리"
 #: saleor/dashboard/product/forms.py:233
 msgctxt "Add to collection select"
 msgid "Collections"
-msgstr ""
+msgstr "컬렉션"
 
 #: saleor/dashboard/product/forms.py:240
 msgctxt "Product weight field help text"
@@ -1463,12 +1472,12 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:276
 msgctxt "Currency gross amount"
 msgid "Gross price"
-msgstr ""
+msgstr "합계액"
 
 #: saleor/dashboard/product/forms.py:279
 msgctxt "Currency net amount"
 msgid "Net price"
-msgstr ""
+msgstr "정가"
 
 #: saleor/dashboard/product/forms.py:307
 msgctxt "ProductVariant weight"
@@ -1495,7 +1504,7 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:322
 msgctxt "Integer number"
 msgid "Number in stock"
-msgstr ""
+msgstr "재고수량"
 
 #: saleor/dashboard/product/forms.py:323
 msgctxt "Currency amount"
