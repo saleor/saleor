@@ -128,7 +128,13 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
           <PageHeader title={maybe(() => voucher.name)} onBack={onBack} />
           <Grid>
             <div>
-              <VoucherInfo data={data} disabled={disabled} onChange={change} />
+              <VoucherInfo
+                data={data}
+                disabled={disabled}
+                errors={formErrors}
+                variant="update"
+                onChange={change}
+              />
               <CardSpacer />
               <VoucherOptions
                 data={data}
