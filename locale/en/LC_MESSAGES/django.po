@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-28 05:51-0600\n"
+"POT-Creation-Date: 2019-02-04 09:30-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2185,12 +2185,12 @@ msgctxt "Dashboard shipping zones list"
 msgid "Shipping"
 msgstr ""
 
-#: templates/dashboard/base.html:207 templates/dashboard/menu/detail.html:21
-#: templates/dashboard/menu/form.html:12 templates/dashboard/menu/form.html:29
-#: templates/dashboard/menu/item/detail.html:22
-#: templates/dashboard/menu/item/detail.html:28
-#: templates/dashboard/menu/item/form.html:29
-#: templates/dashboard/menu/list.html:30
+#: templates/dashboard/base.html:207 templates/dashboard/menu/detail.html:23
+#: templates/dashboard/menu/form.html:12 templates/dashboard/menu/form.html:31
+#: templates/dashboard/menu/item/detail.html:24
+#: templates/dashboard/menu/item/detail.html:30
+#: templates/dashboard/menu/item/form.html:31
+#: templates/dashboard/menu/list.html:32
 msgctxt "Dashboard menus list"
 msgid "Navigation"
 msgstr ""
@@ -2223,8 +2223,8 @@ msgstr ""
 #: templates/dashboard/customer/form.html:66
 #: templates/dashboard/discount/sale/form.html:115
 #: templates/dashboard/discount/voucher/form.html:125
-#: templates/dashboard/menu/form.html:58
-#: templates/dashboard/menu/item/form.html:80
+#: templates/dashboard/menu/form.html:60
+#: templates/dashboard/menu/item/form.html:82
 #: templates/dashboard/order/address_form.html:61
 #: templates/dashboard/order/fulfillment.html:133
 #: templates/dashboard/product/attribute/form.html:77
@@ -2278,7 +2278,7 @@ msgstr ""
 #: templates/dashboard/product/attribute/detail.html:68
 #: templates/dashboard/product/detail.html:93
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:13
-#: templates/dashboard/sites/detail.html:77
+#: templates/dashboard/sites/detail.html:79
 msgid "Add"
 msgstr ""
 
@@ -2339,8 +2339,8 @@ msgstr ""
 #: templates/dashboard/customer/form.html:62
 #: templates/dashboard/discount/sale/form.html:119
 #: templates/dashboard/discount/voucher/form.html:129
-#: templates/dashboard/menu/form.html:62
-#: templates/dashboard/menu/item/form.html:84
+#: templates/dashboard/menu/form.html:64
+#: templates/dashboard/menu/item/form.html:86
 #: templates/dashboard/order/address_form.html:64
 #: templates/dashboard/order/modal/change_quantity.html:19
 #: templates/dashboard/product/product_type/form.html:117
@@ -2354,8 +2354,8 @@ msgstr ""
 #: templates/dashboard/category/form.html:127
 #: templates/dashboard/discount/sale/form.html:123
 #: templates/dashboard/discount/voucher/form.html:133
-#: templates/dashboard/menu/form.html:66
-#: templates/dashboard/menu/item/form.html:88
+#: templates/dashboard/menu/form.html:68
+#: templates/dashboard/menu/item/form.html:90
 #: templates/dashboard/product/attribute/form.html:87
 #: templates/dashboard/product/attribute/values/form.html:86
 #: templates/dashboard/product/form.html:144
@@ -3142,12 +3142,12 @@ msgctxt "Menu list page title"
 msgid "Navigation"
 msgstr ""
 
-#: templates/dashboard/menu/detail.html:48
+#: templates/dashboard/menu/detail.html:50
 msgctxt "Menu detail view action"
 msgid "Edit menu"
 msgstr ""
 
-#: templates/dashboard/menu/detail.html:51
+#: templates/dashboard/menu/detail.html:53
 msgctxt "Menu detail view action"
 msgid "Remove menu"
 msgstr ""
@@ -3157,12 +3157,12 @@ msgctxt "Menu form page title"
 msgid "Edit menu"
 msgstr ""
 
-#: templates/dashboard/menu/form.html:10 templates/dashboard/menu/form.html:21
+#: templates/dashboard/menu/form.html:10 templates/dashboard/menu/form.html:23
 msgctxt "Menu form page title"
 msgid "Add new menu"
 msgstr ""
 
-#: templates/dashboard/menu/form.html:39
+#: templates/dashboard/menu/form.html:41
 msgctxt "Menu detail breadcrumbs"
 msgid "Add new menu"
 msgstr ""
@@ -3172,17 +3172,17 @@ msgctxt "Menu item list page title"
 msgid "Menu items"
 msgstr ""
 
-#: templates/dashboard/menu/item/detail.html:73
+#: templates/dashboard/menu/item/detail.html:75
 msgctxt "Menu item field"
 msgid "Points to"
 msgstr ""
 
-#: templates/dashboard/menu/item/detail.html:85
+#: templates/dashboard/menu/item/detail.html:87
 msgctxt "Menu item detail view action"
 msgid "Edit menu item"
 msgstr ""
 
-#: templates/dashboard/menu/item/detail.html:88
+#: templates/dashboard/menu/item/detail.html:90
 msgctxt "Menu item detail view action"
 msgid "Remove menu item"
 msgstr ""
@@ -3193,7 +3193,7 @@ msgid "Edit menu item"
 msgstr ""
 
 #: templates/dashboard/menu/item/form.html:10
-#: templates/dashboard/menu/item/form.html:21
+#: templates/dashboard/menu/item/form.html:23
 msgctxt "Menu item page title"
 msgid "Add new menu item"
 msgstr ""
@@ -3203,12 +3203,12 @@ msgctxt "Dashboard menu items list"
 msgid "Menu items"
 msgstr ""
 
-#: templates/dashboard/menu/item/form.html:54
+#: templates/dashboard/menu/item/form.html:56
 msgctxt "Menu form page title"
 msgid "Edit"
 msgstr ""
 
-#: templates/dashboard/menu/item/form.html:60
+#: templates/dashboard/menu/item/form.html:62
 msgctxt "Menu form page title"
 msgid "Add new menu item"
 msgstr ""
@@ -3233,26 +3233,26 @@ msgctxt "Remove menu modal text about descendant menu items"
 msgid "The following menu items will be removed:"
 msgstr ""
 
-#: templates/dashboard/menu/list.html:20
+#: templates/dashboard/menu/list.html:22
 msgctxt "Menu list add button text"
 msgid "Add menu"
 msgstr ""
 
-#: templates/dashboard/menu/list.html:45
+#: templates/dashboard/menu/list.html:47
 msgctxt "Menu list table header Menu name"
 msgid "Menu name"
 msgstr ""
 
-#: templates/dashboard/menu/list.html:69
+#: templates/dashboard/menu/list.html:71
 msgctxt "Empty menu list message"
 msgid "No menus found."
 msgstr ""
 
-#: templates/dashboard/menu/list.html:82
+#: templates/dashboard/menu/list.html:84
 msgid "Storefront Menus"
 msgstr ""
 
-#: templates/dashboard/menu/list.html:95
+#: templates/dashboard/menu/list.html:97
 #: templates/dashboard/product/attribute/form.html:80
 #: templates/dashboard/product/attribute/values/form.html:82
 #: templates/dashboard/product/form.html:137
@@ -5260,52 +5260,52 @@ msgctxt "Authorization key form title"
 msgid "Authorization key"
 msgstr ""
 
-#: templates/dashboard/sites/detail.html:33
+#: templates/dashboard/sites/detail.html:35
 msgctxt "Site settings field"
 msgid "Domain"
 msgstr ""
 
-#: templates/dashboard/sites/detail.html:43
+#: templates/dashboard/sites/detail.html:45
 msgctxt "Site settings field"
 msgid "Header text"
 msgstr ""
 
-#: templates/dashboard/sites/detail.html:53
+#: templates/dashboard/sites/detail.html:55
 msgctxt "Site settings field"
 msgid "Description"
 msgstr ""
 
-#: templates/dashboard/sites/detail.html:63
+#: templates/dashboard/sites/detail.html:65
 msgctxt "Site settings action"
 msgid "Edit site settings"
 msgstr ""
 
-#: templates/dashboard/sites/detail.html:72
+#: templates/dashboard/sites/detail.html:74
 msgctxt "Title of the authorization keys list"
 msgid "Authorization keys"
 msgstr ""
 
-#: templates/dashboard/sites/detail.html:85
+#: templates/dashboard/sites/detail.html:87
 msgctxt "Header of authorization keys list"
 msgid "Name"
 msgstr ""
 
-#: templates/dashboard/sites/detail.html:88
+#: templates/dashboard/sites/detail.html:90
 msgctxt "Header of authorization keys list"
 msgid "Key"
 msgstr ""
 
-#: templates/dashboard/sites/detail.html:99
+#: templates/dashboard/sites/detail.html:101
 msgctxt "Authorization key edit action"
 msgid "Edit"
 msgstr ""
 
-#: templates/dashboard/sites/detail.html:102
+#: templates/dashboard/sites/detail.html:104
 msgctxt "Authorization key remove action"
 msgid "Remove"
 msgstr ""
 
-#: templates/dashboard/sites/detail.html:108
+#: templates/dashboard/sites/detail.html:110
 msgctxt "Empty list of authorization keys"
 msgid "No authorization keys"
 msgstr ""
