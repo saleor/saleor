@@ -188,7 +188,7 @@
     "build-assets": "webpack -p",
     "build-schema": "python manage.py get_graphql_schema > saleor/graphql/schema.graphql",
     "build-types": "apollo client:codegen --target=typescript types --globalTypesFile=saleor/static/dashboard-next/types/globalTypes.ts",
-    "generate": "plop --plopfile .plop/plopfile.js",
+    "generate-component": "plop --plopfile .plop/plopfile.js",
     "heroku-postbuild": "npm run build-assets && npm run build-emails",
     "start": "webpack -d --watch",
     "build-emails": "mjml --config.beautify false -l skip \"templates/templated_email/source/*.mjml\" -o templates/templated_email/compiled",
