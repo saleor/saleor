@@ -10,6 +10,7 @@ import {
   saleAddPath,
   saleListPath,
   salePath,
+  voucherAddPath,
   voucherListPath,
   voucherPath
 } from "./urls";
@@ -18,6 +19,7 @@ import SaleDetailsViewComponent, {
   SaleDetailsQueryParams
 } from "./views/SaleDetails";
 import SaleListViewComponent, { SaleListQueryParams } from "./views/SaleList";
+import VoucherCreateView from "./views/VoucherCreate";
 import VoucherDetailsViewComponent, {
   VoucherDetailsQueryParams
 } from "./views/VoucherDetails";
@@ -77,6 +79,7 @@ export const DiscountSection: React.StatelessComponent<{}> = () => (
     <Switch>
       <Route exact path={saleListPath} component={SaleListView} />
       <Route exact path={saleAddPath} component={SaleCreateView} />
+      <Route exact path={voucherAddPath} component={VoucherCreateView} />
       <Route path={salePath(":id")} component={SaleDetailsView} />
       <Route exact path={voucherListPath} component={VoucherListView} />
       <Route path={voucherPath(":id")} component={VoucherDetailsView} />
