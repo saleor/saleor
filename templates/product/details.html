@@ -4,10 +4,11 @@
 {% load build_absolute_uri from urls %}
 {% load get_object_properties from attributes %}
 {% load get_thumbnail from product_images %}
+{% load get_product_image_thumbnail from product_images %}
 {% load i18n %}
 {% load markdown from markdown %}
 {% load placeholder %}
-{% load staticfiles %}
+{% load static %}
 {% load taxed_prices %}
 
 {% block title %}
@@ -27,7 +28,7 @@
   <meta property="og:url" content="{{ product_url }}">
   <link rel="canonical" href="{{ product_url }}">
 
-  {% get_thumbnail product.get_first_image size=510 as product_image %}
+  {% get_product_image_thumbnail product.get_first_image size=510 method="thumbnail" as product_image %}
   {% if product_image %}
     <meta property="og:image" content="{{ product_image }}" />
     <meta property="og:image:width" content="510">
@@ -73,11 +74,13 @@
             <div class="carousel-inner" role="listbox">
               {% for image in images %}
                 <div class="carousel-item{% if forloop.first %} active{% endif %}">
-                  <img class="d-block img-fluid lazyload lazypreload"
-                       data-src="{% get_thumbnail image.image method="crop" size=540 %}"
-                       data-srcset="{% get_thumbnail image.image method="crop" size=540 %} 1x, {% get_thumbnail image.image method="crop" size=1080 %} 2x"
-                       alt=""
-                       src="{% placeholder size=540 %}">
+                  <div class="product-image">
+                    <img class="d-block img-fluid lazyload lazypreload"
+                         data-src="{% get_thumbnail image.image method="thumbnail" size=540 %}"
+                         data-srcset="{% get_thumbnail image.image method="thumbnail" size=540 %} 1x, {% get_thumbnail image.image method="thumbnail" size=1080 %} 2x"
+                         alt=""
+                         src="{% placeholder size=540 %}">
+                  </div>
                 </div>
               {% endfor %}
             </div>
@@ -93,8 +96,8 @@
               {% for image in images %}
                 {% if images|length > 1 %}
                   <li data-target="#carousel-example-generic" data-slide-to="{{ forloop.counter0 }}"{% if forloop.first %} class="active"{% endif %}>
-                    <img data-src="{% get_thumbnail image.image method="crop" size=60 %}"
-                         data-srcset="{% get_thumbnail image.image method="crop" size=60 %} 1x, {% get_thumbnail image.image method="crop" size=120 %} 2x"
+                    <img data-src="{% get_thumbnail image.image method="thumbnail" size=60 %}"
+                         data-srcset="{% get_thumbnail image.image method="thumbnail" size=60 %} 1x, {% get_thumbnail image.image method="thumbnail" size=120 %} 2x"
                          alt=""
                          class="lazyload lazypreload"
                          src="{% placeholder size=60 %}">
@@ -128,7 +131,7 @@
         {% else %}
           <h2 class="product__info__price">
             <span>{% price_range availability.price_range %}</span>
-            {% if availability.discount %}
+            {% if availability.on_sale %}
               <small class="product__info__price__undiscounted">
                 {% price availability.price_range_undiscounted %}
               </small>
@@ -171,7 +174,7 @@
               </div>
 
               <div class="form-group product__info__button">
-                <button class="btn primary">
+                <button class="btn btn-primary">
                   {% trans "Add to cart" context "Product details primary action" %}
                 </button>
               </div>

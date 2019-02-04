@@ -1,14 +1,19 @@
 import gql from "graphql-tag";
 
-import {
-  CategoryCreateMutation,
-  CategoryCreateMutationVariables,
-  CategoryDeleteMutation,
-  CategoryDeleteMutationVariables,
-  CategoryUpdateMutation,
-  CategoryUpdateMutationVariables
-} from "../gql-types";
 import { TypedMutation } from "../mutations";
+import { categoryDetailsFragment } from "./queries";
+import {
+  CategoryCreate,
+  CategoryCreateVariables
+} from "./types/CategoryCreate";
+import {
+  CategoryDelete,
+  CategoryDeleteVariables
+} from "./types/CategoryDelete";
+import {
+  CategoryUpdate,
+  CategoryUpdateVariables
+} from "./types/CategoryUpdate";
 
 export const categoryDeleteMutation = gql`
   mutation CategoryDelete($id: ID!) {
@@ -21,54 +26,44 @@ export const categoryDeleteMutation = gql`
   }
 `;
 export const TypedCategoryDeleteMutation = TypedMutation<
-  CategoryDeleteMutation,
-  CategoryDeleteMutationVariables
+  CategoryDelete,
+  CategoryDeleteVariables
 >(categoryDeleteMutation);
 
 export const categoryCreateMutation = gql`
-  mutation CategoryCreate($name: String, $description: String, $parent: ID) {
-    categoryCreate(
-      input: { name: $name, description: $description, parent: $parent }
-    ) {
+  ${categoryDetailsFragment}
+  mutation CategoryCreate($parent: ID, $input: CategoryInput!) {
+    categoryCreate(parent: $parent, input: $input) {
       errors {
         field
         message
       }
       category {
-        id
-        name
-        description
-        parent {
-          id
-        }
+        ...CategoryDetailsFragment
       }
     }
   }
 `;
 export const TypedCategoryCreateMutation = TypedMutation<
-  CategoryCreateMutation,
-  CategoryCreateMutationVariables
+  CategoryCreate,
+  CategoryCreateVariables
 >(categoryCreateMutation);
 
 export const categoryUpdateMutation = gql`
-  mutation CategoryUpdate($id: ID!, $name: String, $description: String) {
-    categoryUpdate(id: $id, input: { name: $name, description: $description }) {
+  ${categoryDetailsFragment}
+  mutation CategoryUpdate($id: ID!, $input: CategoryInput!) {
+    categoryUpdate(id: $id, input: $input) {
       errors {
         field
         message
       }
       category {
-        id
-        name
-        description
-        parent {
-          id
-        }
+        ...CategoryDetailsFragment
       }
     }
   }
 `;
 export const TypedCategoryUpdateMutation = TypedMutation<
-  CategoryUpdateMutation,
-  CategoryUpdateMutationVariables
+  CategoryUpdate,
+  CategoryUpdateVariables
 >(categoryUpdateMutation);

@@ -1,10 +1,12 @@
 import graphene
 from django.db.models import Q
+from django.utils import timezone
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
 from graphql_relay import from_global_id
 
-from .core.types.common import PermissionDisplay
+from .core.enums import PermissionEnum, ReportingPeriod
+from .core.types import PermissionDisplay
 
 registry = get_global_registry()
 
@@ -28,13 +30,24 @@ def get_nodes(ids, graphene_type=None):
     """
     pks = []
     types = []
+    invalid_ids = []
+    error_msg = "Could not resolve to a nodes with the global id list of '%s'."
     for graphql_id in ids:
-        _type, _id = from_global_id(graphql_id)
-        if graphene_type:
-            assert str(graphene_type) == _type, (
-                'Must receive an {} id.').format(graphene_type._meta.name)
-        pks.append(_id)
-        types.append(_type)
+        if graphql_id:
+            try:
+                _type, _id = from_global_id(graphql_id)
+            except Exception:
+                invalid_ids.append(graphql_id)
+            else:
+                if graphene_type:
+                    assert str(graphene_type) == _type, (
+                        'Must receive an {} id.').format(
+                            graphene_type._meta.name)
+                pks.append(_id)
+                types.append(_type)
+    if invalid_ids:
+        raise GraphQLError(
+            error_msg % invalid_ids)
 
     # If `graphene_type` was not provided, check if all resolved types are
     # the same. This prevents from accidentally mismatching IDs of different
@@ -49,10 +62,10 @@ def get_nodes(ids, graphene_type=None):
                 break
 
     nodes = list(graphene_type._meta.model.objects.filter(pk__in=pks))
+    nodes.sort(key=lambda e: pks.index(str(e.pk)))  # preserve order in pks
     if not nodes:
         raise GraphQLError(
-            "Could not resolve to a nodes with the global id list of '%s'."
-            % ids)
+            error_msg % ids)
     nodes_pk_list = [str(node.pk) for node in nodes]
     for pk in pks:
         assert pk in nodes_pk_list, (
@@ -75,8 +88,26 @@ def filter_by_query_param(queryset, query, search_fields):
         query_objects = Q()
         for q in query_by:
             query_objects |= Q(**{q: query_by[q]})
-        return queryset.filter(query_objects)
+        return queryset.filter(query_objects).distinct()
     return queryset
+
+
+def reporting_period_to_date(period):
+    now = timezone.now()
+    if period == ReportingPeriod.TODAY:
+        start_date = now.replace(
+            hour=0, minute=0, second=0, microsecond=0)
+    elif period == ReportingPeriod.THIS_MONTH:
+        start_date = now.replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0)
+    else:
+        raise ValueError('Unknown period: %s' % period)
+    return start_date
+
+
+def filter_by_period(queryset, period, field_name):
+    start_date = reporting_period_to_date(period)
+    return queryset.filter(**{'%s__gte' % field_name: start_date})
 
 
 def generate_query_argument_description(search_fields):
@@ -93,8 +124,12 @@ def format_permissions_for_display(permissions):
     Keyword arguments:
     permissions - queryset with permissions
     """
-    return [
-        PermissionDisplay(
-            code='.'.join(
-                [permission.content_type.app_label, permission.codename]),
-            name=permission.name) for permission in permissions]
+    formatted_permissions = []
+    for permission in permissions:
+        codename = '.'.join(
+            [permission.content_type.app_label, permission.codename])
+        formatted_permissions.append(
+            PermissionDisplay(
+                code=PermissionEnum.get(codename),
+                name=permission.name))
+    return formatted_permissions

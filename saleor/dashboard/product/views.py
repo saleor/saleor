@@ -14,13 +14,13 @@ from . import forms
 from ...core.utils import get_paginator_items
 from ...discount.models import Sale
 from ...product.models import (
-    AttributeChoiceValue, Product, ProductAttribute, ProductImage, ProductType,
+    Attribute, AttributeValue, Product, ProductImage, ProductType,
     ProductVariant)
 from ...product.utils.availability import get_availability
 from ...product.utils.costs import (
     get_margin_for_variant, get_product_costs_data)
 from ..views import staff_member_required
-from .filters import ProductAttributeFilter, ProductFilter, ProductTypeFilter
+from .filters import AttributeFilter, ProductFilter, ProductTypeFilter
 
 
 @staff_member_required
@@ -192,7 +192,7 @@ def product_bulk_update(request):
             'Dashboard message',
             '%(count)d product has been updated',
             '%(count)d products have been updated',
-            number=count) % {'count': count}
+            number='count') % {'count': count}
         messages.success(request, msg)
     return redirect('dashboard:product-list')
 
@@ -532,143 +532,149 @@ def ajax_upload_image(request, product_pk):
 @staff_member_required
 @permission_required('product.manage_products')
 def attribute_list(request):
-    attributes = (ProductAttribute.objects.prefetch_related('values')
-                  .order_by('name'))
-    attribute_filter = ProductAttributeFilter(request.GET, queryset=attributes)
-    attributes = [
-        (attribute.pk, attribute.name, attribute.values.all())
-        for attribute in attribute_filter.qs]
+    attributes = (
+        Attribute.objects.prefetch_related(
+            'values', 'product_type', 'product_variant_type').order_by('name'))
+    attribute_filter = AttributeFilter(request.GET, queryset=attributes)
+    attributes = [(
+        attribute.pk, attribute.name,
+        attribute.product_type or attribute.product_variant_type,
+        attribute.values.all()) for attribute in attribute_filter.qs]
     attributes = get_paginator_items(
         attributes, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     ctx = {
-        'attributes': attributes, 'filter_set': attribute_filter,
+        'attributes': attributes,
+        'filter_set': attribute_filter,
         'is_empty': not attribute_filter.queryset.exists()}
     return TemplateResponse(
-        request, 'dashboard/product/product_attribute/list.html', ctx)
+        request, 'dashboard/product/attribute/list.html', ctx)
 
 
 @staff_member_required
 @permission_required('product.manage_products')
 def attribute_details(request, pk):
-    attributes = ProductAttribute.objects.prefetch_related('values').all()
+    attributes = Attribute.objects.prefetch_related(
+        'values', 'product_type', 'product_variant_type').all()
     attribute = get_object_or_404(attributes, pk=pk)
+    product_type = attribute.product_type or attribute.product_variant_type
     values = attribute.values.all()
-    ctx = {'attribute': attribute, 'values': values}
+    ctx = {
+        'attribute': attribute, 'product_type': product_type, 'values': values}
     return TemplateResponse(
-        request, 'dashboard/product/product_attribute/detail.html', ctx)
+        request, 'dashboard/product/attribute/detail.html', ctx)
 
 
 @staff_member_required
 @permission_required('product.manage_products')
 def attribute_create(request):
-    attribute = ProductAttribute()
-    form = forms.ProductAttributeForm(request.POST or None, instance=attribute)
+    attribute = Attribute()
+    form = forms.AttributeForm(request.POST or None, instance=attribute)
     if form.is_valid():
         attribute = form.save()
         msg = pgettext_lazy('Dashboard message', 'Added attribute')
         messages.success(request, msg)
-        return redirect('dashboard:product-attribute-details', pk=attribute.pk)
+        return redirect('dashboard:attribute-details', pk=attribute.pk)
     ctx = {'attribute': attribute, 'form': form}
     return TemplateResponse(
         request,
-        'dashboard/product/product_attribute/form.html',
+        'dashboard/product/attribute/form.html',
         ctx)
 
 
 @staff_member_required
 @permission_required('product.manage_products')
 def attribute_edit(request, pk):
-    attribute = get_object_or_404(ProductAttribute, pk=pk)
-    form = forms.ProductAttributeForm(request.POST or None, instance=attribute)
+    attribute = get_object_or_404(Attribute, pk=pk)
+    form = forms.AttributeForm(request.POST or None, instance=attribute)
     if form.is_valid():
         attribute = form.save()
         msg = pgettext_lazy('Dashboard message', 'Updated attribute')
         messages.success(request, msg)
-        return redirect('dashboard:product-attribute-details', pk=attribute.pk)
+        return redirect('dashboard:attribute-details', pk=attribute.pk)
     ctx = {'attribute': attribute, 'form': form}
     return TemplateResponse(
         request,
-        'dashboard/product/product_attribute/form.html',
+        'dashboard/product/attribute/form.html',
         ctx)
 
 
 @staff_member_required
 @permission_required('product.manage_products')
 def attribute_delete(request, pk):
-    attribute = get_object_or_404(ProductAttribute, pk=pk)
+    attribute = get_object_or_404(Attribute, pk=pk)
     if request.method == 'POST':
         attribute.delete()
         msg = pgettext_lazy(
             'Dashboard message', 'Removed attribute %s') % (attribute.name,)
         messages.success(request, msg)
-        return redirect('dashboard:product-attributes')
+        return redirect('dashboard:attributes')
     return TemplateResponse(
         request,
-        'dashboard/product/product_attribute/modal/'
+        'dashboard/product/attribute/modal/'
         'attribute_confirm_delete.html',
         {'attribute': attribute})
 
 
 @staff_member_required
 @permission_required('product.manage_products')
-def attribute_choice_value_create(request, attribute_pk):
-    attribute = get_object_or_404(ProductAttribute, pk=attribute_pk)
-    value = AttributeChoiceValue(attribute_id=attribute_pk)
-    form = forms.AttributeChoiceValueForm(request.POST or None, instance=value)
+def attribute_value_create(request, attribute_pk):
+    attribute = get_object_or_404(Attribute, pk=attribute_pk)
+    value = AttributeValue(attribute_id=attribute_pk)
+    form = forms.AttributeValueForm(request.POST or None, instance=value)
     if form.is_valid():
         form.save()
         msg = pgettext_lazy(
             'Dashboard message', 'Added attribute\'s value')
         messages.success(request, msg)
-        return redirect('dashboard:product-attribute-details', pk=attribute_pk)
+        return redirect('dashboard:attribute-details', pk=attribute_pk)
     ctx = {'attribute': attribute, 'value': value, 'form': form}
     return TemplateResponse(
         request,
-        'dashboard/product/product_attribute/values/form.html',
+        'dashboard/product/attribute/values/form.html',
         ctx)
 
 
 @staff_member_required
 @permission_required('product.manage_products')
-def attribute_choice_value_edit(request, attribute_pk, value_pk):
-    attribute = get_object_or_404(ProductAttribute, pk=attribute_pk)
-    value = get_object_or_404(AttributeChoiceValue, pk=value_pk)
-    form = forms.AttributeChoiceValueForm(request.POST or None, instance=value)
+def attribute_value_edit(request, attribute_pk, value_pk):
+    attribute = get_object_or_404(Attribute, pk=attribute_pk)
+    value = get_object_or_404(AttributeValue, pk=value_pk)
+    form = forms.AttributeValueForm(request.POST or None, instance=value)
     if form.is_valid():
         form.save()
         msg = pgettext_lazy(
             'Dashboard message', 'Updated attribute\'s value')
         messages.success(request, msg)
-        return redirect('dashboard:product-attribute-details', pk=attribute_pk)
+        return redirect('dashboard:attribute-details', pk=attribute_pk)
     ctx = {'attribute': attribute, 'value': value, 'form': form}
     return TemplateResponse(
         request,
-        'dashboard/product/product_attribute/values/form.html',
+        'dashboard/product/attribute/values/form.html',
         ctx)
 
 
 @staff_member_required
 @permission_required('product.manage_products')
-def attribute_choice_value_delete(request, attribute_pk, value_pk):
-    value = get_object_or_404(AttributeChoiceValue, pk=value_pk)
+def attribute_value_delete(request, attribute_pk, value_pk):
+    value = get_object_or_404(AttributeValue, pk=value_pk)
     if request.method == 'POST':
         value.delete()
         msg = pgettext_lazy(
             'Dashboard message',
             'Removed attribute\'s value %s') % (value.name,)
         messages.success(request, msg)
-        return redirect('dashboard:product-attribute-details', pk=attribute_pk)
+        return redirect('dashboard:attribute-details', pk=attribute_pk)
     return TemplateResponse(
         request,
-        'dashboard/product/product_attribute/values/modal/confirm_delete.html',
+        'dashboard/product/attribute/values/modal/confirm_delete.html',
         {'value': value, 'attribute_pk': attribute_pk})
 
 
 @staff_member_required
 @permission_required('product.manage_products')
-def ajax_reorder_attribute_choice_values(request, attribute_pk):
-    attribute = get_object_or_404(ProductAttribute, pk=attribute_pk)
-    form = forms.ReorderAttributeChoiceValuesForm(
+def ajax_reorder_attribute_values(request, attribute_pk):
+    attribute = get_object_or_404(Attribute, pk=attribute_pk)
+    form = forms.ReorderAttributeValuesForm(
         request.POST, instance=attribute)
     status = 200
     ctx = {}

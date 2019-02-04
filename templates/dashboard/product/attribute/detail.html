@@ -1,0 +1,110 @@
+{% extends 'dashboard/base.html' %}
+
+{% load i18n %}
+{% load static %}
+
+{% block title %}
+  {{ attribute }} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-attribute{% endblock %}
+
+{% block menu_attributes_class %}active{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url 'dashboard:attributes' %}" class="breadcrumbs--ellipsed-item">
+      {% trans "Attributes" context "Attribute detail breadcrumbs" %}
+      </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url 'dashboard:attributes' %}">
+        <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
+      </a>
+    </li>
+    <li>
+      <span class="breadcrumbs--ellipsed-item">
+        {{ attribute }}
+      </span>
+    </li>
+  </ul>
+{% endblock %}
+
+{% block menu_catalogue_class %} active{% endblock %}
+
+{% block content %}
+
+  <div class="row">
+    <div class="col s12 l9">
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">
+            {{ attribute.name }}
+          </span>
+          {% if product_type %}
+            {% trans "Product type" %}: <a href="{% url "dashboard:product-type-update" pk=product_type.pk %}">{{ product_type }}</a>
+          {% elif attribute.pk %}
+            <a href="{% url "dashboard:product-type-list" %}">Assign to a product type</a>
+          {% endif %}
+        </div>
+        <div class="card-action">
+          <a class="btn-flat waves-effect" href="{% url "dashboard:attribute-update" attribute.pk %}">
+            {% trans "Edit attribute" context "Attribute detail action" %}
+          </a>
+          <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:attribute-delete' pk=attribute.pk %}">
+            {% trans "Remove attribute" context "Attribute detail action" %}
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="col s12 l9">
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">{% trans "Attribute values" %}</span>
+        </div>
+        <div class="data-table-header-action">
+          <a href="{% url 'dashboard:attribute-value-add' attribute_pk=attribute.pk %}" class="btn-flat waves-effect">
+            {% trans "Add" %}
+          </a>
+        </div>
+        <div class="data-table-container">
+          <table class="bordered highlight responsive data-table">
+            <thead>
+              <tr>
+                <th class="data-table-icon"></th>
+
+                <th>{% trans "Display name" %}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody class="sortable-items" data-post-url="{% url 'dashboard:attribute-values-reorder' attribute_pk=attribute.pk %}" data-post-name="ordered_values">
+              {% for value in values %}
+                <tr class="sortable-item" data-id="{{ value.pk }}">
+                  <td class="data-table-icon ignore-link sortable__drag-area">
+                    <svg data-src="{% static "dashboard/images/reorder.svg" %}" height="20" width="20" fill="#000" />
+                  </td>
+                  <td>
+                    {{ value.name }}
+                  </td>
+                  <td class="right-align">
+                    <a href="{% url 'dashboard:attribute-value-update' attribute_pk=attribute.pk value_pk=value.pk %}" class="btn-flat waves-effect">
+                      {% trans 'Edit' context 'Attribute value edit action' %}
+                    </a>
+                    <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:attribute-value-delete' attribute_pk=attribute.pk value_pk=value.pk %}">
+                      {% trans 'Remove' context 'Attribute value edit action' %}
+                    </a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="2">{% trans "No attribute values" context "Empty list of attribute values" %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

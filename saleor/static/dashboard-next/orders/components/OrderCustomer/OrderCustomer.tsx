@@ -1,211 +1,284 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import blue from "@material-ui/core/colors/blue";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
+import ExternalLink from "../../../components/ExternalLink";
+import Form from "../../../components/Form";
+import Hr from "../../../components/Hr";
+import SingleAutocompleteSelectField from "../../../components/SingleAutocompleteSelectField";
 import Skeleton from "../../../components/Skeleton";
+import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
+import { maybe } from "../../../misc";
+import { OrderDetails_order } from "../../types/OrderDetails";
+import { UserSearch_customers_edges_node } from "../../types/UserSearch";
 
-interface AddressType {
-  city: string;
-  cityArea: string;
-  companyName: string;
-  country: string;
-  countryArea: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  phone: {
-    prefix: string;
-    number: string;
-  };
-  postalCode: string;
-  streetAddress_1: string;
-  streetAddress_2: string;
-}
-interface OrderCustomerProps {
-  client?: {
-    id: string;
-    email: string;
-    name: string;
-  };
-  shippingAddress?: AddressType;
-  billingAddress?: AddressType;
-  editCustomer?: boolean;
-  onCustomerEditClick?();
-  onCustomerEmailClick?(id: string);
-  onBillingAddressEdit?();
-  onShippingAddressEdit?();
-}
-
-const decorate = withStyles(
-  theme => ({
-    hr: {
-      backgroundColor: theme.palette.grey[200],
-      border: "none",
-      display: "block",
-      height: 1,
-      width: "100%"
+const styles = (theme: Theme) =>
+  createStyles({
+    sectionHeader: {
+      alignItems: "center",
+      display: "flex",
+      marginBottom: theme.spacing.unit * 3
     },
-    link: {
-      color: blue[500],
-      cursor: "pointer",
-      textDecoration: "none"
+    sectionHeaderTitle: {
+      flex: 1,
+      fontWeight: 600 as 600,
+      lineHeight: 1,
+      textTransform: "uppercase"
+    },
+    sectionHeaderToolbar: {
+      marginRight: -theme.spacing.unit * 2
+    },
+    userEmail: {
+      fontWeight: 600 as 600,
+      marginBottom: theme.spacing.unit
     }
-  }),
-  { name: "OrderCustomer" }
-);
-const OrderCustomer = decorate<OrderCustomerProps>(
+  });
+
+export interface OrderCustomerProps extends WithStyles<typeof styles> {
+  order: OrderDetails_order;
+  users?: UserSearch_customers_edges_node[];
+  loading?: boolean;
+  canEditAddresses: boolean;
+  canEditCustomer: boolean;
+  fetchUsers?: (query: string) => void;
+  onCustomerEdit?: (
+    data: {
+      user?: string;
+      userEmail?: string;
+    }
+  ) => void;
+  onBillingAddressEdit?: () => void;
+  onShippingAddressEdit?: () => void;
+}
+
+const OrderCustomer = withStyles(styles, { name: "OrderCustomer" })(
   ({
     classes,
-    client,
-    billingAddress,
-    editCustomer,
-    shippingAddress,
-    onCustomerEditClick,
-    onCustomerEmailClick,
+    canEditAddresses,
+    canEditCustomer,
+    fetchUsers,
+    loading,
+    order,
+    users,
+    onCustomerEdit,
     onBillingAddressEdit,
     onShippingAddressEdit
-  }) => (
-    <Card>
-      <CardTitle
-        title={i18n.t("Customer")}
-        toolbar={
-          !!editCustomer && (
-            <Button
-              color="secondary"
-              variant="flat"
-              disabled={!onCustomerEditClick}
-              onClick={onCustomerEditClick}
-            >
-              {i18n.t("Edit")}
-            </Button>
-          )
-        }
-      />
-      <CardContent>
-        {client === undefined || client === null ? (
-          <>
-            <Skeleton />
-            <Skeleton />
-          </>
-        ) : (
-          <>
-            <Typography>{client.name}</Typography>
-            <Typography
-              className={classes.link}
-              onClick={
-                onCustomerEmailClick
-                  ? onCustomerEmailClick(client.id)
-                  : undefined
-              }
-            >
-              {client.email}
+  }: OrderCustomerProps) => {
+    const billingAddress = maybe(() => order.billingAddress);
+    const shippingAddress = maybe(() => order.shippingAddress);
+    const user = maybe(() => order.user);
+    return (
+      <Card>
+        <Toggle>
+          {(editMode, { toggle: toggleEditMode }) => (
+            <>
+              <CardTitle
+                title={i18n.t("Customer")}
+                toolbar={
+                  !!canEditCustomer && (
+                    <Button
+                      color="secondary"
+                      variant="text"
+                      disabled={!onCustomerEdit}
+                      onClick={toggleEditMode}
+                    >
+                      {i18n.t("Edit")}
+                    </Button>
+                  )
+                }
+              />
+              <CardContent>
+                {user === undefined ? (
+                  <Skeleton />
+                ) : editMode && canEditCustomer ? (
+                  <Form initial={{ query: { label: "", value: "" } }}>
+                    {({ change, data }) => {
+                      const handleChange = (event: React.ChangeEvent<any>) => {
+                        change(event);
+                        onCustomerEdit({
+                          [event.target.value.value.includes("@")
+                            ? "userEmail"
+                            : "user"]: event.target.value.value
+                        });
+                        toggleEditMode();
+                      };
+                      return (
+                        <SingleAutocompleteSelectField
+                          custom={true}
+                          choices={maybe(() => users, []).map(user => ({
+                            label: user.email,
+                            value: user.id
+                          }))}
+                          fetchChoices={fetchUsers}
+                          loading={loading}
+                          placeholder={i18n.t("Search Customers")}
+                          onChange={handleChange}
+                          name="query"
+                          value={data.query}
+                        />
+                      );
+                    }}
+                  </Form>
+                ) : user === null ? (
+                  <Typography>{i18n.t("Anonymous user")}</Typography>
+                ) : (
+                  <>
+                    <Typography className={classes.userEmail}>
+                      {user.email}
+                    </Typography>
+                    {/* TODO: uncomment after adding customer section */}
+                    {/* <div>
+                      <Link underline={false}>{i18n.t("View Profile")}</Link>
+                    </div>
+                    <div>
+                      <Link underline={false}>{i18n.t("View Orders")}</Link>
+                    </div> */}
+                  </>
+                )}
+              </CardContent>
+            </>
+          )}
+        </Toggle>
+        <Hr />
+        <CardContent>
+          <div className={classes.sectionHeader}>
+            <Typography className={classes.sectionHeaderTitle}>
+              {i18n.t("Contact information")}
             </Typography>
-          </>
-        )}
-      </CardContent>
-      <hr className={classes.hr} />
+          </div>
 
-      <CardTitle
-        title={i18n.t("Shipping Address")}
-        toolbar={
-          !!editCustomer && (
-            <Button
-              color="secondary"
-              variant="flat"
-              onClick={onShippingAddressEdit}
-              disabled={!onShippingAddressEdit && client === undefined}
-            >
-              {i18n.t("Edit")}
-            </Button>
-          )
-        }
-      />
-      <CardContent>
-        {client === undefined || client === null ? (
-          <>
+          {maybe(() => order.userEmail) === undefined ? (
             <Skeleton />
-          </>
-        ) : (
-          <>
-            {shippingAddress.companyName && (
-              <Typography>{shippingAddress.companyName}</Typography>
-            )}
-            <Typography>
-              {shippingAddress.firstName} {shippingAddress.lastName}
-            </Typography>
-            <Typography>
-              {shippingAddress.streetAddress_1}
-              <br />
-              {shippingAddress.streetAddress_2}
-            </Typography>
-            <Typography>
-              {shippingAddress.postalCode} {shippingAddress.city}
-              {shippingAddress.cityArea ? ", " + shippingAddress.cityArea : ""}
-            </Typography>
-            <Typography>
-              {shippingAddress.countryArea
-                ? shippingAddress.countryArea + ", " + shippingAddress.country
-                : shippingAddress.country}
-            </Typography>
-          </>
-        )}
-      </CardContent>
-      <hr className={classes.hr} />
-
-      <CardTitle
-        title={i18n.t("Billing Address")}
-        toolbar={
-          !!editCustomer && (
-            <Button
-              color="secondary"
-              variant="flat"
-              onClick={onBillingAddressEdit}
-              disabled={!onBillingAddressEdit && client === undefined}
+          ) : order.userEmail === null ? (
+            <Typography>{i18n.t("Not set")}</Typography>
+          ) : (
+            <ExternalLink
+              href={`mailto:${maybe(() => order.userEmail)}`}
+              typographyProps={{ color: "primary" }}
             >
-              {i18n.t("Edit")}
-            </Button>
-          )
-        }
-      />
-      <CardContent>
-        {client === undefined || client === null ? (
-          <>
-            <Skeleton />
-          </>
-        ) : shippingAddress.id === billingAddress.id ? (
-          <Typography>{i18n.t("Same as shipping address")}</Typography>
-        ) : (
-          <>
-            {billingAddress.companyName && (
-              <Typography>{billingAddress.companyName}</Typography>
+              {maybe(() => order.userEmail)}
+            </ExternalLink>
+          )}
+        </CardContent>
+        <Hr />
+        <CardContent>
+          <div className={classes.sectionHeader}>
+            <Typography className={classes.sectionHeaderTitle}>
+              {i18n.t("Shipping Address")}
+            </Typography>
+            {canEditAddresses && (
+              <div className={classes.sectionHeaderToolbar}>
+                <Button
+                  color="secondary"
+                  variant="text"
+                  onClick={onShippingAddressEdit}
+                  disabled={!onShippingAddressEdit && user === undefined}
+                >
+                  {i18n.t("Edit")}
+                </Button>
+              </div>
             )}
-            <Typography>
-              {billingAddress.firstName} {billingAddress.lastName}
+          </div>
+          {shippingAddress === undefined ? (
+            <Skeleton />
+          ) : shippingAddress === null ? (
+            <Typography>{i18n.t("Not set")}</Typography>
+          ) : (
+            <>
+              {shippingAddress.companyName && (
+                <Typography>{shippingAddress.companyName}</Typography>
+              )}
+              <Typography>
+                {shippingAddress.firstName} {shippingAddress.lastName}
+              </Typography>
+              <Typography>
+                {shippingAddress.streetAddress1}
+                <br />
+                {shippingAddress.streetAddress2}
+              </Typography>
+              <Typography>
+                {shippingAddress.postalCode} {shippingAddress.city}
+                {shippingAddress.cityArea
+                  ? ", " + shippingAddress.cityArea
+                  : ""}
+              </Typography>
+              <Typography>
+                {shippingAddress.countryArea
+                  ? shippingAddress.countryArea +
+                    ", " +
+                    shippingAddress.country.country
+                  : shippingAddress.country.country}
+              </Typography>
+              <Typography>{shippingAddress.phone}</Typography>
+            </>
+          )}
+        </CardContent>
+        <Hr />
+        <CardContent>
+          <div className={classes.sectionHeader}>
+            <Typography className={classes.sectionHeaderTitle}>
+              {i18n.t("Billing Address")}
             </Typography>
-            <Typography>
-              {billingAddress.streetAddress_1}
-              <br />
-              {billingAddress.streetAddress_2}
-            </Typography>
-            <Typography>
-              {billingAddress.postalCode} {billingAddress.city}
-              {billingAddress.cityArea ? ", " + billingAddress.cityArea : ""}
-            </Typography>
-            <Typography>
-              {billingAddress.countryArea
-                ? billingAddress.countryArea + ", " + billingAddress.country
-                : billingAddress.country}
-            </Typography>
-          </>
-        )}
-      </CardContent>
-    </Card>
-  )
+            {canEditAddresses && (
+              <div className={classes.sectionHeaderToolbar}>
+                <Button
+                  color="secondary"
+                  variant="text"
+                  onClick={onBillingAddressEdit}
+                  disabled={!onBillingAddressEdit && user === undefined}
+                >
+                  {i18n.t("Edit")}
+                </Button>
+              </div>
+            )}
+          </div>
+          {billingAddress === undefined ? (
+            <Skeleton />
+          ) : billingAddress === null ? (
+            <Typography>{i18n.t("Not set")}</Typography>
+          ) : maybe(() => shippingAddress.id) === billingAddress.id ? (
+            <Typography>{i18n.t("Same as shipping address")}</Typography>
+          ) : (
+            <>
+              {billingAddress.companyName && (
+                <Typography>{billingAddress.companyName}</Typography>
+              )}
+              <Typography>
+                {billingAddress.firstName} {billingAddress.lastName}
+              </Typography>
+              <Typography>
+                {billingAddress.streetAddress1}
+                <br />
+                {billingAddress.streetAddress2}
+              </Typography>
+              <Typography>
+                {billingAddress.postalCode} {billingAddress.city}
+                {billingAddress.cityArea ? ", " + billingAddress.cityArea : ""}
+              </Typography>
+              <Typography>
+                {billingAddress.countryArea
+                  ? billingAddress.countryArea +
+                    ", " +
+                    billingAddress.country.country
+                  : billingAddress.country.country}
+              </Typography>
+              <Typography>{billingAddress.phone}</Typography>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
 );
+OrderCustomer.displayName = "OrderCustomer";
 export default OrderCustomer;

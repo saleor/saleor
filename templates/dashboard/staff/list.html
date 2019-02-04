@@ -1,7 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load materializecss %}
-{% load staticfiles %}
+{% load static %}
 {% load utils %}
 
 {% block title %}
@@ -54,8 +54,8 @@
                   <tr data-action-go="{% url "dashboard:staff-details" pk=user.pk %}">
                     {% with user.default_billing_address as default_address %}
                       <td>
-                        {% if default_address %}
-                          {{ default_address.first_name }} {{ default_address.last_name }}
+                        {% if user.get_full_name != user.email %}
+                          {{ user.get_full_name }}
                         {% else %}
                           -
                         {% endif %}

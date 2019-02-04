@@ -78,8 +78,10 @@ class LoginForm(django_forms.AuthenticationForm, FormWithReCaptcha):
 
 class SignupForm(forms.ModelForm, FormWithReCaptcha):
     password = forms.CharField(
-        widget=forms.PasswordInput)
+        widget=forms.PasswordInput,
+        label=pgettext('Password', 'Password'))
     email = forms.EmailField(
+        label=pgettext('Email', 'Email'),
         error_messages={
             'unique': pgettext_lazy(
                 'Registration error',
@@ -88,11 +90,6 @@ class SignupForm(forms.ModelForm, FormWithReCaptcha):
     class Meta:
         model = User
         fields = ('email',)
-        labels = {
-            'email': pgettext_lazy(
-                'Email', 'Email'),
-            'password': pgettext_lazy(
-                'Password', 'Password')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -127,3 +124,14 @@ class PasswordResetForm(django_forms.PasswordResetForm, FormWithReCaptcha):
         # template, we remove it from the context.
         del context['user']
         emails.send_password_reset_email.delay(context, to_email)
+
+
+class NameForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name']
+        labels = {
+            'first_name': pgettext_lazy(
+                'Customer form: Given name field', 'Given name'),
+            'last_name': pgettext_lazy(
+                'Customer form: Family name field', 'Family name')}

@@ -20,23 +20,28 @@ from .utils import (
 
 class ShippingZone(models.Model):
     name = models.CharField(max_length=100)
-    countries = CountryField(multiple=True)
+    countries = CountryField(multiple=True, default=[], blank=True)
+    default = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
 
     def countries_display(self):
-        if len(self.countries) <= 3:
-            return ', '.join((country.name for country in self.countries))
+        countries = self.countries
+        if self.default:
+            from ..dashboard.shipping.forms import get_available_countries
+            countries = get_available_countries()
+        if countries and len(countries) <= 3:
+            return ', '.join((country.name for country in countries))
         return pgettext_lazy(
             'Number of countries shipping zone apply to',
             '%(num_of_countries)d countries' % {
-                'num_of_countries': len(self.countries)})
+                'num_of_countries': len(countries)})
 
     @property
     def price_range(self):
         prices = [
-            shipping_method.get_total_price()
+            shipping_method.get_total()
             for shipping_method in self.shipping_methods.all()]
         if prices:
             return MoneyRange(min(prices).net, max(prices).net)
@@ -57,14 +62,21 @@ class ShippingMethodQueryset(models.QuerySet):
 
     def applicable_shipping_methods(self, price, weight, country_code):
         """Returns ShippingMethods that can be used on an order with
-        shippment to given country(code), that are applicable to given
+        shipment to given country(code), that are applicable to given
         price & weight total.
         """
-        qs = self.prefetch_related('shipping_zone').order_by('price')
-        qs = qs.filter(shipping_zone__countries__contains=country_code)
+        # If dedicated shipping zone for the country exists, we should use it
+        # in the first place
+        qs = self.filter(
+            shipping_zone__countries__contains=country_code,
+            shipping_zone__default=False)
+        if not qs.exists():
+            # Otherwise default shipping zone should be used
+            qs = self.filter(shipping_zone__default=True)
+
+        qs = qs.prefetch_related('shipping_zone').order_by('price')
         price_based_methods = applicable_price_based_methods(price, qs)
-        weight_based_methods = applicable_weight_based_methods(
-            weight, qs)
+        weight_based_methods = applicable_weight_based_methods(weight, qs)
         return price_based_methods | weight_based_methods
 
 
@@ -72,17 +84,20 @@ class ShippingMethod(models.Model):
     name = models.CharField(max_length=100)
     type = models.CharField(max_length=30, choices=ShippingMethodType.CHOICES)
     price = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
     shipping_zone = models.ForeignKey(
         ShippingZone, related_name='shipping_methods',
         on_delete=models.CASCADE)
     minimum_order_price = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0, blank=True,
         null=True)
     maximum_order_price = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, blank=True, null=True)
     minimum_order_weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES,
@@ -112,7 +127,7 @@ class ShippingMethod(models.Model):
             self.type, get_weight_type_display(
                 self.minimum_order_weight, self.maximum_order_weight))
 
-    def get_total_price(self, taxes=None):
+    def get_total(self, taxes=None):
         return get_taxed_shipping_price(self.price, taxes)
 
     def get_ajax_label(self):

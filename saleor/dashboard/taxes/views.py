@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
@@ -6,6 +8,7 @@ from django.core.management import call_command
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
+from django.views.decorators.http import require_POST
 from django_countries.fields import Country
 from django_prices_vatlayer.models import VAT
 
@@ -15,6 +18,8 @@ from ...core.utils.taxes import get_taxes_for_country
 from ...dashboard.taxes.filters import TaxFilter
 from ...dashboard.taxes.forms import TaxesConfigurationForm
 from ...dashboard.views import staff_member_required
+
+logger = logging.getLogger(__name__)
 
 
 @staff_member_required
@@ -57,6 +62,7 @@ def configure_taxes(request):
 
 
 @staff_member_required
+@require_POST
 @permission_required('site.manage_settings')
 def fetch_tax_rates(request):
     try:
@@ -64,10 +70,12 @@ def fetch_tax_rates(request):
         msg = pgettext_lazy(
             'Dashboard message', 'Tax rates updated successfully')
         messages.success(request, msg)
-    except ImproperlyConfigured:
+    except ImproperlyConfigured as exc:
+        logger.exception(exc)
         msg = pgettext_lazy(
             'Dashboard message',
-            'Could not fetch tax rates. You have not supplied a valid API '
-            'Access Key')
+            'Could not fetch tax rates. '
+            'Make sure you have supplied a valid API Access Key.<br/>'
+            'Check the server logs for more information about this error.')
         messages.warning(request, msg)
     return redirect('dashboard:taxes')

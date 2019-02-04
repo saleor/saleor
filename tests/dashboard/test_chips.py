@@ -45,7 +45,7 @@ class ModelMultipleChoiceFieldFilterSet(django_filters.FilterSet):
 
 class RangeFieldFilterSet(django_filters.FilterSet):
     price = django_filters.RangeFilter(
-        label='Price', name='price', widget=MoneyRangeWidget)
+        label='Price', field_name='price', widget=MoneyRangeWidget)
 
 
 def test_char_field_chip():
@@ -141,7 +141,7 @@ def test_model_multiple_choice_field_chip():
 
 
 def test_range_field_chip():
-    data = querydict({'price_0': 1, 'price_1': 50})
+    data = querydict({'price_min': 1, 'price_max': 50})
     filter_set = RangeFieldFilterSet(data, queryset=Product.objects.all())
     field = filter_set.form['price']
     items = handle_range(field, data)
@@ -149,10 +149,10 @@ def test_range_field_chip():
     assert len(items) == 2
     chip_1 = items[0]
     assert chip_1['content'] == CHIPS_PATTERN % ('Price', 'From %s' % 1)
-    assert 'price_0=1' not in chip_1['link']
-    assert 'price_1=50' in chip_1['link']
+    assert 'price_min=1' not in chip_1['link']
+    assert 'price_max=50' in chip_1['link']
 
     chip_2 = items[1]
     assert chip_2['content'] == CHIPS_PATTERN % ('Price', 'To %s' % 50)
-    assert 'price_0=1' in chip_2['link']
-    assert 'price_1=50' not in chip_2['link']
+    assert 'price_min=1' in chip_2['link']
+    assert 'price_max=50' not in chip_2['link']

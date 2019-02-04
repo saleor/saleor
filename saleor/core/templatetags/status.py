@@ -1,9 +1,7 @@
-import datetime
-
 from django.template import Library
-from payments import PaymentStatus
 
 from ...order import OrderStatus
+from ...payment import ChargeStatus
 from ...product import ProductAvailabilityStatus, VariantAvailabilityStatus
 from ...product.utils.availability import (
     get_product_availability_status, get_variant_availability_status)
@@ -11,8 +9,7 @@ from ...product.utils.availability import (
 register = Library()
 
 
-ERRORS = {PaymentStatus.ERROR, PaymentStatus.REJECTED}
-SUCCESSES = {PaymentStatus.CONFIRMED, PaymentStatus.REFUNDED}
+SUCCESSES = {ChargeStatus.CHARGED, ChargeStatus.FULLY_REFUNDED}
 
 
 LABEL_DANGER = 'danger'
@@ -22,9 +19,7 @@ LABEL_DEFAULT = 'default'
 
 @register.inclusion_tag('status_label.html')
 def render_status(status, status_display=None):
-    if status in ERRORS:
-        label_cls = LABEL_DANGER
-    elif status in SUCCESSES:
+    if status in SUCCESSES:
         label_cls = LABEL_SUCCESS
     else:
         label_cls = LABEL_DEFAULT
@@ -64,12 +59,8 @@ def render_variant_availability_status(variant):
 
 @register.inclusion_tag('dashboard/includes/_page_availability.html')
 def render_page_availability(page):
-    today = datetime.date.today()
-    is_published = (
-        page.is_visible and (
-            page.available_on is None or page.available_on <= today))
-    ctx = {'is_published': is_published, 'page': page}
-    if is_published:
+    ctx = {'is_published': page.is_published, 'page': page}
+    if page.is_published:
         label_cls = LABEL_SUCCESS
         ctx.update({'label_cls': label_cls})
     return ctx
@@ -77,10 +68,10 @@ def render_page_availability(page):
 
 @register.inclusion_tag('dashboard/includes/_collection_availability.html')
 def render_collection_availability(collection):
-    if collection.is_published:
+    if collection.is_visible:
         label_cls = LABEL_SUCCESS
     else:
         label_cls = LABEL_DANGER
-    return {'is_published': collection.is_published,
+    return {'is_visible': collection.is_visible,
             'collection': collection,
             'label_cls': label_cls}

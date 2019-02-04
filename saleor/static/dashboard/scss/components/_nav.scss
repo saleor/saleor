@@ -63,6 +63,7 @@ header {
         max-height: $navbar-height;
         width: 140px;
         margin: 9px 0;
+        padding: 4px;
         @media (max-width: $small-screen) {
           height: 30px;
           width: 130px;

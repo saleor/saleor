@@ -11,6 +11,12 @@
   }
 }
 
+.product-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .product-list {
   text-align: center;
   margin-bottom: $global-margin * 2;
@@ -43,6 +49,20 @@
       text-transform: uppercase;
       transform: rotate(-45deg);
       font-weight: 500;
+    }
+  }
+  &__header {
+    @include media-breakpoint-down(sm) {
+      padding: $global-padding * 2 0;
+    }
+    @media (max-width: 370px) {
+      padding-top: 5rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+      color: $body-color;
+      padding-bottom: 0;
+      text-align: left;
     }
   }
 }

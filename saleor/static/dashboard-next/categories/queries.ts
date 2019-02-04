@@ -1,39 +1,44 @@
 import gql from "graphql-tag";
-import * as React from "react";
-import { Query, QueryProps } from "react-apollo";
 
+import { TypedQuery } from "../queries";
 import {
-  CategoryDetailsQuery,
-  CategoryDetailsQueryVariables,
-  CategoryPropertiesQuery,
-  CategoryPropertiesQueryVariables,
-  RootCategoryChildrenQuery
-} from "../gql-types";
+  CategoryDetails,
+  CategoryDetailsVariables
+} from "./types/CategoryDetails";
+import { RootCategories } from "./types/RootCategories";
 
-export const TypedCategoryDetailsQuery = Query as React.ComponentType<
-  QueryProps<CategoryDetailsQuery, CategoryDetailsQueryVariables>
->;
-export const categoryDetailsQuery = gql`
-  query CategoryDetails($id: ID!) {
-    category(id: $id) {
+export const categoryDetailsFragment = gql`
+  fragment CategoryDetailsFragment on Category {
+    id
+    backgroundImage {
+      alt
+      url
+    }
+    name
+    description
+    seoDescription
+    seoTitle
+    parent {
       id
-      name
-      description
-      parent {
-        id
-      }
     }
   }
 `;
 
-export const TypedRootCategoryChildrenQuery = Query as React.ComponentType<
-  QueryProps<RootCategoryChildrenQuery>
->;
-export const rootCategoryChildrenQuery = gql`
-  query RootCategoryChildren {
-    categories(level: 0) {
+export const rootCategories = gql`
+  query RootCategories(
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
+  ) {
+    categories(
+      level: 0
+      first: $first
+      after: $after
+      last: $last
+      before: $before
+    ) {
       edges {
-        cursor
         node {
           id
           name
@@ -45,15 +50,22 @@ export const rootCategoryChildrenQuery = gql`
           }
         }
       }
+      pageInfo {
+        endCursor
+        hasNextPage
+        hasPreviousPage
+        startCursor
+      }
     }
   }
 `;
+export const TypedRootCategoriesQuery = TypedQuery<RootCategories, {}>(
+  rootCategories
+);
 
-export const TypedCategoryPropertiesQuery = Query as React.ComponentType<
-  QueryProps<CategoryPropertiesQuery, CategoryPropertiesQueryVariables>
->;
-export const categoryPropertiesQuery = gql`
-  query CategoryProperties(
+export const categoryDetails = gql`
+  ${categoryDetailsFragment}
+  query CategoryDetails(
     $id: ID!
     $first: Int
     $after: String
@@ -61,13 +73,8 @@ export const categoryPropertiesQuery = gql`
     $before: String
   ) {
     category(id: $id) {
-      id
-      name
-      description
-      parent {
-        id
-      }
-      children {
+      ...CategoryDetailsFragment
+      children(first: 20) {
         edges {
           node {
             id
@@ -82,7 +89,6 @@ export const categoryPropertiesQuery = gql`
         }
       }
       products(first: $first, after: $after, last: $last, before: $before) {
-        totalCount
         pageInfo {
           endCursor
           hasNextPage
@@ -94,7 +100,16 @@ export const categoryPropertiesQuery = gql`
           node {
             id
             name
-            thumbnailUrl
+            availability {
+              available
+            }
+            thumbnail {
+              url
+            }
+            price {
+              amount
+              currency
+            }
             productType {
               id
               name
@@ -105,3 +120,7 @@ export const categoryPropertiesQuery = gql`
     }
   }
 `;
+export const TypedCategoryDetailsQuery = TypedQuery<
+  CategoryDetails,
+  CategoryDetailsVariables
+>(categoryDetails);

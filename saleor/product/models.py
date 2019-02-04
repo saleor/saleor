@@ -39,6 +39,7 @@ class Category(MPTTModel, SeoModel):
         on_delete=models.CASCADE)
     background_image = VersatileImageField(
         upload_to='category-backgrounds', blank=True, null=True)
+    background_image_alt = models.CharField(max_length=128, blank=True)
 
     objects = models.Manager()
     tree = TreeManager()
@@ -75,13 +76,9 @@ class CategoryTranslation(SeoModelTranslation):
 class ProductType(models.Model):
     name = models.CharField(max_length=128)
     has_variants = models.BooleanField(default=True)
-    product_attributes = models.ManyToManyField(
-        'ProductAttribute', related_name='product_types', blank=True)
-    variant_attributes = models.ManyToManyField(
-        'ProductAttribute', related_name='product_variant_types', blank=True)
-    is_shipping_required = models.BooleanField(default=False)
+    is_shipping_required = models.BooleanField(default=True)
     tax_rate = models.CharField(
-        max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True,
+        max_length=128, default=DEFAULT_TAX_RATE_NAME,
         choices=TaxRateType.CHOICES)
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES,
@@ -100,11 +97,19 @@ class ProductType(models.Model):
 
 
 class ProductQuerySet(models.QuerySet):
+
     def available_products(self):
         today = datetime.date.today()
         return self.filter(
             Q(available_on__lte=today) | Q(available_on__isnull=True),
             Q(is_published=True))
+
+    def visible_to_user(self, user):
+        has_access_to_all = (
+            user.is_active and user.has_perm('product.manage_products'))
+        if has_access_to_all:
+            return self.all()
+        return self.available_products()
 
 
 class Product(SeoModel):
@@ -115,15 +120,17 @@ class Product(SeoModel):
     category = models.ForeignKey(
         Category, related_name='products', on_delete=models.CASCADE)
     price = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES)
     available_on = models.DateField(blank=True, null=True)
     is_published = models.BooleanField(default=True)
-    attributes = HStoreField(default={}, blank=True)
+    attributes = HStoreField(default=dict, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
     charge_taxes = models.BooleanField(default=True)
     tax_rate = models.CharField(
-        max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True)
+        max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True,
+        choices=TaxRateType.CHOICES)
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES,
         blank=True, null=True)
@@ -133,6 +140,7 @@ class Product(SeoModel):
 
     class Meta:
         app_label = 'product'
+        ordering = ('name', )
         permissions = ((
             'manage_products', pgettext_lazy(
                 'Permission description',
@@ -168,7 +176,7 @@ class Product(SeoModel):
 
     def get_first_image(self):
         images = list(self.images.all())
-        return images[0].image if images else None
+        return images[0] if images else None
 
     def get_price_range(self, discounts=None, taxes=None):
         if self.variants.all():
@@ -207,11 +215,12 @@ class ProductVariant(models.Model):
     sku = models.CharField(max_length=32, unique=True)
     name = models.CharField(max_length=255, blank=True)
     price_override = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, blank=True, null=True)
     product = models.ForeignKey(
         Product, related_name='variants', on_delete=models.CASCADE)
-    attributes = HStoreField(default={}, blank=True)
+    attributes = HStoreField(default=dict, blank=True)
     images = models.ManyToManyField('ProductImage', through='VariantImage')
     track_inventory = models.BooleanField(default=True)
     quantity = models.IntegerField(
@@ -219,7 +228,8 @@ class ProductVariant(models.Model):
     quantity_allocated = models.IntegerField(
         validators=[MinValueValidator(0)], default=Decimal(0))
     cost_price = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, blank=True, null=True)
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES,
@@ -287,9 +297,7 @@ class ProductVariant(models.Model):
 
     def get_first_image(self):
         images = list(self.images.all())
-        if images:
-            return images[0].image
-        return self.product.get_first_image()
+        return images[0] if images else self.product.get_first_image()
 
     def get_ajax_label(self, discounts=None):
         price = self.get_price(discounts).gross
@@ -317,9 +325,15 @@ class ProductVariantTranslation(models.Model):
         return self.name or str(self.product_variant)
 
 
-class ProductAttribute(models.Model):
-    slug = models.SlugField(max_length=50, unique=True)
-    name = models.CharField(max_length=100)
+class Attribute(models.Model):
+    slug = models.SlugField(max_length=50)
+    name = models.CharField(max_length=50)
+    product_type = models.ForeignKey(
+        ProductType, related_name='product_attributes', blank=True,
+        null=True, on_delete=models.CASCADE)
+    product_variant_type = models.ForeignKey(
+        ProductType, related_name='variant_attributes', blank=True,
+        null=True, on_delete=models.CASCADE)
 
     translated = TranslationProxy()
 
@@ -330,41 +344,43 @@ class ProductAttribute(models.Model):
         return self.name
 
     def get_formfield_name(self):
-        return slugify('attribute-%s' % self.slug, allow_unicode=True)
+        return slugify(
+            'attribute-%s-%s' % (self.slug, self.pk), allow_unicode=True)
 
     def has_values(self):
         return self.values.exists()
 
 
-class ProductAttributeTranslation(models.Model):
+class AttributeTranslation(models.Model):
     language_code = models.CharField(max_length=10)
-    product_attribute = models.ForeignKey(
-        ProductAttribute, related_name='translations',
+    attribute = models.ForeignKey(
+        Attribute, related_name='translations',
         on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
 
     class Meta:
-        unique_together = (('language_code', 'product_attribute'),)
+        unique_together = (('language_code', 'attribute'),)
 
     def __repr__(self):
         class_ = type(self)
         return '%s(pk=%r, name=%r, attribute_pk=%r)' % (
-            class_.__name__, self.pk, self.name, self.product_attribute_id)
+            class_.__name__, self.pk, self.name, self.attribute_id)
 
     def __str__(self):
         return self.name
 
 
-class AttributeChoiceValue(SortableModel):
+class AttributeValue(SortableModel):
     name = models.CharField(max_length=100)
+    value = models.CharField(max_length=100, blank=True, default='')
     slug = models.SlugField(max_length=100)
     attribute = models.ForeignKey(
-        ProductAttribute, related_name='values', on_delete=models.CASCADE)
+        Attribute, related_name='values', on_delete=models.CASCADE)
 
     translated = TranslationProxy()
 
     class Meta:
-        ordering = ('sort_order',)
+        ordering = ('sort_order', )
         unique_together = ('name', 'attribute')
 
     def __str__(self):
@@ -374,21 +390,21 @@ class AttributeChoiceValue(SortableModel):
         return self.attribute.values.all()
 
 
-class AttributeChoiceValueTranslation(models.Model):
+class AttributeValueTranslation(models.Model):
     language_code = models.CharField(max_length=10)
-    attribute_choice_value = models.ForeignKey(
-        AttributeChoiceValue, related_name='translations',
+    attribute_value = models.ForeignKey(
+        AttributeValue, related_name='translations',
         on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
 
     class Meta:
-        unique_together = (('language_code', 'attribute_choice_value'),)
+        unique_together = (('language_code', 'attribute_value'),)
 
     def __repr__(self):
         class_ = type(self)
-        return '%s(pk=%r, name=%r, attribute_choice_value_pk=%r)' % (
+        return '%s(pk=%r, name=%r, attribute_value_pk=%r)' % (
             class_.__name__, self.pk, self.name,
-            self.attribute_choice_value_id)
+            self.attribute_value_id)
 
     def __str__(self):
         return self.name
@@ -419,8 +435,19 @@ class VariantImage(models.Model):
 
 
 class CollectionQuerySet(models.QuerySet):
+
     def public(self):
-        return self.filter(is_published=True)
+        return self.filter(
+            Q(is_published=True),
+            Q(published_date__isnull=True)
+            | Q(published_date__lte=datetime.date.today()))
+
+    def visible_to_user(self, user):
+        has_access_to_all = (
+            user.is_active and user.has_perm('product.manage_products'))
+        if has_access_to_all:
+            return self.all()
+        return self.public()
 
 
 class Collection(SeoModel):
@@ -430,13 +457,15 @@ class Collection(SeoModel):
         Product, blank=True, related_name='collections')
     background_image = VersatileImageField(
         upload_to='collection-backgrounds', blank=True, null=True)
+    background_image_alt = models.CharField(max_length=128, blank=True)
     is_published = models.BooleanField(default=False)
-
+    description = models.TextField(blank=True)
+    published_date = models.DateField(blank=True, null=True)
     objects = CollectionQuerySet.as_manager()
     translated = TranslationProxy()
 
     class Meta:
-        ordering = ['pk']
+        ordering = ('slug', )
 
     def __str__(self):
         return self.name
@@ -446,6 +475,12 @@ class Collection(SeoModel):
             'product:collection',
             kwargs={'pk': self.id, 'slug': self.slug})
 
+    @property
+    def is_visible(self):
+        return self.is_published and (
+            self.published_date is None or
+            self.published_date <= datetime.date.today())
+
 
 class CollectionTranslation(SeoModelTranslation):
     language_code = models.CharField(max_length=10)
@@ -453,6 +488,7 @@ class CollectionTranslation(SeoModelTranslation):
         Collection, related_name='translations',
         on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
+    description = models.TextField(blank=True)
 
     class Meta:
         unique_together = (('language_code', 'collection'),)

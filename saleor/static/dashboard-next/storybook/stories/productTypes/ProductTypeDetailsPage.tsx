@@ -1,44 +1,37 @@
+import { Omit } from "@material-ui/core";
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import ProductTypeDetailsPage from "../../../productTypes/components/ProductTypeDetailsPage";
-import { attributes, productType } from "../../../productTypes/fixtures";
+import ProductTypeDetailsPage, {
+  ProductTypeDetailsPageProps
+} from "../../../productTypes/components/ProductTypeDetailsPage";
+import { productType } from "../../../productTypes/fixtures";
+import { WeightUnitsEnum } from "../../../types/globalTypes";
 import Decorator from "../../Decorator";
 
-const taxRates = ["standard", "electronics", "food", "apparel"];
+const props: Omit<ProductTypeDetailsPageProps, "classes"> = {
+  defaultWeightUnit: "kg" as WeightUnitsEnum,
+  disabled: false,
+  errors: [],
+  onAttributeAdd: () => undefined,
+  onAttributeDelete: () => undefined,
+  onAttributeUpdate: () => undefined,
+  onBack: () => undefined,
+  onDelete: () => undefined,
+  onSubmit: () => undefined,
+  pageTitle: productType.name,
+  productType,
+  saveButtonBarState: "default"
+};
 
 storiesOf("Views / Product types / Product type details", module)
   .addDecorator(Decorator)
-  .add("default", () => (
-    <ProductTypeDetailsPage
-      disabled={false}
-      productType={productType}
-      productAttributes={productType.productAttributes.edges.map(
-        edge => edge.node
-      )}
-      variantAttributes={productType.variantAttributes.edges.map(
-        edge => edge.node
-      )}
-      saveButtonBarState="default"
-      searchLoading={false}
-      searchResults={attributes}
-      taxRates={taxRates}
-      onAttributeSearch={undefined}
-      onBack={() => undefined}
-      onDelete={undefined}
-      onSubmit={() => undefined}
-    />
-  ))
+  .add("default", () => <ProductTypeDetailsPage {...props} />)
   .add("loading", () => (
     <ProductTypeDetailsPage
+      {...props}
       disabled={true}
-      saveButtonBarState="default"
-      searchLoading={false}
-      searchResults={[]}
-      taxRates={[]}
-      onAttributeSearch={undefined}
-      onBack={() => undefined}
-      onDelete={undefined}
-      onSubmit={() => undefined}
+      pageTitle={undefined}
+      productType={undefined}
     />
   ));

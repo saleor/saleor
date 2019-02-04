@@ -40,4 +40,8 @@
       {% block forms %}{% endblock %}
     </div>
   </div>
+  <h2 class="order-details__header">
+    {% trans "Order details" context "Header of the order summary table" %}
+  </h2>
+  {% include "order/_ordered_items_table.html" %}
 {% endblock content %}

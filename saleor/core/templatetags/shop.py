@@ -1,5 +1,3 @@
-import json
-
 from django.template import Library
 from django.utils.http import urlencode
 
@@ -19,10 +17,16 @@ def get_sort_by_url(context, field, descending=False):
 
 @register.inclusion_tag('menu.html')
 def menu(site_menu=None, horizontal=False):
-    menu_items = json.loads(site_menu.json_content) if site_menu else []
+    menu_items = site_menu.json_content if site_menu else []
     return {
         'menu_items': menu_items,
         'horizontal': horizontal}
+
+
+@register.inclusion_tag('footer_menu.html')
+def footer_menu(site_menu=None):
+    menu_items = site_menu.json_content if site_menu else []
+    return {'menu_items': menu_items}
 
 
 @register.simple_tag

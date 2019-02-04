@@ -273,11 +273,12 @@ class CartShippingMethodForm(forms.ModelForm):
         fields = ['shipping_method']
 
     def __init__(self, *args, **kwargs):
+        discounts = kwargs.pop('discounts')
         taxes = kwargs.pop('taxes')
         super().__init__(*args, **kwargs)
         country_code = self.instance.shipping_address.country.code
         qs = ShippingMethod.objects.applicable_shipping_methods(
-            price=self.instance.get_subtotal().gross,
+            price=self.instance.get_subtotal(discounts, taxes).gross,
             weight=self.instance.get_total_weight(),
             country_code=country_code)
         self.fields['shipping_method'].queryset = qs

@@ -1,9 +1,8 @@
 import pytest
 
 from saleor.product.models import (
-    AttributeChoiceValueTranslation, CategoryTranslation,
-    CollectionTranslation, ProductAttributeTranslation, ProductTranslation,
-    ProductVariantTranslation)
+    AttributeTranslation, AttributeValueTranslation, CategoryTranslation,
+    CollectionTranslation, ProductTranslation, ProductVariantTranslation)
 from saleor.shipping.models import ShippingMethodTranslation
 
 
@@ -15,10 +14,10 @@ def product_translation_pl(product):
 
 
 @pytest.fixture
-def attribute_choice_translation_fr(translated_product_attribute):
-    value = translated_product_attribute.product_attribute.values.first()
-    return AttributeChoiceValueTranslation.objects.create(
-        language_code='fr', attribute_choice_value=value,
+def attribute_value_translation_fr(translated_attribute):
+    value = translated_attribute.attribute.values.first()
+    return AttributeValueTranslation.objects.create(
+        language_code='fr', attribute_value=value,
         name='French name')
 
 
@@ -98,17 +97,17 @@ def test_product_variant_translation(settings, variant):
     assert variant.translated.name == french_name
 
 
-def test_product_attribute_translation(settings, color_attribute):
-    ProductAttributeTranslation.objects.create(
-        language_code='fr', product_attribute=color_attribute,
+def test_attribute_translation(settings, color_attribute):
+    AttributeTranslation.objects.create(
+        language_code='fr', attribute=color_attribute,
         name='French name')
     assert not color_attribute.translated.name == 'French name'
     settings.LANGUAGE_CODE = 'fr'
     assert color_attribute.translated.name == 'French name'
 
 
-def test_attribute_choice_value_translation(
-        settings, product, attribute_choice_translation_fr):
+def test_attribute_value_translation(
+        settings, product, attribute_value_translation_fr):
     attribute = product.product_type.product_attributes.first().values.first()
     assert not attribute.translated.name == 'French name'
     settings.LANGUAGE_CODE = 'fr'

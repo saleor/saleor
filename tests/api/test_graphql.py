@@ -1,4 +1,3 @@
-import json
 from unittest.mock import Mock, patch
 
 import graphene
@@ -10,12 +9,12 @@ from django.shortcuts import reverse
 from django.test import RequestFactory
 from graphql_jwt.shortcuts import get_token
 from graphql_relay import to_global_id
-from tests.utils import get_graphql_content
 
 from saleor.graphql.middleware import jwt_middleware
 from saleor.graphql.product.types import Product
 from saleor.graphql.utils import (
     filter_by_query_param, generate_query_argument_description, get_nodes)
+from tests.api.utils import get_graphql_content
 
 
 def test_jwt_middleware(admin_user):
@@ -33,7 +32,8 @@ def test_jwt_middleware(admin_user):
 
     # test request with proper JWT token authorizes the request to API
     token = get_token(admin_user)
-    request = rf.get(reverse('api'), **{'HTTP_AUTHORIZATION': 'JWT %s' % token})
+    request = rf.get(
+        reverse('api'), **{'HTTP_AUTHORIZATION': 'JWT %s' % token})
     assert not hasattr(request, 'user')
     middleware(request)
     assert request.user == admin_user
@@ -44,13 +44,17 @@ def test_real_query(user_api_client, product):
     category = product.category
     attr_value = product_attr.values.first()
     filter_by = '%s:%s' % (product_attr.slug, attr_value.slug)
-    query = '''
-    query Root($categoryId: ID!, $sortBy: String, $first: Int, $attributesFilter: [AttributeScalar], $minPrice: Float, $maxPrice: Float) {
+    query = """
+    query Root($categoryId: ID!, $sortBy: ProductOrder, $first: Int, $attributesFilter: [AttributeScalar], $minPrice: Float, $maxPrice: Float) {
         category(id: $categoryId) {
             ...CategoryPageFragmentQuery
             __typename
         }
-        attributes(inCategory: $categoryId) {
+        products(first: $first, sortBy: $sortBy, categories:[$categoryId], attributes: $attributesFilter, priceGte: $minPrice, priceLte: $maxPrice) {
+            ...ProductListFragmentQuery
+            __typename
+        }
+        attributes(inCategory: $categoryId, first: 20) {
             edges {
                 node {
                     ...ProductFiltersFragmentQuery
@@ -64,7 +68,7 @@ def test_real_query(user_api_client, product):
         id
         name
         url
-        ancestors {
+        ancestors(last: 20) {
             edges {
                 node {
                     name
@@ -74,7 +78,7 @@ def test_real_query(user_api_client, product):
                 }
             }
         }
-        children {
+        children(first: 20) {
             edges {
                 node {
                     name
@@ -84,10 +88,6 @@ def test_real_query(user_api_client, product):
                     __typename
                 }
             }
-        }
-        products(first: $first, sortBy: $sortBy, attributes: $attributesFilter, price_Gte: $minPrice, price_Lte: $maxPrice) {
-            ...ProductListFragmentQuery
-            __typename
         }
         __typename
     }
@@ -162,7 +162,7 @@ def test_real_query(user_api_client, product):
         __typename
     }
 
-    fragment ProductFiltersFragmentQuery on ProductAttribute {
+    fragment ProductFiltersFragmentQuery on Attribute {
         id
         name
         slug
@@ -174,19 +174,17 @@ def test_real_query(user_api_client, product):
         }
         __typename
     }
-    '''
-    response = user_api_client.post(
-        reverse('api'), {
-            'query': query,
-            'variables': json.dumps(
-                {
-                    'categoryId': graphene.Node.to_global_id(
-                        'Category', category.id),
-                    'sortBy': 'name',
-                    'first': 1,
-                    'attributesFilter': [filter_by]})})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
+    """
+    variables = {
+        'categoryId': graphene.Node.to_global_id(
+            'Category', category.id),
+        'sortBy': {
+            'field': 'NAME',
+            'direction': 'ASC'},
+        'first': 1,
+        'attributesFilter': [filter_by]}
+    response = user_api_client.post_graphql(query, variables)
+    get_graphql_content(response)
 
 
 def test_get_nodes(product_list):
@@ -218,6 +216,13 @@ def test_get_nodes(product_list):
 
     # Raise an error if no nodes were found
     global_ids = []
+    msg = 'Could not resolve to a nodes with the global id list of {}.'.format(
+        global_ids)
+    with pytest.raises(Exception, message=msg):
+        get_nodes(global_ids, Product)
+
+    # Raise an error if pass wrong ids
+    global_ids = ['a', 'bb']
     msg = 'Could not resolve to a nodes with the global id list of {}.'.format(
         global_ids)
     with pytest.raises(Exception, message=msg):

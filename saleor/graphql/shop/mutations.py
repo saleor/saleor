@@ -1,11 +1,13 @@
-
 import graphene
+from django.conf import settings
+from django.core.management import call_command
 from graphql_jwt.decorators import permission_required
 
+from ...site import models as site_models
+from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation
-from ..core.types.common import WeightUnitsEnum
 from ..product.types import Collection
-from .types import Shop
+from .types import AuthorizationKey, AuthorizationKeyType, Shop
 
 
 class ShopSettingsInput(graphene.InputObjectType):
@@ -15,6 +17,8 @@ class ShopSettingsInput(graphene.InputObjectType):
         description='Include taxes in prices')
     display_gross_prices = graphene.Boolean(
         description='Display prices with tax in store')
+    charge_taxes_on_shipping = graphene.Boolean(
+        description='Charge taxes on shipping')
     track_inventory_by_default = graphene.Boolean(
         description='Enable inventory tracking')
     default_weight_unit = WeightUnitsEnum(description='Default weight unit')
@@ -26,13 +30,15 @@ class SiteDomainInput(graphene.InputObjectType):
 
 
 class ShopSettingsUpdate(BaseMutation):
+    shop = graphene.Field(Shop, description='Updated Shop')
+
     class Arguments:
         input = ShopSettingsInput(
             description='Fields required to update shop settings.',
             required=True)
 
-    shop = graphene.Field(
-        Shop, description='Updated Shop')
+    class Meta:
+        description = 'Updates shop settings'
 
     @classmethod
     @permission_required('site.manage_settings')
@@ -53,10 +59,13 @@ class ShopSettingsUpdate(BaseMutation):
 
 
 class ShopDomainUpdate(BaseMutation):
+    shop = graphene.Field(Shop, description='Updated Shop')
+
     class Arguments:
         input = SiteDomainInput(description='Fields required to update site')
 
-    shop = graphene.Field(Shop, description='Updated Shop')
+    class Meta:
+        description = 'Updates site domain of the shop'
 
     @classmethod
     @permission_required('site.manage_settings')
@@ -65,9 +74,9 @@ class ShopDomainUpdate(BaseMutation):
         site = info.context.site
         domain = input.get('domain')
         name = input.get('name')
-        if domain:
+        if domain is not None:
             site.domain = domain
-        if name:
+        if name is not None:
             site.name = name
         cls.clean_instance(site, errors)
         if errors:
@@ -76,20 +85,43 @@ class ShopDomainUpdate(BaseMutation):
         return ShopDomainUpdate(shop=Shop(), errors=errors)
 
 
+class ShopFetchTaxRates(BaseMutation):
+    shop = graphene.Field(Shop, description='Updated Shop')
+
+    class Meta:
+        description = 'Fetch tax rates'
+
+    @classmethod
+    @permission_required('site.manage_settings')
+    def mutate(cls, root, info):
+        errors = []
+        if settings.VATLAYER_ACCESS_KEY:
+            call_command('get_vat_rates')
+        else:
+            cls.add_error(
+                errors, None, 'Could not fetch tax rates. '
+                'Make sure you have supplied a valid API Access Key.')
+        return ShopFetchTaxRates(shop=Shop(), errors=errors)
+
+
 class HomepageCollectionUpdate(BaseMutation):
+    shop = graphene.Field(Shop, description='Updated Shop')
+
     class Arguments:
         collection = graphene.ID(
             description='Collection displayed on homepage')
 
-    shop = graphene.Field(
-        Shop, description='Updated Shop')
+    class Meta:
+        description = 'Updates homepage collection of the shop'
 
     @classmethod
     @permission_required('site.manage_settings')
-    def mutate(cls, root, info, collection):
+    def mutate(cls, root, info, collection=None):
         errors = []
-        new_collection = cls.get_node_or_error(
-            info, collection, errors, 'collection', Collection)
+        new_collection = None
+        if collection:
+            new_collection = cls.get_node_or_error(
+                info, collection, errors, 'collection', Collection)
         if errors:
             return HomepageCollectionUpdate(errors=errors)
         site_settings = info.context.site.settings
@@ -99,3 +131,74 @@ class HomepageCollectionUpdate(BaseMutation):
             return HomepageCollectionUpdate(errors=errors)
         site_settings.save(update_fields=['homepage_collection'])
         return HomepageCollectionUpdate(shop=Shop(), errors=errors)
+
+
+class AuthorizationKeyInput(graphene.InputObjectType):
+    key = graphene.String(
+        required=True, description='Client authorization key (client ID).')
+    password = graphene.String(
+        required=True, description='Client secret.')
+
+
+class AuthorizationKeyAdd(BaseMutation):
+    authorization_key = graphene.Field(
+        AuthorizationKey, description='Newly added authorization key.')
+    shop = graphene.Field(Shop, description='Updated Shop')
+
+    class Meta:
+        description = 'Adds an authorization key.'
+
+    class Arguments:
+        key_type = AuthorizationKeyType(
+            required=True, description='Type of an authorization key to add.')
+        input = AuthorizationKeyInput(
+            required=True,
+            description='Fields required to create an authorization key.')
+
+    @classmethod
+    @permission_required('site.manage_settings')
+    def mutate(cls, root, info, key_type, input):
+        errors = []
+        if site_models.AuthorizationKey.objects.filter(name=key_type).exists():
+            cls.add_error(
+                errors, 'key_type', 'Authorization key already exists.')
+            return AuthorizationKeyAdd(errors=errors)
+
+        site_settings = info.context.site.settings
+        instance = site_models.AuthorizationKey(
+            name=key_type, site_settings=site_settings, **input)
+        cls.clean_instance(instance, errors)
+        if errors:
+            return AuthorizationKeyAdd(errors=errors)
+
+        instance.save()
+        return AuthorizationKeyAdd(authorization_key=instance, shop=Shop())
+
+
+class AuthorizationKeyDelete(BaseMutation):
+    authorization_key = graphene.Field(
+        AuthorizationKey, description='Auhtorization key that was deleted.')
+    shop = graphene.Field(Shop, description='Updated Shop')
+
+    class Arguments:
+        key_type = AuthorizationKeyType(
+            required=True, description='Type of a key to delete.')
+
+    class Meta:
+        description = 'Deletes an authorization key.'
+
+    @classmethod
+    @permission_required('site.manage_settings')
+    def mutate(cls, root, info, key_type):
+        errors = []
+        try:
+            site_settings = info.context.site.settings
+            instance = site_models.AuthorizationKey.objects.get(
+                name=key_type, site_settings=site_settings)
+        except site_models.AuthorizationKey.DoesNotExist:
+            cls.add_error(
+                errors, 'key_type', 'Couldn\'t resolve authorization key')
+            return AuthorizationKeyDelete(errors=errors)
+
+        instance.delete()
+        return AuthorizationKeyDelete(authorization_key=instance, shop=Shop())

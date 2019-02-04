@@ -7,9 +7,12 @@
 !.dockerignore
 !.eslintrc.json
 !.flowconfig
+!.gqlconfig
 !.github
 !.gitignore
 !.nvmrc
+!.npmrc
+!.plop
 !.pylintrc
 !.travis*
 !.tx

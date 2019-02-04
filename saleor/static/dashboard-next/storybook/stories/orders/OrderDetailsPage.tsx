@@ -1,81 +1,152 @@
+import { Omit } from "@material-ui/core";
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
 import * as placeholderImage from "../../../../images/placeholder60x60.png";
-import { OrderStatus, PaymentStatus } from "../../../orders";
-import OrderDetailsPage from "../../../orders/components/OrderDetailsPage";
+import OrderDetailsPage, {
+  OrderDetailsPageProps
+} from "../../../orders/components/OrderDetailsPage";
+import { countries, order as orderFixture } from "../../../orders/fixtures";
 import {
-  clients,
-  countries,
-  order as orderFixture,
-  prefixes,
-  shippingMethods,
-  variants
-} from "../../../orders/fixtures";
+  FulfillmentStatus,
+  OrderStatus,
+  PaymentChargeStatusEnum
+} from "../../../types/globalTypes";
 import Decorator from "../../Decorator";
 
 const order = orderFixture(placeholderImage);
-const orderDraft = orderFixture(placeholderImage, {
-  status: OrderStatus.DRAFT
-});
-const orderWithoutPayment = orderFixture(placeholderImage, {
-  paymentStatus: PaymentStatus.PREAUTH
-});
 
-const callbacks = {
+const props: Omit<OrderDetailsPageProps, "classes"> = {
+  countries,
   onBack: () => undefined,
-  onCreate: undefined,
-  onCustomerEmailClick: () => undefined,
+  onBillingAddressEdit: undefined,
+  onFulfillmentCancel: () => undefined,
+  onFulfillmentTrackingNumberUpdate: () => undefined,
+  onNoteAdd: undefined,
   onOrderCancel: undefined,
-  onOrderLineChange: () => () => () => undefined,
-  onOrderLineRemove: () => () => undefined,
-  onPackingSlipClick: () => undefined,
-  onPaymentRelease: undefined,
-  onPrintClick: undefined,
-  onProductClick: undefined
+  onOrderFulfill: undefined,
+  onPaymentCapture: undefined,
+  onPaymentPaid: undefined,
+  onPaymentRefund: undefined,
+  onPaymentVoid: undefined,
+  onProductClick: undefined,
+  onShippingAddressEdit: undefined,
+  order
 };
 
 storiesOf("Views / Orders / Order details", module)
   .addDecorator(Decorator)
-  .add("when loading data", () => <OrderDetailsPage onBack={() => undefined} />)
-  .add("when loaded data", () => (
+  .add("default", () => <OrderDetailsPage {...props} />)
+  .add("loading", () => <OrderDetailsPage {...props} order={undefined} />)
+  .add("pending payment", () => (
     <OrderDetailsPage
-      countries={countries}
-      order={order}
-      prefixes={prefixes}
-      user="admin@example.com"
-      {...callbacks}
+      {...props}
+      order={{
+        ...props.order,
+        paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED
+      }}
     />
   ))
-  .add("as a draft", () => (
+  .add("payment error", () => (
     <OrderDetailsPage
-      countries={countries}
-      order={orderDraft}
-      prefixes={prefixes}
-      shippingMethods={shippingMethods}
-      user="admin@example.com"
-      users={clients}
-      variants={variants}
-      variantsLoading={false}
-      fetchShippingMethods={undefined}
-      fetchUsers={undefined}
-      fetchVariants={undefined}
-      {...callbacks}
+      {...props}
+      order={{
+        ...props.order,
+        paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED
+      }}
     />
   ))
-  .add("as a unpaid order", () => (
+  .add("payment confirmed", () => (
     <OrderDetailsPage
-      countries={countries}
-      order={orderWithoutPayment}
-      prefixes={prefixes}
-      shippingMethods={shippingMethods}
-      user="admin@example.com"
-      users={clients}
-      variants={variants}
-      variantsLoading={false}
-      fetchShippingMethods={undefined}
-      fetchUsers={undefined}
-      fetchVariants={undefined}
-      {...callbacks}
+      {...props}
+      order={{
+        ...props.order,
+        paymentStatus: PaymentChargeStatusEnum.CHARGED
+      }}
+    />
+  ))
+  .add("no payment", () => (
+    <OrderDetailsPage
+      {...props}
+      order={{
+        ...props.order,
+        paymentStatus: null
+      }}
+    />
+  ))
+  .add("refunded payment", () => (
+    <OrderDetailsPage
+      {...props}
+      order={{
+        ...props.order,
+        paymentStatus: PaymentChargeStatusEnum.FULLY_REFUNDED
+      }}
+    />
+  ))
+  .add("rejected payment", () => (
+    <OrderDetailsPage
+      {...props}
+      order={{
+        ...props.order,
+        paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED
+      }}
+    />
+  ))
+  .add("cancelled", () => (
+    <OrderDetailsPage
+      {...props}
+      order={{
+        ...props.order,
+        fulfillments: props.order.fulfillments.map(fulfillment => ({
+          ...fulfillment,
+          status: FulfillmentStatus.CANCELED
+        })),
+        status: OrderStatus.CANCELED
+      }}
+    />
+  ))
+  .add("fulfilled", () => (
+    <OrderDetailsPage
+      {...props}
+      order={{
+        ...props.order,
+        status: OrderStatus.FULFILLED
+      }}
+    />
+  ))
+  .add("partially fulfilled", () => (
+    <OrderDetailsPage
+      {...props}
+      order={{
+        ...props.order,
+        status: OrderStatus.PARTIALLY_FULFILLED
+      }}
+    />
+  ))
+  .add("unfulfilled", () => (
+    <OrderDetailsPage
+      {...props}
+      order={{
+        ...props.order,
+        status: OrderStatus.UNFULFILLED
+      }}
+    />
+  ))
+  .add("no shipping address", () => (
+    <OrderDetailsPage
+      {...props}
+      order={{
+        ...props.order,
+        shippingAddress: null
+      }}
+    />
+  ))
+  .add("no customer note", () => (
+    <OrderDetailsPage
+      {...props}
+      order={{
+        ...props.order,
+        customerNote: ""
+      }}
     />
   ));

@@ -26,7 +26,7 @@
         {% price payment.order.total.tax %}
       </li>
       <li class="list-item">{% trans "Captured amount:" context "Modal refund payment list title" %}
-        {{ captured|currencyfmt:currency }}
+        {% price captured %}
       </li>
     </ul>
   </div>

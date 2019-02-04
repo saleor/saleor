@@ -1,7 +1,12 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import * as classNames from "classnames";
@@ -12,7 +17,52 @@ import CardTitle from "../CardTitle";
 import FormSpacer from "../FormSpacer";
 import Toggle from "../Toggle";
 
-interface SeoFormProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    addressBar: {
+      color: "#006621",
+      fontSize: "13px",
+      lineHeight: "16px",
+      marginBottom: "2px",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap"
+    },
+    container: {
+      width: "100%"
+    },
+    descriptionBar: {
+      color: "#545454",
+      fontSize: "13px",
+      lineHeight: "18px",
+      overflowWrap: "break-word"
+    },
+    helperText: {
+      marginBottom: theme.spacing.unit * 3
+    },
+    label: {
+      flex: 1
+    },
+    labelContainer: {
+      display: "flex"
+    },
+    preview: {
+      minHeight: theme.spacing.unit * 10
+    },
+    title: {
+      padding: 0
+    },
+    titleBar: {
+      color: "#1a0dab",
+      fontSize: "18px",
+      lineHeight: "21px",
+      overflowWrap: "break-word",
+      textDecoration: "none",
+      wordWrap: "break-word"
+    }
+  });
+
+interface SeoFormProps extends WithStyles<typeof styles> {
   description?: string;
   descriptionPlaceholder: string;
   disabled?: boolean;
@@ -20,72 +70,29 @@ interface SeoFormProps {
   helperText?: string;
   title: string;
   titlePlaceholder: string;
-  storefrontUrl?: string;
   onChange(event: any);
   onClick?();
 }
 
-const decorate = withStyles(theme => ({
-  addressBar: {
-    color: "#006621",
-    fontSize: "13px",
-    lineHeight: "16px",
-    marginBottom: "2px",
-    overflow: "hidden" as "hidden",
-    textOverflow: "ellipsis" as "ellipsis",
-    whiteSpace: "nowrap" as "nowrap"
-  },
-  container: {
-    width: "100%"
-  },
-  descriptionBar: {
-    color: "#545454",
-    fontSize: "13px",
-    lineHeight: "18px",
-    overflowWrap: "break-word" as "break-word"
-  },
-  helperText: {
-    marginBottom: theme.spacing.unit * 3
-  },
-  label: {
-    flex: 1
-  },
-  labelContainer: {
-    display: "flex" as "flex"
-  },
-  preview: {
-    minHeight: theme.spacing.unit * 10
-  },
-  title: {
-    padding: 0
-  },
-  titleBar: {
-    color: "#1a0dab",
-    fontSize: "18px",
-    lineHeight: "21px",
-    overflowWrap: "break-word" as "break-word",
-    textDecoration: "none",
-    wordWrap: "break-word" as "break-word"
-  }
-}));
-
-const SeoForm = decorate<SeoFormProps>(
+const SeoForm = withStyles(styles, { name: "SeoForm" })(
   ({
     classes,
     description,
+    descriptionPlaceholder,
     disabled,
     helperText,
     loading,
     title,
+    titlePlaceholder,
     onChange
-  }) => (
+  }: SeoFormProps) => (
     <Toggle>
       {(toggled, { toggle }) => (
         <Card>
           <CardTitle
             title={i18n.t("Search Engine Preview")}
             toolbar={
-              <Button color="secondary" variant="flat" onClick={toggle}>
+              <Button color="secondary" variant="text" onClick={toggle}>
                 {i18n.t("Edit website SEO")}
               </Button>
             }
@@ -121,6 +128,7 @@ const SeoForm = decorate<SeoFormProps>(
                   value={title.slice(0, 69)}
                   disabled={loading || disabled}
                   InputLabelProps={{ shrink: true }}
+                  placeholder={titlePlaceholder}
                   onChange={onChange}
                   fullWidth
                 />
@@ -148,6 +156,7 @@ const SeoForm = decorate<SeoFormProps>(
                   disabled={loading || disabled}
                   fullWidth
                   multiline
+                  placeholder={descriptionPlaceholder}
                   InputLabelProps={{ shrink: true }}
                   rows={10}
                 />
@@ -159,4 +168,5 @@ const SeoForm = decorate<SeoFormProps>(
     </Toggle>
   )
 );
+SeoForm.displayName = "SeoForm";
 export default SeoForm;

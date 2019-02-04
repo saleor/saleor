@@ -3,15 +3,15 @@ from decimal import Decimal
 from uuid import uuid4
 
 from django.conf import settings
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.contrib.postgres.fields import JSONField
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.encoding import smart_str
 from django_prices.models import MoneyField
-from jsonfield import JSONField
 from measurement.measures import Weight
 
 from ..account.models import Address
-from ..core.utils.taxes import ZERO_TAXED_MONEY
+from ..core.utils.taxes import ZERO_TAXED_MONEY, zero_money
 from ..shipping.models import ShippingMethod
 
 CENTS = Decimal('0.01')
@@ -41,7 +41,7 @@ class Cart(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='carts',
         on_delete=models.CASCADE)
-    email = models.EmailField(blank=True, default='')
+    email = models.EmailField()
     token = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     quantity = models.PositiveIntegerField(default=0)
     billing_address = models.ForeignKey(
@@ -55,8 +55,10 @@ class Cart(models.Model):
         on_delete=models.SET_NULL)
     note = models.TextField(blank=True, default='')
     discount_amount = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=zero_money)
     discount_name = models.CharField(max_length=255, blank=True, null=True)
     translated_discount_name = models.CharField(
         max_length=255, blank=True, null=True)
@@ -65,7 +67,7 @@ class Cart(models.Model):
     objects = CartQueryset.as_manager()
 
     class Meta:
-        ordering = ('-last_change',)
+        ordering = ('-last_change', )
 
     def __repr__(self):
         return 'Cart(quantity=%s)' % (self.quantity,)
@@ -82,7 +84,7 @@ class Cart(models.Model):
 
     def get_shipping_price(self, taxes):
         return (
-            self.shipping_method.get_total_price(taxes)
+            self.shipping_method.get_total(taxes)
             if self.shipping_method and self.is_shipping_required()
             else ZERO_TAXED_MONEY)
 
@@ -121,12 +123,12 @@ class CartLine(models.Model):
         Cart, related_name='lines', on_delete=models.CASCADE)
     variant = models.ForeignKey(
         'product.ProductVariant', related_name='+', on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(999)])
-    data = JSONField(blank=True, default={})
+    quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    data = JSONField(blank=True, default=dict)
 
     class Meta:
         unique_together = ('cart', 'variant', 'data')
+        ordering = ('id',)
 
     def __str__(self):
         return smart_str(self.variant)

@@ -5,6 +5,7 @@ def remove_staff_member(staff):
     """
     if staff.orders.exists():
         staff.is_staff = False
+        staff.user_permissions.clear()
         staff.save()
     else:
         staff.delete()

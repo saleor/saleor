@@ -1,5 +1,9 @@
-import { withStyles } from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
 import Form from "../../../components/Form";
@@ -8,45 +12,131 @@ import Skeleton from "../../../components/Skeleton";
 import {
   Timeline,
   TimelineAddNote,
-  TimelineNode,
+  TimelineEvent,
   TimelineNote
-} from "../../../components/Timeline/Timeline";
+} from "../../../components/Timeline";
 import i18n from "../../../i18n";
+import { OrderEvents, OrderEventsEmails } from "../../../types/globalTypes";
+import { OrderDetails_order_events } from "../../types/OrderDetails";
 
-interface OrderHistoryProps {
-  history?: Array<{
-    id: string;
-    type: string;
-    content: string;
-    date: string;
-    user: string;
-    params?: any;
-  }>;
-  user?: string;
+export interface FormData {
+  message: string;
 }
 
-const decorate = withStyles(
-  theme => ({
+const getEventMessage = (event: OrderDetails_order_events) => {
+  switch (event.type) {
+    case OrderEvents.CANCELED:
+      return i18n.t("Order has been cancelled", {
+        context: "order history message"
+      });
+    case OrderEvents.EMAIL_SENT:
+      switch (event.emailType) {
+        case OrderEventsEmails.FULFILLMENT:
+          return i18n.t("Fulfillment confirmation has been sent to customer", {
+            context: "order history message"
+          });
+        case OrderEventsEmails.ORDER:
+          return i18n.t("Order confirmation has been sent to customer", {
+            context: "order history message"
+          });
+        case OrderEventsEmails.PAYMENT:
+          return i18n.t("Payment confirmation has been sent to customer", {
+            context: "order history message"
+          });
+        case OrderEventsEmails.SHIPPING:
+          return i18n.t("Shipping details has been sent to customer", {
+            context: "order history message"
+          });
+      }
+    case OrderEvents.FULFILLMENT_CANCELED:
+      return i18n.t("Fulfillment has been cancelled", {
+        context: "order history message"
+      });
+    case OrderEvents.FULFILLMENT_FULFILLED_ITEMS:
+      return i18n.t("Fulfilled {{ quantity }} items", {
+        context: "order history message",
+        quantity: event.quantity
+      });
+    case OrderEvents.FULFILLMENT_RESTOCKED_ITEMS:
+      return i18n.t("Restocked {{ quantity }} items", {
+        context: "order history message",
+        quantity: event.quantity
+      });
+    case OrderEvents.ORDER_FULLY_PAID:
+      return i18n.t("Order has been fully paid", {
+        context: "order history message"
+      });
+    case OrderEvents.ORDER_MARKED_AS_PAID:
+      return i18n.t("Marked order as paid", {
+        context: "order history message"
+      });
+    case OrderEvents.OTHER:
+      return event.message;
+    case OrderEvents.OVERSOLD_ITEMS:
+      return i18n.t("Oversold {{ quantity }} items", {
+        context: "order history message",
+        quantity: event.quantity
+      });
+    case OrderEvents.PAYMENT_CAPTURED:
+      return i18n.t("Payment has been captured", {
+        context: "order history message"
+      });
+    case OrderEvents.PAYMENT_REFUNDED:
+      return i18n.t("Payment has been refunded", {
+        context: "order history message"
+      });
+    case OrderEvents.PAYMENT_VOIDED:
+      return i18n.t("Payment has been voided", {
+        context: "order history message"
+      });
+    case OrderEvents.PLACED:
+      return i18n.t("Order has been placed", {
+        context: "order history message"
+      });
+    case OrderEvents.PLACED_FROM_DRAFT:
+      return i18n.t("Order has been created from draft", {
+        context: "order history message"
+      });
+    case OrderEvents.TRACKING_UPDATED:
+      return i18n.t("Updated fulfillment group's tracking number", {
+        context: "order history message"
+      });
+    case OrderEvents.UPDATED:
+      return i18n.t("Order has been updated", {
+        context: "order history message"
+      });
+  }
+};
+
+const styles = (theme: Theme) =>
+  createStyles({
     root: { marginTop: theme.spacing.unit * 2 },
     user: {
       marginBottom: theme.spacing.unit
     }
-  }),
-  { name: "OrderHistory" }
-);
-const OrderHistory = decorate<OrderHistoryProps>(
-  ({ classes, history, user }) => (
+  });
+
+interface OrderHistoryProps extends WithStyles<typeof styles> {
+  history: OrderDetails_order_events[];
+  onNoteAdd: (data: FormData) => void;
+}
+
+const OrderHistory = withStyles(styles, { name: "OrderHistory" })(
+  ({ classes, history, onNoteAdd }: OrderHistoryProps) => (
     <div className={classes.root}>
-      <PageHeader title={i18n.t("Order history")} />
+      <PageHeader
+        title={i18n.t("Order timeline", {
+          context: "section name"
+        })}
+      />
       {history ? (
         <Timeline>
-          <Form initial={{ content: "" }}>
+          <Form initial={{ message: "" }} onSubmit={onNoteAdd}>
             {({ change, data, submit }) => (
               <TimelineAddNote
-                content={data.content}
+                message={data.message}
                 onChange={change}
                 onSubmit={submit}
-                user={user}
               />
             )}
           </Form>
@@ -54,44 +144,22 @@ const OrderHistory = decorate<OrderHistoryProps>(
             .slice()
             .reverse()
             .map(event => {
-              if (event.type === "note") {
+              if (event.type === OrderEvents.NOTE_ADDED) {
                 return (
                   <TimelineNote
-                    user={event.user}
                     date={event.date}
-                    content={event.content}
+                    user={event.user}
+                    message={event.message}
                     key={event.id}
                   />
                 );
               }
-              if (event.type === "shipped") {
-                return (
-                  <TimelineNode
-                    date={event.date}
-                    title={event.content}
-                    key={event.id}
-                  >
-                    <Typography variant="caption" className={classes.user}>
-                      {i18n.t("by {{ user }}", { user: event.user })}
-                    </Typography>
-                    <Typography
-                      dangerouslySetInnerHTML={{
-                        __html: event.params.shippingAddress
-                      }}
-                    />
-                  </TimelineNode>
-                );
-              }
               return (
-                <TimelineNode
+                <TimelineEvent
                   date={event.date}
-                  title={event.content}
+                  title={getEventMessage(event)}
                   key={event.id}
-                >
-                  <Typography variant="caption">
-                    {i18n.t("by {{ user }}", { user: event.user })}
-                  </Typography>
-                </TimelineNode>
+                />
               );
             })}
         </Timeline>
@@ -101,4 +169,5 @@ const OrderHistory = decorate<OrderHistoryProps>(
     </div>
   )
 );
+OrderHistory.displayName = "OrderHistory";
 export default OrderHistory;

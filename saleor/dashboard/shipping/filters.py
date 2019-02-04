@@ -18,10 +18,10 @@ class ShippingZoneFilter(SortedFilterSet):
     price = RangeFilter(
         label=pgettext_lazy(
             'Shipping zones list filter label', 'Price range'),
-        name='shipping_methods__price')
+        field_name='shipping_methods__price')
     country = ChoiceFilter(
         label=pgettext_lazy('Shipping zones filter label', 'Country'),
-        name='countries', lookup_expr='contains',
+        field_name='countries', lookup_expr='contains',
         choices=COUNTRY_CODE_CHOICES)
     sort_by = OrderingFilter(
         label=pgettext_lazy('Product list sorting filter label', 'Sort by'),

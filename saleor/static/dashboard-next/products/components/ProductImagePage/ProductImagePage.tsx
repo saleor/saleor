@@ -1,21 +1,43 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
+import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar, {
-  SaveButtonBarState
-} from "../../../components/SaveButtonBar";
+import SaveButtonBar from "../../../components/SaveButtonBar";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import ProductImageNavigation from "../ProductImageNavigation";
 
-interface ProductImagePageProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    image: {
+      height: "100%",
+      objectFit: "contain",
+      width: "100%"
+    },
+    imageContainer: {
+      background: "#ffffff",
+      border: "1px solid #eaeaea",
+      borderRadius: theme.spacing.unit,
+      margin: `0 auto ${theme.spacing.unit * 2}px`,
+      maxWidth: 552,
+      padding: theme.spacing.unit * 2
+    }
+  });
+
+interface ProductImagePageProps extends WithStyles<typeof styles> {
   image?: {
     id: string;
     alt: string;
@@ -26,34 +48,14 @@ interface ProductImagePageProps {
     url: string;
   }>;
   disabled: boolean;
-  saveButtonBarState?: SaveButtonBarState;
+  saveButtonBarState: ConfirmButtonTransitionState;
   onBack: () => void;
   onDelete: () => void;
   onRowClick: (id: string) => () => void;
   onSubmit: (data: { description: string }) => void;
 }
 
-const decorate = withStyles(theme => ({
-  image: {
-    height: "100%",
-    objectFit: "contain" as "contain",
-    width: "100%"
-  },
-  imageContainer: {
-    background: "#ffffff",
-    border: "1px solid #eaeaea",
-    borderRadius: theme.spacing.unit,
-    margin: `0 auto ${theme.spacing.unit * 2}px`,
-    maxWidth: 552,
-    padding: theme.spacing.unit * 2
-  },
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "4fr 9fr"
-  }
-}));
-const ProductImagePage = decorate<ProductImagePageProps>(
+const ProductImagePage = withStyles(styles, { name: "ProductImagePage" })(
   ({
     classes,
     disabled,
@@ -64,17 +66,17 @@ const ProductImagePage = decorate<ProductImagePageProps>(
     onDelete,
     onRowClick,
     onSubmit
-  }) => (
+  }: ProductImagePageProps) => (
     <Form
       initial={{ description: image ? image.alt : "" }}
       onSubmit={onSubmit}
-      key={image ? image.alt : "loading"}
+      confirmLeave
     >
       {({ change, data, hasChanged, submit }) => {
         return (
           <Container width="md">
             <PageHeader title={i18n.t("Edit Photo")} onBack={onBack} />
-            <div className={classes.root}>
+            <Grid variant="inverted">
               <div>
                 <ProductImageNavigation
                   disabled={disabled}
@@ -112,7 +114,7 @@ const ProductImagePage = decorate<ProductImagePageProps>(
                   </CardContent>
                 </Card>
               </div>
-            </div>
+            </Grid>
             <SaveButtonBar
               disabled={disabled || !onSubmit || !hasChanged}
               state={saveButtonBarState}
@@ -126,4 +128,5 @@ const ProductImagePage = decorate<ProductImagePageProps>(
     </Form>
   )
 );
+ProductImagePage.displayName = "ProductImagePage";
 export default ProductImagePage;

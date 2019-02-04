@@ -31,7 +31,7 @@ def ga_report(
 def _report(client_id, payloads, extra_headers=None, **extra_data):
     tracking_id = getattr(settings, 'GOOGLE_ANALYTICS_TRACKING_ID', None)
     if tracking_id and client_id:
-        ga_report(
+        ga_report.delay(
             tracking_id, client_id, payloads, extra_headers=extra_headers,
             **extra_data)
 

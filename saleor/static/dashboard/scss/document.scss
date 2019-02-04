@@ -180,13 +180,3 @@ table {
     color: rgba(0, 0, 0, 0.87);
   }
 }
-
-@page {
-  @bottom-center {
-    content: "Saleor eCommerce, Mirumee Software";
-  }
-
-  @bottom-right {
-    content: "Page " counter(page) "/" counter(pages);
-  }
-}

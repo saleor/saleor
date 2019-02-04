@@ -16,12 +16,15 @@ storiesOf("Views / Products / Create product", module)
       disabled={false}
       errors={[]}
       header="Add product"
-      collections={product.collections.edges.map(edge => edge.node)}
+      collections={product.collections}
+      fetchCategories={() => undefined}
+      fetchCollections={() => undefined}
       productTypes={productTypes}
       categories={[product.category]}
       onAttributesEdit={undefined}
       onBack={() => undefined}
       onSubmit={() => undefined}
+      saveButtonBarState="default"
     />
   ))
   .add("When loading", () => (
@@ -30,11 +33,14 @@ storiesOf("Views / Products / Create product", module)
       disabled={true}
       errors={[]}
       header="Add product"
-      collections={product.collections.edges.map(edge => edge.node)}
+      collections={product.collections}
+      fetchCategories={() => undefined}
+      fetchCollections={() => undefined}
       productTypes={productTypes}
       categories={[product.category]}
       onAttributesEdit={undefined}
       onBack={() => undefined}
       onSubmit={() => undefined}
+      saveButtonBarState="default"
     />
   ));

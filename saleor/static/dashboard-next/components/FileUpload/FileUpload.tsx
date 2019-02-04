@@ -1,29 +1,30 @@
 import Button from "@material-ui/core/Button";
-import { withStyles } from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 import i18n from "../../i18n";
 
-interface FileUploadProps {
+const styles = createStyles({
+  fileUploadField: {
+    display: "none"
+  },
+  root: {
+    display: "flex"
+  },
+  textField: {
+    flex: 1
+  }
+});
+
+interface FileUploadProps extends WithStyles<typeof styles> {
   disabled?: boolean;
   name?: string;
   value?: any;
   onChange?(event: React.ChangeEvent<any>);
 }
 
-const decorate = withStyles({
-  fileUploadField: {
-    display: "none"
-  },
-  root: {
-    display: "flex" as "flex"
-  },
-  textField: {
-    flex: 1
-  }
-});
-const FileUpload = decorate<FileUploadProps>(
-  ({ classes, disabled, name, value, onChange }) => (
+const FileUpload = withStyles(styles, { name: "FileUpload" })(
+  ({ classes, disabled, name, value, onChange }: FileUploadProps) => (
     <div className={classes.root}>
       <input
         disabled={disabled}

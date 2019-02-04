@@ -9,7 +9,7 @@
 Hi!
 
 Thank you for your payment. To see your payment details please visit:
-{{ url }}
+{{ order_details_url }}
 
 This is an automatically generated email, please do not reply.
 

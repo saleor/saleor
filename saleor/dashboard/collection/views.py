@@ -67,7 +67,12 @@ def collection_update(request, pk=None):
         msg = pgettext_lazy('Collection message', 'Updated collection')
         messages.success(request, msg)
         return redirect('dashboard:collection-update', pk=collection.pk)
-    ctx = {'collection': collection, 'form': form}
+    is_unpublish_restricted = (
+        collection == request.site.settings.homepage_collection and
+        collection.is_published)
+    ctx = {
+        'collection': collection, 'form': form,
+        'is_unpublish_restricted': is_unpublish_restricted}
     return TemplateResponse(request, 'dashboard/collection/detail.html', ctx)
 
 

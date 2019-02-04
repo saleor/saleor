@@ -1,23 +1,20 @@
-import json
 from io import BytesIO
 from unittest.mock import MagicMock, Mock
-
 import pytest
-
 from django.contrib.auth.models import Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import ModelForm
-from django.test.client import MULTIPART_CONTENT, Client
+from django.test.client import Client
 from django.utils.encoding import smart_text
 from django_countries import countries
 from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
-from graphql_jwt.shortcuts import get_token
-from payments import FraudStatus, PaymentStatus
 from PIL import Image
 from prices import Money
+
+from saleor.account.backends import BaseBackend
 from saleor.account.models import Address, User
 from saleor.checkout import utils
 from saleor.checkout.models import Cart
@@ -26,68 +23,19 @@ from saleor.dashboard.menu.utils import update_menu
 from saleor.dashboard.order.utils import fulfill_order_line
 from saleor.discount.models import Sale, Voucher, VoucherTranslation
 from saleor.menu.models import Menu, MenuItem
-from saleor.order import OrderStatus
-from saleor.order.models import Order
+from saleor.order import OrderEvents, OrderStatus
+from saleor.order.models import Order, OrderEvent
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
+from saleor.payment import ChargeStatus, TransactionKind
+from saleor.payment.models import Payment
 from saleor.product.models import (
-    AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
-    ProductAttributeTranslation, ProductImage, ProductTranslation, ProductType,
-    ProductVariant)
+    Attribute, AttributeTranslation, AttributeValue, Category, Collection,
+    Product, ProductImage, ProductTranslation, ProductType, ProductVariant)
 from saleor.shipping.models import (
     ShippingMethod, ShippingMethodType, ShippingZone)
+from saleor.site import AuthenticationBackends
 from saleor.site.models import AuthorizationKey, SiteSettings
-
-
-class ApiClient(Client):
-    """GraphQL API client."""
-
-    def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user')
-        self.user = user
-        self.token = get_token(user)
-        super().__init__(*args, **kwargs)
-
-    def _base_environ(self, **request):
-        environ = super()._base_environ(**request)
-        environ.update({'HTTP_AUTHORIZATION': 'JWT %s' % self.token})
-        return environ
-
-    def post(self, path, data=None, **kwargs):
-        """Send a POST request.
-
-        This wrapper sets the `application/json` content type which is
-        more suitable for standard GraphQL requests and doesn't mismatch with
-        handling multipart requests in Graphene.
-        """
-        if data:
-            data = json.dumps(data)
-        kwargs['content_type'] = 'application/json'
-        return super().post(path, data, **kwargs)
-
-    def post_multipart(self, *args, **kwargs):
-        """Send a multipart POST request.
-
-        This is used to send multipart requests to GraphQL API when e.g.
-        uploading files.
-        """
-        kwargs['content_type'] = MULTIPART_CONTENT
-        return super().post(*args, **kwargs)
-
-
-@pytest.fixture
-def admin_api_client(admin_user):
-    return ApiClient(user=admin_user)
-
-
-@pytest.fixture
-def user_api_client(customer_user):
-    return ApiClient(user=customer_user)
-
-
-@pytest.fixture
-def staff_api_client(staff_user):
-    return ApiClient(user=staff_user)
 
 
 @pytest.fixture(autouse=True)
@@ -148,6 +96,20 @@ def address(db):  # pylint: disable=W0613
         postal_code='53-601',
         country='PL',
         phone='+48713988102')
+
+@pytest.fixture
+def graphql_address_data():
+    return {
+        'firstName': 'John Saleor',
+        'lastName': 'Doe Mirumee',
+        'companyName': 'Mirumee Software',
+        'streetAddress1': 'Tęczowa 7',
+        'streetAddress2': '',
+        'postalCode': '53-601',
+        'country': 'PL',
+        'city': 'Wrocław',
+        'countryArea': '',
+        'phone': '+48321321888'}
 
 
 @pytest.fixture
@@ -227,49 +189,96 @@ def shipping_zone(db):  # pylint: disable=W0613
     shipping_zone = ShippingZone.objects.create(
         name='Europe', countries=[code for code, name in countries])
     shipping_zone.shipping_methods.create(
-        name='DHL', minimum_order_price=0, type=ShippingMethodType.PRICE_BASED,
-        price=10, shipping_zone=shipping_zone)
+        name='DHL', minimum_order_price=Money(0, 'USD'),
+        type=ShippingMethodType.PRICE_BASED, price=Money(10, 'USD'),
+        shipping_zone=shipping_zone)
     return shipping_zone
 
 
 @pytest.fixture
+def shipping_zone_without_countries(db):  # pylint: disable=W0613
+    shipping_zone = ShippingZone.objects.create(
+        name='Europe', countries=[])
+    shipping_zone.shipping_methods.create(
+        name='DHL', minimum_order_price=Money(0, 'USD'),
+        type=ShippingMethodType.PRICE_BASED, price=Money(10, 'USD'),
+        shipping_zone=shipping_zone)
+    return shipping_zone
+
+@pytest.fixture
 def shipping_method(shipping_zone):
     return ShippingMethod.objects.create(
-        name='DHL', minimum_order_price=0, type=ShippingMethodType.PRICE_BASED,
-        price=10, shipping_zone=shipping_zone)
+        name='DHL', minimum_order_price=Money(0, 'USD'),
+        type=ShippingMethodType.PRICE_BASED,
+        price=Money(10, 'USD'), shipping_zone=shipping_zone)
 
 
 @pytest.fixture
 def color_attribute(db):  # pylint: disable=W0613
-    attribute = ProductAttribute.objects.create(
-        slug='color', name='Color')
-    AttributeChoiceValue.objects.create(
+    attribute = Attribute.objects.create(slug='color', name='Color')
+    AttributeValue.objects.create(
         attribute=attribute, name='Red', slug='red')
-    AttributeChoiceValue.objects.create(
+    AttributeValue.objects.create(
         attribute=attribute, name='Blue', slug='blue')
     return attribute
 
 
 @pytest.fixture
-def pink_choice_value(color_attribute):  # pylint: disable=W0613
-    value = AttributeChoiceValue.objects.create(
-        slug='pink', name='Color', attribute=color_attribute)
+def color_attribute_without_values(db):  # pylint: disable=W0613
+    return Attribute.objects.create(slug='color', name='Color')
+
+
+@pytest.fixture
+def pink_attribute_value(color_attribute):  # pylint: disable=W0613
+    value = AttributeValue.objects.create(
+        slug='pink', name='Pink', attribute=color_attribute, value='#FF69B4')
     return value
 
 
 @pytest.fixture
 def size_attribute(db):  # pylint: disable=W0613
-    attribute = ProductAttribute.objects.create(slug='size', name='Size')
-    AttributeChoiceValue.objects.create(
+    attribute = Attribute.objects.create(slug='size', name='Size')
+    AttributeValue.objects.create(
         attribute=attribute, name='Small', slug='small')
-    AttributeChoiceValue.objects.create(
+    AttributeValue.objects.create(
         attribute=attribute, name='Big', slug='big')
     return attribute
 
 
 @pytest.fixture
+def image():
+    img_data = BytesIO()
+    image = Image.new('RGB', size=(1, 1))
+    image.save(img_data, format='JPEG')
+    return SimpleUploadedFile('product.jpg', img_data.getvalue())
+
+
+@pytest.fixture
 def category(db):  # pylint: disable=W0613
     return Category.objects.create(name='Default', slug='default')
+
+
+@pytest.fixture
+def category_with_image(db, image):  # pylint: disable=W0613
+    return Category.objects.create(
+        name='Default', slug='default', background_image=image)
+
+
+@pytest.fixture
+def categories_tree(db, product_type):  # pylint: disable=W0613
+    parent = Category.objects.create(name='Parent', slug='parent')
+    parent.children.create(name='Child', slug='child')
+    child = parent.children.first()
+
+    product_attr = product_type.product_attributes.first()
+    attr_value = product_attr.values.first()
+    attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
+
+    Product.objects.create(
+        name='Test product', price=Money('10.00', 'USD'),
+        product_type=product_type, attributes=attributes, category=child)
+
+    return parent
 
 
 @pytest.fixture
@@ -290,9 +299,16 @@ def permission_manage_orders():
 @pytest.fixture
 def product_type(color_attribute, size_attribute):
     product_type = ProductType.objects.create(
-        name='Default Type', has_variants=False, is_shipping_required=True)
+        name='Default Type', has_variants=True, is_shipping_required=True)
     product_type.product_attributes.add(color_attribute)
     product_type.variant_attributes.add(size_attribute)
+    return product_type
+
+
+@pytest.fixture
+def product_type_without_variant():
+    product_type = ProductType.objects.create(
+        name='Type', has_variants=False, is_shipping_required=True)
     return product_type
 
 
@@ -314,6 +330,17 @@ def product(product_type, category):
     ProductVariant.objects.create(
         product=product, sku='123', attributes=variant_attributes,
         cost_price=Money('1.00', 'USD'), quantity=10, quantity_allocated=1)
+    return product
+
+
+@pytest.fixture
+def product_with_default_variant(product_type_without_variant, category):
+    product = Product.objects.create(
+        name='Test product', price=Money('10.00', 'USD'),
+        product_type=product_type_without_variant, category=category)
+    ProductVariant.objects.create(
+        product=product, sku='1234', track_inventory=True,
+        quantity=100)
     return product
 
 
@@ -344,16 +371,19 @@ def product_list(product_type, category):
     attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
 
     product_1 = Product.objects.create(
-        name='Test product 1', price=Money('10.00', 'USD'), category=category,
-        product_type=product_type, attributes=attributes, is_published=True)
+        pk=1486, name='Test product 1', price=Money('10.00', 'USD'),
+        category=category, product_type=product_type, attributes=attributes,
+        is_published=True)
 
     product_2 = Product.objects.create(
-        name='Test product 2', price=Money('20.00', 'USD'), category=category,
-        product_type=product_type, attributes=attributes, is_published=False)
+        pk=1487, name='Test product 2', price=Money('20.00', 'USD'),
+        category=category, product_type=product_type, attributes=attributes,
+        is_published=False)
 
     product_3 = Product.objects.create(
-        name='Test product 3', price=Money('20.00', 'USD'), category=category,
-        product_type=product_type, attributes=attributes, is_published=True)
+        pk=1489, name='Test product 3', price=Money('20.00', 'USD'),
+        category=category, product_type=product_type, attributes=attributes,
+        is_published=True)
 
     return [product_1, product_2, product_3]
 
@@ -372,16 +402,8 @@ def order_list(customer_user):
 
 
 @pytest.fixture
-def product_image():
-    img_data = BytesIO()
-    image = Image.new('RGB', size=(1, 1))
-    image.save(img_data, format='JPEG')
-    return SimpleUploadedFile('product.jpg', img_data.getvalue())
-
-
-@pytest.fixture
-def product_with_image(product, product_image):
-    ProductImage.objects.create(product=product, image=product_image)
+def product_with_image(product, image):
+    ProductImage.objects.create(product=product, image=image)
     return product
 
 
@@ -450,13 +472,19 @@ def order_with_lines(
     method = shipping_zone.shipping_methods.get()
     order.shipping_method_name = method.name
     order.shipping_method = method
-    order.shipping_price = method.get_total_price(taxes)
+    order.shipping_price = method.get_total(taxes)
     order.save()
 
     recalculate_order(order)
 
     order.refresh_from_db()
     return order
+
+
+@pytest.fixture()
+def order_events(order):
+    for event_type in OrderEvents:
+        OrderEvent.objects.create(type=event_type.value, order=order)
 
 
 @pytest.fixture()
@@ -487,62 +515,59 @@ def draft_order(order_with_lines):
 
 
 @pytest.fixture()
-def payment_waiting(order_with_lines):
-    return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.WAITING,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines.total_gross.amount)
+def payment_txn_preauth(order_with_lines, payment_dummy):
+    order = order_with_lines
+    payment = payment_dummy
+    payment.order = order
+    payment.save()
+
+    payment.transactions.create(
+        amount=payment.total,
+        kind=TransactionKind.AUTH,
+        gateway_response={},
+        is_success=True)
+    return payment
 
 
 @pytest.fixture()
-def payment_preauth(order_with_lines):
-    return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.PREAUTH,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines.total.gross.amount,
-        tax=order_with_lines.total.tax.amount)
+def payment_txn_captured(order_with_lines, payment_dummy):
+    order = order_with_lines
+    payment = payment_dummy
+    payment.order = order
+    payment.charge_status = ChargeStatus.CHARGED
+    payment.captured_amount = payment.total
+    payment.save()
+
+    payment.transactions.create(
+        amount=payment.total,
+        kind=TransactionKind.CAPTURE,
+        gateway_response={},
+        is_success=True)
+    return payment
 
 
 @pytest.fixture()
-def payment_confirmed(order_with_lines):
-    order_amount = order_with_lines.total_gross.amount
-    return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.CONFIRMED,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_amount, captured_amount=order_amount,
-        tax=order_with_lines.total.tax.amount)
+def payment_txn_refunded(order_with_lines, payment_dummy):
+    order = order_with_lines
+    payment = payment_dummy
+    payment.order = order
+    payment.charge_status = ChargeStatus.FULLY_REFUNDED
+    payment.is_active = False
+    payment.save()
+
+    payment.transactions.create(
+        amount=payment.total,
+        kind=TransactionKind.REFUND,
+        gateway_response={},
+        is_success=True)
+    return payment
 
 
 @pytest.fixture()
-def payment_rejected(order_with_lines):
-    return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.REJECTED,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines.total_gross.amount)
-
-
-@pytest.fixture()
-def payment_refunded(order_with_lines):
-    return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.REFUNDED,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines.total_gross.amount)
-
-
-@pytest.fixture()
-def payment_error(order_with_lines):
-    return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.ERROR,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines.total_gross.amount)
-
-
-@pytest.fixture()
-def payment_input(order_with_lines):
-    return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.INPUT,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines.total_gross.amount)
+def payment_not_authorized(payment_dummy):
+    payment_dummy.is_active = False
+    payment_dummy.save()
+    return payment_dummy
 
 
 @pytest.fixture()
@@ -554,10 +579,22 @@ def sale(category, collection):
 
 
 @pytest.fixture
-def authorization_key(site_settings):
+def authorization_backend_name():
+    return AuthenticationBackends.FACEBOOK
+
+
+@pytest.fixture
+def authorization_key(site_settings, authorization_backend_name):
     return AuthorizationKey.objects.create(
-        site_settings=site_settings, name='Backend', key='Key',
-        password='Password')
+        site_settings=site_settings, name=authorization_backend_name,
+        key='Key', password='Password')
+
+
+@pytest.fixture
+def base_backend(authorization_backend_name):
+    base_backend = BaseBackend()
+    base_backend.DB_NAME = authorization_backend_name
+    return base_backend
 
 
 @pytest.fixture
@@ -596,9 +633,23 @@ def permission_manage_menus():
 
 
 @pytest.fixture
+def permission_manage_pages():
+    return Permission.objects.get(codename='manage_pages')
+
+
+@pytest.fixture
 def collection(db):
     collection = Collection.objects.create(
-        name='Collection', slug='collection', is_published=True)
+        name='Collection', slug='collection', is_published=True,
+        description='Test description')
+    return collection
+
+
+@pytest.fixture
+def collection_with_image(db, image):
+    collection = Collection.objects.create(
+        name='Collection', slug='collection', is_published=True,
+        description='Test description', background_image=image)
     return collection
 
 
@@ -706,16 +757,16 @@ def vatlayer(db, settings, tax_rates, taxes):
 @pytest.fixture
 def translated_variant_fr(product):
     attribute = product.product_type.variant_attributes.first()
-    return ProductAttributeTranslation.objects.create(
-        language_code='fr', product_attribute=attribute,
+    return AttributeTranslation.objects.create(
+        language_code='fr', attribute=attribute,
         name='Name tranlsated to french')
 
 
 @pytest.fixture
-def translated_product_attribute(product):
+def translated_attribute(product):
     attribute = product.product_type.product_attributes.first()
-    return ProductAttributeTranslation.objects.create(
-        language_code='fr', product_attribute=attribute,
+    return AttributeTranslation.objects.create(
+        language_code='fr', attribute=attribute,
         name='Name tranlsated to french')
 
 
@@ -730,3 +781,28 @@ def product_translation_fr(product):
     return ProductTranslation.objects.create(
         language_code='fr', product=product, name='French name',
         description='French description')
+
+
+@pytest.fixture
+def payment_dummy(db, settings, order_with_lines):
+    return Payment.objects.create(
+        gateway=settings.DUMMY,
+        order=order_with_lines,
+        is_active=True,
+        cc_first_digits='4111',
+        cc_last_digits='1111',
+        cc_brand='VISA',
+        cc_exp_month=12,
+        cc_exp_year=2027,
+        total=order_with_lines.total.gross.amount,
+        currency=order_with_lines.total.gross.currency,
+        billing_first_name=order_with_lines.billing_address.first_name,
+        billing_last_name=order_with_lines.billing_address.last_name,
+        billing_company_name=order_with_lines.billing_address.company_name,
+        billing_address_1=order_with_lines.billing_address.street_address_1,
+        billing_address_2=order_with_lines.billing_address.street_address_2,
+        billing_city=order_with_lines.billing_address.city,
+        billing_postal_code=order_with_lines.billing_address.postal_code,
+        billing_country_code=order_with_lines.billing_address.country.code,
+        billing_country_area=order_with_lines.billing_address.country_area,
+        billing_email=order_with_lines.user_email)

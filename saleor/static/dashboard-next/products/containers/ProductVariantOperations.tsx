@@ -1,102 +1,77 @@
 import * as React from "react";
 
+import { getMutationProviderData } from "../../misc";
+import { PartialMutationProviderOutput } from "../../types";
 import {
-  MutationProviderProps,
-  MutationProviderRenderProps,
-  PartialMutationProviderOutput
-} from "../..";
+  TypedVariantDeleteMutation,
+  TypedVariantImageAssignMutation,
+  TypedVariantImageUnassignMutation,
+  TypedVariantUpdateMutation
+} from "../mutations";
+import { VariantDelete, VariantDeleteVariables } from "../types/VariantDelete";
 import {
-  VariantDeleteMutation,
-  VariantImageAssignMutation,
-  VariantImageAssignMutationVariables,
-  VariantImageUnassignMutation,
-  VariantImageUnassignMutationVariables,
-  VariantUpdateMutation,
-  VariantUpdateMutationVariables
-} from "../../gql-types";
-import VariantDeleteProvider from "./ProductVariantDelete";
-import VariantImageAssignProvider from "./ProductVariantImageAssign";
-import VariantImageUnassignProvider from "./ProductVariantImageUnassign";
-import VariantUpdateProvider from "./ProductVariantUpdate";
+  VariantImageAssign,
+  VariantImageAssignVariables
+} from "../types/VariantImageAssign";
+import {
+  VariantImageUnassign,
+  VariantImageUnassignVariables
+} from "../types/VariantImageUnassign";
+import { VariantUpdate, VariantUpdateVariables } from "../types/VariantUpdate";
 
-interface VariantDeleteOperationsProps extends MutationProviderProps {
-  productId: string;
-  id: string;
-  children: MutationProviderRenderProps<{
-    deleteVariant: PartialMutationProviderOutput;
-    updateVariant: PartialMutationProviderOutput<
-      VariantUpdateMutation,
-      VariantUpdateMutationVariables
-    >;
-    assignImage: PartialMutationProviderOutput<
-      VariantImageAssignMutation,
-      VariantImageAssignMutationVariables
-    >;
-    unassignImage: PartialMutationProviderOutput<
-      VariantImageUnassignMutation,
-      VariantImageUnassignMutationVariables
-    >;
-  }>;
-  onDelete?: (data: VariantDeleteMutation) => void;
-  onImageAssign?: (data: VariantImageAssignMutation) => void;
-  onImageUnassign?: (data: VariantImageUnassignMutation) => void;
-  onUpdate?: (data: VariantUpdateMutation) => void;
+interface VariantDeleteOperationsProps {
+  children: (
+    props: {
+      deleteVariant: PartialMutationProviderOutput<
+        VariantDelete,
+        VariantDeleteVariables
+      >;
+      updateVariant: PartialMutationProviderOutput<
+        VariantUpdate,
+        VariantUpdateVariables
+      >;
+      assignImage: PartialMutationProviderOutput<
+        VariantImageAssign,
+        VariantImageAssignVariables
+      >;
+      unassignImage: PartialMutationProviderOutput<
+        VariantImageUnassign,
+        VariantImageUnassignVariables
+      >;
+    }
+  ) => React.ReactNode;
+  onDelete?: (data: VariantDelete) => void;
+  onImageAssign?: (data: VariantImageAssign) => void;
+  onImageUnassign?: (data: VariantImageUnassign) => void;
+  onUpdate?: (data: VariantUpdate) => void;
 }
 
 const VariantUpdateOperations: React.StatelessComponent<
   VariantDeleteOperationsProps
-> = ({ id, children, onError, onDelete, onUpdate }) => {
+> = ({ children, onDelete, onUpdate, onImageAssign, onImageUnassign }) => {
   return (
-    <VariantImageAssignProvider>
-      {assignImage => (
-        <VariantImageUnassignProvider>
-          {unassignImage => (
-            <VariantUpdateProvider onError={onError} onSuccess={onUpdate}>
-              {updateVariant => (
-                <VariantDeleteProvider
-                  id={id}
-                  onError={onError}
-                  onSuccess={onDelete}
-                >
-                  {deleteVariant =>
+    <TypedVariantImageAssignMutation onCompleted={onImageAssign}>
+      {(...assignImage) => (
+        <TypedVariantImageUnassignMutation onCompleted={onImageUnassign}>
+          {(...unassignImage) => (
+            <TypedVariantUpdateMutation onCompleted={onUpdate}>
+              {(...updateVariant) => (
+                <TypedVariantDeleteMutation onCompleted={onDelete}>
+                  {(...deleteVariant) =>
                     children({
-                      assignImage: {
-                        data: assignImage.data,
-                        loading: assignImage.loading,
-                        mutate: variables => assignImage.mutate({ variables })
-                      },
-                      deleteVariant: {
-                        data: deleteVariant.data,
-                        loading: deleteVariant.loading,
-                        mutate: () =>
-                          deleteVariant.mutate({ variables: { id } })
-                      },
-                      errors:
-                        updateVariant &&
-                        updateVariant.data &&
-                        updateVariant.data.productVariantUpdate &&
-                        updateVariant.data.productVariantUpdate.errors
-                          ? updateVariant.data.productVariantUpdate.errors
-                          : [],
-                      unassignImage: {
-                        data: unassignImage.data,
-                        loading: unassignImage.loading,
-                        mutate: variables => unassignImage.mutate({ variables })
-                      },
-                      updateVariant: {
-                        data: updateVariant.data,
-                        loading: updateVariant.loading,
-                        mutate: variables => updateVariant.mutate({ variables })
-                      }
+                      assignImage: getMutationProviderData(...assignImage),
+                      deleteVariant: getMutationProviderData(...deleteVariant),
+                      unassignImage: getMutationProviderData(...unassignImage),
+                      updateVariant: getMutationProviderData(...updateVariant)
                     })
                   }
-                </VariantDeleteProvider>
+                </TypedVariantDeleteMutation>
               )}
-            </VariantUpdateProvider>
+            </TypedVariantUpdateMutation>
           )}
-        </VariantImageUnassignProvider>
+        </TypedVariantImageUnassignMutation>
       )}
-    </VariantImageAssignProvider>
+    </TypedVariantImageAssignMutation>
   );
 };
 export default VariantUpdateOperations;

@@ -6,47 +6,84 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
+import ConfirmButton, {
+  ConfirmButtonTransitionState
+} from "../../../components/ConfirmButton";
+import Form from "../../../components/Form";
 import i18n from "../../../i18n";
 
+export interface FormData {
+  amount: number;
+}
+
 interface OrderPaymentDialogProps {
+  confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
-  value: number;
+  initial: number;
   variant: string;
-  onChange(event: React.ChangeEvent<any>);
-  onClose?();
-  onConfirm?(event: React.FormEvent<any>);
+  onClose: () => void;
+  onSubmit: (data: FormData) => void;
 }
 
 const OrderPaymentDialog: React.StatelessComponent<OrderPaymentDialogProps> = ({
+  confirmButtonState,
   open,
+  initial,
   variant,
-  onConfirm,
   onClose,
-  onChange
+  onSubmit
 }) => (
   <Dialog open={open}>
-    <DialogTitle>
-      {variant === "capture"
-        ? i18n.t("Capture payment", { context: "title" })
-        : i18n.t("Refund payment", { context: "title" })}
-    </DialogTitle>
-    <DialogContent>
-      <TextField
-        label={i18n.t("Amount")}
-        name="value"
-        onChange={onChange}
-        fullWidth
-        type="number"
-      />
-    </DialogContent>
-    <DialogActions>
-      <Button onClick={onClose}>
-        {i18n.t("Cancel", { context: "button" })}
-      </Button>
-      <Button color="primary" variant="raised" onClick={onConfirm}>
-        {i18n.t("Confirm", { context: "button" })}
-      </Button>
-    </DialogActions>
+    <Form
+      initial={{
+        amount: initial
+      }}
+      onSubmit={data => {
+        onSubmit(data);
+        onClose();
+      }}
+    >
+      {({ data, change, submit }) => (
+        <>
+          <DialogTitle>
+            {variant === "capture"
+              ? i18n.t("Capture payment", { context: "title" })
+              : i18n.t("Refund payment", { context: "title" })}
+          </DialogTitle>
+
+          <DialogContent>
+            <TextField
+              fullWidth
+              label={i18n.t("Amount")}
+              name="amount"
+              onChange={change}
+              inputProps={{
+                step: "0.01"
+              }}
+              type="number"
+              value={data.amount}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={onClose}>
+              {i18n.t("Cancel", { context: "button" })}
+            </Button>
+            <ConfirmButton
+              transitionState={confirmButtonState}
+              color="primary"
+              variant="contained"
+              onClick={data => {
+                onClose();
+                submit(data);
+              }}
+            >
+              {i18n.t("Confirm", { context: "button" })}
+            </ConfirmButton>
+          </DialogActions>
+        </>
+      )}
+    </Form>
   </Dialog>
 );
+OrderPaymentDialog.displayName = "OrderPaymentDialog";
 export default OrderPaymentDialog;

@@ -1,33 +1,45 @@
-import { withStyles } from "@material-ui/core/styles";
 import Tooltip from "@material-ui/core/Tooltip";
-import Typography, { TypographyProps } from "@material-ui/core/Typography";
+import * as moment from "moment-timezone";
 import * as React from "react";
+import ReactMoment from "react-moment";
+
+import { LocaleConsumer } from "../Locale";
+import { TimezoneConsumer } from "../Timezone";
+import { Consumer } from "./DateContext";
 
 interface DateFormatterProps {
   date: string;
-  locale?: string;
-  typographyProps?: TypographyProps;
 }
 
-const decorate = withStyles(
-  { root: { display: "inline" } },
-  {
-    name: "DateFormatter"
-  }
-);
-const DateFormatter = decorate<DateFormatterProps>(
-  ({ classes, date, typographyProps }) => {
-    return (
-      <Typography
-        component="span"
-        className={classes.root}
-        {...typographyProps}
-      >
-        <Tooltip title={date}>
-          <span>{date}</span>
-        </Tooltip>
-      </Typography>
-    );
-  }
-);
+const DateFormatter: React.StatelessComponent<DateFormatterProps> = ({
+  date
+}) => {
+  const getTitle = (value: string, locale?: string, tz?: string) => {
+    let date = moment(value).locale(locale);
+    if (tz !== undefined) {
+      date = date.tz(tz);
+    }
+    return date.toLocaleString();
+  };
+  return (
+    <LocaleConsumer>
+      {locale => (
+        <TimezoneConsumer>
+          {tz => (
+            <Consumer>
+              {currentDate => (
+                <Tooltip title={getTitle(date, locale, tz)}>
+                  <ReactMoment from={currentDate} locale={locale} tz={tz}>
+                    {date}
+                  </ReactMoment>
+                </Tooltip>
+              )}
+            </Consumer>
+          )}
+        </TimezoneConsumer>
+      )}
+    </LocaleConsumer>
+  );
+};
+DateFormatter.displayName = "DateFormatter";
 export default DateFormatter;

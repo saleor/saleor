@@ -1,4 +1,9 @@
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -7,49 +12,39 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import { ListProps } from "../..";
+import { CategoryDetails_category_products_edges_node } from "../../categories/types/CategoryDetails";
 import TableCellAvatar from "../../components/TableCellAvatar";
 import i18n from "../../i18n";
-import { renderCollection } from "../../misc";
-import { MoneyType } from "../../products";
+import { maybe, renderCollection } from "../../misc";
+import { ListProps } from "../../types";
 import Money from "../Money";
 import Skeleton from "../Skeleton";
 import StatusLabel from "../StatusLabel";
 import TablePagination from "../TablePagination";
 
-const decorate = withStyles(theme => ({
-  avatarCell: {
-    paddingLeft: theme.spacing.unit * 2,
-    paddingRight: 0,
-    width: theme.spacing.unit * 5
-  },
-  link: {
-    cursor: "pointer" as "pointer"
-  },
-  textLeft: {
-    textAlign: "left" as "left"
-  },
-  textRight: {
-    textAlign: "right" as "right"
-  }
-}));
+const styles = (theme: Theme) =>
+  createStyles({
+    avatarCell: {
+      paddingLeft: theme.spacing.unit * 2,
+      paddingRight: 0,
+      width: theme.spacing.unit * 5
+    },
+    link: {
+      cursor: "pointer"
+    },
+    textLeft: {
+      textAlign: "left"
+    },
+    textRight: {
+      textAlign: "right"
+    }
+  });
 
-interface ProductListProps extends ListProps {
-  products?: Array<{
-    id: string;
-    name: string;
-    productType: {
-      name: string;
-    };
-    thumbnailUrl: string;
-    availability: {
-      available: boolean;
-    };
-    price: MoneyType;
-  }>;
+interface ProductListProps extends ListProps, WithStyles<typeof styles> {
+  products: CategoryDetails_category_products_edges_node[];
 }
 
-export const ProductList = decorate<ProductListProps>(
+export const ProductList = withStyles(styles, { name: "ProductList" })(
   ({
     classes,
     disabled,
@@ -58,7 +53,7 @@ export const ProductList = decorate<ProductListProps>(
     onPreviousPage,
     onRowClick,
     products
-  }) => (
+  }: ProductListProps) => (
     <Table>
       <TableHead>
         <TableRow>
@@ -96,7 +91,7 @@ export const ProductList = decorate<ProductListProps>(
               onClick={product && onRowClick(product.id)}
               className={classes.link}
             >
-              <TableCellAvatar thumbnail={product && product.thumbnailUrl} />
+              <TableCellAvatar thumbnail={maybe(() => product.thumbnail.url)} />
               <TableCell className={classes.textLeft}>
                 {product ? product.name : <Skeleton />}
               </TableCell>
@@ -130,10 +125,7 @@ export const ProductList = decorate<ProductListProps>(
                 product.price &&
                 product.price.amount !== undefined &&
                 product.price.currency !== undefined ? (
-                  <Money
-                    amount={product.price.amount}
-                    currency={product.price.currency}
-                  />
+                  <Money money={product.price} />
                 ) : (
                   <Skeleton />
                 )}
@@ -150,5 +142,5 @@ export const ProductList = decorate<ProductListProps>(
     </Table>
   )
 );
-
+ProductList.displayName = "ProductList";
 export default ProductList;

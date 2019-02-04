@@ -1,25 +1,23 @@
 from unittest import mock
 
 import pytest
-from django.conf import settings
-from django.urls import reverse
+from django.templatetags.static import static
 from templated_email import get_connection
 
 import saleor.order.emails as emails
+from saleor.core.emails import get_email_base_context
 from saleor.core.utils import build_absolute_uri
 
 
-def test_get_email_context(order, site_settings):
+def test_get_email_base_context(site_settings):
     site = site_settings.site
-    order_url = build_absolute_uri(
-        reverse('order:details', kwargs={'token': order.token}))
+    logo_url = build_absolute_uri(static('images/logo-document.svg'))
     proper_context = {
-        'protocol': 'https' if settings.ENABLE_SSL else 'http',
-        'site_name': site.name,
         'domain': site.domain,
-        'url': order_url}
+        'logo_url': logo_url,
+        'site_name': site.name}
 
-    received_context = emails.get_email_context(order.token)
+    received_context = get_email_base_context()
     assert proper_context == received_context
 
 
@@ -58,10 +56,9 @@ def test_collect_data_for_email(order):
 
 @pytest.mark.parametrize('send_email,template', [
     (emails.send_payment_confirmation, emails.CONFIRM_PAYMENT_TEMPLATE),
-    (emails.send_note_confirmation, emails.CONFIRM_NOTE_TEMPLATE),
     (emails.send_order_confirmation, emails.CONFIRM_ORDER_TEMPLATE)])
 @mock.patch('saleor.order.emails.send_templated_mail')
-def test_send_emails(mocked_templated_email, order, template, send_email):
+def test_send_emails(mocked_templated_email, order, template, send_email, settings):
     send_email(order.pk)
     email_data = emails.collect_data_for_email(order.pk, template)
 
@@ -85,7 +82,8 @@ def test_send_emails(mocked_templated_email, order, template, send_email):
     (emails.send_fulfillment_update, emails.UPDATE_FULFILLMENT_TEMPLATE)])
 @mock.patch('saleor.order.emails.send_templated_mail')
 def test_send_fulfillment_emails(
-        mocked_templated_email, template, send_email, fulfilled_order):
+        mocked_templated_email, template, send_email, fulfilled_order,
+        settings):
     fulfillment = fulfilled_order.fulfillments.first()
     send_email(order_pk=fulfilled_order.pk, fulfillment_pk=fulfillment.pk)
     email_data = emails.collect_data_for_fullfillment_email(

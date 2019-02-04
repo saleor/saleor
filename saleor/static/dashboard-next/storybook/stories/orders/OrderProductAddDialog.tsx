@@ -1,26 +1,23 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import Form from "../../../components/Form";
+import * as placeholderImage from "../../../../images/placeholder60x60.png";
 import OrderProductAddDialog from "../../../orders/components/OrderProductAddDialog";
-import { variants } from "../../../orders/fixtures";
+import { orderLineSearch } from "../../../orders/fixtures";
 import Decorator from "../../Decorator";
 
 storiesOf("Orders / OrderProductAddDialog", module)
   .addDecorator(Decorator)
   .add("default", () => (
-    <Form initial={{ quantity: 0, variant: { label: "", value: "" } }}>
-      {({ change, data }) => (
-        <OrderProductAddDialog
-          open={true}
-          onChange={change}
-          onConfirm={undefined}
-          onClose={undefined}
-          variants={variants}
-          fetchVariants={undefined}
-          quantity={data.quantity}
-          variant={data.variant}
-        />
-      )}
-    </Form>
+    <OrderProductAddDialog
+      confirmButtonState="default"
+      loading={false}
+      open={true}
+      onClose={undefined}
+      onSubmit={undefined}
+      hasMore={false}
+      onFetch={() => undefined}
+      onFetchMore={() => undefined}
+      products={orderLineSearch(placeholderImage)}
+    />
   ));

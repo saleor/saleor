@@ -10,5 +10,5 @@ const order = orderFixture("");
 storiesOf("Orders / OrderHistory", module)
   .addDecorator(Decorator)
   .add("default", () => (
-    <OrderHistory user="admin@example.com" history={order.events} />
+    <OrderHistory onNoteAdd={undefined} history={order.events} />
   ));

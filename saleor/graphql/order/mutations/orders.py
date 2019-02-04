@@ -1,43 +1,101 @@
 import graphene
-from django.utils.translation import npgettext_lazy, pgettext_lazy
 from graphql_jwt.decorators import permission_required
-from payments import PaymentError, PaymentStatus
 
-from ....order import CustomPaymentChoices, models
+from ....account.models import User
+from ....core.utils.taxes import ZERO_TAXED_MONEY
+from ....order import OrderEvents, models
 from ....order.utils import cancel_order
+from ....payment import ChargeStatus, CustomPaymentChoices, PaymentError
+from ....payment.models import Payment
+from ....payment.utils import (
+    gateway_capture, gateway_refund, gateway_void, get_billing_data)
+from ....shipping.models import ShippingMethod as ShippingMethodModel
 from ...account.types import AddressInput
-from ...core.mutations import BaseMutation, ModelMutation
-from ...core.types.common import Decimal, Error
+from ...core.mutations import BaseMutation
+from ...core.scalars import Decimal
+from ...core.types.common import Error
 from ...order.mutations.draft_orders import DraftOrderUpdate
-from ...order.types import Order
+from ...order.types import Order, OrderEvent
+from ...shipping.types import ShippingMethod
 
 
-def try_payment_action(action, money, errors):
-    try:
-        action(money)
-    except (PaymentError, ValueError) as e:
-        errors.append(Error(field='payment', message=str(e)))
+def clean_order_update_shipping(order, method, errors):
+    if not method:
+        return errors
+    if not order.shipping_address:
+        errors.append(
+            Error(
+                field='order',
+                message=(
+                    'Cannot choose a shipping method for an '
+                    'order without the shipping address.')))
+        return errors
+    valid_methods = (
+        ShippingMethodModel.objects.applicable_shipping_methods(
+            price=order.get_subtotal().gross.amount,
+            weight=order.get_total_weight(),
+            country_code=order.shipping_address.country.code))
+    valid_methods = valid_methods.values_list('id', flat=True)
+    if method.pk not in valid_methods:
+        errors.append(
+            Error(
+                field='shippingMethod',
+                message='Shipping method cannot be used with this order.'))
+    return errors
 
 
-def clean_release_payment(payment, errors):
+def clean_order_cancel(order, errors):
+    if order and not order.can_cancel():
+        errors.append(
+            Error(
+                field='order',
+                message='This order can\'t be canceled.'))
+    return errors
+
+
+def clean_order_mark_as_paid(order, errors):
+    if order and order.payments.exists():
+        errors.append(
+            Error(
+                field='payment',
+                message='Orders with payments can not be manually '
+                        'marked as paid.'))
+    return errors
+
+
+def clean_order_capture(payment, amount, errors):
+    if not payment:
+        errors.append(
+            Error(
+                field='payment',
+                message='There\'s no payment associated with the order.'))
+        return errors
+    if not payment.is_active:
+        errors.append(
+            Error(
+                field='payment',
+                message='Only pre-authorized payments can be captured'))
+    return errors
+
+
+def clean_void_payment(payment, errors):
     """Check for payment errors."""
-    if payment.status != PaymentStatus.PREAUTH:
+    if not payment.is_active:
         errors.append(
             Error(field='payment',
-                  message='Only pre-authorized payments can be released'))
+                  message='Only pre-authorized payments can be voided'))
     try:
-        payment.release()
+        gateway_void(payment)
     except (PaymentError, ValueError) as e:
         errors.append(Error(field='payment', message=str(e)))
     return errors
 
 
 def clean_refund_payment(payment, amount, errors):
-    if payment.variant == CustomPaymentChoices.MANUAL:
+    if payment.gateway == CustomPaymentChoices.MANUAL:
         errors.append(
             Error(field='payment',
                   message='Manual payments can not be refunded.'))
-    try_payment_action(payment.refund, amount, errors)
     return errors
 
 
@@ -61,37 +119,112 @@ class OrderUpdate(DraftOrderUpdate):
         description = 'Updates an order.'
         model = models.Order
 
-
-class OrderAddNoteInput(graphene.InputObjectType):
-    order = graphene.ID(description='ID of the order.', name='order')
-    user = graphene.ID(
-        description='ID of the user who added note.', name='user')
-    content = graphene.String(description='Note content.')
-
-
-class OrderAddNote(ModelMutation):
-    class Arguments:
-        input = OrderAddNoteInput(
-            required=True,
-            description='Fields required to add note to order.')
-
-    class Meta:
-        description = 'Adds note to order.'
-        model = models.OrderNote
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('order.manage_orders')
-
     @classmethod
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
-        msg = pgettext_lazy(
-            'Dashboard message related to an order', 'Added note')
-        instance.order.history.create(content=msg, user=info.context.user)
+        if instance.user_email:
+            user = User.objects.filter(email=instance.user_email).first()
+            instance.user = user
+        instance.save()
+
+
+class OrderUpdateShippingInput(graphene.InputObjectType):
+    shipping_method = graphene.ID(
+        description='ID of the selected shipping method.',
+        name='shippingMethod')
+
+
+class OrderUpdateShipping(BaseMutation):
+    order = graphene.Field(
+        Order, description='Order with updated shipping method.')
+
+    class Arguments:
+        id = graphene.ID(
+            required=True, name='order',
+            description='ID of the order to update a shipping method.')
+        input = OrderUpdateShippingInput(
+            description='Fields required to change '
+                        'shipping method of the order.')
+
+    class Meta:
+        description = 'Updates a shipping method of the order.'
+
+    @classmethod
+    @permission_required('order.manage_orders')
+    def mutate(cls, root, info, id, input):
+        errors = []
+        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+
+        if not input['shipping_method']:
+            if not order.is_draft() and order.is_shipping_required():
+                cls.add_error(
+                    errors, 'shippingMethod',
+                    'Shipping method is required for this order.')
+                return OrderUpdateShipping(errors=errors)
+            order.shipping_method = None
+            order.shipping_price = ZERO_TAXED_MONEY
+            order.shipping_method_name = None
+            order.save(
+                update_fields=[
+                    'shipping_method', 'shipping_price_net',
+                    'shipping_price_gross', 'shipping_method_name'])
+            return OrderUpdateShipping(order=order)
+
+        method = cls.get_node_or_error(
+            info, input['shipping_method'], errors,
+            'shipping_method', ShippingMethod)
+        clean_order_update_shipping(order, method, errors)
+        if errors:
+            return OrderUpdateShipping(errors=errors)
+
+        order.shipping_method = method
+        order.shipping_price = method.get_total(info.context.taxes)
+        order.shipping_method_name = method.name
+        order.save(
+            update_fields=[
+                'shipping_method', 'shipping_method_name',
+                'shipping_price_net', 'shipping_price_gross'])
+        return OrderUpdateShipping(order=order)
+
+
+class OrderAddNoteInput(graphene.InputObjectType):
+    message = graphene.String(description='Note message.', name='message')
+
+
+class OrderAddNote(BaseMutation):
+    order = graphene.Field(Order, description='Order with the note added.')
+    event = graphene.Field(OrderEvent, description='Order note created.')
+
+    class Arguments:
+        id = graphene.ID(
+            required=True,
+            description='ID of the order to add a note for.', name='order')
+        input = OrderAddNoteInput(
+            required=True,
+            description='Fields required to create a note for the order.')
+
+    class Meta:
+        description = 'Adds note to the order.'
+
+    @classmethod
+    @permission_required('order.manage_orders')
+    def mutate(cls, root, info, id, input):
+        errors = []
+        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        if errors:
+            return OrderAddNote(errors=errors)
+
+        event = order.events.create(
+            type=OrderEvents.NOTE_ADDED.value,
+            user=info.context.user,
+            parameters={
+                'message': input['message']})
+        return OrderAddNote(order=order, event=event)
 
 
 class OrderCancel(BaseMutation):
+    order = graphene.Field(Order, description='Canceled order.')
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of the order to cancel.')
@@ -102,34 +235,31 @@ class OrderCancel(BaseMutation):
     class Meta:
         description = 'Cancel an order.'
 
-    order = graphene.Field(
-        Order, description='Canceled order.')
-
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, restock):
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        clean_order_cancel(order, errors)
         if errors:
             return OrderCancel(errors=errors)
 
         cancel_order(order=order, restock=restock)
         if restock:
-            restock_msg = npgettext_lazy(
-                'Dashboard message related to an order',
-                'Restocked %(quantity)d item',
-                'Restocked %(quantity)d items',
-                'quantity') % {'quantity': order.get_total_quantity()}
-            order.history.create(
-                content=restock_msg, user=info.context.user)
+            order.events.create(
+                type=OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value,
+                user=info.context.user,
+                parameters={'quantity': order.get_total_quantity()})
         else:
-            msg = pgettext_lazy(
-                'Dashboard message related to an order', 'Order canceled')
-            order.history.create(content=msg, user=info.context.user)
+            order.events.create(
+                type=OrderEvents.CANCELED.value, user=info.context.user)
+        # FIXME all payments should be voided/refunded at this point
         return OrderCancel(order=order)
 
 
 class OrderMarkAsPaid(BaseMutation):
+    order = graphene.Field(Order, description='Order marked as paid.')
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of the order to mark paid.')
@@ -137,43 +267,33 @@ class OrderMarkAsPaid(BaseMutation):
     class Meta:
         description = 'Mark order as manually paid.'
 
-    order = graphene.Field(
-        Order, description='Order marked as paid.')
-
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id):
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
-        if order:
-            if order.payments.exists():
-                cls.add_error(
-                    errors, 'payment',
-                    'Orders with payments can not be manually marked as paid.')
-
+        clean_order_mark_as_paid(order, errors)
         if errors:
             return OrderMarkAsPaid(errors=errors)
-
         defaults = {
             'total': order.total.gross.amount,
-            'tax': order.total.tax.amount,
-            'currency': order.total.currency,
-            'delivery': order.shipping_price.net.amount,
-            'description': pgettext_lazy(
-                'Payment description', 'Order %(order)s') % {'order': order},
-            'captured_amount': order.total.gross.amount}
-        models.Payment.objects.get_or_create(
-            variant=CustomPaymentChoices.MANUAL,
-            status=PaymentStatus.CONFIRMED, order=order,
+            'captured_amount': order.total.gross.amount,
+            'currency': order.total.gross.currency,
+            **get_billing_data(order)}
+        Payment.objects.get_or_create(
+            gateway=CustomPaymentChoices.MANUAL,
+            charge_status=ChargeStatus.CHARGED, order=order,
             defaults=defaults)
-        msg = pgettext_lazy(
-            'Dashboard message related to an order',
-            'Order manually marked as paid.')
-        order.history.create(content=msg, user=info.context.user)
+
+        order.events.create(
+            type=OrderEvents.ORDER_MARKED_AS_PAID.value,
+            user=info.context.user)
         return OrderMarkAsPaid(order=order)
 
 
 class OrderCapture(BaseMutation):
+    order = graphene.Field(Order, description='Captured order.')
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of the order to capture.')
@@ -183,38 +303,43 @@ class OrderCapture(BaseMutation):
     class Meta:
         description = 'Capture an order.'
 
-    order = graphene.Field(
-        Order, description='Captured order.')
-
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, amount):
         errors = []
+        if amount <= 0:
+            cls.add_error('Amount should be a positive number.')
+            return OrderCapture(errors=errors)
+
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
-        if order:
-            payment = order.get_last_payment()
-            try_payment_action(payment.capture, amount, errors)
+        # FIXME adjust to multiple payments in the future
+        payment = order.get_last_payment()
+        clean_order_capture(payment, amount, errors)
+
+        try:
+            gateway_capture(payment, amount)
+        except PaymentError as e:
+            errors.append(Error(field='payment', message=str(e)))
 
         if errors:
             return OrderCapture(errors=errors)
 
-        msg = pgettext_lazy(
-            'Dashboard message related to an order',
-            'Captured %(amount)s' % {'amount': amount})
-        order.history.create(content=msg, user=info.context.user)
+        order.events.create(
+            parameters={'amount': amount},
+            type=OrderEvents.PAYMENT_CAPTURED.value,
+            user=info.context.user)
         return OrderCapture(order=order)
 
 
-class OrderRelease(BaseMutation):
+class OrderVoid(BaseMutation):
+    order = graphene.Field(Order, description='A voided order.')
+
     class Arguments:
         id = graphene.ID(
-            required=True, description='ID of the order to release.')
+            required=True, description='ID of the order to void.')
 
     class Meta:
-        description = 'Release an order.'
-
-    order = graphene.Field(
-        Order, description='A released order.')
+        description = 'Void an order.'
 
     @classmethod
     @permission_required('order.manage_orders')
@@ -223,19 +348,19 @@ class OrderRelease(BaseMutation):
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
         if order:
             payment = order.get_last_payment()
-            clean_release_payment(payment, errors)
+            clean_void_payment(payment, errors)
 
         if errors:
-            return OrderRelease(errors=errors)
-
-        msg = pgettext_lazy(
-            'Dashboard message related to an order',
-            'Released payment')
-        order.history.create(content=msg, user=info.context.user)
-        return OrderRelease(order=order)
+            return OrderVoid(errors=errors)
+        order.events.create(
+            type=OrderEvents.PAYMENT_VOIDED.value,
+            user=info.context.user)
+        return OrderVoid(order=order)
 
 
 class OrderRefund(BaseMutation):
+    order = graphene.Field(Order, description='A refunded order.')
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of the order to refund.')
@@ -245,23 +370,28 @@ class OrderRefund(BaseMutation):
     class Meta:
         description = 'Refund an order.'
 
-    order = graphene.Field(
-        Order, description='A refunded order.')
-
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, amount):
         errors = []
+        if amount <= 0:
+            cls.add_error('Amount should be a positive number.')
+            return OrderRefund(errors=errors)
+
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
         if order:
             payment = order.get_last_payment()
             clean_refund_payment(payment, amount, errors)
+            try:
+                gateway_refund(payment, amount)
+            except PaymentError as e:
+                errors.append(Error(field='payment', message=str(e)))
 
         if errors:
             return OrderRefund(errors=errors)
 
-        msg = pgettext_lazy(
-            'Dashboard message related to an order',
-            'Refunded %(amount)s' % {'amount': amount})
-        order.history.create(content=msg, user=info.context.user)
+        order.events.create(
+            type=OrderEvents.PAYMENT_REFUNDED.value,
+            user=info.context.user,
+            parameters={'amount': amount})
         return OrderRefund(order=order)

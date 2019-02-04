@@ -1,21 +1,12 @@
-import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 
-from saleor.account.backends import BaseBackend
 from saleor.account.forms import LoginForm, SignupForm
 
 from .utils import get_redirect_location
 
 User = get_user_model()
-
-
-@pytest.fixture
-def base_backend():
-    base_backend = BaseBackend()
-    base_backend.DB_NAME = 'Backend'
-    return base_backend
 
 
 def test_login_form_valid(customer_user):
@@ -29,7 +20,7 @@ def test_login_form_not_valid(customer_user):
     data = {'user': 'test@example.com', 'password': 'wrongpassword'}
     form = LoginForm(data=data)
     assert not form.is_valid()
-    assert form.get_user_id() is None
+    assert form.get_user() is None
 
 
 def test_login_view_valid(client, customer_user):

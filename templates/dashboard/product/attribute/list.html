@@ -1,0 +1,87 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load materializecss %}
+{% load static %}
+{% load utils %}
+
+{% block title %}
+  {% trans "Attributes" context "Dashboard attributes list" %} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-attributes{% endblock %}
+
+{% block menu_attributes_class %}active{% endblock %}
+
+{% block header_extra %}
+  <div class="btn-fab-fixed">
+    <a class="btn-fab-default waves-effect waves-light" href="{% url 'dashboard:attribute-add' %}" title="{% trans "Add attribute" context "Attribute list add button text" %}">
+      <svg data-src="{% static "dashboard/images/add.svg" %}" />
+    </a>
+  </div>
+{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs">
+    <li class="visible-s">
+      {% trans "Attributes" context "Dashboard attributes list" %}
+    </li>
+  </ul>
+{% endblock %}
+
+{% block menu_catalogue_class %} active{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col s12 l9">
+      {% if attributes %}
+        <div class="card">
+          <div class="data-table-container">
+            <table class="bordered highlight data-table data-table-description">
+              <thead>
+                <tr>
+                  {% trans "Name" context "Dashboard attributes list table header name" as label %}
+                  {% sorting_header 'name' label %}
+                  <th>{% trans "Product type" context "Name of product type related to the attribute" %}</th>
+                  <th>
+                    {% trans "Values" context "Dashboard attributes list table header values" %}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for pk, name, product_type, values in attributes %}
+                  <tr data-action-go="{% url 'dashboard:attribute-details' pk=pk %}">
+                    <td>
+                      {{ name }}
+                    </td>
+                    <td>
+                      {{ product_type|default:'-' }}
+                    </td>
+                    <td>
+                      {% if values %}{{ values|join:", " }}{% else %}-{% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% paginate attributes %}
+      {% else %}
+        {% if is_empty %}
+          {% include 'dashboard/product/attribute/zero_page.html' %}
+        {% else %}
+          <div class="col s12">
+            <div class="not-found">
+              <p class="grey-text">
+                {% trans "No attributes found." context "Empty attribute list message" %}
+              </p>
+            </div>
+          </div>
+        {% endif %}
+      {% endif %}
+    </div>
+    <div class="col s12 l3" id="filters">
+      {% if not is_empty %}{% filters filter_set %}{% endif %}
+    </div>
+  </div>
+{% endblock %}

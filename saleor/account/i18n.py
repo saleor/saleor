@@ -4,7 +4,7 @@ import i18naddress
 from django import forms
 from django.forms.forms import BoundField
 from django.utils.translation import pgettext_lazy
-from django_countries.data import COUNTRIES
+from django_countries import countries
 from phonenumber_field.formfields import PhoneNumberField
 
 from .models import Address
@@ -98,8 +98,7 @@ class AddressForm(forms.ModelForm):
                 'Company or organization', 'Company or organization'),
             'street_address_1': pgettext_lazy(
                 'Address', 'Address'),
-            'street_address_2': pgettext_lazy(
-                'Address', 'Address'),
+            'street_address_2': '',
             'city': pgettext_lazy(
                 'City', 'City'),
             'city_area': pgettext_lazy(
@@ -260,7 +259,7 @@ def construct_address_form(country_code, i18n_rules):
     return class_
 
 
-for country in COUNTRIES.keys():
+for country in countries.countries.keys():
     try:
         country_rules = i18naddress.get_validation_rules(
             {'country_code': country})
@@ -268,7 +267,7 @@ for country in COUNTRIES.keys():
         country_rules = i18naddress.get_validation_rules({})
         UNKNOWN_COUNTRIES.add(country)
 
-COUNTRY_CHOICES = [(code, label) for code, label in COUNTRIES.items()
+COUNTRY_CHOICES = [(code, label) for code, label in countries.countries.items()
                    if code not in UNKNOWN_COUNTRIES]
 # Sort choices list by country name
 COUNTRY_CHOICES = sorted(COUNTRY_CHOICES, key=lambda choice: choice[1])

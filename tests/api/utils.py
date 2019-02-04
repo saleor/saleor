@@ -1,16 +1,28 @@
 import json
-
-from tests.utils import get_graphql_content
-
-from saleor.graphql.core.utils import snake_to_camel_case
+from django.core.serializers.json import DjangoJSONEncoder
 
 from saleor.graphql.core.utils import snake_to_camel_case
+
+
+def _get_graphql_content_from_response(response):
+    return json.loads(response.content.decode('utf8'))
+
+
+def get_graphql_content(response):
+    """Get's GraphQL content from the response, and optionally checks if it
+    contains any operating-related errors, eg. schema errors or lack of
+    permissions.
+    """
+    content = _get_graphql_content_from_response(response)
+    assert 'errors' not in content, content['errors']
+    return content
 
 
 def assert_no_permission(response):
-    content = get_graphql_content(response)
+    content = _get_graphql_content_from_response(response)
     assert 'errors' in content
-    assert content['errors'][0]['message'] == 'You do not have permission to perform this action'
+    assert content['errors'][0]['message'] == (
+        'You do not have permission to perform this action'), content['errors']
 
 
 def get_multipart_request_body(query, variables, file, file_name):
@@ -20,8 +32,8 @@ def get_multipart_request_body(query, variables, file, file_name):
     of additional 'operations' and 'map' keys.
     """
     return {
-        'operations': json.dumps({'query': query, 'variables': variables}),
-        'map': json.dumps({file_name: ['variables.file']}), file_name: file}
+        'operations': json.dumps({'query': query, 'variables': variables}, cls=DjangoJSONEncoder),
+        'map': json.dumps({file_name: ['variables.file']}, cls=DjangoJSONEncoder), file_name: file}
 
 
 def convert_dict_keys_to_camel_case(d):

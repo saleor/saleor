@@ -11,7 +11,6 @@ from django.utils.translation import pgettext_lazy
 from django_countries.fields import Country, CountryField
 from phonenumber_field.modelfields import PhoneNumber, PhoneNumberField
 
-from ..core.models import BaseNote
 from .validators import validate_possible_number
 
 
@@ -109,6 +108,8 @@ def get_token():
 
 class User(PermissionsMixin, AbstractBaseUser):
     email = models.EmailField(unique=True)
+    first_name = models.CharField(max_length=256, blank=True)
+    last_name = models.CharField(max_length=256, blank=True)
     addresses = models.ManyToManyField(
         Address, blank=True, related_name='user_addresses')
     is_staff = models.BooleanField(default=False)
@@ -140,6 +141,13 @@ class User(PermissionsMixin, AbstractBaseUser):
                     'Permission description', 'Impersonate customers.')))
 
     def get_full_name(self):
+        if self.first_name or self.last_name:
+            return ('%s %s' % (self.first_name, self.last_name)).strip()
+        if self.default_billing_address:
+            first_name = self.default_billing_address.first_name
+            last_name = self.default_billing_address.last_name
+            if first_name or last_name:
+                return ('%s %s' % (first_name, last_name)).strip()
         return self.email
 
     def get_short_name(self):
@@ -153,7 +161,13 @@ class User(PermissionsMixin, AbstractBaseUser):
         return self.email
 
 
-class CustomerNote(BaseNote):
+class CustomerNote(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, blank=True, null=True,
+        on_delete=models.SET_NULL)
+    date = models.DateTimeField(db_index=True, auto_now_add=True)
+    content = models.TextField()
+    is_public = models.BooleanField(default=True)
     customer = models.ForeignKey(
         settings.AUTH_USER_MODEL, related_name='notes',
         on_delete=models.CASCADE)

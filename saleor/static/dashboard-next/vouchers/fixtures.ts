@@ -191,7 +191,7 @@ export const vouchers = [
     discountValueType: "PERCENTAGE",
     endDate: "2027-08-07T17:56:17.717Z",
     id: "v59684",
-    limit: { amount: 70, currency: "PKR" },
+    limit: { amount: 70, currency: "INR" },
     name: "distinctio aliquam",
     product: null,
     startDate: "2018-08-20T08:29:30.527Z",

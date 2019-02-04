@@ -14,7 +14,7 @@ Click the link below to delete your account.
 Please note that this action is permanent and cannot be reversed.
 {% endblocktrans %}
 
-{{ url }}
+{{ delete_url }}
 
 This is an automatically generated email, please do not reply.
 

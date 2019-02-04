@@ -9,29 +9,24 @@ cache:
     - node_modules
 install:
   - pip install -U pip setuptools wheel
-  - pip install tox-travis codecov
+  - pip install tox-travis
   - nvm install 10
   - npm i
   - npm run build-assets --production
   - npm run build-emails
-  - npm run test
 script:
+  - npm run test
   - tox
 env:
   global:
-    - DJANGO_SETTINGS_MODULE=tests.settings
-    - DATABASE_URL='postgres://postgres@localhost:5432/saleor'
+    - DATABASE_URL="postgres://postgres@localhost:5432/saleor"
+    - SECRET_KEY="irrelevant"
   matrix:
   - DJANGO="1.11"
-  - DJANGO="2.0"
   - DJANGO="2.1"
   - DJANGO="master"
 matrix:
   include:
-    - python: "3.7"
-      sudo: required
-      dist: xenial
-      env: DJANGO="2.0"
     - python: "3.7"
       sudo: required
       dist: xenial
@@ -43,22 +38,14 @@ matrix:
   fast_finish: true
   allow_failures:
     - python: "3.5"
-      env: DJANGO="2.1"
-    - python: "3.5"
       env: DJANGO="master"
     - python: "3.6"
-      env: DJANGO="2.1"
-    - python: "3.6"
       env: DJANGO="master"
-    - python: "3.7"
-      sudo: required
-      dist: xenial
-      env: DJANGO="2.1"
     - python: "3.7"
       env: DJANGO="master"
       sudo: required
       dist: xenial
-after_success:
-  - codecov
 services:
   - postgresql
+addons:
+  postgresql: 9.4

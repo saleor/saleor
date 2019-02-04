@@ -1,18 +1,16 @@
 import * as React from "react";
 
 interface ChoiceProviderProps {
-  children:
-    | ((
-        props: {
-          choices: Array<{
-            label: string;
-            value: string;
-          }>;
-          loading: boolean;
-          fetchChoices(value: string);
-        }
-      ) => React.ReactElement<any>)
-    | React.ReactNode;
+  children: ((
+    props: {
+      choices: Array<{
+        label: string;
+        value: string;
+      }>;
+      loading: boolean;
+      fetchChoices(value: string);
+    }
+  ) => React.ReactElement<any>);
   choices: Array<{
     label: string;
     value: string;
@@ -66,13 +64,10 @@ export class ChoiceProvider extends React.Component<
   };
 
   render() {
-    if (typeof this.props.children === "function") {
-      return this.props.children({
-        choices: this.state.choices,
-        fetchChoices: this.handleChange,
-        loading: this.state.loading
-      });
-    }
-    return this.props.children;
+    return this.props.children({
+      choices: this.state.choices,
+      fetchChoices: this.handleChange,
+      loading: this.state.loading
+    });
   }
 }

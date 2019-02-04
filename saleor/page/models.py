@@ -11,11 +11,19 @@ from ..seo.models import SeoModel, SeoModelTranslation
 
 
 class PageQuerySet(models.QuerySet):
+
     def public(self):
         today = datetime.date.today()
         return self.filter(
             Q(is_visible=True),
             Q(available_on__lte=today) | Q(available_on__isnull=True))
+
+    def visible_to_user(self, user):
+        has_access_to_all = (
+            user.is_active and user.has_perm('page.manage_pages'))
+        if has_access_to_all:
+            return self.all()
+        return self.public()
 
 
 class Page(SeoModel):
@@ -30,7 +38,7 @@ class Page(SeoModel):
     translated = TranslationProxy()
 
     class Meta:
-        ordering = ('slug',)
+        ordering = ('slug', )
         permissions = ((
             'manage_pages', pgettext_lazy(
                 'Permission description', 'Manage pages.')),)
@@ -43,6 +51,12 @@ class Page(SeoModel):
 
     def get_full_url(self):
         return build_absolute_uri(self.get_absolute_url())
+
+    @property
+    def is_published(self):
+        today = datetime.date.today()
+        return self.is_visible and (
+            self.available_on is None or self.available_on <= today)
 
 
 class PageTranslation(SeoModelTranslation):

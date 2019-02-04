@@ -3,7 +3,11 @@ import * as React from "react";
 import LoginPage, { FormData } from "../components/LoginPage";
 import { UserContext } from "../index";
 
-const LoginView: React.StatelessComponent = () => (
+interface LoginViewProps {
+  loading: boolean;
+}
+
+const LoginView: React.StatelessComponent<LoginViewProps> = ({ loading }) => (
   <UserContext.Consumer>
     {({ login, user }) => {
       const handleSubmit = (data: FormData) =>
@@ -11,6 +15,7 @@ const LoginView: React.StatelessComponent = () => (
       return (
         <LoginPage
           error={user === null}
+          disableLoginButton={loading}
           onPasswordRecovery={undefined}
           onSubmit={handleSubmit}
         />
@@ -18,5 +23,5 @@ const LoginView: React.StatelessComponent = () => (
     }}
   </UserContext.Consumer>
 );
-
+LoginView.displayName = "LoginView";
 export default LoginView;

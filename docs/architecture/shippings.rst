@@ -12,6 +12,8 @@ Each ``ShippingZone`` can contain several countries inside, but the country migh
 
 Some examples of the ``ShippingZones`` could be `European Union`, `North America`, `Germany` etc.
 
+There's also a possibility to create a default Shipping Zone which will be used for countries not covered by other zones.
+
 Shipping Methods
 ----------------
 

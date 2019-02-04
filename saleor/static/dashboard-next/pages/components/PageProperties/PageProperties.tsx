@@ -73,8 +73,9 @@ const PageProperties: React.StatelessComponent<PagePropertiesProps> = ({
         <FormSpacer />
         {created && (
           <div>
-            <Typography variant="body1">{i18n.t("Created:")} </Typography>
-            <DateFormatter date={created} />
+            <Typography variant="body1">
+              {i18n.t("Created:")} <DateFormatter date={created} />
+            </Typography>
           </div>
         )}
         <FormSpacer />
@@ -89,4 +90,5 @@ const PageProperties: React.StatelessComponent<PagePropertiesProps> = ({
     </Card>
   );
 };
+PageProperties.displayName = "PageProperties";
 export default PageProperties;

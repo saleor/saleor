@@ -1,11 +1,13 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load materializecss %}
-{% load staticfiles %}
+{% load static %}
 {% load utils %}
 
 {% block title %}{% trans "Navigation" context "Menu list page title" %} -
   {{ block.super }}{% endblock %}
+
+{% block body_class %}body-menus{% endblock %}
 
 {% block menu_menus_class %}active{% endblock %}
 

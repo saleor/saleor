@@ -1,83 +1,39 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { withStyles } from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
-import FormSpacer from "../../../components/FormSpacer";
-import MultiAutocompleteSelectField from "../../../components/MultiAutocompleteSelectField";
+import CardTitle from "../../../components/CardTitle";
 import i18n from "../../../i18n";
 
-interface ChoiceType {
-  label: string;
-  value: string;
-}
-interface ProductTypeDetailsProps {
+const styles = createStyles({
+  root: {
+    overflow: "visible"
+  }
+});
+
+interface ProductTypeDetailsProps extends WithStyles<typeof styles> {
   data?: {
     name: string;
-    hasVariants: boolean;
-    productAttributes: ChoiceType[];
-    variantAttributes: ChoiceType[];
   };
   disabled: boolean;
-  searchLoading: boolean;
-  searchResults: Array<{
-    id: string;
-    name: string;
-  }>;
-  onAttributeSearch: (name: string) => void;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
-const decorate = withStyles({
-  root: {
-    overflow: "visible" as "visible"
-  }
-});
-const ProductTypeDetails = decorate<ProductTypeDetailsProps>(
-  ({
-    classes,
-    data,
-    disabled,
-    searchLoading,
-    searchResults,
-    onAttributeSearch,
-    onChange
-  }) => (
+const ProductTypeDetails = withStyles(styles, { name: "ProductTypeDetails" })(
+  ({ classes, data, disabled, onChange }: ProductTypeDetailsProps) => (
     <Card className={classes.root}>
+      <CardTitle title={i18n.t("Information")} />
       <CardContent>
         <TextField
           disabled={disabled}
           fullWidth
-          label={i18n.t("Name")}
+          label={i18n.t("Product Type Name")}
           name="name"
           onChange={onChange}
           value={data.name}
         />
-        <FormSpacer />
-        <MultiAutocompleteSelectField
-          choices={searchResults.map(s => ({ label: s.name, value: s.id }))}
-          fetchChoices={onAttributeSearch}
-          helperText={i18n.t("Optional")}
-          label={i18n.t("Product attributes")}
-          loading={searchLoading}
-          name="productAttributes"
-          onChange={onChange}
-          value={data.productAttributes}
-        />
-        <FormSpacer />
-        {data.hasVariants && (
-          <MultiAutocompleteSelectField
-            choices={searchResults.map(s => ({ label: s.name, value: s.id }))}
-            fetchChoices={onAttributeSearch}
-            helperText={i18n.t("Optional")}
-            label={i18n.t("Variant attributes")}
-            loading={searchLoading}
-            name="variantAttributes"
-            onChange={onChange}
-            value={data.variantAttributes}
-          />
-        )}
       </CardContent>
     </Card>
   )

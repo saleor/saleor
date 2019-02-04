@@ -1,6 +1,6 @@
-import json
-
 from django.db.models import Q
+from django.utils.formats import localize
+from django.utils.translation import pgettext
 
 from ...menu.models import Menu, MenuItem
 from ...page.models import Page
@@ -61,7 +61,7 @@ def get_menu_as_json(menu):
             child_data['child_items'] = grand_children_data
             top_item_data['child_items'].append(child_data)
         menu_data.append(top_item_data)
-    return json.dumps(menu_data)
+    return menu_data
 
 
 def update_menus(menus_pk):
@@ -92,3 +92,19 @@ def get_menus_that_needs_update(collection=None, categories=None, page=None):
     menus_to_be_updated = MenuItem.objects.filter(q).distinct().values_list(
         'menu', flat=True)
     return menus_to_be_updated
+
+
+def get_menu_obj_text(obj):
+    if getattr(obj, 'is_published', True):
+        return str(obj)
+    elif isinstance(obj, Page) and obj.is_visible and obj.available_on:
+        return pgettext(
+            'Menu item page hidden status',
+            '%(menu_item_name)s is hidden '
+            '(will become visible on %(available_on_date)s)' % ({
+                'available_on_date': localize(obj.available_on),
+                'menu_item_name': str(obj)}))
+    return pgettext(
+        'Menu item published status',
+        '%(menu_item_name)s (Not published)' % {
+            'menu_item_name': str(obj)})

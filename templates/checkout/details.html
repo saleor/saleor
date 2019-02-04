@@ -2,7 +2,7 @@
 
 {% load i18n %}
 {% load price from taxed_prices %}
-{% load staticfiles %}
+{% load static %}
 
 {% block title %}{% trans "Checkout" context "Checkout page title" %} — {{ block.super }}{% endblock %}
 
@@ -15,7 +15,7 @@
   <header class="checkout__header">
     <div class="container">
       <a href="{% url 'home'%}">
-        <svg data-src="{% static "images/logo.svg" %}" height="38px" width="176px" />
+        <svg data-src="{% static "images/logo-document.svg" %}" height="48px" width="176px" />
       </a>
       <h1>{% trans "Checkout" context "Checkout title" %}</h1>
     </div>

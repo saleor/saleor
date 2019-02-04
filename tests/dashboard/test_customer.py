@@ -3,7 +3,8 @@ import json
 from django.urls import reverse
 
 from saleor.account.models import CustomerNote, User
-from saleor.dashboard.customer.forms import CustomerDeleteForm, CustomerNoteForm
+from saleor.dashboard.customer.forms import (
+    CustomerDeleteForm, CustomerForm, CustomerNoteForm)
 
 
 def test_ajax_users_list(admin_client, admin_user, customer_user):
@@ -32,6 +33,33 @@ def test_customer_detail_view(admin_client, customer_user):
 def test_customer_create(admin_client):
     response = admin_client.get(reverse('dashboard:customer-create'))
     assert response.status_code == 200
+
+
+def test_view_customer_create(admin_client):
+    url = reverse('dashboard:customer-create')
+    response = admin_client.post(url, data={'email': 'customer01@example.com'})
+    assert response.status_code == 302
+    assert User.objects.filter(email='customer01@example.com').exists()
+
+
+def test_add_customer_form():
+    user_count = User.objects.count()
+    customer_form = CustomerForm({'email': 'customer01@example.com'})
+    customer_form.is_valid()
+    customer_form.save()
+    assert User.objects.count() == user_count + 1
+
+
+def test_edit_customer_form(customer_user):
+    customer = customer_user
+    customer_form = CustomerForm(
+        {'first_name': 'Jan', 'last_name': 'Nowak', 'email': customer.email},
+        instance=customer)
+    customer_form.is_valid()
+    customer_form.save()
+    customer.refresh_from_db()
+    assert customer.first_name == 'Jan'
+    assert customer.last_name == 'Nowak'
 
 
 def test_add_note_to_customer(admin_user, customer_user):

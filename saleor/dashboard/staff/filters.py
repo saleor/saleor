@@ -6,10 +6,9 @@ from ...core.permissions import get_permissions
 from ..customer.filters import UserFilter
 from ..forms import PermissionMultipleChoiceField
 
-
 SORT_BY_FIELDS = (
     ('email', 'email'),
-    ('default_billing_address__first_name', 'name'),
+    ('first_name', 'name'),
     ('default_billing_address__city', 'location'))
 
 SORT_BY_FIELDS_LABELS = {
@@ -28,7 +27,7 @@ class PermissionMultipleChoiceFilter(ModelMultipleChoiceFilter):
 class StaffFilter(UserFilter):
     user_permissions = PermissionMultipleChoiceFilter(
         label=pgettext_lazy('Group list filter label', 'Permissions'),
-        name='user_permissions',
+        field_name='user_permissions',
         queryset=get_permissions())
     sort_by = OrderingFilter(
         label=pgettext_lazy('Staff list filter label', 'Sort by'),

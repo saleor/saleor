@@ -3,7 +3,7 @@
 {% load i18n_address_tags %}
 {% load placeholder %}
 {% load price from taxed_prices %}
-{% load get_thumbnail from product_images %}
+{% load get_product_image_thumbnail from product_images %}
 
 {% if order.user == user %}
   <div class="order-details__addresses">
@@ -11,15 +11,21 @@
       {% if order.is_shipping_required %}
         <div class="col-6">
           <h3>
-            {% trans "Shipping address" context "Order details address title" %}
+            <b>
+              {% trans "Shipping address" context "Order details address title" %}
+            </b>
           </h3>
+          <hr class="margin-default" />
           {% format_address order.shipping_address %}
         </div>
       {% endif %}
       <div class="col-6">
         <h3>
-          {% trans "Billing address" context "Order details address title" %}
+          <b>
+            {% trans "Billing address" context "Order details address title" %}
+          </b>
         </h3>
+        <hr class="margin-default" />
         {% format_address order.billing_address %}
       </div>
     </div>
@@ -51,8 +57,8 @@
       <div class="col-md-8 order-details__product__description">
         {% if line.variant %}
           <a class="link--clean" href="{{ line.variant.get_absolute_url }}">
-            <img data-src="{% get_thumbnail line.variant.get_first_image size=60 method="crop" %}"
-                  data-srcset="{% get_thumbnail line.variant.get_first_image size=60 method="crop" %} 1x, {% get_thumbnail line.variant.get_first_image size=120 method="crop" %} 2x"
+            <img data-src="{% get_product_image_thumbnail line.variant.get_first_image size=60 method="thumbnail" %}"
+                  data-srcset="{% get_product_image_thumbnail line.variant.get_first_image size=60 method="thumbnail" %} 1x, {% get_product_image_thumbnail line.variant.get_first_image size=120 method="thumbnail" %} 2x"
                   class="float-left lazyload lazypreload"
                   src="{% placeholder size=60 %}">
             <span>{{ line.translated_product_name|default:line.product_name }}</span>
@@ -62,13 +68,17 @@
           <span>{{ line.translated_product_name|default:line.product_name }}</span>
         {% endif %}
       </div>
-      <div class="col-md-4">
+      <div class="col-md-4 order-details__product__description">
         <div class="row">
           <div class="col-md-6 col-12">
-            <p class="float-right">x {{ line.quantity }}</p>
+            <p class="text-right">
+              <span>
+                x {{ line.quantity }}
+              </span>
+            </p>
           </div>
           <div class="col-md-6 col-12">
-            <p class="float-right">
+            <p class="text-right">
               {% price line.get_total display_gross=order.display_gross_prices %}
             </p>
           </div>

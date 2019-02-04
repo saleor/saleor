@@ -62,21 +62,21 @@ def test_site_update_view(admin_client, site_settings):
     assert site_settings.site.name == 'Mirumee Labs'
 
 
-def test_get_authorization_key_for_backend(site_settings, authorization_key):
-    key_for_backend = utils.get_authorization_key_for_backend('Backend')
+def test_get_authorization_key_for_backend(site_settings, authorization_key, authorization_backend_name):
+    key_for_backend = utils.get_authorization_key_for_backend(authorization_backend_name)
     assert key_for_backend == authorization_key
 
 
-def test_get_authorization_key_no_settings_site(settings, authorization_key):
+def test_get_authorization_key_no_settings_site(settings, authorization_key, authorization_backend_name):
     settings.SITE_ID = None
-    assert utils.get_authorization_key_for_backend('Backend') is None
+    assert utils.get_authorization_key_for_backend(authorization_backend_name) is None
 
 
 def test_one_authorization_key_for_backend_and_settings(
-        site_settings, authorization_key):
+        site_settings, authorization_key, authorization_backend_name):
     with pytest.raises(IntegrityError):
         AuthorizationKey.objects.create(
-            site_settings=site_settings, name='Backend')
+            site_settings=site_settings, name=authorization_backend_name)
 
 
 def test_authorization_key_key_and_secret(authorization_key):

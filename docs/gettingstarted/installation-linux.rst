@@ -23,10 +23,6 @@ Node.js
 
 Version 10 or later is required. See the `installation instructions <https://nodejs.org/en/download/package-manager/>`_.
 
-.. note::
-
-   Debian and Ubuntu users who install Node.js using system packages will also need to install the ``nodejs-legacy`` package.
-
 
 PostgreSQL
 ~~~~~~~~~~
@@ -134,7 +130,7 @@ Installation
 
    .. note::
 
-       Database name is extracted from the ``DATABASE_URL`` environmental variable. If absent it defaults to ``saleor``.
+       Database name is extracted from the ``DATABASE_URL`` environment variable. If absent it defaults to ``saleor``.
 
 
 #. Prepare the database:

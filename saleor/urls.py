@@ -15,7 +15,7 @@ from .core.urls import urlpatterns as core_urls
 from .dashboard.urls import urlpatterns as dashboard_urls
 from .data_feeds.urls import urlpatterns as feed_urls
 from .graphql.api import schema
-from .graphql.file_upload.views import FileUploadGraphQLView
+from .graphql.views import GraphQLView
 from .order.urls import urlpatterns as order_urls
 from .page.urls import urlpatterns as page_urls
 from .product.urls import urlpatterns as product_urls
@@ -26,8 +26,8 @@ handler404 = 'saleor.core.views.handle_404'
 non_translatable_urlpatterns = [
     url(r'^dashboard/',
         include((dashboard_urls, 'dashboard'), namespace='dashboard')),
-    url(r'^graphql/', csrf_exempt(FileUploadGraphQLView.as_view(
-        schema=schema, graphiql=settings.DEBUG)), name='api'),
+    url(r'^graphql/', csrf_exempt(GraphQLView.as_view(
+        schema=schema)), name='api'),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
     url(r'^i18n/$', set_language, name='set_language'),
@@ -47,8 +47,7 @@ translatable_urlpatterns = [
         include((account_urls, 'account'), namespace='account')),
     url(r'^feeds/',
         include((feed_urls, 'data_feeds'), namespace='data_feeds')),
-    url(r'^search/', include((search_urls, 'search'), namespace='search')),
-    url(r'', include('payments.urls'))]
+    url(r'^search/', include((search_urls, 'search'), namespace='search'))]
 
 urlpatterns = non_translatable_urlpatterns + i18n_patterns(
     *translatable_urlpatterns)
@@ -59,7 +58,7 @@ if settings.DEBUG:
         url(r'^__debug__/', include(debug_toolbar.urls)),
         # static files (images, css, javascript, etc.)
         url(r'^static/(?P<path>.*)$', serve)] + static(
-            settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+            '/media/', document_root=settings.MEDIA_ROOT)
 
 if settings.ENABLE_SILK:
     urlpatterns += [

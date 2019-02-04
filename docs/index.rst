@@ -10,6 +10,7 @@ Contents:
 
    gettingstarted
    customization
+   payment-gateways
    contributing
    architecture
    integrations

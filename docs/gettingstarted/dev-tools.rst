@@ -22,11 +22,4 @@ Silk's presence can be controled via environmental variable
 
     $ export ENABLE_SILK='True'
 
-#. Install packages from requirements_dev.txt:
-
-   .. code-block:: console
-
-    $ python -m pip install -r requirements_dev.txt
-
 #. Restart server
-

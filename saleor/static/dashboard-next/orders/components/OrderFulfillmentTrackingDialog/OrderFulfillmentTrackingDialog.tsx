@@ -6,43 +6,60 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
+import ConfirmButton, {
+  ConfirmButtonTransitionState
+} from "../../../components/ConfirmButton";
+import Form from "../../../components/Form";
 import i18n from "../../../i18n";
 
+export interface FormData {
+  trackingNumber: string;
+}
+
 interface OrderFulfillmentTrackingDialogProps {
+  confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
-  trackingCode: string;
-  variant: string;
-  onChange(event: React.ChangeEvent<any>);
-  onClose?();
-  onConfirm?();
+  trackingNumber: string;
+  onClose();
+  onConfirm(data: FormData);
 }
 
 const OrderFulfillmentTrackingDialog: React.StatelessComponent<
   OrderFulfillmentTrackingDialogProps
-> = ({ open, variant, trackingCode, onConfirm, onClose, onChange }) => (
+> = ({ confirmButtonState, open, trackingNumber, onConfirm, onClose }) => (
   <Dialog open={open}>
-    <DialogTitle>
-      {variant === "edit"
-        ? i18n.t("Edit tracking code", { context: "title" })
-        : i18n.t("Add tracking code", { context: "title" })}
-    </DialogTitle>
-    <DialogContent>
-      <TextField
-        label={i18n.t("Tracking code")}
-        name="trackingCode"
-        onChange={onChange}
-        value={trackingCode}
-        fullWidth
-      />
-    </DialogContent>
-    <DialogActions>
-      <Button onClick={onClose}>
-        {i18n.t("Cancel", { context: "button" })}
-      </Button>
-      <Button color="primary" variant="raised" onClick={onConfirm}>
-        {i18n.t("Confirm", { context: "button" })}
-      </Button>
-    </DialogActions>
+    <Form initial={{ trackingNumber }} onSubmit={onConfirm}>
+      {({ change, data, submit }) => (
+        <>
+          <DialogTitle>
+            {i18n.t("Add tracking code", { context: "title" })}
+          </DialogTitle>
+          <DialogContent>
+            <TextField
+              label={i18n.t("Tracking number")}
+              name="trackingNumber"
+              onChange={change}
+              value={data.trackingNumber}
+              fullWidth
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={onClose}>
+              {i18n.t("Cancel", { context: "button" })}
+            </Button>
+            <ConfirmButton
+              transitionState={confirmButtonState}
+              color="primary"
+              variant="contained"
+              onClick={submit}
+            >
+              {i18n.t("Confirm", { context: "button" })}
+            </ConfirmButton>
+          </DialogActions>
+        </>
+      )}
+    </Form>
   </Dialog>
 );
+OrderFulfillmentTrackingDialog.displayName = "OrderFulfillmentTrackingDialog";
 export default OrderFulfillmentTrackingDialog;

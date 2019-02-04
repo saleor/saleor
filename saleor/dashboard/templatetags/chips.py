@@ -73,15 +73,17 @@ def handle_range(field, request_get):
     """Build a list of chips for RangeField field."""
     items = []
     values = [f if f else None for f in field.value()]
-    text = [
-        pgettext_lazy('Label of first value in range filter', 'From'),
-        pgettext_lazy('Label of second value in range filter', 'To')]
-    for i, value in enumerate(values):
+    range_edges = ['min', 'max']
+    range_labels = [
+        pgettext_lazy(
+            'Label of first value in range filter', 'From %(value)s'),
+        pgettext_lazy('Label of second value in range filter', 'To %(value)s')]
+    for value, edge, label in zip(values, range_edges, range_labels):
         if value:
-            param_name = '%s_%i' % (field.name, i)
+            param_name = '%s_%s' % (field.name, edge)
             items.append({
                 'content': CHIPS_PATTERN % (
-                    field.label, text[i] + ' ' + str(value)),
+                    field.label, label % {'value': value}),
                 'link': get_cancel_url(request_get, param_name)})
     return items
 

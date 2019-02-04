@@ -1,5 +1,6 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
@@ -8,7 +9,25 @@ from templated_email import send_templated_mail
 from saleor.account.models import User
 from saleor.core.utils import build_absolute_uri
 from saleor.dashboard.staff.forms import StaffForm
+from saleor.dashboard.staff.utils import remove_staff_member
 from saleor.settings import DEFAULT_FROM_EMAIL
+
+
+def test_remove_staff_member_with_orders(
+        staff_user, permission_manage_products, order):
+    order.user = staff_user
+    order.save()
+    staff_user.user_permissions.add(permission_manage_products)
+
+    remove_staff_member(staff_user)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert not staff_user.is_staff
+    assert not staff_user.user_permissions.exists()
+
+
+def test_remove_staff_member(staff_user):
+    remove_staff_member(staff_user)
+    assert not User.objects.filter(pk=staff_user.pk).exists()
 
 
 def test_staff_form_not_valid(db):
@@ -97,12 +116,17 @@ def test_staff_create_email_with_set_link_password(admin_client):
 
 def test_send_set_password_email(staff_user, site_settings):
     site = site_settings.site
+    uid = urlsafe_base64_encode(force_bytes(staff_user.pk)).decode()
+    token = default_token_generator.make_token(staff_user)
+    logo_url = build_absolute_uri(static('images/logo-document.svg'))
+    password_set_url = build_absolute_uri(
+        reverse(
+            'account:reset-password-confirm',
+            kwargs={'token': token, 'uidb64': uid}))
     ctx = {
-        'protocol': 'http',
-        'domain': site.domain,
-        'site_name': site.name,
-        'uid': urlsafe_base64_encode(force_bytes(staff_user.pk)).decode(),
-        'token': default_token_generator.make_token(staff_user)}
+        'logo_url': logo_url,
+        'password_set_url': password_set_url,
+        'site_name': site.name}
     send_templated_mail(
         template_name='dashboard/staff/set_password',
         from_email=DEFAULT_FROM_EMAIL,
@@ -112,8 +136,8 @@ def test_send_set_password_email(staff_user, site_settings):
     generated_link = reverse(
         'account:reset-password-confirm',
         kwargs={
-            'uidb64': ctx['uid'],
-            'token': ctx['token']})
+            'uidb64': uid,
+            'token': token})
     absolute_generated_link = build_absolute_uri(generated_link)
     sended_message = mail.outbox[0].body
     assert absolute_generated_link in sended_message
@@ -121,11 +145,15 @@ def test_send_set_password_email(staff_user, site_settings):
 
 def test_create_staff_and_set_password(admin_client):
     url = reverse('dashboard:staff-create')
-    data = {'email': 'staff3@example.com', 'is_staff': True}
+    data = {
+        'first_name': 'Jan', 'last_name': 'Nowak',
+        'email': 'staff3@example.com', 'is_staff': True}
     response = admin_client.post(url, data)
     assert response.status_code == 302
     new_user = User.objects.get(email='staff3@example.com')
-    assert not new_user.has_usable_password()
+    assert new_user.first_name == 'Jan'
+    assert new_user.last_name == 'Nowak'
+    assert not new_user.password
     uid = urlsafe_base64_encode(force_bytes(new_user.pk)).decode()
     token = default_token_generator.make_token(new_user)
     response = admin_client.get(

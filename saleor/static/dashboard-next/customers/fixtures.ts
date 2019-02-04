@@ -1,3 +1,7 @@
+import { PaymentChargeStatusEnum } from "../types/globalTypes";
+import { CustomerDetails_user } from "./types/CustomerDetails";
+import { ListCustomers_customers_edges_node } from "./types/ListCustomers";
+
 export const customers = [
   {
     dateJoined: "2017-10-11T13:22:30.831Z",
@@ -5,31 +9,35 @@ export const customers = [
       city: "Thompsontown",
       cityArea: "Rhode Island",
       companyName: null,
-      country: "Swaziland",
+      country: {
+        code: "SW",
+        country: "Swaziland"
+      },
       countryArea: "Buckinghamshire",
       firstName: "Alexander",
       id: "52402",
       lastName: "Simonis",
-      phone_number: "253-928-8945",
-      phone_prefix: "17",
+      phone: "+17 253-928-8945",
       postalCode: "47639-5237",
-      streetAddress_1: "83772 Savanah Summit",
-      streetAddress_2: null
+      streetAddress1: "83772 Savanah Summit",
+      streetAddress2: null
     },
     defaultShippingAddress: {
       city: "West Bret",
       cityArea: "North Dakota",
       companyName: null,
-      country: "Sudan",
+      country: {
+        code: "SD",
+        country: "Sudan"
+      },
       countryArea: null,
       firstName: "Alexander",
       id: "77109",
       lastName: "Simonis",
-      phone_number: "463-243-6545",
-      phone_prefix: "21",
+      phone: "+21 463-243-6545",
       postalCode: "21665",
-      streetAddress_1: "780 Jaime Prairie",
-      streetAddress_2: null
+      streetAddress1: "780 Jaime Prairie",
+      streetAddress2: null
     },
     email: "alexander_simonis@example.com",
     id: "11810",
@@ -43,31 +51,35 @@ export const customers = [
       city: "Lake Adela",
       cityArea: "Maryland",
       companyName: "Kemmer Group",
-      country: "Kenya",
+      country: {
+        code: "KE",
+        country: "Kenya"
+      },
       countryArea: null,
       firstName: "Augustus",
       id: "81868",
       lastName: "Crist",
-      phone_number: "583-374-8576",
-      phone_prefix: "19",
+      phone: "+19 583-374-8576",
       postalCode: "29966",
-      streetAddress_1: "5656 Crooks Park",
-      streetAddress_2: null
+      streetAddress1: "5656 Crooks Park",
+      streetAddress2: null
     },
     defaultShippingAddress: {
       city: "East Brandttown",
       cityArea: "Missouri",
       companyName: null,
-      country: "Somalia",
+      country: {
+        code: "SO",
+        country: "Somalia"
+      },
       countryArea: null,
       firstName: "Augustus",
       id: "11788",
       lastName: "Crist",
-      phone_number: "584-961-3073",
-      phone_prefix: "52",
+      phone: "+52 584-961-3073",
       postalCode: "80218",
-      streetAddress_1: "37212 O'Reilly Ford",
-      streetAddress_2: null
+      streetAddress1: "37212 O'Reilly Ford",
+      streetAddress2: null
     },
     email: "augustus_crist@example.com",
     id: "34351",
@@ -81,31 +93,35 @@ export const customers = [
       city: "East Raymond",
       cityArea: "Delaware",
       companyName: null,
-      country: "San Marino",
+      country: {
+        code: "SM",
+        country: "San Marino"
+      },
       countryArea: null,
       firstName: "Kelton",
       id: "77939",
       lastName: "Eichmann",
-      phone_number: "650-119-2676",
-      phone_prefix: "17",
+      phone: "+17 650-119-2676",
       postalCode: "94747-5311",
-      streetAddress_1: "5060 Aufderhar Common",
-      streetAddress_2: null
+      streetAddress1: "5060 Aufderhar Common",
+      streetAddress2: null
     },
     defaultShippingAddress: {
       city: "East Raymond",
       cityArea: "Delaware",
       companyName: null,
-      country: "San Marino",
+      country: {
+        code: "SM",
+        country: "San Marino"
+      },
       countryArea: null,
       firstName: "Kelton",
       id: "77939",
       lastName: "Eichmann",
-      phone_number: "650-119-2676",
-      phone_prefix: "17",
+      phone: "+17 650-119-2676",
       postalCode: "94747-5311",
-      streetAddress_1: "5060 Aufderhar Common",
-      streetAddress_2: null
+      streetAddress1: "5060 Aufderhar Common",
+      streetAddress2: null
     },
     email: "kelton_eichmann@example.com",
     id: "47883",
@@ -119,31 +135,35 @@ export const customers = [
       city: "Torphyton",
       cityArea: "Iowa",
       companyName: null,
-      country: "Chad",
+      country: {
+        code: "CD",
+        country: "Chad"
+      },
       countryArea: null,
       firstName: "Magnolia",
       id: "2237",
       lastName: "Brakus",
-      phone_number: "136-461-3995",
-      phone_prefix: "52",
+      phone: "+52 136-461-3995",
       postalCode: "64573",
-      streetAddress_1: "106 Swift Squares",
-      streetAddress_2: null
+      streetAddress1: "106 Swift Squares",
+      streetAddress2: null
     },
     defaultShippingAddress: {
       city: "Torphyton",
       cityArea: "Iowa",
       companyName: null,
-      country: "Chad",
+      country: {
+        code: "CD",
+        country: "Chad"
+      },
       countryArea: null,
       firstName: "Magnolia",
       id: "2237",
       lastName: "Brakus",
-      phone_number: "136-461-3995",
-      phone_prefix: "52",
+      phone: "+52 136-461-3995",
       postalCode: "64573",
-      streetAddress_1: "106 Swift Squares",
-      streetAddress_2: null
+      streetAddress1: "106 Swift Squares",
+      streetAddress2: null
     },
     email: "magnolia_brakus@example.com",
     id: "53433",
@@ -157,31 +177,35 @@ export const customers = [
       city: "Port Savanahfort",
       cityArea: "Nebraska",
       companyName: null,
-      country: "Greenland",
+      country: {
+        code: "GD",
+        country: "Greenland"
+      },
       countryArea: null,
       firstName: "Adonis",
       id: "10532",
       lastName: "Pacocha",
-      phone_number: "944-018-0185",
-      phone_prefix: "11",
+      phone: "+11 944-018-0185",
       postalCode: "52460-3432",
-      streetAddress_1: "32181 Lindgren Turnpike",
-      streetAddress_2: null
+      streetAddress1: "32181 Lindgren Turnpike",
+      streetAddress2: null
     },
     defaultShippingAddress: {
       city: "East Fletcher",
       cityArea: "New Hampshire",
       companyName: null,
-      country: "Kyrgyz Republic",
+      country: {
+        code: "KR",
+        country: "Kyrgyz Republic"
+      },
       countryArea: null,
       firstName: "Adonis",
       id: "45425",
       lastName: "Pacocha",
-      phone_number: "549-984-7736",
-      phone_prefix: "36",
+      phone: "+36 549-984-7736",
       postalCode: "29123-8368",
-      streetAddress_1: "938 Jordyn Harbor",
-      streetAddress_2: null
+      streetAddress1: "938 Jordyn Harbor",
+      streetAddress2: null
     },
     email: "adonis_pacocha@example.com",
     id: "42657",
@@ -192,34 +216,38 @@ export const customers = [
   {
     dateJoined: "2018-05-31T06:55:23.938Z",
     defaultBillingAddress: {
-      city: "New Eugenia",
-      cityArea: "Michigan",
+      city: "Reykjavik",
+      cityArea: "Höfuðborgarsvæði",
       companyName: null,
-      country: "Iceland",
+      country: {
+        code: "IS",
+        country: "Iceland"
+      },
       countryArea: null,
       firstName: "Carlie",
       id: "83778",
       lastName: "Walsh",
-      phone_number: "387-984-3969",
-      phone_prefix: "27",
+      phone: "+27 387-984-3969",
       postalCode: "48003",
-      streetAddress_1: "08030 Corrine Row",
-      streetAddress_2: null
+      streetAddress1: "08030 Corrine Row",
+      streetAddress2: null
     },
     defaultShippingAddress: {
       city: "North Tanyafurt",
       cityArea: "Wyoming",
       companyName: null,
-      country: "Rwanda",
+      country: {
+        code: "RW",
+        country: "Rwanda"
+      },
       countryArea: null,
       firstName: "Carlie",
       id: "14941",
       lastName: "Walsh",
-      phone_number: "320-941-3747",
-      phone_prefix: "44",
+      phone: "+44 320-941-3747",
       postalCode: "33296",
-      streetAddress_1: "1231 Eriberto Stravenue",
-      streetAddress_2: null
+      streetAddress1: "1231 Eriberto Stravenue",
+      streetAddress2: null
     },
     email: "carlie_walsh@example.com",
     id: "93594",
@@ -233,31 +261,35 @@ export const customers = [
       city: "Labadiechester",
       cityArea: "Iowa",
       companyName: null,
-      country: "Morocco",
+      country: {
+        code: "MA",
+        country: "Morocco"
+      },
       countryArea: "Buckinghamshire",
       firstName: "Junius",
       id: "86163",
       lastName: "Crist",
-      phone_number: "605-434-6759",
-      phone_prefix: "47",
+      phone: "+47 605-434-6759",
       postalCode: "39521",
-      streetAddress_1: "333 Bernie Fords",
-      streetAddress_2: null
+      streetAddress1: "333 Bernie Fords",
+      streetAddress2: null
     },
     defaultShippingAddress: {
       city: "Kaylistad",
       cityArea: "Louisiana",
       companyName: null,
-      country: "Equatorial Guinea",
+      country: {
+        code: "EG",
+        country: "Equatorial Guinea"
+      },
       countryArea: "Bedfordshire",
       firstName: "Junius",
       id: "78537",
       lastName: "Crist",
-      phone_number: "893-019-4257",
-      phone_prefix: "20",
+      phone: "+20 893-019-4257",
       postalCode: "43886-6932",
-      streetAddress_1: "0597 Angeline Gateway",
-      streetAddress_2: null
+      streetAddress1: "0597 Angeline Gateway",
+      streetAddress2: null
     },
     email: "junius_crist@example.com",
     id: "70932",
@@ -271,31 +303,35 @@ export const customers = [
       city: "Lydiahaven",
       cityArea: "Arkansas",
       companyName: null,
-      country: "Cambodia",
+      country: {
+        code: "CB",
+        country: "Cambodia"
+      },
       countryArea: "Berkshire",
       firstName: "Pedro",
       id: "70545",
       lastName: "Harvey",
-      phone_number: "817-342-0603",
-      phone_prefix: "35",
+      phone: "+35 817-342-0603",
       postalCode: "72196",
-      streetAddress_1: "9280 Asa Center",
-      streetAddress_2: null
+      streetAddress1: "9280 Asa Center",
+      streetAddress2: null
     },
     defaultShippingAddress: {
       city: "Lydiahaven",
       cityArea: "Arkansas",
       companyName: null,
-      country: "Cambodia",
+      country: {
+        code: "CB",
+        country: "Cambodia"
+      },
       countryArea: "Berkshire",
       firstName: "Pedro",
       id: "70545",
       lastName: "Harvey",
-      phone_number: "817-342-0603",
-      phone_prefix: "35",
+      phone: "+35 817-342-0603",
       postalCode: "72196",
-      streetAddress_1: "9280 Asa Center",
-      streetAddress_2: null
+      streetAddress1: "9280 Asa Center",
+      streetAddress2: null
     },
     email: "pedro_harvey@example.com",
     id: "61255",
@@ -309,31 +345,35 @@ export const customers = [
       city: "East Leilafurt",
       cityArea: "Arizona",
       companyName: null,
-      country: "Bulgaria",
+      country: {
+        code: "BG",
+        country: "Bulgaria"
+      },
       countryArea: null,
       firstName: "Raven",
       id: "9167",
       lastName: "Deckow",
-      phone_number: "210-019-3184",
-      phone_prefix: "62",
+      phone: "+62 210-019-3184",
       postalCode: "02296",
-      streetAddress_1: "8546 Marks Highway",
-      streetAddress_2: null
+      streetAddress1: "8546 Marks Highway",
+      streetAddress2: null
     },
     defaultShippingAddress: {
       city: "South Hendersonbury",
       cityArea: "Nevada",
       companyName: "Raynor Inc",
-      country: "Turkmenistan",
+      country: {
+        code: "TK",
+        country: "Turkmenistan"
+      },
       countryArea: null,
       firstName: "Raven",
       id: "48467",
       lastName: "Deckow",
-      phone_number: "654-130-2375",
-      phone_prefix: "46",
+      phone: "+46 654-130-2375",
       postalCode: "00611",
-      streetAddress_1: "87001 Howell Forge",
-      streetAddress_2: null
+      streetAddress1: "87001 Howell Forge",
+      streetAddress2: null
     },
     email: "raven_deckow@example.com",
     id: "84610",
@@ -347,31 +387,35 @@ export const customers = [
       city: "Windlerton",
       cityArea: "Texas",
       companyName: "Heller, Bauch and Friesen",
-      country: "Andorra",
+      country: {
+        code: "AN",
+        country: "Andorra"
+      },
       countryArea: null,
       firstName: "Paige",
       id: "63622",
       lastName: "Lesch",
-      phone_number: "972-463-2863",
-      phone_prefix: "8",
+      phone: "+08 972-463-2863",
       postalCode: "80681-4790",
-      streetAddress_1: "93719 Hackett Mountain",
-      streetAddress_2: null
+      streetAddress1: "93719 Hackett Mountain",
+      streetAddress2: null
     },
     defaultShippingAddress: {
       city: "Windlerton",
       cityArea: "Texas",
       companyName: "Heller, Bauch and Friesen",
-      country: "Andorra",
+      country: {
+        code: "AN",
+        country: "Andorra"
+      },
       countryArea: null,
       firstName: "Paige",
       id: "63622",
       lastName: "Lesch",
-      phone_number: "972-463-2863",
-      phone_prefix: "8",
+      phone: "+08 972-463-2863",
       postalCode: "80681-4790",
-      streetAddress_1: "93719 Hackett Mountain",
-      streetAddress_2: null
+      streetAddress1: "93719 Hackett Mountain",
+      streetAddress2: null
     },
     email: "paige_lesch@example.com",
     id: "28741",
@@ -385,31 +429,35 @@ export const customers = [
       city: "Gleichnerborough",
       cityArea: "Missouri",
       companyName: null,
-      country: "Dominica",
+      country: {
+        code: "DM",
+        country: "Dominica"
+      },
       countryArea: null,
       firstName: "Santino",
       id: "89962",
       lastName: "Bins",
-      phone_number: "844-752-5593",
-      phone_prefix: "45",
+      phone: "+45 844-752-5593",
       postalCode: "33593-8299",
-      streetAddress_1: "557 Jacobi Gateway",
-      streetAddress_2: null
+      streetAddress1: "557 Jacobi Gateway",
+      streetAddress2: null
     },
     defaultShippingAddress: {
       city: "West Jolieland",
       cityArea: "Connecticut",
       companyName: null,
-      country: "Saint Helena",
+      country: {
+        code: "SH",
+        country: "Saint Helena"
+      },
       countryArea: "Bedfordshire",
       firstName: "Santino",
       id: "58915",
       lastName: "Bins",
-      phone_number: "685-424-9436",
-      phone_prefix: "25",
+      phone: "+25 685-424-9436",
       postalCode: "58377",
-      streetAddress_1: "6647 Kody Locks",
-      streetAddress_2: null
+      streetAddress1: "6647 Kody Locks",
+      streetAddress2: null
     },
     email: "santino_bins@example.com",
     id: "46991",
@@ -423,31 +471,35 @@ export const customers = [
       city: "North Sister",
       cityArea: "Ohio",
       companyName: null,
-      country: "Bangladesh",
+      country: {
+        code: "BN",
+        country: "Bangladesh"
+      },
       countryArea: "Bedfordshire",
       firstName: "Quinn",
       id: "94894",
       lastName: "Barrows",
-      phone_number: "995-317-3324",
-      phone_prefix: "35",
+      phone: "+35 995-317-3324",
       postalCode: "41805",
-      streetAddress_1: "146 Dee Station",
-      streetAddress_2: null
+      streetAddress1: "146 Dee Station",
+      streetAddress2: null
     },
     defaultShippingAddress: {
       city: "North Sister",
       cityArea: "Ohio",
       companyName: null,
-      country: "Bangladesh",
+      country: {
+        code: "BN",
+        country: "Bangladesh"
+      },
       countryArea: "Bedfordshire",
       firstName: "Quinn",
       id: "94894",
       lastName: "Barrows",
-      phone_number: "995-317-3324",
-      phone_prefix: "35",
+      phone: "+35 995-317-3324",
       postalCode: "41805",
-      streetAddress_1: "146 Dee Station",
-      streetAddress_2: null
+      streetAddress1: "146 Dee Station",
+      streetAddress2: null
     },
     email: "quinn_barrows@example.com",
     id: "50687",
@@ -461,31 +513,35 @@ export const customers = [
       city: "Kenstad",
       cityArea: "Alabama",
       companyName: null,
-      country: "United Arab Emirates",
+      country: {
+        code: "UA",
+        country: "United Arab Emirates"
+      },
       countryArea: null,
       firstName: "Berry",
       id: "93575",
       lastName: "Windler",
-      phone_number: "876-373-9137",
-      phone_prefix: "41",
+      phone: "+41 876-373-9137",
       postalCode: "89880-6342",
-      streetAddress_1: "01419 Bernhard Plain",
-      streetAddress_2: null
+      streetAddress1: "01419 Bernhard Plain",
+      streetAddress2: null
     },
     defaultShippingAddress: {
       city: "Kenstad",
       cityArea: "Alabama",
       companyName: null,
-      country: "United Arab Emirates",
+      country: {
+        code: "UA",
+        country: "United Arab Emirates"
+      },
       countryArea: null,
       firstName: "Berry",
       id: "93575",
       lastName: "Windler",
-      phone_number: "876-373-9137",
-      phone_prefix: "41",
+      phone: "+41 876-373-9137",
       postalCode: "89880-6342",
-      streetAddress_1: "01419 Bernhard Plain",
-      streetAddress_2: null
+      streetAddress1: "01419 Bernhard Plain",
+      streetAddress2: null
     },
     email: "berry_windler@example.com",
     id: "36798",
@@ -499,31 +555,35 @@ export const customers = [
       city: "Jamilstad",
       cityArea: "Idaho",
       companyName: "Kilback - Crooks",
-      country: "Uruguay",
+      country: {
+        code: "UR",
+        country: "Uruguay"
+      },
       countryArea: null,
       firstName: "Johnathon",
       id: "78744",
       lastName: "Kohler",
-      phone_number: "888-798-4522",
-      phone_prefix: "63",
+      phone: "+63 888-798-4522",
       postalCode: "43892-8110",
-      streetAddress_1: "287 Rowe Mews",
-      streetAddress_2: null
+      streetAddress1: "287 Rowe Mews",
+      streetAddress2: null
     },
     defaultShippingAddress: {
       city: "Jamilstad",
       cityArea: "Idaho",
       companyName: "Kilback - Crooks",
-      country: "Uruguay",
+      country: {
+        code: "UR",
+        country: "Uruguay"
+      },
       countryArea: null,
       firstName: "Johnathon",
       id: "78744",
       lastName: "Kohler",
-      phone_number: "888-798-4522",
-      phone_prefix: "63",
+      phone: "+63 888-798-4522",
       postalCode: "43892-8110",
-      streetAddress_1: "287 Rowe Mews",
-      streetAddress_2: null
+      streetAddress1: "287 Rowe Mews",
+      streetAddress2: null
     },
     email: "johnathon_kohler@example.com",
     id: "98483",
@@ -537,31 +597,35 @@ export const customers = [
       city: "Keltonland",
       cityArea: "West Virginia",
       companyName: "Bailey, Barrows and Prosacco",
-      country: "Denmark",
+      country: {
+        code: "DN",
+        country: "Denmark"
+      },
       countryArea: null,
       firstName: "Linwood",
       id: "19005",
       lastName: "Windler",
-      phone_number: "815-222-0791",
-      phone_prefix: "60",
+      phone: "+60 815-222-0791",
       postalCode: "12595",
-      streetAddress_1: "496 Sporer Mountain",
-      streetAddress_2: null
+      streetAddress1: "496 Sporer Mountain",
+      streetAddress2: null
     },
     defaultShippingAddress: {
       city: "Keltonland",
       cityArea: "West Virginia",
       companyName: "Bailey, Barrows and Prosacco",
-      country: "Denmark",
+      country: {
+        code: "DN",
+        country: "Denmark"
+      },
       countryArea: null,
       firstName: "Linwood",
       id: "19005",
       lastName: "Windler",
-      phone_number: "815-222-0791",
-      phone_prefix: "60",
+      phone: "+60 815-222-0791",
       postalCode: "12595",
-      streetAddress_1: "496 Sporer Mountain",
-      streetAddress_2: null
+      streetAddress1: "496 Sporer Mountain",
+      streetAddress2: null
     },
     email: "linwood_windler@example.com",
     id: "18050",
@@ -575,31 +639,35 @@ export const customers = [
       city: "West Feliciamouth",
       cityArea: "Montana",
       companyName: null,
-      country: "Japan",
+      country: {
+        code: "JA",
+        country: "Japan"
+      },
       countryArea: null,
       firstName: "Timmy",
       id: "33855",
       lastName: "Macejkovic",
-      phone_number: "460-907-9374",
-      phone_prefix: "41",
+      phone: "+41 460-907-9374",
       postalCode: "15926",
-      streetAddress_1: "0238 Cremin Freeway",
-      streetAddress_2: null
+      streetAddress1: "0238 Cremin Freeway",
+      streetAddress2: null
     },
     defaultShippingAddress: {
       city: "Larkinstad",
       cityArea: "California",
       companyName: null,
-      country: "Somalia",
+      country: {
+        code: "SO",
+        country: "Somalia"
+      },
       countryArea: null,
       firstName: "Timmy",
       id: "67467",
       lastName: "Macejkovic",
-      phone_number: "943-882-1295",
-      phone_prefix: "64",
+      phone: "+64 943-882-1295",
       postalCode: "43425",
-      streetAddress_1: "96332 Corkery Lane",
-      streetAddress_2: null
+      streetAddress1: "96332 Corkery Lane",
+      streetAddress2: null
     },
     email: "timmy_macejkovic@example.com",
     id: "65578",
@@ -608,4 +676,356 @@ export const customers = [
     note: "Dolorem vitae."
   }
 ];
-export const customer = customers[0];
+
+export const customerList: ListCustomers_customers_edges_node[] = [
+  {
+    __typename: "User",
+    email: "Curtis.bailey@example.com",
+    firstName: "curtis",
+    id: "VXNlcjox",
+    lastName: "Bailey",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 2
+    }
+  },
+  {
+    __typename: "User",
+    email: "curtis.bailey@example.com",
+    firstName: "Curtis",
+    id: "VXNlcjox",
+    lastName: "Bailey",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 2
+    }
+  },
+  {
+    __typename: "User",
+    email: "elizabeth.vaughn@example.com",
+    firstName: "Elizabeth",
+    id: "VXNlcjoy",
+    lastName: "Vaughn",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 1
+    }
+  },
+  {
+    __typename: "User",
+    email: "michael.martinez@example.com",
+    firstName: "Michael",
+    id: "VXNlcjoz",
+    lastName: "Martinez",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 1
+    }
+  },
+  {
+    __typename: "User",
+    email: "kayla.griffin@example.com",
+    firstName: "Kayla",
+    id: "VXNlcjo0",
+    lastName: "Griffin",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 0
+    }
+  },
+  {
+    __typename: "User",
+    email: "donna.robinson@example.com",
+    firstName: "Donna",
+    id: "VXNlcjo1",
+    lastName: "Robinson",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 0
+    }
+  },
+  {
+    __typename: "User",
+    email: "james.ball@example.com",
+    firstName: "James",
+    id: "VXNlcjo2",
+    lastName: "Bqall",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 1
+    }
+  },
+  {
+    __typename: "User",
+    email: "anthony.gonzalez@example.com",
+    firstName: "Anthony",
+    id: "VXNlcjo3",
+    lastName: "Gonzalez",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 2
+    }
+  },
+  {
+    __typename: "User",
+    email: "anthony.gonzalez@example.com",
+    firstName: "Anthony",
+    id: "VXNlcjo3",
+    lastName: "Gonzalez",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 2
+    }
+  },
+  {
+    __typename: "User",
+    email: "wesley.davis@example.com",
+    firstName: "Wesley",
+    id: "VXNlcjo4",
+    lastName: "Davis",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 1
+    }
+  },
+  {
+    __typename: "User",
+    email: "laura.stone@example.com",
+    firstName: "Laura",
+    id: "VXNlcjo5",
+    lastName: "Stone",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 1
+    }
+  },
+  {
+    __typename: "User",
+    email: "william.miller@example.com",
+    firstName: "William",
+    id: "VXNlcjoxMA==",
+    lastName: "Miller",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 0
+    }
+  },
+  {
+    __typename: "User",
+    email: "donald.solomon@example.com",
+    firstName: "Donald",
+    id: "VXNlcjoxMQ==",
+    lastName: "Solomon",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 0
+    }
+  },
+  {
+    __typename: "User",
+    email: "anthony.young@example.com",
+    firstName: "Anthony",
+    id: "VXNlcjoxMg==",
+    lastName: "Young",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 0
+    }
+  },
+  {
+    __typename: "User",
+    email: "sharon.hanson@example.com",
+    firstName: "Hanson",
+    id: "VXNlcjoxMw==",
+    lastName: "Sharon",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 0
+    }
+  },
+  {
+    __typename: "User",
+    email: "laura.jensen@example.com",
+    firstName: "Laura",
+    id: "VXNlcjoxNA==",
+    lastName: "Jensen",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 1
+    }
+  },
+  {
+    __typename: "User",
+    email: "mark.lee@example.com",
+    firstName: "Mark",
+    id: "VXNlcjoxNQ==",
+    lastName: "Lee",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 1
+    }
+  },
+  {
+    __typename: "User",
+    email: "david.lawson@example.com",
+    firstName: "David",
+    id: "VXNlcjoxNg==",
+    lastName: "Lawson",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 2
+    }
+  },
+  {
+    __typename: "User",
+    email: "david.lawson@example.com",
+    firstName: "David",
+    id: "VXNlcjoxNg==",
+    lastName: "Lawson",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 2
+    }
+  },
+  {
+    __typename: "User",
+    email: "faith.smith@example.com",
+    firstName: "Faith",
+    id: "VXNlcjoxNw==",
+    lastName: "Smith",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 0
+    }
+  },
+  {
+    __typename: "User",
+    email: "john.jones@example.com",
+    firstName: "John",
+    id: "VXNlcjoxOA==",
+    lastName: "Jones",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 0
+    }
+  },
+  {
+    __typename: "User",
+    email: "ronald.fisher@example.com",
+    firstName: "Ronald",
+    id: "VXNlcjoxOQ==",
+    lastName: "Fisher",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 0
+    }
+  },
+  {
+    __typename: "User",
+    email: "jason.gray@example.com",
+    firstName: "Jason",
+    id: "VXNlcjoyMA==",
+    lastName: "Gray",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 0
+    }
+  },
+  {
+    __typename: "User",
+    email: "admin@example.com",
+    firstName: "Tom",
+    id: "VXNlcjoyMQ==",
+    lastName: "Cooper",
+    orders: {
+      __typename: "OrderCountableConnection",
+      totalCount: 6
+    }
+  }
+];
+export const customer: CustomerDetails_user = {
+  __typename: "User",
+  dateJoined: "2017-05-07T09:37:30.124154+00:00",
+  firstName: "Tom",
+
+  defaultBillingAddress: {
+    __typename: "Address",
+    city: "Port Danielshire",
+    cityArea: "",
+    companyName: "",
+    country: {
+      __typename: "CountryDisplay",
+      code: "SE",
+      country: "Szwecja"
+    },
+    countryArea: "",
+    firstName: "Elizabeth",
+    id: "QWRkcmVzczoy",
+    lastName: "Vaughn",
+    phone: "",
+    postalCode: "52203",
+    streetAddress1: "419 Ruiz Orchard Apt. 199",
+    streetAddress2: ""
+  },
+  defaultShippingAddress: {
+    __typename: "Address",
+    city: "Port Danielshire",
+    cityArea: "",
+    companyName: "",
+    country: {
+      __typename: "CountryDisplay",
+      code: "SE",
+      country: "Szwecja"
+    },
+    countryArea: "",
+    firstName: "Elizabeth",
+    id: "QWRkcmVzczoy",
+    lastName: "Vaughn",
+    phone: "",
+    postalCode: "52203",
+    streetAddress1: "419 Ruiz Orchard Apt. 199",
+    streetAddress2: ""
+  },
+  email: "elizabeth.vaughn@example.com",
+  id: "VXNlcjoy",
+  isActive: true,
+  lastLogin: "2018-05-07T09:37:30.124154+00:00",
+  lastName: "Cooper",
+  lastPlacedOrder: {
+    __typename: "OrderCountableConnection",
+    edges: [
+      {
+        __typename: "OrderCountableEdge",
+        node: {
+          __typename: "Order",
+          created: "2018-05-07T09:37:30.124154+00:00",
+          id: "T3JkZXI6MTk="
+        }
+      }
+    ]
+  },
+  note: null,
+  orders: {
+    __typename: "OrderCountableConnection",
+    edges: [
+      {
+        __typename: "OrderCountableEdge",
+        node: {
+          __typename: "Order",
+          created: "2018-05-07T09:37:30.124154+00:00",
+          id: "T3JkZXI6MTk=",
+          number: "8234",
+          paymentStatus: PaymentChargeStatusEnum.CHARGED,
+          total: {
+            __typename: "TaxedMoney",
+            gross: {
+              __typename: "Money",
+              amount: 1215.89,
+              currency: "USD"
+            }
+          }
+        }
+      }
+    ]
+  }
+};

@@ -1,7 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load materializecss %}
 {% load i18n %}
-{% load staticfiles %}
+{% load static %}
 
 {% block title %}
   {% if menu.pk %}
@@ -11,6 +11,8 @@
   {% endif %}
   - {% trans "Navigation" context "Dashboard menus list" %} - {{ block.super }}
 {% endblock %}
+
+{% block body_class %}body-menus{% endblock %}
 
 {% block menu_menus_class %}active{% endblock %}
 

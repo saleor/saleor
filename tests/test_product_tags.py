@@ -1,10 +1,11 @@
 from unittest.mock import Mock, patch
 
-from django.contrib.staticfiles.templatetags.staticfiles import static
+import pytest
+from django.templatetags.static import static
 from django.test import override_settings
 
 from saleor.product.templatetags.product_images import (
-    choose_placeholder, get_thumbnail)
+    choose_placeholder, get_product_image_thumbnail, get_thumbnail)
 
 
 @override_settings(
@@ -25,15 +26,23 @@ def test_get_thumbnail_no_instance(monkeypatch):
     monkeypatch.setattr(
         'saleor.product.templatetags.product_images.choose_placeholder',
         lambda x: 'placeholder')
-    output = get_thumbnail(instance=None, size=10, method='crop')
+    output = get_thumbnail(image_file=None, size=10, method='crop')
+    assert output == static('placeholder')
+
+
+def test_get_product_image_thumbnail_no_instance(monkeypatch):
+    monkeypatch.setattr(
+        'saleor.product.templatetags.product_images.choose_placeholder',
+        lambda x: 'placeholder')
+    output = get_product_image_thumbnail(instance=None, size=10, method='crop')
     assert output == static('placeholder')
 
 
 @patch(
     'saleor.product.templatetags.product_images.AVAILABLE_SIZES',
-    {
+    {'products': (
         'thumbnail__800x800', 'crop__100x100', 'crop__1000x1000',
-        'crop__2000x2000'})
+        'crop__2000x2000')})
 @override_settings(
     VERSATILEIMAGEFIELD_SETTINGS={'create_images_on_demand': False})
 def test_get_thumbnail_to_larger():
@@ -46,7 +55,8 @@ def test_get_thumbnail_to_larger():
 
 @patch(
     'saleor.product.templatetags.product_images.AVAILABLE_SIZES',
-    {'crop__10x10', 'crop__100x100', 'crop__1000x1000', 'crop__2000x2000'})
+    {'products': (
+        'crop__10x10', 'crop__100x100', 'crop__1000x1000', 'crop__2000x2000')})
 @override_settings(
     VERSATILEIMAGEFIELD_SETTINGS={'create_images_on_demand': False})
 def test_get_thumbnail_to_smaller():
@@ -59,7 +69,7 @@ def test_get_thumbnail_to_smaller():
 
 @patch(
     'saleor.product.templatetags.product_images.AVAILABLE_SIZES',
-    {'thumbnail__800x800'})
+    {'products': ('thumbnail__800x800', )})
 @override_settings(
     VERSATILEIMAGEFIELD_SETTINGS={'create_images_on_demand': False},
     PLACEHOLDER_IMAGES={1080: 'images/placeholder1080x1080.png'})
@@ -67,7 +77,13 @@ def test_get_thumbnail_no_match_by_method():
     instance = Mock()
     cropped_value = Mock(url='crop.jpg')
     instance.crop = {'1000x1000': cropped_value}
-    cropped = get_thumbnail(instance, 800, method='crop')
+    with pytest.warns(UserWarning) as record:
+        cropped = get_thumbnail(instance, 800, method='crop')
+
+    assert len(record) == 1
+    assert str(record[0].message) == \
+        'Thumbnail size crop__800x800 is not defined in settings' \
+        ' and it won\'t be generated automatically'
     assert cropped == static('images/placeholder1080x1080.png')
 
 

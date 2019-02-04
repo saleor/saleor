@@ -1,6 +1,8 @@
 from functools import wraps
 
+from django.conf import settings
 from django.shortcuts import get_object_or_404, redirect
+from prices import Money, TaxedMoney
 
 from ..account.utils import store_user_address
 from ..checkout import AddressType
@@ -10,6 +12,8 @@ from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..discount.models import NotApplicable
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import OrderLine
+from ..payment import ChargeStatus
+from ..payment.utils import gateway_refund, gateway_void
 from ..product.utils import allocate_stock, deallocate_stock, increase_stock
 
 
@@ -86,7 +90,7 @@ def update_order_prices(order, discounts):
             line.save()
 
     if order.shipping_method:
-        order.shipping_price = order.shipping_method.get_total_price(taxes)
+        order.shipping_price = order.shipping_method.get_total(taxes)
         order.save()
 
     recalculate_order(order)
@@ -104,6 +108,16 @@ def cancel_order(order, restock):
         fulfillment.save(update_fields=['status'])
     order.status = OrderStatus.CANCELED
     order.save(update_fields=['status'])
+
+    payments = order.payments.filter(
+        is_active=True,
+        charge_status__in=[ChargeStatus.NOT_CHARGED, ChargeStatus.CHARGED])
+
+    for payment in payments:
+        if payment.can_refund():
+            gateway_refund(payment)
+        elif payment.can_void():
+            gateway_void(payment)
 
 
 def update_order_status(order):
@@ -148,13 +162,18 @@ def attach_order_to_user(order, user):
     order.save(update_fields=['user'])
 
 
-def add_variant_to_order(order, variant, quantity, discounts=None, taxes=None):
+def add_variant_to_order(
+        order, variant, quantity, discounts=None, taxes=None,
+        allow_overselling=False, track_inventory=True):
     """Add total_quantity of variant to order.
 
-    Raises InsufficientStock exception if quantity could not be fulfilled.
-    """
-    variant.check_quantity(quantity)
+    Returns an order line the variant was added to.
 
+    By default, raises InsufficientStock exception if  quantity could not be
+    fulfilled. This can be disabled by setting `allow_overselling` to True.
+    """
+    if not allow_overselling:
+        variant.check_quantity(quantity)
     try:
         line = order.lines.get(variant=variant)
         line.quantity += quantity
@@ -164,7 +183,7 @@ def add_variant_to_order(order, variant, quantity, discounts=None, taxes=None):
         translated_product_name = variant.display_product(translated=True)
         if translated_product_name == product_name:
             translated_product_name = ''
-        order.lines.create(
+        line = order.lines.create(
             product_name=product_name,
             translated_product_name=translated_product_name,
             product_sku=variant.sku,
@@ -173,9 +192,9 @@ def add_variant_to_order(order, variant, quantity, discounts=None, taxes=None):
             variant=variant,
             unit_price=variant.get_price(discounts, taxes),
             tax_rate=get_tax_rate_by_name(variant.product.tax_rate, taxes))
-
-    if variant.track_inventory:
+    if variant.track_inventory and track_inventory:
         allocate_stock(variant, quantity)
+    return line
 
 
 def change_order_line_quantity(line, new_quantity):
@@ -207,3 +226,9 @@ def restock_fulfillment_lines(fulfillment):
         if line.order_line.variant and line.order_line.variant.track_inventory:
             increase_stock(
                 line.order_line.variant, line.quantity, allocate=True)
+
+
+def sum_order_totals(qs):
+    zero = Money(0, currency=settings.DEFAULT_CURRENCY)
+    taxed_zero = TaxedMoney(zero, zero)
+    return sum([order.total for order in qs], taxed_zero)

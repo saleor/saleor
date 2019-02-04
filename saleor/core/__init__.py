@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.checks import Warning, register
 from django.utils.translation import pgettext_lazy
+from prices import Money
 
 TOKEN_PATTERN = ('(?P<token>[0-9a-z]{8}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}'
                  '-[0-9a-z]{12})')
@@ -24,9 +25,9 @@ def check_session_caching(app_configs, **kwargs):  # pragma: no cover
 
 
 class TaxRateType:
-    ACCOMODATION = 'accomodation'
+    ACCOMMODATION = 'accommodation'
     ADMISSION_TO_CULTURAL_EVENTS = 'admission to cultural events'
-    ADMISSION_TO_ENTERAINMENT_EVENTS = 'admission to entertainment events'
+    ADMISSION_TO_ENTERTAINMENT_EVENTS = 'admission to entertainment events'
     ADMISSION_TO_SPORTING_EVENTS = 'admission to sporting events'
     ADVERTISING = 'advertising'
     AGRICULTURAL_SUPPLIES = 'agricultural supplies'
@@ -51,10 +52,10 @@ class TaxRateType:
     WINE = 'wine'
 
     CHOICES = (
-        (ACCOMODATION, pgettext_lazy('VAT rate type', 'accommodation')),
+        (ACCOMMODATION, pgettext_lazy('VAT rate type', 'accommodation')),
         (ADMISSION_TO_CULTURAL_EVENTS, pgettext_lazy(
             'VAT rate type', 'admission to cultural events')),
-        (ADMISSION_TO_ENTERAINMENT_EVENTS, pgettext_lazy(
+        (ADMISSION_TO_ENTERTAINMENT_EVENTS, pgettext_lazy(
             'VAT rate type', 'admission to entertainment events')),
         (ADMISSION_TO_SPORTING_EVENTS, pgettext_lazy(
             'VAT rate type', 'admission to sporting events')),
@@ -83,4 +84,5 @@ class TaxRateType:
         (RESTAURANTS, pgettext_lazy('VAT rate type', 'restaurants')),
         (SOCIAL_HOUSING, pgettext_lazy('VAT rate type', 'social housing')),
         (STANDARD, pgettext_lazy('VAT rate type', 'standard')),
-        (WATER, pgettext_lazy('VAT rate type', 'water')))
+        (WATER, pgettext_lazy('VAT rate type', 'water')),
+        (WINE, pgettext_lazy('VAT rate type', 'wine')))

@@ -35,8 +35,17 @@ You can preview tax rates in dashboard ``Taxes`` tab. It lists all countries tax
 Fetching taxes
 --------------
 
-  Assuming one provided valid ``VATLAYER_ACCESS_KEY``, taxes can be fetched via following command:
+  Assuming you have provided a valid ``VATLAYER_ACCESS_KEY``, taxes can be fetched via following command:
 
   .. code-block:: console
 
     $ python manage.py get_vat_rates
+
+
+  If you do not have a VatLayer API key, you can get one by `subscribing for free here <https://vatlayer.com/signup?plan=9>`_.
+
+
+  .. warning::
+
+    By default, Saleor is making requests to the VatLayer API through HTTP (insecure),
+    if you are using a paid VatLayer subscription, you may want to set the settings ``VATLAYER_USE_HTTPS`` to ``True``.

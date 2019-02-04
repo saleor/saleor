@@ -1,5 +1,5 @@
 from django.urls import reverse
-
+from datetime import date, timedelta
 from .utils import get_redirect_location
 
 
@@ -33,8 +33,21 @@ def test_collection_not_exists(client):
     assert response.status_code == 404
 
 
-def test_collection_not_published_404(client, draft_collection):
+def test_collection_not_yet_published_returns_404(
+    admin_client, client, draft_collection):
     url_kwargs = {'pk': draft_collection.pk, 'slug': draft_collection.slug}
     url = reverse('product:collection', kwargs=url_kwargs)
     response = client.get(url)
     assert response.status_code == 404
+
+    draft_collection.is_published = True
+    draft_collection.published_date = date.today() + timedelta(days=1)
+    draft_collection.save()
+
+    # A non staff user should not have access to collections yet to be published
+    response = client.get(url)
+    assert response.status_code == 404
+
+    # A staff user should have access to collections yet to be published
+    response = admin_client.get(url)
+    assert response.status_code == 200
