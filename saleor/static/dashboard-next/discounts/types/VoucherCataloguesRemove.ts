@@ -13,6 +13,12 @@ export interface VoucherCataloguesRemove_voucherCataloguesRemove_errors {
   message: string | null;
 }
 
+export interface VoucherCataloguesRemove_voucherCataloguesRemove_voucher_countries {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
 export interface VoucherCataloguesRemove_voucherCataloguesRemove_voucher_minAmountSpent {
   __typename: "Money";
   currency: string;
@@ -123,12 +129,6 @@ export interface VoucherCataloguesRemove_voucherCataloguesRemove_voucher_categor
   pageInfo: VoucherCataloguesRemove_voucherCataloguesRemove_voucher_categories_pageInfo;
 }
 
-export interface VoucherCataloguesRemove_voucherCataloguesRemove_voucher_countries {
-  __typename: "CountryDisplay";
-  code: string;
-  country: string;
-}
-
 export interface VoucherCataloguesRemove_voucherCataloguesRemove_voucher {
   __typename: "Voucher";
   id: string;
@@ -138,6 +138,7 @@ export interface VoucherCataloguesRemove_voucherCataloguesRemove_voucher {
   usageLimit: number | null;
   discountValueType: VoucherDiscountValueType;
   discountValue: number;
+  countries: (VoucherCataloguesRemove_voucherCataloguesRemove_voucher_countries | null)[] | null;
   minAmountSpent: VoucherCataloguesRemove_voucherCataloguesRemove_voucher_minAmountSpent | null;
   type: VoucherType;
   code: string;
@@ -146,7 +147,6 @@ export interface VoucherCataloguesRemove_voucherCataloguesRemove_voucher {
   products: VoucherCataloguesRemove_voucherCataloguesRemove_voucher_products | null;
   collections: VoucherCataloguesRemove_voucherCataloguesRemove_voucher_collections | null;
   categories: VoucherCataloguesRemove_voucherCataloguesRemove_voucher_categories | null;
-  countries: (VoucherCataloguesRemove_voucherCataloguesRemove_voucher_countries | null)[] | null;
 }
 
 export interface VoucherCataloguesRemove_voucherCataloguesRemove {

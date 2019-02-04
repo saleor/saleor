@@ -13,6 +13,12 @@ export interface VoucherUpdate_voucherUpdate_errors {
   message: string | null;
 }
 
+export interface VoucherUpdate_voucherUpdate_voucher_countries {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
 export interface VoucherUpdate_voucherUpdate_voucher_minAmountSpent {
   __typename: "Money";
   currency: string;
@@ -28,6 +34,7 @@ export interface VoucherUpdate_voucherUpdate_voucher {
   usageLimit: number | null;
   discountValueType: VoucherDiscountValueType;
   discountValue: number;
+  countries: (VoucherUpdate_voucherUpdate_voucher_countries | null)[] | null;
   minAmountSpent: VoucherUpdate_voucherUpdate_voucher_minAmountSpent | null;
 }
 

@@ -7,6 +7,12 @@ import { VoucherDiscountValueType } from "./../../types/globalTypes";
 // GraphQL query operation: VoucherList
 // ====================================================
 
+export interface VoucherList_vouchers_edges_node_countries {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
 export interface VoucherList_vouchers_edges_node_minAmountSpent {
   __typename: "Money";
   currency: string;
@@ -22,6 +28,7 @@ export interface VoucherList_vouchers_edges_node {
   usageLimit: number | null;
   discountValueType: VoucherDiscountValueType;
   discountValue: number;
+  countries: (VoucherList_vouchers_edges_node_countries | null)[] | null;
   minAmountSpent: VoucherList_vouchers_edges_node_minAmountSpent | null;
 }
 

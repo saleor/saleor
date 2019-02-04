@@ -13,6 +13,12 @@ export interface VoucherCreate_voucherCreate_errors {
   message: string | null;
 }
 
+export interface VoucherCreate_voucherCreate_voucher_countries {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
 export interface VoucherCreate_voucherCreate_voucher_minAmountSpent {
   __typename: "Money";
   currency: string;
@@ -28,6 +34,7 @@ export interface VoucherCreate_voucherCreate_voucher {
   usageLimit: number | null;
   discountValueType: VoucherDiscountValueType;
   discountValue: number;
+  countries: (VoucherCreate_voucherCreate_voucher_countries | null)[] | null;
   minAmountSpent: VoucherCreate_voucherCreate_voucher_minAmountSpent | null;
 }
 

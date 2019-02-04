@@ -7,6 +7,12 @@ import { VoucherDiscountValueType, VoucherType } from "./../../types/globalTypes
 // GraphQL query operation: VoucherDetails
 // ====================================================
 
+export interface VoucherDetails_voucher_countries {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
 export interface VoucherDetails_voucher_minAmountSpent {
   __typename: "Money";
   currency: string;
@@ -117,12 +123,6 @@ export interface VoucherDetails_voucher_categories {
   pageInfo: VoucherDetails_voucher_categories_pageInfo;
 }
 
-export interface VoucherDetails_voucher_countries {
-  __typename: "CountryDisplay";
-  code: string;
-  country: string;
-}
-
 export interface VoucherDetails_voucher {
   __typename: "Voucher";
   id: string;
@@ -132,6 +132,7 @@ export interface VoucherDetails_voucher {
   usageLimit: number | null;
   discountValueType: VoucherDiscountValueType;
   discountValue: number;
+  countries: (VoucherDetails_voucher_countries | null)[] | null;
   minAmountSpent: VoucherDetails_voucher_minAmountSpent | null;
   type: VoucherType;
   code: string;
@@ -140,7 +141,6 @@ export interface VoucherDetails_voucher {
   products: VoucherDetails_voucher_products | null;
   collections: VoucherDetails_voucher_collections | null;
   categories: VoucherDetails_voucher_categories | null;
-  countries: (VoucherDetails_voucher_countries | null)[] | null;
 }
 
 export interface VoucherDetails {

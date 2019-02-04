@@ -7,6 +7,12 @@ import { VoucherDiscountValueType, VoucherType } from "./../../types/globalTypes
 // GraphQL fragment: VoucherDetailsFragment
 // ====================================================
 
+export interface VoucherDetailsFragment_countries {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
 export interface VoucherDetailsFragment_minAmountSpent {
   __typename: "Money";
   currency: string;
@@ -117,12 +123,6 @@ export interface VoucherDetailsFragment_categories {
   pageInfo: VoucherDetailsFragment_categories_pageInfo;
 }
 
-export interface VoucherDetailsFragment_countries {
-  __typename: "CountryDisplay";
-  code: string;
-  country: string;
-}
-
 export interface VoucherDetailsFragment {
   __typename: "Voucher";
   id: string;
@@ -132,6 +132,7 @@ export interface VoucherDetailsFragment {
   usageLimit: number | null;
   discountValueType: VoucherDiscountValueType;
   discountValue: number;
+  countries: (VoucherDetailsFragment_countries | null)[] | null;
   minAmountSpent: VoucherDetailsFragment_minAmountSpent | null;
   type: VoucherType;
   code: string;
@@ -140,5 +141,4 @@ export interface VoucherDetailsFragment {
   products: VoucherDetailsFragment_products | null;
   collections: VoucherDetailsFragment_collections | null;
   categories: VoucherDetailsFragment_categories | null;
-  countries: (VoucherDetailsFragment_countries | null)[] | null;
 }

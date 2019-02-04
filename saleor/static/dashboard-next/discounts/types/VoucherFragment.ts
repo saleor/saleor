@@ -7,6 +7,12 @@ import { VoucherDiscountValueType } from "./../../types/globalTypes";
 // GraphQL fragment: VoucherFragment
 // ====================================================
 
+export interface VoucherFragment_countries {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
 export interface VoucherFragment_minAmountSpent {
   __typename: "Money";
   currency: string;
@@ -22,5 +28,6 @@ export interface VoucherFragment {
   usageLimit: number | null;
   discountValueType: VoucherDiscountValueType;
   discountValue: number;
+  countries: (VoucherFragment_countries | null)[] | null;
   minAmountSpent: VoucherFragment_minAmountSpent | null;
 }
