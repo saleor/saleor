@@ -37,6 +37,7 @@ import {
   TypedVoucherUpdate
 } from "../../mutations";
 import { TypedVoucherDetails } from "../../queries";
+import { VoucherCataloguesAdd } from "../../types/VoucherCataloguesAdd";
 import { VoucherDelete } from "../../types/VoucherDelete";
 import { voucherListUrl, voucherUrl } from "../../urls";
 import {
@@ -50,7 +51,6 @@ import {
   voucherDeletePath,
   voucherDeleteUrl
 } from "./urls";
-import { VoucherCataloguesAdd } from "../../types/VoucherCataloguesAdd";
 
 const PAGINATE_BY = 20;
 
@@ -329,7 +329,10 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                                             : formData.endDate,
                                                         name: formData.name,
                                                         startDate:
-                                                          formData.startDate
+                                                          formData.startDate ===
+                                                          ""
+                                                            ? null
+                                                            : formData.startDate
                                                       }
                                                     }
                                                   })
