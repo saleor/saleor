@@ -13,13 +13,16 @@ import CardTitle from "../../../components/CardTitle";
 import FormSpacer from "../../../components/FormSpacer";
 import SingleSelectField from "../../../components/SingleSelectField";
 import i18n from "../../../i18n";
+import { FormErrors } from "../../../types";
 import { VoucherType } from "../../../types/globalTypes";
 import { translateVoucherTypes } from "../../translations";
 import { FormData } from "../VoucherDetailsPage";
 
 interface VoucherInfoProps {
   data: FormData;
+  errors: FormErrors<"name" | "code" | "type">;
   disabled: boolean;
+  variant: "create" | "update";
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
@@ -42,6 +45,8 @@ const VoucherInfo = withStyles(styles, {
     classes,
     data,
     disabled,
+    errors,
+    variant,
     onChange
   }: VoucherInfoProps & WithStyles<typeof styles>) => {
     const translatedVoucherTypes = translateVoucherTypes();
@@ -57,7 +62,9 @@ const VoucherInfo = withStyles(styles, {
           <TextField
             className={classes.nameInput}
             disabled={disabled}
+            error={!!errors.name}
             fullWidth
+            helperText={errors.name}
             name={"name" as keyof FormData}
             label={i18n.t("Name")}
             value={data.name}
@@ -67,7 +74,9 @@ const VoucherInfo = withStyles(styles, {
           <div className={classes.root}>
             <TextField
               disabled={disabled}
+              error={!!errors.code}
               fullWidth
+              helperText={errors.code}
               name={"code" as keyof FormData}
               label={i18n.t("Discount Code")}
               value={data.code}
@@ -75,7 +84,9 @@ const VoucherInfo = withStyles(styles, {
             />
             <SingleSelectField
               choices={voucherTypeChoices}
-              disabled={disabled}
+              disabled={disabled || variant === "update"}
+              error={!!errors.type}
+              hint={errors.type}
               name={"type" as keyof FormData}
               label={i18n.t("Type of Discount")}
               value={data.type}
