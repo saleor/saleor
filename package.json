@@ -140,8 +140,7 @@
     "tslint-config-prettier": "^1.15.0",
     "webpack": "^4.27.0",
     "webpack-bundle-tracker": "^0.3.0",
-    "webpack-cli": "^3.1.2",
-    "webpack-dev-server": "^3.1.10"
+    "webpack-cli": "^3.1.2"
   },
   "babel": {
     "presets": [
