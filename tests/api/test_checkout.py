@@ -205,6 +205,67 @@ def test_checkout_available_payment_gateways(
     assert data['availablePaymentGateways'] == checkout_payment_gateways
 
 
+def test_checkout_available_shipping_methods(
+        api_client, cart_with_item, address, shipping_zone):
+    cart_with_item.shipping_address = address
+    cart_with_item.save()
+
+    query = """
+    query getCheckout($token: UUID!) {
+        checkout(token: $token) {
+            availableShippingMethods {
+                name
+            }
+        }
+    }
+    """
+    variables = {'token': cart_with_item.token}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['checkout']
+
+    shipping_method = shipping_zone.shipping_methods.first()
+    assert data['availableShippingMethods'] == [{'name': shipping_method.name}]
+
+
+def test_checkout_no_available_shipping_methods_without_address(
+        api_client, cart_with_item, shipping_zone):
+    query = """
+    query getCheckout($token: UUID!) {
+        checkout(token: $token) {
+            availableShippingMethods {
+                name
+            }
+        }
+    }
+    """
+    variables = {'token': cart_with_item.token}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['checkout']
+
+    assert data['availableShippingMethods'] == []
+
+
+def test_checkout_no_available_shipping_methods_without_lines(
+        api_client, cart, shipping_zone):
+    query = """
+    query getCheckout($token: UUID!) {
+        checkout(token: $token) {
+            availableShippingMethods {
+                name
+            }
+        }
+    }
+    """
+    variables = {'token': cart.token}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['checkout']
+
+    assert data['availableShippingMethods'] == []
+
+
 MUTATION_CHECKOUT_LINES_ADD = """
     mutation checkoutLinesAdd(
             $checkoutId: ID!, $lines: [CheckoutLineInput!]!) {
