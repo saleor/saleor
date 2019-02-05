@@ -190,8 +190,8 @@
   "model": "product.product",
   "pk": 63,
   "fields": {
-    "seo_title": null,
-    "seo_description": null,
+    "seo_title": "",
+    "seo_description": "",
     "product_type": 7,
     "name": "Red Dwarf Red Paint",
     "description": "We are all connected to the universe, because every cell in our bodies was cooked in the hearts of dying stars. Red Dwarf Paint: the color of Carl Sagan\u2019s dreams.",
@@ -4743,8 +4743,8 @@
   "model": "product.collection",
   "pk": 1,
   "fields": {
-    "seo_title": null,
-    "seo_description": null,
+    "seo_title": "",
+    "seo_description": "",
     "name": "Summer collection",
     "slug": "summer-collection",
     "background_image": "collection-backgrounds/summer_3Zz9sHf.jpg",
@@ -4761,8 +4761,8 @@
   "model": "product.collection",
   "pk": 2,
   "fields": {
-    "seo_title": null,
-    "seo_description": null,
+    "seo_title": "",
+    "seo_description": "",
     "name": "Winter sale",
     "slug": "winter-sale",
     "background_image": "collection-backgrounds/sale_THIKyXw.jpg",
