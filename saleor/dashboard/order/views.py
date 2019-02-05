@@ -533,7 +533,8 @@ def order_invoice(request, order_pk):
 def mark_order_as_paid(request, order_pk):
     order = get_object_or_404(Order.objects.confirmed(), pk=order_pk)
     status = 200
-    form = OrderMarkAsPaidForm(request.POST or None, order=order)
+    form = OrderMarkAsPaidForm(
+        request.POST or None, order=order, user=request.user)
     if form.is_valid():
         with transaction.atomic():
             form.save()

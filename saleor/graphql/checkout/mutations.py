@@ -448,12 +448,13 @@ class CheckoutComplete(BaseMutation):
     order = graphene.Field(Order, description='Placed order')
 
     class Arguments:
-        checkout_id = graphene.ID(description='Checkout ID')
+        checkout_id = graphene.ID(description='Checkout ID', required=True)
 
     class Meta:
         description = (
-            'Completes the checkout, creates an order from it and '
-            'charges the customer\'s funding source.')
+            'Completes the checkout. As a result a new order is created and '
+            'a payment charge is made. This action requires a succesfull '
+            'payment before it can be performed.')
 
     @classmethod
     def mutate(cls, root, info, checkout_id):

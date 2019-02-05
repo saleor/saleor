@@ -41,6 +41,7 @@ class Checkout(CountableDjangoObjectType):
     available_payment_gateways = graphene.List(
         PaymentGatewayEnum, description='List of available payment gateways.',
         required=True)
+    email = graphene.String(description='Email of a customer', required=True)
     is_shipping_required = graphene.Boolean(
         description='Returns True, if checkout requires shipping.',
         required=True)

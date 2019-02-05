@@ -1,10 +1,9 @@
 import logging
 
-from django.conf import settings
 from django.contrib import auth, messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.http import Http404, HttpResponseForbidden
+from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -16,9 +15,8 @@ from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
 from ..payment import ChargeStatus, TransactionKind, get_payment_gateway
-from ..payment.models import Payment
 from ..payment.utils import (
-    create_payment_information, gateway_process_payment, get_billing_data)
+    create_payment, create_payment_information, gateway_process_payment)
 from .forms import (
     CustomerNoteForm, PasswordForm, PaymentDeleteForm, PaymentsForm)
 from .models import Order
@@ -89,32 +87,31 @@ def payment(request, token):
 
 @check_order_status
 def start_payment(request, order, gateway):
-    # FIXME We should test this flow for each payment gateway
-    defaults = {
-        'customer_ip_address': get_client_ip(request),
-        **get_billing_data(order)}
-    if gateway not in settings.CHECKOUT_PAYMENT_GATEWAYS:
-        raise Http404('%r is not a valid payment gateway' % (gateway,))
+    payment_gateway, connection_params = get_payment_gateway(gateway)
+    client_token = payment_gateway.get_client_token(
+        connection_params=connection_params)
+    extra_data = {'customer_user_agent': request.META.get('HTTP_USER_AGENT')}
+
     with transaction.atomic():
-        payment, _ = Payment.objects.get_or_create(
+        payment = create_payment(
             gateway=gateway,
-            is_active=True,
-            order=order,
-            defaults=defaults,
+            payment_token=client_token,
+            currency=order.total.gross.currency,
+            email=order.user_email,
+            billing_address=order.billing_address,
+            customer_ip_address=get_client_ip(request),
             total=order.total.gross.amount,
-            currency=order.total.gross.currency)
-        if (
-                order.is_fully_paid()
+            order=order,
+            extra_data=extra_data)
+
+        if (order.is_fully_paid()
                 or payment.charge_status == ChargeStatus.FULLY_REFUNDED):
             return redirect(order.get_absolute_url())
 
-        payment_gateway, connection_params = get_payment_gateway(
-            payment.gateway)
-        client_token = payment_gateway.get_client_token(
-            connection_params=connection_params)
         payment_info = create_payment_information(payment)
         form = payment_gateway.create_form(
-            data=request.POST or None, payment_information=payment_info,
+            data=request.POST or None,
+            payment_information=payment_info,
             connection_params=connection_params)
         if form.is_valid():
             try:
@@ -126,10 +123,11 @@ def start_payment(request, order, gateway):
                 if order.is_fully_paid():
                     return redirect('order:payment-success', token=order.token)
                 return redirect(order.get_absolute_url())
-
     ctx = {
-        'form': form, 'payment': payment,
-        'client_token': client_token, 'order': order}
+        'form': form,
+        'payment': payment,
+        'client_token': client_token,
+        'order': order}
     return TemplateResponse(request, payment_gateway.TEMPLATE_PATH, ctx)
 
 
