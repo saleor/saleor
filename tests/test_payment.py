@@ -17,7 +17,7 @@ from saleor.payment.utils import (
     clean_authorize, clean_capture, clean_charge, create_payment,
     create_payment_information, create_transaction, gateway_authorize,
     gateway_capture, gateway_charge, gateway_get_client_token,
-    gateway_process_payment, gateway_refund, gateway_void, get_billing_data,
+    gateway_process_payment, gateway_refund, gateway_void,
     handle_fully_paid_order, validate_gateway_response, validate_payment)
 
 NOT_ACTIVE_PAYMENT_ERROR = 'This payment is no longer active.'
@@ -68,28 +68,7 @@ def dummy_response(payment_dummy, transaction_data, transaction_token):
         'error': EXAMPLE_ERROR,
         'amount': payment_dummy.total,
         'currency': payment_dummy.currency,
-        'kind': TransactionKind.AUTH,
-    }
-
-
-def test_get_billing_data(order):
-    assert order.billing_address
-    result = get_billing_data(order)
-    expected_result = {
-        'billing_first_name': order.billing_address.first_name,
-        'billing_last_name': order.billing_address.last_name,
-        'billing_company_name': order.billing_address.company_name,
-        'billing_address_1': order.billing_address.street_address_1,
-        'billing_address_2': order.billing_address.street_address_2,
-        'billing_city': order.billing_address.city,
-        'billing_postal_code': order.billing_address.postal_code,
-        'billing_country_code': order.billing_address.country.code,
-        'billing_email': order.user_email,
-        'billing_country_area': order.billing_address.country_area}
-    assert result == expected_result
-
-    order.billing_address = None
-    assert get_billing_data(order) == {}
+        'kind': TransactionKind.AUTH}
 
 
 def test_get_payment_gateway_not_allowed_checkout_choice(settings):
