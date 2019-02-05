@@ -71,7 +71,6 @@ export interface FormData {
     value: string;
   }>;
   available: boolean;
-  availableOn: string;
   category: ChoiceType | null;
   chargeTaxes: boolean;
   collections: ChoiceType[];
@@ -89,6 +88,7 @@ export interface FormData {
       >;
     };
   } | null;
+  publicationDate: string;
   seoDescription: string;
   seoTitle: string;
   sku: string;
@@ -130,7 +130,6 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
             }))
           : undefined,
         available: product.isPublished,
-        availableOn: product.availableOn,
         category: product.category
           ? {
               label: product.category.name,
@@ -159,6 +158,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                 }
               }
             : undefined,
+        publicationDate: product.publicationDate,
         seoDescription: product.seoDescription,
         seoTitle: product.seoTitle,
         sku:
@@ -177,7 +177,6 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
     : {
         attributes: [],
         available: false,
-        availableOn: "",
         category: null,
         chargeTaxes: false,
         collections: [],
@@ -185,6 +184,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
         name: "",
         price: "",
         productType: null,
+        publicationDate: "",
         seoDescription: "",
         seoTitle: "",
         sku: "",

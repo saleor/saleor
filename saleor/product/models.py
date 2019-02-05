@@ -101,7 +101,7 @@ class ProductQuerySet(models.QuerySet):
     def available_products(self):
         today = datetime.date.today()
         return self.filter(
-            Q(available_on__lte=today) | Q(available_on__isnull=True),
+            Q(publication_date__lte=today) | Q(publication_date__isnull=True),
             Q(is_published=True))
 
     def visible_to_user(self, user):
@@ -123,7 +123,7 @@ class Product(SeoModel):
         currency=settings.DEFAULT_CURRENCY,
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES)
-    available_on = models.DateField(blank=True, null=True)
+    publication_date = models.DateField(blank=True, null=True)
     is_published = models.BooleanField(default=True)
     attributes = HStoreField(default=dict, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
@@ -172,7 +172,7 @@ class Product(SeoModel):
 
     def is_available(self):
         today = datetime.date.today()
-        return self.available_on is None or self.available_on <= today
+        return self.publication_date is None or self.publication_date <= today
 
     def get_first_image(self):
         images = list(self.images.all())
