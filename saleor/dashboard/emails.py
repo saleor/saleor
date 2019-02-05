@@ -11,6 +11,25 @@ from ..core.emails import get_email_base_context
 from ..core.utils import build_absolute_uri
 
 
+def _send_set_password_email(pk, template_name):
+    user = User.objects.get(pk=pk)
+    uid = urlsafe_base64_encode(force_bytes(user.pk)).decode()
+    token = default_token_generator.make_token(user)
+    password_set_url = build_absolute_uri(
+        reverse(
+            'account:reset-password-confirm',
+            kwargs={
+                'token': token,
+                'uidb64': uid}))
+    ctx = get_email_base_context()
+    ctx['password_set_url'] = password_set_url
+    send_templated_mail(
+        template_name=template_name,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        context=ctx)
+
+
 @shared_task
 def send_set_password_email(staff_pk):
     staff = User.objects.get(pk=staff_pk)
@@ -19,7 +38,9 @@ def send_set_password_email(staff_pk):
     password_set_url = build_absolute_uri(
         reverse(
             'account:reset-password-confirm',
-            kwargs={'token': token, 'uidb64': uid}))
+            kwargs={
+                'token': token,
+                'uidb64': uid}))
     ctx = get_email_base_context()
     ctx['password_set_url'] = password_set_url
     send_templated_mail(
@@ -27,6 +48,11 @@ def send_set_password_email(staff_pk):
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[staff.email],
         context=ctx)
+
+
+@shared_task
+def send_set_password_customer_email(pk):
+    _send_set_password_email(pk, 'dashboard/customer/set_password')
 
 
 @shared_task
