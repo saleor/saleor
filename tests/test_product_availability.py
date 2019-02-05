@@ -47,7 +47,8 @@ def test_product_availability_status(unavailable_product):
     assert status == ProductAvailabilityStatus.READY_FOR_PURCHASE
 
     # set product availability date from future
-    product.available_on = datetime.date.today() + datetime.timedelta(days=1)
+    product.publication_date = (
+        datetime.date.today() + datetime.timedelta(days=1))
     product.save()
     status = get_product_availability_status(product)
     assert status == ProductAvailabilityStatus.NOT_YET_AVAILABLE
@@ -99,7 +100,7 @@ def test_available_products_only_published(product_list):
 def test_available_products_only_available(product_list):
     product = product_list[0]
     date_tomorrow = datetime.date.today() + datetime.timedelta(days=1)
-    product.available_on = date_tomorrow
+    product.publication_date = date_tomorrow
     product.save()
     available_products = models.Product.objects.available_products()
     assert available_products.count() == 1

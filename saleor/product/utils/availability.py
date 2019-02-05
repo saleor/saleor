@@ -34,7 +34,7 @@ def get_product_availability_status(product):
         return ProductAvailabilityStatus.OUT_OF_STOCK
     if not are_all_variants_in_stock:
         return ProductAvailabilityStatus.LOW_STOCK
-    if not is_available and product.available_on is not None:
+    if not is_available and product.publication_date is not None:
         return ProductAvailabilityStatus.NOT_YET_AVAILABLE
     return ProductAvailabilityStatus.READY_FOR_PURCHASE
 

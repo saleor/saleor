@@ -1790,7 +1790,7 @@ export interface ProductImageCreateMutation {
       } | null;
       isPublished: boolean;
       chargeTaxes: boolean;
-      availableOn: string | null;
+      publicationDate: string | null;
       // List of product attributes assigned to this product.
       attributes: Array<{
         // Name of an attribute
@@ -1955,7 +1955,7 @@ export interface ProductImageReorderMutation {
 export interface ProductUpdateMutationVariables {
   id: string;
   attributes?: Array<AttributeValueInput | null> | null;
-  availableOn?: string | null;
+  publicationDate?: string | null;
   category?: string | null;
   chargeTaxes: boolean;
   collections?: Array<string | null> | null;
@@ -2028,7 +2028,7 @@ export interface ProductUpdateMutation {
       } | null;
       isPublished: boolean;
       chargeTaxes: boolean;
-      availableOn: string | null;
+      publicationDate: string | null;
       // List of product attributes assigned to this product.
       attributes: Array<{
         // Name of an attribute
@@ -2134,7 +2134,7 @@ export interface ProductUpdateMutation {
 
 export interface ProductCreateMutationVariables {
   attributes?: Array<AttributeValueInput | null> | null;
-  availableOn?: string | null;
+  publicationDate?: string | null;
   category: string;
   chargeTaxes: boolean;
   collections?: Array<string | null> | null;
@@ -2208,7 +2208,7 @@ export interface ProductCreateMutation {
       } | null;
       isPublished: boolean;
       chargeTaxes: boolean;
-      availableOn: string | null;
+      publicationDate: string | null;
       // List of product attributes assigned to this product.
       attributes: Array<{
         // Name of an attribute
@@ -2684,7 +2684,7 @@ export interface ProductImageUpdateMutation {
       } | null;
       isPublished: boolean;
       chargeTaxes: boolean;
-      availableOn: string | null;
+      publicationDate: string | null;
       // List of product attributes assigned to this product.
       attributes: Array<{
         // Name of an attribute
@@ -3147,7 +3147,7 @@ export interface ProductDetailsQuery {
     } | null;
     isPublished: boolean;
     chargeTaxes: boolean;
-    availableOn: string | null;
+    publicationDate: string | null;
     // List of product attributes assigned to this product.
     attributes: Array<{
       // Name of an attribute
@@ -3817,7 +3817,7 @@ export interface ProductFragment {
   } | null;
   isPublished: boolean;
   chargeTaxes: boolean;
-  availableOn: string | null;
+  publicationDate: string | null;
   // List of product attributes assigned to this product.
   attributes: Array<{
     // Name of an attribute

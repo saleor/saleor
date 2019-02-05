@@ -267,6 +267,9 @@ class Product(CountableDjangoObjectType):
             lambda: Collection,
             description='List of collections for the product'),
         model_field='collections')
+    available_on = graphene.Date(
+        deprecation_reason=(
+            'availableOn is deprecated, use publicationDate instead'))
 
     class Meta:
         description = dedent("""Represents an individual item for sale in the
@@ -298,7 +301,7 @@ class Product(CountableDjangoObjectType):
 
     @gql_optimizer.resolver_hints(
         prefetch_related='variants',
-        only=['available_on', 'charge_taxes', 'price', 'tax_rate'])
+        only=['publication_date', 'charge_taxes', 'price', 'tax_rate'])
     def resolve_availability(self, info):
         context = info.context
         availability = get_availability(
@@ -337,6 +340,9 @@ class Product(CountableDjangoObjectType):
 
     def resolve_collections(self, info):
         return self.collections.all()
+
+    def resolve_available_on(self, info):
+        return self.publication_date
 
 
 def prefetch_products(info, *args, **kwargs):

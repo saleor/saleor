@@ -31,7 +31,7 @@ export interface TokenAuth_tokenCreate_user {
 export interface TokenAuth_tokenCreate {
   __typename: "CreateToken";
   token: string | null;
-  errors: (TokenAuth_tokenCreate_errors | null)[] | null;
+  errors: (TokenAuth_tokenCreate_errors | null)[];
   user: TokenAuth_tokenCreate_user | null;
 }
 

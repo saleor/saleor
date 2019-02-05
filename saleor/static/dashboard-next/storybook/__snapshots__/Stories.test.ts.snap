@@ -47584,7 +47584,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                   <input
                     aria-invalid="false"
                     class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id"
-                    name="availableOn"
+                    name="publicationDate"
                     type="date"
                     value="2018-08-25T18:45:54.125Z"
                   />
@@ -49398,7 +49398,7 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
                   <input
                     aria-invalid="false"
                     class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id"
-                    name="availableOn"
+                    name="publicationDate"
                     type="date"
                     value="2018-08-25T18:45:54.125Z"
                   />
@@ -50444,7 +50444,7 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                   <input
                     aria-invalid="false"
                     class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id"
-                    name="availableOn"
+                    name="publicationDate"
                     type="date"
                     value="2018-08-25T18:45:54.125Z"
                   />

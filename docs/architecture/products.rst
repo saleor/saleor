@@ -27,7 +27,7 @@ Products
 
 Describes common details of a few *product variants*. When the shop displays the category view, items on the list are distinct *products*. If the variant has no overridden property (example: price), the default value is taken from the *product*.
 
-- ``available_on``
+- ``publication_date``
     Until this date the product is not listed in storefront and is unavailable for users.
 
 - ``is_featured``

@@ -328,7 +328,7 @@ type CheckoutCreate {
 
 input CheckoutCreateInput {
   lines: [CheckoutLineInput]!
-  email: String!
+  email: String
   shippingAddress: AddressInput
   billingAddress: AddressInput
 }
@@ -1332,7 +1332,7 @@ type Product implements Node {
   description: String!
   category: Category!
   price: Money
-  availableOn: Date
+  publicationDate: Date
   isPublished: Boolean!
   attributes: [SelectedAttribute!]!
   updatedAt: DateTime
@@ -1349,6 +1349,7 @@ type Product implements Node {
   purchaseCost: MoneyRange
   margin: Margin
   imageById(id: ID): ProductImage
+  availableOn: Date @deprecated(reason: "availableOn is deprecated, use publicationDate instead")
 }
 
 type ProductAvailability {
@@ -1379,7 +1380,7 @@ type ProductCreate {
 
 input ProductCreateInput {
   attributes: [AttributeValueInput]
-  availableOn: Date
+  publicationDate: Date
   category: ID
   chargeTaxes: Boolean
   collections: [ID]
@@ -1444,7 +1445,7 @@ input ProductImageUpdateInput {
 
 input ProductInput {
   attributes: [AttributeValueInput]
-  availableOn: Date
+  publicationDate: Date
   category: ID
   chargeTaxes: Boolean
   collections: [ID]

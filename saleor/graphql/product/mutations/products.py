@@ -260,7 +260,7 @@ class ProductInput(graphene.InputObjectType):
     attributes = graphene.List(
         AttributeValueInput,
         description='List of attributes.')
-    available_on = graphene.types.datetime.Date(
+    publication_date = graphene.types.datetime.Date(
         description='Publication date. ISO 8601 standard.')
     category = graphene.ID(
         description='ID of the product\'s category.', name='category')
