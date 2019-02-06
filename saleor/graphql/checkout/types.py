@@ -28,7 +28,7 @@ class CheckoutLine(CountableDjangoObjectType):
 
     def resolve_total_price(self, info):
         taxes = get_taxes_for_address(self.cart.shipping_address)
-        return self.get_total(taxes=taxes)
+        return self.get_total(discounts=info.context.discounts, taxes=taxes)
 
     def resolve_requires_shipping(self, info):
         return self.is_shipping_required()
@@ -73,7 +73,7 @@ class Checkout(CountableDjangoObjectType):
 
     def resolve_total_price(self, info):
         taxes = get_taxes_for_address(self.shipping_address)
-        return self.get_total(taxes=taxes)
+        return self.get_total(discounts=info.context.discounts, taxes=taxes)
 
     def resolve_subtotal_price(self, info):
         taxes = get_taxes_for_address(self.shipping_address)
