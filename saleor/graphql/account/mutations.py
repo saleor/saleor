@@ -140,8 +140,6 @@ class CustomerCreate(ModelMutation, I18nMixin):
         super().save(info, instance, cleaned_input)
 
         if cleaned_input.get('send_password_email'):
-            # site = info.context.site
-            # send_user_password_reset_email(instance, site)
             send_set_password_customer_email.delay(instance.pk)
 
 
@@ -256,8 +254,6 @@ class StaffCreate(ModelMutation):
     def save(cls, info, user, cleaned_input):
         user.save()
         if cleaned_input.get('send_password_email'):
-            # site = info.context.site
-            # send_user_password_reset_email(user, site)
             send_set_password_staff_email.delay(user.pk)
 
 
