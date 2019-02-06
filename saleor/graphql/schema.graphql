@@ -389,6 +389,7 @@ type CheckoutLinesUpdate {
 
 type CheckoutPaymentCreate {
   errors: [Error!]
+  checkout: Checkout
   payment: Payment
 }
 
@@ -922,7 +923,7 @@ type Mutations {
   tokenRefresh(token: String!): Refresh
   tokenVerify(token: String!): VerifyToken
   checkoutBillingAddressUpdate(billingAddress: AddressInput, checkoutId: ID): CheckoutBillingAddressUpdate
-  checkoutComplete(checkoutId: ID): CheckoutComplete
+  checkoutComplete(checkoutId: ID!): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
   checkoutCustomerAttach(checkoutId: ID!, customerId: ID!): CheckoutCustomerAttach
   checkoutCustomerDetach(checkoutId: ID!): CheckoutCustomerDetach
@@ -930,7 +931,7 @@ type Mutations {
   checkoutLineDelete(checkoutId: ID!, lineId: ID): CheckoutLineDelete
   checkoutLinesAdd(checkoutId: ID!, lines: [CheckoutLineInput]!): CheckoutLinesAdd
   checkoutLinesUpdate(checkoutId: ID!, lines: [CheckoutLineInput]!): CheckoutLinesUpdate
-  checkoutPaymentCreate(input: PaymentInput!): CheckoutPaymentCreate
+  checkoutPaymentCreate(checkoutId: ID!, input: PaymentInput!): CheckoutPaymentCreate
   checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
   passwordReset(email: String!): PasswordReset
@@ -1237,19 +1238,19 @@ type Payment implements Node {
   created: DateTime!
   modified: DateTime!
   chargeStatus: PaymentChargeStatusEnum!
-  billingEmail: String!
-  customerIpAddress: String
-  extraData: String!
   token: String!
   total: Money
   capturedAmount: Money
   checkout: Checkout
   order: Order
+  billingEmail: String!
   ccFirstDigits: String!
   ccLastDigits: String!
   ccBrand: String!
   ccExpMonth: Int
   ccExpYear: Int
+  customerIpAddress: String
+  extraData: String!
   transactions: [Transaction]
   actions: [OrderAction]!
   billingAddress: Address
@@ -1291,11 +1292,10 @@ type PaymentCountableEdge {
 }
 
 input PaymentInput {
-  gateway: GatewaysEnum
-  checkoutId: ID
+  gateway: GatewaysEnum!
   token: String!
   amount: Decimal!
-  billingAddress: AddressInput
+  billingAddress: AddressInput!
 }
 
 type PaymentRefund {
