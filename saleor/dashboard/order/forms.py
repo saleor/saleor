@@ -347,7 +347,7 @@ class OrderMarkAsPaidForm(forms.Form):
     def clean(self):
         super().clean()
         try:
-            clean_mark_order_as_paid(order)
+            clean_mark_order_as_paid(self.order)
         except PaymentError as e:
             raise forms.ValidationError(str(e))
 

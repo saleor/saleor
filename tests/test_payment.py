@@ -132,8 +132,15 @@ def test_validate_payment():
         test_function(non_active_payment)
 
 
-def test_create_payment(settings):
-    data = {'gateway': settings.DUMMY}
+def test_create_payment(address, settings):
+    data = {
+        'gateway': settings.DUMMY,
+        'payment_token': 'token',
+        'total': 10,
+        'currency': settings.DEFAULT_CURRENCY,
+        'email': 'test@example.com',
+        'billing_address': address,
+        'customer_ip_address': '127.0.0.1'}
     payment = create_payment(**data)
     assert payment.gateway == settings.DUMMY
 

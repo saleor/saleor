@@ -68,8 +68,8 @@ def test_payment_void_gateway_error(
 
 
 CREATE_QUERY = """
-    mutation CheckoutPaymentCreate($input: PaymentInput!) {
-        checkoutPaymentCreate(input: $input) {
+    mutation CheckoutPaymentCreate($checkoutId: ID!, $input: PaymentInput!) {
+        checkoutPaymentCreate(checkoutId: $checkoutId, input: $input) {
             payment {
                 transactions {
                     kind,
@@ -90,12 +90,10 @@ def test_checkout_add_payment(
         user_api_client, cart_with_item, graphql_address_data):
     cart = cart_with_item
     assert cart.user is None
-
     checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
-
     variables = {
+        'checkoutId': checkout_id,
         'input': {
-            'checkoutId': checkout_id,
             'gateway': 'DUMMY',
             'token': 'sample-token',
             'amount': str(cart.get_total().gross.amount),

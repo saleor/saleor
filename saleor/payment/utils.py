@@ -99,9 +99,10 @@ def validate_payment(view):
 
 
 def create_payment(
-        gateway: str, payment_token: str, total: Decimal,
+        gateway: str, total: Decimal,
         currency: str, email: str, billing_address: Address,
         customer_ip_address: str = '',
+        payment_token: str = '',
         extra_data: Dict = None,
         checkout: Cart = None,
         order: Order = None
@@ -123,16 +124,16 @@ def create_payment(
         'billing_country_code': billing_address.country.code,
         'billing_country_area': billing_address.country_area,
         'currency': currency,
-        'customer_ip_address': customer_ip_address,
+        'gateway': gateway,
         'total': total}
 
     if extra_data is None:
         extra_data = {}
 
     data = {
-        'gateway': gateway,
-        'token': payment_token,
-        'extra_data': extra_data}
+        'customer_ip_address': customer_ip_address,
+        'extra_data': extra_data,
+        'token': payment_token}
 
     if order is not None:
         data['order'] = order
