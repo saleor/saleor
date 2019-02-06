@@ -88,14 +88,10 @@ def payment(request, token):
 @check_order_status
 def start_payment(request, order, gateway):
     payment_gateway, connection_params = get_payment_gateway(gateway)
-    client_token = payment_gateway.get_client_token(
-        connection_params=connection_params)
     extra_data = {'customer_user_agent': request.META.get('HTTP_USER_AGENT')}
-
     with transaction.atomic():
         payment = create_payment(
             gateway=gateway,
-            payment_token=client_token,
             currency=order.total.gross.currency,
             email=order.user_email,
             billing_address=order.billing_address,
@@ -123,6 +119,9 @@ def start_payment(request, order, gateway):
                 if order.is_fully_paid():
                     return redirect('order:payment-success', token=order.token)
                 return redirect(order.get_absolute_url())
+
+    client_token = payment_gateway.get_client_token(
+        connection_params=connection_params)
     ctx = {
         'form': form,
         'payment': payment,

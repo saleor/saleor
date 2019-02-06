@@ -81,9 +81,10 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             email=checkout.email,
             billing_address=billing_address,
             extra_data=extra_data,
-            customer_ip_address=get_client_ip(info),
+            customer_ip_address=get_client_ip(info.context),
             checkout=checkout)
         return CheckoutPaymentCreate(payment=payment, errors=errors)
+
 
 class PaymentAuthorize(BaseMutation):
     payment = graphene.Field(Payment, description='Updated payment')
