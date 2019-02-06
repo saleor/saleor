@@ -5,15 +5,16 @@
 # 
 # Translators:
 # Patryk Zawadzki <patrys@room-303.com>, 2018
+# hossein0440 <hossein0440@gmail.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-18 08:53-0600\n"
+"POT-Creation-Date: 2019-01-28 05:51-0600\n"
 "PO-Revision-Date: 2017-02-09 15:43+0000\n"
-"Last-Translator: Patryk Zawadzki <patrys@room-303.com>, 2018\n"
+"Last-Translator: hossein0440 <hossein0440@gmail.com>, 2019\n"
 "Language-Team: Persian (https://www.transifex.com/mirumee/teams/34782/fa/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -67,12 +68,12 @@ msgstr "توضیحات"
 #: saleor/dashboard/category/forms.py:29
 msgctxt "Category form"
 msgid "Background Image"
-msgstr "عکس پس زمینه"
+msgstr "تصویر پس زمینه"
 
 #: saleor/dashboard/category/forms.py:31
 msgctxt "Description of a category image"
 msgid "Image description"
-msgstr ""
+msgstr "توضیحات تصویر"
 
 #: saleor/dashboard/category/views.py:47
 #, python-format
@@ -150,19 +151,26 @@ msgstr "محصولات"
 #: saleor/dashboard/collection/forms.py:27
 msgctxt "Background image of a collection"
 msgid "Background image"
-msgstr ""
+msgstr "تصویر پس زمینه"
 
 #: saleor/dashboard/collection/forms.py:29
 msgctxt "Description of a collection image"
 msgid "Image description"
-msgstr ""
+msgstr "توضیحات تصویر"
 
 #: saleor/dashboard/collection/forms.py:32
 msgctxt "Collection published toggle"
 msgid "Published"
 msgstr "منتشر شده"
 
-#: saleor/dashboard/collection/forms.py:35
+#: saleor/dashboard/collection/forms.py:36
+msgctxt ""
+"The publication date field, can be a posterior date for a planned "
+"publication."
+msgid "Published date"
+msgstr "تاریخ انتشار"
+
+#: saleor/dashboard/collection/forms.py:39
 msgctxt "Description field of a collection"
 msgid "Description"
 msgstr "توضیحات"
@@ -515,7 +523,7 @@ msgstr "کلکسیون های تخفیف یافته"
 #: saleor/dashboard/discount/forms.py:70
 msgctxt "Sale (discount) error"
 msgid "Sale cannot exceed 100%"
-msgstr ""
+msgstr "فروش نمی تواند از 100% تجاوز کند"
 
 #: saleor/dashboard/discount/forms.py:77
 msgctxt "Sale (discount) error"
@@ -840,104 +848,104 @@ msgid_plural "Found %(counter)d matching orders"
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/dashboard/order/forms.py:39
+#: saleor/dashboard/order/forms.py:40
 msgctxt "Send email to customer about order created by staff users"
 msgid "Send email with order confirmation to the customer"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:57
+#: saleor/dashboard/order/forms.py:58
 msgctxt "Create draft order form error"
 msgid "Could not create order without any products"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:67
+#: saleor/dashboard/order/forms.py:68
 msgctxt "Create draft order form error"
 msgid "Shipping method is not valid for chosen shipping address"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:95
+#: saleor/dashboard/order/forms.py:96
 msgctxt "Update an order with user default addresses"
 msgid "Set billing and shipping address in order to customer defaults"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:103
+#: saleor/dashboard/order/forms.py:104
 msgctxt "Order form: editing customer details - selecting a customer"
 msgid "Customer"
 msgstr "مشتری"
 
-#: saleor/dashboard/order/forms.py:111
+#: saleor/dashboard/order/forms.py:112
 msgctxt "Order customer email"
 msgid "Email"
 msgstr "ایمیل"
 
-#: saleor/dashboard/order/forms.py:126
+#: saleor/dashboard/order/forms.py:127
 msgctxt "Edit customer details in order form error"
 msgid ""
 "An order can be related either with an email or an existing user account"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:154
+#: saleor/dashboard/order/forms.py:155
 msgctxt "Shipping method form field label"
 msgid "Shipping method"
 msgstr "روش ارسال"
 
-#: saleor/dashboard/order/forms.py:211
+#: saleor/dashboard/order/forms.py:212
 msgctxt "Order discount amount fixed value"
 msgid "Discount amount"
 msgstr "مقدار تخفیف"
 
-#: saleor/dashboard/order/forms.py:223
+#: saleor/dashboard/order/forms.py:224
 msgctxt "Order voucher"
 msgid "Voucher"
-msgstr ""
+msgstr "کد تخفیف"
 
-#: saleor/dashboard/order/forms.py:251
+#: saleor/dashboard/order/forms.py:252
 msgctxt "Order note"
 msgid "Note"
 msgstr "یادداشت"
 
-#: saleor/dashboard/order/forms.py:257
+#: saleor/dashboard/order/forms.py:258
 msgctxt "Payment management form (capture, refund, void)"
 msgid "Amount"
 msgstr "مبلغ"
 
-#: saleor/dashboard/order/forms.py:272 saleor/dashboard/order/forms.py:328
+#: saleor/dashboard/order/forms.py:273 saleor/dashboard/order/forms.py:329
 #, python-format
 msgctxt "Payment form error"
 msgid "Payment gateway error: %s"
-msgstr ""
+msgstr "خطای درگاه پرداخت%s"
 
-#: saleor/dashboard/order/forms.py:288
+#: saleor/dashboard/order/forms.py:289
 msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be captured"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:298
+#: saleor/dashboard/order/forms.py:299
 msgctxt "Payment form error"
 msgid "Only confirmed payments can be refunded"
-msgstr ""
+msgstr "پرداخت های تایید شده تنها می توانند پرداخت شوند"
 
-#: saleor/dashboard/order/forms.py:306
+#: saleor/dashboard/order/forms.py:307
 msgctxt "Payment form error"
 msgid "Manual payments can not be refunded"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:323
+#: saleor/dashboard/order/forms.py:324
 msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be voided"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:352
+#: saleor/dashboard/order/forms.py:353
 msgctxt "Mark order as paid form error"
 msgid "Orders with payments can not be manually marked as paid"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:383
+#: saleor/dashboard/order/forms.py:384
 msgctxt "Integer number"
 msgid "Quantity"
 msgstr "تعداد"
 
-#: saleor/dashboard/order/forms.py:402
+#: saleor/dashboard/order/forms.py:403
 #, python-format
 msgctxt "Change quantity form error"
 msgid "Only %(remaining)d remaining in stock."
@@ -945,7 +953,7 @@ msgid_plural "Only %(remaining)d remaining in stock."
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/dashboard/order/forms.py:434
+#: saleor/dashboard/order/forms.py:435
 #, python-format
 msgctxt "Cancel order form action"
 msgid "Restock %(quantity)d item"
@@ -953,12 +961,12 @@ msgid_plural "Restock %(quantity)d items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/dashboard/order/forms.py:444
+#: saleor/dashboard/order/forms.py:445
 msgctxt "Cancel order form error"
 msgid "This order can't be canceled"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:464
+#: saleor/dashboard/order/forms.py:465
 #, python-format
 msgctxt "Cancel fulfillment form action"
 msgid "Restock %(quantity)d item"
@@ -966,42 +974,42 @@ msgid_plural "Restock %(quantity)d items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/dashboard/order/forms.py:474
+#: saleor/dashboard/order/forms.py:475
 msgctxt "Cancel fulfillment form error"
 msgid "This fulfillment can't be canceled"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:487
+#: saleor/dashboard/order/forms.py:488
 msgctxt "Send mail to customer"
 msgid "Send notification email to customer"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:494
+#: saleor/dashboard/order/forms.py:495
 msgctxt "Fulfillment record"
 msgid "Tracking number"
 msgstr "کد پیگیری"
 
-#: saleor/dashboard/order/forms.py:515
+#: saleor/dashboard/order/forms.py:516
 msgctxt "Remove voucher form error"
 msgid "This order has no voucher"
-msgstr ""
+msgstr "این سفارش دارای تخفیف نیست"
 
-#: saleor/dashboard/order/forms.py:528
+#: saleor/dashboard/order/forms.py:529
 msgctxt "Payment status field value"
 msgid "All"
 msgstr "همه"
 
-#: saleor/dashboard/order/forms.py:545
+#: saleor/dashboard/order/forms.py:546
 msgctxt "Order form: subform to add variant to order form: variant field"
 msgid "Variant"
 msgstr "نوع"
 
-#: saleor/dashboard/order/forms.py:548
+#: saleor/dashboard/order/forms.py:549
 msgctxt "Add variant to order form label"
 msgid "Quantity"
 msgstr "تعداد"
 
-#: saleor/dashboard/order/forms.py:569
+#: saleor/dashboard/order/forms.py:570
 #, python-format
 msgctxt "Add item form error"
 msgid "Could not add item. Only %(remaining)d remaining in stock."
@@ -1009,22 +1017,22 @@ msgstr ""
 "امکان اضافه کردن وجود ندارد. تنها %(remaining)d تا از این جنس در انبار موجود"
 " است."
 
-#: saleor/dashboard/order/forms.py:592
+#: saleor/dashboard/order/forms.py:593
 msgctxt "Order form: address subform - phone number input field"
 msgid "Phone number"
 msgstr "شماره تلفن"
 
-#: saleor/dashboard/order/forms.py:601
+#: saleor/dashboard/order/forms.py:602
 msgctxt "Send mail to customer"
 msgid "Send shipment details to your customer now"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:609
+#: saleor/dashboard/order/forms.py:610
 msgctxt "Order tracking number"
 msgid "Tracking number"
 msgstr "کد پیگیری"
 
-#: saleor/dashboard/order/forms.py:639
+#: saleor/dashboard/order/forms.py:640
 #, python-format
 msgctxt "Fulfill order line form error"
 msgid "%(quantity)d item remaining to fulfill."
@@ -1056,13 +1064,13 @@ msgstr "افزودن یادداشت"
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Captured %(amount)s"
-msgstr ""
+msgstr "مقدار %(amount)s بلوکه شده"
 
 #: saleor/dashboard/order/views.py:198
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Refunded %(amount)s"
-msgstr ""
+msgstr "باز پرداخت%(amount)s"
 
 #: saleor/dashboard/order/views.py:224
 msgctxt "Dashboard message"
@@ -1130,7 +1138,7 @@ msgstr ""
 #: saleor/dashboard/order/views.py:413
 msgctxt "Dashboard message"
 msgid "Shipping updated"
-msgstr ""
+msgstr "حمل و نقل به روز شده است"
 
 #: saleor/dashboard/order/views.py:431
 msgctxt "Dashboard message"
@@ -1145,7 +1153,7 @@ msgstr ""
 #: saleor/dashboard/order/views.py:464
 msgctxt "Dashboard message"
 msgid "Voucher updated"
-msgstr ""
+msgstr "کد تخفیف بروز شد"
 
 #: saleor/dashboard/order/views.py:482
 msgctxt "Dashboard message"
@@ -1155,7 +1163,7 @@ msgstr "سفارش لغو شد."
 #: saleor/dashboard/order/views.py:509
 msgctxt "Dashboard message"
 msgid "Removed voucher from order"
-msgstr ""
+msgstr "حذف تخفیف از سفارش"
 
 #: saleor/dashboard/order/views.py:545
 msgctxt "Dashboard message"
@@ -1238,12 +1246,12 @@ msgstr ""
 #: saleor/dashboard/page/forms.py:24
 msgctxt "Page form: available on which date field"
 msgid "Available on"
-msgstr ""
+msgstr "در دسترس است"
 
 #: saleor/dashboard/page/forms.py:26
 msgctxt "Page form: visibility status indicator"
 msgid "Is visible"
-msgstr ""
+msgstr "قابل مشاهده است"
 
 #: saleor/dashboard/page/forms.py:30
 msgctxt "Form field help text"
@@ -1520,7 +1528,7 @@ msgstr "تعداد در انبار"
 #: saleor/dashboard/product/forms.py:323
 msgctxt "Currency amount"
 msgid "Cost price"
-msgstr ""
+msgstr "قیمت تمام شده"
 
 #: saleor/dashboard/product/forms.py:325
 msgctxt "Track inventory field"
@@ -1696,7 +1704,7 @@ msgstr "نام"
 #: saleor/dashboard/shipping/filters.py:16
 msgctxt "Shipping zones list filter label"
 msgid "Shipping zone name"
-msgstr ""
+msgstr "نام منطقه حمل و نقل"
 
 #: saleor/dashboard/shipping/filters.py:20
 msgctxt "Shipping zones list filter label"
@@ -1736,7 +1744,7 @@ msgstr ""
 #: saleor/dashboard/shipping/forms.py:49
 msgctxt "Shippment Zone field name"
 msgid "Shipping zone name"
-msgstr ""
+msgstr "نام منطقه حمل و نقل"
 
 #: saleor/dashboard/shipping/forms.py:51
 msgctxt "Shipping Zone field name"
@@ -1836,12 +1844,12 @@ msgstr ""
 #: saleor/dashboard/shipping/views.py:49
 msgctxt "Dashboard message"
 msgid "Added shipping zone"
-msgstr ""
+msgstr "افزودن منطقه حمل و نقل"
 
 #: saleor/dashboard/shipping/views.py:63
 msgctxt "Dashboard message"
 msgid "Updated shipping zone"
-msgstr ""
+msgstr "منطقه حمل و نقل بروز شد"
 
 #: saleor/dashboard/shipping/views.py:91
 #, python-format
