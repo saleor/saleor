@@ -43,21 +43,23 @@ class TransactionKind:
 
 def get_customer_data(payment_information: Dict) -> Dict:
     billing = payment_information['billing']
+    # DEMO: Anonymized addresses fail when sent to Braintree, so we're faking
+    # the address here.
     return {
         'order_id': payment_information['order_id'],
         'billing': {
-            'first_name': billing['first_name'],
-            'last_name': billing['last_name'],
-            'company': billing['company_name'],
-            'postal_code': billing['postal_code'],
-            'street_address': billing['street_address_1'],
-            'extended_address': billing['street_address_2'],
+            'first_name': 'Saleor',
+            'last_name': 'Demo',
+            'company': 'Saleor',
+            'postal_code': '00-001',
+            'street_address': 'Test Street 1',
+            'extended_address': '',
             'locality': billing['city'],
             'region': billing['country_area'],
             'country_code_alpha2': billing['country']},
         'risk_data': {
             'customer_ip': payment_information['customer_ip_address'] or ''},
-        'customer': {'email': payment_information['customer_email']}}
+        'customer': {'email': 'test@example.com'}}
 
 
 def get_error_for_client(errors: List) -> str:
