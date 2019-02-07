@@ -171,19 +171,62 @@
     {% endif %}
   </div>
 {% elif field|is_file %}
-  <div class="input col {{ classes.label }}">
-    <p>
-      {% if field.auto_id %}
-        <label class="{{ classes.label }}" for="{{ field.auto_id }}">
-          {{ field.label }}
-          {% if not field.field.required %}
-            {% trans "(optional)" context "Dashboard form labels" %}
+  <div
+    class="input col {{ classes.label }}">
+    {% if field.auto_id %}
+      <label
+        class="{{ classes.label }}"
+        for="{{ field.auto_id }}">
+        {{ field.label }}
+        {% if not field.field.required %}
+          {% trans "(optional)" context "Dashboard form labels" %}
+        {% endif %}
+      </label>
+    {% endif %}
+    {% with field.field.widget as widget %}
+      {% if field.value %}
+        <div>
+          {{ widget.initial_text }}:
+          <a
+            href="{{ field.value.url }}">
+            {{ field.value }}
+          </a>
+          {% if not widget.required %}
+            <input
+              type="checkbox"
+              name="{{ field.name }}-clear"
+              id="{{ field.name }}-clear_id">
+            <label
+              for="{{ field.name }}-clear_id"
+              style="float:right">
+              {{ widget.clear_checkbox_label }}
+            </label>
           {% endif %}
-        </label>
-        <br>
+        </div>
       {% endif %}
-      {{ field }}
-    </p>
+    {% endwith %}
+  </div>
+
+  <div class="input col file-field input-field {{ classes.label }}">
+    <div class="btn">
+      <span>
+        {% trans "File" %}
+      </span>
+      <input class="file-chooser" id="{{ field.auto_id }}" name="{{ field.name }}" type="file">
+    </div>
+    <div class="file-path-wrapper">
+      <input class="file-path" type="text">
+    </div>
+    {% for error in field.errors %}
+      <p class="help-block materialize-red-text">
+        {{ error }}
+      </p>
+    {% endfor %}
+    {% if field.help_text %}
+      <p class="help-block">
+        {{ field.help_text|safe }}
+      </p>
+    {% endif %}
   </div>
 {% elif field|is_versatile_image_ppoi_click_widget %}
   <div class="input col file-field input-field {{ classes.label }}">
