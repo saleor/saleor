@@ -9,8 +9,9 @@ from graphql_jwt.exceptions import PermissionDenied
 
 from ...account import emails, models
 from ...core.permissions import MODELS_PERMISSIONS, get_permissions
+from ...dashboard.emails import (
+    send_set_password_customer_email, send_set_password_staff_email)
 from ...dashboard.staff.utils import remove_staff_member
-from ...dashboard.emails import send_set_password_customer_email, send_set_password_staff_email
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, User
 from ..core.enums import PermissionEnum
