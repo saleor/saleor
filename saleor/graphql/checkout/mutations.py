@@ -91,7 +91,7 @@ class CheckoutCreateInput(graphene.InputObjectType):
             'A list of checkout lines, each containing information about '
             'an item in the checkout.'), required=True)
     email = graphene.String(
-        description='The customer\'s email address.', required=True)
+        description='The customer\'s email address.')
     shipping_address = AddressInput(
         description=(
             'The mailling address to where the checkout will be shipped.'))
