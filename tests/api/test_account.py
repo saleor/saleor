@@ -352,9 +352,9 @@ def test_customer_register(user_api_client):
         'User with this Email already exists.')
 
 
-@patch('saleor.account.emails.send_password_reset_email.delay')
+@patch('saleor.dashboard.emails.send_set_password_customer_email.delay')
 def test_customer_create(
-        send_password_reset_mock, staff_api_client, address,
+        send_set_password_customer_email_mock, staff_api_client, address,
         permission_manage_users):
     query = """
     mutation CreateCustomer(
@@ -429,12 +429,10 @@ def test_customer_create(
     assert not data['user']['isStaff']
     assert data['user']['isActive']
 
-    assert send_password_reset_mock.call_count == 1
-    args, kwargs = send_password_reset_mock.call_args
-    call_context = args[0]
-    call_email = args[1]
-    assert call_email == email
-    assert 'token' in call_context
+    assert send_set_password_customer_email_mock.call_count == 1
+    args, kwargs = send_set_password_customer_email_mock.call_args
+    call_pk = args[0]
+    assert call_pk == customer.pk
 
 
 def test_customer_update(
@@ -618,9 +616,9 @@ def test_customer_delete_errors(customer_user, admin_user, staff_user):
     assert errors == []
 
 
-@patch('saleor.account.emails.send_password_reset_email.delay')
+@patch('saleor.dashboard.emails.send_set_password_staff_email.delay')
 def test_staff_create(
-        send_password_reset_mock, staff_api_client, permission_manage_staff):
+        send_set_password_staff_email_mock, staff_api_client, permission_manage_staff):
     query = """
     mutation CreateStaff(
             $email: String, $permissions: [PermissionEnum],
@@ -661,12 +659,15 @@ def test_staff_create(
     permissions = data['user']['permissions']
     assert permissions[0]['code'] == 'MANAGE_PRODUCTS'
 
-    assert send_password_reset_mock.call_count == 1
-    args, kwargs = send_password_reset_mock.call_args
-    call_context = args[0]
-    call_email = args[1]
-    assert call_email == email
-    assert 'token' in call_context
+    User = get_user_model()
+    staff_user = User.objects.get(email=email)
+
+    assert staff_user.is_staff
+
+    assert send_set_password_staff_email_mock.call_count == 1
+    args, kwargs = send_set_password_staff_email_mock.call_args
+    call_pk = args[0]
+    assert call_pk == staff_user.pk
 
 
 def test_staff_update(staff_api_client, permission_manage_staff):
