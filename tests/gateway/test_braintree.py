@@ -98,12 +98,12 @@ def test_get_customer_data(payment_dummy):
     expected_result = {
         'order_id': payment.order_id,
         'billing': {
-            'first_name': payment.billing_first_name,
-            'last_name': payment.billing_last_name,
-            'company': payment.billing_company_name,
-            'postal_code': payment.billing_postal_code,
-            'street_address': payment.billing_address_1[:255],
-            'extended_address': payment.billing_address_2[:255],
+            'first_name': 'Saleor',
+            'last_name': 'Demo',
+            'company': 'Saleor',
+            'postal_code': '00-001',
+            'street_address': 'Test Street 1',
+            'extended_address': '',
             'locality': payment.billing_city,
             'region': payment.billing_country_area,
             'country_code_alpha2': payment.billing_country_code},
