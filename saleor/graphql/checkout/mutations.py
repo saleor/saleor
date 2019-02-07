@@ -80,8 +80,9 @@ def check_lines_quantity(variants, quantities):
 
 class CheckoutLineInput(graphene.InputObjectType):
     quantity = graphene.Int(
-        description='The number of items purchased.')
-    variant_id = graphene.ID(description='ID of the ProductVariant.')
+        required=True, description='The number of items purchased.')
+    variant_id = graphene.ID(
+        required=True, description='ID of the ProductVariant.')
 
 
 class CheckoutCreateInput(graphene.InputObjectType):
@@ -89,11 +90,14 @@ class CheckoutCreateInput(graphene.InputObjectType):
         CheckoutLineInput,
         description=(
             'A list of checkout lines, each containing information about '
-            'an item in the checkout.'))
-    email = graphene.String(description='The customer\'s email address.')
+            'an item in the checkout.'), required=True)
+    email = graphene.String(
+        description='The customer\'s email address.')
     shipping_address = AddressInput(
         description=(
             'The mailling address to where the checkout will be shipped.'))
+    billing_address = AddressInput(
+        description='Billing address of the customer.')
 
 
 class CheckoutCreate(ModelMutation, I18nMixin):
@@ -109,6 +113,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     @classmethod
     def clean_input(cls, info, instance, input, errors):
         cleaned_input = super().clean_input(info, instance, input, errors)
+        user = info.context.user
         lines = input.pop('lines', None)
         if lines:
             variant_ids = [line.get('variant_id') for line in lines]
@@ -116,29 +121,59 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 ids=variant_ids, errors=errors, field='variant_id',
                 only_type=ProductVariant)
             quantities = [line.get('quantity') for line in lines]
-            line_errors = check_lines_quantity(variants, quantities)
-            if line_errors:
-                for err in line_errors:
-                    cls.add_error(errors, field=err[0], message=err[1])
-            else:
-                cleaned_input['variants'] = variants
-                cleaned_input['quantities'] = quantities
+            if not errors:
+                line_errors = check_lines_quantity(variants, quantities)
+                if line_errors:
+                    for err in line_errors:
+                        cls.add_error(errors, field=err[0], message=err[1])
+                else:
+                    cleaned_input['variants'] = variants
+                    cleaned_input['quantities'] = quantities
+
+        default_shipping_address = None
+        default_billing_address = None
+        if not user.is_anonymous:
+            default_billing_address = user.default_billing_address
+            default_shipping_address = user.default_shipping_address
 
         shipping_address_data = input.pop('shipping_address', None)
         if shipping_address_data:
             shipping_address, errors = cls.validate_address(
                 shipping_address_data, errors)
             cleaned_input['shipping_address'] = shipping_address
+        else:
+            cleaned_input['shipping_address'] = default_shipping_address
+
+        billing_address_data = input.pop('billing_address', None)
+        if billing_address_data:
+            billing_address, errors = cls.validate_address(
+                billing_address_data, errors)
+            cleaned_input['billing_address'] = billing_address
+        else:
+            cleaned_input['billing_address'] = default_billing_address
+
         return cleaned_input
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
         shipping_address = cleaned_input.get('shipping_address')
+        billing_address = cleaned_input.get('billing_address')
+        update_fields = []
         if shipping_address:
             shipping_address.save()
             instance.shipping_address = shipping_address
+            update_fields.append('shipping_address')
+        if billing_address:
+            billing_address.save()
+            instance.billing_address = billing_address
+            update_fields.append('billing_address')
         super().save(info, instance, cleaned_input)
-        instance.save(update_fields=['shipping_address'])
+        user = info.context.user
+        if not user.is_anonymous:
+            instance.user = user
+            update_fields.append('user')
+        instance.save(update_fields=update_fields)
+
         variants = cleaned_input.get('variants')
         quantities = cleaned_input.get('quantities')
         if variants and quantities:
@@ -208,10 +243,11 @@ class CheckoutLinesAdd(BaseMutation):
                     ids=variant_ids, errors=errors, field='variant_id',
                     only_type=ProductVariant)
                 quantities = [line.get('quantity') for line in lines]
-                line_errors = check_lines_quantity(variants, quantities)
-                if line_errors:
-                    for err in line_errors:
-                        cls.add_error(errors, field=err[0], message=err[1])
+                if not errors:
+                    line_errors = check_lines_quantity(variants, quantities)
+                    if line_errors:
+                        for err in line_errors:
+                            cls.add_error(errors, field=err[0], message=err[1])
 
             # FIXME test if below function is called
             clean_shipping_method(
@@ -343,17 +379,15 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
 
-        if checkout is not None:
+        if checkout is not None and shipping_address:
             shipping_address, errors = cls.validate_address(
                 shipping_address, errors, instance=checkout.shipping_address)
+            # FIXME test if below function is called
             clean_shipping_method(
                 checkout, checkout.shipping_method, errors,
                 info.context.discounts,
                 get_taxes_for_address(shipping_address))
-            if errors:
-                CheckoutShippingAddressUpdate(errors=errors)
-
-            if shipping_address:
+            if not errors:
                 with transaction.atomic():
                     shipping_address.save()
                     change_shipping_address_in_cart(checkout, shipping_address)
@@ -378,16 +412,13 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
 
-        if billing_address:
+        if checkout is not None and billing_address:
             billing_address, errors = cls.validate_address(
                 billing_address, errors, instance=checkout.billing_address)
-        if errors:
-            return CheckoutBillingAddressUpdate(errors=errors)
-
-        if checkout is not None and billing_address:
-            with transaction.atomic():
-                billing_address.save()
-                change_billing_address_in_cart(checkout, billing_address)
+            if not errors:
+                with transaction.atomic():
+                    billing_address.save()
+                    change_billing_address_in_cart(checkout, billing_address)
         return CheckoutShippingAddressUpdate(checkout=checkout, errors=errors)
 
 
@@ -408,6 +439,9 @@ class CheckoutEmailUpdate(BaseMutation):
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
         if checkout is not None:
             checkout.email = email
+            cls.clean_instance(checkout, errors)
+            if errors:
+                return CheckoutEmailUpdate(errors=errors)
             checkout.save(update_fields=['email'])
 
         return CheckoutEmailUpdate(checkout=checkout, errors=errors)
@@ -437,11 +471,10 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             clean_shipping_method(
                 checkout, shipping_method, errors, info.context.discounts,
                 info.context.taxes, remove=False)
-        if errors:
-            return CheckoutShippingMethodUpdate(errors=errors)
 
-        checkout.shipping_method = shipping_method
-        checkout.save(update_fields=['shipping_method'])
+        if not errors:
+            checkout.shipping_method = shipping_method
+            checkout.save(update_fields=['shipping_method'])
         return CheckoutShippingMethodUpdate(checkout=checkout, errors=errors)
 
 
@@ -461,25 +494,26 @@ class CheckoutComplete(BaseMutation):
         errors = []
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
-        if checkout is None:
+        if checkout is not None:
+            taxes = get_taxes_for_cart(checkout, info.context.taxes)
+            ready, checkout_error = ready_to_place_order(
+                checkout, taxes, info.context.discounts)
+            if not ready:
+                cls.add_error(
+                    field=None, message=checkout_error, errors=errors)
+        if not errors:
+            try:
+                order = create_order(
+                    cart=checkout,
+                    tracking_code=analytics.get_client_id(info.context),
+                    discounts=info.context.discounts, taxes=taxes)
+            except InsufficientStock:
+                order = None
+                cls.add_error(
+                    field=None, message='Insufficient product stock.',
+                    errors=errors)
+        if errors:
             return CheckoutComplete(errors=errors)
-        taxes = get_taxes_for_cart(checkout, info.context.taxes)
-        ready, checkout_error = ready_to_place_order(
-            checkout, taxes, info.context.discounts)
-        if not ready:
-            cls.add_error(field=None, message=checkout_error, errors=errors)
-            return CheckoutComplete(errors=errors)
-
-        try:
-            order = create_order(
-                cart=checkout,
-                tracking_code=analytics.get_client_id(info.context),
-                discounts=info.context.discounts, taxes=taxes)
-        except InsufficientStock:
-            order = None
-            cls.add_error(
-                field=None, message='Insufficient product stock.',
-                errors=errors)
 
         payment = checkout.payments.filter(is_active=True).first()
         # FIXME there could be a situation where order was created but payment

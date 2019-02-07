@@ -16,6 +16,7 @@ from ..seo.schema.webpage import get_webpage_schema
 
 def home(request):
     products = products_for_homepage(
+        request.user,
         request.site.settings.homepage_collection)[:8]
     products = list(products_with_availability(
         products, discounts=request.discounts, taxes=request.taxes,

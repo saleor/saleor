@@ -10,6 +10,7 @@ import * as React from "react";
 
 import CardSpacer from "../../../components/CardSpacer";
 import Container from "../../../components/Container";
+import Grid from "../../../components/Grid";
 import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
 import {
@@ -35,18 +36,6 @@ const styles = (theme: Theme) =>
       [theme.breakpoints.down("xs")]: {
         gridTemplateColumns: "1fr"
       }
-    },
-
-    root: {
-      display: "grid",
-      gridColumnGap: `${theme.spacing.unit * 3}px`,
-      gridTemplateColumns: "2fr 1fr",
-      [theme.breakpoints.down("sm")]: {
-        gridColumnGap: `${theme.spacing.unit}px`
-      },
-      [theme.breakpoints.down("sm")]: {
-        gridTemplateColumns: "1fr"
-      }
     }
   });
 
@@ -67,8 +56,8 @@ export interface HomePageProps extends WithStyles<typeof styles> {
 
 const HomePage = withStyles(styles, { name: "HomePage" })(
   ({
-    userName,
     classes,
+    userName,
     orders,
     sales,
     topProducts,
@@ -84,7 +73,7 @@ const HomePage = withStyles(styles, { name: "HomePage" })(
     <Container width="md">
       <HomeHeader userName={userName} />
       <CardSpacer />
-      <div className={classes.root}>
+      <Grid>
         <div>
           <div className={classes.cardContainer}>
             <HomeAnalyticsCard
@@ -126,7 +115,7 @@ const HomePage = withStyles(styles, { name: "HomePage" })(
         <div>
           <HomeActivityCard activities={activities} />
         </div>
-      </div>
+      </Grid>
     </Container>
   )
 );

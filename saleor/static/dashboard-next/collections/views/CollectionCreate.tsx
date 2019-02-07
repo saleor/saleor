@@ -5,6 +5,7 @@ import Navigator from "../../components/Navigator";
 import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
+import { CollectionCreateInput } from "../../types/globalTypes";
 import CollectionCreatePage from "../components/CollectionCreatePage/CollectionCreatePage";
 import { TypedCollectionCreateMutation } from "../mutations";
 import { CreateCollection } from "../types/CreateCollection";
@@ -16,16 +17,24 @@ export const CollectionCreate: React.StatelessComponent<{}> = () => (
       <Navigator>
         {navigate => {
           const handleCollectionCreateSuccess = (data: CreateCollection) => {
-            if (
-              data.collectionCreate.errors === null ||
-              data.collectionCreate.errors.length === 0
-            ) {
+            if (data.collectionCreate.errors.length === 0) {
               pushMessage({
                 text: i18n.t("Created collection", {
                   context: "notification"
                 })
               });
               navigate(collectionUrl(data.collectionCreate.collection.id));
+            } else {
+              const backgroundImageError = data.collectionCreate.errors.find(
+                error =>
+                  error.field ===
+                  ("backgroundImage" as keyof CollectionCreateInput)
+              );
+              if (backgroundImageError) {
+                pushMessage({
+                  text: backgroundImageError.message
+                });
+              }
             }
           };
           return (

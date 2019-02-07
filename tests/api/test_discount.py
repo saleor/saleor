@@ -1,13 +1,35 @@
-import graphene
+from datetime import date
 
-from saleor.discount import DiscountValueType
+import graphene
+import pytest
+from django_countries import countries
+from tests.api.utils import assert_read_only_mode, get_graphql_content
+
+from saleor.discount import DiscountValueType, VoucherType
+from saleor.discount.models import Sale, Voucher
 from saleor.graphql.discount.enums import (
     DiscountValueTypeEnum, VoucherTypeEnum)
 
-from tests.api.utils import assert_read_only_mode, get_graphql_content
+
+@pytest.fixture
+def voucher_countries(voucher):
+    voucher.countries = countries
+    voucher.save(update_fields=['countries'])
+    return voucher
 
 
-def test_voucher_query(staff_api_client, voucher, permission_manage_discounts):
+@pytest.fixture
+def sale():
+    return Sale.objects.create(name='Sale', value=123)
+
+
+@pytest.fixture
+def voucher():
+    return Voucher.objects.create(name='Voucher', discount_value=123)
+
+
+def test_voucher_query(
+        staff_api_client, voucher_countries, permission_manage_discounts):
     query = """
     query vouchers {
         vouchers(first: 1) {
@@ -21,6 +43,10 @@ def test_voucher_query(staff_api_client, voucher, permission_manage_discounts):
                     startDate
                     discountValueType
                     discountValue
+                    countries {
+                        code
+                        country
+                    }
                 }
             }
         }
@@ -30,14 +56,19 @@ def test_voucher_query(staff_api_client, voucher, permission_manage_discounts):
         query, permissions=[permission_manage_discounts])
     content = get_graphql_content(response)
     data = content['data']['vouchers']['edges'][0]['node']
-    assert data['type'] == voucher.type.upper()
-    assert data['name'] == voucher.name
-    assert data['code'] == voucher.code
-    assert data['usageLimit'] == voucher.usage_limit
-    assert data['used'] == voucher.used
-    assert data['startDate'] == voucher.start_date.isoformat()
-    assert data['discountValueType'] == voucher.discount_value_type.upper()
-    assert data['discountValue'] == voucher.discount_value
+
+    assert data['type'] == voucher_countries.type.upper()
+    assert data['name'] == voucher_countries.name
+    assert data['code'] == voucher_countries.code
+    assert data['usageLimit'] == voucher_countries.usage_limit
+    assert data['used'] == voucher_countries.used
+    assert data['startDate'] == voucher_countries.start_date.isoformat()
+    assert data[
+        'discountValueType'] == voucher_countries.discount_value_type.upper()
+    assert data['discountValue'] == voucher_countries.discount_value
+    assert data['countries'] == [{
+        'country': country.name,
+        'code': country.code} for country in voucher_countries.countries]
 
 
 def test_sale_query(staff_api_client, sale, permission_manage_discounts):
@@ -70,11 +101,14 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
     mutation  voucherCreate(
         $type: VoucherTypeEnum, $name: String, $code: String,
         $discountValueType: DiscountValueTypeEnum,
-        $discountValue: Decimal, $minAmountSpent: Decimal) {
+        $discountValue: Decimal, $minAmountSpent: Decimal,
+        $startDate: Date, $endDate: Date) {
             voucherCreate(input: {
-            name: $name, type: $type, code: $code,
-            discountValueType: $discountValueType, discountValue: $discountValue,
-            minAmountSpent: $minAmountSpent}) {
+                    name: $name, type: $type, code: $code,
+                    discountValueType: $discountValueType,
+                    discountValue: $discountValue,
+                    minAmountSpent: $minAmountSpent,
+                    startDate: $startDate, endDate: $endDate}) {
                 errors {
                     field
                     message
@@ -87,17 +121,23 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
                     name
                     code
                     discountValueType
+                    startDate
+                    endDate
                 }
             }
         }
     """
+    start_date = date(day=1, month=1, year=2018)
+    end_date = date(day=1, month=1, year=2019)
     variables = {
         'name': 'test voucher',
         'type': VoucherTypeEnum.VALUE.name,
         'code': 'testcode123',
         'discountValueType': DiscountValueTypeEnum.FIXED.name,
         'discountValue': 10.12,
-        'minAmountSpent': 1.12}
+        'minAmountSpent': 1.12,
+        'startDate': start_date.isoformat(),
+        'endDate': end_date.isoformat()}
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts])
@@ -159,27 +199,172 @@ def test_voucher_delete_mutation(
     assert_read_only_mode(response)
 
 
-def test_create_sale(staff_api_client, permission_manage_discounts):
+def test_voucher_add_catalogues(
+        staff_api_client, voucher, category,
+        product, collection, permission_manage_discounts):
     query = """
-    mutation  saleCreate(
-        $type: DiscountValueTypeEnum, $name: String, $value: Decimal) {
-            saleCreate(input: {name: $name, type: $type, value: $value}) {
+        mutation voucherCataloguesAdd($id: ID!, $input: CatalogueInput!) {
+            voucherCataloguesAdd(id: $id, input: $input) {
                 errors {
                     field
                     message
                 }
-                sale {
-                    type
-                    name
-                    value
+            }
+        }
+    """
+    product_id = graphene.Node.to_global_id('Product', product.id)
+    collection_id = graphene.Node.to_global_id('Collection', collection.id)
+    category_id = graphene.Node.to_global_id('Category', category.id)
+    variables = {
+        'id': graphene.Node.to_global_id('Voucher', voucher.id),
+        'input': {
+            'products': [product_id],
+            'collections': [collection_id],
+            'categories': [category_id]}}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts])
+    content = get_graphql_content(response)
+    data = content['data']['voucherCataloguesAdd']
+
+    assert not data['errors']
+    assert product in voucher.products.all()
+    assert category in voucher.categories.all()
+    assert collection in voucher.collections.all()
+
+
+def test_voucher_remove_catalogues(
+        staff_api_client, voucher, category,
+        product, collection, permission_manage_discounts):
+    voucher.products.add(product)
+    voucher.collections.add(collection)
+    voucher.categories.add(category)
+
+    query = """
+        mutation voucherCataloguesRemove($id: ID!, $input: CatalogueInput!) {
+            voucherCataloguesRemove(id: $id, input: $input) {
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+    product_id = graphene.Node.to_global_id('Product', product.id)
+    collection_id = graphene.Node.to_global_id('Collection', collection.id)
+    category_id = graphene.Node.to_global_id('Category', category.id)
+    variables = {
+        'id': graphene.Node.to_global_id('Voucher', voucher.id),
+        'input': {
+            'products': [product_id],
+            'collections': [collection_id],
+            'categories': [category_id]}}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts])
+    content = get_graphql_content(response)
+    data = content['data']['voucherCataloguesRemove']
+
+    assert not data['errors']
+    assert product not in voucher.products.all()
+    assert category not in voucher.categories.all()
+    assert collection not in voucher.collections.all()
+
+
+def test_voucher_add_no_catalogues(
+        staff_api_client, voucher, permission_manage_discounts):
+    query = """
+        mutation voucherCataloguesAdd($id: ID!, $input: CatalogueInput!) {
+            voucherCataloguesAdd(id: $id, input: $input) {
+                errors {
+                    field
+                    message
                 }
             }
         }
     """
     variables = {
+        'id': graphene.Node.to_global_id('Voucher', voucher.id),
+        'input': {
+            'products': [],
+            'collections': [],
+            'categories': []}}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts])
+    content = get_graphql_content(response)
+    data = content['data']['voucherCataloguesAdd']
+
+    assert not data['errors']
+    assert not voucher.products.exists()
+    assert not voucher.categories.exists()
+    assert not voucher.collections.exists()
+
+
+def test_voucher_remove_no_catalogues(
+        staff_api_client, voucher, category,
+        product, collection, permission_manage_discounts):
+    voucher.products.add(product)
+    voucher.collections.add(collection)
+    voucher.categories.add(category)
+
+    query = """
+            mutation voucherCataloguesAdd($id: ID!, $input: CatalogueInput!) {
+                voucherCataloguesAdd(id: $id, input: $input) {
+                    errors {
+                        field
+                        message
+                    }
+                }
+            }
+        """
+    variables = {
+        'id': graphene.Node.to_global_id('Voucher', voucher.id),
+        'input': {
+            'products': [],
+            'collections': [],
+            'categories': []}}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts])
+    content = get_graphql_content(response)
+    data = content['data']['voucherCataloguesAdd']
+
+    assert not data['errors']
+    assert voucher.products.exists()
+    assert voucher.categories.exists()
+    assert voucher.collections.exists()
+
+
+def test_create_sale(staff_api_client, permission_manage_discounts):
+    query = """
+    mutation  saleCreate(
+            $type: DiscountValueTypeEnum, $name: String, $value: Decimal,
+            $startDate: Date, $endDate: Date) {
+        saleCreate(input: {
+                name: $name, type: $type, value: $value,
+                startDate: $startDate, endDate: $endDate}) {
+            sale {
+                type
+                name
+                value
+                startDate
+                endDate
+            }
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+    start_date = date(day=1, month=1, year=2018)
+    end_date = date(day=1, month=1, year=2019)
+    variables = {
         'name': 'test sale',
         'type': DiscountValueTypeEnum.FIXED.name,
-        'value': '10.12'}
+        'value': '10.12',
+        'startDate': start_date.isoformat(),
+        'endDate': end_date.isoformat()}
+
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts])
     assert_read_only_mode(response)
@@ -234,8 +419,148 @@ def test_sale_delete_mutation(
     assert_read_only_mode(response)
 
 
+def test_sale_add_catalogues(
+        staff_api_client, sale, category,
+        product, collection, permission_manage_discounts):
+    query = """
+        mutation saleCataloguesAdd($id: ID!, $input: CatalogueInput!) {
+            saleCataloguesAdd(id: $id, input: $input) {
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+    product_id = graphene.Node.to_global_id('Product', product.id)
+    collection_id = graphene.Node.to_global_id('Collection', collection.id)
+    category_id = graphene.Node.to_global_id('Category', category.id)
+    variables = {
+        'id': graphene.Node.to_global_id('Sale', sale.id),
+        'input': {
+            'products': [product_id],
+            'collections': [collection_id],
+            'categories': [category_id]}}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts])
+    content = get_graphql_content(response)
+    data = content['data']['saleCataloguesAdd']
+
+    assert not data['errors']
+    assert product in sale.products.all()
+    assert category in sale.categories.all()
+    assert collection in sale.collections.all()
+
+
+def test_sale_remove_catalogues(
+        staff_api_client, sale, category,
+        product, collection, permission_manage_discounts):
+    sale.products.add(product)
+    sale.collections.add(collection)
+    sale.categories.add(category)
+
+    query = """
+        mutation saleCataloguesRemove($id: ID!, $input: CatalogueInput!) {
+            saleCataloguesRemove(id: $id, input: $input) {
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+    product_id = graphene.Node.to_global_id('Product', product.id)
+    collection_id = graphene.Node.to_global_id('Collection', collection.id)
+    category_id = graphene.Node.to_global_id('Category', category.id)
+    variables = {
+        'id': graphene.Node.to_global_id('Sale', sale.id),
+        'input': {
+            'products': [product_id],
+            'collections': [collection_id],
+            'categories': [category_id]}}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts])
+    content = get_graphql_content(response)
+    data = content['data']['saleCataloguesRemove']
+
+    assert not data['errors']
+    assert product not in sale.products.all()
+    assert category not in sale.categories.all()
+    assert collection not in sale.collections.all()
+
+
+def test_sale_add_no_catalogues(
+        staff_api_client, sale, permission_manage_discounts):
+    query = """
+        mutation saleCataloguesAdd($id: ID!, $input: CatalogueInput!) {
+            saleCataloguesAdd(id: $id, input: $input) {
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+    variables = {
+        'id': graphene.Node.to_global_id('Sale', sale.id),
+        'input': {
+            'products': [],
+            'collections': [],
+            'categories': []}}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts])
+    content = get_graphql_content(response)
+    data = content['data']['saleCataloguesAdd']
+
+    assert not data['errors']
+    assert not sale.products.exists()
+    assert not sale.categories.exists()
+    assert not sale.collections.exists()
+
+
+def test_sale_remove_no_catalogues(
+        staff_api_client, sale, category,
+        product, collection, permission_manage_discounts):
+    sale.products.add(product)
+    sale.collections.add(collection)
+    sale.categories.add(category)
+
+    query = """
+        mutation saleCataloguesAdd($id: ID!, $input: CatalogueInput!) {
+            saleCataloguesAdd(id: $id, input: $input) {
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+    variables = {
+        'id': graphene.Node.to_global_id('Sale', sale.id),
+        'input': {
+            'products': [],
+            'collections': [],
+            'categories': []}}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts])
+    content = get_graphql_content(response)
+    data = content['data']['saleCataloguesAdd']
+
+    assert not data['errors']
+    assert sale.products.exists()
+    assert sale.categories.exists()
+    assert sale.collections.exists()
+
+
+@pytest.mark.parametrize('voucher_type,field_name', (
+    (VoucherTypeEnum.CATEGORY, 'categories'),
+    (VoucherTypeEnum.PRODUCT, 'products'),
+    (VoucherTypeEnum.COLLECTION, 'collections')))
 def test_validate_voucher(
-        voucher, staff_api_client, permission_manage_discounts):
+        voucher_type, field_name, voucher,
+        staff_api_client, permission_manage_discounts):
     query = """
     mutation  voucherUpdate(
         $id: ID!, $type: VoucherTypeEnum) {
@@ -248,12 +573,6 @@ def test_validate_voucher(
             }
         }
     """
-    # apparently can't do so via pytest parametrize
-    # as it parses VoucherTypeEnum into str format
-    fields = (
-        (VoucherTypeEnum.CATEGORY, 'categories'),
-        (VoucherTypeEnum.PRODUCT, 'products'),
-        (VoucherTypeEnum.COLLECTION, 'collections'))
     staff_api_client.user.user_permissions.add(permission_manage_discounts)
     for voucher_type, field_name in fields:
         variables = {

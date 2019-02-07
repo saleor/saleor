@@ -14,6 +14,7 @@ import StoreMall from "../icons/StoreMall";
 import { productTypeListUrl } from "../productTypes/urls";
 import { siteSettingsUrl } from "../siteSettings/urls";
 import { staffListUrl } from "../staff/urls";
+import { taxSection } from "../taxes/urls";
 import { PermissionEnum } from "../types/globalTypes";
 import ConfigurationPage, { MenuItem } from "./ConfigurationPage";
 
@@ -42,7 +43,8 @@ export const configurationMenu: MenuItem[] = [
     description: i18n.t("Manage how your store charges tax"),
     icon: <Monetization fontSize="inherit" />,
     permission: PermissionEnum.MANAGE_PRODUCTS,
-    title: i18n.t("Taxes")
+    title: i18n.t("Taxes"),
+    url: taxSection
   },
   {
     description: i18n.t("Define how users can navigate through your store"),

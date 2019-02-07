@@ -11,6 +11,7 @@ import { CardMenu } from "../../../components/CardMenu/CardMenu";
 import { CardSpacer } from "../../../components/CardSpacer";
 import { Container } from "../../../components/Container";
 import DateFormatter from "../../../components/DateFormatter";
+import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
@@ -35,11 +36,6 @@ const styles = (theme: Theme) =>
     },
     menu: {
       marginRight: -theme.spacing.unit
-    },
-    root: {
-      display: "grid",
-      gridColumnGap: theme.spacing.unit * 2 + "px",
-      gridTemplateColumns: "9fr 4fr"
     }
   });
 
@@ -120,7 +116,7 @@ const OrderDetailsPage = withStyles(styles, { name: "OrderDetailsPage" })(
             <Skeleton style={{ width: "10em" }} />
           )}
         </div>
-        <div className={classes.root}>
+        <Grid>
           <div>
             {unfulfilled.length > 0 && (
               <OrderUnfulfilledItems
@@ -173,7 +169,7 @@ const OrderDetailsPage = withStyles(styles, { name: "OrderDetailsPage" })(
             <CardSpacer />
             <OrderCustomerNote note={maybe(() => order.customerNote)} />
           </div>
-        </div>
+        </Grid>
       </Container>
     );
   }
