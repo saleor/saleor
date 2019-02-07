@@ -231,10 +231,7 @@ def test_update_collection_invalid_background_image(
         image_file, image_name)
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products])
-    content = get_graphql_content(response)
-    data = content['data']['collectionUpdate']
-    assert data['errors'][0]['field'] == 'backgroundImage'
-    assert data['errors'][0]['message'] == 'Invalid file type'
+    assert_read_only_mode(response)
 
 
 def test_delete_collection(

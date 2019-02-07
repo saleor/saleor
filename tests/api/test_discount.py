@@ -574,9 +574,8 @@ def test_validate_voucher(
         }
     """
     staff_api_client.user.user_permissions.add(permission_manage_discounts)
-    for voucher_type, field_name in fields:
-        variables = {
-            'type': voucher_type.name,
-            'id': graphene.Node.to_global_id('Voucher', voucher.id)}
-        response = staff_api_client.post_graphql(query, variables)
-        assert_read_only_mode(response)
+    variables = {
+        'type': voucher_type.name,
+        'id': graphene.Node.to_global_id('Voucher', voucher.id)}
+    response = staff_api_client.post_graphql(query, variables)
+    assert_read_only_mode(response)

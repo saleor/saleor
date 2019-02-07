@@ -101,6 +101,9 @@ class ShopFetchTaxRates(BaseMutation):
     @classmethod
     @permission_required('site.manage_settings')
     def mutate(cls, root, info):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         errors = []
         if settings.VATLAYER_ACCESS_KEY:
             call_command('get_vat_rates')

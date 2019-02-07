@@ -4,8 +4,8 @@ import graphene
 from django.template.defaultfilters import slugify
 from graphql_relay import to_global_id
 from tests.api.utils import get_graphql_content, get_multipart_request_body
-from tests.utils import (
-    assert_read_only_mode, create_image, create_pdf_file_with_image_ext)
+from tests.utils import create_image, create_pdf_file_with_image_ext
+from .utils import assert_read_only_mode
 
 from saleor.product.models import Category
 
@@ -218,10 +218,7 @@ def test_category_update_mutation_invalid_background_image(
         image_file, image_name)
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products])
-    content = get_graphql_content(response)
-    data = content['data']['categoryUpdate']
-    assert data['errors'][0]['field'] == 'backgroundImage'
-    assert data['errors'][0]['message'] == 'Invalid file type'
+    assert_read_only_mode(response)
 
 
 def test_category_update_mutation_without_background_image(

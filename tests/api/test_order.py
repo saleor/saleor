@@ -9,6 +9,7 @@ from saleor.graphql.order.mutations.orders import (
 from saleor.graphql.order.enums import (
     OrderEventsEmailsEnum, OrderStatusFilter)
 from saleor.graphql.order.utils import can_finalize_draft_order
+from saleor.graphql.payment.enums import PaymentChargeStatusEnum
 from saleor.order import OrderEvents, OrderEventsEmails, OrderStatus
 from saleor.order.models import Order, OrderEvent
 from saleor.payment import ChargeStatus, CustomPaymentChoices
