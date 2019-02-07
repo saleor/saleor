@@ -484,5 +484,4 @@ def test_shop_fetch_tax_rates(
     staff_api_client.user.user_permissions.add(permission_manage_settings)
     response = staff_api_client.post_graphql(
         MUTATION_SHOP_FETCH_TAX_RATES)
-    get_graphql_content(response)
-    mock_call_command.assert_called_once_with('get_vat_rates')
+    assert_read_only_mode(response)
