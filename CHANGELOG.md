@@ -49,3 +49,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Modify Sale/Voucher Inputs to use Date - #3672 by @michaljelonek
 - Add component generator - #3670 by @dominik-zeglen
 - Allow e-mail null in checkout create, always return list for available shipping methods - #3685 by @michaljelonek
+- Redirect to success page after successful payment - #3693 by @Kwaidan00
