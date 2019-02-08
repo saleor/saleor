@@ -564,7 +564,8 @@ RAZORPAY = 'razorpay'
 STRIPE = 'stripe'
 
 CHECKOUT_PAYMENT_GATEWAYS = {
-    DUMMY: pgettext_lazy('Payment method name', 'Dummy gateway')}
+    DUMMY: pgettext_lazy('Payment method name', 'Dummy gateway'),
+    BRAINTREE: 'Braintree'}
 
 PAYMENT_GATEWAYS = {
     DUMMY: {
