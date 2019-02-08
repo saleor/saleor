@@ -402,6 +402,9 @@ class Collection(CountableDjangoObjectType):
         prefetch_related=prefetch_products)
     background_image = graphene.Field(
         Image, size=graphene.Int(description='Size of the image'))
+    published_date = graphene.Date(
+        deprecation_reason=(
+            'publishedDate is deprecated, use publicationDate instead'))
 
     class Meta:
         description = "Represents a collection of products."
@@ -421,6 +424,9 @@ class Collection(CountableDjangoObjectType):
             return self.prefetched_products
         qs = self.products.visible_to_user(info.context.user)
         return gql_optimizer.query(qs, info)
+
+    def resolve_published_date(self, info):
+        return self.publication_date
 
 
 class Category(CountableDjangoObjectType):
@@ -475,7 +481,7 @@ class Category(CountableDjangoObjectType):
         # Otherwise we want to include products from child categories which
         # requires performing additional logic.
         tree = self.get_descendants(include_self=True)
-        qs = models.Product.objects.available_products()
+        qs = models.Product.objects.available()
         qs = qs.filter(category__in=tree)
         return gql_optimizer.query(qs, info)
 

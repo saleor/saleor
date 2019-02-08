@@ -417,7 +417,8 @@ type Collection implements Node {
   backgroundImage(size: Int): Image
   isPublished: Boolean!
   description: String!
-  publishedDate: Date
+  publicationDate: Date
+  publishedDate: Date @deprecated(reason: "publishedDate is deprecated, use publicationDate instead")
 }
 
 type CollectionAddProducts {
@@ -449,7 +450,7 @@ input CollectionCreateInput {
   backgroundImage: Upload
   backgroundImageAlt: String
   seo: SeoInput
-  publishedDate: Date
+  publicationDate: Date
   products: [ID]
 }
 
@@ -466,7 +467,7 @@ input CollectionInput {
   backgroundImage: Upload
   backgroundImageAlt: String
   seo: SeoInput
-  publishedDate: Date
+  publicationDate: Date
 }
 
 type CollectionRemoveProducts {

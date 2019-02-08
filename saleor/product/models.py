@@ -447,7 +447,7 @@ class Collection(SeoModel):
     background_image_alt = models.CharField(max_length=128, blank=True)
     is_published = models.BooleanField(default=False)
     description = models.TextField(blank=True)
-    published_date = models.DateField(blank=True, null=True)
+    publication_date = models.DateField(blank=True, null=True)
 
     objects = PublishedQuerySet.as_manager()
     translated = TranslationProxy()
@@ -466,8 +466,8 @@ class Collection(SeoModel):
     @property
     def is_visible(self):
         return self.is_published and (
-            self.published_date is None
-            or self.published_date <= datetime.date.today())
+            self.publication_date is None
+            or self.publication_date <= datetime.date.today())
 
 
 class CollectionTranslation(SeoModelTranslation):
