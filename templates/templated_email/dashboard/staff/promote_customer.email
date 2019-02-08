@@ -2,13 +2,12 @@
 {% block subject %}{% blocktrans %}Hello from {{ site_name }}!{% endblocktrans %}{% endblock %}
 
 {% block plain %}
+{% trans "Hi!" context "Standard e-mail greeting" %}
 {% blocktrans context "Promote customer to staff member confirmation e-mail text" %}
-Hi!
-
 You're receiving this e-mail because you have been promoted to staff member at {{ domain }}.{% endblocktrans %}
 
 {% blocktrans trimmed context "Base email text" %}
-This is an automatically generated email, please do not reply.
+This is an automatically generated e-mail, please do not reply.
 {% endblocktrans %}
 {% blocktrans trimmed context "Base email footer" %}
 Sincerely, {{ site_name }}
