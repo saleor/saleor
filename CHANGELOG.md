@@ -52,3 +52,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Allow e-mail null in checkout create, always return list for available shipping methods - #3685 by @michaljelonek
 - Storefront visual improvements - #3696 by @piotrgrundas
 - Fix product list price filter - #3697 by @Kwaidan00
+- Redirect to success page after successful payment - #3693 by @Kwaidan00
