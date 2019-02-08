@@ -22,11 +22,11 @@ You can track your shipment with {{ tracking_number }} code.
 {{ line.quantity }} x {{ line.order_line.product_name }}
 {% endfor %}
 
-{% blocktrans context "Fulfillment confirmation email text" %}
+{% blocktrans trimmed context "Base email text" %}
 This is an automatically generated email, please do not reply.
-
-Sincerely,
-{{ site_name }}
+{% endblocktrans %}
+{% blocktrans trimmed context "Base email footer" %}
+Sincerely, {{ site_name }}
 {% endblocktrans %}
 {% endblock %}
 
