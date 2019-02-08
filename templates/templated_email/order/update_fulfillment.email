@@ -7,9 +7,8 @@
 {% endblock %}
 
 {% block plain %}
+{% trans "Hi!" context "Standard e-mail greeting" %}
 {% blocktrans context "Fulfillment update email text" %}
-Hi!
-
 Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.
 {% endblocktrans %}
 {% if fulfillment.tracking_number %}
@@ -23,7 +22,7 @@ You can track your shipment with {{ tracking_number }} code.
 {% endfor %}
 
 {% blocktrans trimmed context "Base email text" %}
-This is an automatically generated email, please do not reply.
+This is an automatically generated e-mail, please do not reply.
 {% endblocktrans %}
 {% blocktrans trimmed context "Base email footer" %}
 Sincerely, {{ site_name }}

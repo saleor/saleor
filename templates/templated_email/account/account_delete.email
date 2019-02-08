@@ -5,9 +5,8 @@
 {% endblock %}
 
 {% block plain %}
+{% trans "Hi!" context "Standard e-mail greeting" %}
 {% blocktrans context "Account delete reset e-mail text" %}
-Hi!
-
 You're receiving this e-mail because you or someone else has requested a deletion of your user account at {{ domain }}.
 Click the link below to delete your account.
 
@@ -18,7 +17,7 @@ Please note that this action is permanent and cannot be reversed.
 
 {% endblocktrans %}
 {% blocktrans trimmed context "Base email text" %}
-This is an automatically generated email, please do not reply.
+This is an automatically generated e-mail, please do not reply.
 {% endblocktrans %}
 {% blocktrans trimmed context "Base email footer" %}
 Sincerely, {{ site_name }}

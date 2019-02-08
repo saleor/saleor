@@ -7,9 +7,8 @@
 {% endblock %}
 
 {% block plain %}
+{% trans "Hi!" context "Standard e-mail greeting" %}
 {% blocktrans context "Order confirmation e-mail text" %}
-Hi!
-
 Thank you for your order. Below is the list of ordered products. To see your payment details please visit:
 {{ order_details_url }}{% endblocktrans %}
 {% for line in order %}
@@ -29,7 +28,7 @@ Thank you for your order. Below is the list of ordered products. To see your pay
 {% if order.shipping_address %}{{ order.shipping_address }}{% else %}{% trans "No shipping required" context "Order confirmation e-mail text" %}{% endif %}
 
 {% blocktrans trimmed context "Base email text" %}
-This is an automatically generated email, please do not reply.
+This is an automatically generated e-mail, please do not reply.
 {% endblocktrans %}
 {% blocktrans trimmed context "Base email footer" %}
 Sincerely, {{ site_name }}
