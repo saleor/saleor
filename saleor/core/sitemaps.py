@@ -26,7 +26,7 @@ class CategorySitemap(I18nSitemap):
 class CollectionSitemap(I18nSitemap):
 
     def items(self):
-        collections = Collection.objects.public().order_by('id')
+        collections = Collection.objects.available().order_by('id')
         return collections.only('id', 'name', 'slug')
 
 

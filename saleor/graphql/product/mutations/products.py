@@ -119,7 +119,7 @@ class CollectionInput(graphene.InputObjectType):
     background_image_alt = graphene.String(
         description='Alt text for an image.')
     seo = SeoInput(description='Search engine optimization fields.')
-    published_date = graphene.Date(
+    publication_date = graphene.Date(
         description='Publication date. ISO 8601 standard.')
 
 

@@ -183,7 +183,7 @@ export interface CollectionCreateInput {
   backgroundImage?: any | null;
   backgroundImageAlt?: string | null;
   seo?: SeoInput | null;
-  publishedDate?: any | null;
+  publicationDate?: any | null;
   products?: (string | null)[] | null;
 }
 
@@ -195,7 +195,7 @@ export interface CollectionInput {
   backgroundImage?: any | null;
   backgroundImageAlt?: string | null;
   seo?: SeoInput | null;
-  publishedDate?: any | null;
+  publicationDate?: any | null;
 }
 
 export interface CustomerInput {
