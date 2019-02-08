@@ -7,6 +7,7 @@ from collections import defaultdict
 from datetime import date
 from textwrap import dedent
 from unittest.mock import patch
+from urllib.parse import urljoin
 
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -34,7 +35,9 @@ from ...order.models import Fulfillment, Order
 from ...order.utils import update_order_status
 from ...page.models import Page
 from ...payment.models import Payment
-from ...payment.utils import get_billing_data
+from ...payment.utils import (
+    gateway_authorize, gateway_capture, gateway_refund, gateway_void,
+    get_billing_data)
 from ...product.models import (
     Attribute, AttributeValue, Category, Collection, Product, ProductImage,
     ProductType, ProductVariant)
@@ -333,19 +336,19 @@ def create_payment(mock_email_confirmation, order):
         **get_billing_data(order))
 
     # Create authorization transaction
-    payment.authorize(payment.token)
+    gateway_authorize(payment, payment.token)
     # 20% chance to void the transaction at this stage
     if random.choice([0, 0, 0, 0, 1]):
-        payment.void()
+        gateway_void(payment)
         return payment
     # 25% to end the payment at the authorization stage
     if not random.choice([1, 1, 1, 0]):
         return payment
     # Create capture transaction
-    payment.capture()
+    gateway_capture(payment)
     # 25% to refund the payment
     if random.choice([0, 0, 0, 1]):
-        payment.refund()
+        gateway_refund(payment)
     return payment
 
 
@@ -640,14 +643,17 @@ def create_menus():
     item_saleor.children.get_or_create(
         name=page.title, page=page, menu=bottom_menu)
 
+    site = Site.objects.get_current()
+
     # DEMO: add link to GraphQL API in the footer menu
+    protocol = 'https' if settings.ENABLE_SSL else 'http'
+    api_url = urljoin('%s://%s' % (protocol, site.domain), reverse('api'))
     item_saleor.children.get_or_create(
-        name='GraphQL API', url=reverse('api'), menu=bottom_menu)
+        name='GraphQL API', url=api_url, menu=bottom_menu)
 
     yield 'Created footer menu'
     update_menu(top_menu)
     update_menu(bottom_menu)
-    site = Site.objects.get_current()
     site_settings = site.settings
     site_settings.top_menu = top_menu
     site_settings.bottom_menu = bottom_menu

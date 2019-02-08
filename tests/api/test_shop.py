@@ -1,12 +1,14 @@
+from unittest.mock import patch
+
 import graphene
 from django_countries import countries
 from django_prices_vatlayer.models import VAT
+from tests.api.utils import get_graphql_content
 
 from saleor.core.permissions import MODELS_PERMISSIONS
 from saleor.graphql.core.utils import str_to_enum
 from saleor.site import AuthenticationBackends
 from saleor.site.models import Site
-from tests.api.utils import get_graphql_content
 
 from .utils import assert_read_only_mode
 
@@ -75,7 +77,10 @@ def test_query_countries_with_tax(user_api_client, vatlayer, tax_rates):
     rates = {
         rate['rateType']: rate['rate']
         for rate in country['vat']['reducedRates']}
-    assert rates == tax_rates['reduced_rates']
+    reduced_rates = {
+        str_to_enum(tax_rate): tax_rates['reduced_rates'][tax_rate]
+        for tax_rate in tax_rates['reduced_rates']}
+    assert rates == reduced_rates
 
 
 def test_query_default_country(user_api_client, settings):
@@ -230,6 +235,20 @@ def test_query_navigation(user_api_client, site_settings):
     assert navigation_data['secondary']['name'] == site_settings.bottom_menu.name
 
 
+def test_query_charge_taxes_on_shipping(api_client, site_settings):
+    query = """
+    query {
+        shop {
+            chargeTaxesOnShipping
+        }
+    }"""
+    response = api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    data = content['data']['shop']
+    charge_taxes_on_shipping = site_settings.charge_taxes_on_shipping
+    assert data['chargeTaxesOnShipping'] == charge_taxes_on_shipping
+
+
 def test_shop_settings_mutation(
         staff_api_client, site_settings, permission_manage_settings):
     query = """
@@ -237,11 +256,18 @@ def test_shop_settings_mutation(
             shopSettingsUpdate(input: $input) {
                 shop {
                     headerText,
-                    includeTaxesInPrices
+                    includeTaxesInPrices,
+                    chargeTaxesOnShipping
+                }
+                errors {
+                    field,
+                    message
                 }
             }
         }
     """
+    charge_taxes_on_shipping = site_settings.charge_taxes_on_shipping
+    new_charge_taxes_on_shipping = not charge_taxes_on_shipping
     variables = {
         'input': {
             'includeTaxesInPrices': False,
@@ -427,4 +453,35 @@ def test_mutation_authorization_key_delete(
     variables = {'keyType': 'FACEBOOK'}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_settings])
+    assert_read_only_mode(response)
+
+
+MUTATION_SHOP_FETCH_TAX_RATES = """
+    mutation FetchTaxRates {
+        shopFetchTaxRates {
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+
+
+def test_shop_fetch_tax_rates_no_api_access_key(
+        staff_api_client, permission_manage_settings):
+    staff_api_client.user.user_permissions.add(permission_manage_settings)
+    response = staff_api_client.post_graphql(
+        MUTATION_SHOP_FETCH_TAX_RATES)
+    assert_read_only_mode(response)
+
+
+@patch('saleor.graphql.shop.mutations.call_command')
+def test_shop_fetch_tax_rates(
+        mock_call_command, staff_api_client, permission_manage_settings,
+        settings):
+    settings.VATLAYER_ACCESS_KEY = 'KEY'
+    staff_api_client.user.user_permissions.add(permission_manage_settings)
+    response = staff_api_client.post_graphql(
+        MUTATION_SHOP_FETCH_TAX_RATES)
     assert_read_only_mode(response)

@@ -30,9 +30,9 @@ def can_finalize_draft_order(order, errors):
 
 def applicable_shipping_methods(obj, info, price):
     if not obj.is_shipping_required():
-        return None
+        return []
     if not obj.shipping_address:
-        return None
+        return []
 
     qs = shipping_models.ShippingMethod.objects
     return qs.applicable_shipping_methods(

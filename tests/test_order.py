@@ -464,20 +464,21 @@ def test_order_payment_flow(
         'is_active': True,
         'total': order.total.gross.amount,
         'currency': order.total.gross.currency,
-        'charge_status': ChargeStatus.NOT_CHARGED}
+        'charge_status': ChargeStatus.CHARGED}
     response = client.post(redirect_url, data)
 
     assert response.status_code == 302
     redirect_url = reverse(
-        'order:details', kwargs={'token': order.token})
+        'order:payment-success', kwargs={'token': order.token})
     assert get_redirect_location(response) == redirect_url
 
     # Assert that payment object was created and contains correct data
     payment = order.payments.all()[0]
     assert payment.total == order.total.gross.amount
     assert payment.currency == order.total.gross.currency
-    assert payment.transactions.count() == 1
+    assert payment.transactions.count() == 2
     assert payment.transactions.first().kind == 'auth'
+    assert payment.transactions.last().kind == 'capture'
 
 
 def test_create_user_after_order(order, client):

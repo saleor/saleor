@@ -1,11 +1,5 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import {
-  createStyles,
-  Theme,
-  withStyles,
-  WithStyles
-} from "@material-ui/core/styles";
 import * as React from "react";
 
 import { CardSpacer } from "../../../components/CardSpacer";
@@ -14,6 +8,7 @@ import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/
 import { Container } from "../../../components/Container";
 import { ControlledSwitch } from "../../../components/ControlledSwitch";
 import Form from "../../../components/Form";
+import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
@@ -35,16 +30,7 @@ export interface CollectionCreatePageFormData {
   seoTitle: string;
 }
 
-const styles = (theme: Theme) =>
-  createStyles({
-    root: {
-      display: "grid",
-      gridColumnGap: theme.spacing.unit * 2 + "px",
-      gridTemplateColumns: "9fr 4fr"
-    }
-  });
-
-export interface CollectionCreatePageProps extends WithStyles<typeof styles> {
+export interface CollectionCreatePageProps {
   disabled: boolean;
   errors: UserError[];
   saveButtonBarState: ConfirmButtonTransitionState;
@@ -65,119 +51,116 @@ const initialForm: CollectionCreatePageFormData = {
   seoTitle: ""
 };
 
-const CollectionCreatePage = withStyles(styles, {
-  name: "CollectionCreatePage"
-})(
-  ({
-    classes,
-    disabled,
-    errors,
-    saveButtonBarState,
-    onBack,
-    onSubmit
-  }: CollectionCreatePageProps) => (
-    <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
-      {({ change, data, errors: formErrors, hasChanged, submit }) => (
-        <Container width="md">
-          <PageHeader
-            title={i18n.t("Add collection", {
-              context: "page title"
-            })}
-            onBack={onBack}
-          />
-          <div className={classes.root}>
-            <div>
-              <CollectionDetails
-                data={data}
-                disabled={disabled}
-                errors={formErrors}
-                onChange={change}
-              />
-              <CardSpacer />
-              <CollectionImage
-                image={
-                  data.backgroundImage.url
-                    ? {
-                        __typename: "Image",
-                        alt: data.backgroundImageAlt,
-                        url: data.backgroundImage.url
-                      }
-                    : null
-                }
-                onImageDelete={() =>
-                  change({
-                    target: {
-                      name: "backgroundImage",
-                      value: {
-                        url: null,
-                        value: null
-                      }
+const CollectionCreatePage: React.StatelessComponent<
+  CollectionCreatePageProps
+> = ({
+  disabled,
+  errors,
+  saveButtonBarState,
+  onBack,
+  onSubmit
+}: CollectionCreatePageProps) => (
+  <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
+    {({ change, data, errors: formErrors, hasChanged, submit }) => (
+      <Container width="md">
+        <PageHeader
+          title={i18n.t("Add collection", {
+            context: "page title"
+          })}
+          onBack={onBack}
+        />
+        <Grid>
+          <div>
+            <CollectionDetails
+              data={data}
+              disabled={disabled}
+              errors={formErrors}
+              onChange={change}
+            />
+            <CardSpacer />
+            <CollectionImage
+              image={
+                data.backgroundImage.url
+                  ? {
+                      __typename: "Image",
+                      alt: data.backgroundImageAlt,
+                      url: data.backgroundImage.url
                     }
-                  } as any)
-                }
-                onImageUpload={event =>
-                  change({
-                    target: {
-                      name: "backgroundImage",
-                      value: {
-                        url: URL.createObjectURL(event.target.files[0]),
-                        value: event.target.files[0]
-                      }
+                  : null
+              }
+              onImageDelete={() =>
+                change({
+                  target: {
+                    name: "backgroundImage",
+                    value: {
+                      url: null,
+                      value: null
                     }
-                  } as any)
-                }
-                onChange={change}
-                data={data}
-              />
-              <CardSpacer />
-              <SeoForm
-                description={data.seoDescription}
-                disabled={disabled}
-                descriptionPlaceholder=""
-                helperText={i18n.t(
-                  "Add search engine title and description to make this collection easier to find",
-                  {
-                    context: "help text"
                   }
-                )}
-                title={data.seoTitle}
-                titlePlaceholder={data.name}
-                onChange={change}
-              />
-            </div>
+                } as any)
+              }
+              onImageUpload={file =>
+                change({
+                  target: {
+                    name: "backgroundImage",
+                    value: {
+                      url: URL.createObjectURL(file),
+                      value: file
+                    }
+                  }
+                } as any)
+              }
+              onChange={change}
+              data={data}
+            />
+            <CardSpacer />
+            <SeoForm
+              description={data.seoDescription}
+              disabled={disabled}
+              descriptionPlaceholder=""
+              helperText={i18n.t(
+                "Add search engine title and description to make this collection easier to find",
+                {
+                  context: "help text"
+                }
+              )}
+              title={data.seoTitle}
+              titlePlaceholder={data.name}
+              onChange={change}
+            />
+          </div>
+          <div>
             <div>
-              <div>
-                <Card>
-                  <CardTitle
-                    title={i18n.t("Availability", {
-                      context: "collection status"
+              <Card>
+                <CardTitle
+                  title={i18n.t("Availability", {
+                    context: "collection status"
+                  })}
+                />
+                <CardContent>
+                  <ControlledSwitch
+                    checked={data.isPublished}
+                    disabled={disabled}
+                    name="isPublished"
+                    onChange={change}
+                    label={i18n.t("Publish on storefront", {
+                      context: "button"
                     })}
                   />
-                  <CardContent>
-                    <ControlledSwitch
-                      checked={data.isPublished}
-                      disabled={disabled}
-                      name="isPublished"
-                      onChange={change}
-                      label={i18n.t("Publish on storefront", {
-                        context: "button"
-                      })}
-                    />
-                  </CardContent>
-                </Card>
-              </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
-          <SaveButtonBar
-            state={saveButtonBarState}
-            disabled={disabled || !hasChanged}
-            onCancel={onBack}
-            onSave={submit}
-          />
-        </Container>
-      )}
-    </Form>
-  )
+        </Grid>
+        <SaveButtonBar
+          state={saveButtonBarState}
+          disabled={disabled || !hasChanged}
+          onCancel={onBack}
+          onSave={submit}
+        />
+      </Container>
+    )}
+  </Form>
 );
 CollectionCreatePage.displayName = "CollectionCreatePage";
 export default CollectionCreatePage;

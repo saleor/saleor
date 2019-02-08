@@ -966,15 +966,20 @@ def test_view_ajax_reorder_attribute_values_invalid(
 def test_get_formfield_name_with_unicode_characters(db):
     text_attribute = Attribute.objects.create(
         slug='ąęαβδηθλμπ', name='ąęαβδηθλμπ')
-    assert text_attribute.get_formfield_name() == 'attribute-ąęαβδηθλμπ'
+    assert text_attribute.get_formfield_name() == 'attribute-ąęαβδηθλμπ-{}'.format(
+        text_attribute.pk)
 
 
-def test_product_variant_form(product):
+def test_product_variant_form(product, size_attribute):
     variant = product.variants.first()
     variant.name = ''
     variant.save()
+
     example_size = 'Small Size'
-    data = {'attribute-size': example_size, 'sku': '1111', 'quantity': 2}
+    data = {
+        'attribute-{}-{}'.format(
+            size_attribute.slug, size_attribute.pk): example_size,
+        'sku': '1111', 'quantity': 2}
 
     form = ProductVariantForm(data, instance=variant)
     assert form.is_valid()
@@ -1008,8 +1013,10 @@ def test_product_form_change_attributes(db, product, color_attribute):
         'price': product.price.amount,
         'category': product.category.pk,
         'description': 'description',
-        'attribute-author': new_author,
-        'attribute-color': color_value.pk}
+        'attribute-{}-{}'.format(
+            text_attribute.slug, text_attribute.pk): new_author,
+        'attribute-{}-{}'.format(
+            color_attribute.slug, color_attribute.pk): color_value.pk}
 
     form = ProductForm(data, instance=product)
     assert form.is_valid()

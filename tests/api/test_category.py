@@ -3,11 +3,11 @@ from unittest.mock import Mock
 import graphene
 from django.template.defaultfilters import slugify
 from graphql_relay import to_global_id
+from tests.api.utils import get_graphql_content, get_multipart_request_body
+from tests.utils import create_image, create_pdf_file_with_image_ext
+from .utils import assert_read_only_mode
 
 from saleor.product.models import Category
-from tests.api.utils import (
-    assert_read_only_mode, get_graphql_content, get_multipart_request_body)
-from tests.utils import create_image
 
 
 def test_category_query(user_api_client, product):
@@ -140,39 +140,40 @@ def test_category_create_mutation_without_background_image(
     assert_read_only_mode(response)
 
 
-def test_category_update_mutation(
-        monkeypatch, staff_api_client, category, permission_manage_products):
-    query = """
-        mutation($id: ID!, $name: String, $slug: String, $backgroundImage: Upload, $backgroundImageAlt: String, $description: String) {
-            categoryUpdate(
-                id: $id
-                input: {
-                    name: $name
-                    description: $description
-                    backgroundImage: $backgroundImage
-                    backgroundImageAlt: $backgroundImageAlt
-                    slug: $slug
-                }
-            ) {
-                category {
+MUTATION_CATEGORY_UPDATE_MUTATION = """
+    mutation($id: ID!, $name: String, $slug: String, $backgroundImage: Upload, $backgroundImageAlt: String, $description: String) {
+        categoryUpdate(
+            id: $id
+            input: {
+                name: $name
+                description: $description
+                backgroundImage: $backgroundImage
+                backgroundImageAlt: $backgroundImageAlt
+                slug: $slug
+            }
+        ) {
+            category {
+                id
+                name
+                description
+                parent {
                     id
-                    name
-                    description
-                    parent {
-                        id
-                    }
-                    backgroundImage{
-                        alt
-                    }
                 }
-                errors {
-                    field
-                    message
+                backgroundImage{
+                    alt
                 }
             }
+            errors {
+                field
+                message
+            }
         }
+    }
     """
 
+
+def test_category_update_mutation(
+        monkeypatch, staff_api_client, category, permission_manage_products):
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         ('saleor.dashboard.category.forms.'
@@ -194,7 +195,27 @@ def test_category_update_mutation(
         'name': category_name, 'description': category_description,
         'backgroundImage': image_name, 'backgroundImageAlt': image_alt,
         'id': category_id, 'slug': category_slug}
-    body = get_multipart_request_body(query, variables, image_file, image_name)
+    body = get_multipart_request_body(
+        MUTATION_CATEGORY_UPDATE_MUTATION, variables, image_file, image_name)
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products])
+    assert_read_only_mode(response)
+
+
+def test_category_update_mutation_invalid_background_image(
+        staff_api_client, category, permission_manage_products):
+    image_file, image_name = create_pdf_file_with_image_ext()
+    image_alt = 'Alt text for an image.'
+    variables = {
+        'name': 'new-name',
+        'slug': 'new-slug',
+        'id': to_global_id('Category', category.id),
+        'backgroundImage': image_name,
+        'backgroundImageAlt': image_alt,
+        'isPublished': True}
+    body = get_multipart_request_body(
+        MUTATION_CATEGORY_UPDATE_MUTATION, variables,
+        image_file, image_name)
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products])
     assert_read_only_mode(response)
@@ -260,19 +281,19 @@ def test_category_delete_mutation(
 
 
 LEVELED_CATEGORIES_QUERY = """
-query leveled_categories($level: Int) {
-    categories(level: $level, first: 20) {
-        edges {
-            node {
-                name
-                parent {
+    query leveled_categories($level: Int) {
+        categories(level: $level, first: 20) {
+            edges {
+                node {
                     name
+                    parent {
+                        name
+                    }
                 }
             }
         }
     }
-}
-"""
+    """
 
 
 def test_category_level(user_api_client, category):
@@ -295,16 +316,16 @@ def test_category_level(user_api_client, category):
 
 
 FETCH_CATEGORY_QUERY = """
-query fetchCategory($id: ID!){
-    category(id: $id) {
-        name
-        backgroundImage(size: 120) {
-           url
-           alt
+    query fetchCategory($id: ID!){
+        category(id: $id) {
+            name
+            backgroundImage(size: 120) {
+            url
+            alt
+            }
         }
     }
-}
-"""
+    """
 
 
 def test_category_image_query(user_api_client, non_default_category):

@@ -892,7 +892,6 @@ def create_order(cart, tracking_code, discounts, taxes):
 
 
 def is_fully_paid(cart: Cart):
-    # FIXME test me
     payments = cart.payments.filter(is_active=True)
     total_paid = sum(
         [p.total for p in payments])
@@ -900,7 +899,6 @@ def is_fully_paid(cart: Cart):
 
 
 def ready_to_place_order(cart: Cart, taxes, discounts):
-    # FIXME test me
     if cart.is_shipping_required():
         if not cart.shipping_method:
             return False, pgettext_lazy(

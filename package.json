@@ -22,10 +22,10 @@
     "@types/classnames": "^2.2.6",
     "@types/enzyme": "^3.1.15",
     "@types/moment-timezone": "^0.5.9",
+    "@types/react-dropzone": "^4.2.2",
     "@types/react-helmet": "^5.0.7",
     "@types/react-infinite-scroller": "^1.2.0",
     "@types/storybook__addon-storyshots": "^3.4.3",
-    "@types/storybook__react": "^4.0.0",
     "@types/string-similarity": "^1.2.0",
     "@types/url-join": "^0.8.2",
     "apollo": "^2.1.7",
@@ -67,6 +67,7 @@
     "react": "^16.6.3",
     "react-apollo": "^2.3.2",
     "react-dom": "^16.6.3",
+    "react-dropzone": "^8.0.3",
     "react-helmet": "^5.2.0",
     "react-infinite-scroller": "^1.2.4",
     "react-inlinesvg": "^0.8.1",
@@ -101,6 +102,7 @@
     "@types/react-dom": "^16.0.11",
     "@types/react-router-dom": "^4.2.6",
     "@types/react-test-renderer": "^16.0.3",
+    "@types/storybook__react": "^4.0.0",
     "autoprefixer": "^8.2.0",
     "babel-core": "^7.0.0-bridge.0",
     "babel-eslint": "^10.0.1",
@@ -127,19 +129,19 @@
     "mini-css-extract-plugin": "^0.4.0",
     "mjml": "^4.0.5",
     "node-sass": "^4.10.0",
+    "plop": "^2.2.0",
     "postcss": "^6.0.21",
     "postcss-loader": "^2.1.3",
     "react-test-renderer": "^16.6.3",
     "regenerator-runtime": "^0.11.1",
     "sass-loader": "^7.1.0",
-    "ts-jest": "^23.1.4",
+    "ts-jest": "^23.10.5",
     "ts-loader": "^5.3.2",
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.15.0",
     "webpack": "^4.27.0",
     "webpack-bundle-tracker": "^0.3.0",
-    "webpack-cli": "^3.1.2",
-    "webpack-dev-server": "^3.1.10"
+    "webpack-cli": "^3.1.2"
   },
   "babel": {
     "presets": [
@@ -163,7 +165,11 @@
     }
   },
   "jest": {
-    "globals": {},
+    "globals": {
+      "ts-jest": {
+        "tsConfig": "tsconfig.json"
+      }
+    },
     "transform": {
       "^.+\\.tsx?$": "ts-jest",
       "^.+\\.(png|svg|jpe?g)$": "jest-file"
@@ -181,7 +187,8 @@
   "scripts": {
     "build-assets": "webpack -p",
     "build-schema": "python manage.py get_graphql_schema > saleor/graphql/schema.graphql",
-    "generate-types": "apollo client:codegen --target=typescript types --globalTypesFile=saleor/static/dashboard-next/types/globalTypes.ts",
+    "build-types": "apollo client:codegen --target=typescript types --globalTypesFile=saleor/static/dashboard-next/types/globalTypes.ts",
+    "generate-component": "plop --plopfile .plop/plopfile.js",
     "heroku-postbuild": "npm run build-assets && npm run build-emails",
     "start": "webpack -d --watch",
     "build-emails": "mjml --config.beautify false -l skip \"templates/templated_email/source/*.mjml\" -o templates/templated_email/compiled",

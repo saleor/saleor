@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock, Mock, patch
 
 import graphene
 
@@ -6,10 +6,13 @@ from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel, clean_order_capture, clean_order_mark_as_paid,
     clean_refund_payment, clean_void_payment)
-from saleor.graphql.order.enums import OrderEventsEmailsEnum, OrderStatusFilter
+from saleor.graphql.order.enums import (
+    OrderEventsEmailsEnum, OrderStatusFilter)
 from saleor.graphql.order.utils import can_finalize_draft_order
+from saleor.graphql.payment.enums import PaymentChargeStatusEnum
 from saleor.order import OrderEvents, OrderEventsEmails, OrderStatus
-from saleor.payment import CustomPaymentChoices
+from saleor.order.models import Order, OrderEvent
+from saleor.payment import ChargeStatus, CustomPaymentChoices
 from saleor.payment.models import Payment
 from saleor.shipping.models import ShippingMethod
 
@@ -110,8 +113,10 @@ def test_order_query(
     assert order_data['canFinalize'] is True
     assert order_data['status'] == order.status.upper()
     assert order_data['statusDisplay'] == order.get_status_display()
-    assert order_data['paymentStatus'] == order.get_last_payment_status()
-    payment_status_display = order.get_last_payment_status_display()
+    payment_status = PaymentChargeStatusEnum.get(
+        order.get_payment_status()).name
+    assert order_data['paymentStatus'] == payment_status
+    payment_status_display = order.get_payment_status_display()
     assert order_data['paymentStatusDisplay'] == payment_status_display
     assert order_data['isPaid'] == order.is_fully_paid()
     assert order_data['userEmail'] == order.user_email
@@ -814,6 +819,7 @@ def test_order_capture(
             orderCapture(id: $id, amount: $amount) {
                 order {
                     paymentStatus
+                    paymentStatusDisplay
                     isPaid
                     totalCaptured {
                         amount
@@ -888,6 +894,7 @@ def test_order_void(
                 orderVoid(id: $id) {
                     order {
                         paymentStatus
+                        paymentStatusDisplay
                     }
                 }
             }
@@ -908,6 +915,7 @@ def test_order_refund(
             orderRefund(id: $id, amount: $amount) {
                 order {
                     paymentStatus
+                    paymentStatusDisplay
                     isPaid
                     status
                 }
@@ -931,8 +939,10 @@ def test_clean_order_void_payment():
 
     payment.is_active = True
     error_msg = 'error has happened.'
-    payment.void = Mock(side_effect=ValueError(error_msg))
-    errors = clean_void_payment(payment, [])
+    with patch(
+        'saleor.graphql.order.mutations.orders.gateway_void',
+        side_effect=ValueError(error_msg)):
+            errors = clean_void_payment(payment, [])
     assert errors[0].field == 'payment'
     assert errors[0].message == error_msg
 

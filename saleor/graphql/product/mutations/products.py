@@ -19,7 +19,7 @@ from ...core.scalars import Decimal, WeightScalar
 from ...core.types import SeoInput, Upload
 from ...core.utils import clean_seo_fields
 from ..types import Category, Collection, Product, ProductImage, ProductVariant
-from ..utils import attributes_to_hstore
+from ..utils import attributes_to_hstore, validate_image_file
 
 
 class CategoryInput(graphene.InputObjectType):
@@ -55,6 +55,9 @@ class CategoryCreate(ModelMutation):
             parent = cls.get_node_or_error(
                 info, parent_id, errors, field='parent', only_type=Category)
             cleaned_input['parent'] = parent
+        if input.get('background_image'):
+            image_data = info.context.FILES.get(input['background_image'])
+            validate_image_file(cls, image_data, 'background_image', errors)
         clean_seo_fields(cleaned_input)
         return cleaned_input
 
@@ -150,6 +153,9 @@ class CollectionCreate(ModelMutation):
         cleaned_input = super().clean_input(info, instance, input, errors)
         if 'slug' not in cleaned_input and 'name' in cleaned_input:
             cleaned_input['slug'] = slugify(cleaned_input['name'])
+        if input.get('background_image'):
+            image_data = info.context.FILES.get(input['background_image'])
+            validate_image_file(cls, image_data, 'background_image', errors)
         clean_seo_fields(cleaned_input)
         return cleaned_input
 
@@ -664,8 +670,7 @@ class ProductImageCreate(BaseMutation):
         product = cls.get_node_or_error(
             info, input['product'], errors, 'product', only_type=Product)
         image_data = info.context.FILES.get(input['image'])
-        if not image_data.content_type.startswith('image/'):
-            cls.add_error(errors, 'image', 'Invalid file type')
+        validate_image_file(cls, image_data, 'image', errors)
         image = None
         if not errors:
             image = product.images.create(

@@ -9,6 +9,8 @@ from graphql_jwt.exceptions import PermissionDenied
 
 from ...account import emails, models
 from ...core.permissions import MODELS_PERMISSIONS, get_permissions
+from ...dashboard.emails import (
+    send_set_password_customer_email, send_set_password_staff_email)
 from ...dashboard.staff.utils import remove_staff_member
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, User
@@ -136,10 +138,10 @@ class CustomerCreate(ModelMutation, I18nMixin):
             default_billing_address.save()
             instance.default_billing_address = default_billing_address
 
-        if cleaned_input.get('send_password_email'):
-            site = info.context.site
-            send_user_password_reset_email(instance, site)
         super().save(info, instance, cleaned_input)
+
+        if cleaned_input.get('send_password_email'):
+            send_set_password_customer_email.delay(instance.pk)
 
 
 class CustomerUpdate(CustomerCreate):
@@ -190,7 +192,6 @@ class UserDelete(ModelDeleteMutation):
         elif instance.is_superuser:
             cls.add_error(
                 errors, 'id', 'Only superuser can delete his own account.')
-        return errors
 
 
 class CustomerDelete(UserDelete):
@@ -233,7 +234,6 @@ class CustomerDelete(UserDelete):
         super().clean_instance(info, instance, errors)
         if instance.is_staff:
             cls.add_error(errors, 'id', 'Cannot delete a staff account.')
-        return errors
 
 
 class StaffCreate(ModelMutation):
@@ -277,8 +277,7 @@ class StaffCreate(ModelMutation):
     def save(cls, info, user, cleaned_input):
         user.save()
         if cleaned_input.get('send_password_email'):
-            site = info.context.site
-            send_user_password_reset_email(user, site)
+            send_set_password_staff_email.delay(user.pk)
 
 
 class StaffUpdate(StaffCreate):
@@ -337,7 +336,6 @@ class StaffDelete(UserDelete):
         if not instance.is_staff:
             cls.add_error(
                 errors, 'id', 'Cannot delete a non-staff user.')
-        return errors
 
     @classmethod
     def mutate(cls, root, info, **data):

@@ -15,10 +15,10 @@ from . import FulfillmentStatus
 from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
-from ..payment import (
-    ChargeStatus, PaymentError, TransactionKind, get_payment_gateway)
+from ..payment import ChargeStatus, TransactionKind, get_payment_gateway
 from ..payment.models import Payment
-from ..payment.utils import get_billing_data
+from ..payment.utils import (
+    create_payment_information, gateway_process_payment, get_billing_data)
 from .forms import (
     CustomerNoteForm, PasswordForm, PaymentDeleteForm, PaymentsForm)
 from .models import Order
@@ -107,24 +107,30 @@ def start_payment(request, order, gateway):
                 order.is_fully_paid()
                 or payment.charge_status == ChargeStatus.FULLY_REFUNDED):
             return redirect(order.get_absolute_url())
-        payment_gateway, gateway_params = get_payment_gateway(payment.gateway)
-        client_token = payment_gateway.get_client_token(**gateway_params)
-        form = payment_gateway.get_form_class()
-        form = form(
-            data=request.POST or None, payment=payment,
-            gateway=payment_gateway, gateway_params=gateway_params)
+
+        payment_gateway, connection_params = get_payment_gateway(
+            payment.gateway)
+        client_token = payment_gateway.get_client_token(
+            connection_params=connection_params)
+        payment_info = create_payment_information(payment)
+        form = payment_gateway.create_form(
+            data=request.POST or None, payment_information=payment_info,
+            connection_params=connection_params)
         if form.is_valid():
             try:
-                form.process_payment()
-            except PaymentError as exc:
-                form.add_error(None, exc.message)
+                gateway_process_payment(
+                    payment=payment, payment_token=form.get_payment_token())
+            except Exception as exc:
+                form.add_error(None, str(exc))
             else:
+                if order.is_fully_paid():
+                    return redirect('order:payment-success', token=order.token)
                 return redirect(order.get_absolute_url())
-    template = PAYMENT_TEMPLATE % gateway
+
     ctx = {
         'form': form, 'payment': payment,
         'client_token': client_token, 'order': order}
-    return TemplateResponse(request, template, ctx)
+    return TemplateResponse(request, payment_gateway.TEMPLATE_PATH, ctx)
 
 
 @check_order_status

@@ -41,7 +41,7 @@ class Cart(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='carts',
         on_delete=models.CASCADE)
-    email = models.EmailField(blank=True, default='')
+    email = models.EmailField()
     token = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     quantity = models.PositiveIntegerField(default=0)
     billing_address = models.ForeignKey(
@@ -128,6 +128,7 @@ class CartLine(models.Model):
 
     class Meta:
         unique_together = ('cart', 'variant', 'data')
+        ordering = ('id',)
 
     def __str__(self):
         return smart_str(self.variant)
@@ -137,8 +138,7 @@ class CartLine(models.Model):
             return NotImplemented
 
         return (
-            self.variant == other.variant and
-            self.quantity == other.quantity)
+            self.variant == other.variant and self.quantity == other.quantity)
 
     def __ne__(self, other):
         return not self == other  # pragma: no cover
