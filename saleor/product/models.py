@@ -30,6 +30,24 @@ from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
 
 
+class PublishedQuerySet(models.QuerySet):
+
+    def available(self):
+        today = datetime.date.today()
+        return self.filter(
+            Q(publication_date__lte=today) | Q(publication_date__isnull=True),
+            is_published=True)
+
+    @staticmethod
+    def user_has_access(user):
+        return user.is_active and user.has_perm('product.manage_products')
+
+    def visible_to_user(self, user):
+        if self.user_has_access(user):
+            return self.all()
+        return self.available()
+
+
 class Category(MPTTModel, SeoModel):
     name = models.CharField(max_length=128)
     slug = models.SlugField(max_length=128)
@@ -96,22 +114,6 @@ class ProductType(models.Model):
             class_.__module__, class_.__name__, self.pk, self.name)
 
 
-class ProductQuerySet(models.QuerySet):
-
-    def available_products(self):
-        today = datetime.date.today()
-        return self.filter(
-            Q(publication_date__lte=today) | Q(publication_date__isnull=True),
-            Q(is_published=True))
-
-    def visible_to_user(self, user):
-        has_access_to_all = (
-            user.is_active and user.has_perm('product.manage_products'))
-        if has_access_to_all:
-            return self.all()
-        return self.available_products()
-
-
 class Product(SeoModel):
     product_type = models.ForeignKey(
         ProductType, related_name='products', on_delete=models.CASCADE)
@@ -135,7 +137,7 @@ class Product(SeoModel):
         measurement=Weight, unit_choices=WeightUnits.CHOICES,
         blank=True, null=True)
 
-    objects = ProductQuerySet.as_manager()
+    objects = PublishedQuerySet.as_manager()
     translated = TranslationProxy()
 
     class Meta:
@@ -171,8 +173,9 @@ class Product(SeoModel):
         return any(variant.is_in_stock() for variant in self)
 
     def is_available(self):
-        today = datetime.date.today()
-        return self.publication_date is None or self.publication_date <= today
+        return self.is_published and (
+            self.publication_date is None
+            or self.publication_date < datetime.date.today())
 
     def get_first_image(self):
         images = list(self.images.all())
@@ -434,22 +437,6 @@ class VariantImage(models.Model):
         ProductImage, related_name='variant_images', on_delete=models.CASCADE)
 
 
-class CollectionQuerySet(models.QuerySet):
-
-    def public(self):
-        return self.filter(
-            Q(is_published=True),
-            Q(published_date__isnull=True)
-            | Q(published_date__lte=datetime.date.today()))
-
-    def visible_to_user(self, user):
-        has_access_to_all = (
-            user.is_active and user.has_perm('product.manage_products'))
-        if has_access_to_all:
-            return self.all()
-        return self.public()
-
-
 class Collection(SeoModel):
     name = models.CharField(max_length=128, unique=True)
     slug = models.SlugField(max_length=128)
@@ -461,7 +448,8 @@ class Collection(SeoModel):
     is_published = models.BooleanField(default=False)
     description = models.TextField(blank=True)
     published_date = models.DateField(blank=True, null=True)
-    objects = CollectionQuerySet.as_manager()
+
+    objects = PublishedQuerySet.as_manager()
     translated = TranslationProxy()
 
     class Meta:
@@ -478,8 +466,8 @@ class Collection(SeoModel):
     @property
     def is_visible(self):
         return self.is_published and (
-            self.published_date is None or
-            self.published_date <= datetime.date.today())
+            self.published_date is None
+            or self.published_date <= datetime.date.today())
 
 
 class CollectionTranslation(SeoModelTranslation):
