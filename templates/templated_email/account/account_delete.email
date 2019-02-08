@@ -16,11 +16,12 @@ Please note that this action is permanent and cannot be reversed.
 
 {{ delete_url }}
 
+{% endblocktrans %}
+{% blocktrans trimmed context "Base email text" %}
 This is an automatically generated email, please do not reply.
-
-{% blocktrans context "Account delete reset e-mail text" %}
-Sincerely,
-{{ site_name }}
+{% endblocktrans %}
+{% blocktrans trimmed context "Base email footer" %}
+Sincerely, {{ site_name }}
 {% endblocktrans %}
 {% endblock %}
 

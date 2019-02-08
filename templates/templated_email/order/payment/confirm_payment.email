@@ -10,11 +10,12 @@ Hi!
 
 Thank you for your payment. To see your payment details please visit:
 {{ order_details_url }}
-
+{% endblocktrans %}
+{% blocktrans trimmed context "Base email text" %}
 This is an automatically generated email, please do not reply.
-
-Sincerely,
-{{ site_name }}
+{% endblocktrans %}
+{% blocktrans trimmed context "Base email footer" %}
+Sincerely, {{ site_name }}
 {% endblocktrans %}
 {% endblock %}
 
