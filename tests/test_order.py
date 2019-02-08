@@ -469,7 +469,7 @@ def test_order_payment_flow(
 
     assert response.status_code == 302
     redirect_url = reverse(
-        'order:details', kwargs={'token': order.token})
+        'order:payment-success', kwargs={'token': order.token})
     assert get_redirect_location(response) == redirect_url
 
     # Assert that payment object was created and contains correct data
