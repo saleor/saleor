@@ -1,51 +1,14 @@
-import Tooltip from "@material-ui/core/Tooltip";
-import * as moment from "moment-timezone";
 import * as React from "react";
-import ReactMoment from "react-moment";
 
-import { LocaleConsumer } from "../Locale";
-import { TimezoneConsumer } from "../Timezone";
-import { Consumer } from "./DateContext";
+import DateComponent from "./DateComponent";
 
 interface DateTimeProps {
   date: string;
   plain?: boolean;
 }
 
-export const DateTime: React.StatelessComponent<DateTimeProps> = ({
-  date,
-  plain
-}) => {
-  const getTitle = (value: string, locale?: string, tz?: string) => {
-    let date = moment(value).locale(locale);
-    if (tz !== undefined) {
-      date = date.tz(tz);
-    }
-    return date.format("lll");
-  };
-  return (
-    <LocaleConsumer>
-      {locale => (
-        <TimezoneConsumer>
-          {tz => (
-            <Consumer>
-              {currentDate =>
-                plain ? (
-                  getTitle(date, locale, tz)
-                ) : (
-                  <Tooltip title={getTitle(date, locale, tz)}>
-                    <ReactMoment from={currentDate} locale={locale} tz={tz}>
-                      {date}
-                    </ReactMoment>
-                  </Tooltip>
-                )
-              }
-            </Consumer>
-          )}
-        </TimezoneConsumer>
-      )}
-    </LocaleConsumer>
-  );
-};
+export const DateTime: React.StatelessComponent<DateTimeProps> = props => (
+  <DateComponent {...props} format="lll" />
+);
 DateTime.displayName = "DateTime";
 export default DateTime;
