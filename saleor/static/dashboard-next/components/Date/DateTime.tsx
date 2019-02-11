@@ -7,19 +7,21 @@ import { LocaleConsumer } from "../Locale";
 import { TimezoneConsumer } from "../Timezone";
 import { Consumer } from "./DateContext";
 
-interface DateFormatterProps {
+interface DateTimeProps {
   date: string;
+  plain?: boolean;
 }
 
-const DateFormatter: React.StatelessComponent<DateFormatterProps> = ({
-  date
+export const DateTime: React.StatelessComponent<DateTimeProps> = ({
+  date,
+  plain
 }) => {
   const getTitle = (value: string, locale?: string, tz?: string) => {
     let date = moment(value).locale(locale);
     if (tz !== undefined) {
       date = date.tz(tz);
     }
-    return date.toLocaleString();
+    return date.format("lll");
   };
   return (
     <LocaleConsumer>
@@ -27,13 +29,17 @@ const DateFormatter: React.StatelessComponent<DateFormatterProps> = ({
         <TimezoneConsumer>
           {tz => (
             <Consumer>
-              {currentDate => (
-                <Tooltip title={getTitle(date, locale, tz)}>
-                  <ReactMoment from={currentDate} locale={locale} tz={tz}>
-                    {date}
-                  </ReactMoment>
-                </Tooltip>
-              )}
+              {currentDate =>
+                plain ? (
+                  getTitle(date, locale, tz)
+                ) : (
+                  <Tooltip title={getTitle(date, locale, tz)}>
+                    <ReactMoment from={currentDate} locale={locale} tz={tz}>
+                      {date}
+                    </ReactMoment>
+                  </Tooltip>
+                )
+              }
             </Consumer>
           )}
         </TimezoneConsumer>
@@ -41,5 +47,5 @@ const DateFormatter: React.StatelessComponent<DateFormatterProps> = ({
     </LocaleConsumer>
   );
 };
-DateFormatter.displayName = "DateFormatter";
-export default DateFormatter;
+DateTime.displayName = "DateTime";
+export default DateTime;

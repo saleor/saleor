@@ -10,7 +10,7 @@ import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
-import DateFormatter from "../../../components/DateFormatter";
+import { DateTime } from "../../../components/Date";
 import { Hr } from "../../../components/Hr";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
@@ -46,7 +46,7 @@ const CustomerStats = withStyles(styles, { name: "CustomerStats" })(
               {customer.lastLogin === null ? (
                 i18n.t("-")
               ) : (
-                <DateFormatter date={customer.lastLogin} />
+                <DateTime date={customer.lastLogin} />
               )}
             </Typography>
           ),
@@ -64,7 +64,7 @@ const CustomerStats = withStyles(styles, { name: "CustomerStats" })(
               {customer.lastPlacedOrder.edges.length === 0 ? (
                 i18n.t("-")
               ) : (
-                <DateFormatter
+                <DateTime
                   date={customer.lastPlacedOrder.edges[0].node.created}
                 />
               )}
