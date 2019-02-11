@@ -104,20 +104,22 @@
               </thead>
               <tbody>
                 {% for payment in preauthorized_payments %}
-                  <tr data-action-go="{% url "dashboard:order-details" order_pk=payment.order.pk %}">
-                    <td>
-                      {{ payment.order }}
-                    </td>
-                    <td>
-                      {{ payment.created }}
-                    </td>
-                    <td>
-                      {{ payment.order.user|default:_("Guest") }}
-                    </td>
-                    <td class="right-align">
-                      {% price payment.get_total %}
-                    </td>
-                  </tr>
+                  {% if payment.order %}
+                    <tr data-action-go="{% url "dashboard:order-details" order_pk=payment.order.pk %}">
+                      <td>
+                        {{ payment.order }}
+                      </td>
+                      <td>
+                        {{ payment.created }}
+                      </td>
+                      <td>
+                        {{ payment.order.user|default:_("Guest") }}
+                      </td>
+                      <td class="right-align">
+                        {% price payment.get_total %}
+                      </td>
+                    </tr>
+                  {% endif %}
                 {% endfor %}
               </tbody>
             </table>
