@@ -78,24 +78,25 @@ const VoucherCountries = withStyles(styles, {
           />
           <Table>
             <TableBody>
-              {maybe(() => (
-                <TableRow className={classes.pointer} onClick={toggleCollapse}>
-                  <TableCell className={classes.wideColumn}>
-                    {i18n.t("{{ number }} Countries", {
-                      context: "number of countries",
-                      number: voucher.countries.length
+              <TableRow className={classes.pointer} onClick={toggleCollapse}>
+                <TableCell className={classes.wideColumn}>
+                  {i18n.t("{{ number }} Countries", {
+                    context: "number of countries",
+                    number: maybe(
+                      () => voucher.countries.length.toString(),
+                      "..."
+                    )
+                  })}
+                </TableCell>
+                <TableCell className={classes.textRight}>
+                  <ArrowDropDownIcon
+                    className={classNames({
+                      [classes.arrow]: true,
+                      [classes.rotate]: !isCollapsed
                     })}
-                  </TableCell>
-                  <TableCell className={classes.textRight}>
-                    <ArrowDropDownIcon
-                      className={classNames({
-                        [classes.arrow]: true,
-                        [classes.rotate]: !isCollapsed
-                      })}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
+                  />
+                </TableCell>
+              </TableRow>
               {!isCollapsed &&
                 renderCollection(
                   maybe(() => voucher.countries),
