@@ -5,17 +5,12 @@
 {% endblock %}
 
 {% block plain %}
-{% trans "Hi!" context "Standard e-mail greeting" %}
+{% include 'templated_email/shared/_header.email' %}
 {% blocktrans context "Payment confirmation email text" %}
 Thank you for your payment. To see your payment details please visit:
 {{ order_details_url }}
 {% endblocktrans %}
-{% blocktrans trimmed context "Base email text" %}
-This is an automatically generated e-mail, please do not reply.
-{% endblocktrans %}
-{% blocktrans trimmed context "Base email footer" %}
-Sincerely, {{ site_name }}
-{% endblocktrans %}
+{% include 'templated_email/shared/_footer.email' %}
 {% endblock %}
 
 {% block html %}
