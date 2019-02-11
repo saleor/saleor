@@ -27,6 +27,7 @@ import {
   DiscountValueTypeEnum,
   VoucherDiscountValueType
 } from "../../../types/globalTypes";
+import DiscountCountrySelectDialog from "../../components/DiscountCountrySelectDialog";
 import VoucherDetailsPage, {
   VoucherDetailsPageTab
 } from "../../components/VoucherDetailsPage";
@@ -39,21 +40,20 @@ import {
 import { TypedVoucherDetails } from "../../queries";
 import { VoucherCataloguesAdd } from "../../types/VoucherCataloguesAdd";
 import { VoucherDelete } from "../../types/VoucherDelete";
+import { VoucherUpdate } from "../../types/VoucherUpdate";
 import { voucherListUrl, voucherUrl } from "../../urls";
 import {
   voucherAssignCategoriesPath,
   voucherAssignCategoriesUrl,
   voucherAssignCollectionsPath,
   voucherAssignCollectionsUrl,
+  voucherAssignCountriesPath,
   voucherAssignCountriesUrl,
   voucherAssignProductsPath,
   voucherAssignProductsUrl,
   voucherDeletePath,
-  voucherDeleteUrl,
-  voucherAssignCountriesPath
+  voucherDeleteUrl
 } from "./urls";
-import DiscountCountrySelectDialog from "../../components/DiscountCountrySelectDialog";
-import { VoucherUpdate } from "../../types/VoucherUpdate";
 
 const PAGINATE_BY = 20;
 
