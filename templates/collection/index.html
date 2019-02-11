@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block collection_published_warning %}
-  {% if not object.is_visible %}
+  {% if not object.is_available %}
     <div class="alert alert-warning" role="alert">
       {% if object.publication_date %}
         {% blocktrans trimmed with date=object.publication_date|date context "Unpublished collection details text" %}

@@ -10,7 +10,7 @@
   </div>
 {% elif page.publication_date %}
   <div class="label">
-    {% blocktrans with date=page.available_on context "Page availability status" %}
+    {% blocktrans with date=page.publication_date context "Page availability status" %}
       Hidden (will become visible on {{ date }})
     {% endblocktrans %}
   </div>
