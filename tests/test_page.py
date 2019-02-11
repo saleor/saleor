@@ -7,7 +7,7 @@ def test_draft_page_details(client, admin_client, page):
 
 
 def test_public_page_details(client, admin_client, page):
-    page.is_visible = True
+    page.is_published = True
     page.save()
     page_url = page.get_absolute_url()
     response = client.get(page_url)

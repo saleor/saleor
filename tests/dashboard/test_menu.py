@@ -263,8 +263,8 @@ def test_view_ajax_reorder_menu_items_with_parent(
 def test_view_ajax_menu_links(admin_client, collection, category, page):
     collection.is_published = False
     collection.save()
-    page.is_visible = True
-    page.available_on = timezone.now() + timezone.timedelta(days=1)
+    page.is_published = True
+    page.publication_date = timezone.now() + timezone.timedelta(days=1)
     page.save()
     page.refresh_from_db()
 
@@ -278,7 +278,7 @@ def test_view_ajax_menu_links(admin_client, collection, category, page):
         'id': str(page.pk) + '_' + 'Page',
         'text': '%(menu_item_name)s is hidden '
                 '(will become visible on %(available_on_date)s)' % ({
-                    'available_on_date': localize(page.available_on),
+                    'available_on_date': localize(page.publication_date),
                     'menu_item_name': str(page)})}
     groups = [
         {'text': 'Collection', 'children': [collection_repr]},
@@ -395,7 +395,7 @@ def test_menu_item_status(menu, category, collection, page):
     item = MenuItem.objects.create(
         name='Name', menu=menu, page=page)
     assert not item.is_public()
-    page.is_visible = True
+    page.is_published = True
     page.save()
     item.refresh_from_db()
     assert item.is_public()

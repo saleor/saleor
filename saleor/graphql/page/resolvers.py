@@ -20,7 +20,9 @@ def resolve_page(info, id=None, slug=None):
         page = graphene.Node.get_node_from_global_id(info, id, Page)
         # Resolve to null if page is not published and user has no permission
         # to manage pages.
-        if page and not (page.is_visible or user.has_perm('page.manage_pages')):
+        is_available_to_user = (
+            page.is_published or user.has_perm('page.manage_pages'))
+        if page and not is_available_to_user:
             page = None
     return page
 

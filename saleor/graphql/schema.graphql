@@ -1178,8 +1178,10 @@ type Page implements Node {
   title: String!
   content: String!
   created: DateTime!
-  isVisible: Boolean!
-  availableOn: Date
+  isPublished: Boolean!
+  publicationDate: Date
+  availableOn: Date @deprecated(reason: "availableOn is deprecated, use publicationDate instead")
+  isVisible: Boolean @deprecated(reason: "isVisible is deprecated, use isPublished instead")
 }
 
 type PageCountableConnection {
@@ -1214,8 +1216,8 @@ input PageInput {
   slug: String
   title: String
   content: String
-  isVisible: Boolean
-  availableOn: String
+  isPublished: Boolean
+  publicationDate: String
   seo: SeoInput
 }
 

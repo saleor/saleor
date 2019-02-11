@@ -1609,8 +1609,8 @@ export interface PageUpdateMutationVariables {
   title: string;
   content: string;
   slug: string;
-  isVisible: boolean;
-  availableOn?: string | null;
+  isPublished: boolean;
+  publicationDate?: string | null;
 }
 
 export interface PageUpdateMutation {
@@ -1621,8 +1621,8 @@ export interface PageUpdateMutation {
       slug: string;
       title: string;
       content: string;
-      isVisible: boolean;
-      availableOn: string | null;
+      isPublished: boolean;
+      publicationDate: string | null;
     } | null;
     // List of errors that occurred executing the mutation.
     errors: Array<{
@@ -1640,8 +1640,8 @@ export interface PageCreateMutationVariables {
   title: string;
   content: string;
   slug: string;
-  isVisible: boolean;
-  availableOn?: string | null;
+  isPublished: boolean;
+  publicationDate?: string | null;
 }
 
 export interface PageCreateMutation {
@@ -1652,8 +1652,8 @@ export interface PageCreateMutation {
       slug: string;
       title: string;
       content: string;
-      isVisible: boolean;
-      availableOn: string | null;
+      isPublished: boolean;
+      publicationDate: string | null;
       created: string;
     } | null;
     // List of errors that occurred executing the mutation.
@@ -1687,7 +1687,7 @@ export interface PageListQuery {
         id: string;
         slug: string;
         title: string;
-        isVisible: boolean;
+        isPublished: boolean;
       };
     }>;
     pageInfo: {
@@ -1716,8 +1716,8 @@ export interface PageDetailsQuery {
     title: string;
     content: string;
     created: string;
-    isVisible: boolean;
-    availableOn: string | null;
+    isPublished: boolean;
+    publicationDate: string | null;
   } | null;
 }
 

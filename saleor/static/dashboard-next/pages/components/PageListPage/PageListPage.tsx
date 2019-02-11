@@ -13,7 +13,7 @@ interface PageListPageProps extends PageListProps {
     id: string;
     title: string;
     slug: string;
-    isVisible: boolean;
+    isPublished: boolean;
   }>;
 }
 
