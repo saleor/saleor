@@ -14,11 +14,12 @@ from saleor.payment import (
 from saleor.payment.models import Payment
 from saleor.payment.utils import (
     ALLOWED_GATEWAY_KINDS, REQUIRED_GATEWAY_KEYS, call_gateway,
-    clean_authorize, clean_capture, clean_charge, create_payment,
-    create_payment_information, create_transaction, gateway_authorize,
-    gateway_capture, gateway_charge, gateway_get_client_token,
-    gateway_process_payment, gateway_refund, gateway_void,
-    handle_fully_paid_order, validate_gateway_response, validate_payment)
+    clean_authorize, clean_capture, clean_charge, clean_mark_order_as_paid,
+    create_payment, create_payment_information, create_transaction,
+    gateway_authorize, gateway_capture, gateway_charge,
+    gateway_get_client_token, gateway_process_payment, gateway_refund,
+    gateway_void, handle_fully_paid_order, mark_order_as_paid,
+    validate_gateway_response, validate_payment)
 
 NOT_ACTIVE_PAYMENT_ERROR = 'This payment is no longer active.'
 EXAMPLE_ERROR = 'Example dummy error'
@@ -146,6 +147,22 @@ def test_create_payment(address, settings):
 
     same_payment = create_payment(**data)
     assert payment == same_payment
+
+
+def test_mark_as_paid(admin_user, draft_order):
+    mark_order_as_paid(draft_order, admin_user)
+    payment = draft_order.payments.last()
+    assert payment.charge_status == ChargeStatus.CHARGED
+    assert payment.captured_amount == draft_order.total.gross.amount
+    assert (
+        draft_order.events.last().type == OrderEvents.ORDER_MARKED_AS_PAID.
+        value)
+
+
+def test_clean_mark_order_as_paid(payment_txn_preauth):
+    order = payment_txn_preauth.order
+    with pytest.raises(PaymentError):
+        clean_mark_order_as_paid(order)
 
 
 def test_create_transaction(transaction_data):
