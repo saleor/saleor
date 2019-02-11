@@ -109,47 +109,47 @@ const AssignCategoriesDialog = withStyles(styles, {
               <Table>
                 <TableBody>
                   {categories &&
-                    categories.map(category => (
-                      <TableRow key={category.id}>
-                        <TableCell
-                          padding="checkbox"
-                          className={classes.checkboxCell}
-                        >
-                          <Checkbox
-                            checked={
-                              !!data.categories.find(
-                                selectedCategories =>
-                                  selectedCategories.id === category.id
-                              )
-                            }
-                            onChange={() =>
-                              data.categories.find(
-                                selectedCategories =>
-                                  selectedCategories.id === category.id
-                              )
-                                ? change({
-                                    target: {
-                                      name: "categories",
-                                      value: data.categories.filter(
-                                        selectedCategories =>
-                                          selectedCategories.id !== category.id
-                                      )
-                                    }
-                                  } as any)
-                                : change({
-                                    target: {
-                                      name: "categories",
-                                      value: [...data.categories, category]
-                                    }
-                                  } as any)
-                            }
-                          />
-                        </TableCell>
-                        <TableCell className={classes.wideCell}>
-                          {category.name}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    categories.map(category => {
+                      const isChecked = !!data.categories.find(
+                        selectedCategories =>
+                          selectedCategories.id === category.id
+                      );
+
+                      return (
+                        <TableRow key={category.id}>
+                          <TableCell
+                            padding="checkbox"
+                            className={classes.checkboxCell}
+                          >
+                            <Checkbox
+                              checked={isChecked}
+                              onChange={() =>
+                                isChecked
+                                  ? change({
+                                      target: {
+                                        name: "categories",
+                                        value: data.categories.filter(
+                                          selectedCategories =>
+                                            selectedCategories.id !==
+                                            category.id
+                                        )
+                                      }
+                                    } as any)
+                                  : change({
+                                      target: {
+                                        name: "categories",
+                                        value: [...data.categories, category]
+                                      }
+                                    } as any)
+                              }
+                            />
+                          </TableCell>
+                          <TableCell className={classes.wideCell}>
+                            {category.name}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                 </TableBody>
               </Table>
             </DialogContent>
