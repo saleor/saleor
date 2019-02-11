@@ -6,9 +6,9 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import {
   createStyles,
+  Theme,
   withStyles,
-  WithStyles,
-  Theme
+  WithStyles
 } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
