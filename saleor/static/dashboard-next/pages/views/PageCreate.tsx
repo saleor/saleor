@@ -28,9 +28,9 @@ export const PageCreateForm: React.StatelessComponent = () => (
               <PageDetailsPage
                 disabled={loading}
                 page={{
-                  publicationDate: "",
                   content: "",
                   isPublished: false,
+                  publicationDate: "",
                   slug: "",
                   title: ""
                 }}
