@@ -7,13 +7,13 @@ import { LocaleConsumer } from "../Locale";
 import { TimezoneConsumer } from "../Timezone";
 import { Consumer } from "./DateContext";
 
-interface ComponentProps {
+interface BaseDateProps {
   date: string;
   format: string;
   plain?: boolean;
 }
 
-const Component: React.StatelessComponent<ComponentProps> = ({
+const BaseDate: React.StatelessComponent<BaseDateProps> = ({
   date,
   format,
   plain
@@ -49,5 +49,5 @@ const Component: React.StatelessComponent<ComponentProps> = ({
     </LocaleConsumer>
   );
 };
-Component.displayName = "Component";
-export default Component;
+BaseDate.displayName = "BaseDate";
+export default BaseDate;

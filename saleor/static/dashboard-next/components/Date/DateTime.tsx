@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import DateComponent from "./DateComponent";
+import BaseDate from "./BaseDate";
 
 interface DateTimeProps {
   date: string;
@@ -8,7 +8,7 @@ interface DateTimeProps {
 }
 
 export const DateTime: React.StatelessComponent<DateTimeProps> = props => (
-  <DateComponent {...props} format="lll" />
+  <BaseDate {...props} format="lll" />
 );
 DateTime.displayName = "DateTime";
 export default DateTime;
