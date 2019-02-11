@@ -69,13 +69,6 @@ function loadStories() {
   require("./stories/staff/StaffListPage");
   require("./stories/staff/StaffDetailsPage");
 
-  // Pages
-  require("./stories/pages/PageContent");
-  require("./stories/pages/PageDeleteDialog");
-  require("./stories/pages/PageDetailsPage");
-  require("./stories/pages/PageListPage");
-  require("./stories/pages/PageProperties");
-
   // Products
   require("./stories/products/ProductCreatePage");
   require("./stories/products/ProductImagePage");
