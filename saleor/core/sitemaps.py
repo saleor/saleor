@@ -33,7 +33,7 @@ class CollectionSitemap(I18nSitemap):
 class PageSitemap(I18nSitemap):
 
     def items(self):
-        posts = Page.objects.public()
+        posts = Page.objects.available()
         return posts.only('id', 'title', 'slug')
 
 

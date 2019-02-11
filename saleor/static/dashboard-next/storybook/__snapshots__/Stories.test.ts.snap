@@ -5908,7 +5908,7 @@ exports[`Storyshots Pages / PageProperties when loaded 1`] = `
           class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
           data-shrink="true"
         >
-          Available on
+          Publication date
         </label>
         <div
           class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
@@ -5916,7 +5916,7 @@ exports[`Storyshots Pages / PageProperties when loaded 1`] = `
           <input
             aria-invalid="false"
             class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id"
-            name="availableOn"
+            name="publicationDate"
             type="date"
             value="2018-03-20T16:39:08.850105+00:00"
           />
@@ -5952,7 +5952,7 @@ exports[`Storyshots Pages / PageProperties when loaded 1`] = `
               checked=""
               class="MuiPrivateSwitchBase-input-id"
               data-indeterminate="false"
-              name="isVisible"
+              name="isPublished"
               type="checkbox"
             />
           </span>
@@ -6012,7 +6012,7 @@ exports[`Storyshots Pages / PageProperties when loading 1`] = `
           class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
           data-shrink="true"
         >
-          Available on
+          Publication date
         </label>
         <div
           class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
@@ -6021,7 +6021,7 @@ exports[`Storyshots Pages / PageProperties when loading 1`] = `
             aria-invalid="false"
             class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputType-id MuiInput-inputType-id"
             disabled=""
-            name="availableOn"
+            name="publicationDate"
             type="date"
             value=""
           />
@@ -6058,7 +6058,7 @@ exports[`Storyshots Pages / PageProperties when loading 1`] = `
               class="MuiPrivateSwitchBase-input-id"
               data-indeterminate="false"
               disabled=""
-              name="isVisible"
+              name="isPublished"
               type="checkbox"
             />
           </span>
@@ -40836,7 +40836,7 @@ exports[`Storyshots Views / Pages / Page details when loading 1`] = `
                   class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
                   data-shrink="true"
                 >
-                  Available on
+                  Publication date
                 </label>
                 <div
                   class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
@@ -40845,7 +40845,7 @@ exports[`Storyshots Views / Pages / Page details when loading 1`] = `
                     aria-invalid="false"
                     class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputType-id MuiInput-inputType-id"
                     disabled=""
-                    name="availableOn"
+                    name="publicationDate"
                     type="date"
                     value=""
                   />
@@ -40882,7 +40882,7 @@ exports[`Storyshots Views / Pages / Page details when loading 1`] = `
                       class="MuiPrivateSwitchBase-input-id"
                       data-indeterminate="false"
                       disabled=""
-                      name="isVisible"
+                      name="isPublished"
                       type="checkbox"
                     />
                   </span>
@@ -41154,7 +41154,7 @@ exports[`Storyshots Views / Pages / Page details with initial data 1`] = `
                   class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
                   data-shrink="true"
                 >
-                  Available on
+                  Publication date
                 </label>
                 <div
                   class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
@@ -41162,7 +41162,7 @@ exports[`Storyshots Views / Pages / Page details with initial data 1`] = `
                   <input
                     aria-invalid="false"
                     class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id"
-                    name="availableOn"
+                    name="publicationDate"
                     type="date"
                     value="2018-03-20T16:39:08.850105+00:00"
                   />
@@ -41198,7 +41198,7 @@ exports[`Storyshots Views / Pages / Page details with initial data 1`] = `
                       checked=""
                       class="MuiPrivateSwitchBase-input-id"
                       data-indeterminate="false"
-                      name="isVisible"
+                      name="isPublished"
                       type="checkbox"
                     />
                   </span>
