@@ -6,8 +6,8 @@ from django.utils.translation import pgettext_lazy
 
 from ..core.utils import build_absolute_uri
 from ..core.utils.translations import TranslationProxy
+from ..product.models import PublishedQuerySet
 from ..seo.models import SeoModel, SeoModelTranslation
-from ..product.models import  PublishedQuerySet
 
 
 class PagePublishedQuerySet(PublishedQuerySet):
