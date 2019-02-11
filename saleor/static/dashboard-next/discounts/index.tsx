@@ -30,10 +30,10 @@ import VoucherListViewComponent, {
 const SaleListView: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
-  const qs = parseQs(location.search.substr(1));
+  const { after, before } = parseQs(location.search.substr(1));
   const params: SaleListQueryParams = {
-    after: qs.after,
-    before: qs.before
+    after,
+    before
   };
   return <SaleListViewComponent params={params} />;
 };
@@ -41,22 +41,27 @@ const SaleListView: React.StatelessComponent<RouteComponentProps<{}>> = ({
 const SaleDetailsView: React.StatelessComponent<
   RouteComponentProps<{ id: string }>
 > = ({ match, location }) => {
-  const qs = parseQs(location.search.substr(1));
+  const { after, before, tab } = parseQs(location.search.substr(1));
   const params: SaleDetailsQueryParams = {
-    after: qs.after,
-    before: qs.before,
-    tab: saleDetailsPageTab(qs.tab)
+    after,
+    before,
+    tab: saleDetailsPageTab(tab)
   };
-  return <SaleDetailsViewComponent id={match.params.id} params={params} />;
+  return (
+    <SaleDetailsViewComponent
+      id={decodeURIComponent(match.params.id)}
+      params={params}
+    />
+  );
 };
 
 const VoucherListView: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
-  const qs = parseQs(location.search.substr(1));
+  const { after, before } = parseQs(location.search.substr(1));
   const params: VoucherListQueryParams = {
-    after: qs.after,
-    before: qs.before
+    after,
+    before
   };
   return <VoucherListViewComponent params={params} />;
 };
@@ -64,13 +69,18 @@ const VoucherListView: React.StatelessComponent<RouteComponentProps<{}>> = ({
 const VoucherDetailsView: React.StatelessComponent<
   RouteComponentProps<{ id: string }>
 > = ({ match, location }) => {
-  const qs = parseQs(location.search.substr(1));
+  const { after, before, tab } = parseQs(location.search.substr(1));
   const params: VoucherDetailsQueryParams = {
-    after: qs.after,
-    before: qs.before,
-    tab: voucherDetailsPageTab(qs.tab)
+    after,
+    before,
+    tab: voucherDetailsPageTab(tab)
   };
-  return <VoucherDetailsViewComponent id={match.params.id} params={params} />;
+  return (
+    <VoucherDetailsViewComponent
+      id={decodeURIComponent(match.params.id)}
+      params={params}
+    />
+  );
 };
 
 export const DiscountSection: React.StatelessComponent<{}> = () => (
