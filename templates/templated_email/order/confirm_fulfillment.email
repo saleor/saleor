@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block plain %}
-{% trans "Hi!" context "Standard e-mail greeting" %}
+{% include 'templated_email/shared/_header.email' %}
 {% blocktrans context "Fulfillment confirmation email text" %}
 Thank you for your order. Below is the list of shipped products.
 {% endblocktrans %}
@@ -21,12 +21,7 @@ You can track your shipment with {{ tracking_number }} code.
 {{ line.quantity }} x {{ line.order_line.product_name }}
 {% endfor %}
 
-{% blocktrans trimmed context "Base email text" %}
-This is an automatically generated e-mail, please do not reply.
-{% endblocktrans %}
-{% blocktrans trimmed context "Base email footer" %}
-Sincerely, {{ site_name }}
-{% endblocktrans %}
+{% include 'templated_email/shared/_footer.email' %}
 {% endblock %}
 
 {% block html %}
