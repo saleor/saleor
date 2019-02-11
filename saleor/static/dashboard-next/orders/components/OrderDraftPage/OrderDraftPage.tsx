@@ -10,7 +10,7 @@ import * as React from "react";
 import { CardMenu } from "../../../components/CardMenu/CardMenu";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import { Container } from "../../../components/Container";
-import DateFormatter from "../../../components/DateFormatter";
+import { DateTime } from "../../../components/Date";
 import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
@@ -107,7 +107,7 @@ const OrderDraftPage = withStyles(styles, { name: "OrderDraftPage" })(
       <div className={classes.date}>
         {order && order.created ? (
           <Typography variant="caption">
-            <DateFormatter date={order.created} />
+            <DateTime date={order.created} />
           </Typography>
         ) : (
           <Skeleton style={{ width: "10em" }} />
