@@ -21,7 +21,7 @@ import { SearchCategoriesProvider } from "../../../containers/SearchCategories";
 import { SearchCollectionsProvider } from "../../../containers/SearchCollections";
 import { SearchProductsProvider } from "../../../containers/SearchProducts";
 import i18n from "../../../i18n";
-import { getMutationState, maybe } from "../../../misc";
+import { decimal, getMutationState, maybe } from "../../../misc";
 import { productUrl } from "../../../products/urls";
 import {
   DiscountValueTypeEnum,
@@ -327,8 +327,9 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                                     variables: {
                                                       id,
                                                       input: {
-                                                        discountValue:
-                                                          formData.value,
+                                                        discountValue: decimal(
+                                                          formData.value
+                                                        ),
                                                         discountValueType: discountValueTypeEnum(
                                                           formData.discountType
                                                         ),
