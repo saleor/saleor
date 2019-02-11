@@ -110,51 +110,49 @@ const AssignProductDialog = withStyles(styles, {
               <Table>
                 <TableBody>
                   {products &&
-                    products.map(product => (
-                      <TableRow key={product.id}>
-                        <TableCellAvatar
-                          className={classes.avatar}
-                          thumbnail={product.thumbnail.url}
-                        />
-                        <TableCell className={classes.wideCell}>
-                          {product.name}
-                        </TableCell>
-                        <TableCell
-                          padding="checkbox"
-                          className={classes.checkboxCell}
-                        >
-                          <Checkbox
-                            checked={
-                              !!data.products.find(
-                                selectedProduct =>
-                                  selectedProduct.id === product.id
-                              )
-                            }
-                            onChange={() =>
-                              data.products.find(
-                                selectedProduct =>
-                                  selectedProduct.id === product.id
-                              )
-                                ? change({
-                                    target: {
-                                      name: "products",
-                                      value: data.products.filter(
-                                        selectedProduct =>
-                                          selectedProduct.id !== product.id
-                                      )
-                                    }
-                                  } as any)
-                                : change({
-                                    target: {
-                                      name: "products",
-                                      value: [...data.products, product]
-                                    }
-                                  } as any)
-                            }
+                    products.map(product => {
+                      const isChecked = !!data.products.find(
+                        selectedProduct => selectedProduct.id === product.id
+                      );
+
+                      return (
+                        <TableRow key={product.id}>
+                          <TableCellAvatar
+                            className={classes.avatar}
+                            thumbnail={product.thumbnail.url}
                           />
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                          <TableCell className={classes.wideCell}>
+                            {product.name}
+                          </TableCell>
+                          <TableCell
+                            padding="checkbox"
+                            className={classes.checkboxCell}
+                          >
+                            <Checkbox
+                              checked={isChecked}
+                              onChange={() =>
+                                isChecked
+                                  ? change({
+                                      target: {
+                                        name: "products",
+                                        value: data.products.filter(
+                                          selectedProduct =>
+                                            selectedProduct.id !== product.id
+                                        )
+                                      }
+                                    } as any)
+                                  : change({
+                                      target: {
+                                        name: "products",
+                                        value: [...data.products, product]
+                                      }
+                                    } as any)
+                              }
+                            />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                 </TableBody>
               </Table>
             </DialogContent>

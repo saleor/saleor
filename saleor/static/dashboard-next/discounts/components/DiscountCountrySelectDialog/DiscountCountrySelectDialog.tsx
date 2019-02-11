@@ -96,47 +96,45 @@ const DiscountCountrySelectDialog = withStyles(styles, {
                   <TableBody>
                     {filter(countries, data.query, {
                       key: "country"
-                    }).map(country => (
-                      <TableRow key={country.code}>
-                        <TableCell className={classes.wideCell}>
-                          {country.country}
-                        </TableCell>
-                        <TableCell
-                          padding="checkbox"
-                          className={classes.checkboxCell}
-                        >
-                          <Checkbox
-                            checked={
-                              !!data.countries.find(
-                                selectedCountries =>
-                                  selectedCountries === country.code
-                              )
-                            }
-                            onChange={() =>
-                              data.countries.find(
-                                selectedCountries =>
-                                  selectedCountries === country.code
-                              )
-                                ? change({
-                                    target: {
-                                      name: "countries" as keyof FormData,
-                                      value: data.countries.filter(
-                                        selectedCountries =>
-                                          selectedCountries !== country.code
-                                      )
-                                    }
-                                  } as any)
-                                : change({
-                                    target: {
-                                      name: "countries" as keyof FormData,
-                                      value: [...data.countries, country.code]
-                                    }
-                                  } as any)
-                            }
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    }).map(country => {
+                      const isChecked = !!data.countries.find(
+                        selectedCountries => selectedCountries === country.code
+                      );
+
+                      return (
+                        <TableRow key={country.code}>
+                          <TableCell className={classes.wideCell}>
+                            {country.country}
+                          </TableCell>
+                          <TableCell
+                            padding="checkbox"
+                            className={classes.checkboxCell}
+                          >
+                            <Checkbox
+                              checked={isChecked}
+                              onChange={() =>
+                                isChecked
+                                  ? change({
+                                      target: {
+                                        name: "countries" as keyof FormData,
+                                        value: data.countries.filter(
+                                          selectedCountries =>
+                                            selectedCountries !== country.code
+                                        )
+                                      }
+                                    } as any)
+                                  : change({
+                                      target: {
+                                        name: "countries" as keyof FormData,
+                                        value: [...data.countries, country.code]
+                                      }
+                                    } as any)
+                              }
+                            />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </DialogContent>

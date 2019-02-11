@@ -109,47 +109,47 @@ const AssignCollectionDialog = withStyles(styles, {
               <Table>
                 <TableBody>
                   {collections &&
-                    collections.map(category => (
-                      <TableRow key={category.id}>
-                        <TableCell
-                          padding="checkbox"
-                          className={classes.checkboxCell}
-                        >
-                          <Checkbox
-                            checked={
-                              !!data.collections.find(
-                                selectedCollection =>
-                                  selectedCollection.id === category.id
-                              )
-                            }
-                            onChange={() =>
-                              data.collections.find(
-                                selectedCollection =>
-                                  selectedCollection.id === category.id
-                              )
-                                ? change({
-                                    target: {
-                                      name: "collections",
-                                      value: data.collections.filter(
-                                        selectedCollection =>
-                                          selectedCollection.id !== category.id
-                                      )
-                                    }
-                                  } as any)
-                                : change({
-                                    target: {
-                                      name: "collections",
-                                      value: [...data.collections, category]
-                                    }
-                                  } as any)
-                            }
-                          />
-                        </TableCell>
-                        <TableCell className={classes.wideCell}>
-                          {category.name}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    collections.map(category => {
+                      const isChecked = !!data.collections.find(
+                        selectedCollection =>
+                          selectedCollection.id === category.id
+                      );
+
+                      return (
+                        <TableRow key={category.id}>
+                          <TableCell
+                            padding="checkbox"
+                            className={classes.checkboxCell}
+                          >
+                            <Checkbox
+                              checked={isChecked}
+                              onChange={() =>
+                                isChecked
+                                  ? change({
+                                      target: {
+                                        name: "collections",
+                                        value: data.collections.filter(
+                                          selectedCollection =>
+                                            selectedCollection.id !==
+                                            category.id
+                                        )
+                                      }
+                                    } as any)
+                                  : change({
+                                      target: {
+                                        name: "collections",
+                                        value: [...data.collections, category]
+                                      }
+                                    } as any)
+                              }
+                            />
+                          </TableCell>
+                          <TableCell className={classes.wideCell}>
+                            {category.name}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                 </TableBody>
               </Table>
             </DialogContent>
