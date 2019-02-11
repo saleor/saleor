@@ -1264,15 +1264,39 @@ exports[`Storyshots Generics / Card menu default 1`] = `
 </div>
 `;
 
-exports[`Storyshots Generics / DateFormatter default 1`] = `
+exports[`Storyshots Generics / Date default 1`] = `
 <div>
   <time
     class=""
     datetime="1523097884000"
-    title="Sat Apr 07 2018 06:44:44 GMT-0400"
+    title="Apr 7, 2018"
   >
     4 months ago
   </time>
+</div>
+`;
+
+exports[`Storyshots Generics / Date plain 1`] = `
+<div>
+  Apr 7, 2018
+</div>
+`;
+
+exports[`Storyshots Generics / DateTime default 1`] = `
+<div>
+  <time
+    class=""
+    datetime="1523097884000"
+    title="Apr 7, 2018 6:44 AM"
+  >
+    4 months ago
+  </time>
+</div>
+`;
+
+exports[`Storyshots Generics / DateTime plain 1`] = `
+<div>
+  Apr 7, 2018 6:44 AM
 </div>
 `;
 
@@ -4256,7 +4280,7 @@ exports[`Storyshots Generics / Timeline default 1`] = `
           <time
             class=""
             datetime="1525712282000"
-            title="Mon May 07 2018 12:58:02 GMT-0400"
+            title="May 7, 2018 12:58 PM"
           >
             3 months ago
           </time>
@@ -4283,7 +4307,7 @@ exports[`Storyshots Generics / Timeline default 1`] = `
           <time
             class=""
             datetime="1525711682000"
-            title="Mon May 07 2018 12:48:02 GMT-0400"
+            title="May 7, 2018 12:48 PM"
           >
             3 months ago
           </time>
@@ -4310,7 +4334,7 @@ exports[`Storyshots Generics / Timeline default 1`] = `
           <time
             class=""
             datetime="1525625882000"
-            title="Sun May 06 2018 12:58:02 GMT-0400"
+            title="May 6, 2018 12:58 PM"
           >
             3 months ago
           </time>
@@ -4702,7 +4726,7 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
               <time
                 class=""
                 datetime="1525712282000"
-                title="Mon May 07 2018 12:58:02 GMT-0400"
+                title="May 7, 2018 12:58 PM"
               >
                 3 months ago
               </time>
@@ -4764,7 +4788,7 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
               <time
                 class=""
                 datetime="1525712282000"
-                title="Mon May 07 2018 12:58:02 GMT-0400"
+                title="May 7, 2018 12:58 PM"
               >
                 3 months ago
               </time>
@@ -5576,7 +5600,7 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
             <time
               class=""
               datetime="1537190544376"
-              title="Mon Sep 17 2018 09:22:24 GMT-0400"
+              title="Sep 17, 2018 9:22 AM"
             >
               in a month
             </time>
@@ -16791,7 +16815,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                     <time
                       class=""
                       datetime="1525685850124"
-                      title="Mon May 07 2018 05:37:30 GMT-0400"
+                      title="May 7, 2018 5:37 AM"
                     >
                       3 months ago
                     </time>
@@ -16910,7 +16934,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                 <time
                   class=""
                   datetime="1525685850124"
-                  title="Mon May 07 2018 05:37:30 GMT-0400"
+                  title="May 7, 2018 5:37 AM"
                 >
                   3 months ago
                 </time>
@@ -16933,7 +16957,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                 <time
                   class=""
                   datetime="1525685850124"
-                  title="Mon May 07 2018 05:37:30 GMT-0400"
+                  title="May 7, 2018 5:37 AM"
                 >
                   3 months ago
                 </time>
@@ -17342,7 +17366,7 @@ exports[`Storyshots Views / Customers / Customer details different addresses 1`]
                     <time
                       class=""
                       datetime="1525685850124"
-                      title="Mon May 07 2018 05:37:30 GMT-0400"
+                      title="May 7, 2018 5:37 AM"
                     >
                       3 months ago
                     </time>
@@ -17498,7 +17522,7 @@ exports[`Storyshots Views / Customers / Customer details different addresses 1`]
                 <time
                   class=""
                   datetime="1525685850124"
-                  title="Mon May 07 2018 05:37:30 GMT-0400"
+                  title="May 7, 2018 5:37 AM"
                 >
                   3 months ago
                 </time>
@@ -17521,7 +17545,7 @@ exports[`Storyshots Views / Customers / Customer details different addresses 1`]
                 <time
                   class=""
                   datetime="1525685850124"
-                  title="Mon May 07 2018 05:37:30 GMT-0400"
+                  title="May 7, 2018 5:37 AM"
                 >
                   3 months ago
                 </time>
@@ -17945,7 +17969,7 @@ exports[`Storyshots Views / Customers / Customer details form errors 1`] = `
                     <time
                       class=""
                       datetime="1525685850124"
-                      title="Mon May 07 2018 05:37:30 GMT-0400"
+                      title="May 7, 2018 5:37 AM"
                     >
                       3 months ago
                     </time>
@@ -18064,7 +18088,7 @@ exports[`Storyshots Views / Customers / Customer details form errors 1`] = `
                 <time
                   class=""
                   datetime="1525685850124"
-                  title="Mon May 07 2018 05:37:30 GMT-0400"
+                  title="May 7, 2018 5:37 AM"
                 >
                   3 months ago
                 </time>
@@ -18087,7 +18111,7 @@ exports[`Storyshots Views / Customers / Customer details form errors 1`] = `
                 <time
                   class=""
                   datetime="1525685850124"
-                  title="Mon May 07 2018 05:37:30 GMT-0400"
+                  title="May 7, 2018 5:37 AM"
                 >
                   3 months ago
                 </time>
@@ -19022,7 +19046,7 @@ exports[`Storyshots Views / Customers / Customer details never logged 1`] = `
                     <time
                       class=""
                       datetime="1525685850124"
-                      title="Mon May 07 2018 05:37:30 GMT-0400"
+                      title="May 7, 2018 5:37 AM"
                     >
                       3 months ago
                     </time>
@@ -19158,7 +19182,7 @@ exports[`Storyshots Views / Customers / Customer details never logged 1`] = `
                 <time
                   class=""
                   datetime="1525685850124"
-                  title="Mon May 07 2018 05:37:30 GMT-0400"
+                  title="May 7, 2018 5:37 AM"
                 >
                   3 months ago
                 </time>
@@ -19567,7 +19591,7 @@ exports[`Storyshots Views / Customers / Customer details never placed order 1`] 
                     <time
                       class=""
                       datetime="1525685850124"
-                      title="Mon May 07 2018 05:37:30 GMT-0400"
+                      title="May 7, 2018 5:37 AM"
                     >
                       3 months ago
                     </time>
@@ -19686,7 +19710,7 @@ exports[`Storyshots Views / Customers / Customer details never placed order 1`] 
                 <time
                   class=""
                   datetime="1525685850124"
-                  title="Mon May 07 2018 05:37:30 GMT-0400"
+                  title="May 7, 2018 5:37 AM"
                 >
                   3 months ago
                 </time>
@@ -21100,7 +21124,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                   <time
                     class=""
                     datetime="1536941427137"
-                    title="Fri Sep 14 2018 12:10:27 GMT-0400"
+                    title="Sep 14, 2018 12:10 PM"
                   >
                     in a month
                   </time>
@@ -21124,7 +21148,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                   <time
                     class=""
                     datetime="1538573326325"
-                    title="Wed Oct 03 2018 09:28:46 GMT-0400"
+                    title="Oct 3, 2018 9:28 AM"
                   >
                     in 2 months
                   </time>
@@ -21148,7 +21172,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                   <time
                     class=""
                     datetime="1538573341837"
-                    title="Wed Oct 03 2018 09:29:01 GMT-0400"
+                    title="Oct 3, 2018 9:29 AM"
                   >
                     in 2 months
                   </time>
@@ -21172,7 +21196,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                   <time
                     class=""
                     datetime="1538614911243"
-                    title="Wed Oct 03 2018 21:01:51 GMT-0400"
+                    title="Oct 3, 2018 9:01 PM"
                   >
                     in 2 months
                   </time>
@@ -21196,7 +21220,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                   <time
                     class=""
                     datetime="1538681778831"
-                    title="Thu Oct 04 2018 15:36:18 GMT-0400"
+                    title="Oct 4, 2018 3:36 PM"
                   >
                     in 2 months
                   </time>
@@ -21220,7 +21244,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                   <time
                     class=""
                     datetime="1538681881420"
-                    title="Thu Oct 04 2018 15:38:01 GMT-0400"
+                    title="Oct 4, 2018 3:38 PM"
                   >
                     in 2 months
                   </time>
@@ -21244,7 +21268,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                   <time
                     class=""
                     datetime="1538742657268"
-                    title="Fri Oct 05 2018 08:30:57 GMT-0400"
+                    title="Oct 5, 2018 8:30 AM"
                   >
                     in 2 months
                   </time>
@@ -21268,7 +21292,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                   <time
                     class=""
                     datetime="1538992242622"
-                    title="Mon Oct 08 2018 05:50:42 GMT-0400"
+                    title="Oct 8, 2018 5:50 AM"
                   >
                     in 2 months
                   </time>
@@ -21292,7 +21316,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                   <time
                     class=""
                     datetime="1539359471665"
-                    title="Fri Oct 12 2018 11:51:11 GMT-0400"
+                    title="Oct 12, 2018 11:51 AM"
                   >
                     in 2 months
                   </time>
@@ -21316,7 +21340,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                   <time
                     class=""
                     datetime="1540466758843"
-                    title="Thu Oct 25 2018 07:25:58 GMT-0400"
+                    title="Oct 25, 2018 7:25 AM"
                   >
                     in 3 months
                   </time>
@@ -21340,7 +21364,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                   <time
                     class=""
                     datetime="1540546497580"
-                    title="Fri Oct 26 2018 05:34:57 GMT-0400"
+                    title="Oct 26, 2018 5:34 AM"
                   >
                     in 3 months
                   </time>
@@ -21364,7 +21388,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                   <time
                     class=""
                     datetime="1540546682440"
-                    title="Fri Oct 26 2018 05:38:02 GMT-0400"
+                    title="Oct 26, 2018 5:38 AM"
                   >
                     in 3 months
                   </time>
@@ -21388,7 +21412,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                   <time
                     class=""
                     datetime="1540546682467"
-                    title="Fri Oct 26 2018 05:38:02 GMT-0400"
+                    title="Oct 26, 2018 5:38 AM"
                   >
                     in 3 months
                   </time>
@@ -22213,7 +22237,7 @@ exports[`Storyshots Views / Orders / Order details cancelled 1`] = `
         <time
           class=""
           datetime="1536658648185"
-          title="Tue Sep 11 2018 05:37:28 GMT-0400"
+          title="Sep 11, 2018 5:37 AM"
         >
           in a month
         </time>
@@ -22801,7 +22825,7 @@ exports[`Storyshots Views / Orders / Order details cancelled 1`] = `
                   <time
                     class=""
                     datetime="1537190544376"
-                    title="Mon Sep 17 2018 09:22:24 GMT-0400"
+                    title="Sep 17, 2018 9:22 AM"
                   >
                     in a month
                   </time>
@@ -23053,7 +23077,7 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
         <time
           class=""
           datetime="1536658648185"
-          title="Tue Sep 11 2018 05:37:28 GMT-0400"
+          title="Sep 11, 2018 5:37 AM"
         >
           in a month
         </time>
@@ -23797,7 +23821,7 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
                   <time
                     class=""
                     datetime="1537190544376"
-                    title="Mon Sep 17 2018 09:22:24 GMT-0400"
+                    title="Sep 17, 2018 9:22 AM"
                   >
                     in a month
                   </time>
@@ -24079,7 +24103,7 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
         <time
           class=""
           datetime="1536658648185"
-          title="Tue Sep 11 2018 05:37:28 GMT-0400"
+          title="Sep 11, 2018 5:37 AM"
         >
           in a month
         </time>
@@ -24823,7 +24847,7 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
                   <time
                     class=""
                     datetime="1537190544376"
-                    title="Mon Sep 17 2018 09:22:24 GMT-0400"
+                    title="Sep 17, 2018 9:22 AM"
                   >
                     in a month
                   </time>
@@ -25696,7 +25720,7 @@ exports[`Storyshots Views / Orders / Order details no customer note 1`] = `
         <time
           class=""
           datetime="1536658648185"
-          title="Tue Sep 11 2018 05:37:28 GMT-0400"
+          title="Sep 11, 2018 5:37 AM"
         >
           in a month
         </time>
@@ -26440,7 +26464,7 @@ exports[`Storyshots Views / Orders / Order details no customer note 1`] = `
                   <time
                     class=""
                     datetime="1537190544376"
-                    title="Mon Sep 17 2018 09:22:24 GMT-0400"
+                    title="Sep 17, 2018 9:22 AM"
                   >
                     in a month
                   </time>
@@ -26722,7 +26746,7 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
         <time
           class=""
           datetime="1536658648185"
-          title="Tue Sep 11 2018 05:37:28 GMT-0400"
+          title="Sep 11, 2018 5:37 AM"
         >
           in a month
         </time>
@@ -27466,7 +27490,7 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
                   <time
                     class=""
                     datetime="1537190544376"
-                    title="Mon Sep 17 2018 09:22:24 GMT-0400"
+                    title="Sep 17, 2018 9:22 AM"
                   >
                     in a month
                   </time>
@@ -27748,7 +27772,7 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
         <time
           class=""
           datetime="1536658648185"
-          title="Tue Sep 11 2018 05:37:28 GMT-0400"
+          title="Sep 11, 2018 5:37 AM"
         >
           in a month
         </time>
@@ -28492,7 +28516,7 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
                   <time
                     class=""
                     datetime="1537190544376"
-                    title="Mon Sep 17 2018 09:22:24 GMT-0400"
+                    title="Sep 17, 2018 9:22 AM"
                   >
                     in a month
                   </time>
@@ -28774,7 +28798,7 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
         <time
           class=""
           datetime="1536658648185"
-          title="Tue Sep 11 2018 05:37:28 GMT-0400"
+          title="Sep 11, 2018 5:37 AM"
         >
           in a month
         </time>
@@ -29518,7 +29542,7 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
                   <time
                     class=""
                     datetime="1537190544376"
-                    title="Mon Sep 17 2018 09:22:24 GMT-0400"
+                    title="Sep 17, 2018 9:22 AM"
                   >
                     in a month
                   </time>
@@ -29800,7 +29824,7 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
         <time
           class=""
           datetime="1536658648185"
-          title="Tue Sep 11 2018 05:37:28 GMT-0400"
+          title="Sep 11, 2018 5:37 AM"
         >
           in a month
         </time>
@@ -30544,7 +30568,7 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
                   <time
                     class=""
                     datetime="1537190544376"
-                    title="Mon Sep 17 2018 09:22:24 GMT-0400"
+                    title="Sep 17, 2018 9:22 AM"
                   >
                     in a month
                   </time>
@@ -30826,7 +30850,7 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
         <time
           class=""
           datetime="1536658648185"
-          title="Tue Sep 11 2018 05:37:28 GMT-0400"
+          title="Sep 11, 2018 5:37 AM"
         >
           in a month
         </time>
@@ -31570,7 +31594,7 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
                   <time
                     class=""
                     datetime="1537190544376"
-                    title="Mon Sep 17 2018 09:22:24 GMT-0400"
+                    title="Sep 17, 2018 9:22 AM"
                   >
                     in a month
                   </time>
@@ -31852,7 +31876,7 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
         <time
           class=""
           datetime="1536658648185"
-          title="Tue Sep 11 2018 05:37:28 GMT-0400"
+          title="Sep 11, 2018 5:37 AM"
         >
           in a month
         </time>
@@ -32596,7 +32620,7 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
                   <time
                     class=""
                     datetime="1537190544376"
-                    title="Mon Sep 17 2018 09:22:24 GMT-0400"
+                    title="Sep 17, 2018 9:22 AM"
                   >
                     in a month
                   </time>
@@ -32878,7 +32902,7 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
         <time
           class=""
           datetime="1536658648185"
-          title="Tue Sep 11 2018 05:37:28 GMT-0400"
+          title="Sep 11, 2018 5:37 AM"
         >
           in a month
         </time>
@@ -33622,7 +33646,7 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
                   <time
                     class=""
                     datetime="1537190544376"
-                    title="Mon Sep 17 2018 09:22:24 GMT-0400"
+                    title="Sep 17, 2018 9:22 AM"
                   >
                     in a month
                   </time>
@@ -33904,7 +33928,7 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
         <time
           class=""
           datetime="1536658648185"
-          title="Tue Sep 11 2018 05:37:28 GMT-0400"
+          title="Sep 11, 2018 5:37 AM"
         >
           in a month
         </time>
@@ -34648,7 +34672,7 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
                   <time
                     class=""
                     datetime="1537190544376"
-                    title="Mon Sep 17 2018 09:22:24 GMT-0400"
+                    title="Sep 17, 2018 9:22 AM"
                   >
                     in a month
                   </time>
@@ -34930,7 +34954,7 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
         <time
           class=""
           datetime="1536658648185"
-          title="Tue Sep 11 2018 05:37:28 GMT-0400"
+          title="Sep 11, 2018 5:37 AM"
         >
           in a month
         </time>
@@ -35674,7 +35698,7 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
                   <time
                     class=""
                     datetime="1537190544376"
-                    title="Mon Sep 17 2018 09:22:24 GMT-0400"
+                    title="Sep 17, 2018 9:22 AM"
                   >
                     in a month
                   </time>
@@ -35956,7 +35980,7 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
         <time
           class=""
           datetime="1537485819811"
-          title="Thu Sep 20 2018 19:23:39 GMT-0400"
+          title="Sep 20, 2018 7:23 PM"
         >
           in a month
         </time>
@@ -37179,7 +37203,7 @@ exports[`Storyshots Views / Orders / Order draft without lines 1`] = `
         <time
           class=""
           datetime="1537485819811"
-          title="Thu Sep 20 2018 19:23:39 GMT-0400"
+          title="Sep 20, 2018 7:23 PM"
         >
           in a month
         </time>
@@ -37807,7 +37831,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <time
                 class=""
                 datetime="1536658650376"
-                title="Tue Sep 11 2018 05:37:30 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -37855,7 +37879,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <time
                 class=""
                 datetime="1536658650124"
-                title="Tue Sep 11 2018 05:37:30 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -37903,7 +37927,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <time
                 class=""
                 datetime="1536658650019"
-                title="Tue Sep 11 2018 05:37:30 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -37951,7 +37975,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <time
                 class=""
                 datetime="1536658649864"
-                title="Tue Sep 11 2018 05:37:29 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -37999,7 +38023,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <time
                 class=""
                 datetime="1536658649610"
-                title="Tue Sep 11 2018 05:37:29 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -38047,7 +38071,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <time
                 class=""
                 datetime="1536658649336"
-                title="Tue Sep 11 2018 05:37:29 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -38095,7 +38119,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <time
                 class=""
                 datetime="1536658649103"
-                title="Tue Sep 11 2018 05:37:29 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -38143,7 +38167,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <time
                 class=""
                 datetime="1536658648921"
-                title="Tue Sep 11 2018 05:37:28 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -38191,7 +38215,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <time
                 class=""
                 datetime="1536658648750"
-                title="Tue Sep 11 2018 05:37:28 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -38239,7 +38263,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <time
                 class=""
                 datetime="1536658648598"
-                title="Tue Sep 11 2018 05:37:28 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -38287,7 +38311,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <time
                 class=""
                 datetime="1536658648409"
-                title="Tue Sep 11 2018 05:37:28 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -38335,7 +38359,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <time
                 class=""
                 datetime="1536658648185"
-                title="Tue Sep 11 2018 05:37:28 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -38383,7 +38407,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <time
                 class=""
                 datetime="1536658647953"
-                title="Tue Sep 11 2018 05:37:27 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -38431,7 +38455,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <time
                 class=""
                 datetime="1536658647828"
-                title="Tue Sep 11 2018 05:37:27 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -38479,7 +38503,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <time
                 class=""
                 datetime="1536658647636"
-                title="Tue Sep 11 2018 05:37:27 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -38527,7 +38551,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <time
                 class=""
                 datetime="1536658647420"
-                title="Tue Sep 11 2018 05:37:27 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -38575,7 +38599,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <time
                 class=""
                 datetime="1536658647230"
-                title="Tue Sep 11 2018 05:37:27 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -38623,7 +38647,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <time
                 class=""
                 datetime="1536658646972"
-                title="Tue Sep 11 2018 05:37:26 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -38671,7 +38695,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <time
                 class=""
                 datetime="1536658646751"
-                title="Tue Sep 11 2018 05:37:26 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -38719,7 +38743,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <time
                 class=""
                 datetime="1536658646314"
-                title="Tue Sep 11 2018 05:37:26 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -39706,7 +39730,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <time
                 class=""
                 datetime="1536658650376"
-                title="Tue Sep 11 2018 05:37:30 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -39754,7 +39778,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <time
                 class=""
                 datetime="1536658650124"
-                title="Tue Sep 11 2018 05:37:30 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -39802,7 +39826,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <time
                 class=""
                 datetime="1536658650019"
-                title="Tue Sep 11 2018 05:37:30 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -39850,7 +39874,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <time
                 class=""
                 datetime="1536658649864"
-                title="Tue Sep 11 2018 05:37:29 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -39898,7 +39922,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <time
                 class=""
                 datetime="1536658649610"
-                title="Tue Sep 11 2018 05:37:29 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -39946,7 +39970,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <time
                 class=""
                 datetime="1536658649336"
-                title="Tue Sep 11 2018 05:37:29 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -39994,7 +40018,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <time
                 class=""
                 datetime="1536658649103"
-                title="Tue Sep 11 2018 05:37:29 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -40042,7 +40066,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <time
                 class=""
                 datetime="1536658648921"
-                title="Tue Sep 11 2018 05:37:28 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -40090,7 +40114,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <time
                 class=""
                 datetime="1536658648750"
-                title="Tue Sep 11 2018 05:37:28 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -40138,7 +40162,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <time
                 class=""
                 datetime="1536658648598"
-                title="Tue Sep 11 2018 05:37:28 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -40186,7 +40210,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <time
                 class=""
                 datetime="1536658648409"
-                title="Tue Sep 11 2018 05:37:28 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -40234,7 +40258,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <time
                 class=""
                 datetime="1536658648185"
-                title="Tue Sep 11 2018 05:37:28 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -40282,7 +40306,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <time
                 class=""
                 datetime="1536658647953"
-                title="Tue Sep 11 2018 05:37:27 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -40330,7 +40354,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <time
                 class=""
                 datetime="1536658647828"
-                title="Tue Sep 11 2018 05:37:27 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -40378,7 +40402,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <time
                 class=""
                 datetime="1536658647636"
-                title="Tue Sep 11 2018 05:37:27 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -40426,7 +40450,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <time
                 class=""
                 datetime="1536658647420"
-                title="Tue Sep 11 2018 05:37:27 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -40474,7 +40498,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <time
                 class=""
                 datetime="1536658647230"
-                title="Tue Sep 11 2018 05:37:27 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -40522,7 +40546,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <time
                 class=""
                 datetime="1536658646972"
-                title="Tue Sep 11 2018 05:37:26 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -40570,7 +40594,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <time
                 class=""
                 datetime="1536658646751"
-                title="Tue Sep 11 2018 05:37:26 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -40618,7 +40642,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <time
                 class=""
                 datetime="1536658646314"
-                title="Tue Sep 11 2018 05:37:26 GMT-0400"
+                title="Sep 11, 2018 5:37 AM"
               >
                 in a month
               </time>
@@ -60412,7 +60436,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1534490765192"
-                title="Fri Aug 17 2018 03:26:05 GMT-0400"
+                title="Aug 17, 2018"
               >
                 in 10 days
               </time>
@@ -60423,7 +60447,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1816344536291"
-                title="Fri Jul 23 2027 08:08:56 GMT-0400"
+                title="Jul 23, 2027"
               >
                 in 9 years
               </time>
@@ -60457,7 +60481,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1534377534945"
-                title="Wed Aug 15 2018 19:58:54 GMT-0400"
+                title="Aug 15, 2018"
               >
                 in 8 days
               </time>
@@ -60468,7 +60492,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1545762986959"
-                title="Tue Dec 25 2018 13:36:26 GMT-0500"
+                title="Dec 25, 2018"
               >
                 in 5 months
               </time>
@@ -60502,7 +60526,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1534075924133"
-                title="Sun Aug 12 2018 08:12:04 GMT-0400"
+                title="Aug 12, 2018"
               >
                 in 5 days
               </time>
@@ -60541,7 +60565,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1534171679997"
-                title="Mon Aug 13 2018 10:47:59 GMT-0400"
+                title="Aug 13, 2018"
               >
                 in 6 days
               </time>
@@ -60580,7 +60604,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1534688649321"
-                title="Sun Aug 19 2018 10:24:09 GMT-0400"
+                title="Aug 19, 2018"
               >
                 in 12 days
               </time>
@@ -60591,7 +60615,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1614233133803"
-                title="Thu Feb 25 2021 01:05:33 GMT-0500"
+                title="Feb 25, 2021"
               >
                 in 3 years
               </time>
@@ -60625,7 +60649,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1534073505570"
-                title="Sun Aug 12 2018 07:31:45 GMT-0400"
+                title="Aug 12, 2018"
               >
                 in 5 days
               </time>
@@ -60664,7 +60688,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1534006995977"
-                title="Sat Aug 11 2018 13:03:15 GMT-0400"
+                title="Aug 11, 2018"
               >
                 in 4 days
               </time>
@@ -60703,7 +60727,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1533985747002"
-                title="Sat Aug 11 2018 07:09:07 GMT-0400"
+                title="Aug 11, 2018"
               >
                 in 4 days
               </time>
@@ -60742,7 +60766,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1534728479891"
-                title="Sun Aug 19 2018 21:27:59 GMT-0400"
+                title="Aug 19, 2018"
               >
                 in 12 days
               </time>
@@ -60753,7 +60777,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1705486586589"
-                title="Wed Jan 17 2024 05:16:26 GMT-0500"
+                title="Jan 17, 2024"
               >
                 in 5 years
               </time>
@@ -60787,7 +60811,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1534650171965"
-                title="Sat Aug 18 2018 23:42:51 GMT-0400"
+                title="Aug 18, 2018"
               >
                 in 12 days
               </time>
@@ -60826,7 +60850,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1534753770527"
-                title="Mon Aug 20 2018 04:29:30 GMT-0400"
+                title="Aug 20, 2018"
               >
                 in 13 days
               </time>
@@ -60837,7 +60861,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1817661377717"
-                title="Sat Aug 07 2027 13:56:17 GMT-0400"
+                title="Aug 7, 2027"
               >
                 in 9 years
               </time>
@@ -60871,7 +60895,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1534027497412"
-                title="Sat Aug 11 2018 18:44:57 GMT-0400"
+                title="Aug 11, 2018"
               >
                 in 4 days
               </time>
@@ -60882,7 +60906,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1540299884374"
-                title="Tue Oct 23 2018 09:04:44 GMT-0400"
+                title="Oct 23, 2018"
               >
                 in 3 months
               </time>
@@ -60916,7 +60940,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1534675024055"
-                title="Sun Aug 19 2018 06:37:04 GMT-0400"
+                title="Aug 19, 2018"
               >
                 in 12 days
               </time>
@@ -60927,7 +60951,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1717508908823"
-                title="Tue Jun 04 2024 09:48:28 GMT-0400"
+                title="Jun 4, 2024"
               >
                 in 6 years
               </time>
@@ -60961,7 +60985,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1534239164445"
-                title="Tue Aug 14 2018 05:32:44 GMT-0400"
+                title="Aug 14, 2018"
               >
                 in 7 days
               </time>
@@ -61004,7 +61028,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1534544750902"
-                title="Fri Aug 17 2018 18:25:50 GMT-0400"
+                title="Aug 17, 2018"
               >
                 in 10 days
               </time>
@@ -61015,7 +61039,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1849179786531"
-                title="Sun Aug 06 2028 09:03:06 GMT-0400"
+                title="Aug 6, 2028"
               >
                 in 10 years
               </time>
@@ -61049,7 +61073,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1534285402199"
-                title="Tue Aug 14 2018 18:23:22 GMT-0400"
+                title="Aug 14, 2018"
               >
                 in 7 days
               </time>
@@ -61060,7 +61084,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1737917511823"
-                title="Sun Jan 26 2025 13:51:51 GMT-0500"
+                title="Jan 26, 2025"
               >
                 in 6 years
               </time>
