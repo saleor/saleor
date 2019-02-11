@@ -4,6 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 - Fix problem with l10n in Braintree payment gateway template - #3691 by @Kwaidan00
+- Improve discounts api, fix decimal empty string - #3707 by @michaljelonek
 
 
 ## 2.3.0
