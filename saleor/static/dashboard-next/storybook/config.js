@@ -69,6 +69,9 @@ function loadStories() {
   require("./stories/staff/StaffListPage");
   require("./stories/staff/StaffDetailsPage");
 
+  // Pages
+  require("./stories/pages/PageListPage")
+
   // Products
   require("./stories/products/ProductCreatePage");
   require("./stories/products/ProductImagePage");
