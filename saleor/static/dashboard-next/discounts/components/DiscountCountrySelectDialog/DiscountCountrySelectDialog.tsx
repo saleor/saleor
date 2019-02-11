@@ -67,92 +67,102 @@ const DiscountCountrySelectDialog = withStyles(styles, {
     return (
       <Dialog open={open} fullWidth maxWidth="sm">
         <Form initial={initialForm} onSubmit={onConfirm}>
-          {({ data, change }) => (
-            <>
-              <DialogTitle>{i18n.t("Assign Countries")}</DialogTitle>
-              <DialogContent>
-                <Typography>
-                  {i18n.t(
-                    "Choose countries you want to add to shipping zone from list below"
-                  )}
-                </Typography>
-                <FormSpacer />
-                <TextField
-                  name="query"
-                  value={data.query}
-                  onChange={event => change(event, () => fetch(data.query))}
-                  label={i18n.t("Search Countries", {
-                    context: "product search input label"
-                  })}
-                  placeholder={i18n.t("Search by country name", {
-                    context: "country search input placeholder"
-                  })}
-                  fullWidth
-                />
-              </DialogContent>
-              <Hr />
-              <DialogContent className={classes.container}>
-                <Table>
-                  <TableBody>
-                    {filter(countries, data.query, {
-                      key: "country"
-                    }).map(country => {
-                      const isChecked = !!data.countries.find(
-                        selectedCountries => selectedCountries === country.code
-                      );
+          {({ data, change }) => {
+            const countrySelectionMap = countries.reduce((acc, country) => {
+              acc[country.code] = !!data.countries.find(
+                selectedCountries => selectedCountries === country.code
+              );
+              return acc;
+            }, {});
 
-                      return (
-                        <TableRow key={country.code}>
-                          <TableCell className={classes.wideCell}>
-                            {country.country}
-                          </TableCell>
-                          <TableCell
-                            padding="checkbox"
-                            className={classes.checkboxCell}
-                          >
-                            <Checkbox
-                              checked={isChecked}
-                              onChange={() =>
-                                isChecked
-                                  ? change({
-                                      target: {
-                                        name: "countries" as keyof FormData,
-                                        value: data.countries.filter(
-                                          selectedCountries =>
-                                            selectedCountries !== country.code
-                                        )
-                                      }
-                                    } as any)
-                                  : change({
-                                      target: {
-                                        name: "countries" as keyof FormData,
-                                        value: [...data.countries, country.code]
-                                      }
-                                    } as any)
-                              }
-                            />
-                          </TableCell>
-                        </TableRow>
-                      );
+            return (
+              <>
+                <DialogTitle>{i18n.t("Assign Countries")}</DialogTitle>
+                <DialogContent>
+                  <Typography>
+                    {i18n.t(
+                      "Choose countries you want to add to shipping zone from list below"
+                    )}
+                  </Typography>
+                  <FormSpacer />
+                  <TextField
+                    name="query"
+                    value={data.query}
+                    onChange={event => change(event, () => fetch(data.query))}
+                    label={i18n.t("Search Countries", {
+                      context: "product search input label"
                     })}
-                  </TableBody>
-                </Table>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={onClose}>
-                  {i18n.t("Cancel", { context: "button" })}
-                </Button>
-                <ConfirmButton
-                  transitionState={confirmButtonState}
-                  color="primary"
-                  variant="contained"
-                  type="submit"
-                >
-                  {i18n.t("Assign countries", { context: "button" })}
-                </ConfirmButton>
-              </DialogActions>
-            </>
-          )}
+                    placeholder={i18n.t("Search by country name", {
+                      context: "country search input placeholder"
+                    })}
+                    fullWidth
+                  />
+                </DialogContent>
+                <Hr />
+                <DialogContent className={classes.container}>
+                  <Table>
+                    <TableBody>
+                      {filter(countries, data.query, {
+                        key: "country"
+                      }).map(country => {
+                        const isChecked = countrySelectionMap[country.code];
+
+                        return (
+                          <TableRow key={country.code}>
+                            <TableCell className={classes.wideCell}>
+                              {country.country}
+                            </TableCell>
+                            <TableCell
+                              padding="checkbox"
+                              className={classes.checkboxCell}
+                            >
+                              <Checkbox
+                                checked={isChecked}
+                                onChange={() =>
+                                  isChecked
+                                    ? change({
+                                        target: {
+                                          name: "countries" as keyof FormData,
+                                          value: data.countries.filter(
+                                            selectedCountries =>
+                                              selectedCountries !== country.code
+                                          )
+                                        }
+                                      } as any)
+                                    : change({
+                                        target: {
+                                          name: "countries" as keyof FormData,
+                                          value: [
+                                            ...data.countries,
+                                            country.code
+                                          ]
+                                        }
+                                      } as any)
+                                }
+                              />
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={onClose}>
+                    {i18n.t("Cancel", { context: "button" })}
+                  </Button>
+                  <ConfirmButton
+                    transitionState={confirmButtonState}
+                    color="primary"
+                    variant="contained"
+                    type="submit"
+                  >
+                    {i18n.t("Assign countries", { context: "button" })}
+                  </ConfirmButton>
+                </DialogActions>
+              </>
+            );
+          }}
         </Form>
       </Dialog>
     );
