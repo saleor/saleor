@@ -123,6 +123,8 @@ def start_payment(request, order, gateway):
             except Exception as exc:
                 form.add_error(None, str(exc))
             else:
+                if order.is_fully_paid():
+                    return redirect('order:payment-success', token=order.token)
                 return redirect(order.get_absolute_url())
 
     ctx = {
