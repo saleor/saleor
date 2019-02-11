@@ -600,6 +600,41 @@ def test_get_discount_for_cart_shipping_voucher(
     assert discount == Money(expected_value, 'USD')
 
 
+def test_get_discount_for_cart_shipping_voucher_all_countries():
+    subtotal = TaxedMoney(net=Money(100, 'USD'), gross=Money(100, 'USD'))
+    shipping_total = TaxedMoney(net=Money(10, 'USD'), gross=Money(10, 'USD'))
+    cart = Mock(
+        get_subtotal=Mock(return_value=subtotal),
+        is_shipping_required=Mock(return_value=True),
+        shipping_method=Mock(get_total=Mock(return_value=shipping_total)),
+        shipping_address=Mock(country=Country('PL')))
+    voucher = Voucher(
+        code='unique', type=VoucherType.SHIPPING,
+        discount_value_type=DiscountValueType.PERCENTAGE,
+        discount_value=50, countries=[])
+
+    discount = get_voucher_discount_for_cart(voucher, cart)
+
+    assert discount == Money(5, 'USD')
+
+
+def test_get_discount_for_cart_shipping_voucher_limited_countries():
+    subtotal = TaxedMoney(net=Money(100, 'USD'), gross=Money(100, 'USD'))
+    shipping_total = TaxedMoney(net=Money(10, 'USD'), gross=Money(10, 'USD'))
+    cart = Mock(
+        get_subtotal=Mock(return_value=subtotal),
+        is_shipping_required=Mock(return_value=True),
+        shipping_method=Mock(get_total=Mock(return_value=shipping_total)),
+        shipping_address=Mock(country=Country('PL')))
+    voucher = Voucher(
+        code='unique', type=VoucherType.SHIPPING,
+        discount_value_type=DiscountValueType.PERCENTAGE,
+        discount_value=50, countries=['UK', 'DE'])
+
+    with pytest.raises(NotApplicable):
+        get_voucher_discount_for_cart(voucher, cart)
+
+
 @pytest.mark.parametrize(
     'is_shipping_required, shipping_method, discount_value, discount_type,'
     'countries, min_amount_spent, subtotal, error_msg', [
