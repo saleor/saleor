@@ -104,4 +104,4 @@ def test_available_products_only_available(product_list):
     product.save()
     available_products = models.Product.objects.available()
     assert available_products.count() == 1
-    assert all([product.is_available() for product in available_products])
+    assert all([product.is_available for product in available_products])

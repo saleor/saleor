@@ -172,6 +172,7 @@ class Product(SeoModel):
     def is_in_stock(self):
         return any(variant.is_in_stock() for variant in self)
 
+    @property
     def is_available(self):
         return self.is_published and (
             self.publication_date is None
@@ -464,7 +465,7 @@ class Collection(SeoModel):
             kwargs={'pk': self.id, 'slug': self.slug})
 
     @property
-    def is_visible(self):
+    def is_available(self):
         return self.is_published and (
             self.publication_date is None
             or self.publication_date <= datetime.date.today())
