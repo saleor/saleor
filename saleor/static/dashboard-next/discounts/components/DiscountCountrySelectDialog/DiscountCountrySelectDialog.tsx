@@ -4,7 +4,12 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  withStyles,
+  WithStyles,
+  Theme
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -24,6 +29,7 @@ import { ShopInfo_shop_countries } from "../../../components/Shop/types/ShopInfo
 import i18n from "../../../i18n";
 
 interface FormData {
+  allCountries: boolean;
   countries: string[];
   query: string;
 }
@@ -37,17 +43,25 @@ export interface DiscountCountrySelectDialogProps {
   onConfirm: (data: FormData) => void;
 }
 
-const styles = createStyles({
-  checkboxCell: {
-    paddingLeft: 0
-  },
-  container: {
-    maxHeight: 500
-  },
-  wideCell: {
-    width: "100%"
-  }
-});
+const styles = (theme: Theme) =>
+  createStyles({
+    checkboxCell: {
+      paddingLeft: 0
+    },
+    container: {
+      maxHeight: 500
+    },
+    heading: {
+      marginBottom: theme.spacing.unit * 2,
+      marginTop: theme.spacing.unit * 2
+    },
+    table: {
+      border: "1px solid " + theme.palette.grey[200]
+    },
+    wideCell: {
+      width: "100%"
+    }
+  });
 const DiscountCountrySelectDialog = withStyles(styles, {
   name: "DiscountCountrySelectDialog"
 })(
@@ -61,6 +75,7 @@ const DiscountCountrySelectDialog = withStyles(styles, {
     onConfirm
   }: DiscountCountrySelectDialogProps & WithStyles<typeof styles>) => {
     const initialForm: FormData = {
+      allCountries: true,
       countries: initial,
       query: ""
     };
@@ -100,7 +115,47 @@ const DiscountCountrySelectDialog = withStyles(styles, {
                 </DialogContent>
                 <Hr />
                 <DialogContent className={classes.container}>
-                  <Table>
+                  <Typography className={classes.heading} variant="subheading">
+                    {i18n.t("Quick Pick", {
+                      context: "country selection"
+                    })}
+                  </Typography>
+                  <Table className={classes.table}>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell className={classes.wideCell}>
+                          <Typography>{i18n.t("Rest of The World")}</Typography>
+                          <Typography variant="caption">
+                            {i18n.t(
+                              "If selected, this will add all of the countries not selected to other shipping zones"
+                            )}
+                          </Typography>
+                        </TableCell>
+                        <TableCell
+                          padding="checkbox"
+                          className={classes.checkboxCell}
+                        >
+                          <Checkbox
+                            checked={data.allCountries}
+                            onChange={() =>
+                              change({
+                                target: {
+                                  name: "allCountries" as keyof FormData,
+                                  value: !data.allCountries
+                                }
+                              } as any)
+                            }
+                          />
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                  <Typography className={classes.heading} variant="subheading">
+                    {i18n.t("Countries A to Z", {
+                      context: "country selection"
+                    })}
+                  </Typography>
+                  <Table className={classes.table}>
                     <TableBody>
                       {filter(countries, data.query, {
                         key: "country"
