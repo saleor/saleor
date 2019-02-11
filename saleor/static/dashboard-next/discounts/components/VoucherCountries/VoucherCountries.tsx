@@ -59,7 +59,7 @@ const VoucherCountries = withStyles(styles, {
     onCountryAssign,
     onCountryUnassign
   }: VoucherCountriesProps & WithStyles<typeof styles>) => (
-    <Toggle>
+    <Toggle initial={true}>
       {(isCollapsed, { toggle: toggleCollapse }) => (
         <Card>
           <CardTitle
