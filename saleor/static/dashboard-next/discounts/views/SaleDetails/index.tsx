@@ -21,7 +21,7 @@ import { SearchCategoriesProvider } from "../../../containers/SearchCategories";
 import { SearchCollectionsProvider } from "../../../containers/SearchCollections";
 import { SearchProductsProvider } from "../../../containers/SearchProducts";
 import i18n from "../../../i18n";
-import { getMutationState, maybe } from "../../../misc";
+import { decimal, getMutationState, maybe } from "../../../misc";
 import { productUrl } from "../../../products/urls";
 import { DiscountValueTypeEnum, SaleType } from "../../../types/globalTypes";
 import SaleDetailsPage, {
@@ -285,7 +285,9 @@ export const SaleDetails: React.StatelessComponent<SaleDetailsProps> = ({
                                                         type: discountValueTypeEnum(
                                                           formData.type
                                                         ),
-                                                        value: formData.value
+                                                        value: decimal(
+                                                          formData.value
+                                                        )
                                                       }
                                                     }
                                                   })
