@@ -76,7 +76,9 @@ const PageAvailability: React.StatelessComponent<PageAvailabilityProps> = ({
                   <FormSpacer />
                   <TextField
                     disabled={disabled}
+                    error={!!errors.availableOn}
                     fullWidth
+                    helperText={errors.availableOn}
                     label={i18n.t("Publish page on")}
                     name={"availableOn" as keyof FormData}
                     type="date"
