@@ -7,7 +7,7 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import DateFormatter from "../../../components/DateFormatter";
+import { DateTime } from "../../../components/Date";
 import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
@@ -108,7 +108,7 @@ export const OrderList = withStyles(styles, { name: "OrderList" })(
                 </TableCell>
                 <TableCell padding="dense">
                   {maybe(() => order.created) ? (
-                    <DateFormatter date={order.created} />
+                    <DateTime date={order.created} />
                   ) : (
                     <Skeleton />
                   )}
