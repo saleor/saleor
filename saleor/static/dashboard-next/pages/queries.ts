@@ -1,6 +1,7 @@
 import gql from "graphql-tag";
 
 import { TypedQuery } from "../queries";
+import { PageDetails, PageDetailsVariables } from "./types/PageDetails";
 import { PageList, PageListVariables } from "./types/PageList";
 
 export const pageFragment = gql`
@@ -9,6 +10,17 @@ export const pageFragment = gql`
     title
     slug
     isVisible
+  }
+`;
+
+export const pageDetailsFragment = gql`
+  ${pageFragment}
+  fragment PageDetailsFragment on Page {
+    ...PageFragment
+    content
+    seoTitle
+    seoDescription
+    availableOn
   }
 `;
 
@@ -31,3 +43,15 @@ const pageList = gql`
   }
 `;
 export const TypedPageList = TypedQuery<PageList, PageListVariables>(pageList);
+
+const pageDetails = gql`
+  ${pageDetailsFragment}
+  query PageDetails($id: ID!) {
+    page(id: $id) {
+      ...PageDetailsFragment
+    }
+  }
+`;
+export const TypedPageDetails = TypedQuery<PageDetails, PageDetailsVariables>(
+  pageDetails
+);
