@@ -461,14 +461,16 @@ class CheckoutComplete(BaseMutation):
         errors = []
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
-        if checkout is not None:
-            taxes = get_taxes_for_cart(checkout, info.context.taxes)
-            ready, checkout_error = ready_to_place_order(
-                checkout, taxes, info.context.discounts)
-            if not ready:
-                cls.add_error(
-                    field=None, message=checkout_error, errors=errors)
-                return CheckoutComplete(errors=errors)
+        if checkout is None:
+            return CheckoutComplete(errors=errors)
+
+        taxes = get_taxes_for_cart(checkout, info.context.taxes)
+        ready, checkout_error = ready_to_place_order(
+            checkout, taxes, info.context.discounts)
+        if not ready:
+            cls.add_error(
+                field=None, message=checkout_error, errors=errors)
+            return CheckoutComplete(errors=errors)
 
         try:
             order = create_order(

@@ -521,7 +521,7 @@ def test_create_order_insufficient_stock(
     add_variant_to_cart(request_cart, variant, 10, check_quantity=False)
     request_cart.user = customer_user
     request_cart.billing_address = customer_user.default_billing_address
-    cart.shipping_address = customer_user.default_billing_address
+    request_cart.shipping_address = customer_user.default_billing_address
     request_cart.save()
 
     with pytest.raises(InsufficientStock):

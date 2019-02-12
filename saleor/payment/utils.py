@@ -231,7 +231,7 @@ def clean_mark_order_as_paid(order: Order):
         raise PaymentError(
             pgettext_lazy(
                 'Mark order as paid validation error',
-                'Orders with payments can not be manually marked as paid'))
+                'Orders with payments can not be manually marked as paid.'))
 
 
 def call_gateway(operation_type, payment, payment_token, **extra_params):
