@@ -1,3 +1,4 @@
+import { PageDetails_page } from "./types/PageDetails";
 import { PageList_pages_edges_node } from "./types/PageList";
 
 export const pageList: PageList_pages_edges_node[] = [
@@ -30,3 +31,14 @@ export const pageList: PageList_pages_edges_node[] = [
     title: "About"
   }
 ];
+export const page: PageDetails_page = {
+  __typename: "Page",
+  availableOn: "",
+  content: "",
+  id: "Kzx152sEm==",
+  isVisible: false,
+  seoDescription: "About",
+  seoTitle: "About",
+  slug: "about",
+  title: "About"
+};
