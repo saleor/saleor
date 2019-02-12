@@ -16,6 +16,7 @@ import FormSpacer from "../../../components/FormSpacer";
 import Hr from "../../../components/Hr";
 import TextFieldWithChoice from "../../../components/TextFieldWithChoice";
 import i18n from "../../../i18n";
+import { FormErrors } from "../../../types";
 import { VoucherDiscountValueType } from "../../../types/globalTypes";
 import { FormData } from "../VoucherDetailsPage";
 
@@ -23,14 +24,14 @@ interface VoucherOptionsProps {
   data: FormData;
   defaultCurrency: string;
   disabled: boolean;
-  errors: Partial<{
-    discountType: string;
-    endDate: string;
-    minAmountSpent: string;
-    startDate: string;
-    usageLimit: string;
-    value: string;
-  }>;
+  errors: FormErrors<
+    | "discountType"
+    | "discountValue"
+    | "endDate"
+    | "minAmountSpent"
+    | "startDate"
+    | "usageLimit"
+  >;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
@@ -59,6 +60,7 @@ const VoucherOptions = withStyles(styles, {
       <CardContent className={classes.root}>
         <TextFieldWithChoice
           disabled={disabled}
+          error={!!errors.discountValue}
           ChoiceProps={{
             label:
               data.discountType === VoucherDiscountValueType.FIXED
@@ -76,8 +78,7 @@ const VoucherOptions = withStyles(styles, {
               }
             ]
           }}
-          error={!!errors.value}
-          helperText={errors.value}
+          helperText={errors.discountValue}
           name={"value" as keyof FormData}
           onChange={onChange}
           label={i18n.t("Discount Value")}
