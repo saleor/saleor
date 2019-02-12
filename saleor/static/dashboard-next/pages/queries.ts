@@ -42,7 +42,9 @@ const pageList = gql`
     }
   }
 `;
-export const TypedPageList = TypedQuery<PageList, PageListVariables>(pageList);
+export const TypedPageListQuery = TypedQuery<PageList, PageListVariables>(
+  pageList
+);
 
 const pageDetails = gql`
   ${pageDetailsFragment}
@@ -52,6 +54,7 @@ const pageDetails = gql`
     }
   }
 `;
-export const TypedPageDetails = TypedQuery<PageDetails, PageDetailsVariables>(
-  pageDetails
-);
+export const TypedPageDetailsQuery = TypedQuery<
+  PageDetails,
+  PageDetailsVariables
+>(pageDetails);
