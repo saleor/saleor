@@ -216,9 +216,9 @@ class SaleInput(graphene.InputObjectType):
     collections = graphene.List(
         graphene.ID, description='Collections related to the discount.',
         name='collections')
-    start_date = graphene.types.datetime.Date(
+    start_date = graphene.Date(
         description='Start date of the sale in ISO 8601 format.')
-    end_date = graphene.types.datetime.Date(
+    end_date = graphene.Date(
         description='End date of the sale in ISO 8601 format.')
 
 
