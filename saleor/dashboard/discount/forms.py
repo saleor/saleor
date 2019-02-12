@@ -4,10 +4,10 @@ from django import forms
 from django.conf import settings
 from django.urls import reverse_lazy
 from django.utils.translation import pgettext_lazy
+from django_countries import countries
 from django_prices.forms import MoneyField
 from mptt.forms import TreeNodeMultipleChoiceField
 
-from ...core.i18n import COUNTRY_CODE_CHOICES
 from ...core.utils.taxes import ZERO_MONEY
 from ...discount import DiscountValueType
 from ...discount.models import Sale, Voucher
@@ -130,7 +130,7 @@ class VoucherForm(forms.ModelForm):
 class ShippingVoucherForm(forms.ModelForm):
     min_amount_spent = MinAmountSpent
     countries = forms.MultipleChoiceField(
-        choices=COUNTRY_CODE_CHOICES,
+        choices=countries,
         required=False,
         label=pgettext_lazy(
             'Text above the dropdown of countries',
