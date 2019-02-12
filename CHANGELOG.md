@@ -4,6 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 - Fix problem with l10n in Braintree payment gateway template - #3691 by @Kwaidan00
+- Add support for date and datetime components - #3708 by @dominik-zeglen
 
 
 ## 2.3.0
