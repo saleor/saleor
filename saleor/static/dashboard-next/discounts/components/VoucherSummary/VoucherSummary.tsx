@@ -83,7 +83,11 @@ const VoucherSummary: React.StatelessComponent<VoucherSummaryProps> = ({
         <Typography>
           {maybe<React.ReactNode>(
             () =>
-              voucher.endDate === null ? "-" : <Date date={voucher.endDate} />,
+              voucher.endDate === null ? (
+                "-"
+              ) : (
+                <Date date={voucher.endDate} plain />
+              ),
             <Skeleton />
           )}
         </Typography>
