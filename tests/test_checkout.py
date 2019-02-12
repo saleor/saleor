@@ -521,11 +521,27 @@ def test_create_order_insufficient_stock(
     add_variant_to_cart(request_cart, variant, 10, check_quantity=False)
     request_cart.user = customer_user
     request_cart.billing_address = customer_user.default_billing_address
+    cart.shipping_address = customer_user.default_billing_address
     request_cart.save()
 
     with pytest.raises(InsufficientStock):
         create_order(
             request_cart, 'tracking_code', discounts=None, taxes=None)
+
+
+def test_create_order_doesnt_duplicate_order(
+        cart_with_item, customer_user, shipping_method):
+    cart = cart_with_item
+    cart.user = customer_user
+    cart.billing_address = customer_user.default_billing_address
+    cart.shipping_address = customer_user.default_billing_address
+    cart.shipping_method = shipping_method
+    cart.save()
+
+    order_1 = create_order(cart, tracking_code='', discounts=None, taxes=None)
+    assert order_1.checkout_token == cart_with_item.token
+    order_2 = create_order(cart, tracking_code='', discounts=None, taxes=None)
+    assert order_1.pk == order_2.pk
 
 
 def test_note_in_created_order(request_cart_with_item, address):
