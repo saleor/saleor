@@ -69,7 +69,8 @@ const SaleSummary: React.StatelessComponent<SaleSummaryProps> = ({
       <Typography variant="body2">{i18n.t("End Date")}</Typography>
       <Typography>
         {maybe<React.ReactNode>(
-          () => (sale.endDate === null ? "-" : <Date date={sale.endDate} />),
+          () =>
+            sale.endDate === null ? "-" : <Date date={sale.endDate} plain />,
           <Skeleton />
         )}
       </Typography>
