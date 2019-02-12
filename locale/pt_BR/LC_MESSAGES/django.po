@@ -12,22 +12,23 @@
 # Wellington Oliveira <oliveira@live.it>, 2018
 # Thiago reis <thiagoth.reis@gmail.com>, 2018
 # Danrley Pereira <danrleywillyan@outlook.com>, 2018
-# Murilo Gonçalves Pereira <murilogp12@gmail.com>, 2018
-# Rafael Lima <rafael.liverpool@gmail.com>, 2018
 # Andre PS <andreuece@gmail.com>, 2018
 # Kaiê Guex <kaie.guex@gmail.com>, 2018
 # Roberto Junior <roberto.junior.hbl@gmail.com>, 2018
 # wcreis <wesley.c.reis@gmail.com>, 2019
 # Jean Marcos da Rosa <jeanmarcosdarosa@gmail.com>, 2019
+# Rafael Lima <rafael.liverpool@gmail.com>, 2019
+# Murilo Gonçalves Pereira <murilogp12@gmail.com>, 2019
+# Kelvin Prado <kelvinpfw@gmail.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-07 11:01-0600\n"
+"POT-Creation-Date: 2019-02-04 09:30-0600\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Jean Marcos da Rosa <jeanmarcosdarosa@gmail.com>, 2019\n"
+"Last-Translator: Kelvin Prado <kelvinpfw@gmail.com>, 2019\n"
 "Language-Team: Portuguese (Brazil) (https://www.transifex.com/mirumee/teams/34782/pt_BR/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -281,7 +282,7 @@ msgstr "Senha mudada com sucesso."
 #: saleor/account/views.py:106
 msgctxt "Storefront message"
 msgid "Account successfully updated."
-msgstr ""
+msgstr "Conta atualizada com sucesso."
 
 #: saleor/account/views.py:119
 msgctxt "Storefront message"
@@ -429,22 +430,22 @@ msgctxt "Voucher not applicable"
 msgid "Voucher expired in meantime. Order placement aborted."
 msgstr "Cupom expirei. Pedido abortado."
 
-#: saleor/checkout/utils.py:901
+#: saleor/checkout/utils.py:899
 msgctxt "order placement_error"
 msgid "Shipping method is not set"
 msgstr "Método de entrega não selecionado"
 
-#: saleor/checkout/utils.py:904
+#: saleor/checkout/utils.py:902
 msgctxt "order placement error"
 msgid "Shipping address is not set"
 msgstr "Endereço de entrega não selecionado"
 
-#: saleor/checkout/utils.py:908
+#: saleor/checkout/utils.py:906
 msgctxt "order placement error"
 msgid "Shipping method is not valid for your shipping address"
 msgstr "Método de entrega não é válido para o endereço de entrega definido"
 
-#: saleor/checkout/utils.py:911
+#: saleor/checkout/utils.py:909
 msgctxt "order placement error"
 msgid "Checkout is not fully paid"
 msgstr "Carrinho ainda tem itens sem pagamento"
@@ -579,6 +580,11 @@ msgctxt "VAT rate type"
 msgid "water"
 msgstr "água"
 
+#: saleor/core/__init__.py:88
+msgctxt "VAT rate type"
+msgid "wine"
+msgstr "vinho"
+
 #: saleor/core/filters.py:27
 #, python-format
 msgctxt "Number of matching records in the dashboard list"
@@ -592,7 +598,7 @@ msgctxt "Country choice"
 msgid "Any Country"
 msgstr "Qualquer país"
 
-#: saleor/core/views.py:39
+#: saleor/core/views.py:40
 msgctxt "Impersonation message"
 msgid "You are now logged as {}"
 msgstr "Você está logado como {}"
@@ -743,7 +749,7 @@ msgid "Draft"
 msgstr "Rascunho"
 
 #: saleor/order/__init__.py:23
-msgctxt "Status for an order with any items marked as fulfilled"
+msgctxt "Status for an order with no items marked as fulfilled"
 msgid "Unfulfilled"
 msgstr "Incompleto"
 
@@ -897,17 +903,17 @@ msgid_plural "%(quantity)d line items oversold on this order."
 msgstr[0] "%(quantity)d item de linha foi vendido neste pedido."
 msgstr[1] "%(quantity)d itens de linha foram vendidos neste pedido."
 
-#: saleor/order/forms.py:15
+#: saleor/order/forms.py:16
 msgctxt "Payments form label"
 msgid "Payment Method"
 msgstr "Método de pagamento"
 
-#: saleor/order/forms.py:35
+#: saleor/order/forms.py:36
 msgctxt "Payment delete form error"
 msgid "Payment does not exist"
 msgstr "O pagamento não existe"
 
-#: saleor/order/forms.py:40
+#: saleor/order/forms.py:41
 msgctxt "Payment delete form error"
 msgid "Payment cannot be cancelled."
 msgstr "Pagamento não pode ser cancelado"
@@ -923,7 +929,7 @@ msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
 msgstr "Fulfillment #%s"
 
-#: saleor/order/views.py:193
+#: saleor/order/views.py:197
 msgctxt "Connect order with user warning message"
 msgid ""
 "We couldn't assign the order to your account as the email addresses don't "
@@ -932,7 +938,7 @@ msgstr ""
 "Nós não podemos vincular o pedido a sua conta pois o endereço de e-mail está"
 " incorreto"
 
-#: saleor/order/views.py:200
+#: saleor/order/views.py:204
 msgctxt "storefront message"
 msgid "The order is now assigned to your account"
 msgstr "O pedido foi vinculado a sua conta"
@@ -942,58 +948,60 @@ msgctxt "Permission description"
 msgid "Manage pages."
 msgstr "Gerenciar páginas."
 
-#: saleor/payment/__init__.py:19
+#: saleor/payment/__init__.py:24
 msgctxt "Custom payment choice type"
 msgid "Manual"
 msgstr "Manual"
 
-#: saleor/payment/__init__.py:54
+#: saleor/payment/__init__.py:68
 msgctxt "transaction kind"
 msgid "Authorization"
 msgstr "Autorização"
 
-#: saleor/payment/__init__.py:55
+#: saleor/payment/__init__.py:69
 msgctxt "transaction kind"
 msgid "Charge"
 msgstr "Cobrança"
 
-#: saleor/payment/__init__.py:56
+#: saleor/payment/__init__.py:70
 msgctxt "transaction kind"
 msgid "Refund"
 msgstr "Restituição"
 
-#: saleor/payment/__init__.py:57
+#: saleor/payment/__init__.py:71
 msgctxt "transaction kind"
 msgid "Capture"
 msgstr "Receber"
 
-#: saleor/payment/__init__.py:58
+#: saleor/payment/__init__.py:72
 msgctxt "transaction kind"
 msgid "Void"
 msgstr ""
 
-#: saleor/payment/__init__.py:77
+#: saleor/payment/__init__.py:91
 msgctxt "payment status"
 msgid "Charged"
 msgstr "Cobrado"
 
-#: saleor/payment/__init__.py:78
+#: saleor/payment/__init__.py:92
 msgctxt "payment status"
 msgid "Not charged"
 msgstr "Sem cobrança"
 
-#: saleor/payment/__init__.py:79
+#: saleor/payment/__init__.py:93
 msgctxt "payment status"
 msgid "Fully refunded"
-msgstr ""
+msgstr "Totalmente reembolsado"
 
-#: saleor/payment/gateways/braintree/__init__.py:63
-#: saleor/payment/gateways/braintree/forms.py:36
+#: saleor/payment/gateways/braintree/__init__.py:71
+#: saleor/payment/gateways/braintree/forms.py:35
 msgctxt "payment error"
 msgid "Unable to process transaction. Please try again in a moment"
 msgstr ""
+"Não foi possível processar a transação. Por favor, tente novamente em alguns"
+" instantes"
 
-#: saleor/payment/gateways/dummy/forms.py:10
+#: saleor/payment/gateways/dummy/forms.py:9
 msgctxt "Payment status form field"
 msgid "Payment status"
 msgstr "Status do pagamento"
@@ -1001,17 +1009,17 @@ msgstr "Status do pagamento"
 #: saleor/payment/gateways/razorpay/errors.py:5
 msgctxt "Razorpay payment error"
 msgid "Order was not charged."
-msgstr ""
+msgstr "O pedido não foi cobrado."
 
 #: saleor/payment/gateways/razorpay/errors.py:7
 msgctxt "Razorpay payment error"
 msgid "The payment data was invalid."
-msgstr ""
+msgstr "Os dados de pagamento eram inválidos."
 
 #: saleor/payment/gateways/razorpay/errors.py:9
 msgctxt "Razorpay payment error"
 msgid "The order couldn't be proceeded."
-msgstr ""
+msgstr "O pedido não pôde ser processado."
 
 #: saleor/payment/gateways/razorpay/errors.py:11
 #, python-format
@@ -1022,27 +1030,27 @@ msgstr ""
 #: saleor/payment/gateways/razorpay/forms.py:14
 msgctxt "Rozorpay payment gateway primary button"
 msgid "Pay now with Razorpay"
-msgstr ""
+msgstr "Page agora com Razorpay"
 
 #: saleor/payment/gateways/razorpay/forms.py:16
 msgctxt "Rozorpay payment gateway secondary title"
 msgid "Total payment"
-msgstr ""
+msgstr "Pagamento total"
 
 #: saleor/payment/gateways/stripe/errors.py:4
 msgctxt "Stripe payment error"
 msgid "Order was not authorized."
-msgstr ""
+msgstr "O pedido não foi autorizado."
 
 #: saleor/payment/gateways/stripe/errors.py:6
 msgctxt "Stripe payment error"
 msgid "Order was not charged."
-msgstr ""
+msgstr "O pedido não foi cobrado."
 
-#: saleor/payment/gateways/stripe/forms.py:12
+#: saleor/payment/gateways/stripe/forms.py:11
 msgctxt "Stripe payment gateway description"
 msgid "Total payment"
-msgstr ""
+msgstr "Pagamento total"
 
 #: saleor/product/__init__.py:15
 msgctxt "Product status"
@@ -1130,127 +1138,135 @@ msgid "Arabic"
 msgstr ""
 
 #: saleor/settings.py:62
+msgid "Azerbaijani"
+msgstr ""
+
+#: saleor/settings.py:63
 msgid "Bulgarian"
 msgstr "Búlgaro"
 
-#: saleor/settings.py:63
+#: saleor/settings.py:64
 msgid "Bengali"
 msgstr ""
 
-#: saleor/settings.py:64
-msgid "Catalan"
-msgstr ""
-
 #: saleor/settings.py:65
+msgid "Catalan"
+msgstr "Catalão"
+
+#: saleor/settings.py:66
 msgid "Czech"
 msgstr "Checo"
 
-#: saleor/settings.py:66
+#: saleor/settings.py:67
 msgid "Danish"
 msgstr ""
 
-#: saleor/settings.py:67
+#: saleor/settings.py:68
 msgid "German"
 msgstr "Alemão"
 
-#: saleor/settings.py:68
+#: saleor/settings.py:69
 msgid "English"
 msgstr "Inglês"
 
-#: saleor/settings.py:69
+#: saleor/settings.py:70
 msgid "Spanish"
 msgstr "Espanhol"
 
-#: saleor/settings.py:70
+#: saleor/settings.py:71
 msgid "Persian"
 msgstr ""
 
-#: saleor/settings.py:71
+#: saleor/settings.py:72
 msgid "French"
 msgstr "Francês"
 
-#: saleor/settings.py:72
+#: saleor/settings.py:73
+msgid "Hindi"
+msgstr ""
+
+#: saleor/settings.py:74
 msgid "Hungarian"
 msgstr "Húngaro"
 
-#: saleor/settings.py:73
+#: saleor/settings.py:75
 msgid "Italian"
 msgstr "Italiano"
 
-#: saleor/settings.py:74
+#: saleor/settings.py:76
 msgid "Japanese"
 msgstr "Japonês"
 
-#: saleor/settings.py:75
+#: saleor/settings.py:77
 msgid "Korean"
 msgstr "Coreano"
 
-#: saleor/settings.py:76
+#: saleor/settings.py:78
 msgid "Mongolian"
 msgstr ""
 
-#: saleor/settings.py:77
+#: saleor/settings.py:79
 msgid "Norwegian"
 msgstr "Norueguês"
 
-#: saleor/settings.py:78
+#: saleor/settings.py:80
 msgid "Dutch"
 msgstr "Holandês"
 
-#: saleor/settings.py:79
+#: saleor/settings.py:81
 msgid "Polish"
 msgstr "Polonês"
 
-#: saleor/settings.py:80
+#: saleor/settings.py:82
 msgid "Brazilian Portuguese"
-msgstr ""
+msgstr "Português Brasileiro"
 
-#: saleor/settings.py:81
+#: saleor/settings.py:83
 msgid "Romanian"
 msgstr "Romena"
 
-#: saleor/settings.py:82
+#: saleor/settings.py:84
 msgid "Russian"
 msgstr "Russo"
 
-#: saleor/settings.py:83
+#: saleor/settings.py:85
 msgid "Slovak"
 msgstr "Eslovaco"
 
-#: saleor/settings.py:84
+#: saleor/settings.py:86
 msgid "Serbian"
 msgstr ""
 
-#: saleor/settings.py:85
+#: saleor/settings.py:87
 msgid "Swedish"
-msgstr ""
+msgstr "Sueco"
 
-#: saleor/settings.py:86
+#: saleor/settings.py:88
 msgid "Turkish"
 msgstr "Turco"
 
-#: saleor/settings.py:87
+#: saleor/settings.py:89
 msgid "Ukrainian"
 msgstr "Ucraniano"
 
-#: saleor/settings.py:88
+#: saleor/settings.py:90
 msgid "Vietnamese"
 msgstr "Vietinamita"
 
-#: saleor/settings.py:89
+#: saleor/settings.py:91
 msgid "Simplified Chinese"
-msgstr ""
+msgstr "Chinês simplificado"
 
-#: saleor/settings.py:90
+#: saleor/settings.py:92
 msgid "Traditional Chinese"
-msgstr ""
+msgstr "Chinês tradicional"
 
-#: saleor/settings.py:326
+#: saleor/settings.py:328
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr "União Européia"
 
-#: saleor/settings.py:563
+#: saleor/settings.py:565
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr ""
@@ -1434,7 +1450,7 @@ msgstr "Mudar senha"
 #: templates/account/details.html:42
 msgctxt "User profile tab"
 msgid "Contact details"
-msgstr ""
+msgstr "Detalhes de contato"
 
 #: templates/account/details.html:47
 msgctxt "User profile tab"
@@ -1458,51 +1474,56 @@ msgstr "Resumo"
 
 #: templates/account/details.html:68
 msgctxt "Recent orders column title"
-msgid "Status"
-msgstr "Estado"
+msgid "Payment status"
+msgstr "Status do pagamento"
 
-#: templates/account/details.html:92
+#: templates/account/details.html:71
+msgctxt "Recent orders column title"
+msgid "Order status"
+msgstr "Status do pedido"
+
+#: templates/account/details.html:96
 msgctxt "Recent orders link text"
 msgid "Details"
 msgstr "Detalhes"
 
-#: templates/account/details.html:107
+#: templates/account/details.html:111
 msgctxt "No recent orders text"
 msgid "There are not any completed orders yet."
 msgstr "Não existem pedidos concluídos ainda."
 
-#: templates/account/details.html:118
+#: templates/account/details.html:122
 msgctxt "User profile action"
 msgid "Change password"
 msgstr "Mudar senha"
 
-#: templates/account/details.html:125
+#: templates/account/details.html:129
 msgctxt "User profile settings"
 msgid "Personal Data"
-msgstr ""
+msgstr "Dados Pessoais"
 
-#: templates/account/details.html:132
+#: templates/account/details.html:136
 msgctxt "User profile action"
 msgid "Update"
 msgstr "Atualizar"
 
-#: templates/account/details.html:137
+#: templates/account/details.html:141
 msgctxt "List of adresses in contact details"
 msgid "Addresses"
-msgstr ""
+msgstr "Endereços"
 
-#: templates/account/details.html:148
+#: templates/account/details.html:152
 msgctxt "User address action"
 msgid "Edit"
 msgstr "Editar"
 
-#: templates/account/details.html:164
+#: templates/account/details.html:168
 msgctxt "No addresses text"
 msgid "You will see new addresses here after first successful checkout."
 msgstr ""
 "Você vai ver novos endereços aqui após o primeiro check-out bem sucedido."
 
-#: templates/account/details.html:175
+#: templates/account/details.html:179
 msgctxt "Message informing about the process of account removal"
 msgid ""
 "\n"
@@ -1513,7 +1534,7 @@ msgstr ""
 "                  Se você deseja remover sua conta, por favor clicar no botão abaixo e um e-mail para confirmação será enviado para você.\n"
 "                "
 
-#: templates/account/details.html:180
+#: templates/account/details.html:184
 msgctxt "Remove account form action"
 msgid "Remove Account"
 msgstr "Remover conta"
@@ -1746,19 +1767,22 @@ msgctxt "Main navigation item"
 msgid "Log in"
 msgstr "Entrar"
 
-#: templates/base.html:120
-msgctxt "Hamburger button text"
-msgid "menu"
-msgstr "menu"
-
-#: templates/base.html:137
+#: templates/base.html:136
 msgid "Search for product"
 msgstr "Procurar por produto"
 
-#: templates/base.html:149 templates/base.html:208
+#: templates/base.html:139
+msgid "Search"
+msgstr "Pesquisar"
+
+#: templates/base.html:148 templates/base.html:208
 msgctxt "Main navigation item"
 msgid "Your Cart"
 msgstr "Seu carrinho"
+
+#: templates/base.html:202
+msgid "Account"
+msgstr "Conta"
 
 #: templates/base.html:220
 msgctxt "Main navigation item"
@@ -1947,40 +1971,35 @@ msgctxt "Checkout shipping address title"
 msgid "Shipping address"
 msgstr "Endereço de entrega"
 
-#: templates/checkout/shipping_address.html:18
+#: templates/checkout/shipping_address.html:19
 msgctxt "Checkout shipping address primary action"
 msgid "Continue"
 msgstr "Continuar"
 
-#: templates/checkout/shipping_method.html:9
+#: templates/checkout/shipping_method.html:15
 msgid "Select other address"
 msgstr "Selecione outro endereço"
 
-#: templates/checkout/shipping_method.html:14
+#: templates/checkout/shipping_method.html:23
 msgctxt "Checkout shipping method form title"
 msgid "Shipping method"
 msgstr "Método de envio"
 
-#: templates/checkout/shipping_method.html:18
+#: templates/checkout/shipping_method.html:40
 msgctxt "Checkout shipping method primary action"
 msgid "Continue"
 msgstr "Continuar"
 
-#: templates/checkout/shipping_method.html:23
+#: templates/checkout/shipping_method.html:45
 msgctxt ""
 "Message displayed to the user if there's no shipping methods for his country"
 msgid ""
 "\n"
-"      Unfortunately we do not ship to your selected country.\n"
-"      <br>\n"
-"      Please enter an alternative shipping address or contact us, if you think that's a mistake.\n"
-"    "
+"        Unfortunately we do not ship to your selected country.\n"
+"        <br>\n"
+"        Please enter an alternative shipping address or contact us, if you think that's a mistake.\n"
+"      "
 msgstr ""
-"\n"
-"      Infelizmente não realizamos entregas no país selecionado por você.\n"
-"      <br>\n"
-"      Por favor, entre com um endereço de envio alternativo ou entre em contato conosco, se você acha que isso é um engano.\n"
-"    "
 
 #: templates/checkout/snippets/addresses_form.html:4
 msgctxt "Checkout addresses form label"
@@ -2007,22 +2026,22 @@ msgctxt "Checkout voucher form action"
 msgid "Use"
 msgstr "Usar"
 
-#: templates/checkout/summary.html:8
+#: templates/checkout/summary.html:9
 msgctxt "Checkout summary title"
 msgid "Billing address"
 msgstr "Endereço de cobrança"
 
-#: templates/checkout/summary.html:10
+#: templates/checkout/summary.html:11
 msgctxt "Checkout shipping method"
 msgid "Change shipping method"
 msgstr "Alterar forma de envio"
 
-#: templates/checkout/summary.html:11
+#: templates/checkout/summary.html:12
 msgctxt "Checkout summary note title"
 msgid "Add a note to your order"
 msgstr "Adicionar uma anotação ao seu pedido"
 
-#: templates/checkout/summary.html:15
+#: templates/checkout/summary.html:16
 msgctxt "Checkout summary primary action"
 msgid "Order & Pay"
 msgstr "Pedido e Pagamento"
@@ -2209,12 +2228,12 @@ msgctxt "Dashboard shipping zones list"
 msgid "Shipping"
 msgstr "Entrega"
 
-#: templates/dashboard/base.html:207 templates/dashboard/menu/detail.html:21
-#: templates/dashboard/menu/form.html:12 templates/dashboard/menu/form.html:29
-#: templates/dashboard/menu/item/detail.html:22
-#: templates/dashboard/menu/item/detail.html:28
-#: templates/dashboard/menu/item/form.html:29
-#: templates/dashboard/menu/list.html:30
+#: templates/dashboard/base.html:207 templates/dashboard/menu/detail.html:23
+#: templates/dashboard/menu/form.html:12 templates/dashboard/menu/form.html:31
+#: templates/dashboard/menu/item/detail.html:24
+#: templates/dashboard/menu/item/detail.html:30
+#: templates/dashboard/menu/item/form.html:31
+#: templates/dashboard/menu/list.html:32
 msgctxt "Dashboard menus list"
 msgid "Navigation"
 msgstr "Navegação"
@@ -2247,8 +2266,8 @@ msgstr ""
 #: templates/dashboard/customer/form.html:66
 #: templates/dashboard/discount/sale/form.html:115
 #: templates/dashboard/discount/voucher/form.html:125
-#: templates/dashboard/menu/form.html:58
-#: templates/dashboard/menu/item/form.html:80
+#: templates/dashboard/menu/form.html:60
+#: templates/dashboard/menu/item/form.html:82
 #: templates/dashboard/order/address_form.html:61
 #: templates/dashboard/order/fulfillment.html:133
 #: templates/dashboard/product/attribute/form.html:77
@@ -2302,7 +2321,7 @@ msgstr "Subcategorias"
 #: templates/dashboard/product/attribute/detail.html:68
 #: templates/dashboard/product/detail.html:93
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:13
-#: templates/dashboard/sites/detail.html:77
+#: templates/dashboard/sites/detail.html:79
 msgid "Add"
 msgstr "Adicionar"
 
@@ -2363,8 +2382,8 @@ msgstr "Adicionar nova categoria"
 #: templates/dashboard/customer/form.html:62
 #: templates/dashboard/discount/sale/form.html:119
 #: templates/dashboard/discount/voucher/form.html:129
-#: templates/dashboard/menu/form.html:62
-#: templates/dashboard/menu/item/form.html:84
+#: templates/dashboard/menu/form.html:64
+#: templates/dashboard/menu/item/form.html:86
 #: templates/dashboard/order/address_form.html:64
 #: templates/dashboard/order/modal/change_quantity.html:19
 #: templates/dashboard/product/product_type/form.html:117
@@ -2378,8 +2397,8 @@ msgstr "Atualizar"
 #: templates/dashboard/category/form.html:127
 #: templates/dashboard/discount/sale/form.html:123
 #: templates/dashboard/discount/voucher/form.html:133
-#: templates/dashboard/menu/form.html:66
-#: templates/dashboard/menu/item/form.html:88
+#: templates/dashboard/menu/form.html:68
+#: templates/dashboard/menu/item/form.html:90
 #: templates/dashboard/product/attribute/form.html:87
 #: templates/dashboard/product/attribute/values/form.html:86
 #: templates/dashboard/product/form.html:144
@@ -3084,8 +3103,8 @@ msgstr ""
 "      Oculto (ficará visível em %(date)s)\n"
 "    "
 
-#: templates/dashboard/index.html:15 templates/dashboard/index.html:69
-#: templates/dashboard/index.html:133
+#: templates/dashboard/index.html:15 templates/dashboard/index.html:82
+#: templates/dashboard/index.html:136
 #, python-format
 msgctxt "Dashboard homepage summary header title"
 msgid "Showing last %(counter)s results"
@@ -3093,91 +3112,95 @@ msgstr "Mostrando os últimos %(counter)s resultados"
 
 #: templates/dashboard/index.html:16
 msgctxt "Dashboard homepage table title"
-msgid "Preauthorized payments"
-msgstr "Pagamentos pré-autorizados"
-
-#: templates/dashboard/index.html:25
-msgctxt "Preauthorized payments table header"
-msgid "Order"
-msgstr "Encomenda"
-
-#: templates/dashboard/index.html:28
-msgctxt "Preauthorized payments table header"
-msgid "Date"
-msgstr "Data"
-
-#: templates/dashboard/index.html:31
-msgctxt "Preauthorized payments table header"
-msgid "Customer"
-msgstr "Cliente"
-
-#: templates/dashboard/index.html:34
-msgctxt "Preauthorized payments table header"
-msgid "Amount"
-msgstr "Montante"
-
-#: templates/dashboard/index.html:48
-msgid "Guest"
-msgstr "Convidado"
-
-#: templates/dashboard/index.html:61
-msgctxt "Empty Preauthorized payments table message"
-msgid "No preauthorized payments."
-msgstr "Nenhum pagamento pré-autorizado."
-
-#: templates/dashboard/index.html:70
-msgctxt "Dashboard homepage table title"
 msgid "Orders ready for shipment"
 msgstr "Encomendas prontas para envio"
 
-#: templates/dashboard/index.html:83 templates/dashboard/order/list.html:46
-msgctxt "Orders table header"
-msgid "Customer"
-msgstr "Cliente"
-
-#: templates/dashboard/index.html:86 templates/dashboard/order/list.html:49
+#: templates/dashboard/index.html:28 templates/dashboard/order/list.html:44
 msgctxt "Orders table header"
 msgid "Placed on"
 msgstr "Colocado sobre"
 
-#: templates/dashboard/index.html:89 templates/dashboard/order/list.html:52
+#: templates/dashboard/index.html:31 templates/dashboard/order/list.html:47
+msgctxt "Orders table header"
+msgid "Customer"
+msgstr "Cliente"
+
+#: templates/dashboard/index.html:34 templates/dashboard/order/list.html:50
 msgctxt "Orders table header"
 msgid "Payment status"
 msgstr "Status do pagamento"
 
-#: templates/dashboard/index.html:92 templates/dashboard/order/list.html:55
+#: templates/dashboard/index.html:37 templates/dashboard/order/list.html:53
+msgctxt "Orders table header"
+msgid "Order status"
+msgstr "Status do pedido"
+
+#: templates/dashboard/index.html:40 templates/dashboard/order/list.html:56
 msgctxt "Orders table header"
 msgid "Total"
 msgstr "Total"
 
-#: templates/dashboard/index.html:105
-#: templates/dashboard/order/detail.html:211
-#: templates/dashboard/order/list.html:68
+#: templates/dashboard/index.html:53 templates/dashboard/order/detail.html:211
+#: templates/dashboard/order/list.html:69
 msgctxt "Anonymous user account value"
 msgid "Guest"
 msgstr "Convidado"
 
-#: templates/dashboard/index.html:126
+#: templates/dashboard/index.html:74
 msgctxt "Empty order table message"
 msgid "No orders are ready for shipment."
 msgstr "Nenhuma encomenda pronta para envio."
 
-#: templates/dashboard/index.html:134
+#: templates/dashboard/index.html:83
+msgctxt "Dashboard homepage table title"
+msgid "Preauthorized payments"
+msgstr "Pagamentos pré-autorizados"
+
+#: templates/dashboard/index.html:92
+msgctxt "Preauthorized payments table header"
+msgid "Order"
+msgstr "Encomenda"
+
+#: templates/dashboard/index.html:95
+msgctxt "Preauthorized payments table header"
+msgid "Date"
+msgstr "Data"
+
+#: templates/dashboard/index.html:98
+msgctxt "Preauthorized payments table header"
+msgid "Customer"
+msgstr "Cliente"
+
+#: templates/dashboard/index.html:101
+msgctxt "Preauthorized payments table header"
+msgid "Amount"
+msgstr "Montante"
+
+#: templates/dashboard/index.html:115
+msgid "Guest"
+msgstr "Convidado"
+
+#: templates/dashboard/index.html:128
+msgctxt "Empty Preauthorized payments table message"
+msgid "No preauthorized payments."
+msgstr "Nenhum pagamento pré-autorizado."
+
+#: templates/dashboard/index.html:137
 msgctxt "Dashboard homepage table title"
 msgid "Products with low stock"
 msgstr "Produtos com poucas unidades"
 
-#: templates/dashboard/index.html:143
+#: templates/dashboard/index.html:146
 msgctxt "Low stock product list"
 msgid "Product name"
 msgstr "Nome do Produto"
 
-#: templates/dashboard/index.html:146
+#: templates/dashboard/index.html:149
 msgctxt "Low stock product list"
 msgid "Stock left"
 msgstr "Saida de Estoque"
 
-#: templates/dashboard/index.html:167
+#: templates/dashboard/index.html:170
 msgctxt "Empty low stock table message"
 msgid "No products are low in stock."
 msgstr "Nenhum produto está em falta no estoque."
@@ -3187,12 +3210,12 @@ msgctxt "Menu list page title"
 msgid "Navigation"
 msgstr "Navegação"
 
-#: templates/dashboard/menu/detail.html:48
+#: templates/dashboard/menu/detail.html:50
 msgctxt "Menu detail view action"
 msgid "Edit menu"
 msgstr "Editar menu"
 
-#: templates/dashboard/menu/detail.html:51
+#: templates/dashboard/menu/detail.html:53
 msgctxt "Menu detail view action"
 msgid "Remove menu"
 msgstr "Remover menu"
@@ -3202,12 +3225,12 @@ msgctxt "Menu form page title"
 msgid "Edit menu"
 msgstr "Editar menu"
 
-#: templates/dashboard/menu/form.html:10 templates/dashboard/menu/form.html:21
+#: templates/dashboard/menu/form.html:10 templates/dashboard/menu/form.html:23
 msgctxt "Menu form page title"
 msgid "Add new menu"
 msgstr "Adicionar novo menu"
 
-#: templates/dashboard/menu/form.html:39
+#: templates/dashboard/menu/form.html:41
 msgctxt "Menu detail breadcrumbs"
 msgid "Add new menu"
 msgstr "Adicionar novo menu"
@@ -3217,17 +3240,17 @@ msgctxt "Menu item list page title"
 msgid "Menu items"
 msgstr "Itens do menu"
 
-#: templates/dashboard/menu/item/detail.html:73
+#: templates/dashboard/menu/item/detail.html:75
 msgctxt "Menu item field"
 msgid "Points to"
 msgstr "Aponta para"
 
-#: templates/dashboard/menu/item/detail.html:85
+#: templates/dashboard/menu/item/detail.html:87
 msgctxt "Menu item detail view action"
 msgid "Edit menu item"
 msgstr "Editar item de menu"
 
-#: templates/dashboard/menu/item/detail.html:88
+#: templates/dashboard/menu/item/detail.html:90
 msgctxt "Menu item detail view action"
 msgid "Remove menu item"
 msgstr "Remover item do menu"
@@ -3238,7 +3261,7 @@ msgid "Edit menu item"
 msgstr "Editar item do menu"
 
 #: templates/dashboard/menu/item/form.html:10
-#: templates/dashboard/menu/item/form.html:21
+#: templates/dashboard/menu/item/form.html:23
 msgctxt "Menu item page title"
 msgid "Add new menu item"
 msgstr "Adicionar novo item de menu"
@@ -3248,12 +3271,12 @@ msgctxt "Dashboard menu items list"
 msgid "Menu items"
 msgstr "Itens do menu"
 
-#: templates/dashboard/menu/item/form.html:54
+#: templates/dashboard/menu/item/form.html:56
 msgctxt "Menu form page title"
 msgid "Edit"
 msgstr "Editar"
 
-#: templates/dashboard/menu/item/form.html:60
+#: templates/dashboard/menu/item/form.html:62
 msgctxt "Menu form page title"
 msgid "Add new menu item"
 msgstr "Adicionar novo item de menu"
@@ -3280,26 +3303,26 @@ msgctxt "Remove menu modal text about descendant menu items"
 msgid "The following menu items will be removed:"
 msgstr "Os seguintes  itens do menu serão excluídos:"
 
-#: templates/dashboard/menu/list.html:20
+#: templates/dashboard/menu/list.html:22
 msgctxt "Menu list add button text"
 msgid "Add menu"
 msgstr "Adicionar menu"
 
-#: templates/dashboard/menu/list.html:45
+#: templates/dashboard/menu/list.html:47
 msgctxt "Menu list table header Menu name"
 msgid "Menu name"
 msgstr "Nome do menu"
 
-#: templates/dashboard/menu/list.html:69
+#: templates/dashboard/menu/list.html:71
 msgctxt "Empty menu list message"
 msgid "No menus found."
 msgstr "Nenhum menu encontrado."
 
-#: templates/dashboard/menu/list.html:82
+#: templates/dashboard/menu/list.html:84
 msgid "Storefront Menus"
 msgstr "Menus da loja"
 
-#: templates/dashboard/menu/list.html:95
+#: templates/dashboard/menu/list.html:97
 #: templates/dashboard/product/attribute/form.html:80
 #: templates/dashboard/product/attribute/values/form.html:82
 #: templates/dashboard/product/form.html:137
@@ -3783,7 +3806,7 @@ msgctxt "Order list add button text"
 msgid "Add order"
 msgstr "Adicionar pedido"
 
-#: templates/dashboard/order/list.html:97
+#: templates/dashboard/order/list.html:98
 msgctxt "Empty order list message"
 msgid "No orders found."
 msgstr "Sem pedidos encontrados."
@@ -4090,7 +4113,7 @@ msgstr ""
 #: templates/dashboard/order/modal/void.html:17
 msgctxt "Modal void payment text"
 msgid "Do you want to void the payment?"
-msgstr ""
+msgstr "Você deseja anular o pagamento?"
 
 #: templates/dashboard/order/modal/void.html:22
 msgctxt "Modal void payment primary action"
@@ -5355,52 +5378,52 @@ msgctxt "Authorization key form title"
 msgid "Authorization key"
 msgstr "Chave de autorização"
 
-#: templates/dashboard/sites/detail.html:33
+#: templates/dashboard/sites/detail.html:35
 msgctxt "Site settings field"
 msgid "Domain"
 msgstr "Domínio"
 
-#: templates/dashboard/sites/detail.html:43
+#: templates/dashboard/sites/detail.html:45
 msgctxt "Site settings field"
 msgid "Header text"
 msgstr "Texto de cabeçalho"
 
-#: templates/dashboard/sites/detail.html:53
+#: templates/dashboard/sites/detail.html:55
 msgctxt "Site settings field"
 msgid "Description"
 msgstr "Descrição"
 
-#: templates/dashboard/sites/detail.html:63
+#: templates/dashboard/sites/detail.html:65
 msgctxt "Site settings action"
 msgid "Edit site settings"
 msgstr "Editar configurações do site"
 
-#: templates/dashboard/sites/detail.html:72
+#: templates/dashboard/sites/detail.html:74
 msgctxt "Title of the authorization keys list"
 msgid "Authorization keys"
 msgstr "Chaves de autorização"
 
-#: templates/dashboard/sites/detail.html:85
+#: templates/dashboard/sites/detail.html:87
 msgctxt "Header of authorization keys list"
 msgid "Name"
 msgstr "Nome"
 
-#: templates/dashboard/sites/detail.html:88
+#: templates/dashboard/sites/detail.html:90
 msgctxt "Header of authorization keys list"
 msgid "Key"
 msgstr "Chave"
 
-#: templates/dashboard/sites/detail.html:99
+#: templates/dashboard/sites/detail.html:101
 msgctxt "Authorization key edit action"
 msgid "Edit"
 msgstr "Editar"
 
-#: templates/dashboard/sites/detail.html:102
+#: templates/dashboard/sites/detail.html:104
 msgctxt "Authorization key remove action"
 msgid "Remove"
 msgstr "Remover"
 
-#: templates/dashboard/sites/detail.html:108
+#: templates/dashboard/sites/detail.html:110
 msgctxt "Empty list of authorization keys"
 msgid "No authorization keys"
 msgstr "Sem chaves de autorização"
@@ -5811,65 +5834,65 @@ msgstr ""
 "          %(current_chars_count)s</span> de %(max_chars_count)s caracteres usados\n"
 "        "
 
-#: templates/order/_ordered_items_table.html:14
+#: templates/order/_ordered_items_table.html:15
 msgctxt "Order details address title"
 msgid "Shipping address"
 msgstr "Endereço de entrega"
 
-#: templates/order/_ordered_items_table.html:21
+#: templates/order/_ordered_items_table.html:25
 msgctxt "Order details address title"
 msgid "Billing address"
 msgstr "Endereço de cobrança"
 
-#: templates/order/_ordered_items_table.html:32
-#: templates/order/_ordered_items_table.html:173
+#: templates/order/_ordered_items_table.html:38
+#: templates/order/_ordered_items_table.html:183
 msgctxt "Order details column title"
 msgid "Product"
 msgstr "Produtos"
 
-#: templates/order/_ordered_items_table.html:37
-#: templates/order/_ordered_items_table.html:178
+#: templates/order/_ordered_items_table.html:43
+#: templates/order/_ordered_items_table.html:188
 msgctxt "Order details column title"
 msgid "Quantity"
 msgstr "Quantidade"
 
-#: templates/order/_ordered_items_table.html:42
+#: templates/order/_ordered_items_table.html:48
 msgctxt "Order details column title"
 msgid "Price"
 msgstr "Preço"
 
-#: templates/order/_ordered_items_table.html:85
+#: templates/order/_ordered_items_table.html:95
 msgctxt "Order details subtotal row text"
 msgid "Subtotal"
 msgstr "Subtotal"
 
-#: templates/order/_ordered_items_table.html:102
+#: templates/order/_ordered_items_table.html:112
 msgctxt "Order details shipment row text"
 msgid "Shipping"
 msgstr "Entrega"
 
-#: templates/order/_ordered_items_table.html:134
+#: templates/order/_ordered_items_table.html:144
 msgctxt "Order details taxes text"
 msgid "Taxes (included)"
 msgstr "Com Impostos"
 
-#: templates/order/_ordered_items_table.html:136
+#: templates/order/_ordered_items_table.html:146
 msgctxt "Order details taxes text"
 msgid "Taxes"
 msgstr "Impostos"
 
-#: templates/order/_ordered_items_table.html:150
+#: templates/order/_ordered_items_table.html:160
 msgctxt "Order details total text"
 msgid "Total"
 msgstr "Total"
 
-#: templates/order/_ordered_items_table.html:164
+#: templates/order/_ordered_items_table.html:174
 #, python-format
 msgctxt "Order details fulfillment title"
 msgid "Fulfillment #%(fulfillment)s"
 msgstr "Faturamento #%(fulfillment)s"
 
-#: templates/order/_ordered_items_table.html:207
+#: templates/order/_ordered_items_table.html:217
 msgctxt "Fulfillment tracking number details"
 msgid "Tracking number"
 msgstr "Código de rastreamento"
@@ -5947,8 +5970,8 @@ msgstr "Pedido %(order)s"
 #: templates/order/details.html:49
 #, python-format
 msgctxt "Order detail text"
-msgid "Order %(order)s: %(order_status)s"
-msgstr "Pedido %(order)s: %(order_status)s"
+msgid "Order %(order)s: %(payment_status)s & %(order_status)s"
+msgstr ""
 
 #: templates/order/details.html:56
 msgctxt "Order details link text"
@@ -6031,18 +6054,22 @@ msgctxt "Payment details title"
 msgid "Pay for order %(order)s"
 msgstr "Compra %(order)s"
 
-#: templates/order/payment.html:81
+#: templates/order/payment.html:77
+msgid "Choose payment method"
+msgstr "Escolha o método de pagamento"
+
+#: templates/order/payment.html:97
 msgctxt "Payment details primary action"
 msgid "Proceed to payment"
 msgstr "Prossiga para o pagamento"
 
-#: templates/order/payment.html:86
+#: templates/order/payment.html:103
 msgctxt "Payment details text"
 msgid "You've authorized transaction. Order is in processing"
 msgstr "Foi autorizada a transação. O pedido está sendo processado"
 
 #: templates/order/payment/braintree.html:28
-#: templates/order/payment/dummy.html:20
+#: templates/order/payment/dummy.html:30
 msgctxt "Payment form primary action"
 msgid "Make payment"
 msgstr "Realizar pagamento"
@@ -6067,7 +6094,7 @@ msgctxt "Header of the order summary table"
 msgid "Order details"
 msgstr "Detalhes do pedido"
 
-#: templates/order/payment/dummy.html:12
+#: templates/order/payment/dummy.html:25
 #: templates/order/payment/stripe.html:11
 msgctxt "Payment form (Stripe) secondary action"
 msgid "Change payment"
@@ -6101,31 +6128,25 @@ msgstr ""
 "<strong>Aviso!</strong> Você está visualizando uma página que ficará visível"
 " em <strong>%(date)s</strong>."
 
-#: templates/product/_filters.html:14
-#: templates/product/product_list_base.html:57
-msgctxt "Filter heading title"
-msgid "Filters"
-msgstr "Filtros"
-
-#: templates/product/_filters.html:17
-msgctxt "Product list page filters"
-msgid "Clear filters"
-msgstr "Limpar filtros"
-
-#: templates/product/_filters.html:63
+#: templates/product/_filters.html:47
 msgctxt "Product price filter"
 msgid "from"
 msgstr "de"
 
-#: templates/product/_filters.html:65
+#: templates/product/_filters.html:49
 msgctxt "Product price filter"
 msgid "to"
 msgstr "até"
 
-#: templates/product/_filters.html:71
+#: templates/product/_filters.html:57
+msgctxt "Product list page filters"
+msgid "Clear filters"
+msgstr "Limpar filtros"
+
+#: templates/product/_filters.html:60
 msgctxt "Apply filters button"
-msgid "Update"
-msgstr "Atualizar"
+msgid "Update results"
+msgstr "Atualizar resultados"
 
 #. Translators: Layout may break if character length is different than four.
 #: templates/product/_items.html:30
@@ -6180,36 +6201,41 @@ msgctxt "Product details title"
 msgid "Description"
 msgstr "Descrição"
 
-#: templates/product/product_list_base.html:65
+#: templates/product/product_list_base.html:83
+msgctxt "Filter heading title"
+msgid "Filters"
+msgstr "Filtros"
+
+#: templates/product/product_list_base.html:91
 msgid "Sort by: <b>name</b>"
 msgstr "Ordenar por: <b>nome</b>"
 
-#: templates/product/product_list_base.html:69
+#: templates/product/product_list_base.html:95
 msgid "Sort by: <b>price</b>"
 msgstr "Ordenar por: <b>preço</b>"
 
-#: templates/product/product_list_base.html:88
+#: templates/product/product_list_base.html:114
 msgctxt "Product list filters"
 msgid "Sort by"
 msgstr "Ordenar por"
 
-#: templates/product/product_list_base.html:94
+#: templates/product/product_list_base.html:120
 msgctxt "sort by option"
 msgid "ascending"
 msgstr "ascendente"
 
-#: templates/product/product_list_base.html:100
+#: templates/product/product_list_base.html:126
 msgctxt "sort by option"
 msgid "descending"
 msgstr "descendente"
 
-#: templates/product/product_list_base.html:152
+#: templates/product/product_list_base.html:158
 #: templates/search/results.html:34
 msgctxt "Search without results text"
 msgid "Sorry, no matches found for your request."
 msgstr "Desculpe, não consegui encontrar."
 
-#: templates/product/product_list_base.html:153
+#: templates/product/product_list_base.html:159
 #: templates/search/results.html:35
 msgctxt "Search without results text"
 msgid "Try again or shop new arrivals."
