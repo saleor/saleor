@@ -14,6 +14,7 @@ import CardTitle from "../../../components/CardTitle";
 import Hr from "../../../components/Hr";
 import TextFieldWithChoice from "../../../components/TextFieldWithChoice";
 import i18n from "../../../i18n";
+import { FormErrors } from "../../../types";
 import { SaleType } from "../../../types/globalTypes";
 import { FormData } from "../SaleDetailsPage";
 
@@ -21,11 +22,7 @@ export interface SalePricingProps {
   data: FormData;
   defaultCurrency: string;
   disabled: boolean;
-  errors: {
-    startDate?: string;
-    endDate?: string;
-    value?: string;
-  };
+  errors: FormErrors<"startDate" | "endDate" | "value">;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
