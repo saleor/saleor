@@ -26308,16 +26308,16 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
                   data-shrink="true"
                 >
                   Discount Value
                 </label>
                 <div
-                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
                 >
                   <input
-                    aria-invalid="true"
+                    aria-invalid="false"
                     class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
                     min="0"
                     name="value"
@@ -26349,11 +26349,6 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
                     </svg>
                   </div>
                 </div>
-                <p
-                  class="MuiFormHelperText-root-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
-                >
-                  Generic form error
-                </p>
               </div>
               <div
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
