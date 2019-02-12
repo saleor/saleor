@@ -54,7 +54,7 @@ storiesOf("Views / Discounts / Voucher details", module)
         "startDate",
         "type",
         "usageLimit",
-        "value"
+        "discountValue"
       ] as Array<keyof FormData>).map(formError)}
     />
   ));
