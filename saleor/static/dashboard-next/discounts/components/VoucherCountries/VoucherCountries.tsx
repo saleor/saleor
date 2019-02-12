@@ -11,6 +11,7 @@ import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableRow from "@material-ui/core/TableRow";
+import Typography from "@material-ui/core/Typography";
 import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import CloseIcon from "@material-ui/icons/Close";
 import classNames from "classnames";
@@ -34,6 +35,9 @@ const styles = (theme: Theme) =>
   createStyles({
     arrow: {
       marginRight: theme.spacing.unit * 1.5
+    },
+    caption: {
+      marginTop: theme.spacing.unit
     },
     pointer: {
       cursor: "pointer"
@@ -63,9 +67,16 @@ const VoucherCountries = withStyles(styles, {
       {(isCollapsed, { toggle: toggleCollapse }) => (
         <Card>
           <CardTitle
-            title={i18n.t("Countries assigned to {{ voucherName }}", {
-              voucherName: maybe(() => voucher.name)
-            })}
+            title={
+              <>
+                {i18n.t("Countries assigned to {{ voucherName }}", {
+                  voucherName: maybe(() => voucher.name)
+                })}
+                <Typography className={classes.caption} variant="caption">
+                  {i18n.t("Vouchers limited to these countries")}
+                </Typography>
+              </>
+            }
             toolbar={
               <Button
                 variant="flat"
@@ -121,7 +132,7 @@ const VoucherCountries = withStyles(styles, {
                   () => (
                     <TableRow>
                       <TableCell colSpan={2}>
-                        {i18n.t("No categories found")}
+                        {i18n.t("Voucher applies to all countries")}
                       </TableCell>
                     </TableRow>
                   )
