@@ -96,7 +96,7 @@ const DiscountCountrySelectDialog = withStyles(styles, {
                 <DialogContent>
                   <Typography>
                     {i18n.t(
-                      "Choose countries you want to add to shipping zone from list below"
+                      "Choose countries, you want voucher to be limited to, from the list below"
                     )}
                   </Typography>
                   <FormSpacer />
@@ -115,41 +115,6 @@ const DiscountCountrySelectDialog = withStyles(styles, {
                 </DialogContent>
                 <Hr />
                 <DialogContent className={classes.container}>
-                  <Typography className={classes.heading} variant="subheading">
-                    {i18n.t("Quick Pick", {
-                      context: "country selection"
-                    })}
-                  </Typography>
-                  <Table className={classes.table}>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell className={classes.wideCell}>
-                          <Typography>{i18n.t("Rest of The World")}</Typography>
-                          <Typography variant="caption">
-                            {i18n.t(
-                              "If selected, this will add all of the countries not selected to other shipping zones"
-                            )}
-                          </Typography>
-                        </TableCell>
-                        <TableCell
-                          padding="checkbox"
-                          className={classes.checkboxCell}
-                        >
-                          <Checkbox
-                            checked={data.allCountries}
-                            onChange={() =>
-                              change({
-                                target: {
-                                  name: "allCountries" as keyof FormData,
-                                  value: !data.allCountries
-                                }
-                              } as any)
-                            }
-                          />
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
                   <Typography className={classes.heading} variant="subheading">
                     {i18n.t("Countries A to Z", {
                       context: "country selection"
