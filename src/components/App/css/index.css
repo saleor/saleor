@@ -238,13 +238,13 @@ ul {
 .btn {
   padding: calc(var(--spacer) / 1.5) calc(var(--spacer) * 3);
   transition: background .5s, color .5s;
-  transform: skew(45deg);
+  transform: skew(-45deg);
   display: inline-block;
   font-size: calc(var(--font-size-base) * 1.2);
   text-decoration: none;
   & span {
     display: block;
-    transform: skew(-45deg);
+    transform: skew(45deg);
     text-transform: uppercase;
     font-weight: 500;
   }
