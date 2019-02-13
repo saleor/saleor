@@ -1,33 +1,41 @@
-import { AtomicBlockUtils } from "draft-js";
+import { EditorState, RichUtils } from "draft-js";
 import * as React from "react";
 
 interface LinkSourceProps {
-  editorState: any;
+  editorState: EditorState;
   entityType: {
     type: string;
   };
-  onComplete: (updateState: any) => void;
+  onComplete: (updateState: EditorState) => void;
 }
 
 class LinkSource extends React.Component<LinkSourceProps> {
   componentDidMount() {
     const { editorState, entityType, onComplete } = this.props;
 
-    const src = window.prompt("Link URL");
+    const href = window.prompt("Link URL");
 
-    if (src) {
+    if (href) {
       const content = editorState.getCurrentContent();
       const contentWithEntity = content.createEntity(
         entityType.type,
-        "IMMUTABLE",
-        { src }
+        "MUTABLE",
+        { href }
       );
       const entityKey = contentWithEntity.getLastCreatedEntityKey();
-      const nextState = AtomicBlockUtils.insertAtomicBlock(
-        editorState,
-        entityKey,
-        " "
+      const newEditorState = EditorState.set(editorState, {
+        currentContent: contentWithEntity
+      });
+      const nextState = RichUtils.toggleLink(
+        newEditorState,
+        newEditorState.getSelection(),
+        entityKey
       );
+      // const nextState = AtomicBlockUtils.insertAtomicBlock(
+      //   editorState,
+      //   entityKey,
+      //   " "
+      // );
 
       onComplete(nextState);
     } else {
