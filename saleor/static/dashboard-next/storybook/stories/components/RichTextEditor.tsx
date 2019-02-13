@@ -17,6 +17,7 @@ storiesOf("Generics / Rich text editor", module)
         <RichTextEditor
           disabled={false}
           initial={data.content}
+          label="Content"
           name="content"
           onChange={change}
         />
