@@ -1270,7 +1270,7 @@ exports[`Storyshots Generics / Date default 1`] = `
 <div>
   <time
     class=""
-    datetime="1523097884000"
+    datetime="1523052000000"
     title="Apr 7, 2018"
   >
     4 months ago
@@ -22180,7 +22180,7 @@ exports[`Storyshots Views / Discounts / Sale details collections 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
-                Jan 2, 2019
+                Jan 3, 2019
               </p>
               <div
                 class="FormSpacer-spacer-id"
@@ -22771,7 +22771,7 @@ exports[`Storyshots Views / Discounts / Sale details default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
-                Jan 2, 2019
+                Jan 3, 2019
               </p>
               <div
                 class="FormSpacer-spacer-id"
@@ -23382,7 +23382,7 @@ exports[`Storyshots Views / Discounts / Sale details form errors 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
-                Jan 2, 2019
+                Jan 3, 2019
               </p>
               <div
                 class="FormSpacer-spacer-id"
@@ -24822,7 +24822,7 @@ exports[`Storyshots Views / Discounts / Sale details products 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
-                Jan 2, 2019
+                Jan 3, 2019
               </p>
               <div
                 class="FormSpacer-spacer-id"
@@ -25091,7 +25091,7 @@ exports[`Storyshots Views / Discounts / Sale list default 1`] = `
               <time
                 class=""
                 datetime="1546470000000"
-                title="Jan 2, 2019"
+                title="Jan 3, 2019"
               >
                 in 5 months
               </time>
@@ -25121,7 +25121,7 @@ exports[`Storyshots Views / Discounts / Sale list default 1`] = `
               <time
                 class=""
                 datetime="1546470000000"
-                title="Jan 2, 2019"
+                title="Jan 3, 2019"
               >
                 in 5 months
               </time>
@@ -25151,7 +25151,7 @@ exports[`Storyshots Views / Discounts / Sale list default 1`] = `
               <time
                 class=""
                 datetime="1546470000000"
-                title="Jan 2, 2019"
+                title="Jan 3, 2019"
               >
                 in 5 months
               </time>
@@ -25181,7 +25181,7 @@ exports[`Storyshots Views / Discounts / Sale list default 1`] = `
               <time
                 class=""
                 datetime="1546470000000"
-                title="Jan 2, 2019"
+                title="Jan 3, 2019"
               >
                 in 5 months
               </time>
@@ -25211,7 +25211,7 @@ exports[`Storyshots Views / Discounts / Sale list default 1`] = `
               <time
                 class=""
                 datetime="1546470000000"
-                title="Jan 2, 2019"
+                title="Jan 3, 2019"
               >
                 in 5 months
               </time>
@@ -27112,7 +27112,7 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
-                Nov 26, 2018
+                Nov 27, 2018
               </p>
               <div
                 class="FormSpacer-spacer-id"
@@ -27770,7 +27770,7 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
-                Nov 26, 2018
+                Nov 27, 2018
               </p>
               <div
                 class="FormSpacer-spacer-id"
@@ -28757,7 +28757,7 @@ exports[`Storyshots Views / Discounts / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1546470000000"
-                title="Jan 2, 2019"
+                title="Jan 3, 2019"
               >
                 in 5 months
               </time>
@@ -28797,7 +28797,7 @@ exports[`Storyshots Views / Discounts / Voucher list default 1`] = `
               <time
                 class=""
                 datetime="1546470000000"
-                title="Jan 2, 2019"
+                title="Jan 3, 2019"
               >
                 in 5 months
               </time>
