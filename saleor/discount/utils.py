@@ -1,8 +1,10 @@
+import uuid
+
 from django.db.models import F
 from django.utils.translation import pgettext
 
 from ..core.utils.taxes import ZERO_MONEY, ZERO_TAXED_MONEY
-from .models import NotApplicable
+from .models import NotApplicable, Voucher
 
 
 def increase_voucher_usage(voucher):
@@ -86,3 +88,11 @@ def get_products_voucher_discount(voucher, prices):
         voucher.get_discount_amount_for(price) for price in prices)
     total_amount = sum(discounts, ZERO_MONEY)
     return total_amount
+
+
+def generate_voucher_code():
+    """Generate new unique voucher code."""
+    while True:
+        code = str(uuid.uuid4()).replace('-', '').upper()[:12]
+        if not Voucher.objects.filter(code=code).exists():
+            return code
