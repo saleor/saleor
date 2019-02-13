@@ -163,7 +163,7 @@ export interface ProductCreate_productCreate_product {
   purchaseCost: ProductCreate_productCreate_product_purchaseCost | null;
   isPublished: boolean;
   chargeTaxes: boolean;
-  availableOn: any | null;
+  publicationDate: any | null;
   attributes: ProductCreate_productCreate_product_attributes[];
   availability: ProductCreate_productCreate_product_availability | null;
   images: (ProductCreate_productCreate_product_images | null)[] | null;
@@ -184,7 +184,7 @@ export interface ProductCreate {
 
 export interface ProductCreateVariables {
   attributes?: (AttributeValueInput | null)[] | null;
-  availableOn?: any | null;
+  publicationDate?: any | null;
   category: string;
   chargeTaxes: boolean;
   collections?: (string | null)[] | null;

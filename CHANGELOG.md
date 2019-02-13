@@ -6,6 +6,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix problem with l10n in Braintree payment gateway template - #3691 by @Kwaidan00
 - Improve vouchers country limiting  - #3707 by @michaljelonek
 - Add support for date and datetime components - #3708 by @dominik-zeglen
+- Unify field names on product, collection and page - #3706 by @michaljelonek
 
 
 ## 2.3.0

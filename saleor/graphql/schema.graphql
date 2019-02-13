@@ -328,7 +328,7 @@ type CheckoutCreate {
 
 input CheckoutCreateInput {
   lines: [CheckoutLineInput]!
-  email: String!
+  email: String
   shippingAddress: AddressInput
   billingAddress: AddressInput
 }
@@ -417,7 +417,8 @@ type Collection implements Node {
   backgroundImage(size: Int): Image
   isPublished: Boolean!
   description: String!
-  publishedDate: Date
+  publicationDate: Date
+  publishedDate: Date @deprecated(reason: "publishedDate is deprecated, use publicationDate instead")
 }
 
 type CollectionAddProducts {
@@ -449,7 +450,7 @@ input CollectionCreateInput {
   backgroundImage: Upload
   backgroundImageAlt: String
   seo: SeoInput
-  publishedDate: Date
+  publicationDate: Date
   products: [ID]
 }
 
@@ -466,7 +467,7 @@ input CollectionInput {
   backgroundImage: Upload
   backgroundImageAlt: String
   seo: SeoInput
-  publishedDate: Date
+  publicationDate: Date
 }
 
 type CollectionRemoveProducts {
@@ -1177,8 +1178,10 @@ type Page implements Node {
   title: String!
   content: String!
   created: DateTime!
-  isVisible: Boolean!
-  availableOn: Date
+  isPublished: Boolean!
+  publicationDate: Date
+  availableOn: Date @deprecated(reason: "availableOn is deprecated, use publicationDate instead")
+  isVisible: Boolean @deprecated(reason: "isVisible is deprecated, use isPublished instead")
 }
 
 type PageCountableConnection {
@@ -1213,8 +1216,8 @@ input PageInput {
   slug: String
   title: String
   content: String
-  isVisible: Boolean
-  availableOn: String
+  isPublished: Boolean
+  publicationDate: String
   seo: SeoInput
 }
 
@@ -1332,7 +1335,7 @@ type Product implements Node {
   description: String!
   category: Category!
   price: Money
-  availableOn: Date
+  publicationDate: Date
   isPublished: Boolean!
   attributes: [SelectedAttribute!]!
   updatedAt: DateTime
@@ -1349,6 +1352,7 @@ type Product implements Node {
   purchaseCost: MoneyRange
   margin: Margin
   imageById(id: ID): ProductImage
+  availableOn: Date @deprecated(reason: "availableOn is deprecated, use publicationDate instead")
 }
 
 type ProductAvailability {
@@ -1379,7 +1383,7 @@ type ProductCreate {
 
 input ProductCreateInput {
   attributes: [AttributeValueInput]
-  availableOn: Date
+  publicationDate: Date
   category: ID
   chargeTaxes: Boolean
   collections: [ID]
@@ -1444,7 +1448,7 @@ input ProductImageUpdateInput {
 
 input ProductInput {
   attributes: [AttributeValueInput]
-  availableOn: Date
+  publicationDate: Date
   category: ID
   chargeTaxes: Boolean
   collections: [ID]

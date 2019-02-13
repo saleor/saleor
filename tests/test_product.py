@@ -58,7 +58,7 @@ def test_product_page_redirects_to_correct_slug(client, product):
 
 
 def test_product_preview(admin_client, client, product):
-    product.available_on = (
+    product.publication_date = (
         datetime.date.today() + datetime.timedelta(days=7))
     product.save()
     response = client.get(product.get_absolute_url())
@@ -615,7 +615,7 @@ def test_product_json_deserialization(category, product_type):
             "description": "Future almost cup national",
             "category": {category_pk},
             "price": {{"_type": "Money", "amount": "35.98", "currency": "USD"}},
-            "available_on": null,
+            "publication_date": null,
             "is_published": true,
             "attributes": "{{\\"9\\": \\"24\\", \\"10\\": \\"26\\"}}",
             "updated_at": "2018-07-19T13:30:24.195Z",
@@ -662,7 +662,7 @@ def test_json_no_currency_deserialization(category, product_type):
             "description": "Future almost cup national",
             "category": {category_pk},
             "price": {{"_type": "Money", "amount": "35.98"}},
-            "available_on": null,
+            "publication_date": null,
             "is_published": true,
             "attributes": "{{\\"9\\": \\"24\\", \\"10\\": \\"26\\"}}",
             "updated_at": "2018-07-19T13:30:24.195Z",

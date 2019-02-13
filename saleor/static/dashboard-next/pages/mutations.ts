@@ -27,8 +27,8 @@ export const pageUpdateMutation = gql`
     $title: String!
     $content: String!
     $slug: String!
-    $isVisible: Boolean!
-    $availableOn: String
+    $isPublished: Boolean!
+    $publicationDate: String
   ) {
     pageUpdate(
       id: $id
@@ -36,8 +36,8 @@ export const pageUpdateMutation = gql`
         title: $title
         content: $content
         slug: $slug
-        isVisible: $isVisible
-        availableOn: $availableOn
+        isPublished: $isPublished
+        publicationDate: $publicationDate
       }
     ) {
       page {
@@ -45,8 +45,8 @@ export const pageUpdateMutation = gql`
         slug
         title
         content
-        isVisible
-        availableOn
+        isPublished
+        publicationDate
       }
       errors {
         field
@@ -65,16 +65,16 @@ export const pageCreateMutation = gql`
     $title: String!
     $content: String!
     $slug: String!
-    $isVisible: Boolean!
-    $availableOn: String
+    $isPublished: Boolean!
+    $publicationDate: String
   ) {
     pageCreate(
       input: {
         title: $title
         content: $content
         slug: $slug
-        isVisible: $isVisible
-        availableOn: $availableOn
+        isPublished: $isPublished
+        publicationDate: $publicationDate
       }
     ) {
       page {
@@ -82,8 +82,8 @@ export const pageCreateMutation = gql`
         slug
         title
         content
-        isVisible
-        availableOn
+        isPublished
+        publicationDate
         created
       }
       errors {
