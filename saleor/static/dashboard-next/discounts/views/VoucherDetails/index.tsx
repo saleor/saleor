@@ -121,6 +121,11 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                   if (data.voucherUpdate.errors.length === 0) {
                     navigate(voucherUrl(id), true, true);
                   }
+                  pushMessage({
+                    text: i18n.t("Updated voucher", {
+                      context: "notification"
+                    })
+                  });
                 };
 
                 return (

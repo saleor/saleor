@@ -36,6 +36,7 @@ import {
 import { TypedSaleDetails } from "../../queries";
 import { SaleCataloguesAdd } from "../../types/SaleCataloguesAdd";
 import { SaleDelete } from "../../types/SaleDelete";
+import { SaleUpdate } from "../../types/SaleUpdate";
 import { saleListUrl, saleUrl } from "../../urls";
 import {
   saleAssignCategoriesPath,
@@ -108,12 +109,22 @@ export const SaleDetails: React.StatelessComponent<SaleDetailsProps> = ({
                   }
                 };
 
+                const handleSaleUpdate = (data: SaleUpdate) => {
+                  if (data.saleUpdate.errors.length === 0) {
+                    pushMessage({
+                      text: i18n.t("Updated sale", {
+                        context: "notification"
+                      })
+                    });
+                  }
+                };
+
                 return (
                   <TypedSaleCataloguesRemove>
                     {(saleCataloguesRemove, saleCataloguesRemoveOpts) => (
                       <TypedSaleCataloguesAdd onCompleted={handleCatalogueAdd}>
                         {(saleCataloguesAdd, saleCataloguesAddOpts) => (
-                          <TypedSaleUpdate>
+                          <TypedSaleUpdate onCompleted={handleSaleUpdate}>
                             {(saleUpdate, saleUpdateOpts) => (
                               <TypedSaleDelete onCompleted={handleSaleDelete}>
                                 {(saleDelete, saleDeleteOpts) => (
