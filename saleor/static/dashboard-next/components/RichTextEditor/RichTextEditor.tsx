@@ -90,6 +90,7 @@ const styles = (theme: Theme) =>
             marginLeft: theme.spacing.unit,
             marginRight: theme.spacing.unit,
             padding: 0,
+            transition: theme.transitions.duration.short + "ms",
             width: 24
           },
           "&Group": {
