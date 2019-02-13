@@ -6,6 +6,7 @@ import {
 } from "@material-ui/core/styles";
 import { fade } from "@material-ui/core/styles/colorManipulator";
 import Typography from "@material-ui/core/Typography";
+import { RawDraftContentState } from "draft-js";
 import {
   BLOCK_TYPE,
   DraftailEditor,
@@ -14,14 +15,14 @@ import {
 } from "draftail";
 import * as React from "react";
 
-import Link from "./Link";
+import LinkEntity from "./LinkEntity";
 import LinkSource from "./LinkSource";
 
 export interface RichTextEditorProps {
   disabled: boolean;
   label: string;
   name: string;
-  initial: string;
+  initial: RawDraftContentState;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
@@ -33,6 +34,9 @@ const styles = (theme: Theme) =>
     root: {
       "& .DraftEditor": {
         "&-editorContainer": {
+          "& a": {
+            color: theme.palette.secondary.light
+          },
           "&:after": {
             background: theme.palette.primary.main,
             bottom: -1,
@@ -142,7 +146,7 @@ const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
         entityTypes={[
           {
             attributes: ["href"],
-            decorator: Link,
+            decorator: LinkEntity,
             source: LinkSource,
             type: ENTITY_TYPE.LINK
           },

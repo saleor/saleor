@@ -38,7 +38,7 @@ const PageInfo: React.StatelessComponent<PageInfoProps> = ({
       <FormSpacer />
       <RichTextEditor
         disabled={disabled}
-        initial={data.content}
+        initial={JSON.parse(data.content)}
         label={i18n.t("Content")}
         name={"content" as keyof FormData}
         onChange={onChange}
