@@ -453,7 +453,7 @@ class CheckoutComplete(BaseMutation):
     class Meta:
         description = (
             'Completes the checkout. As a result a new order is created and '
-            'a payment charge is made. This action requires a succesfull '
+            'a payment charge is made. This action requires a successful '
             'payment before it can be performed.')
 
     @classmethod

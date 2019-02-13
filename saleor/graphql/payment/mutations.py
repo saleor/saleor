@@ -144,37 +144,6 @@ class PaymentCapture(BaseMutation):
         return PaymentCapture(payment=payment, errors=errors)
 
 
-class PaymentCharge(BaseMutation):
-    payment = graphene.Field(Payment, description='Updated payment')
-
-    class Arguments:
-        payment_id = graphene.ID(required=True, description='Payment ID')
-        payment_token = graphene.String(
-            required=True,
-            description='One-time-use reference to payment information')
-        amount = Decimal(description='Transaction amount')
-
-    class Meta:
-        description = 'Authorize the payment'
-
-    @classmethod
-    @permission_required('order.manage_orders')
-    def mutate(cls, root, info, payment_id, payment_token, amount=None):
-        errors = []
-        payment = cls.get_node_or_error(
-            info, payment_id, errors, 'payment_id', only_type=Payment)
-
-        if not payment:
-            return PaymentCharge(errors=errors)
-
-        try:
-            gateway_charge(payment, payment_token, amount)
-        except PaymentError as exc:
-            msg = str(exc)
-            cls.add_error(field=None, message=msg, errors=errors)
-        return PaymentCharge(payment=payment, errors=errors)
-
-
 class PaymentRefund(PaymentCapture):
     @classmethod
     @permission_required('order.manage_orders')
