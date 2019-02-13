@@ -628,7 +628,7 @@
           @media (max-width: 450px) {
             margin: 0 auto calc(var(--spacer) * 2) auto;
             & .btn {
-              margin: calc(var(--spacer) * 2) calc(var(--spacer) * 2) calc(var(--spacer) * 5) calc(var(--spacer) * 2);
+              margin: calc(var(--spacer) * 2) calc(var(--spacer) * 2) calc(var(--spacer) * 2) calc(var(--spacer) * 2);
               padding: calc(var(--spacer) / 1.5) calc(var(--spacer) * 3);
             }
           }
@@ -638,25 +638,10 @@
     
     &.open-source {
       position: relative;
-      padding-top: calc(var(--spacer) * 3);
-      height: 768px;
+      padding: calc(var(--spacer) * 3) 0;
       @media (max-width: 450px) {
         height: 100%;
-        padding-bottom: calc(var(--spacer) * 5);
-      }
-      & .background-mobile {
-        display: none;
-        @media (max-width: 450px) {
-          width: 100%;
-          height: 150vh;
-          display: block;
-          position: absolute;
-          background-image: url('../../images/open-source-bg-mobile.svg');
-          background-repeat: no-repeat;
-          background-size: 400%;
-          background-position: 57% -30%;
-          opacity: 0.3;
-        }
+        padding-bottom: calc(var(--spacer) * 17);
       }
       & .section-container {
         padding: 0 calc(var(--spacer) * 10) calc(var(--spacer) * 10) calc(var(--spacer) * 10);
@@ -664,7 +649,7 @@
           padding: 0 calc(var(--spacer) * 10) calc(var(--spacer) * 6) calc(var(--spacer) * 10);
         }
         @media (max-width: 1024px) {
-          padding: calc(var(--spacer) * 4) calc(var(--spacer) * 4) calc(var(--spacer) * 0) calc(var(--spacer) * 4);
+          padding: 0 calc(var(--spacer) * 4) calc(var(--spacer) * 10) calc(var(--spacer) * 4);
         }
         @media (max-width: 450px) {
           padding: 0 var(--spacer);
@@ -691,18 +676,14 @@
           }
         }
         & .text-light {
+          width: 80%;
+          @media (max-width: 450px) {
+            width: 100%;
+          }
           font-size: calc(var(--font-size-base) * 1);
           font-weight: var(--font-weight-light);
           margin-top: calc(var(--spacer) * 2);
           line-height: calc(var(--headings-line-height) + 0.4);
-        }
-        width: 60%;
-        @media (max-width: 768px) {
-          width: 70%;
-        }
-        @media (max-width: 450px) {
-          width: 100%;
-          padding-top: 0; 
         }
         & p {
           & strong {
@@ -710,164 +691,154 @@
             padding: calc(var(--spacer) * 1.5) 0;
           }
         }
+        & .numbers {
+          padding: calc(var(--spacer) * 2) 0;
+          @media (max-width: 450px) {
+            text-align: center;
+          }
+          & .number {
+            @media (max-width: 450px) {
+              padding: var(--spacer) 0;
+            }
+          }
+          & span {
+            color: var(--body-color);
+            text-transform: uppercase;
+            font-size: calc(var(--font-size-base) * 1.3);
+            &.count {
+              font-size: calc(var(--font-size-base) * 2);
+              font-weight: var(--font-weight-medium);
+              @media (max-width: 450px) {
+                font-size: calc(var(--font-size-base) * 3);
+              }
+            }
+            &.separator {
+              width: 3rem;
+              display: block;
+              border-bottom: solid 1px var(--primaryColor);
+              margin: calc(var(--spacer) / 2) 0 calc(var(--spacer) * 0.8) 0;
+              @media (max-width: 450px) {
+                margin: calc(var(--spacer) / 2) auto calc(var(--spacer) * 0.8) auto;
+              }
+            }
+          }
+        }
       }
-      & .stars-bg {
-        width: 100%;
-        height: 1100px;
-        background-image: url('../../images/open-source-bg.svg');
-        background-position: 50% 20%;
-        background-repeat: no-repeat;
-        position: absolute;
-        top: -23%;
-        right: -30%;
-        opacity: 1;
-        z-index: 1;
+      & .image {
+        position: relative;
         @media (max-width: 768px) {
-          background-size: 100%;
-          right: -33%;
-        }
-        @media (max-width: 700px) {
-          top: -10%;
-          right: -19.5%;
-        }
-        @media (max-width: 570px) {
-          top: -14%;
-          right: -20.5%;
-          background-size: 250%;
-        }
-        @media (max-width: 450px) {
           display: none;
         }
-      }
-      & .github-circle {
-        width: 300px;
-        padding-top: 200px;
-        position: absolute;
-        right: 43.5%;
-        top: 31.5%;
-        z-index: 2;
-        @media (max-width: 1920px) {
-          right: 43%;
-        }
-        @media (max-width: 1680px) {
-          right: 42%;
-        }
-        @media (max-width: 1440px) {
-          right: 41%;
-        }
-        @media (max-width: 1368px) {
-          right: 40.5%;
-        }
-        @media (max-width: 1024px) {
-          right: 37%;
-        }
-        @media (max-width: 768px) {
-          right: 31.5%;
-          top: 22%;
-        }
-        @media (max-width: 450px) {
-          top: -1%;
-          width: 50%;
-          padding-top: 50%;
-          right: 25.5%;
-        }
-        @media (max-width: 320px) {
-          top: 1%;
-        }
         & .githubLink {
-          width: 100%;
           position: absolute;
-          display: block;
-          top: 50%;
-          left: 50%; 
-          transform: translate(-50%, -50%);
           color: var(--body-color);
           text-align: center;
           text-decoration: none;
-          & .github-icon {
-            position: relative;
-            top: calc(var(--spacer) * 1.5);
-          }
-          & .github-text {
-            position: relative;
-            top: calc(var(--spacer) * -3);
-            font-size: calc(var(--font-size-base) * 1.2);
-            color: var(--background-color);
-            font-weight: var(--font-weight-normal);
-            @media (max-width: 768px) {
-              font-size: var(--font-size-base);
-            }
-          }
           & .star-icon {
             position: relative;
-            top: calc(var(--spacer) * 6.5);
-            @media (max-width: 768px) {
-               top: calc(var(--spacer) * 4.5);
-            }
+            top: 7.5rem;
+            & svg { width: 30px !important; height: 30px !important; }
+          }
+          & .github-icon {
+            position: relative;
+            top: 2.5rem;
+            & svg { width: 30px !important; height: 30px !important; }
           }
           & .star-value {
-            position: relative;
-            top: calc(var(--spacer) * -2);
-            font-size: calc(var(--font-size-base) * 3);
-            color: var(--background-color);
-            font-weight: var(--font-weight-normal);
-            @media (max-width: 768px) {
-              font-size: calc(var(--font-size-base) * 2);
-            }
+            font-size: 3rem;
+            line-height: 1;
           }
-          & svg {
-            width: 30px !important;
-            height: 30px !important;
-            fill: var(--background-color);
-            color: var(--background-color);
-            & path {
-              fill: var(--background-color);
-            }
+          top: 20%;
+          left: 23%;
+          @media (max-width: 1680px) {
+            left: 28%;
+          }
+          @media (max-width: 1440px) {
+            left: 34%;
+          }
+          @media (max-width: 1368px) {
+            top: 15%;
+          }
+          @media (max-width: 1024px) {
+            top: 8%;
+            left: 30%;
+          }
+        }
+        & .pirate {
+          width: 80%;
+          @media (max-width: 1680px) {
+            width: 100%;
+          }
+          @media (max-width: 1440px) {
+            width: 120%;
           }
         }
       }
-      & .icons {
-        width: 100%;
-        position: relative;
-        z-index: 2;
-        text-align: center;
-        padding-top: calc(var(--spacer) * 3);
-        @media (max-width: 1024px) {
-          padding-top: calc(var(--spacer) * 2);
+      & .community-links {
+        & h5 {
+          font-size: calc(var(--font-size-base) * 1.5);
+          padding: calc(var(--spacer) * 2) 0;
+          @media (max-width: 450px) {
+            font-size: calc(var(--font-size-base) * 1.2);
+            padding: calc(var(--spacer) * 2) 0 0 0;
+          }
         }
-        & .icon {
-          padding-bottom: calc(var(--spacer) * 2);
+        & .btn {
+          font-size: var(--font-size);
+          padding: calc(var(--spacer) / 1.5) calc(var(--spacer) * 2);
+          margin: 0 calc(var(--spacer) * 1.5);
+          @media (max-width: 450px) {
+            text-align: center;
+            margin-top: calc(var(--spacer) * 1.5);
+          }
+        }
+        & .buttons {
+          width: 40%;
+          float: left;
+          @media (max-width: 1680px) {
+            width: 45%;
+          }
+          @media (max-width: 1440px) {
+            width: 55%;
+          }
+          @media (max-width: 1368px) {
+            width: 60%;
+          }
+          @media (max-width: 1024px) {
+            width: 70%;
+          }
           @media (max-width: 768px) {
-            padding: 0;
+            width: 100%;
           }
           @media (max-width: 450px) {
-            padding-top: var(--spacer);
+            text-align: center;
           }
-          & .logo {
-            & svg {
-              width: 60px;
-              height: 60px;
-              padding-right: calc(var(--spacer) * 3);
-              @media (max-width: 768px) {
-                width: 40px;
-                height: 40px;
-              }
-              fill: var(--primaryColor);
-              color: var(--primaryColor);
-            }
+        }
+        & .icons {
+          width: 60%;
+          float: left;
+          @media (max-width: 1680px) {
+            width: 55%;
           }
-          & h5 {
-            text-align: left;
-            color: var(--primaryColor);
-            line-height: 60px;
-            letter-spacing: 0.6px;
-            font-weight: var(--font-weight-ligher);
-            @media (max-width: 1440px) {
-              line-height: var(--headings-line-height);
-              padding-top: calc(var(--spacer) * 1.2);
-            }
-            @media (max-width: 768px) {
-              padding: calc(var(--spacer) / 2) 0;
+          @media (max-width: 1440px) {
+            width: 45%;
+          }
+          @media (max-width: 1368px) {
+            width: 40%;
+          }
+          @media (max-width: 1024px) {
+            width: 30%;
+          }
+          @media (max-width: 768px) {
+            width: 100%;
+            text-align: center;
+            padding-top: calc(var(--spacer) * 2);
+          }
+          & a {
+            display: inline-block;
+            padding: 0 calc(var(--spacer) / 2);
+            @media (max-width: 1024px) {
+              padding: 0 calc(var(--spacer) / 3);
             }
           }
         }
