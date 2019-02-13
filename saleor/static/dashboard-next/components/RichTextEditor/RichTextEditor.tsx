@@ -141,7 +141,7 @@ const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
         ]}
         entityTypes={[
           {
-            attributes: ["url"],
+            attributes: ["href"],
             decorator: Link,
             source: LinkSource,
             type: ENTITY_TYPE.LINK
