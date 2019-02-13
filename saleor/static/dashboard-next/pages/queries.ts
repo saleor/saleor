@@ -13,7 +13,7 @@ const pageListQuery = gql`
           id
           slug
           title
-          isVisible
+          isPublished
         }
       }
       pageInfo {
@@ -37,8 +37,8 @@ const pageDetailsQuery = gql`
       title
       content
       created
-      isVisible
-      availableOn
+      isPublished
+      publicationDate
     }
   }
 `;

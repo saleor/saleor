@@ -78,7 +78,7 @@ export const fragmentProduct = gql`
     }
     isPublished
     chargeTaxes
-    availableOn
+    publicationDate
     attributes {
       attribute {
         id

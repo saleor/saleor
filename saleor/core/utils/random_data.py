@@ -575,7 +575,7 @@ def create_page():
     <h3>A modular, high performance e-commerce storefront built with GraphQL, Django, and ReactJS.</h3>
     <p>Saleor is a rapidly-growing open source e-commerce platform that has served high-volume companies from branches like publishing and apparel since 2012. Based on Python and Django, the latest major update introduces a modular front end with a GraphQL API and storefront and dashboard written in React to make Saleor a full-functionality open source e-commerce.</p>
     """
-    page_data = {'content': content, 'title': 'About', 'is_visible': True}
+    page_data = {'content': content, 'title': 'About', 'is_published': True}
     page, dummy = Page.objects.get_or_create(slug='about', **page_data)
     yield 'Page %s created' % page.slug
 

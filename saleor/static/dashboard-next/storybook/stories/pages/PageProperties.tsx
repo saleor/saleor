@@ -9,5 +9,5 @@ storiesOf("Pages / PageProperties", module)
   .addDecorator(Decorator)
   .add("when loaded", () => <PageProperties {...page} />)
   .add("when loading", () => (
-    <PageProperties loading={true} availableOn="" isVisible={false} />
+    <PageProperties loading={true} publicationDate="" isPublished={false} />
   ));
