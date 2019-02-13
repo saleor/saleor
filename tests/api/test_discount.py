@@ -3,12 +3,12 @@ from datetime import date
 import graphene
 import pytest
 from django_countries import countries
-from tests.api.utils import get_graphql_content
 
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import Sale, Voucher
 from saleor.graphql.discount.enums import (
     DiscountValueTypeEnum, VoucherTypeEnum)
+from tests.api.utils import get_graphql_content
 
 
 @pytest.fixture
