@@ -10,7 +10,7 @@ import * as React from "react";
 import { CardMenu } from "../../../components/CardMenu/CardMenu";
 import { CardSpacer } from "../../../components/CardSpacer";
 import { Container } from "../../../components/Container";
-import DateFormatter from "../../../components/DateFormatter";
+import { DateTime } from "../../../components/Date";
 import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
 import Skeleton from "../../../components/Skeleton";
@@ -110,7 +110,7 @@ const OrderDetailsPage = withStyles(styles, { name: "OrderDetailsPage" })(
         <div className={classes.date}>
           {order && order.created ? (
             <Typography variant="caption">
-              <DateFormatter date={order.created} />
+              <DateTime date={order.created} />
             </Typography>
           ) : (
             <Skeleton style={{ width: "10em" }} />

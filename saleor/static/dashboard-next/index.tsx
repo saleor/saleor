@@ -23,7 +23,7 @@ import CategorySection from "./categories";
 import CollectionSection from "./collections";
 import { AppProgressProvider } from "./components/AppProgress";
 // import { ConfirmFormLeaveDialog } from "./components/ConfirmFormLeaveDialog";
-import { DateProvider } from "./components/DateFormatter";
+import { DateProvider } from "./components/Date";
 import { FormProvider } from "./components/Form";
 import { LocaleProvider } from "./components/Locale";
 import { MessageManager } from "./components/messages";

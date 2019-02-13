@@ -16,7 +16,6 @@ from ..account.forms import get_address_form
 from ..account.models import Address
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
-from ..core.i18n import ANY_COUNTRY
 from ..core.utils import to_local_currency
 from ..core.utils.taxes import ZERO_MONEY, get_taxes_for_country
 from ..discount import VoucherType
@@ -652,14 +651,15 @@ def _get_shipping_voucher_discount_for_cart(voucher, cart):
             'Voucher not applicable',
             'Please select a shipping method first.')
         raise NotApplicable(msg)
-    not_valid_for_country = all([
-        voucher.countries, ANY_COUNTRY not in voucher.countries,
-        cart.shipping_address.country.code not in voucher.countries])
-    if not_valid_for_country:
+
+    # check if voucher is limited to specified countries
+    shipping_country = cart.shipping_address.country
+    if voucher.countries and shipping_country.code not in voucher.countries:
         msg = pgettext(
             'Voucher not applicable',
             'This offer is not valid in your country.')
         raise NotApplicable(msg)
+
     return get_shipping_voucher_discount(
         voucher, cart.get_subtotal(), shipping_method.get_total())
 
