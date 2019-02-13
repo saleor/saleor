@@ -754,6 +754,7 @@
             left: 28%;
           }
           @media (max-width: 1440px) {
+            top: 16%;
             left: 34%;
           }
           @media (max-width: 1368px) {
@@ -801,9 +802,6 @@
           @media (max-width: 1440px) {
             width: 60%;
           }
-          @media (max-width: 1368px) {
-            width: 60%;
-          }
           @media (max-width: 1024px) {
             width: 70%;
           }
@@ -821,9 +819,6 @@
             width: 55%;
           }
           @media (max-width: 1440px) {
-            width: 40%;
-          }
-          @media (max-width: 1368px) {
             width: 40%;
           }
           @media (max-width: 1024px) {
