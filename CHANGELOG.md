@@ -9,6 +9,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Unify field names on product, collection and page - #3706 by @michaljelonek
 - Generate voucher code if it wasn't provided in mutation - #3717 by @Kwaidan00
 - Reuse Storefront's 1.0 payment logic in API - #3715 by @maarcingebala
+- Remove unused imports - #3645 by @jxltom
 
 
 ## 2.3.0
@@ -81,7 +82,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Resolve to `None` when empty object ID was passed as mutation argument - #3497 by @maarcingebala
 - Change `errors` field type from [Error] to [Error!] - #3489 by @fowczarek
 - Support creating default variant for product types that don't use multiple variants - #3505 by @fowczarek
-- Validate SKU when creating a default variant - #3555 by @fowczarek
+- Validate SKU when creating a default variant - #3555 by @fowczarek
 - Extract enums to separate files - #3523 by @maarcingebala
 
 ### Core
@@ -247,14 +248,3 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Docs
 - Add createdb note to getting started for Windows - #3106 by @ajostergaard
 - Update docs on pipenv - #3045 by @jxltom
-- Validate files uploaded in API in a unified way - #3633 by @fowczarek
-- Add ShopFetchTaxRates mutation - #3622 by @fowczarek
-- Add taxes section - #3622 by @dominik-zeglen
-- Expose in API list of supported payment gateways - #3639 by @fowczarek
-- Display payment status in account order list page and account order detail page - #3637 by @jxltom
-- Fix bug where node order is not preserved in GraphQL API - #3632 by @jxltom
-- Support set arbitary charge status for dummy gateway in storefront 1.0 - #3648 by @jxltom
-- Fix typo in the definition of order UNFULFILLED status - #3649 by @jxltom
-- Add missing margin for order notes section - #3650 by @jxltom
-- Infer default transaction kind from operation type instead of passing it manually  - #3646 by @jxltom
-- Remove unused imports - #3645 by @jxltom
