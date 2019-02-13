@@ -154,9 +154,8 @@ def test_mark_as_paid(admin_user, draft_order):
     payment = draft_order.payments.last()
     assert payment.charge_status == ChargeStatus.CHARGED
     assert payment.captured_amount == draft_order.total.gross.amount
-    assert (
-        draft_order.events.last().type == OrderEvents.ORDER_MARKED_AS_PAID.
-        value)
+    assert draft_order.events.last().type == (
+        OrderEvents.ORDER_MARKED_AS_PAID.value)
 
 
 def test_clean_mark_order_as_paid(payment_txn_preauth):
