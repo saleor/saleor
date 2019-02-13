@@ -6,8 +6,8 @@ import pytest
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.order.mutations.orders import (
-    clean_order_cancel, clean_order_capture, clean_order_mark_as_paid,
-    clean_refund_payment, clean_void_payment)
+    clean_order_cancel, clean_order_capture, clean_refund_payment,
+    clean_void_payment)
 from saleor.graphql.order.enums import (
     OrderEventsEmailsEnum, OrderStatusFilter)
 from saleor.graphql.order.utils import can_finalize_draft_order
@@ -1135,18 +1135,6 @@ def test_clean_order_capture():
     assert errors[0].field == 'payment'
     assert errors[0].message == (
         'There\'s no payment associated with the order.')
-
-
-def test_clean_order_mark_as_paid(payment_txn_preauth):
-    order = payment_txn_preauth.order
-    errors = clean_order_mark_as_paid(order, [])
-    assert errors[0].field == 'payment'
-    assert errors[0].message == (
-        'Orders with payments can not be manually marked as paid.')
-
-
-def test_clean_order_mark_as_paid_no_payments(order):
-    assert clean_order_mark_as_paid(order, []) == []
 
 
 def test_clean_order_cancel(order):
