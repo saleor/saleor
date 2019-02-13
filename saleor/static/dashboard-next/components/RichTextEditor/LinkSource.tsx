@@ -31,11 +31,6 @@ class LinkSource extends React.Component<LinkSourceProps> {
         newEditorState.getSelection(),
         entityKey
       );
-      // const nextState = AtomicBlockUtils.insertAtomicBlock(
-      //   editorState,
-      //   entityKey,
-      //   " "
-      // );
 
       onComplete(nextState);
     } else {
