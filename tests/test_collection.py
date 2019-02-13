@@ -34,7 +34,7 @@ def test_collection_not_exists(client):
 
 
 def test_collection_not_yet_published_returns_404(
-    admin_client, client, draft_collection):
+        admin_client, client, draft_collection):
     url_kwargs = {'pk': draft_collection.pk, 'slug': draft_collection.slug}
     url = reverse('product:collection', kwargs=url_kwargs)
     response = client.get(url)

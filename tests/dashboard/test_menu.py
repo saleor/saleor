@@ -394,8 +394,8 @@ def test_menu_item_status(menu, category, collection, page):
 
     item = MenuItem.objects.create(
         name='Name', menu=menu, page=page)
-    assert not item.is_public()
-    page.is_published = True
+    assert item.is_public()
+    page.is_published = False
     page.save()
     item.refresh_from_db()
-    assert item.is_public()
+    assert not item.is_public()

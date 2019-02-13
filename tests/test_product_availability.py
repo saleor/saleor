@@ -92,7 +92,7 @@ def test_availability(product, monkeypatch, settings, taxes):
 
 
 def test_available_products_only_published(product_list):
-    available_products = models.Product.objects.available()
+    available_products = models.Product.objects.published()
     assert available_products.count() == 2
     assert all([product.is_published for product in available_products])
 
@@ -102,6 +102,6 @@ def test_available_products_only_available(product_list):
     date_tomorrow = datetime.date.today() + datetime.timedelta(days=1)
     product.publication_date = date_tomorrow
     product.save()
-    available_products = models.Product.objects.available()
+    available_products = models.Product.objects.published()
     assert available_products.count() == 1
-    assert all([product.is_available for product in available_products])
+    assert all([product.is_visible for product in available_products])

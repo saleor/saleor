@@ -648,7 +648,7 @@ def collection(db):
 @pytest.fixture
 def collection_with_image(db, image):
     collection = Collection.objects.create(
-        name='Collection', slug='collection', is_published=True,
+        name='Collection', slug='collection',
         description='Test description', background_image=image)
     return collection
 
@@ -656,7 +656,7 @@ def collection_with_image(db, image):
 @pytest.fixture
 def draft_collection(db):
     collection = Collection.objects.create(
-        name='Draft collection', slug='draft-collection')
+        name='Draft collection', slug='draft-collection', is_published=False)
     return collection
 
 

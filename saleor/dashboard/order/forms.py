@@ -539,7 +539,7 @@ class AddVariantToOrderForm(forms.Form):
 
     variant = AjaxSelect2ChoiceField(
         queryset=ProductVariant.objects.filter(
-            product__in=Product.objects.available()),
+            product__in=Product.objects.published()),
         fetch_data_url=reverse_lazy('dashboard:ajax-available-variants'),
         label=pgettext_lazy(
             'Order form: subform to add variant to order form: variant field',

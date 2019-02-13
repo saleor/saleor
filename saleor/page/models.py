@@ -1,12 +1,10 @@
-import datetime
-
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import pgettext_lazy
 
+from ..core.models import PublishableModel, PublishedQuerySet
 from ..core.utils import build_absolute_uri
 from ..core.utils.translations import TranslationProxy
-from ..product.models import PublishedQuerySet
 from ..seo.models import SeoModel, SeoModelTranslation
 
 
@@ -17,13 +15,11 @@ class PagePublishedQuerySet(PublishedQuerySet):
         return user.is_active and user.has_perm('page.manage_pages')
 
 
-class Page(SeoModel):
+class Page(SeoModel, PublishableModel):
     slug = models.SlugField(unique=True, max_length=100)
     title = models.CharField(max_length=200)
     content = models.TextField()
     created = models.DateTimeField(auto_now_add=True)
-    is_published = models.BooleanField(default=False)
-    publication_date = models.DateField(blank=True, null=True)
 
     objects = PagePublishedQuerySet.as_manager()
     translated = TranslationProxy()
@@ -42,12 +38,6 @@ class Page(SeoModel):
 
     def get_full_url(self):
         return build_absolute_uri(self.get_absolute_url())
-
-    @property
-    def is_available(self):
-        today = datetime.date.today()
-        return self.is_published and (
-            self.publication_date is None or self.publication_date <= today)
 
 
 class PageTranslation(SeoModelTranslation):
