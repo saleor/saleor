@@ -32,7 +32,7 @@ def product_json_ld(product, attributes=None):
     for variant in product.variants.all():
         price = variant.get_price()
         in_stock = True
-        if not product.is_available or not variant.is_in_stock():
+        if not product.is_visible or not variant.is_in_stock():
             in_stock = False
         variant_data = variant_json_ld(price, variant, in_stock)
         data['offers'].append(variant_data)

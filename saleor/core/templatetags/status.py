@@ -59,8 +59,8 @@ def render_variant_availability_status(variant):
 
 @register.inclusion_tag('dashboard/includes/_page_availability.html')
 def render_page_availability(page):
-    ctx = {'is_available': page.is_available, 'page': page}
-    if page.is_available:
+    ctx = {'is_visible': page.is_visible, 'page': page}
+    if page.is_visible:
         label_cls = LABEL_SUCCESS
         ctx.update({'label_cls': label_cls})
     return ctx
@@ -68,10 +68,10 @@ def render_page_availability(page):
 
 @register.inclusion_tag('dashboard/includes/_collection_availability.html')
 def render_collection_availability(collection):
-    if collection.is_available:
+    if collection.is_visible:
         label_cls = LABEL_SUCCESS
     else:
         label_cls = LABEL_DANGER
-    return {'is_available': collection.is_available,
+    return {'is_visible': collection.is_visible,
             'collection': collection,
             'label_cls': label_cls}

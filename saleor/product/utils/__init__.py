@@ -17,7 +17,7 @@ def products_visible_to_user(user):
     from ..models import Product
     if user.is_authenticated and user.is_active and user.is_staff:
         return Product.objects.all()
-    return Product.objects.available()
+    return Product.objects.published()
 
 
 def products_with_details(user):
@@ -138,7 +138,7 @@ def collections_visible_to_user(user):
     from ..models import Collection
     if user.is_authenticated and user.is_active and user.is_staff:
         return Collection.objects.all()
-    return Collection.objects.available()
+    return Collection.objects.published()
 
 
 def calculate_revenue_for_variant(variant, start_date):
