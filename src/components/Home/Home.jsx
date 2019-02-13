@@ -20,8 +20,7 @@ import { ScrollLink } from '..';
 
 import css from './home.css';
 
-import starsBg from '../../images/open-source-bg.svg';
-import background from '../../images/background.svg';
+import pirate from '../../images/pirate.svg';
 import dashboardIcon from '../../images/dashboard-icon.png';
 import dashboardIconX2 from '../../images/dashboard-icon-2x.png';
 import dashboardIconX3 from '../../images/dashboard-icon-3x.png';
@@ -343,49 +342,60 @@ class Home extends Component {
             </div>
           </section>
           <section className="open-source">
-            <div className="background-mobile"></div>
             <div className="section-container">
-              <div className="text">
-                <h2>Open source</h2>
-                <p>While built and maintained by Mirumee Software, Saleor’s community is among the fastest growing open source ecommerce&nbsp;platforms.</p>
-                <p className="text-light">What started in 2010 as a humble solution to a local problem has become a vital working platform for our great Python and Django contributors and&nbsp;supporters.</p>
-                <div className="grid icons">
-                  <div className="icon col-xs-12 col-sm-12 col-md-6">
-                    <a className="grid" href="https://github.com/mirumee/saleor">
-                    <ReactSVG className="github-icon logo col-xs-2 col-sm-2 col-md-3" path="images/github-icon.svg" />
-                    <h5 className="col-xs-9 col-sm-10 col-md-9">Suggest features and propose&nbsp;changes</h5>
-                    </a>
+              <div className="grid">
+                <div className="col-xs-12 col-sm-12 col-md-7 text">
+                  <h2>Open source</h2>
+                  <p>Join our open source community <br />& build changing e-commerce</p>
+                  <p className="text-light">Mirumee Software developed Saleor as an answer to challenges we faced internally and, because we love to give back, we opened it up to the open source community. The incredible response convinced us to expand Saleor into a full e-commerce solution and our core in-house team of experts is now augmented by amazing open source developers around the world. </p>
+                  <p className="text-light">By joining the hundreds of active contributors, you gain access to core contributors and the latest discussions. Become part of the world's fastest growing open source e-commerce platform.</p>
+                  <div className="grid numbers">
+                    <div className="col-xs-12 col-sm-4 col-md-4 number">
+                      <span className="count">90+</span>
+                      <span className="separator"></span>
+                      <span>Active <br />contributors</span>
+                    </div>
+                    <div className="col-xs-12 col-sm-4 col-md-4 number">
+                      <span className="count">190+</span>
+                      <span className="separator"></span>
+                      <span>Developers<br /> on gitter</span>
+                    </div>
+                    <div className="col-xs-12 col-sm-4 col-md-4 number">
+                      <span className="count">32</span>
+                      <span className="separator"></span>
+                      <span>Translations<br /> on transifex</span>
+                    </div>
                   </div>
-                  <div className="icon col-xs-12 col-sm-12 col-md-6">
-                    <a className="grid" href="https://www.transifex.com/mirumee/saleor-1/">
-                      <ReactSVG className="transifex-icon logo col-xs-2 col-sm-2 col-md-3" path="images/transifex-icon.svg" />
-                      <h5 className="col-xs-9 col-sm-10 col-md-9">Translate Saleor to your&nbsp;language</h5>
-                    </a>
-                  </div>
-                  <div className="icon col-xs-12 col-sm-12 col-md-6">
-                    <a className="grid" href="https://gitter.im/mirumee/saleor">
-                      <ReactSVG className="gitter-icon logo col-xs-2 col-sm-2 col-md-3" path="images/gitter-icon.svg" />
-                      <h5 className="col-xs-9 col-sm-10 col-md-9">Discuss the future of&nbsp;Saleor</h5>
-                    </a>
-                  </div>
-                  <div className="icon col-xs-12 col-sm-12 col-md-6">
-                    <a className="grid" href="https://stackoverflow.com/questions/tagged/saleor">
-                      <ReactSVG className="stackoverflow-icon logo col-xs-2 col-sm-2 col-md-3" path="images/stackoverflow-icon.svg" />
-                      <h5 className="col-xs-9 col-sm-10 col-md-9">Ask for&nbsp;help</h5>
-                    </a>
-                  </div>
-                  <div className="icon col-xs-12 col-sm-12 col-md-6">
-                    <a className="grid" href="https://medium.com/saleor">
-                      <ReactSVG className="medium-icon logo col-xs-2 col-sm-2 col-md-3" path="images/medium-icon.svg" />
-                      <h5 className="col-xs-9 col-sm-10 col-md-9">Follow Saleor's&nbsp;development</h5>
-                    </a>
-                  </div>
+                </div>
+                <div className="col-xs-12 col-sm-12 col-md-5 image">
+                  <GitHubLink owner="mirumee" name="saleor" text="Github Stars" />
+                  <ReactSVG className="pirate" path={pirate} />
                 </div>
               </div>
-              <div className="stars-bg">
-                <div className="github-circle">
-                  <GitHubLink owner="mirumee" name="saleor" text="Github Stars" />
-                </div>
+              <div className="community-links">
+                <h5>Join our developer Community</h5>
+                  <div className="buttons">
+                    <a href="https://github.com/mirumee/saleor" target="_blank" rel="noopener" className="btn btn-primary">
+                      <span>Become a contributor</span>
+                    </a>
+                    <a href="https://spectrum.chat/saleor" target="_blank" rel="noopener" className="btn btn-secondary">
+                      <span>Join the discussion</span>
+                    </a>
+                  </div>
+                  <div className="icons">
+                    <a href="https://gitter.im/mirumee/saleor" target="_blank">
+                      <ReactSVG className="gitter-icon logo" path="images/gitter-icon.svg" />
+                    </a>
+                    <a href="https://medium.com/saleor" target="_blank">
+                      <ReactSVG className="medium-icon logo" path="images/medium-icon.svg" />
+                    </a>
+                    <a href="https://www.transifex.com/mirumee/saleor-1/" target="_blank">
+                      <ReactSVG className="transifex-icon" path="images/transifex-icon.svg" />
+                    </a>
+                    <a href="https://stackoverflow.com/questions/tagged/saleor" target="_blank">
+                      <ReactSVG className="stackoverflow-icon logo" path="images/stackoverflow-icon.svg" />
+                    </a>
+                  </div>
               </div>
             </div>
           </section>
