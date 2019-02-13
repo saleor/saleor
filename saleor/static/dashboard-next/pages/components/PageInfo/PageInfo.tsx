@@ -5,6 +5,7 @@ import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
 import FormSpacer from "../../../components/FormSpacer";
+import RichTextEditor from "../../../components/RichTextEditor";
 import i18n from "../../../i18n";
 import { FormData } from "../PageDetailsPage";
 
@@ -35,14 +36,11 @@ const PageInfo: React.StatelessComponent<PageInfoProps> = ({
         onChange={onChange}
       />
       <FormSpacer />
-      <TextField
+      <RichTextEditor
         disabled={disabled}
-        error={!!errors.title}
-        fullWidth
-        helperText={errors.title}
+        initial={data.content}
         label={i18n.t("Content")}
-        name={"title" as keyof FormData}
-        value={data.content}
+        name={"content" as keyof FormData}
         onChange={onChange}
       />
     </CardContent>
