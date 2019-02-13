@@ -4,7 +4,7 @@ from django.db.models import F
 from django.utils.translation import pgettext
 
 from ..core.utils.taxes import ZERO_MONEY, ZERO_TAXED_MONEY
-from .models import NotApplicable, Voucher
+from .models import NotApplicable
 
 
 def increase_voucher_usage(voucher):
