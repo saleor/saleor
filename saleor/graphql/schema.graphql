@@ -389,6 +389,7 @@ type CheckoutLinesUpdate {
 
 type CheckoutPaymentCreate {
   errors: [Error!]
+  checkout: Checkout
   payment: Payment
 }
 
@@ -408,6 +409,8 @@ type ChoiceValue {
 }
 
 type Collection implements Node {
+  publicationDate: Date
+  isPublished: Boolean!
   seoTitle: String
   seoDescription: String
   id: ID!
@@ -415,9 +418,7 @@ type Collection implements Node {
   slug: String!
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   backgroundImage(size: Int): Image
-  isPublished: Boolean!
   description: String!
-  publicationDate: Date
   publishedDate: Date @deprecated(reason: "publishedDate is deprecated, use publicationDate instead")
 }
 
@@ -875,9 +876,7 @@ type Mutations {
   productVariantUpdate(id: ID!, input: ProductVariantInput!): ProductVariantUpdate
   variantImageAssign(imageId: ID!, variantId: ID!): VariantImageAssign
   variantImageUnassign(imageId: ID!, variantId: ID!): VariantImageUnassign
-  paymentAuthorize(paymentId: ID!, paymentToken: String!): PaymentAuthorize
   paymentCapture(amount: Decimal, paymentId: ID!): PaymentCapture
-  paymentCharge(amount: Decimal, paymentId: ID!, paymentToken: String!): PaymentCharge
   paymentRefund(amount: Decimal, paymentId: ID!): PaymentRefund
   paymentVoid(paymentId: ID!): PaymentVoid
   pageCreate(input: PageInput!): PageCreate
@@ -922,7 +921,7 @@ type Mutations {
   tokenRefresh(token: String!): Refresh
   tokenVerify(token: String!): VerifyToken
   checkoutBillingAddressUpdate(billingAddress: AddressInput, checkoutId: ID): CheckoutBillingAddressUpdate
-  checkoutComplete(checkoutId: ID): CheckoutComplete
+  checkoutComplete(checkoutId: ID!): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
   checkoutCustomerAttach(checkoutId: ID!, customerId: ID!): CheckoutCustomerAttach
   checkoutCustomerDetach(checkoutId: ID!): CheckoutCustomerDetach
@@ -930,7 +929,7 @@ type Mutations {
   checkoutLineDelete(checkoutId: ID!, lineId: ID): CheckoutLineDelete
   checkoutLinesAdd(checkoutId: ID!, lines: [CheckoutLineInput]!): CheckoutLinesAdd
   checkoutLinesUpdate(checkoutId: ID!, lines: [CheckoutLineInput]!): CheckoutLinesUpdate
-  checkoutPaymentCreate(input: PaymentInput!): CheckoutPaymentCreate
+  checkoutPaymentCreate(checkoutId: ID!, input: PaymentInput!): CheckoutPaymentCreate
   checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
   passwordReset(email: String!): PasswordReset
@@ -1172,14 +1171,14 @@ type OrderVoid {
 
 type Page implements Node {
   id: ID!
+  publicationDate: Date
+  isPublished: Boolean!
   seoTitle: String
   seoDescription: String
   slug: String!
   title: String!
   content: String!
   created: DateTime!
-  isPublished: Boolean!
-  publicationDate: Date
   availableOn: Date @deprecated(reason: "availableOn is deprecated, use publicationDate instead")
   isVisible: Boolean @deprecated(reason: "isVisible is deprecated, use isPublished instead")
 }
@@ -1258,17 +1257,7 @@ type Payment implements Node {
   creditCard: CreditCard
 }
 
-type PaymentAuthorize {
-  errors: [Error!]
-  payment: Payment
-}
-
 type PaymentCapture {
-  errors: [Error!]
-  payment: Payment
-}
-
-type PaymentCharge {
   errors: [Error!]
   payment: Payment
 }
@@ -1291,11 +1280,10 @@ type PaymentCountableEdge {
 }
 
 input PaymentInput {
-  gateway: GatewaysEnum
-  checkoutId: ID
+  gateway: GatewaysEnum!
   token: String!
   amount: Decimal!
-  billingAddress: AddressInput
+  billingAddress: AddressInput!
 }
 
 type PaymentRefund {
@@ -1327,6 +1315,8 @@ enum PermissionEnum {
 }
 
 type Product implements Node {
+  publicationDate: Date
+  isPublished: Boolean!
   seoTitle: String
   seoDescription: String
   id: ID!
@@ -1335,8 +1325,6 @@ type Product implements Node {
   description: String!
   category: Category!
   price: Money
-  publicationDate: Date
-  isPublished: Boolean!
   attributes: [SelectedAttribute!]!
   updatedAt: DateTime
   chargeTaxes: Boolean!

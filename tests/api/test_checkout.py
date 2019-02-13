@@ -1097,7 +1097,7 @@ def test_is_fully_paid(cart_with_item, payment_dummy):
     payment.currency = total.gross.currency
     payment.checkout = checkout
     payment.save()
-    is_paid = is_fully_paid(checkout)
+    is_paid = is_fully_paid(checkout, None, None)
     assert is_paid
 
 
@@ -1119,7 +1119,7 @@ def test_is_fully_paid_many_payments(cart_with_item, payment_dummy):
     payment2.currency = total.gross.currency
     payment2.checkout = checkout
     payment2.save()
-    is_paid = is_fully_paid(checkout)
+    is_paid = is_fully_paid(checkout, None, None)
     assert is_paid
 
 
@@ -1133,11 +1133,11 @@ def test_is_fully_paid_partially_paid(cart_with_item, payment_dummy):
     payment.currency = total.gross.currency
     payment.checkout = checkout
     payment.save()
-    is_paid = is_fully_paid(checkout)
+    is_paid = is_fully_paid(checkout, None, None)
     assert not is_paid
 
 
 def test_is_fully_paid_no_payment(cart_with_item):
     checkout = cart_with_item
-    is_paid = is_fully_paid(checkout)
+    is_paid = is_fully_paid(checkout, None, None)
     assert not is_paid
