@@ -5,7 +5,7 @@ import Navigator from "../../components/Navigator";
 import Shop from "../../components/Shop";
 import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
-import { getMutationState, maybe } from "../../misc";
+import { decimal, getMutationState, maybe } from "../../misc";
 import { DiscountValueTypeEnum, SaleType } from "../../types/globalTypes";
 import SaleCreatePage from "../components/SaleCreatePage";
 import { TypedSaleCreate } from "../mutations";
@@ -69,7 +69,7 @@ export const SaleDetails: React.StatelessComponent = () => (
                                       ? null
                                       : formData.startDate,
                                   type: discountValueTypeEnum(formData.type),
-                                  value: formData.value
+                                  value: decimal(formData.value)
                                 }
                               }
                             })
