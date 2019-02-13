@@ -4,19 +4,20 @@ import * as React from "react";
 import ReactMoment from "react-moment";
 
 import { LocaleConsumer } from "../Locale";
-import { TimezoneConsumer } from "../Timezone";
 import { Consumer } from "./DateContext";
 
 interface BaseDateProps {
   date: string;
   format: string;
   plain?: boolean;
+  tz?: string;
 }
 
 const BaseDate: React.StatelessComponent<BaseDateProps> = ({
   date,
   format,
-  plain
+  plain,
+  tz
 }) => {
   const getTitle = (value: string, locale?: string, tz?: string) => {
     let date = moment(value).locale(locale);
@@ -28,23 +29,19 @@ const BaseDate: React.StatelessComponent<BaseDateProps> = ({
   return (
     <LocaleConsumer>
       {locale => (
-        <TimezoneConsumer>
-          {tz => (
-            <Consumer>
-              {currentDate =>
-                plain ? (
-                  getTitle(date, locale, tz)
-                ) : (
-                  <Tooltip title={getTitle(date, locale, tz)}>
-                    <ReactMoment from={currentDate} locale={locale} tz={tz}>
-                      {date}
-                    </ReactMoment>
-                  </Tooltip>
-                )
-              }
-            </Consumer>
-          )}
-        </TimezoneConsumer>
+        <Consumer>
+          {currentDate =>
+            plain ? (
+              getTitle(date, locale, tz)
+            ) : (
+              <Tooltip title={getTitle(date, locale, tz)}>
+                <ReactMoment from={currentDate} locale={locale} tz={tz}>
+                  {date}
+                </ReactMoment>
+              </Tooltip>
+            )
+          }
+        </Consumer>
       )}
     </LocaleConsumer>
   );
