@@ -96,37 +96,39 @@ def test_sale_query(staff_api_client, sale, permission_manage_discounts):
     assert data['startDate'] == sale.start_date.isoformat()
 
 
-def test_create_voucher(staff_api_client, permission_manage_discounts):
-    query = """
-    mutation  voucherCreate(
-        $type: VoucherTypeEnum, $name: String, $code: String,
-        $discountValueType: DiscountValueTypeEnum,
-        $discountValue: Decimal, $minAmountSpent: Decimal,
-        $startDate: Date, $endDate: Date) {
-            voucherCreate(input: {
-                    name: $name, type: $type, code: $code,
-                    discountValueType: $discountValueType,
-                    discountValue: $discountValue,
-                    minAmountSpent: $minAmountSpent,
-                    startDate: $startDate, endDate: $endDate}) {
-                errors {
-                    field
-                    message
+CREATE_VOUCHER_MUTATION = """
+mutation  voucherCreate(
+    $type: VoucherTypeEnum, $name: String, $code: String,
+    $discountValueType: DiscountValueTypeEnum,
+    $discountValue: Decimal, $minAmountSpent: Decimal,
+    $startDate: Date, $endDate: Date) {
+        voucherCreate(input: {
+                name: $name, type: $type, code: $code,
+                discountValueType: $discountValueType,
+                discountValue: $discountValue,
+                minAmountSpent: $minAmountSpent,
+                startDate: $startDate, endDate: $endDate}) {
+            errors {
+                field
+                message
+            }
+            voucher {
+                type
+                minAmountSpent {
+                    amount
                 }
-                voucher {
-                    type
-                    minAmountSpent {
-                        amount
-                    }
-                    name
-                    code
-                    discountValueType
-                    startDate
-                    endDate
-                }
+                name
+                code
+                discountValueType
+                startDate
+                endDate
             }
         }
-    """
+    }
+"""
+
+
+def test_create_voucher(staff_api_client, permission_manage_discounts):
     start_date = date(day=1, month=1, year=2018)
     end_date = date(day=1, month=1, year=2019)
     variables = {
@@ -140,7 +142,9 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
         'endDate': end_date.isoformat()}
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_discounts])
+        CREATE_VOUCHER_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts])
     content = get_graphql_content(response)
     data = content['data']['voucherCreate']['voucher']
     assert data['type'] == VoucherType.VALUE.upper()
@@ -150,6 +154,30 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
     assert data['discountValueType'] == DiscountValueType.FIXED.upper()
     assert data['startDate'] == start_date.isoformat()
     assert data['endDate'] == end_date.isoformat()
+
+
+def test_create_voucher_with_empty_code(
+        staff_api_client, permission_manage_discounts):
+    start_date = date(day=1, month=1, year=2018)
+    end_date = date(day=1, month=1, year=2019)
+    variables = {
+        'name': 'test voucher',
+        'type': VoucherTypeEnum.VALUE.name,
+        'code': '',
+        'discountValueType': DiscountValueTypeEnum.FIXED.name,
+        'discountValue': 10.12,
+        'minAmountSpent': 1.12,
+        'startDate': start_date.isoformat(),
+        'endDate': end_date.isoformat()}
+
+    response = staff_api_client.post_graphql(
+        CREATE_VOUCHER_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts])
+    content = get_graphql_content(response)
+    data = content['data']['voucherCreate']['voucher']
+    assert data['name'] == variables['name']
+    assert data['code'] != ''
 
 
 def test_update_voucher(
