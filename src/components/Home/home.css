@@ -799,7 +799,7 @@
             width: 45%;
           }
           @media (max-width: 1440px) {
-            width: 55%;
+            width: 60%;
           }
           @media (max-width: 1368px) {
             width: 60%;
@@ -821,7 +821,7 @@
             width: 55%;
           }
           @media (max-width: 1440px) {
-            width: 45%;
+            width: 40%;
           }
           @media (max-width: 1368px) {
             width: 40%;
