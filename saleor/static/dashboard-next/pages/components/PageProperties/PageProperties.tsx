@@ -5,7 +5,7 @@ import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import ControlledCheckbox from "../../../components/ControlledCheckbox";
-import DateFormatter from "../../../components/DateFormatter";
+import { DateTime } from "../../../components/Date";
 import FormSpacer from "../../../components/FormSpacer";
 import i18n from "../../../i18n";
 
@@ -74,7 +74,7 @@ const PageProperties: React.StatelessComponent<PagePropertiesProps> = ({
         {created && (
           <div>
             <Typography variant="body1">
-              {i18n.t("Created:")} <DateFormatter date={created} />
+              {i18n.t("Created:")} <DateTime date={created} />
             </Typography>
           </div>
         )}

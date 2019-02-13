@@ -14,7 +14,7 @@ import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
 import { createVoucherName, VoucherType } from "../..";
-import DateFormatter from "../../../components/DateFormatter";
+import Date from "../../../components/Date";
 import Money from "../../../components/Money";
 import Percent from "../../../components/Percent";
 import Skeleton from "../../../components/Skeleton";
@@ -124,7 +124,7 @@ const VoucherList = withStyles(styles, { name: "VoucherList" })(
                 <TableCell>
                   {voucher ? (
                     voucher.startDate !== null ? (
-                      <DateFormatter date={voucher.startDate} />
+                      <Date date={voucher.startDate} />
                     ) : (
                       "-"
                     )
@@ -135,7 +135,7 @@ const VoucherList = withStyles(styles, { name: "VoucherList" })(
                 <TableCell>
                   {voucher ? (
                     voucher.endDate !== null ? (
-                      <DateFormatter date={voucher.endDate} />
+                      <Date date={voucher.endDate} />
                     ) : (
                       "-"
                     )
