@@ -3,8 +3,7 @@ from graphql_jwt.decorators import permission_required
 
 from ..core.fields import PrefetchingConnectionField
 from .enums import PaymentGatewayEnum
-from .mutations import (
-    PaymentAuthorize, PaymentCapture, PaymentRefund, PaymentVoid)
+from .mutations import PaymentCapture, PaymentRefund, PaymentVoid
 from .resolvers import resolve_payment_client_token, resolve_payments
 from .types import Payment
 
@@ -28,7 +27,6 @@ class PaymentQueries(graphene.ObjectType):
 
 
 class PaymentMutations(graphene.ObjectType):
-    payment_authorize = PaymentAuthorize.Field()
     payment_capture = PaymentCapture.Field()
     payment_refund = PaymentRefund.Field()
     payment_void = PaymentVoid.Field()
