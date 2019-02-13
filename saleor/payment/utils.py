@@ -9,17 +9,16 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
 from django.utils.translation import pgettext_lazy
 
+from . import (
+    ChargeStatus, CustomPaymentChoices, GatewayError, OperationType,
+    PaymentError, TransactionKind, get_payment_gateway)
 from ..account.models import Address, User
-from ..core import analytics
 from ..checkout.models import Cart
+from ..core import analytics
 from ..order import OrderEvents, OrderEventsEmails
 from ..order.emails import send_payment_confirmation
 from ..order.models import Order
 from .models import Payment, Transaction
-from . import (
-    CustomPaymentChoices, ChargeStatus, GatewayError, OperationType,
-    PaymentError, TransactionKind, get_payment_gateway)
-
 
 logger = logging.getLogger(__name__)
 
@@ -99,14 +98,16 @@ def validate_payment(view):
 
 
 def create_payment(
-        gateway: str, total: Decimal,
-        currency: str, email: str, billing_address: Address,
+        gateway: str,
+        total: Decimal,
+        currency: str,
+        email: str,
+        billing_address: Address,
         customer_ip_address: str = '',
         payment_token: str = '',
         extra_data: Dict = None,
         checkout: Cart = None,
-        order: Order = None
-    ) -> Payment:
+        order: Order = None) -> Payment:
     """Create a payment instance.
 
     This method is responsible for creating payment instances that works for

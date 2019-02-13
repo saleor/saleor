@@ -6,8 +6,7 @@ from ...core.utils import get_client_ip
 from ...core.utils.taxes import get_taxes_for_address
 from ...payment import PaymentError
 from ...payment.utils import (
-    create_payment, gateway_authorize, gateway_capture, gateway_charge,
-    gateway_refund, gateway_void)
+    create_payment, gateway_capture, gateway_refund, gateway_void)
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..checkout.types import Checkout

@@ -1,7 +1,6 @@
 """Cart-related ORM models."""
-from operator import attrgetter
-
 from decimal import Decimal
+from operator import attrgetter
 from uuid import uuid4
 
 from django.conf import settings
