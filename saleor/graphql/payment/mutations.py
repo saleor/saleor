@@ -86,36 +86,6 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         return CheckoutPaymentCreate(payment=payment, errors=errors)
 
 
-class PaymentAuthorize(BaseMutation):
-    payment = graphene.Field(Payment, description='Updated payment')
-
-    class Arguments:
-        payment_id = graphene.ID(required=True, description='Payment ID')
-        payment_token = graphene.String(
-            required=True,
-            description='One-time-use reference to payment information')
-
-    class Meta:
-        description = 'Authorize the payment'
-
-    @classmethod
-    @permission_required('order.manage_orders')
-    def mutate(cls, root, info, payment_id, payment_token):
-        errors = []
-        payment = cls.get_node_or_error(
-            info, payment_id, errors, 'payment_id', only_type=Payment)
-
-        if not payment:
-            return PaymentAuthorize(errors=errors)
-
-        try:
-            gateway_authorize(payment, payment_token)
-        except PaymentError as exc:
-            msg = str(exc)
-            cls.add_error(field=None, message=msg, errors=errors)
-        return PaymentAuthorize(payment=payment, errors=errors)
-
-
 class PaymentCapture(BaseMutation):
     payment = graphene.Field(Payment, description='Updated payment')
 
