@@ -344,6 +344,17 @@ class Product(CountableDjangoObjectType):
     def resolve_available_on(self, info):
         return self.publication_date
 
+    @classmethod
+    def get_node(cls, info, id):
+        if info.context:
+            user = info.context.user
+            try:
+                return cls._meta.model.objects.visible_to_user(
+                    user).get(pk=id)
+            except cls._meta.model.DoesNotExist:
+                return None
+        return None
+
 
 def prefetch_products(info, *args, **kwargs):
     """Prefetch products visible to the current user.
@@ -424,6 +435,17 @@ class Collection(CountableDjangoObjectType):
             return self.prefetched_products
         qs = self.products.visible_to_user(info.context.user)
         return gql_optimizer.query(qs, info)
+    
+    @classmethod
+    def get_node(cls, info, id):
+        if info.context:
+            user = info.context.user
+            try:
+                return cls._meta.model.objects.visible_to_user(
+                    user).get(pk=id)
+            except cls._meta.model.DoesNotExist:
+                return None
+        return None
 
     def resolve_published_date(self, info):
         return self.publication_date

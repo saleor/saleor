@@ -662,6 +662,15 @@ def draft_collection(db):
 
 
 @pytest.fixture
+def unpublished_collection():
+    collection = Collection.objects.create(
+        name='Unpublished collection',
+        slug='unpublished-collection',
+        is_published=False)
+    return collection
+
+
+@pytest.fixture
 def page(db):
     data = {
         'slug': 'test-url',
