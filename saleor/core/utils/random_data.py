@@ -30,10 +30,9 @@ from ...menu.models import Menu
 from ...order.models import Fulfillment, Order
 from ...order.utils import update_order_status
 from ...page.models import Page
-from ...payment.models import Payment
 from ...payment.utils import (
-    gateway_authorize, gateway_capture, gateway_refund, gateway_void,
-    get_billing_data)
+    create_payment, gateway_authorize, gateway_capture, gateway_refund,
+    gateway_void)
 from ...product.models import (
     Attribute, AttributeValue, Category, Collection, Product, ProductImage,
     ProductType, ProductVariant)
@@ -313,16 +312,16 @@ def create_fake_user():
 # We don't want to spam the console with payment confirmations sent to
 # fake customers.
 @patch('saleor.order.emails.send_payment_confirmation.delay')
-def create_payment(mock_email_confirmation, order):
-    payment = Payment.objects.create(
+def create_fake_payment(mock_email_confirmation, order):
+    payment = create_payment(
         gateway=settings.DUMMY,
         customer_ip_address=fake.ipv4(),
-        is_active=True,
+        email=order.user_email,
         order=order,
-        token=str(uuid.uuid4()),
+        payment_token=str(uuid.uuid4()),
         total=order.total.gross.amount,
         currency=order.total.gross.currency,
-        **get_billing_data(order))
+        billing_address=order.billing_address)
 
     # Create authorization transaction
     gateway_authorize(payment, payment.token)
@@ -410,7 +409,7 @@ def create_fake_order(discounts, taxes):
     order.weight = weight
     order.save()
 
-    create_payment(order=order)
+    create_fake_payment(order=order)
     create_fulfillments(order)
     return order
 
