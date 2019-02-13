@@ -188,6 +188,9 @@ class Transaction(models.Model):
         max_length=256, null=True)
     gateway_response = JSONField(encoder=DjangoJSONEncoder)
 
+    class Meta:
+        ordering = ('pk', )
+
     def __repr__(self):
         return 'Transaction(type=%s, is_success=%s, created=%s)' % (
             self.kind, self.is_success, self.created)

@@ -866,6 +866,10 @@ def create_order(cart, tracking_code, discounts, taxes):
     Current user's language is saved in the order so we can later determine
     which language to use when sending email.
     """
+    order = Order.objects.filter(checkout_token=cart.token).first()
+    if order is not None:
+        return order
+
     # FIXME: save locale along with the language
     try:
         order_data = _process_voucher_data_for_order(cart)
@@ -879,20 +883,22 @@ def create_order(cart, tracking_code, discounts, taxes):
         'tracking_client_id': tracking_code,
         'total': cart.get_total(discounts, taxes)})
 
-    order = Order.objects.create(**order_data)
-
+    order = Order.objects.create(**order_data, checkout_token=cart.token)
     _fill_order_with_cart_data(order, cart, discounts, taxes)
     return order
 
 
-def is_fully_paid(cart: Cart):
-    payments = cart.payments.filter(is_active=True)
-    total_paid = sum(
-        [p.total for p in payments])
-    return total_paid >= cart.get_total().gross.amount
+def is_fully_paid(cart: Cart, taxes, discounts):
+    """Check if checkout is fully paid."""
+    payments = [
+        payment for payment in cart.payments.all() if payment.is_active]
+    total_paid = sum([p.total for p in payments])
+    cart_total = cart.get_total(discounts=discounts, taxes=taxes).gross.amount
+    return total_paid >= cart_total
 
 
 def ready_to_place_order(cart: Cart, taxes, discounts):
+    """Check if checkout can be completed."""
     if cart.is_shipping_required():
         if not cart.shipping_method:
             return False, pgettext_lazy(
@@ -904,7 +910,7 @@ def ready_to_place_order(cart: Cart, taxes, discounts):
             return False, pgettext_lazy(
                 'order placement error',
                 'Shipping method is not valid for your shipping address')
-    if not is_fully_paid(cart):
+    if not is_fully_paid(cart, taxes, discounts):
         return False, pgettext_lazy(
             'order placement error', 'Checkout is not fully paid')
     return True, None

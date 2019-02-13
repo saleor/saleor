@@ -1,14 +1,12 @@
-import decimal
-
 import graphene
 from django.conf import settings
 from graphql_jwt.decorators import permission_required
 
+from ...core.utils import get_client_ip
 from ...core.utils.taxes import get_taxes_for_address
 from ...payment import PaymentError
 from ...payment.utils import (
-    create_payment, gateway_authorize, gateway_capture, gateway_charge,
-    gateway_refund, gateway_void)
+    create_payment, gateway_capture, gateway_refund, gateway_void)
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..checkout.types import Checkout
@@ -19,128 +17,72 @@ from .types import Payment
 
 
 class PaymentInput(graphene.InputObjectType):
-    gateway = PaymentGatewayEnum()
-    checkout_id = graphene.ID(description='Checkout ID.')
+    gateway = graphene.Field(
+        PaymentGatewayEnum, description='A gateway to use with that payment.',
+        required=True)
     token = graphene.String(
         required=True,
         description=(
-            'Client-side generated token, representing customer\'s billing'
-            'data in secure manner.'))
+            'Client-side generated payment token, representing customer\'s '
+            'billing data in a secure manner.'))
     amount = Decimal(
         required=True,
         description=(
             'Total amount of the transaction, including '
             'all taxes and discounts.'))
-    billing_address = AddressInput(description='Billing address')
+    billing_address = AddressInput(
+        description='Billing address.', required=True)
 
 
 class CheckoutPaymentCreate(BaseMutation, I18nMixin):
-    payment = graphene.Field(Payment, description='Updated payment')
+    checkout = graphene.Field(Checkout, description='Related checkout object.')
+    payment = graphene.Field(Payment, description='A newly created payment.')
 
     class Arguments:
-        input = PaymentInput(required=True, description='Payment details')
+        checkout_id = graphene.ID(description='Checkout ID.', required=True)
+        input = PaymentInput(
+            description='Data required to create a new payment.',
+            required=True)
 
     class Meta:
-        description = 'Creates credit card transaction.'
+        description = 'Create a new payment for given checkout.'
 
     @classmethod
-    def mutate(cls, root, info, input):
-        # FIXME: improve error handling
+    def mutate(cls, root, info, checkout_id, input):
         errors = []
         checkout = cls.get_node_or_error(
-            info,
-            input['checkout_id'],
-            errors,
-            'checkout_id',
-            only_type=Checkout)
-        if not checkout:
+            info, checkout_id, errors, 'checkout_id', only_type=Checkout)
+        billing_address, errors = cls.validate_address(
+            input['billing_address'], errors, 'billing_address')
+
+        if checkout is None or billing_address is None:
             return CheckoutPaymentCreate(errors=errors)
-        billing_data = {}
-        if input['billing_address']:
-            billing_address, errors = cls.validate_address(
-                input['billing_address'], errors, 'billing_address')
-            if not billing_address:
-                return CheckoutPaymentCreate(errors=errors)
-            billing_data = cls.clean_billing_address(billing_address)
-        extra_data = cls.get_extra_info(info)
 
         amount = input['amount']
         checkout_total = checkout.get_total(
             discounts=info.context.discounts,
-            taxes=get_taxes_for_address(checkout.shipping_address))
-
-        if decimal.Decimal(str(amount)) != checkout_total.gross.amount:
+            taxes=get_taxes_for_address(checkout.billing_address))
+        if amount < checkout_total.gross.amount:
             cls.add_error(
                 errors, 'amount',
                 'Partial payments are not allowed, '
                 'amount should be equal checkout\'s total.')
             return CheckoutPaymentCreate(errors=errors)
 
+        extra_data = {
+            'customer_user_agent': info.context.META.get('HTTP_USER_AGENT')}
+
         payment = create_payment(
+            gateway=input['gateway'],
+            payment_token=input['token'],
             total=amount,
             currency=settings.DEFAULT_CURRENCY,
-            gateway=input['gateway'],
-            billing_email=checkout.email,
-            is_active=True,
+            email=checkout.email,
+            billing_address=billing_address,
             extra_data=extra_data,
-            checkout=checkout,
-            token=input['token'],
-            **billing_data)
+            customer_ip_address=get_client_ip(info.context),
+            checkout=checkout)
         return CheckoutPaymentCreate(payment=payment, errors=errors)
-
-    @classmethod
-    def clean_billing_address(cls, billing_address):
-        billing_data = {
-            'billing_first_name': billing_address.first_name,
-            'billing_last_name': billing_address.last_name,
-            'billing_company_name': billing_address.company_name,
-            'billing_address_1': billing_address.street_address_1,
-            'billing_address_2': billing_address.street_address_2,
-            'billing_city': billing_address.city,
-            'billing_postal_code': billing_address.postal_code,
-            'billing_country_code': billing_address.country.code,
-            'billing_country_area': billing_address.country_area}
-        return billing_data
-
-    @classmethod
-    def get_extra_info(cls, info):
-        client_ip = info.context.META['REMOTE_ADDR']
-        x_forwarded_for = info.context.META.get('HTTP_X_FORWARDED_FOR')
-        user_agent = info.context.META.get('HTTP_USER_AGENT')
-        customer_ip = x_forwarded_for if x_forwarded_for else client_ip
-        return {
-            'customer_ip_address': customer_ip,
-            'customer_user_agent': user_agent}
-
-
-class PaymentAuthorize(BaseMutation):
-    payment = graphene.Field(Payment, description='Updated payment')
-
-    class Arguments:
-        payment_id = graphene.ID(required=True, description='Payment ID')
-        payment_token = graphene.String(
-            required=True,
-            description='One-time-use reference to payment information')
-
-    class Meta:
-        description = 'Authorize the payment'
-
-    @classmethod
-    @permission_required('order.manage_orders')
-    def mutate(cls, root, info, payment_id, payment_token):
-        errors = []
-        payment = cls.get_node_or_error(
-            info, payment_id, errors, 'payment_id', only_type=Payment)
-
-        if not payment:
-            return PaymentAuthorize(errors=errors)
-
-        try:
-            gateway_authorize(payment, payment_token)
-        except PaymentError as exc:
-            msg = str(exc)
-            cls.add_error(field=None, message=msg, errors=errors)
-        return PaymentAuthorize(payment=payment, errors=errors)
 
 
 class PaymentCapture(BaseMutation):
@@ -169,37 +111,6 @@ class PaymentCapture(BaseMutation):
             msg = str(exc)
             cls.add_error(field=None, message=msg, errors=errors)
         return PaymentCapture(payment=payment, errors=errors)
-
-
-class PaymentCharge(BaseMutation):
-    payment = graphene.Field(Payment, description='Updated payment')
-
-    class Arguments:
-        payment_id = graphene.ID(required=True, description='Payment ID')
-        payment_token = graphene.String(
-            required=True,
-            description='One-time-use reference to payment information')
-        amount = Decimal(description='Transaction amount')
-
-    class Meta:
-        description = 'Authorize the payment'
-
-    @classmethod
-    @permission_required('order.manage_orders')
-    def mutate(cls, root, info, payment_id, payment_token, amount=None):
-        errors = []
-        payment = cls.get_node_or_error(
-            info, payment_id, errors, 'payment_id', only_type=Payment)
-
-        if not payment:
-            return PaymentCharge(errors=errors)
-
-        try:
-            gateway_charge(payment, payment_token, amount)
-        except PaymentError as exc:
-            msg = str(exc)
-            cls.add_error(field=None, message=msg, errors=errors)
-        return PaymentCharge(payment=payment, errors=errors)
 
 
 class PaymentRefund(PaymentCapture):

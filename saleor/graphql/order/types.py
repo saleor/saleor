@@ -200,8 +200,8 @@ class Order(CountableDjangoObjectType):
         interfaces = [relay.Node]
         model = models.Order
         exclude_fields = [
-            'shipping_price_gross', 'shipping_price_net', 'total_gross',
-            'total_net']
+            'checkout_token', 'shipping_price_gross', 'shipping_price_net',
+            'total_gross', 'total_net']
 
     @staticmethod
     def resolve_shipping_price(self, info):
