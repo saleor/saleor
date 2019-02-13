@@ -11,6 +11,8 @@ import {
   INLINE_STYLE
 } from "draftail";
 import * as React from "react";
+import Link from "./Link";
+import LinkSource from "./LinkSource";
 
 export interface RichTextEditorProps {
   disabled: boolean;
@@ -57,7 +59,12 @@ const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
           { type: INLINE_STYLE.ITALIC }
         ]}
         entityTypes={[
-          { type: ENTITY_TYPE.LINK },
+          {
+            attributes: ["url"],
+            decorator: Link,
+            source: LinkSource,
+            type: ENTITY_TYPE.LINK
+          },
           { type: ENTITY_TYPE.HORIZONTAL_RULE }
         ]}
       />
