@@ -16,44 +16,29 @@ from ..order.models import Order
 
 
 class Payment(models.Model):
-    """A model that represents a single payment.
-
-    This might be a transactable payment information such as credit card
-    details, gift card information or a customer's authorization to charge
-    their PayPal account.
+    """Represents transactable payment information
+    such as credit card details, gift card information or a customer's
+    authorization to charge their PayPal account.
 
     All payment process related pieces of information are stored
     at the gateway level, we are operating on the reusable token
     which is a unique identifier of the customer for given gateway.
 
-    Several payment methods can be used within a single order. Each payment
-    method may consist of multiple transactions.
+    Several payment methods can be used within a single order.
     """
-
+    # FIXME we should provide an option to store the card for later usage
+    # FIXME probably we should have pending status for 3d secure
     gateway = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
+    #: Creation date and time
     created = models.DateTimeField(auto_now_add=True)
+    #: Date and time of last modification
     modified = models.DateTimeField(auto_now=True)
     charge_status = models.CharField(
-        max_length=15, choices=ChargeStatus.CHOICES,
+        max_length=15,
+        choices=ChargeStatus.CHOICES,
         default=ChargeStatus.NOT_CHARGED)
-    token = models.CharField(max_length=128, blank=True, default='')
-    total = models.DecimalField(
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=Decimal('0.0'))
-    captured_amount = models.DecimalField(
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=Decimal('0.0'))
-    currency = models.CharField(max_length=10)  # FIXME: add ISO4217 validator
 
-    checkout = models.ForeignKey(
-        Cart, null=True, related_name='payments', on_delete=models.SET_NULL)
-    order = models.ForeignKey(
-        Order, null=True, related_name='payments', on_delete=models.PROTECT)
-
-    billing_email = models.EmailField(blank=True)
     billing_first_name = models.CharField(max_length=256, blank=True)
     billing_last_name = models.CharField(max_length=256, blank=True)
     billing_company_name = models.CharField(max_length=256, blank=True)
@@ -64,18 +49,39 @@ class Payment(models.Model):
     billing_postal_code = models.CharField(max_length=256, blank=True)
     billing_country_code = models.CharField(max_length=2, blank=True)
     billing_country_area = models.CharField(max_length=256, blank=True)
+    billing_email = models.EmailField(blank=True)
+    customer_ip_address = models.GenericIPAddressField(blank=True, null=True)
+    extra_data = models.TextField(blank=True, default='')
+    token = models.CharField(max_length=128, blank=True, default='')
 
+    #: Currency code (might be gateway-specific)
+    # FIXME: add ISO4217 validator?
+    currency = models.CharField(max_length=10)
+    #: Total amount (gross)
+    total = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal('0.0'))
+    captured_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal('0.0'))
+
+    checkout = models.ForeignKey(
+        Cart, null=True, related_name='payments', on_delete=models.SET_NULL)
+    order = models.ForeignKey(
+        Order, null=True, related_name='payments', on_delete=models.PROTECT)
+
+    # Credit Card data, if applicable
     cc_first_digits = models.CharField(max_length=6, blank=True, default='')
     cc_last_digits = models.CharField(max_length=4, blank=True, default='')
     cc_brand = models.CharField(max_length=40, blank=True, default='')
     cc_exp_month = models.PositiveIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(12)],
         null=True, blank=True)
+    # exp year should be in 4 digits format
     cc_exp_year = models.PositiveIntegerField(
         validators=[MinValueValidator(1000)], null=True, blank=True)
-
-    customer_ip_address = models.GenericIPAddressField(blank=True, null=True)
-    extra_data = models.TextField(blank=True, default='')
 
     class Meta:
         ordering = ('pk', )
@@ -157,23 +163,26 @@ class Payment(models.Model):
 
 
 class Transaction(models.Model):
-    """Represents a single payment operation.
-
-    Transaction is an attempt to transfer money between your store
+    """Transaction represent attempts to transfer money between your store
     and your customers, with a chosen payment method.
     """
-
     created = models.DateTimeField(auto_now_add=True, editable=False)
     payment = models.ForeignKey(
         Payment, related_name='transactions', on_delete=models.PROTECT)
     token = models.CharField(max_length=128, blank=True, default='')
     kind = models.CharField(max_length=10, choices=TransactionKind.CHOICES)
+    # FIXME probably we should have error/pending/success status instead of
+    # a bool, eg for payments with 3d secure
     is_success = models.BooleanField(default=False)
+    #: Currency code (may be gateway-specific)
+    # FIXME: ISO4217 validator?
     currency = models.CharField(max_length=10)
+    #: Total amount (gross)
     amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=Decimal('0.0'))
+    # Unified error code across all payment gateways
     error = models.CharField(
         choices=[(tag, tag.value) for tag in TransactionError],
         max_length=256, null=True)
