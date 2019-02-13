@@ -5,7 +5,7 @@ import Navigator from "../../components/Navigator";
 import Shop from "../../components/Shop";
 import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
-import { getMutationState, maybe } from "../../misc";
+import { decimal, getMutationState, maybe } from "../../misc";
 import {
   DiscountValueTypeEnum,
   VoucherDiscountValueType,
@@ -66,7 +66,7 @@ export const VoucherDetails: React.StatelessComponent = () => (
                               variables: {
                                 input: {
                                   code: formData.code,
-                                  discountValue: formData.value,
+                                  discountValue: decimal(formData.value),
                                   discountValueType: discountValueTypeEnum(
                                     formData.discountType
                                   ),
