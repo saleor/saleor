@@ -297,7 +297,7 @@ class CapturePaymentForm(ManagePaymentForm):
 
 class RefundPaymentForm(ManagePaymentForm):
 
-    clean_status = (ChargeStatus.PARTIAL_CHARGED, ChargeStatus.FULLY_CHARGED)
+    clean_status = (ChargeStatus.PARTIALLY_CHARGED, ChargeStatus.FULLY_CHARGED)
     clean_error = pgettext_lazy('Payment form error',
                                 'Only confirmed payments can be refunded')
 
