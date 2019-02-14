@@ -1015,7 +1015,7 @@ export const customer: CustomerDetails_user = {
           created: "2018-05-07T09:37:30.124154+00:00",
           id: "T3JkZXI6MTk=",
           number: "8234",
-          paymentStatus: PaymentChargeStatusEnum.CHARGED,
+          paymentStatus: PaymentChargeStatusEnum.FULLY_CHARGED,
           total: {
             __typename: "TaxedMoney",
             gross: {

@@ -310,7 +310,7 @@ def test_payments_query(
     assert data['capturedAmount'] == {
         'amount': pay.captured_amount, 'currency': pay.currency}
     assert data['total'] == {'amount': pay.total, 'currency': pay.currency}
-    assert data['chargeStatus'] == PaymentChargeStatusEnum.CHARGED.name
+    assert data['chargeStatus'] == PaymentChargeStatusEnum.FULLY_CHARGED.name
     assert data['billingAddress'] == {
         'firstName': pay.billing_first_name,
         'lastName': pay.billing_last_name,
