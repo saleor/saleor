@@ -31,9 +31,9 @@
       vertical-align: baseline;
       margin-right: $global-margin;
       padding-bottom: 2px;
+      width: 113px;
       @include media-breakpoint-down(sm) {
         max-height: 34px;
-        width: auto;
         vertical-align: text-bottom;
         margin-right: 0;
         padding-bottom: 5px;
