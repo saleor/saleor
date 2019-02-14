@@ -1,3 +1,4 @@
+import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
 import CardSpacer from "../../../components/CardSpacer";
@@ -16,7 +17,7 @@ import PageSlug from "../PageSlug";
 
 export interface FormData {
   availableOn: string;
-  content: string;
+  content: RawDraftContentState;
   isVisible: boolean;
   seoDescription: string;
   seoTitle: string;
@@ -43,7 +44,7 @@ const PageDetailsPage: React.StatelessComponent<PageDetailsPageProps> = ({
 }) => {
   const initialForm: FormData = {
     availableOn: maybe(() => page.availableOn, ""),
-    content: maybe(() => page.content, ""),
+    content: maybe(() => JSON.parse(page.content)),
     isVisible: maybe(() => page.isVisible, false),
     seoDescription: maybe(() => page.seoDescription, ""),
     seoTitle: maybe(() => page.seoTitle, ""),

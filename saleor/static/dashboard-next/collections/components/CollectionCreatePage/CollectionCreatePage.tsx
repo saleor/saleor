@@ -1,5 +1,6 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
+import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
 import { CardSpacer } from "../../../components/CardSpacer";
@@ -23,7 +24,7 @@ export interface CollectionCreatePageFormData {
     value: string;
   };
   backgroundImageAlt: string;
-  description: string;
+  description: RawDraftContentState;
   name: string;
   isPublished: boolean;
   seoDescription: string;
@@ -44,7 +45,7 @@ const initialForm: CollectionCreatePageFormData = {
     value: null
   },
   backgroundImageAlt: "",
-  description: "",
+  description: {} as any,
   isPublished: false,
   name: "",
   seoDescription: "",

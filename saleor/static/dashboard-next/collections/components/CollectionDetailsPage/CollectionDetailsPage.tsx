@@ -1,3 +1,4 @@
+import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
 import { CardSpacer } from "../../../components/CardSpacer";
@@ -19,7 +20,7 @@ import CollectionStatus from "../CollectionStatus/CollectionStatus";
 
 export interface CollectionDetailsPageFormData {
   backgroundImageAlt: string;
-  description: string;
+  description: RawDraftContentState;
   name: string;
   seoDescription: string;
   seoTitle: string;
@@ -56,7 +57,7 @@ const CollectionDetailsPage: React.StatelessComponent<
   <Form
     initial={{
       backgroundImageAlt: maybe(() => collection.backgroundImage.alt, ""),
-      description: maybe(() => collection.description, ""),
+      description: maybe(() => JSON.parse(collection.description), {}),
       isFeatured,
       isPublished: maybe(() => collection.isPublished, false),
       name: maybe(() => collection.name, ""),

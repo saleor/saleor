@@ -7,11 +7,12 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
+import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
 import FormSpacer from "../../../components/FormSpacer";
-import { RichTextEditor } from "../../../components/RichTextEditor";
+import RichTextEditor from "../../../components/RichTextEditor";
 import i18n from "../../../i18n";
 
 const styles = (theme: Theme) =>
@@ -25,7 +26,7 @@ const styles = (theme: Theme) =>
 
 interface ProductDetailsFormProps extends WithStyles<typeof styles> {
   data: {
-    description: string;
+    description: RawDraftContentState;
     name: string;
   };
   disabled?: boolean;
@@ -45,7 +46,6 @@ export const ProductDetailsForm = withStyles(styles, {
           helperText={errors.name}
           disabled={disabled}
           fullWidth
-          key="nameInput"
           label={i18n.t("Name")}
           name="name"
           rows={5}
@@ -55,18 +55,10 @@ export const ProductDetailsForm = withStyles(styles, {
       </div>
       <FormSpacer />
       <RichTextEditor
-        error={!!errors.description}
         disabled={disabled}
-        fullWidth
-        helperText={
-          errors.description
-            ? errors.description
-            : i18n.t("Select text to enable text-formatting tools.")
-        }
-        key="descriptionInput"
+        initial={data.description}
         label={i18n.t("Description")}
         name="description"
-        value={data.description}
         onChange={onChange}
       />
     </CardContent>

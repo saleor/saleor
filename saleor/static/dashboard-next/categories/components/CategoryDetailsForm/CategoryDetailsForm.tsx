@@ -2,11 +2,12 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
+import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
 import FormSpacer from "../../../components/FormSpacer";
-import { RichTextEditor } from "../../../components/RichTextEditor";
+import RichTextEditor from "../../../components/RichTextEditor";
 import i18n from "../../../i18n";
 
 const styles = createStyles({
@@ -18,7 +19,7 @@ const styles = createStyles({
 interface CategoryDetailsFormProps extends WithStyles<typeof styles> {
   data: {
     name: string;
-    description: string;
+    description: RawDraftContentState;
   };
   disabled: boolean;
   errors: { [key: string]: string };
@@ -50,16 +51,9 @@ export const CategoryDetailsForm = withStyles(styles, {
             <RichTextEditor
               disabled={disabled}
               label={i18n.t("Description")}
-              fullWidth
-              helperText={
-                errors.description
-                  ? errors.description
-                  : i18n.t("Select text to enable text-formatting tools.")
-              }
+              initial={data.description}
               name="description"
-              value={data.description}
               onChange={onChange}
-              error={!!errors.description}
             />
           </>
         </CardContent>
