@@ -55,10 +55,14 @@ export const removeDoubleSlashes = (url: string) =>
 
 export const transformPaymentStatus = (status: string) => {
   switch (status) {
-    case PaymentChargeStatusEnum.CHARGED:
-      return { localized: i18n.t("Paid"), status: "success" };
+    case PaymentChargeStatusEnum.PARTIALLY_CHARGED:
+      return { localized: i18n.t("Partially paid"), status: "error" };
+    case PaymentChargeStatusEnum.FULLY_CHARGED:
+      return { localized: i18n.t("Fully paid"), status: "success" };
+    case PaymentChargeStatusEnum.PARTIALLY_REFUNDED:
+      return { localized: i18n.t("Partially refunded"), status: "error" };
     case PaymentChargeStatusEnum.FULLY_REFUNDED:
-      return { localized: i18n.t("Refunded"), status: "success" };
+      return { localized: i18n.t("Fully refunded"), status: "success" };
     default:
       return { localized: i18n.t("Unpaid"), status: "error" };
   }

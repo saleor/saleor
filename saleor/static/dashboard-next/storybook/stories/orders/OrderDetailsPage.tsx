@@ -61,7 +61,7 @@ storiesOf("Views / Orders / Order details", module)
       {...props}
       order={{
         ...props.order,
-        paymentStatus: PaymentChargeStatusEnum.CHARGED
+        paymentStatus: PaymentChargeStatusEnum.FULLY_CHARGED
       }}
     />
   ))
