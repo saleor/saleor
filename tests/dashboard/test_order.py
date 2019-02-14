@@ -78,7 +78,7 @@ def test_view_capture_order_payment_preauth(
             'amount': str(order.total.gross.amount)})
     assert response.status_code == 302
     payment = order.payments.last()
-    assert payment.charge_status == ChargeStatus.CHARGED
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.captured_amount == order.total.gross.amount
     assert payment.currency == order.total.gross.currency
 
@@ -97,7 +97,7 @@ def test_view_capture_order_invalid_payment_confirmed_status(
         url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
     assert response.status_code == 400
     payment = order.payments.last()
-    assert payment.charge_status == ChargeStatus.CHARGED
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
 
 
 @pytest.mark.integration
@@ -230,7 +230,7 @@ def test_view_void_order_invalid_payment_confirmed_status(
         'csrfmiddlewaretoken': 'hello'})
     assert response.status_code == 400
     order_payment = order.payments.last()
-    assert order_payment.charge_status == ChargeStatus.CHARGED
+    assert order_payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert order_payment.captured_amount == order.total.gross.amount
     assert order_payment.total == order.total.gross.amount
     assert order_payment.currency == order.total.gross.currency

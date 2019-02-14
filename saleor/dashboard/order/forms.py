@@ -320,9 +320,9 @@ class VoidPaymentForm(ManagePaymentForm):
                                 'Only pre-authorized payments can be voided')
 
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.payment = kwargs.pop('payment')
         self.fields.pop('amount')
-        super().__init__(*args, **kwargs)
 
     def void(self):
         try:
