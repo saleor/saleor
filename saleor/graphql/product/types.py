@@ -200,6 +200,17 @@ class ProductVariant(CountableDjangoObjectType):
     def resolve_images(self, info):
         return self.images.all()
 
+    @classmethod
+    def get_node(cls, info, id):
+        user = info.context.user
+        visible_products = models.Product.objects.visible_to_user(
+            user).values_list('pk', flat=True)
+        try:
+            return cls._meta.model.objects.filter(
+                product__id__in=visible_products).get(pk=id)
+        except cls._meta.model.DoesNotExist:
+            return None
+
 
 class ProductAvailability(graphene.ObjectType):
     available = graphene.Boolean()

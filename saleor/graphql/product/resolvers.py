@@ -113,7 +113,11 @@ def resolve_product_types(info):
 
 
 def resolve_product_variants(info, ids=None):
-    qs = models.ProductVariant.objects.all()
+    user = info.context.user
+    visible_products = models.Product.objects.visible_to_user(
+        user).values_list('pk', flat=True)
+    qs = models.ProductVariant.objects.filter(
+        product__id__in=visible_products)
     if ids:
         db_ids = [
             get_database_id(info, node_id, only_type=ProductVariant)
