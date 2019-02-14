@@ -446,7 +446,7 @@ class Collection(CountableDjangoObjectType):
             return self.prefetched_products
         qs = self.products.visible_to_user(info.context.user)
         return gql_optimizer.query(qs, info)
-    
+
     @classmethod
     def get_node(cls, info, id):
         if info.context:

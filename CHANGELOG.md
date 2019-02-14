@@ -12,6 +12,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add instructions for using local assets in Docker - #3723 by @michaljelonek
 - Remove unused imports - #3645 by @jxltom
 - Add discount section - #3654 by @dominik-zeglen
+- Fix access to unpublished objects via API - #3724 by @Kwaidan00
 
 
 ## 2.3.0
