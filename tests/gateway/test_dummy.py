@@ -4,7 +4,6 @@ import pytest
 
 from saleor.payment import (
     ChargeStatus, PaymentError, TransactionKind, get_payment_gateway)
-from saleor.payment.gateways.dummy.forms import DummyPaymentForm
 from saleor.payment.utils import (
     create_payment_information, gateway_authorize, gateway_capture,
     gateway_charge, gateway_process_payment, gateway_refund, gateway_void)

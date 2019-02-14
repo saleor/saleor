@@ -1,7 +1,8 @@
 import json
-from django.core.serializers.json import DjangoJSONEncoder
+
 import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.core.serializers.json import DjangoJSONEncoder
 from django.shortcuts import reverse
 from django.test.client import MULTIPART_CONTENT, Client
 from graphql_jwt.shortcuts import get_token
