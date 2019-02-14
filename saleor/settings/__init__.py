@@ -3,19 +3,19 @@ from __future__ import unicode_literals
 import ast
 import datetime
 import os.path
-import raven
 
 import dj_email_url
 import django_cache_url
 from django.contrib.messages import constants as messages
 from dotenv import load_dotenv
+
 load_dotenv()
 
 DEBUG = ast.literal_eval(os.environ.get('DEBUG', 'False'))
 
 SITE_ID = int(os.environ.get('SITE_ID', 1))
 
-PROJECT_ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
+PROJECT_ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), '../..'))
 
 ROOT_URLCONF = 'saleor.urls'
 
@@ -281,7 +281,7 @@ LOGGING = {
         },
         'django.db.backends': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'DEBUG',
         },
     },
 }
