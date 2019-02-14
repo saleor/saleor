@@ -263,7 +263,11 @@ class ManagePaymentForm(forms.Form):
         super().__init__(*args, **kwargs)
 
     def clean(self):
-        if self.payment.charge_status != self.clean_status:
+        # Convert clean_status to a tuple if it is not a collection yet
+        if len(self.clean_status) == 1:
+            self.clean_status = (self.clean_status, )
+
+        if self.payment.charge_status not in self.clean_status:
             raise forms.ValidationError(self.clean_error)
 
     def payment_error(self, message):
