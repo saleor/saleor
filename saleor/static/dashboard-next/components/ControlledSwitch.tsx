@@ -13,9 +13,9 @@ const styles = (theme: Theme) =>
 interface ControlledSwitchProps extends WithStyles<typeof styles> {
   checked: boolean;
   disabled?: boolean;
-  label: string;
+  label: string | React.ReactNode;
   name: string;
-  uncheckedLabel?: string;
+  uncheckedLabel?: string | React.ReactNode;
   onChange?(event: React.ChangeEvent<any>);
 }
 
