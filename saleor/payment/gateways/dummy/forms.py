@@ -18,7 +18,8 @@ class DummyPaymentForm(forms.Form):
         if charge_status == ChargeStatus.PARTIALLY_REFUNDED:
             raise forms.ValidationError(
                 _('Setting charge status to partially refunded directly '
-                  'is not supported.'), code='invalid_charge_status')
+                  'is not supported. Please use the dashboard to '
+                  'refund partially.'), code='invalid_charge_status')
 
         return cleaned_data
 
