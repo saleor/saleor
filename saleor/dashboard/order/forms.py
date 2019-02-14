@@ -309,23 +309,16 @@ class RefundPaymentForm(ManagePaymentForm):
         return self.try_payment_action(gateway_refund)
 
 
-class VoidPaymentForm(forms.Form):
+class VoidPaymentForm(ManagePaymentForm):
+
+    clean_status = ChargeStatus.NOT_CHARGED
+    clean_error = pgettext_lazy('Payment form error',
+                                'Only pre-authorized payments can be voided')
 
     def __init__(self, *args, **kwargs):
         self.payment = kwargs.pop('payment')
+        self.fields.pop('amount')
         super().__init__(*args, **kwargs)
-
-    def clean(self):
-        if self.payment.charge_status != ChargeStatus.NOT_CHARGED:
-            raise forms.ValidationError(
-                pgettext_lazy(
-                    'Payment form error',
-                    'Only pre-authorized payments can be voided'))
-
-    def payment_error(self, message):
-        self.add_error(
-            None, pgettext_lazy(
-                'Payment form error', 'Payment gateway error: %s') % message)
 
     def void(self):
         try:
