@@ -6,6 +6,10 @@ import { ShopInfo } from "./types/ShopInfo";
 const shopInfo = gql`
   query ShopInfo {
     shop {
+      countries {
+        country
+        code
+      }
       defaultCountry {
         code
         country

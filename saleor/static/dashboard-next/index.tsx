@@ -31,6 +31,7 @@ import { ShopProvider } from "./components/Shop";
 import { WindowTitle } from "./components/WindowTitle";
 import ConfigurationSection, { configurationMenu } from "./configuration";
 import { CustomerSection } from "./customers";
+import DiscountSection from "./discounts";
 import HomePage from "./home";
 import i18n from "./i18n";
 import { NotFound } from "./NotFound";
@@ -143,6 +144,11 @@ render(
                               permissions={[PermissionEnum.MANAGE_USERS]}
                               path="/customers"
                               component={CustomerSection}
+                            />
+                            <SectionRoute
+                              permissions={[PermissionEnum.MANAGE_DISCOUNTS]}
+                              path="/discounts"
+                              component={DiscountSection}
                             />
                             <SectionRoute
                               permissions={[PermissionEnum.MANAGE_PAGES]}

@@ -11,6 +11,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Reuse Storefront's 1.0 payment logic in API - #3715 by @maarcingebala
 - Add instructions for using local assets in Docker - #3723 by @michaljelonek
 - Remove unused imports - #3645 by @jxltom
+- Add discount section - #3654 by @dominik-zeglen
 
 
 ## 2.3.0
