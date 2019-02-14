@@ -1,7 +1,7 @@
 import graphene
 from graphql_jwt.decorators import permission_required
 
-from ...discount import VoucherType, models
+from ...discount import models
 from ...discount.utils import generate_voucher_code
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import Decimal
