@@ -161,7 +161,7 @@ def mark_order_as_paid(order: Order, request_user: User):
         billing_address=order.billing_address,
         total=order.total.gross.amount,
         order=order)
-    payment.charge_status = ChargeStatus.CHARGED
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = order.total.gross.amount
     payment.save(update_fields=['captured_amount', 'charge_status'])
     order.events.create(
@@ -352,8 +352,14 @@ def _gateway_postprocess(transaction, payment):
     transaction_kind = transaction.kind
 
     if transaction_kind in [TransactionKind.CHARGE, TransactionKind.CAPTURE]:
-        payment.charge_status = ChargeStatus.CHARGED
         payment.captured_amount += transaction.amount
+
+        # Set payment charge status to fully charged
+        # only if there is no more amount needs to charge
+        payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
+        if payment.get_charge_amount() <= 0:
+            payment.charge_status = ChargeStatus.FULLY_CHARGED
+
         payment.save(update_fields=['charge_status', 'captured_amount'])
         order = payment.order
         if order and order.is_fully_paid():

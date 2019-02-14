@@ -149,16 +149,19 @@ class Payment(models.Model):
 
     def can_charge(self):
         not_fully_charged = (
-            self.charge_status == ChargeStatus.CHARGED
-            and self.get_total() > self.get_captured_amount())
+            self.charge_status == ChargeStatus.PARTIALLY_CHARGED)
         return self.is_active and (self.not_charged or not_fully_charged)
 
     def can_void(self):
         return self.is_active and self.not_charged and self.is_authorized
 
     def can_refund(self):
+        can_refund_charge_status = (
+            ChargeStatus.PARTIALLY_CHARGED,
+            ChargeStatus.FULLY_CHARGED,
+            ChargeStatus.PARTIALLY_REFUNDED)
         return (
-            self.is_active and self.charge_status == ChargeStatus.CHARGED
+            self.is_active and self.charge_status in can_refund_charge_status
             and self.gateway != CustomPaymentChoices.MANUAL)
 
 
