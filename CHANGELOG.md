@@ -9,6 +9,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Unify field names on product, collection and page - #3706 by @michaljelonek
 - Generate voucher code if it wasn't provided in mutation - #3717 by @Kwaidan00
 - Reuse Storefront's 1.0 payment logic in API - #3715 by @maarcingebala
+- Add instructions for using local assets in Docker - #3723 by @michaljelonek
 - Remove unused imports - #3645 by @jxltom
 
 
