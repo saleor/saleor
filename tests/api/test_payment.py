@@ -1,7 +1,6 @@
 from unittest.mock import patch
 
 import graphene
-import pytest
 
 from saleor.core.utils import get_country_name_by_code
 from saleor.graphql.payment.enums import (
