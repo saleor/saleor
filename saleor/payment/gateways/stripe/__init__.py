@@ -1,9 +1,7 @@
-from decimal import Decimal
 from typing import Dict
 
 import stripe
 
-from . import errors
 from .forms import StripePaymentModalForm
 from .utils import (
     get_amount_for_stripe, get_amount_from_stripe, get_currency_for_stripe,
