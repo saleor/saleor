@@ -368,7 +368,7 @@ def test_order_queryset_to_ship(settings):
     ]
     for order in orders_to_ship:
         order.payments.create(
-            gateway=settings.DUMMY, charge_status=ChargeStatus.CHARGED,
+            gateway=settings.DUMMY, charge_status=ChargeStatus.FULLY_CHARGED,
             total=order.total.gross.amount,
             captured_amount=order.total.gross.amount,
             currency=order.total.gross.currency)
@@ -464,7 +464,7 @@ def test_order_payment_flow(
         'is_active': True,
         'total': order.total.gross.amount,
         'currency': order.total.gross.currency,
-        'charge_status': ChargeStatus.CHARGED}
+        'charge_status': ChargeStatus.FULLY_CHARGED}
     response = client.post(redirect_url, data)
 
     assert response.status_code == 302
