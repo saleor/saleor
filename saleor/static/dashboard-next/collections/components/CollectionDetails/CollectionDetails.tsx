@@ -2,6 +2,7 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
+import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
@@ -17,12 +18,11 @@ const styles = createStyles({
 
 export interface CollectionDetailsProps extends WithStyles<typeof styles> {
   data: {
-    description: string;
+    description: RawDraftContentState;
     name: string;
   };
   disabled: boolean;
   errors: {
-    description?: string;
     name?: string;
   };
   onChange: (event: React.ChangeEvent<any>) => void;
@@ -47,16 +47,9 @@ const CollectionDetails = withStyles(styles, { name: "CollectionDetails" })(
         <RichTextEditor
           label={i18n.t("Description")}
           name="description"
+          initial={data.description}
           disabled={disabled}
-          value={data.description}
           onChange={onChange}
-          error={!!errors.name}
-          helperText={
-            !!errors.name
-              ? errors.name
-              : i18n.t("Select text to enable text-formatting tools.")
-          }
-          fullWidth
         />
       </CardContent>
     </Card>

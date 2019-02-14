@@ -152,12 +152,18 @@ export const CollectionDetails: React.StatelessComponent<
                           updateCollectionWithHomepage.mutate({
                             homepageId: formData.isFeatured ? id : null,
                             id,
-                            input
+                            input: {
+                              ...input,
+                              description: JSON.stringify(input.description)
+                            }
                           });
                         } else {
                           updateCollection.mutate({
                             id,
-                            input
+                            input: {
+                              ...input,
+                              description: JSON.stringify(input.description)
+                            }
                           });
                         }
                       };

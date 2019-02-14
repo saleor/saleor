@@ -12,7 +12,7 @@ import { FormData } from "../PageDetailsPage";
 export interface PageInfoProps {
   data: FormData;
   disabled: boolean;
-  errors: Partial<Record<"title" | "content", string>>;
+  errors: Partial<Record<"title", string>>;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
@@ -38,7 +38,7 @@ const PageInfo: React.StatelessComponent<PageInfoProps> = ({
       <FormSpacer />
       <RichTextEditor
         disabled={disabled}
-        initial={JSON.parse(data.content)}
+        initial={data.content}
         label={i18n.t("Content")}
         name={"content" as keyof FormData}
         onChange={onChange}

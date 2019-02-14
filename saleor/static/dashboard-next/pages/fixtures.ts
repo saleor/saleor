@@ -1,3 +1,4 @@
+import { content } from "../storybook/stories/components/RichTextEditor";
 import { PageDetails_page } from "./types/PageDetails";
 import { PageList_pages_edges_node } from "./types/PageList";
 
@@ -34,7 +35,7 @@ export const pageList: PageList_pages_edges_node[] = [
 export const page: PageDetails_page = {
   __typename: "Page",
   availableOn: "",
-  content: "",
+  content: JSON.stringify(content),
   id: "Kzx152sEm==",
   isVisible: false,
   seoDescription: "About",

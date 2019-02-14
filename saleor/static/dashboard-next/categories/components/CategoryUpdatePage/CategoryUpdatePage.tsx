@@ -1,3 +1,4 @@
+import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
 import { CardSpacer } from "../../../components/CardSpacer";
@@ -24,7 +25,7 @@ import CategoryProductsCard from "../CategoryProductsCard";
 
 export interface FormData {
   backgroundImageAlt: string;
-  description: string;
+  description: RawDraftContentState;
   name: string;
   seoTitle: string;
   seoDescription: string;
@@ -91,7 +92,7 @@ export const CategoryUpdatePage: React.StatelessComponent<
   const initialData: FormData = category
     ? {
         backgroundImageAlt: maybe(() => category.backgroundImage.alt, ""),
-        description: category.description || "",
+        description: maybe(() => JSON.parse(category.description)),
         name: category.name || "",
         seoDescription: category.seoDescription || "",
         seoTitle: category.seoTitle || ""
@@ -138,7 +139,7 @@ export const CategoryUpdatePage: React.StatelessComponent<
             title={data.seoTitle}
             titlePlaceholder={data.name}
             description={data.seoDescription}
-            descriptionPlaceholder={data.description}
+            descriptionPlaceholder={data.name}
             loading={!category}
             onChange={change}
             disabled={disabled}
