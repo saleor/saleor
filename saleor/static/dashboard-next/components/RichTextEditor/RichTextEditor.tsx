@@ -6,6 +6,12 @@ import {
 } from "@material-ui/core/styles";
 import { fade } from "@material-ui/core/styles/colorManipulator";
 import Typography from "@material-ui/core/Typography";
+import BoldIcon from "@material-ui/icons/FormatBold";
+import ItalicIcon from "@material-ui/icons/FormatItalic";
+import UnorderedListIcon from "@material-ui/icons/FormatListBulleted";
+import OrderedListIcon from "@material-ui/icons/FormatListNumbered";
+import QuotationIcon from "@material-ui/icons/FormatQuote";
+import LinkIcon from "@material-ui/icons/Link";
 import { RawDraftContentState } from "draft-js";
 import {
   BLOCK_TYPE,
@@ -15,6 +21,8 @@ import {
 } from "draftail";
 import * as React from "react";
 
+import HeaderThree from "../../icons/HeaderThree";
+import HeaderTwo from "../../icons/HeaderTwo";
 import LinkEntity from "./LinkEntity";
 import LinkSource from "./LinkSource";
 
@@ -86,26 +94,28 @@ const styles = (theme: Theme) =>
             alignItems: "center",
             background: "none",
             border: "none",
-            borderRadius: 4,
+            borderRight: `1px ${theme.palette.grey[300]} solid`,
             cursor: "pointer",
             display: "inline-flex",
-            height: 24,
+            height: 36,
             justifyContent: "center",
-            marginLeft: theme.spacing.unit,
-            marginRight: theme.spacing.unit,
-            padding: 0,
+            padding: theme.spacing.unit - 1,
             transition: theme.transitions.duration.short + "ms",
-            width: 24
+            width: 36
           },
           "&Group": {
+            "&:last-of-type": {
+              "& .Draftail-ToolbarButton": {
+                "&:last-of-type": {
+                  border: "none"
+                }
+              }
+            },
             display: "flex"
           },
           border: `1px ${theme.palette.grey[300]} solid`,
-          borderRadius: 6,
-          display: "flex",
-          marginBottom: theme.spacing.unit,
-          paddingBottom: theme.spacing.unit,
-          paddingTop: theme.spacing.unit
+          display: "inline-flex",
+          marginBottom: theme.spacing.unit
         }
       }
     }
@@ -133,24 +143,24 @@ const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
           } as any)
         }
         blockTypes={[
-          { type: BLOCK_TYPE.HEADER_TWO },
-          { type: BLOCK_TYPE.HEADER_THREE },
-          { type: BLOCK_TYPE.BLOCKQUOTE },
-          { type: BLOCK_TYPE.UNORDERED_LIST_ITEM },
-          { type: BLOCK_TYPE.ORDERED_LIST_ITEM }
+          { icon: <HeaderTwo />, type: BLOCK_TYPE.HEADER_TWO },
+          { icon: <HeaderThree />, type: BLOCK_TYPE.HEADER_THREE },
+          { icon: <QuotationIcon />, type: BLOCK_TYPE.BLOCKQUOTE },
+          { icon: <UnorderedListIcon />, type: BLOCK_TYPE.UNORDERED_LIST_ITEM },
+          { icon: <OrderedListIcon />, type: BLOCK_TYPE.ORDERED_LIST_ITEM }
         ]}
         inlineStyles={[
-          { type: INLINE_STYLE.BOLD },
-          { type: INLINE_STYLE.ITALIC }
+          { icon: <BoldIcon />, type: INLINE_STYLE.BOLD },
+          { icon: <ItalicIcon />, type: INLINE_STYLE.ITALIC }
         ]}
         entityTypes={[
           {
             attributes: ["href"],
             decorator: LinkEntity,
+            icon: <LinkIcon />,
             source: LinkSource,
             type: ENTITY_TYPE.LINK
-          },
-          { type: ENTITY_TYPE.HORIZONTAL_RULE }
+          }
         ]}
       />
     </div>
