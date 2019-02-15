@@ -12,6 +12,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add instructions for using local assets in Docker - #3723 by @michaljelonek
 - Remove unused imports - #3645 by @jxltom
 - Add discount section - #3654 by @dominik-zeglen
+- Disable style-loader in dev mode - #3720 by @jxltom
+- Use authenticated user's email as default email in creating checkout - #3726 by @jxltom
 - Fix access to unpublished objects via API - #3724 by @Kwaidan00
 
 
