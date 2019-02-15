@@ -175,7 +175,11 @@ def get_or_create_user_cart(user, cart_queryset=Cart.objects.all()):
     defaults = {
         'shipping_address': user.default_shipping_address,
         'billing_address': user.default_billing_address}
-    return cart_queryset.get_or_create(user=user, defaults=defaults)[0]
+
+    cart = cart_queryset.filter(user=user).first()
+    if cart is None:
+        cart = Cart.objects.create(user=user, **defaults)
+    return cart
 
 
 def get_anonymous_cart_from_token(token, cart_queryset=Cart.objects.all()):
