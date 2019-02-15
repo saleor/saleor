@@ -9,6 +9,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Unify field names on product, collection and page - #3706 by @michaljelonek
 - Generate voucher code if it wasn't provided in mutation - #3717 by @Kwaidan00
 - Reuse Storefront's 1.0 payment logic in API - #3715 by @maarcingebala
+- Add instructions for using local assets in Docker - #3723 by @michaljelonek
+- Remove unused imports - #3645 by @jxltom
+- Add discount section - #3654 by @dominik-zeglen
 - Disable style-loader in dev mode - #3720 by @jxltom
 
 
@@ -82,7 +85,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Resolve to `None` when empty object ID was passed as mutation argument - #3497 by @maarcingebala
 - Change `errors` field type from [Error] to [Error!] - #3489 by @fowczarek
 - Support creating default variant for product types that don't use multiple variants - #3505 by @fowczarek
-- Validate SKU when creating a default variant - #3555 by @fowczarek
+- Validate SKU when creating a default variant - #3555 by @fowczarek
 - Extract enums to separate files - #3523 by @maarcingebala
 
 ### Core

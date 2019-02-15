@@ -1,7 +1,7 @@
 import graphene
 from graphql_jwt.decorators import permission_required
 
-from ...discount import VoucherType, models
+from ...discount import models
 from ...discount.utils import generate_voucher_code
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import Decimal
@@ -10,30 +10,18 @@ from .enums import DiscountValueTypeEnum, VoucherTypeEnum
 from .types import Sale, Voucher
 
 
-def validate_voucher(voucher_data):
-    voucher_type = voucher_data.get('type')
-    errors = []
-    if voucher_type == VoucherType.PRODUCT:
-        if not voucher_data.get('products'):
-            errors.append(('products', 'This field is required.'))
-    elif voucher_type == VoucherType.COLLECTION:
-        if not voucher_data.get('collections'):
-            errors.append(('collections', 'This field is required.'))
-    elif voucher_type == VoucherType.CATEGORY:
-        if not voucher_data.get('categories'):
-            errors.append(('categories', 'This field is required.'))
-    return errors
-
-
 class CatalogueInput(graphene.InputObjectType):
     products = graphene.List(
-        graphene.ID, description='Products related to the discount.',
+        graphene.ID,
+        description='Products related to the discount.',
         name='products')
     categories = graphene.List(
-        graphene.ID, description='Categories related to the discount.',
+        graphene.ID,
+        description='Categories related to the discount.',
         name='categories')
     collections = graphene.List(
-        graphene.ID, description='Collections related to the discount.',
+        graphene.ID,
+        description='Collections related to the discount.',
         name='collections')
 
 
@@ -91,13 +79,16 @@ class VoucherInput(graphene.InputObjectType):
         description='Choices: fixed or percentage.')
     discount_value = Decimal(description='Value of the voucher.')
     products = graphene.List(
-        graphene.ID, description='Products discounted by the voucher.',
+        graphene.ID,
+        description='Products discounted by the voucher.',
         name='products')
     collections = graphene.List(
-        graphene.ID, description='Collections discounted by the voucher.',
+        graphene.ID,
+        description='Collections discounted by the voucher.',
         name='collections')
     categories = graphene.List(
-        graphene.ID, description='Categories discounted by the voucher.',
+        graphene.ID,
+        description='Categories discounted by the voucher.',
         name='categories')
     min_amount_spent = Decimal(
         description='Min purchase amount required to apply the voucher.')
@@ -109,8 +100,7 @@ class VoucherInput(graphene.InputObjectType):
 class VoucherCreate(ModelMutation):
     class Arguments:
         input = VoucherInput(
-            required=True,
-            description='Fields required to create a voucher.')
+            required=True, description='Fields required to create a voucher.')
 
     class Meta:
         description = 'Creates a new voucher.'
@@ -126,9 +116,6 @@ class VoucherCreate(ModelMutation):
         if code == '':
             input['code'] = generate_voucher_code()
         cleaned_input = super().clean_input(info, instance, input, errors)
-        voucher_errors = validate_voucher(cleaned_input)
-        for err in voucher_errors:
-            cls.add_error(errors=errors, field=err[0], message=err[1])
         return cleaned_input
 
 
@@ -137,8 +124,7 @@ class VoucherUpdate(VoucherCreate):
         id = graphene.ID(
             required=True, description='ID of a voucher to update.')
         input = VoucherInput(
-            required=True,
-            description='Fields required to update a voucher.')
+            required=True, description='Fields required to update a voucher.')
 
     class Meta:
         description = 'Updates a voucher.'
@@ -161,13 +147,14 @@ class VoucherDelete(ModelDeleteMutation):
 
 class VoucherBaseCatalogueMutation(BaseDiscountCatalogueMutation):
     voucher = graphene.Field(
-        Voucher, description=(
-            'Voucher of which catalogue IDs will be modified.'))
+        Voucher,
+        description=('Voucher of which catalogue IDs will be modified.'))
 
     class Arguments:
         id = graphene.ID(required=True, description='ID of a voucher.')
         input = CatalogueInput(
-            required=True, description=(
+            required=True,
+            description=(
                 'Fields required to modify catalogue IDs of voucher.'))
 
     class Meta:
@@ -175,7 +162,6 @@ class VoucherBaseCatalogueMutation(BaseDiscountCatalogueMutation):
 
 
 class VoucherAddCatalogues(VoucherBaseCatalogueMutation):
-
     class Meta:
         description = 'Adds products, categories, collections to a voucher.'
 
@@ -191,7 +177,6 @@ class VoucherAddCatalogues(VoucherBaseCatalogueMutation):
 
 
 class VoucherRemoveCatalogues(VoucherBaseCatalogueMutation):
-
     class Meta:
         description = (
             'Removes products, categories, collections from a voucher.')
@@ -212,13 +197,16 @@ class SaleInput(graphene.InputObjectType):
     type = DiscountValueTypeEnum(description='Fixed or percentage.')
     value = Decimal(description='Value of the voucher.')
     products = graphene.List(
-        graphene.ID, description='Products related to the discount.',
+        graphene.ID,
+        description='Products related to the discount.',
         name='products')
     categories = graphene.List(
-        graphene.ID, description='Categories related to the discount.',
+        graphene.ID,
+        description='Categories related to the discount.',
         name='categories')
     collections = graphene.List(
-        graphene.ID, description='Collections related to the discount.',
+        graphene.ID,
+        description='Collections related to the discount.',
         name='collections')
     start_date = graphene.Date(
         description='Start date of the sale in ISO 8601 format.')
@@ -229,8 +217,7 @@ class SaleInput(graphene.InputObjectType):
 class SaleCreate(ModelMutation):
     class Arguments:
         input = SaleInput(
-            required=True,
-            description='Fields required to create a sale.')
+            required=True, description='Fields required to create a sale.')
 
     class Meta:
         description = 'Creates a new sale.'
@@ -243,11 +230,9 @@ class SaleCreate(ModelMutation):
 
 class SaleUpdate(ModelMutation):
     class Arguments:
-        id = graphene.ID(
-            required=True, description='ID of a sale to update.')
+        id = graphene.ID(required=True, description='ID of a sale to update.')
         input = SaleInput(
-            required=True,
-            description='Fields required to update a sale.')
+            required=True, description='Fields required to update a sale.')
 
     class Meta:
         description = 'Updates a sale.'
@@ -260,8 +245,7 @@ class SaleUpdate(ModelMutation):
 
 class SaleDelete(ModelDeleteMutation):
     class Arguments:
-        id = graphene.ID(
-            required=True, description='ID of a sale to delete.')
+        id = graphene.ID(required=True, description='ID of a sale to delete.')
 
     class Meta:
         description = 'Deletes a sale.'
@@ -274,21 +258,19 @@ class SaleDelete(ModelDeleteMutation):
 
 class SaleBaseCatalogueMutation(BaseDiscountCatalogueMutation):
     sale = graphene.Field(
-        Sale, description=(
-            'Sale of which catalogue IDs will be modified.'))
+        Sale, description=('Sale of which catalogue IDs will be modified.'))
 
     class Arguments:
         id = graphene.ID(required=True, description='ID of a sale.')
         input = CatalogueInput(
-            required=True, description=(
-                'Fields required to modify catalogue IDs of sale.'))
+            required=True,
+            description=('Fields required to modify catalogue IDs of sale.'))
 
     class Meta:
         abstract = True
 
 
 class SaleAddCatalogues(SaleBaseCatalogueMutation):
-
     class Meta:
         description = 'Adds products, categories, collections to a voucher.'
 
@@ -304,7 +286,6 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
 
 
 class SaleRemoveCatalogues(SaleBaseCatalogueMutation):
-
     class Meta:
         description = 'Removes products, categories, collections from a sale.'
 
