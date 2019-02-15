@@ -53,6 +53,15 @@ function loadStories() {
   require("./stories/customers/CustomerDetailsPage");
   require("./stories/customers/CustomerListPage");
 
+  // Discounts
+  require("./stories/discounts/DiscountCountrySelectDialog");
+  require("./stories/discounts/SaleCreatePage");
+  require("./stories/discounts/SaleDetailsPage");
+  require("./stories/discounts/SaleListPage");
+  require("./stories/discounts/VoucherCreatePage");
+  require("./stories/discounts/VoucherDetailsPage");
+  require("./stories/discounts/VoucherListPage");
+
   // Homepage
   require("./stories/home/HomePage");
 
@@ -95,10 +104,6 @@ function loadStories() {
   require("./stories/orders/OrderPaymentVoidDialog");
   require("./stories/orders/OrderProductAddDialog");
   require("./stories/orders/OrderShippingMethodEditDialog");
-
-  // Vouchers
-  require("./stories/vouchers/VoucherDetailsPage");
-  require("./stories/vouchers/VoucherListPage");
 
   // Product types
   require("./stories/productTypes/ProductTypeAttributeEditDialog");

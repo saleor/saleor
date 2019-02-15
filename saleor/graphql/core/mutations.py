@@ -327,7 +327,6 @@ class ModelDeleteMutation(ModelMutation):
         Override this method to raise custom validation error and abort
         the deletion process.
         """
-        pass
 
     @classmethod
     def mutate(cls, root, info, **data):

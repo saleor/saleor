@@ -5,9 +5,9 @@ import graphene
 import pytest
 from django.utils.text import slugify
 from graphql_relay import to_global_id
-from tests.utils import create_image, create_pdf_file_with_image_ext
 
 from saleor.product.models import Collection
+from tests.utils import create_image, create_pdf_file_with_image_ext
 
 from .utils import get_graphql_content, get_multipart_request_body
 

@@ -26,3 +26,5 @@ export interface PartialMutationProviderOutput<
   opts: MutationResult<TData>;
   mutate: (variables: TVariables) => void;
 }
+
+export type FormErrors<TKeys extends string> = Partial<Record<TKeys, string>>;
