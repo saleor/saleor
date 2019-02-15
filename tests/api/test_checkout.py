@@ -16,6 +16,7 @@ MUTATION_CHECKOUT_CREATE = """
             checkout {
                 token,
                 id
+                email
             }
             errors {
                 field
@@ -80,6 +81,26 @@ def test_checkout_create_required_email(api_client, variant):
     assert errors
     assert errors[0]['field'] == 'email'
     assert errors[0]['message'] == 'This field cannot be blank.'
+
+
+def test_checkout_create_default_email_for_logged_in_customer(
+        user_api_client, variant):
+    variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
+    variables = {
+        'checkoutInput': {
+            'lines': [{
+                'quantity': 1,
+                'variantId': variant_id}]}}
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE, variables)
+    customer = user_api_client.user
+    content = get_graphql_content(response)
+    new_cart = Cart.objects.first()
+    assert new_cart is not None
+    checkout_data = content['data']['checkoutCreate']['checkout']
+    assert checkout_data['email'] == str(customer.email)
+    assert new_cart.user.id == customer.id
+    assert new_cart.email == customer.email
 
 
 def test_checkout_create_logged_in_customer(user_api_client, variant):
