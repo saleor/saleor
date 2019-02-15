@@ -13,6 +13,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove unused imports - #3645 by @jxltom
 - Add discount section - #3654 by @dominik-zeglen
 - Disable style-loader in dev mode - #3720 by @jxltom
+- Use authenticated user's email as default email in creating checkout - #3726 by @jxltom
 
 
 ## 2.3.0
