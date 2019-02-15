@@ -15,7 +15,6 @@ Please note that this action is permanent and cannot be reversed.
 
 {{ delete_url }}
 
-{% endblocktrans %}
 {% include 'templated_email/shared/_footer.email' %}
 {% endblock %}
 
