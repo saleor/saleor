@@ -5,7 +5,7 @@ from graphene import relay
 from graphql_jwt.decorators import permission_required
 
 from ...account import models
-from ...checkout.utils import get_user_cart
+from ...checkout.utils import get_or_create_user_cart
 from ...core.permissions import get_permissions
 from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
@@ -70,7 +70,7 @@ class User(CountableDjangoObjectType):
         return self.addresses.all()
 
     def resolve_checkout(self, info, **kwargs):
-        return get_user_cart(self)
+        return get_or_create_user_cart(self)
 
     def resolve_permissions(self, info, **kwargs):
         if self.is_superuser:
