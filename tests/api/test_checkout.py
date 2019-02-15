@@ -1162,3 +1162,76 @@ def test_is_fully_paid_no_payment(cart_with_item):
     checkout = cart_with_item
     is_paid = is_fully_paid(checkout, None, None)
     assert not is_paid
+
+
+MUTATION_CHECKOUT_UPDATE_VOUCHER = """
+    mutation($checkoutId: ID!, $voucherCode: String) {
+        checkoutUpdateVoucher(
+            checkoutId: $checkoutId, voucherCode: $voucherCode) {
+            errors {
+                field
+                message
+            }
+            checkout {
+                id,
+                voucherCode
+            }
+        }
+    }
+"""
+
+
+def _mutate_checkout_update_voucher(client, variables):
+    response = client.post_graphql(MUTATION_CHECKOUT_UPDATE_VOUCHER, variables)
+    content = get_graphql_content(response)
+    return content['data']['checkoutUpdateVoucher']
+
+
+def test_checkout_add_voucher(api_client, cart_with_item, voucher):
+    checkout_id = graphene.Node.to_global_id('Checkout', cart_with_item.pk)
+    variables = {'checkoutId': checkout_id, 'voucherCode': voucher.code}
+    data = _mutate_checkout_update_voucher(api_client, variables)
+
+    assert not data['errors']
+    assert data['checkout']['id'] == checkout_id
+    assert data['checkout']['voucherCode'] == voucher.code
+
+
+def test_checkout_remove_voucher(api_client, cart_with_item):
+    checkout_id = graphene.Node.to_global_id('Checkout', cart_with_item.pk)
+    variables = {'checkoutId': checkout_id}
+    data = _mutate_checkout_update_voucher(api_client, variables)
+
+    assert not data['errors']
+    assert data['checkout']['id'] == checkout_id
+    assert data['checkout']['voucherCode'] is None
+    assert cart_with_item.voucher_code is None
+
+
+def test_checkout_add_voucher_invalid_checkout(api_client, voucher):
+    variables = {'checkoutId': 'XXX', 'voucherCode': voucher.code}
+    data = _mutate_checkout_update_voucher(api_client, variables)
+
+    assert len(data['errors']) > 0
+    assert data['errors'][0]['field'] == 'checkoutId'
+
+
+def test_checkout_add_voucher_invalid_code(api_client, cart_with_item):
+    checkout_id = graphene.Node.to_global_id('Checkout', cart_with_item.pk)
+    variables = {'checkoutId': checkout_id, 'voucherCode': 'XXX'}
+    data = _mutate_checkout_update_voucher(api_client, variables)
+
+    assert len(data['errors']) > 0
+    assert data['errors'][0]['field'] == 'voucherCode'
+
+
+def test_checkout_add_voucher_not_applicable_voucher(
+        api_client, cart_with_item, voucher_with_high_min_amount_spent):
+    checkout_id = graphene.Node.to_global_id('Checkout', cart_with_item.pk)
+    variables = {
+        'checkoutId': checkout_id,
+        'voucherCode': voucher_with_high_min_amount_spent.code}
+    data = _mutate_checkout_update_voucher(api_client, variables)
+
+    assert len(data['errors']) > 0
+    assert data['errors'][0]['field'] == 'voucherCode'

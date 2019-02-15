@@ -453,6 +453,14 @@ def voucher(db):  # pylint: disable=W0613
     return Voucher.objects.create(code='mirumee', discount_value=20)
 
 
+@pytest.fixture
+def voucher_with_high_min_amount_spent():
+    return Voucher.objects.create(
+        code='mirumee',
+        discount_value=10,
+        min_amount_spent=Money(1000000, 'USD'))
+
+
 @pytest.fixture()
 def order_with_lines(
         order, product_type, category, shipping_zone, vatlayer):
