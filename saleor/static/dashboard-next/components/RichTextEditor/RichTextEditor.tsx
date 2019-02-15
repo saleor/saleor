@@ -83,13 +83,27 @@ const styles = (theme: Theme) =>
           "&Button": {
             "&--active": {
               "&:hover": {
-                background: fade(theme.palette.secondary.main, 0.4)
+                background: theme.palette.secondary.main
               },
-
-              background: fade(theme.palette.secondary.main, 0.3)
+              "&:not(:hover)": {
+                borderRightColor: theme.palette.secondary.main
+              },
+              background: theme.palette.secondary.main
+            },
+            "&:focus": {
+              "&:active": {
+                "&:after": {
+                  background: fade(theme.palette.secondary.main, 0.3),
+                  borderRadius: "100%",
+                  content: "''",
+                  display: "block",
+                  height: "100%",
+                  width: "100%"
+                }
+              }
             },
             "&:hover": {
-              background: fade(theme.palette.secondary.main, 0.1)
+              background: fade(theme.palette.secondary.main, 0.3)
             },
             alignItems: "center",
             background: "none",
