@@ -1,14 +1,18 @@
+from datetime import date
+
 import graphene
 from django.db import transaction
 
 from ...checkout import models
 from ...checkout.utils import (
-    add_variant_to_cart, change_billing_address_in_cart,
+    add_variant_to_cart, add_voucher_to_cart, change_billing_address_in_cart,
     change_shipping_address_in_cart, create_order, get_taxes_for_cart,
-    ready_to_place_order)
+    get_voucher_for_cart, get_voucher_discount_for_cart, ready_to_place_order,
+    remove_voucher_from_cart)
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import get_taxes_for_address
+from ...discount import models as voucher_model
 from ...payment import PaymentError
 from ...payment.utils import gateway_process_payment
 from ...shipping.models import ShippingMethod as ShippingMethodModel
@@ -16,6 +20,7 @@ from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, User
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.types.common import Error
+from ..discount.types import Voucher
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
@@ -495,3 +500,53 @@ class CheckoutComplete(BaseMutation):
         except PaymentError as e:
             cls.add_error(errors=errors, field=None, message=str(e))
         return CheckoutComplete(order=order, errors=errors)
+
+
+class CheckoutUpdateVoucher(BaseMutation):
+    checkout = graphene.Field(
+        Checkout, description='An checkout with updated voucher')
+
+    class Arguments:
+        checkout_id = graphene.ID(description='Checkout ID', required=True)
+        voucher_code = graphene.String(description='Voucher code')
+
+    class Meta:
+        description = (
+            'Adds voucher to the checkout. '
+            'Query it without voucher_code field to '
+            'remove voucher from checkout.')
+
+    @classmethod
+    def mutate(cls, root, info, checkout_id, voucher_code=None):
+        errors = []
+        checkout = cls.get_node_or_error(
+            info, checkout_id, errors, 'checkout_id', only_type=Checkout)
+        if checkout is None:
+            return CheckoutUpdateVoucher(errors=errors)
+
+        if voucher_code:
+            try:
+                voucher = voucher_model.Voucher.objects.active(
+                    date=date.today()).get(code=voucher_code)
+            except voucher_model.Voucher.DoesNotExist:
+                cls.add_error(
+                    errors=errors,
+                    field='voucher_code',
+                    message='Voucher with given code does not exist.')
+                return CheckoutUpdateVoucher(errors=errors)
+
+            try:
+                add_voucher_to_cart(voucher, checkout)
+            except voucher_model.NotApplicable as e:
+                cls.add_error(
+                    errors=errors,
+                    field='voucher_code',
+                    message='Voucher is not applicable to that checkout.')
+                return CheckoutUpdateVoucher(errors=errors)
+
+        else:
+            existing_voucher = get_voucher_for_cart(checkout)
+            if existing_voucher:
+                remove_voucher_from_cart(checkout)
+
+        return CheckoutUpdateVoucher(checkout=checkout, errors=errors)

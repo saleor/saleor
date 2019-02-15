@@ -738,6 +738,23 @@ def recalculate_cart_discount(cart, discounts, taxes):
         remove_voucher_from_cart(cart)
 
 
+def add_voucher_to_cart(voucher, cart):
+    """Add voucher data to cart.
+    
+    Raise NotApplicable if voucher of given type cannot be applied."""
+    discount_amount = get_voucher_discount_for_cart(voucher, cart)
+    cart.voucher_code = voucher.code
+    cart.discount_name = voucher.name
+    cart.translated_discount_name = (
+        voucher.translated.name
+        if voucher.translated.name != voucher.name else '')
+    cart.discount_amount = discount_amount
+    cart.save(
+        update_fields=[
+            'voucher_code', 'discount_name', 'translated_discount_name',
+            'discount_amount'])
+
+
 def remove_voucher_from_cart(cart):
     """Remove voucher data from cart."""
     cart.voucher_code = None
