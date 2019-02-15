@@ -434,3 +434,45 @@ def test_update_collection_mutation_remove_background_image(
     assert not data['backgroundImage']
     collection_with_image.refresh_from_db()
     assert not collection_with_image.background_image
+
+
+def _fetch_collection(client, collection, permissions=None):
+    query = """
+    query fetchCollection($collectionId: ID!){
+        collection(id: $collectionId) {
+            name,
+            isPublished
+        }
+    }
+    """
+    variables = {
+        'collectionId': graphene.Node.to_global_id(
+            'Collection', collection.id)}
+    response = client.post_graphql(
+        query, variables, permissions=permissions, check_no_permissions=False)
+    content = get_graphql_content(response)
+    return content['data']['collection']
+
+
+def test_fetch_unpublished_collection_staff_user(
+        staff_api_client, unpublished_collection, permission_manage_products):
+    collection_data = _fetch_collection(
+        staff_api_client,
+        unpublished_collection,
+        permissions=[permission_manage_products])
+    assert collection_data['name'] == unpublished_collection.name
+    assert collection_data[
+        'isPublished'] == unpublished_collection.is_published
+
+
+def test_fetch_unpublished_collection_customer(
+        user_api_client, unpublished_collection):
+    collection_data = _fetch_collection(
+        user_api_client, unpublished_collection)
+    assert collection_data is None
+
+
+def test_fetch_unpublished_collection_anonymous_user(
+        api_client, unpublished_collection):
+    collection_data = _fetch_collection(api_client, unpublished_collection)
+    assert collection_data is None
