@@ -12,6 +12,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add instructions for using local assets in Docker - #3723 by @michaljelonek
 - Remove unused imports - #3645 by @jxltom
 - Add discount section - #3654 by @dominik-zeglen
+- Get or create checkout when accesing checkout of a user in GraphQL API - #3725 by @jxltom
 
 
 ## 2.3.0
