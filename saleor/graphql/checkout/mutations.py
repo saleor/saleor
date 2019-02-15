@@ -151,6 +151,11 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         else:
             cleaned_input['billing_address'] = default_billing_address
 
+        # Use authenticated user's email as default email
+        if not user.is_anonymous:
+            email = input.pop('email', None)
+            cleaned_input['email'] = email or user.email
+
         return cleaned_input
 
     @classmethod
