@@ -2,58 +2,8 @@
 {% load i18n %}
 
 {% block content %}
-  <div class="home">
-    <div class="row">
-      <div class="col-sm-12 home__block1">
-        <div class="home--square">
-          <div class="home--content">
-            <div class="home--content-wrapper">
-              <div class="home--content-inner">
-                <h1>{% trans "Promo & Sale" context "Homepage title" %}</h1>
-                <h2>{% trans "from the Northpole" context "Homepage title" %}</h2>
-                  <a class="btn btn-secondary home__button" href="#">
-                    {% trans "Shop now" context "Homepage action" %}
-                  </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-sm-12 col-md-6 home__block2">
-        <div class="home--square">
-          <div class="home--content">
-            <div class="home--content-wrapper">
-              <div class="home--content-inner">
-                <h1>{% trans "Size & Colours" context "Homepage title" %}</h1>
-                <a class="btn btn-secondary home__button" href="#">{% trans "Shop now" context "Homepage action" %}</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-sm-12 col-md-6 home__block3">
-        <div class="home--square">
-          <div class="home--content">
-            <div class="home--content-wrapper">
-              <div class="home--content-inner">
-                <h1>{% trans "Digital Downloads" context "Homepage title" %}</h1>
-                <a class="btn btn-secondary home__button" href="#">{% trans "Shop now" context "Homepage action" %}</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    {% if products %}
-      <div class="home__featured">
-        <h2 class="text-center">{% trans "Featured products" context "Homepage title" %}</h2>
-        <div class="row">
-          {% include "product/_items.html" %}
-        </div>
-      </div>
-    {% endif %}
-    <script type="application/ld+json">{{ webpage_schema|safe }}</script>
-  </div>
+<br>
+<p>Портал bayes.pro – это маркетплейс для сервисов с использованием технологий машинного обучения и искусственного интеллекта.</p>
+<p>Платформа позволяет разработчикам программных продуктов легко включать в свои решения результаты вычислений различных готовых размещенных на ресурсах bayes.pro моделей посредством подключения API. Чтоб начать пользоваться сервисами, достаточно оформить подписку на любой из них и включить в свой программный код обращение к API.</p>
+<p>Для специалистов в области Machine Learning, Artificial Intelligence и Data Science bayes.pro предоставляет возможность разместить свои разработки в магазине и найти конечного заказчика с использованием микросервисной архитектуры.</p>
 {% endblock %}
