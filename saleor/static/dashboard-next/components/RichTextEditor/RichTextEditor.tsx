@@ -130,6 +130,13 @@ const styles = (theme: Theme) =>
           border: `1px ${theme.palette.grey[300]} solid`,
           display: "inline-flex",
           marginBottom: theme.spacing.unit
+        },
+        "&-block": {
+          "&--blockquote": {
+            borderLeft: `2px solid ${theme.palette.grey[300]}`,
+            margin: 0,
+            padding: `${theme.spacing.unit}px ${theme.spacing.unit * 2}px`
+          }
         }
       }
     }
@@ -167,6 +174,7 @@ const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
           { icon: <BoldIcon />, type: INLINE_STYLE.BOLD },
           { icon: <ItalicIcon />, type: INLINE_STYLE.ITALIC }
         ]}
+        enableLineBreak
         entityTypes={[
           {
             attributes: ["href"],

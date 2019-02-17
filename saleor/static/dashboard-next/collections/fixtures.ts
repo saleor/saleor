@@ -1,3 +1,4 @@
+import { content } from "../storybook/stories/components/RichTextEditor";
 import { CollectionDetails_collection } from "./types/CollectionDetails";
 import { CollectionList_collections_edges_node } from "./types/CollectionList";
 
@@ -36,7 +37,7 @@ export const collection: (
     alt: "Alt text",
     url: placeholderCollectionImage
   },
-  description: "Lorem ipsum dolor sit amet",
+  description: JSON.stringify(content),
   id: "Q29sbGVjdGlvbjox",
   isPublished: true,
   name: "Summer collection",
