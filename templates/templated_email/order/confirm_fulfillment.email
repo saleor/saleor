@@ -7,9 +7,8 @@
 {% endblock %}
 
 {% block plain %}
+{% include 'templated_email/shared/_header.email' %}
 {% blocktrans context "Fulfillment confirmation email text" %}
-Hi!
-
 Thank you for your order. Below is the list of shipped products.
 {% endblocktrans %}
 {% if fulfillment.tracking_number %}
@@ -22,12 +21,7 @@ You can track your shipment with {{ tracking_number }} code.
 {{ line.quantity }} x {{ line.order_line.product_name }}
 {% endfor %}
 
-{% blocktrans context "Fulfillment confirmation email text" %}
-This is an automatically generated email, please do not reply.
-
-Sincerely,
-{{ site_name }}
-{% endblocktrans %}
+{% include 'templated_email/shared/_footer.email' %}
 {% endblock %}
 
 {% block html %}
