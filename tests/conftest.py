@@ -22,6 +22,7 @@ from saleor.checkout.models import Cart
 from saleor.checkout.utils import add_variant_to_cart
 from saleor.dashboard.menu.utils import update_menu
 from saleor.dashboard.order.utils import fulfill_order_line
+from saleor.discount import VoucherType
 from saleor.discount.models import Sale, Voucher, VoucherTranslation
 from saleor.menu.models import Menu, MenuItem
 from saleor.order import OrderEvents, OrderStatus
@@ -97,6 +98,19 @@ def address(db):  # pylint: disable=W0613
         postal_code='53-601',
         country='PL',
         phone='+48713988102')
+
+
+@pytest.fixture
+def address_other_country():
+    return Address.objects.create(
+        first_name='John',
+        last_name='Doe',
+        street_address_1='4371 Lucas Knoll Apt. 791',
+        city='Bennettmouth',
+        postal_code='13377',
+        country='IS',
+        phone='')
+
 
 @pytest.fixture
 def graphql_address_data():
@@ -459,6 +473,15 @@ def voucher_with_high_min_amount_spent():
         code='mirumee',
         discount_value=10,
         min_amount_spent=Money(1000000, 'USD'))
+
+
+@pytest.fixture
+def voucher_shipping_type():
+    return Voucher.objects.create(
+        code='mirumee',
+        discount_value=10,
+        type=VoucherType.SHIPPING,
+        countries='IS')
 
 
 @pytest.fixture()
