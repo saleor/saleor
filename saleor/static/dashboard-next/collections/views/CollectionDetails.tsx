@@ -135,7 +135,7 @@ export const CollectionDetails: React.StatelessComponent<
                       ) => {
                         const input = {
                           backgroundImageAlt: formData.backgroundImageAlt,
-                          description: formData.description,
+                          description: JSON.stringify(formData.description),
                           isPublished: formData.isPublished,
                           name: formData.name,
                           seo: {
@@ -152,18 +152,12 @@ export const CollectionDetails: React.StatelessComponent<
                           updateCollectionWithHomepage.mutate({
                             homepageId: formData.isFeatured ? id : null,
                             id,
-                            input: {
-                              ...input,
-                              description: JSON.stringify(input.description)
-                            }
+                            input
                           });
                         } else {
                           updateCollection.mutate({
                             id,
-                            input: {
-                              ...input,
-                              description: JSON.stringify(input.description)
-                            }
+                            input
                           });
                         }
                       };

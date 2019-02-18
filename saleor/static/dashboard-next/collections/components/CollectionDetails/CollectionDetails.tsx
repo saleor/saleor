@@ -9,6 +9,8 @@ import CardTitle from "../../../components/CardTitle";
 import FormSpacer from "../../../components/FormSpacer";
 import RichTextEditor from "../../../components/RichTextEditor";
 import i18n from "../../../i18n";
+import { maybe } from "../../../misc";
+import { CollectionDetails_collection } from "../../types/CollectionDetails";
 
 const styles = createStyles({
   name: {
@@ -17,6 +19,7 @@ const styles = createStyles({
 });
 
 export interface CollectionDetailsProps extends WithStyles<typeof styles> {
+  collection?: CollectionDetails_collection;
   data: {
     description: RawDraftContentState;
     name: string;
@@ -29,7 +32,14 @@ export interface CollectionDetailsProps extends WithStyles<typeof styles> {
 }
 
 const CollectionDetails = withStyles(styles, { name: "CollectionDetails" })(
-  ({ classes, disabled, data, onChange, errors }: CollectionDetailsProps) => (
+  ({
+    classes,
+    collection,
+    disabled,
+    data,
+    onChange,
+    errors
+  }: CollectionDetailsProps) => (
     <Card>
       <CardTitle title={i18n.t("General information")} />
       <CardContent>
@@ -45,6 +55,7 @@ const CollectionDetails = withStyles(styles, { name: "CollectionDetails" })(
         />
         <FormSpacer />
         <RichTextEditor
+          initial={maybe(() => JSON.parse(collection.description))}
           label={i18n.t("Description")}
           name="description"
           disabled={disabled}

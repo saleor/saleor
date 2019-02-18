@@ -73,6 +73,7 @@ const CollectionDetailsPage: React.StatelessComponent<
         <Grid>
           <div>
             <CollectionDetails
+              collection={collection}
               data={data}
               disabled={disabled}
               errors={formErrors}
