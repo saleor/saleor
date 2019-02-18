@@ -3200,7 +3200,7 @@ Ctrl + K"
           class="DraftEditor-editorContainer"
         >
           <div
-            aria-describedby="placeholder-4rv90"
+            aria-describedby="placeholder-ccssc"
             class="notranslate public-DraftEditor-content"
             contenteditable="true"
             role="textbox"
@@ -3213,7 +3213,7 @@ Ctrl + K"
               <div
                 class="Draftail-block--unstyled "
                 data-block="true"
-                data-editor="4rv90"
+                data-editor="ccssc"
                 data-offset-key="rosn-0-0"
               >
                 <div
@@ -3235,7 +3235,7 @@ Ctrl + K"
               <div
                 class="Draftail-block--unstyled "
                 data-block="true"
-                data-editor="4rv90"
+                data-editor="ccssc"
                 data-offset-key="6tbch-0-0"
               >
                 <div
@@ -3257,7 +3257,7 @@ Ctrl + K"
               <h2
                 class="Draftail-block--header-two "
                 data-block="true"
-                data-editor="4rv90"
+                data-editor="ccssc"
                 data-offset-key="9rabl-0-0"
               >
                 <div
@@ -3278,7 +3278,7 @@ Ctrl + K"
               <h3
                 class="Draftail-block--header-three "
                 data-block="true"
-                data-editor="4rv90"
+                data-editor="ccssc"
                 data-offset-key="bv0ac-0-0"
               >
                 <div
@@ -3299,7 +3299,7 @@ Ctrl + K"
               <blockquote
                 class="Draftail-block--blockquote "
                 data-block="true"
-                data-editor="4rv90"
+                data-editor="ccssc"
                 data-offset-key="2ip7q-0-0"
               >
                 <div
@@ -3324,7 +3324,7 @@ Ctrl + K"
                 <li
                   class="Draftail-block--unordered-list-item  public-DraftStyleDefault-unorderedListItem public-DraftStyleDefault-reset public-DraftStyleDefault-depth0 public-DraftStyleDefault-listLTR"
                   data-block="true"
-                  data-editor="4rv90"
+                  data-editor="ccssc"
                   data-offset-key="8r8ss-0-0"
                 >
                   <div
@@ -3350,7 +3350,7 @@ Ctrl + K"
                 <li
                   class="Draftail-block--ordered-list-item  public-DraftStyleDefault-orderedListItem public-DraftStyleDefault-reset public-DraftStyleDefault-depth0 public-DraftStyleDefault-listLTR"
                   data-block="true"
-                  data-editor="4rv90"
+                  data-editor="ccssc"
                   data-offset-key="911hc-0-0"
                 >
                   <div
@@ -3372,7 +3372,7 @@ Ctrl + K"
               <div
                 class="Draftail-block--unstyled "
                 data-block="true"
-                data-editor="4rv90"
+                data-editor="ccssc"
                 data-offset-key="5aejo-0-0"
               >
                 <div
@@ -7453,7 +7453,7 @@ Ctrl + K"
                     class="DraftEditor-editorContainer"
                   >
                     <div
-                      aria-describedby="placeholder-4onlq"
+                      aria-describedby="placeholder-a95qj"
                       class="notranslate public-DraftEditor-content"
                       contenteditable="true"
                       role="textbox"
@@ -7466,15 +7466,15 @@ Ctrl + K"
                         <div
                           class="Draftail-block--unstyled "
                           data-block="true"
-                          data-editor="4onlq"
-                          data-offset-key="7a3jd-0-0"
+                          data-editor="a95qj"
+                          data-offset-key="5pr62-0-0"
                         >
                           <div
                             class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
-                            data-offset-key="7a3jd-0-0"
+                            data-offset-key="5pr62-0-0"
                           >
                             <span
-                              data-offset-key="7a3jd-0-0"
+                              data-offset-key="5pr62-0-0"
                             >
                               <br
                                 data-text="true"
@@ -7956,7 +7956,7 @@ Ctrl + K"
                     class="DraftEditor-editorContainer"
                   >
                     <div
-                      aria-describedby="placeholder-ar1f4"
+                      aria-describedby="placeholder-587ns"
                       class="notranslate public-DraftEditor-content"
                       contenteditable="true"
                       role="textbox"
@@ -7969,15 +7969,15 @@ Ctrl + K"
                         <div
                           class="Draftail-block--unstyled "
                           data-block="true"
-                          data-editor="ar1f4"
-                          data-offset-key="sp49-0-0"
+                          data-editor="587ns"
+                          data-offset-key="8hd3f-0-0"
                         >
                           <div
                             class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
-                            data-offset-key="sp49-0-0"
+                            data-offset-key="8hd3f-0-0"
                           >
                             <span
-                              data-offset-key="sp49-0-0"
+                              data-offset-key="8hd3f-0-0"
                             >
                               <br
                                 data-text="true"
@@ -8458,7 +8458,7 @@ Ctrl + K"
                   class="DraftEditor-editorContainer"
                 >
                   <div
-                    aria-describedby="placeholder-8587f"
+                    aria-describedby="placeholder-5m90g"
                     class="notranslate public-DraftEditor-content"
                     contenteditable="true"
                     role="textbox"
@@ -8471,7 +8471,7 @@ Ctrl + K"
                       <div
                         class="Draftail-block--unstyled "
                         data-block="true"
-                        data-editor="8587f"
+                        data-editor="5m90g"
                         data-offset-key="rosn-0-0"
                       >
                         <div
@@ -8493,7 +8493,7 @@ Ctrl + K"
                       <div
                         class="Draftail-block--unstyled "
                         data-block="true"
-                        data-editor="8587f"
+                        data-editor="5m90g"
                         data-offset-key="6tbch-0-0"
                       >
                         <div
@@ -8515,7 +8515,7 @@ Ctrl + K"
                       <h2
                         class="Draftail-block--header-two "
                         data-block="true"
-                        data-editor="8587f"
+                        data-editor="5m90g"
                         data-offset-key="9rabl-0-0"
                       >
                         <div
@@ -8536,7 +8536,7 @@ Ctrl + K"
                       <h3
                         class="Draftail-block--header-three "
                         data-block="true"
-                        data-editor="8587f"
+                        data-editor="5m90g"
                         data-offset-key="bv0ac-0-0"
                       >
                         <div
@@ -8557,7 +8557,7 @@ Ctrl + K"
                       <blockquote
                         class="Draftail-block--blockquote "
                         data-block="true"
-                        data-editor="8587f"
+                        data-editor="5m90g"
                         data-offset-key="2ip7q-0-0"
                       >
                         <div
@@ -8582,7 +8582,7 @@ Ctrl + K"
                         <li
                           class="Draftail-block--unordered-list-item  public-DraftStyleDefault-unorderedListItem public-DraftStyleDefault-reset public-DraftStyleDefault-depth0 public-DraftStyleDefault-listLTR"
                           data-block="true"
-                          data-editor="8587f"
+                          data-editor="5m90g"
                           data-offset-key="8r8ss-0-0"
                         >
                           <div
@@ -8608,7 +8608,7 @@ Ctrl + K"
                         <li
                           class="Draftail-block--ordered-list-item  public-DraftStyleDefault-orderedListItem public-DraftStyleDefault-reset public-DraftStyleDefault-depth0 public-DraftStyleDefault-listLTR"
                           data-block="true"
-                          data-editor="8587f"
+                          data-editor="5m90g"
                           data-offset-key="911hc-0-0"
                         >
                           <div
@@ -8630,7 +8630,7 @@ Ctrl + K"
                       <div
                         class="Draftail-block--unstyled "
                         data-block="true"
-                        data-editor="8587f"
+                        data-editor="5m90g"
                         data-offset-key="5aejo-0-0"
                       >
                         <div
@@ -9452,7 +9452,7 @@ Ctrl + K"
                   class="DraftEditor-editorContainer"
                 >
                   <div
-                    aria-describedby="placeholder-ehhau"
+                    aria-describedby="placeholder-b8gr9"
                     class="notranslate public-DraftEditor-content"
                     contenteditable="true"
                     role="textbox"
@@ -9465,15 +9465,15 @@ Ctrl + K"
                       <div
                         class="Draftail-block--unstyled "
                         data-block="true"
-                        data-editor="ehhau"
-                        data-offset-key="1507t-0-0"
+                        data-editor="b8gr9"
+                        data-offset-key="dfmar-0-0"
                       >
                         <div
                           class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
-                          data-offset-key="1507t-0-0"
+                          data-offset-key="dfmar-0-0"
                         >
                           <span
-                            data-offset-key="1507t-0-0"
+                            data-offset-key="dfmar-0-0"
                           >
                             <br
                               data-text="true"
@@ -10208,7 +10208,7 @@ Ctrl + K"
                   class="DraftEditor-editorContainer"
                 >
                   <div
-                    aria-describedby="placeholder-620g9"
+                    aria-describedby="placeholder-doc60"
                     class="notranslate public-DraftEditor-content"
                     contenteditable="true"
                     role="textbox"
@@ -10221,7 +10221,7 @@ Ctrl + K"
                       <div
                         class="Draftail-block--unstyled "
                         data-block="true"
-                        data-editor="620g9"
+                        data-editor="doc60"
                         data-offset-key="rosn-0-0"
                       >
                         <div
@@ -10243,7 +10243,7 @@ Ctrl + K"
                       <div
                         class="Draftail-block--unstyled "
                         data-block="true"
-                        data-editor="620g9"
+                        data-editor="doc60"
                         data-offset-key="6tbch-0-0"
                       >
                         <div
@@ -10265,7 +10265,7 @@ Ctrl + K"
                       <h2
                         class="Draftail-block--header-two "
                         data-block="true"
-                        data-editor="620g9"
+                        data-editor="doc60"
                         data-offset-key="9rabl-0-0"
                       >
                         <div
@@ -10286,7 +10286,7 @@ Ctrl + K"
                       <h3
                         class="Draftail-block--header-three "
                         data-block="true"
-                        data-editor="620g9"
+                        data-editor="doc60"
                         data-offset-key="bv0ac-0-0"
                       >
                         <div
@@ -10307,7 +10307,7 @@ Ctrl + K"
                       <blockquote
                         class="Draftail-block--blockquote "
                         data-block="true"
-                        data-editor="620g9"
+                        data-editor="doc60"
                         data-offset-key="2ip7q-0-0"
                       >
                         <div
@@ -10332,7 +10332,7 @@ Ctrl + K"
                         <li
                           class="Draftail-block--unordered-list-item  public-DraftStyleDefault-unorderedListItem public-DraftStyleDefault-reset public-DraftStyleDefault-depth0 public-DraftStyleDefault-listLTR"
                           data-block="true"
-                          data-editor="620g9"
+                          data-editor="doc60"
                           data-offset-key="8r8ss-0-0"
                         >
                           <div
@@ -10358,7 +10358,7 @@ Ctrl + K"
                         <li
                           class="Draftail-block--ordered-list-item  public-DraftStyleDefault-orderedListItem public-DraftStyleDefault-reset public-DraftStyleDefault-depth0 public-DraftStyleDefault-listLTR"
                           data-block="true"
-                          data-editor="620g9"
+                          data-editor="doc60"
                           data-offset-key="911hc-0-0"
                         >
                           <div
@@ -10380,7 +10380,7 @@ Ctrl + K"
                       <div
                         class="Draftail-block--unstyled "
                         data-block="true"
-                        data-editor="620g9"
+                        data-editor="doc60"
                         data-offset-key="5aejo-0-0"
                       >
                         <div
@@ -11196,7 +11196,7 @@ Ctrl + K"
                   class="DraftEditor-editorContainer"
                 >
                   <div
-                    aria-describedby="placeholder-68h1p"
+                    aria-describedby="placeholder-adrs0"
                     class="notranslate public-DraftEditor-content"
                     contenteditable="true"
                     role="textbox"
@@ -11209,7 +11209,7 @@ Ctrl + K"
                       <div
                         class="Draftail-block--unstyled "
                         data-block="true"
-                        data-editor="68h1p"
+                        data-editor="adrs0"
                         data-offset-key="rosn-0-0"
                       >
                         <div
@@ -11231,7 +11231,7 @@ Ctrl + K"
                       <div
                         class="Draftail-block--unstyled "
                         data-block="true"
-                        data-editor="68h1p"
+                        data-editor="adrs0"
                         data-offset-key="6tbch-0-0"
                       >
                         <div
@@ -11253,7 +11253,7 @@ Ctrl + K"
                       <h2
                         class="Draftail-block--header-two "
                         data-block="true"
-                        data-editor="68h1p"
+                        data-editor="adrs0"
                         data-offset-key="9rabl-0-0"
                       >
                         <div
@@ -11274,7 +11274,7 @@ Ctrl + K"
                       <h3
                         class="Draftail-block--header-three "
                         data-block="true"
-                        data-editor="68h1p"
+                        data-editor="adrs0"
                         data-offset-key="bv0ac-0-0"
                       >
                         <div
@@ -11295,7 +11295,7 @@ Ctrl + K"
                       <blockquote
                         class="Draftail-block--blockquote "
                         data-block="true"
-                        data-editor="68h1p"
+                        data-editor="adrs0"
                         data-offset-key="2ip7q-0-0"
                       >
                         <div
@@ -11320,7 +11320,7 @@ Ctrl + K"
                         <li
                           class="Draftail-block--unordered-list-item  public-DraftStyleDefault-unorderedListItem public-DraftStyleDefault-reset public-DraftStyleDefault-depth0 public-DraftStyleDefault-listLTR"
                           data-block="true"
-                          data-editor="68h1p"
+                          data-editor="adrs0"
                           data-offset-key="8r8ss-0-0"
                         >
                           <div
@@ -11346,7 +11346,7 @@ Ctrl + K"
                         <li
                           class="Draftail-block--ordered-list-item  public-DraftStyleDefault-orderedListItem public-DraftStyleDefault-reset public-DraftStyleDefault-depth0 public-DraftStyleDefault-listLTR"
                           data-block="true"
-                          data-editor="68h1p"
+                          data-editor="adrs0"
                           data-offset-key="911hc-0-0"
                         >
                           <div
@@ -11368,7 +11368,7 @@ Ctrl + K"
                       <div
                         class="Draftail-block--unstyled "
                         data-block="true"
-                        data-editor="68h1p"
+                        data-editor="adrs0"
                         data-offset-key="5aejo-0-0"
                       >
                         <div
@@ -12190,7 +12190,7 @@ Ctrl + K"
                   class="DraftEditor-editorContainer"
                 >
                   <div
-                    aria-describedby="placeholder-209te"
+                    aria-describedby="placeholder-5dvrv"
                     class="notranslate public-DraftEditor-content"
                     contenteditable="true"
                     role="textbox"
@@ -12203,7 +12203,7 @@ Ctrl + K"
                       <div
                         class="Draftail-block--unstyled "
                         data-block="true"
-                        data-editor="209te"
+                        data-editor="5dvrv"
                         data-offset-key="rosn-0-0"
                       >
                         <div
@@ -12225,7 +12225,7 @@ Ctrl + K"
                       <div
                         class="Draftail-block--unstyled "
                         data-block="true"
-                        data-editor="209te"
+                        data-editor="5dvrv"
                         data-offset-key="6tbch-0-0"
                       >
                         <div
@@ -12247,7 +12247,7 @@ Ctrl + K"
                       <h2
                         class="Draftail-block--header-two "
                         data-block="true"
-                        data-editor="209te"
+                        data-editor="5dvrv"
                         data-offset-key="9rabl-0-0"
                       >
                         <div
@@ -12268,7 +12268,7 @@ Ctrl + K"
                       <h3
                         class="Draftail-block--header-three "
                         data-block="true"
-                        data-editor="209te"
+                        data-editor="5dvrv"
                         data-offset-key="bv0ac-0-0"
                       >
                         <div
@@ -12289,7 +12289,7 @@ Ctrl + K"
                       <blockquote
                         class="Draftail-block--blockquote "
                         data-block="true"
-                        data-editor="209te"
+                        data-editor="5dvrv"
                         data-offset-key="2ip7q-0-0"
                       >
                         <div
@@ -12314,7 +12314,7 @@ Ctrl + K"
                         <li
                           class="Draftail-block--unordered-list-item  public-DraftStyleDefault-unorderedListItem public-DraftStyleDefault-reset public-DraftStyleDefault-depth0 public-DraftStyleDefault-listLTR"
                           data-block="true"
-                          data-editor="209te"
+                          data-editor="5dvrv"
                           data-offset-key="8r8ss-0-0"
                         >
                           <div
@@ -12340,7 +12340,7 @@ Ctrl + K"
                         <li
                           class="Draftail-block--ordered-list-item  public-DraftStyleDefault-orderedListItem public-DraftStyleDefault-reset public-DraftStyleDefault-depth0 public-DraftStyleDefault-listLTR"
                           data-block="true"
-                          data-editor="209te"
+                          data-editor="5dvrv"
                           data-offset-key="911hc-0-0"
                         >
                           <div
@@ -12362,7 +12362,7 @@ Ctrl + K"
                       <div
                         class="Draftail-block--unstyled "
                         data-block="true"
-                        data-editor="209te"
+                        data-editor="5dvrv"
                         data-offset-key="5aejo-0-0"
                       >
                         <div
@@ -12937,7 +12937,7 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                   Description
                 </span>
                 <div
-                  class="Draftail-Editor"
+                  class="Draftail-Editor Draftail-Editor--hide-placeholder"
                 >
                   <div
                     class="Draftail-Toolbar"
@@ -12949,7 +12949,7 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                       <button
                         aria-label="Bold
 Ctrl + B"
-                        class="Draftail-ToolbarButton"
+                        class="Draftail-ToolbarButton Draftail-ToolbarButton--active"
                         data-draftail-balloon="true"
                         name="BOLD"
                         tabindex="-1"
@@ -13180,7 +13180,7 @@ Ctrl + K"
                       class="DraftEditor-editorContainer"
                     >
                       <div
-                        aria-describedby="placeholder-8ouic"
+                        aria-describedby="placeholder-1ut3g"
                         class="notranslate public-DraftEditor-content"
                         contenteditable="true"
                         role="textbox"
@@ -13193,20 +13193,189 @@ Ctrl + K"
                           <div
                             class="Draftail-block--unstyled "
                             data-block="true"
-                            data-editor="8ouic"
-                            data-offset-key="b489m-0-0"
+                            data-editor="1ut3g"
+                            data-offset-key="rosn-0-0"
                           >
                             <div
                               class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
-                              data-offset-key="b489m-0-0"
+                              data-offset-key="rosn-0-0"
                             >
                               <span
-                                data-offset-key="b489m-0-0"
+                                data-offset-key="rosn-0-0"
+                                style="font-weight:bold"
                               >
-                                <br
+                                <span
                                   data-text="true"
-                                />
+                                >
+                                  bold
+                                </span>
                               </span>
+                            </div>
+                          </div>
+                          <div
+                            class="Draftail-block--unstyled "
+                            data-block="true"
+                            data-editor="1ut3g"
+                            data-offset-key="6tbch-0-0"
+                          >
+                            <div
+                              class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
+                              data-offset-key="6tbch-0-0"
+                            >
+                              <span
+                                data-offset-key="6tbch-0-0"
+                                style="font-style:italic"
+                              >
+                                <span
+                                  data-text="true"
+                                >
+                                  italic
+                                </span>
+                              </span>
+                            </div>
+                          </div>
+                          <h2
+                            class="Draftail-block--header-two "
+                            data-block="true"
+                            data-editor="1ut3g"
+                            data-offset-key="9rabl-0-0"
+                          >
+                            <div
+                              class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
+                              data-offset-key="9rabl-0-0"
+                            >
+                              <span
+                                data-offset-key="9rabl-0-0"
+                              >
+                                <span
+                                  data-text="true"
+                                >
+                                  h2
+                                </span>
+                              </span>
+                            </div>
+                          </h2>
+                          <h3
+                            class="Draftail-block--header-three "
+                            data-block="true"
+                            data-editor="1ut3g"
+                            data-offset-key="bv0ac-0-0"
+                          >
+                            <div
+                              class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
+                              data-offset-key="bv0ac-0-0"
+                            >
+                              <span
+                                data-offset-key="bv0ac-0-0"
+                              >
+                                <span
+                                  data-text="true"
+                                >
+                                  h3
+                                </span>
+                              </span>
+                            </div>
+                          </h3>
+                          <blockquote
+                            class="Draftail-block--blockquote "
+                            data-block="true"
+                            data-editor="1ut3g"
+                            data-offset-key="2ip7q-0-0"
+                          >
+                            <div
+                              class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
+                              data-offset-key="2ip7q-0-0"
+                            >
+                              <span
+                                data-offset-key="2ip7q-0-0"
+                              >
+                                <span
+                                  data-text="true"
+                                >
+                                  blockquote
+                                </span>
+                              </span>
+                            </div>
+                          </blockquote>
+                          <ul
+                            class="public-DraftStyleDefault-ul"
+                            data-offset-key="8r8ss-0-0"
+                          >
+                            <li
+                              class="Draftail-block--unordered-list-item  public-DraftStyleDefault-unorderedListItem public-DraftStyleDefault-reset public-DraftStyleDefault-depth0 public-DraftStyleDefault-listLTR"
+                              data-block="true"
+                              data-editor="1ut3g"
+                              data-offset-key="8r8ss-0-0"
+                            >
+                              <div
+                                class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
+                                data-offset-key="8r8ss-0-0"
+                              >
+                                <span
+                                  data-offset-key="8r8ss-0-0"
+                                >
+                                  <span
+                                    data-text="true"
+                                  >
+                                    ul
+                                  </span>
+                                </span>
+                              </div>
+                            </li>
+                          </ul>
+                          <ol
+                            class="public-DraftStyleDefault-ol"
+                            data-offset-key="911hc-0-0"
+                          >
+                            <li
+                              class="Draftail-block--ordered-list-item  public-DraftStyleDefault-orderedListItem public-DraftStyleDefault-reset public-DraftStyleDefault-depth0 public-DraftStyleDefault-listLTR"
+                              data-block="true"
+                              data-editor="1ut3g"
+                              data-offset-key="911hc-0-0"
+                            >
+                              <div
+                                class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
+                                data-offset-key="911hc-0-0"
+                              >
+                                <span
+                                  data-offset-key="911hc-0-0"
+                                >
+                                  <span
+                                    data-text="true"
+                                  >
+                                    ol
+                                  </span>
+                                </span>
+                              </div>
+                            </li>
+                          </ol>
+                          <div
+                            class="Draftail-block--unstyled "
+                            data-block="true"
+                            data-editor="1ut3g"
+                            data-offset-key="5aejo-0-0"
+                          >
+                            <div
+                              class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
+                              data-offset-key="5aejo-0-0"
+                            >
+                              <div
+                                class="LinkEntity-anchor-id"
+                              />
+                              <a
+                                class="MuiTypography-root-id MuiTypography-body1-id Link-root-id Link-primary-id"
+                                href="#"
+                              >
+                                <span
+                                  data-offset-key="5aejo-0-0"
+                                >
+                                  <span
+                                    data-text="true"
+                                  >
+                                    link
+                                  </span>
+                                </span>
+                              </a>
                             </div>
                           </div>
                         </div>
@@ -14354,7 +14523,7 @@ Ctrl + K"
                       class="DraftEditor-editorContainer"
                     >
                       <div
-                        aria-describedby="placeholder-dtibj"
+                        aria-describedby="placeholder-5m4l9"
                         class="notranslate public-DraftEditor-content"
                         contenteditable="true"
                         role="textbox"
@@ -14367,15 +14536,15 @@ Ctrl + K"
                           <div
                             class="Draftail-block--unstyled "
                             data-block="true"
-                            data-editor="dtibj"
-                            data-offset-key="fh8pt-0-0"
+                            data-editor="5m4l9"
+                            data-offset-key="5pvg6-0-0"
                           >
                             <div
                               class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
-                              data-offset-key="fh8pt-0-0"
+                              data-offset-key="5pvg6-0-0"
                             >
                               <span
-                                data-offset-key="fh8pt-0-0"
+                                data-offset-key="5pvg6-0-0"
                               >
                                 <br
                                   data-text="true"
@@ -15030,7 +15199,7 @@ exports[`Storyshots Views / Collections / Collection details no products 1`] = `
                   Description
                 </span>
                 <div
-                  class="Draftail-Editor"
+                  class="Draftail-Editor Draftail-Editor--hide-placeholder"
                 >
                   <div
                     class="Draftail-Toolbar"
@@ -15042,7 +15211,7 @@ exports[`Storyshots Views / Collections / Collection details no products 1`] = `
                       <button
                         aria-label="Bold
 Ctrl + B"
-                        class="Draftail-ToolbarButton"
+                        class="Draftail-ToolbarButton Draftail-ToolbarButton--active"
                         data-draftail-balloon="true"
                         name="BOLD"
                         tabindex="-1"
@@ -15273,7 +15442,7 @@ Ctrl + K"
                       class="DraftEditor-editorContainer"
                     >
                       <div
-                        aria-describedby="placeholder-aurie"
+                        aria-describedby="placeholder-dfei2"
                         class="notranslate public-DraftEditor-content"
                         contenteditable="true"
                         role="textbox"
@@ -15286,20 +15455,189 @@ Ctrl + K"
                           <div
                             class="Draftail-block--unstyled "
                             data-block="true"
-                            data-editor="aurie"
-                            data-offset-key="3rgqo-0-0"
+                            data-editor="dfei2"
+                            data-offset-key="rosn-0-0"
                           >
                             <div
                               class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
-                              data-offset-key="3rgqo-0-0"
+                              data-offset-key="rosn-0-0"
                             >
                               <span
-                                data-offset-key="3rgqo-0-0"
+                                data-offset-key="rosn-0-0"
+                                style="font-weight:bold"
                               >
-                                <br
+                                <span
                                   data-text="true"
-                                />
+                                >
+                                  bold
+                                </span>
                               </span>
+                            </div>
+                          </div>
+                          <div
+                            class="Draftail-block--unstyled "
+                            data-block="true"
+                            data-editor="dfei2"
+                            data-offset-key="6tbch-0-0"
+                          >
+                            <div
+                              class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
+                              data-offset-key="6tbch-0-0"
+                            >
+                              <span
+                                data-offset-key="6tbch-0-0"
+                                style="font-style:italic"
+                              >
+                                <span
+                                  data-text="true"
+                                >
+                                  italic
+                                </span>
+                              </span>
+                            </div>
+                          </div>
+                          <h2
+                            class="Draftail-block--header-two "
+                            data-block="true"
+                            data-editor="dfei2"
+                            data-offset-key="9rabl-0-0"
+                          >
+                            <div
+                              class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
+                              data-offset-key="9rabl-0-0"
+                            >
+                              <span
+                                data-offset-key="9rabl-0-0"
+                              >
+                                <span
+                                  data-text="true"
+                                >
+                                  h2
+                                </span>
+                              </span>
+                            </div>
+                          </h2>
+                          <h3
+                            class="Draftail-block--header-three "
+                            data-block="true"
+                            data-editor="dfei2"
+                            data-offset-key="bv0ac-0-0"
+                          >
+                            <div
+                              class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
+                              data-offset-key="bv0ac-0-0"
+                            >
+                              <span
+                                data-offset-key="bv0ac-0-0"
+                              >
+                                <span
+                                  data-text="true"
+                                >
+                                  h3
+                                </span>
+                              </span>
+                            </div>
+                          </h3>
+                          <blockquote
+                            class="Draftail-block--blockquote "
+                            data-block="true"
+                            data-editor="dfei2"
+                            data-offset-key="2ip7q-0-0"
+                          >
+                            <div
+                              class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
+                              data-offset-key="2ip7q-0-0"
+                            >
+                              <span
+                                data-offset-key="2ip7q-0-0"
+                              >
+                                <span
+                                  data-text="true"
+                                >
+                                  blockquote
+                                </span>
+                              </span>
+                            </div>
+                          </blockquote>
+                          <ul
+                            class="public-DraftStyleDefault-ul"
+                            data-offset-key="8r8ss-0-0"
+                          >
+                            <li
+                              class="Draftail-block--unordered-list-item  public-DraftStyleDefault-unorderedListItem public-DraftStyleDefault-reset public-DraftStyleDefault-depth0 public-DraftStyleDefault-listLTR"
+                              data-block="true"
+                              data-editor="dfei2"
+                              data-offset-key="8r8ss-0-0"
+                            >
+                              <div
+                                class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
+                                data-offset-key="8r8ss-0-0"
+                              >
+                                <span
+                                  data-offset-key="8r8ss-0-0"
+                                >
+                                  <span
+                                    data-text="true"
+                                  >
+                                    ul
+                                  </span>
+                                </span>
+                              </div>
+                            </li>
+                          </ul>
+                          <ol
+                            class="public-DraftStyleDefault-ol"
+                            data-offset-key="911hc-0-0"
+                          >
+                            <li
+                              class="Draftail-block--ordered-list-item  public-DraftStyleDefault-orderedListItem public-DraftStyleDefault-reset public-DraftStyleDefault-depth0 public-DraftStyleDefault-listLTR"
+                              data-block="true"
+                              data-editor="dfei2"
+                              data-offset-key="911hc-0-0"
+                            >
+                              <div
+                                class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
+                                data-offset-key="911hc-0-0"
+                              >
+                                <span
+                                  data-offset-key="911hc-0-0"
+                                >
+                                  <span
+                                    data-text="true"
+                                  >
+                                    ol
+                                  </span>
+                                </span>
+                              </div>
+                            </li>
+                          </ol>
+                          <div
+                            class="Draftail-block--unstyled "
+                            data-block="true"
+                            data-editor="dfei2"
+                            data-offset-key="5aejo-0-0"
+                          >
+                            <div
+                              class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
+                              data-offset-key="5aejo-0-0"
+                            >
+                              <div
+                                class="LinkEntity-anchor-id"
+                              />
+                              <a
+                                class="MuiTypography-root-id MuiTypography-body1-id Link-root-id Link-primary-id"
+                                href="#"
+                              >
+                                <span
+                                  data-offset-key="5aejo-0-0"
+                                >
+                                  <span
+                                    data-text="true"
+                                  >
+                                    link
+                                  </span>
+                                </span>
+                              </a>
                             </div>
                           </div>
                         </div>
@@ -16588,7 +16926,7 @@ Ctrl + K"
                       class="DraftEditor-editorContainer"
                     >
                       <div
-                        aria-describedby="placeholder-3bbv0"
+                        aria-describedby="placeholder-7jcoc"
                         class="notranslate public-DraftEditor-content"
                         contenteditable="true"
                         role="textbox"
@@ -16601,15 +16939,15 @@ Ctrl + K"
                           <div
                             class="Draftail-block--unstyled "
                             data-block="true"
-                            data-editor="3bbv0"
-                            data-offset-key="cnsmu-0-0"
+                            data-editor="7jcoc"
+                            data-offset-key="8omf5-0-0"
                           >
                             <div
                               class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
-                              data-offset-key="cnsmu-0-0"
+                              data-offset-key="8omf5-0-0"
                             >
                               <span
-                                data-offset-key="cnsmu-0-0"
+                                data-offset-key="8omf5-0-0"
                               >
                                 <br
                                   data-text="true"
@@ -17241,7 +17579,7 @@ Ctrl + K"
                       class="DraftEditor-editorContainer"
                     >
                       <div
-                        aria-describedby="placeholder-3k358"
+                        aria-describedby="placeholder-12g"
                         class="notranslate public-DraftEditor-content"
                         contenteditable="true"
                         role="textbox"
@@ -17254,15 +17592,15 @@ Ctrl + K"
                           <div
                             class="Draftail-block--unstyled "
                             data-block="true"
-                            data-editor="3k358"
-                            data-offset-key="aannj-0-0"
+                            data-editor="12g"
+                            data-offset-key="86ilm-0-0"
                           >
                             <div
                               class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
-                              data-offset-key="aannj-0-0"
+                              data-offset-key="86ilm-0-0"
                             >
                               <span
-                                data-offset-key="aannj-0-0"
+                                data-offset-key="86ilm-0-0"
                               >
                                 <br
                                   data-text="true"
@@ -53031,7 +53369,7 @@ Ctrl + K"
                       class="DraftEditor-editorContainer"
                     >
                       <div
-                        aria-describedby="placeholder-1ravk"
+                        aria-describedby="placeholder-5som1"
                         class="notranslate public-DraftEditor-content"
                         contenteditable="true"
                         role="textbox"
@@ -53044,7 +53382,7 @@ Ctrl + K"
                           <div
                             class="Draftail-block--unstyled "
                             data-block="true"
-                            data-editor="1ravk"
+                            data-editor="5som1"
                             data-offset-key="rosn-0-0"
                           >
                             <div
@@ -53066,7 +53404,7 @@ Ctrl + K"
                           <div
                             class="Draftail-block--unstyled "
                             data-block="true"
-                            data-editor="1ravk"
+                            data-editor="5som1"
                             data-offset-key="6tbch-0-0"
                           >
                             <div
@@ -53088,7 +53426,7 @@ Ctrl + K"
                           <h2
                             class="Draftail-block--header-two "
                             data-block="true"
-                            data-editor="1ravk"
+                            data-editor="5som1"
                             data-offset-key="9rabl-0-0"
                           >
                             <div
@@ -53109,7 +53447,7 @@ Ctrl + K"
                           <h3
                             class="Draftail-block--header-three "
                             data-block="true"
-                            data-editor="1ravk"
+                            data-editor="5som1"
                             data-offset-key="bv0ac-0-0"
                           >
                             <div
@@ -53130,7 +53468,7 @@ Ctrl + K"
                           <blockquote
                             class="Draftail-block--blockquote "
                             data-block="true"
-                            data-editor="1ravk"
+                            data-editor="5som1"
                             data-offset-key="2ip7q-0-0"
                           >
                             <div
@@ -53155,7 +53493,7 @@ Ctrl + K"
                             <li
                               class="Draftail-block--unordered-list-item  public-DraftStyleDefault-unorderedListItem public-DraftStyleDefault-reset public-DraftStyleDefault-depth0 public-DraftStyleDefault-listLTR"
                               data-block="true"
-                              data-editor="1ravk"
+                              data-editor="5som1"
                               data-offset-key="8r8ss-0-0"
                             >
                               <div
@@ -53181,7 +53519,7 @@ Ctrl + K"
                             <li
                               class="Draftail-block--ordered-list-item  public-DraftStyleDefault-orderedListItem public-DraftStyleDefault-reset public-DraftStyleDefault-depth0 public-DraftStyleDefault-listLTR"
                               data-block="true"
-                              data-editor="1ravk"
+                              data-editor="5som1"
                               data-offset-key="911hc-0-0"
                             >
                               <div
@@ -53203,7 +53541,7 @@ Ctrl + K"
                           <div
                             class="Draftail-block--unstyled "
                             data-block="true"
-                            data-editor="1ravk"
+                            data-editor="5som1"
                             data-offset-key="5aejo-0-0"
                           >
                             <div
@@ -53860,7 +54198,7 @@ Ctrl + K"
                       class="DraftEditor-editorContainer"
                     >
                       <div
-                        aria-describedby="placeholder-ghr2"
+                        aria-describedby="placeholder-dac1"
                         class="notranslate public-DraftEditor-content"
                         contenteditable="true"
                         role="textbox"
@@ -53873,15 +54211,15 @@ Ctrl + K"
                           <div
                             class="Draftail-block--unstyled "
                             data-block="true"
-                            data-editor="ghr2"
-                            data-offset-key="et43e-0-0"
+                            data-editor="dac1"
+                            data-offset-key="19sl2-0-0"
                           >
                             <div
                               class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
-                              data-offset-key="et43e-0-0"
+                              data-offset-key="19sl2-0-0"
                             >
                               <span
-                                data-offset-key="et43e-0-0"
+                                data-offset-key="19sl2-0-0"
                               >
                                 <br
                                   data-text="true"
@@ -57221,7 +57559,7 @@ Ctrl + K"
                       class="DraftEditor-editorContainer"
                     >
                       <div
-                        aria-describedby="placeholder-33spp"
+                        aria-describedby="placeholder-1j3pj"
                         class="notranslate public-DraftEditor-content"
                         contenteditable="true"
                         role="textbox"
@@ -57234,15 +57572,15 @@ Ctrl + K"
                           <div
                             class="Draftail-block--unstyled "
                             data-block="true"
-                            data-editor="33spp"
-                            data-offset-key="b3g91-0-0"
+                            data-editor="1j3pj"
+                            data-offset-key="5tbb6-0-0"
                           >
                             <div
                               class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
-                              data-offset-key="b3g91-0-0"
+                              data-offset-key="5tbb6-0-0"
                             >
                               <span
-                                data-offset-key="b3g91-0-0"
+                                data-offset-key="5tbb6-0-0"
                               >
                                 <br
                                   data-text="true"
@@ -58119,7 +58457,7 @@ Ctrl + K"
                       class="DraftEditor-editorContainer"
                     >
                       <div
-                        aria-describedby="placeholder-cql4v"
+                        aria-describedby="placeholder-fml8h"
                         class="notranslate public-DraftEditor-content"
                         contenteditable="true"
                         role="textbox"
@@ -58132,15 +58470,15 @@ Ctrl + K"
                           <div
                             class="Draftail-block--unstyled "
                             data-block="true"
-                            data-editor="cql4v"
-                            data-offset-key="1l9k7-0-0"
+                            data-editor="fml8h"
+                            data-offset-key="1jfjp-0-0"
                           >
                             <div
                               class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
-                              data-offset-key="1l9k7-0-0"
+                              data-offset-key="1jfjp-0-0"
                             >
                               <span
-                                data-offset-key="1l9k7-0-0"
+                                data-offset-key="1jfjp-0-0"
                               >
                                 <br
                                   data-text="true"
@@ -60322,7 +60660,7 @@ Ctrl + K"
                       class="DraftEditor-editorContainer"
                     >
                       <div
-                        aria-describedby="placeholder-1kd85"
+                        aria-describedby="placeholder-6kkbt"
                         class="notranslate public-DraftEditor-content"
                         contenteditable="true"
                         role="textbox"
@@ -60335,7 +60673,7 @@ Ctrl + K"
                           <div
                             class="Draftail-block--unstyled "
                             data-block="true"
-                            data-editor="1kd85"
+                            data-editor="6kkbt"
                             data-offset-key="rosn-0-0"
                           >
                             <div
@@ -60357,7 +60695,7 @@ Ctrl + K"
                           <div
                             class="Draftail-block--unstyled "
                             data-block="true"
-                            data-editor="1kd85"
+                            data-editor="6kkbt"
                             data-offset-key="6tbch-0-0"
                           >
                             <div
@@ -60379,7 +60717,7 @@ Ctrl + K"
                           <h2
                             class="Draftail-block--header-two "
                             data-block="true"
-                            data-editor="1kd85"
+                            data-editor="6kkbt"
                             data-offset-key="9rabl-0-0"
                           >
                             <div
@@ -60400,7 +60738,7 @@ Ctrl + K"
                           <h3
                             class="Draftail-block--header-three "
                             data-block="true"
-                            data-editor="1kd85"
+                            data-editor="6kkbt"
                             data-offset-key="bv0ac-0-0"
                           >
                             <div
@@ -60421,7 +60759,7 @@ Ctrl + K"
                           <blockquote
                             class="Draftail-block--blockquote "
                             data-block="true"
-                            data-editor="1kd85"
+                            data-editor="6kkbt"
                             data-offset-key="2ip7q-0-0"
                           >
                             <div
@@ -60446,7 +60784,7 @@ Ctrl + K"
                             <li
                               class="Draftail-block--unordered-list-item  public-DraftStyleDefault-unorderedListItem public-DraftStyleDefault-reset public-DraftStyleDefault-depth0 public-DraftStyleDefault-listLTR"
                               data-block="true"
-                              data-editor="1kd85"
+                              data-editor="6kkbt"
                               data-offset-key="8r8ss-0-0"
                             >
                               <div
@@ -60472,7 +60810,7 @@ Ctrl + K"
                             <li
                               class="Draftail-block--ordered-list-item  public-DraftStyleDefault-orderedListItem public-DraftStyleDefault-reset public-DraftStyleDefault-depth0 public-DraftStyleDefault-listLTR"
                               data-block="true"
-                              data-editor="1kd85"
+                              data-editor="6kkbt"
                               data-offset-key="911hc-0-0"
                             >
                               <div
@@ -60494,7 +60832,7 @@ Ctrl + K"
                           <div
                             class="Draftail-block--unstyled "
                             data-block="true"
-                            data-editor="1kd85"
+                            data-editor="6kkbt"
                             data-offset-key="5aejo-0-0"
                           >
                             <div
@@ -61837,7 +62175,7 @@ Ctrl + K"
                       class="DraftEditor-editorContainer"
                     >
                       <div
-                        aria-describedby="placeholder-av7fa"
+                        aria-describedby="placeholder-81tha"
                         class="notranslate public-DraftEditor-content"
                         contenteditable="true"
                         role="textbox"
@@ -61850,15 +62188,15 @@ Ctrl + K"
                           <div
                             class="Draftail-block--unstyled "
                             data-block="true"
-                            data-editor="av7fa"
-                            data-offset-key="fk4gi-0-0"
+                            data-editor="81tha"
+                            data-offset-key="8l5hs-0-0"
                           >
                             <div
                               class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
-                              data-offset-key="fk4gi-0-0"
+                              data-offset-key="8l5hs-0-0"
                             >
                               <span
-                                data-offset-key="fk4gi-0-0"
+                                data-offset-key="8l5hs-0-0"
                               >
                                 <br
                                   data-text="true"
@@ -62869,7 +63207,7 @@ Ctrl + K"
                       class="DraftEditor-editorContainer"
                     >
                       <div
-                        aria-describedby="placeholder-2an0r"
+                        aria-describedby="placeholder-5obdg"
                         class="notranslate public-DraftEditor-content"
                         contenteditable="true"
                         role="textbox"
@@ -62882,7 +63220,7 @@ Ctrl + K"
                           <div
                             class="Draftail-block--unstyled "
                             data-block="true"
-                            data-editor="2an0r"
+                            data-editor="5obdg"
                             data-offset-key="rosn-0-0"
                           >
                             <div
@@ -62904,7 +63242,7 @@ Ctrl + K"
                           <div
                             class="Draftail-block--unstyled "
                             data-block="true"
-                            data-editor="2an0r"
+                            data-editor="5obdg"
                             data-offset-key="6tbch-0-0"
                           >
                             <div
@@ -62926,7 +63264,7 @@ Ctrl + K"
                           <h2
                             class="Draftail-block--header-two "
                             data-block="true"
-                            data-editor="2an0r"
+                            data-editor="5obdg"
                             data-offset-key="9rabl-0-0"
                           >
                             <div
@@ -62947,7 +63285,7 @@ Ctrl + K"
                           <h3
                             class="Draftail-block--header-three "
                             data-block="true"
-                            data-editor="2an0r"
+                            data-editor="5obdg"
                             data-offset-key="bv0ac-0-0"
                           >
                             <div
@@ -62968,7 +63306,7 @@ Ctrl + K"
                           <blockquote
                             class="Draftail-block--blockquote "
                             data-block="true"
-                            data-editor="2an0r"
+                            data-editor="5obdg"
                             data-offset-key="2ip7q-0-0"
                           >
                             <div
@@ -62993,7 +63331,7 @@ Ctrl + K"
                             <li
                               class="Draftail-block--unordered-list-item  public-DraftStyleDefault-unorderedListItem public-DraftStyleDefault-reset public-DraftStyleDefault-depth0 public-DraftStyleDefault-listLTR"
                               data-block="true"
-                              data-editor="2an0r"
+                              data-editor="5obdg"
                               data-offset-key="8r8ss-0-0"
                             >
                               <div
@@ -63019,7 +63357,7 @@ Ctrl + K"
                             <li
                               class="Draftail-block--ordered-list-item  public-DraftStyleDefault-orderedListItem public-DraftStyleDefault-reset public-DraftStyleDefault-depth0 public-DraftStyleDefault-listLTR"
                               data-block="true"
-                              data-editor="2an0r"
+                              data-editor="5obdg"
                               data-offset-key="911hc-0-0"
                             >
                               <div
@@ -63041,7 +63379,7 @@ Ctrl + K"
                           <div
                             class="Draftail-block--unstyled "
                             data-block="true"
-                            data-editor="2an0r"
+                            data-editor="5obdg"
                             data-offset-key="5aejo-0-0"
                           >
                             <div
@@ -64291,7 +64629,7 @@ Ctrl + K"
                       class="DraftEditor-editorContainer"
                     >
                       <div
-                        aria-describedby="placeholder-3or20"
+                        aria-describedby="placeholder-jllc"
                         class="notranslate public-DraftEditor-content"
                         contenteditable="true"
                         role="textbox"
@@ -64304,7 +64642,7 @@ Ctrl + K"
                           <div
                             class="Draftail-block--unstyled "
                             data-block="true"
-                            data-editor="3or20"
+                            data-editor="jllc"
                             data-offset-key="rosn-0-0"
                           >
                             <div
@@ -64326,7 +64664,7 @@ Ctrl + K"
                           <div
                             class="Draftail-block--unstyled "
                             data-block="true"
-                            data-editor="3or20"
+                            data-editor="jllc"
                             data-offset-key="6tbch-0-0"
                           >
                             <div
@@ -64348,7 +64686,7 @@ Ctrl + K"
                           <h2
                             class="Draftail-block--header-two "
                             data-block="true"
-                            data-editor="3or20"
+                            data-editor="jllc"
                             data-offset-key="9rabl-0-0"
                           >
                             <div
@@ -64369,7 +64707,7 @@ Ctrl + K"
                           <h3
                             class="Draftail-block--header-three "
                             data-block="true"
-                            data-editor="3or20"
+                            data-editor="jllc"
                             data-offset-key="bv0ac-0-0"
                           >
                             <div
@@ -64390,7 +64728,7 @@ Ctrl + K"
                           <blockquote
                             class="Draftail-block--blockquote "
                             data-block="true"
-                            data-editor="3or20"
+                            data-editor="jllc"
                             data-offset-key="2ip7q-0-0"
                           >
                             <div
@@ -64415,7 +64753,7 @@ Ctrl + K"
                             <li
                               class="Draftail-block--unordered-list-item  public-DraftStyleDefault-unorderedListItem public-DraftStyleDefault-reset public-DraftStyleDefault-depth0 public-DraftStyleDefault-listLTR"
                               data-block="true"
-                              data-editor="3or20"
+                              data-editor="jllc"
                               data-offset-key="8r8ss-0-0"
                             >
                               <div
@@ -64441,7 +64779,7 @@ Ctrl + K"
                             <li
                               class="Draftail-block--ordered-list-item  public-DraftStyleDefault-orderedListItem public-DraftStyleDefault-reset public-DraftStyleDefault-depth0 public-DraftStyleDefault-listLTR"
                               data-block="true"
-                              data-editor="3or20"
+                              data-editor="jllc"
                               data-offset-key="911hc-0-0"
                             >
                               <div
@@ -64463,7 +64801,7 @@ Ctrl + K"
                           <div
                             class="Draftail-block--unstyled "
                             data-block="true"
-                            data-editor="3or20"
+                            data-editor="jllc"
                             data-offset-key="5aejo-0-0"
                           >
                             <div
