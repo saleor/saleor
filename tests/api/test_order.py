@@ -1316,3 +1316,19 @@ def test_orders_total(
     assert (
         content['data']['ordersTotal']['gross']['amount'] ==
         order_with_lines.total.gross.amount)
+
+
+def test_order_by_token_query(api_client, order):
+    query = """
+    query OrderByToken($token: String!) {
+        orderByToken(token: $token) {
+            id
+        }
+    }
+    """
+    order_id = graphene.Node.to_global_id('Order', order.id)
+
+    response = api_client.post_graphql(query, {'token': order.token})
+    content = get_graphql_content(response)
+
+    assert content['data']['orderByToken']['id'] == order_id

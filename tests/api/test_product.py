@@ -159,6 +159,34 @@ def test_product_query(staff_api_client, product, permission_manage_products):
     assert margin[1] == product_data['margin']['stop']
 
 
+def test_product_query_search(user_api_client, product_type, category):
+    blue_product = Product.objects.create(
+        name='Blue Paint', price=Money('10.00', 'USD'),
+        product_type=product_type, category=category)
+    Product.objects.create(
+        name='Red Paint', price=Money('10.00', 'USD'),
+        product_type=product_type, category=category)
+
+    query = """
+    query productSearch($query: String) {
+        products(query: $query, first: 10) {
+            edges {
+                node {
+                    name
+                }
+            }
+        }
+    }
+    """
+
+    response = user_api_client.post_graphql(query, {'query': 'blu p4int'})
+    content = get_graphql_content(response)
+    products = content['data']['products']['edges']
+
+    assert len(products) == 1
+    assert products[0]['node']['name'] == blue_product.name
+
+
 def test_query_product_image_by_id(user_api_client, product_with_image):
     image = product_with_image.images.first()
     query = """
