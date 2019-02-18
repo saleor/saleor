@@ -17,6 +17,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix access to unpublished objects via API - #3724 by @Kwaidan00
 - Add thumbnail to OrderLine, deprecate thumbnailUrl - #3737 by @michaljelonek
 - Refactor translations in emails - #3701 by @Kwaidan00
+- New translations:
+  - Indonesian
 
 ## 2.3.0
 ### API
