@@ -9,7 +9,6 @@ import CardTitle from "../../../components/CardTitle";
 import ControlledSwitch from "../../../components/ControlledSwitch";
 import FormSpacer from "../../../components/FormSpacer";
 import { LocaleConsumer } from "../../../components/Locale";
-import { TimezoneConsumer } from "../../../components/Timezone";
 import i18n from "../../../i18n";
 import { FormData } from "../PageDetailsPage";
 
@@ -28,69 +27,64 @@ const PageAvailability: React.StatelessComponent<PageAvailabilityProps> = ({
 }) => (
   <LocaleConsumer>
     {locale => (
-      <TimezoneConsumer>
-        {tz => (
-          <Card>
-            <CardTitle title={i18n.t("Availability")} />
-            <CardContent>
-              <ControlledSwitch
-                checked={data.isVisible}
-                disabled={disabled}
-                label={
-                  data.isVisible && !data.availableOn ? (
-                    i18n.t("Published")
-                  ) : !data.isVisible && data.availableOn ? (
-                    <>
-                      {i18n.t("Hidden")}
-                      <Typography variant="caption">
-                        {i18n.t("Will become visible on {{ date }}", {
-                          context: "page",
-                          date: moment(data.availableOn)
-                            .locale(locale)
-                            .tz(tz)
-                            .format("ll")
-                        })}
-                      </Typography>
-                    </>
-                  ) : (
-                    i18n.t("Hidden")
-                  )
-                }
-                name={"isVisible" as keyof FormData}
-                onChange={event =>
-                  onChange(
-                    event,
-                    () =>
-                      event.target.value &&
-                      onChange({
-                        target: {
-                          name: "availableOn",
-                          value: ""
-                        }
-                      } as any)
-                  )
-                }
-              />
-              {!data.isVisible && (
+      <Card>
+        <CardTitle title={i18n.t("Availability")} />
+        <CardContent>
+          <ControlledSwitch
+            checked={data.isVisible}
+            disabled={disabled}
+            label={
+              data.isVisible && !data.availableOn ? (
+                i18n.t("Published")
+              ) : !data.isVisible && data.availableOn ? (
                 <>
-                  <FormSpacer />
-                  <TextField
-                    disabled={disabled}
-                    error={!!errors.availableOn}
-                    fullWidth
-                    helperText={errors.availableOn}
-                    label={i18n.t("Publish page on")}
-                    name={"availableOn" as keyof FormData}
-                    type="date"
-                    value={data.availableOn}
-                    onChange={onChange}
-                  />
+                  {i18n.t("Hidden")}
+                  <Typography variant="caption">
+                    {i18n.t("Will become visible on {{ date }}", {
+                      context: "page",
+                      date: moment(data.availableOn)
+                        .locale(locale)
+                        .format("ll")
+                    })}
+                  </Typography>
                 </>
-              )}
-            </CardContent>
-          </Card>
-        )}
-      </TimezoneConsumer>
+              ) : (
+                i18n.t("Hidden")
+              )
+            }
+            name={"isVisible" as keyof FormData}
+            onChange={event =>
+              onChange(
+                event,
+                () =>
+                  event.target.value &&
+                  onChange({
+                    target: {
+                      name: "availableOn",
+                      value: ""
+                    }
+                  } as any)
+              )
+            }
+          />
+          {!data.isVisible && (
+            <>
+              <FormSpacer />
+              <TextField
+                disabled={disabled}
+                error={!!errors.availableOn}
+                fullWidth
+                helperText={errors.availableOn}
+                label={i18n.t("Publish page on")}
+                name={"availableOn" as keyof FormData}
+                type="date"
+                value={data.availableOn}
+                onChange={onChange}
+              />
+            </>
+          )}
+        </CardContent>
+      </Card>
     )}
   </LocaleConsumer>
 );
