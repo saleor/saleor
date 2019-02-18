@@ -1,8 +1,9 @@
-import { EditorState, RichUtils } from "draft-js";
+import { EditorState, EntityInstance, RichUtils } from "draft-js";
 import * as React from "react";
 
 interface LinkSourceProps {
   editorState: EditorState;
+  entity?: EntityInstance;
   entityType: {
     type: string;
   };
@@ -11,9 +12,9 @@ interface LinkSourceProps {
 
 class LinkSource extends React.Component<LinkSourceProps> {
   componentDidMount() {
-    const { editorState, entityType, onComplete } = this.props;
+    const { editorState, entity, entityType, onComplete } = this.props;
 
-    const href = window.prompt("Link URL");
+    const href = window.prompt("Link URL", entity ? entity.getData().href : "");
 
     if (href) {
       const content = editorState.getCurrentContent();

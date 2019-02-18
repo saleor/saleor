@@ -62,6 +62,7 @@ const PageDetailsPage: React.StatelessComponent<PageDetailsPageProps> = ({
                 data={data}
                 disabled={disabled}
                 errors={formErrors}
+                page={page}
                 onChange={change}
               />
               <CardSpacer />
