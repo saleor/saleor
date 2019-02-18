@@ -41,17 +41,21 @@ of the customer for given gateway.
 
 Several payment methods can be used within a single order.
 
-Payment has 3 possible charge statuses:
+Payment has 5 possible charge statuses:
 
-+----------------+-------------------+------------------------------------------------------------------------------------------------------+
-| Code           | GraphQL API value | Description                                                                                          |
-+----------------+-------------------+------------------------------------------------------------------------------------------------------+
-| charged        | CHARGED           | Funds were taken off the customer founding source, partly or completely covering the payment amount. |
-+----------------+-------------------+------------------------------------------------------------------------------------------------------+
-| not-charged    | NOT_CHARGED       | No funds were take off the customer founding source yet.                                             |
-+----------------+-------------------+------------------------------------------------------------------------------------------------------+
-| fully-refunded | FULLY_REFUNDED    | All charged funds were returned to the customer.                                                     |
-+----------------+-------------------+------------------------------------------------------------------------------------------------------+
++--------------------+--------------------+-------------------------------------------------------------------------------------- -----+
+| Code               | GraphQL API value  | Description                                                                                |
++--------------------+--------------------+--------------------------------------------------------------------------------------------+
+| not-charged        | NOT_CHARGED        | No funds were take off the customer founding source yet.                                   |
++--------------------+--------------------+--------------------------------------------------------------------------------------------+
+| partially-charged  | PARTIALLY_CHARGED  | Funds were taken off the customer founding source, partly covering the payment amount.     |
++--------------------+--------------------+--------------------------------------------------------------------------------------------+
+| fully-charged      | FULLY_CHARGED      | Funds were taken off the customer founding source, completely covering the payment amount. |
++--------------------+--------------------+--------------------------------------------------------------------------------------------+
+| partially-refunded | PARTIALLY_REFUNDED | Part of charged funds were returned to the customer.                                       |
++--------------------+--------------------+--------------------------------------------------------------------------------------------+
+| fully-refunded     | FULLY_REFUNDED     | All charged funds were returned to the customer.                                           |
++--------------------+--------------------+--------------------------------------------------------------------------------------------+
 
 Transactions
 ------------
