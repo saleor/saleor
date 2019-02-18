@@ -16828,7 +16828,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                     <div
                       class="StatusLabel-root-id undefined StatusLabel-successDot-id"
                     >
-                      Paid
+                      Fully paid
                     </div>
                   </td>
                   <td
@@ -17379,7 +17379,7 @@ exports[`Storyshots Views / Customers / Customer details different addresses 1`]
                     <div
                       class="StatusLabel-root-id undefined StatusLabel-successDot-id"
                     >
-                      Paid
+                      Fully paid
                     </div>
                   </td>
                   <td
@@ -17982,7 +17982,7 @@ exports[`Storyshots Views / Customers / Customer details form errors 1`] = `
                     <div
                       class="StatusLabel-root-id undefined StatusLabel-successDot-id"
                     >
-                      Paid
+                      Fully paid
                     </div>
                   </td>
                   <td
@@ -19059,7 +19059,7 @@ exports[`Storyshots Views / Customers / Customer details never logged 1`] = `
                     <div
                       class="StatusLabel-root-id undefined StatusLabel-successDot-id"
                     >
-                      Paid
+                      Fully paid
                     </div>
                   </td>
                   <td
@@ -19604,7 +19604,7 @@ exports[`Storyshots Views / Customers / Customer details never placed order 1`] 
                     <div
                       class="StatusLabel-root-id undefined StatusLabel-successDot-id"
                     >
-                      Paid
+                      Fully paid
                     </div>
                   </td>
                   <td
@@ -38742,7 +38742,7 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
               <div
                 class="StatusLabel-root-id undefined StatusLabel-successDot-id"
               >
-                Paid
+                Fully paid
               </div>
             </span>
             <div
@@ -41820,7 +41820,7 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
               <div
                 class="StatusLabel-root-id undefined StatusLabel-successDot-id"
               >
-                Refunded
+                Fully refunded
               </div>
             </span>
             <div
@@ -46310,7 +46310,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="StatusLabel-root-id undefined StatusLabel-successDot-id"
               >
-                Paid
+                Fully paid
               </div>
             </td>
             <td
@@ -46358,7 +46358,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="StatusLabel-root-id undefined StatusLabel-successDot-id"
               >
-                Paid
+                Fully paid
               </div>
             </td>
             <td
@@ -46742,7 +46742,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="StatusLabel-root-id undefined StatusLabel-successDot-id"
               >
-                Paid
+                Fully paid
               </div>
             </td>
             <td
@@ -46934,7 +46934,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="StatusLabel-root-id undefined StatusLabel-successDot-id"
               >
-                Paid
+                Fully paid
               </div>
             </td>
             <td
@@ -47174,7 +47174,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="StatusLabel-root-id undefined StatusLabel-successDot-id"
               >
-                Paid
+                Fully paid
               </div>
             </td>
             <td
@@ -47222,7 +47222,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="StatusLabel-root-id undefined StatusLabel-successDot-id"
               >
-                Paid
+                Fully paid
               </div>
             </td>
             <td
@@ -48209,7 +48209,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <div
                 class="StatusLabel-root-id undefined StatusLabel-successDot-id"
               >
-                Paid
+                Fully paid
               </div>
             </td>
             <td
@@ -48257,7 +48257,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <div
                 class="StatusLabel-root-id undefined StatusLabel-successDot-id"
               >
-                Paid
+                Fully paid
               </div>
             </td>
             <td
@@ -48641,7 +48641,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <div
                 class="StatusLabel-root-id undefined StatusLabel-successDot-id"
               >
-                Paid
+                Fully paid
               </div>
             </td>
             <td
@@ -48833,7 +48833,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <div
                 class="StatusLabel-root-id undefined StatusLabel-successDot-id"
               >
-                Paid
+                Fully paid
               </div>
             </td>
             <td
@@ -49073,7 +49073,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <div
                 class="StatusLabel-root-id undefined StatusLabel-successDot-id"
               >
-                Paid
+                Fully paid
               </div>
             </td>
             <td
@@ -49121,7 +49121,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               <div
                 class="StatusLabel-root-id undefined StatusLabel-successDot-id"
               >
-                Paid
+                Fully paid
               </div>
             </td>
             <td
