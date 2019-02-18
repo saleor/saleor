@@ -252,19 +252,22 @@ class OrderNoteForm(forms.Form):
 
 
 class ManagePaymentForm(forms.Form):
+
     amount = forms.DecimalField(
         label=pgettext_lazy(
             'Payment management form (capture, refund, void)', 'Amount'),
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES)
 
+    clean_status = None
+
     def __init__(self, *args, **kwargs):
         self.payment = kwargs.pop('payment')
         super().__init__(*args, **kwargs)
 
     def clean(self):
-        # Convert clean_status to a tuple if it is not a collection yet
-        if len(self.clean_status) == 1:
+        # Convert clean_status to a tuple if it is not a tuple or list yet
+        if not isinstance(self.clean_status, (tuple, list)):
             self.clean_status = (self.clean_status, )
 
         if self.payment.charge_status not in self.clean_status:
