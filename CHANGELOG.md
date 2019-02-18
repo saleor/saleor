@@ -3,6 +3,8 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
+- New translations:
+  - Indonesian
 - Fix problem with l10n in Braintree payment gateway template - #3691 by @Kwaidan00
 - Improve vouchers country limiting  - #3707 by @michaljelonek
 - Add support for date and datetime components - #3708 by @dominik-zeglen
@@ -15,6 +17,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Disable style-loader in dev mode - #3720 by @jxltom
 - Use authenticated user's email as default email in creating checkout - #3726 by @jxltom
 - Fix access to unpublished objects via API - #3724 by @Kwaidan00
+- Add thumbnail to OrderLine, deprecate thumbnailUrl - #3737 by @michaljelonek
+- Refactor translations in emails - #3701 by @Kwaidan00
+- Add orderByToken query - #3740 by @michaljelonek
+- Enable existing search with backend picker in products query - #3736 by @michaljelonek
 - Fix bug where payment is not filtered from active ones when creating payment - #3731 by @jxltom
 
 

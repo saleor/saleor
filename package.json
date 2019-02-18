@@ -38,7 +38,7 @@
     "apollo-link-context": "^1.0.10",
     "apollo-link-error": "^1.1.2",
     "apollo-upload-client": "^9.1.0",
-    "bootstrap": "4.1.2",
+    "bootstrap": "4.3.1",
     "classnames": "^2.2.6",
     "crc-32": "^1.2.0",
     "detect-passive-events": "^1.0.4",

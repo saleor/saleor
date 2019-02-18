@@ -59,3 +59,7 @@ def resolve_homepage_events(info):
         OrderEvents.PLACED.value, OrderEvents.PLACED_FROM_DRAFT.value,
         OrderEvents.ORDER_FULLY_PAID.value]
     return models.OrderEvent.objects.filter(type__in=types)
+
+
+def resolve_order_by_token(info, token):
+    return models.Order.objects.filter(token=token).first()
