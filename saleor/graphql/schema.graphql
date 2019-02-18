@@ -1109,7 +1109,8 @@ type OrderLine implements Node {
   quantityFulfilled: Int!
   unitPrice: TaxedMoney
   taxRate: Float!
-  thumbnailUrl(size: Int): String
+  thumbnailUrl(size: Int): String @deprecated(reason: "thumbnailUrl is deprecated, use thumbnail instead")
+  thumbnail(size: Int): Image
 }
 
 input OrderLineCreateInput {
@@ -1170,11 +1171,11 @@ type OrderVoid {
 }
 
 type Page implements Node {
-  id: ID!
   publicationDate: Date
   isPublished: Boolean!
   seoTitle: String
   seoDescription: String
+  id: ID!
   slug: String!
   title: String!
   content: String!
@@ -1315,11 +1316,11 @@ enum PermissionEnum {
 }
 
 type Product implements Node {
+  id: ID!
   publicationDate: Date
   isPublished: Boolean!
   seoTitle: String
   seoDescription: String
-  id: ID!
   productType: ProductType!
   name: String!
   description: String!
