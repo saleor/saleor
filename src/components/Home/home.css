@@ -734,6 +734,7 @@
           color: var(--body-color);
           text-align: center;
           text-decoration: none;
+          z-index: 2;
           & .star-icon {
             position: relative;
             top: 7.5rem;
@@ -748,30 +749,43 @@
             font-size: 3rem;
             line-height: 1;
           }
-          top: 20%;
-          left: 23%;
+          top: 3%;
+          left: 35%;
+          @media (min-width: 2000px) {
+            top: 6%;
+            left: 37%;
+          }
           @media (max-width: 1680px) {
-            left: 28%;
+            left: 41%;
           }
           @media (max-width: 1440px) {
-            top: 16%;
-            left: 34%;
+            top: 4%;
+            left: 35%;
           }
           @media (max-width: 1368px) {
-            top: 15%;
+            top: 3%;
+            left: 34%;
           }
           @media (max-width: 1024px) {
-            top: 8%;
-            left: 30%;
+            top: 10%;
+            left: 28%;
           }
         }
         & .pirate {
-          width: 80%;
+          width: 120%;
+          position: relative;
+          top: -9rem;
+          left: -4rem;
+          z-index: 1;
           @media (max-width: 1680px) {
-            width: 100%;
+            width: 140%;
           }
           @media (max-width: 1440px) {
-            width: 120%;
+            width: 140%;
+            top: -4rem;
+          }
+          @media (max-width: 1024px) {
+            top: 2rem;
           }
         }
       }
