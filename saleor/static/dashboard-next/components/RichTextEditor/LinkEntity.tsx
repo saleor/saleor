@@ -100,7 +100,7 @@ const LinkEntity = withStyles(styles, {
                           }}
                           onSubmit={formData => onEdit(formData.value)}
                         >
-                          {({ change, data, submit }) => (
+                          {({ change, data }) => (
                             <Toggle>
                               {(editMode, { toggle: toggleEditMode }) => (
                                 <div className={classes.container}>

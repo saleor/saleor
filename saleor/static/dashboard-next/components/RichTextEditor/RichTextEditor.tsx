@@ -30,7 +30,7 @@ export interface RichTextEditorProps {
   disabled: boolean;
   label: string;
   name: string;
-  initial: RawDraftContentState;
+  initial?: RawDraftContentState;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
@@ -154,6 +154,7 @@ const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
         {label}
       </Typography>
       <DraftailEditor
+        key={JSON.stringify(initial)}
         rawContentState={initial || null}
         onSave={value =>
           onChange({

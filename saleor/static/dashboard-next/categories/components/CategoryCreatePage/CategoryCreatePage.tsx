@@ -20,7 +20,7 @@ interface FormData {
 }
 
 const initialData: FormData = {
-  description: {} as any,
+  description: null,
   name: "",
   seoDescription: "",
   seoTitle: ""
