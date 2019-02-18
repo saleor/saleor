@@ -16,7 +16,7 @@ services:
       - redis
 
   db:
-    image: library/postgres:9.4-alpine
+    image: library/postgres:11.1-alpine
     restart: unless-stopped
     networks:
       - saleor-backend-tier
@@ -27,7 +27,7 @@ services:
       - POSTGRES_PASSWORD=saleor
 
   redis:
-    image: library/redis:4.0-alpine
+    image: library/redis:5.0-alpine
     restart: unless-stopped
     networks:
       - saleor-backend-tier
