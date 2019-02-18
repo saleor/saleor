@@ -32,7 +32,6 @@ exclude_patterns:
 - "**/migrations/"
 - "node_modules/"
 - "tests/"
-- "**/test_*"
 ratings:
   paths:
   - saleor/**

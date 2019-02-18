@@ -1,5 +1,6 @@
 """Cart-related ORM models."""
 from decimal import Decimal
+from operator import attrgetter
 from uuid import uuid4
 
 from django.conf import settings
@@ -110,6 +111,11 @@ class Cart(models.Model):
         """Return a line matching the given variant and data if any."""
         matching_lines = (line for line in self if line.variant == variant)
         return next(matching_lines, None)
+
+    def get_last_active_payment(self):
+        payments = [
+            payment for payment in self.payments.all() if payment.is_active]
+        return max(payments, default=None, key=attrgetter('pk'))
 
 
 class CartLine(models.Model):

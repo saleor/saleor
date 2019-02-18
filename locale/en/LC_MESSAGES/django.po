@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-04 09:30-0600\n"
+"POT-Creation-Date: 2019-02-12 07:24-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -374,24 +374,24 @@ msgctxt "Checkout discount form label for voucher field"
 msgid "Gift card or discount code"
 msgstr ""
 
-#: saleor/checkout/utils.py:135
+#: saleor/checkout/utils.py:134
 msgctxt "Cart warning message"
 msgid ""
 "Sorry. We don't have that many items in stock. Quantity was set to maximum "
 "available for now."
 msgstr ""
 
-#: saleor/checkout/utils.py:647
+#: saleor/checkout/utils.py:646
 msgctxt "Voucher not applicable"
 msgid "Your order does not require shipping."
 msgstr ""
 
-#: saleor/checkout/utils.py:653
+#: saleor/checkout/utils.py:652
 msgctxt "Voucher not applicable"
 msgid "Please select a shipping method first."
 msgstr ""
 
-#: saleor/checkout/utils.py:661
+#: saleor/checkout/utils.py:660
 msgctxt "Voucher not applicable"
 msgid "This offer is not valid in your country."
 msgstr ""
@@ -903,14 +903,14 @@ msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
 msgstr ""
 
-#: saleor/order/views.py:197
+#: saleor/order/views.py:199
 msgctxt "Connect order with user warning message"
 msgid ""
 "We couldn't assign the order to your account as the email addresses don't "
 "match"
 msgstr ""
 
-#: saleor/order/views.py:204
+#: saleor/order/views.py:206
 msgctxt "storefront message"
 msgid "The order is now assigned to your account"
 msgstr ""
@@ -1929,7 +1929,7 @@ msgctxt "Checkout shipping address title"
 msgid "Shipping address"
 msgstr ""
 
-#: templates/checkout/shipping_address.html:19
+#: templates/checkout/shipping_address.html:21
 msgctxt "Checkout shipping address primary action"
 msgid "Continue"
 msgstr ""
@@ -3036,7 +3036,7 @@ msgid ""
 msgstr ""
 
 #: templates/dashboard/index.html:15 templates/dashboard/index.html:82
-#: templates/dashboard/index.html:136
+#: templates/dashboard/index.html:138
 #, python-format
 msgctxt "Dashboard homepage summary header title"
 msgid "Showing last %(counter)s results"
@@ -3108,31 +3108,31 @@ msgctxt "Preauthorized payments table header"
 msgid "Amount"
 msgstr ""
 
-#: templates/dashboard/index.html:115
+#: templates/dashboard/index.html:116
 msgid "Guest"
 msgstr ""
 
-#: templates/dashboard/index.html:128
+#: templates/dashboard/index.html:130
 msgctxt "Empty Preauthorized payments table message"
 msgid "No preauthorized payments."
 msgstr ""
 
-#: templates/dashboard/index.html:137
+#: templates/dashboard/index.html:139
 msgctxt "Dashboard homepage table title"
 msgid "Products with low stock"
 msgstr ""
 
-#: templates/dashboard/index.html:146
+#: templates/dashboard/index.html:148
 msgctxt "Low stock product list"
 msgid "Product name"
 msgstr ""
 
-#: templates/dashboard/index.html:149
+#: templates/dashboard/index.html:151
 msgctxt "Low stock product list"
 msgid "Stock left"
 msgstr ""
 
-#: templates/dashboard/index.html:170
+#: templates/dashboard/index.html:172
 msgctxt "Empty low stock table message"
 msgid "No products are low in stock."
 msgstr ""
@@ -5908,7 +5908,7 @@ msgctxt "Payment details text"
 msgid "You've authorized transaction. Order is in processing"
 msgstr ""
 
-#: templates/order/payment/braintree.html:28
+#: templates/order/payment/braintree.html:29
 #: templates/order/payment/dummy.html:30
 msgctxt "Payment form primary action"
 msgid "Make payment"
@@ -5961,22 +5961,22 @@ msgid ""
 "on <strong>%(date)s</strong>."
 msgstr ""
 
-#: templates/product/_filters.html:47
+#: templates/product/_filters.html:46
 msgctxt "Product price filter"
 msgid "from"
 msgstr ""
 
-#: templates/product/_filters.html:49
+#: templates/product/_filters.html:48
 msgctxt "Product price filter"
 msgid "to"
 msgstr ""
 
-#: templates/product/_filters.html:57
+#: templates/product/_filters.html:56
 msgctxt "Product list page filters"
 msgid "Clear filters"
 msgstr ""
 
-#: templates/product/_filters.html:60
+#: templates/product/_filters.html:59
 msgctxt "Apply filters button"
 msgid "Update results"
 msgstr ""
@@ -6129,6 +6129,31 @@ msgid ""
 "\n"
 "Sincerely,\n"
 "%(site_name)s\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:2
+#, python-format
+msgctxt "Set password for customer e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:5
+#, python-format
+msgctxt "Set password for customer e-mail text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"You're receiving this e-mail because you have to set password for your "
+"customer account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:14
+msgctxt "Set password for customer e-mail text"
+msgid ""
+"\n"
+"This is an automatically generated email, please do not reply.\n"
 msgstr ""
 
 #: templates/templated_email/dashboard/staff/promote_customer.email:2
@@ -6477,6 +6502,20 @@ msgid ""
 "You're receiving this e-mail because you have been promoted to staff member "
 "at %(domain)s.<br/> To access dashboard please visit: <a href="
 "\"%(dashboard_url)s\">%(dashboard_url)s</a>"
+msgstr ""
+
+#: templates/templated_email/source/set_customer_password.mjml:13
+msgctxt "Set password for customer e-mail text"
+msgid "Hi!"
+msgstr ""
+
+#: templates/templated_email/source/set_customer_password.mjml:16
+#, python-format
+msgctxt "Set password for customer e-mail text"
+msgid ""
+"You're receiving this e-mail because you have to set password for your "
+"customer account at %(domain)s.<br/> Click the link below to set up your "
+"password."
 msgstr ""
 
 #: templates/templated_email/source/set_password.mjml:13

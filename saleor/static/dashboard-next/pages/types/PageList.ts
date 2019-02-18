@@ -10,7 +10,7 @@ export interface PageList_pages_edges_node {
   id: string;
   slug: string;
   title: string;
-  isVisible: boolean;
+  isPublished: boolean;
 }
 
 export interface PageList_pages_edges {

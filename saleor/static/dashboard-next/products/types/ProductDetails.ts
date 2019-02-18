@@ -155,7 +155,7 @@ export interface ProductDetails_product {
   purchaseCost: ProductDetails_product_purchaseCost | null;
   isPublished: boolean;
   chargeTaxes: boolean;
-  availableOn: any | null;
+  publicationDate: any | null;
   attributes: ProductDetails_product_attributes[];
   availability: ProductDetails_product_availability | null;
   images: (ProductDetails_product_images | null)[] | null;

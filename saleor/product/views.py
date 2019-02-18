@@ -56,7 +56,7 @@ def product_details(request, slug, product_id, form=None):
         return HttpResponsePermanentRedirect(product.get_absolute_url())
     today = datetime.date.today()
     is_visible = (
-        product.available_on is None or product.available_on <= today)
+        product.publication_date is None or product.publication_date <= today)
     if form is None:
         form = handle_cart_form(request, product, create_cart=False)[0]
     availability = get_availability(

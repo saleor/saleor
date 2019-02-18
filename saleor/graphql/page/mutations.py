@@ -15,9 +15,9 @@ class PageInput(graphene.InputObjectType):
     content = graphene.String(
         description=dedent("""Page content.
         May consists of ordinary text, HTML and images."""))
-    is_visible = graphene.Boolean(
+    is_published = graphene.Boolean(
         description='Determines if page is visible in the storefront')
-    available_on = graphene.String(
+    publication_date = graphene.String(
         description='Publication date. ISO 8601 standard.')
     seo = SeoInput(description='Search engine optimization fields.')
 

@@ -9,7 +9,7 @@ import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
-import DateFormatter from "../../../components/DateFormatter";
+import { DateTime } from "../../../components/Date";
 import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
@@ -95,7 +95,7 @@ const CustomerOrders = withStyles(styles, { name: "CustomerOrders" })(
                   </TableCell>
                   <TableCell padding="dense">
                     {maybe(() => order.created) ? (
-                      <DateFormatter date={order.created} />
+                      <DateTime date={order.created} />
                     ) : (
                       <Skeleton />
                     )}

@@ -7,7 +7,8 @@ function loadStories() {
   require("./stories/components/AddressEdit");
   require("./stories/components/AddressFormatter");
   require("./stories/components/CardMenu");
-  require("./stories/components/DateFormatter");
+  require("./stories/components/Date");
+  require("./stories/components/DateTime");
   require("./stories/components/EditableTableCell");
   require("./stories/components/ErrorMessageCard");
   require("./stories/components/ErrorPage");
@@ -52,6 +53,15 @@ function loadStories() {
   require("./stories/customers/CustomerDetailsPage");
   require("./stories/customers/CustomerListPage");
 
+  // Discounts
+  require("./stories/discounts/DiscountCountrySelectDialog");
+  require("./stories/discounts/SaleCreatePage");
+  require("./stories/discounts/SaleDetailsPage");
+  require("./stories/discounts/SaleListPage");
+  require("./stories/discounts/VoucherCreatePage");
+  require("./stories/discounts/VoucherDetailsPage");
+  require("./stories/discounts/VoucherListPage");
+
   // Homepage
   require("./stories/home/HomePage");
 
@@ -94,10 +104,6 @@ function loadStories() {
   require("./stories/orders/OrderPaymentVoidDialog");
   require("./stories/orders/OrderProductAddDialog");
   require("./stories/orders/OrderShippingMethodEditDialog");
-
-  // Vouchers
-  require("./stories/vouchers/VoucherDetailsPage");
-  require("./stories/vouchers/VoucherListPage");
 
   // Product types
   require("./stories/productTypes/ProductTypeAttributeEditDialog");

@@ -12,8 +12,8 @@ export interface PageDetails_page {
   title: string;
   content: string;
   created: any;
-  isVisible: boolean;
-  availableOn: any | null;
+  isPublished: boolean;
+  publicationDate: any | null;
 }
 
 export interface PageDetails {

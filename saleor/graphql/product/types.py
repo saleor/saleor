@@ -200,6 +200,17 @@ class ProductVariant(CountableDjangoObjectType):
     def resolve_images(self, info):
         return self.images.all()
 
+    @classmethod
+    def get_node(cls, info, id):
+        user = info.context.user
+        visible_products = models.Product.objects.visible_to_user(
+            user).values_list('pk', flat=True)
+        try:
+            return cls._meta.model.objects.filter(
+                product__id__in=visible_products).get(pk=id)
+        except cls._meta.model.DoesNotExist:
+            return None
+
 
 class ProductAvailability(graphene.ObjectType):
     available = graphene.Boolean()
@@ -267,6 +278,9 @@ class Product(CountableDjangoObjectType):
             lambda: Collection,
             description='List of collections for the product'),
         model_field='collections')
+    available_on = graphene.Date(
+        deprecation_reason=(
+            'availableOn is deprecated, use publicationDate instead'))
 
     class Meta:
         description = dedent("""Represents an individual item for sale in the
@@ -298,7 +312,7 @@ class Product(CountableDjangoObjectType):
 
     @gql_optimizer.resolver_hints(
         prefetch_related='variants',
-        only=['available_on', 'charge_taxes', 'price', 'tax_rate'])
+        only=['publication_date', 'charge_taxes', 'price', 'tax_rate'])
     def resolve_availability(self, info):
         context = info.context
         availability = get_availability(
@@ -337,6 +351,20 @@ class Product(CountableDjangoObjectType):
 
     def resolve_collections(self, info):
         return self.collections.all()
+
+    def resolve_available_on(self, info):
+        return self.publication_date
+
+    @classmethod
+    def get_node(cls, info, id):
+        if info.context:
+            user = info.context.user
+            try:
+                return cls._meta.model.objects.visible_to_user(
+                    user).get(pk=id)
+            except cls._meta.model.DoesNotExist:
+                return None
+        return None
 
 
 def prefetch_products(info, *args, **kwargs):
@@ -396,6 +424,9 @@ class Collection(CountableDjangoObjectType):
         prefetch_related=prefetch_products)
     background_image = graphene.Field(
         Image, size=graphene.Int(description='Size of the image'))
+    published_date = graphene.Date(
+        deprecation_reason=(
+            'publishedDate is deprecated, use publicationDate instead'))
 
     class Meta:
         description = "Represents a collection of products."
@@ -415,6 +446,20 @@ class Collection(CountableDjangoObjectType):
             return self.prefetched_products
         qs = self.products.visible_to_user(info.context.user)
         return gql_optimizer.query(qs, info)
+
+    @classmethod
+    def get_node(cls, info, id):
+        if info.context:
+            user = info.context.user
+            try:
+                return cls._meta.model.objects.visible_to_user(
+                    user).get(pk=id)
+            except cls._meta.model.DoesNotExist:
+                return None
+        return None
+
+    def resolve_published_date(self, info):
+        return self.publication_date
 
 
 class Category(CountableDjangoObjectType):
@@ -469,7 +514,7 @@ class Category(CountableDjangoObjectType):
         # Otherwise we want to include products from child categories which
         # requires performing additional logic.
         tree = self.get_descendants(include_self=True)
-        qs = models.Product.objects.available_products()
+        qs = models.Product.objects.published()
         qs = qs.filter(category__in=tree)
         return gql_optimizer.query(qs, info)
 

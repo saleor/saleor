@@ -26,7 +26,7 @@ export interface FormData {
     value: string;
   }>;
   available: boolean;
-  availableOn: string;
+  publicationDate: string;
   category: ChoiceType;
   chargeTaxes: boolean;
   collections: ChoiceType[];
@@ -94,7 +94,6 @@ export const ProductCreatePage: React.StatelessComponent<
   const initialData: FormData = {
     attributes: [],
     available: false,
-    availableOn: "",
     category: {
       label: "",
       value: ""
@@ -113,6 +112,7 @@ export const ProductCreatePage: React.StatelessComponent<
         productAttributes: [] as ProductCreateData_productTypes_edges_node_productAttributes[]
       }
     },
+    publicationDate: "",
     seoDescription: "",
     seoTitle: "",
     sku: null,

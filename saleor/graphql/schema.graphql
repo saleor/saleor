@@ -328,7 +328,7 @@ type CheckoutCreate {
 
 input CheckoutCreateInput {
   lines: [CheckoutLineInput]!
-  email: String!
+  email: String
   shippingAddress: AddressInput
   billingAddress: AddressInput
 }
@@ -389,6 +389,7 @@ type CheckoutLinesUpdate {
 
 type CheckoutPaymentCreate {
   errors: [Error!]
+  checkout: Checkout
   payment: Payment
 }
 
@@ -408,6 +409,8 @@ type ChoiceValue {
 }
 
 type Collection implements Node {
+  publicationDate: Date
+  isPublished: Boolean!
   seoTitle: String
   seoDescription: String
   id: ID!
@@ -415,9 +418,8 @@ type Collection implements Node {
   slug: String!
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   backgroundImage(size: Int): Image
-  isPublished: Boolean!
   description: String!
-  publishedDate: Date
+  publishedDate: Date @deprecated(reason: "publishedDate is deprecated, use publicationDate instead")
 }
 
 type CollectionAddProducts {
@@ -449,7 +451,7 @@ input CollectionCreateInput {
   backgroundImage: Upload
   backgroundImageAlt: String
   seo: SeoInput
-  publishedDate: Date
+  publicationDate: Date
   products: [ID]
 }
 
@@ -466,7 +468,7 @@ input CollectionInput {
   backgroundImage: Upload
   backgroundImageAlt: String
   seo: SeoInput
-  publishedDate: Date
+  publicationDate: Date
 }
 
 type CollectionRemoveProducts {
@@ -874,9 +876,7 @@ type Mutations {
   productVariantUpdate(id: ID!, input: ProductVariantInput!): ProductVariantUpdate
   variantImageAssign(imageId: ID!, variantId: ID!): VariantImageAssign
   variantImageUnassign(imageId: ID!, variantId: ID!): VariantImageUnassign
-  paymentAuthorize(paymentId: ID!, paymentToken: String!): PaymentAuthorize
   paymentCapture(amount: Decimal, paymentId: ID!): PaymentCapture
-  paymentCharge(amount: Decimal, paymentId: ID!, paymentToken: String!): PaymentCharge
   paymentRefund(amount: Decimal, paymentId: ID!): PaymentRefund
   paymentVoid(paymentId: ID!): PaymentVoid
   pageCreate(input: PageInput!): PageCreate
@@ -921,7 +921,7 @@ type Mutations {
   tokenRefresh(token: String!): Refresh
   tokenVerify(token: String!): VerifyToken
   checkoutBillingAddressUpdate(billingAddress: AddressInput, checkoutId: ID): CheckoutBillingAddressUpdate
-  checkoutComplete(checkoutId: ID): CheckoutComplete
+  checkoutComplete(checkoutId: ID!): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
   checkoutCustomerAttach(checkoutId: ID!, customerId: ID!): CheckoutCustomerAttach
   checkoutCustomerDetach(checkoutId: ID!): CheckoutCustomerDetach
@@ -929,7 +929,7 @@ type Mutations {
   checkoutLineDelete(checkoutId: ID!, lineId: ID): CheckoutLineDelete
   checkoutLinesAdd(checkoutId: ID!, lines: [CheckoutLineInput]!): CheckoutLinesAdd
   checkoutLinesUpdate(checkoutId: ID!, lines: [CheckoutLineInput]!): CheckoutLinesUpdate
-  checkoutPaymentCreate(input: PaymentInput!): CheckoutPaymentCreate
+  checkoutPaymentCreate(checkoutId: ID!, input: PaymentInput!): CheckoutPaymentCreate
   checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
   passwordReset(email: String!): PasswordReset
@@ -1109,7 +1109,8 @@ type OrderLine implements Node {
   quantityFulfilled: Int!
   unitPrice: TaxedMoney
   taxRate: Float!
-  thumbnailUrl(size: Int): String
+  thumbnailUrl(size: Int): String @deprecated(reason: "thumbnailUrl is deprecated, use thumbnail instead")
+  thumbnail(size: Int): Image
 }
 
 input OrderLineCreateInput {
@@ -1170,15 +1171,17 @@ type OrderVoid {
 }
 
 type Page implements Node {
-  id: ID!
+  publicationDate: Date
+  isPublished: Boolean!
   seoTitle: String
   seoDescription: String
+  id: ID!
   slug: String!
   title: String!
   content: String!
   created: DateTime!
-  isVisible: Boolean!
-  availableOn: Date
+  availableOn: Date @deprecated(reason: "availableOn is deprecated, use publicationDate instead")
+  isVisible: Boolean @deprecated(reason: "isVisible is deprecated, use isPublished instead")
 }
 
 type PageCountableConnection {
@@ -1213,8 +1216,8 @@ input PageInput {
   slug: String
   title: String
   content: String
-  isVisible: Boolean
-  availableOn: String
+  isPublished: Boolean
+  publicationDate: String
   seo: SeoInput
 }
 
@@ -1255,17 +1258,7 @@ type Payment implements Node {
   creditCard: CreditCard
 }
 
-type PaymentAuthorize {
-  errors: [Error!]
-  payment: Payment
-}
-
 type PaymentCapture {
-  errors: [Error!]
-  payment: Payment
-}
-
-type PaymentCharge {
   errors: [Error!]
   payment: Payment
 }
@@ -1288,11 +1281,10 @@ type PaymentCountableEdge {
 }
 
 input PaymentInput {
-  gateway: GatewaysEnum
-  checkoutId: ID
+  gateway: GatewaysEnum!
   token: String!
   amount: Decimal!
-  billingAddress: AddressInput
+  billingAddress: AddressInput!
 }
 
 type PaymentRefund {
@@ -1324,16 +1316,16 @@ enum PermissionEnum {
 }
 
 type Product implements Node {
+  id: ID!
+  publicationDate: Date
+  isPublished: Boolean!
   seoTitle: String
   seoDescription: String
-  id: ID!
   productType: ProductType!
   name: String!
   description: String!
   category: Category!
   price: Money
-  availableOn: Date
-  isPublished: Boolean!
   attributes: [SelectedAttribute!]!
   updatedAt: DateTime
   chargeTaxes: Boolean!
@@ -1349,6 +1341,7 @@ type Product implements Node {
   purchaseCost: MoneyRange
   margin: Margin
   imageById(id: ID): ProductImage
+  availableOn: Date @deprecated(reason: "availableOn is deprecated, use publicationDate instead")
 }
 
 type ProductAvailability {
@@ -1379,7 +1372,7 @@ type ProductCreate {
 
 input ProductCreateInput {
   attributes: [AttributeValueInput]
-  availableOn: Date
+  publicationDate: Date
   category: ID
   chargeTaxes: Boolean
   collections: [ID]
@@ -1444,7 +1437,7 @@ input ProductImageUpdateInput {
 
 input ProductInput {
   attributes: [AttributeValueInput]
-  availableOn: Date
+  publicationDate: Date
   category: ID
   chargeTaxes: Boolean
   collections: [ID]

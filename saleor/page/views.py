@@ -11,7 +11,7 @@ def page_details(request, slug):
         pages_visible_to_user(user=request.user).filter(slug=slug))
     today = datetime.date.today()
     is_visible = (
-        page.available_on is None or page.available_on <= today)
+        page.publication_date is None or page.publication_date <= today)
     return TemplateResponse(
         request, 'page/details.html', {
             'page': page, 'is_visible': is_visible})

@@ -163,7 +163,7 @@ export interface ProductUpdate_productUpdate_product {
   purchaseCost: ProductUpdate_productUpdate_product_purchaseCost | null;
   isPublished: boolean;
   chargeTaxes: boolean;
-  availableOn: any | null;
+  publicationDate: any | null;
   attributes: ProductUpdate_productUpdate_product_attributes[];
   availability: ProductUpdate_productUpdate_product_availability | null;
   images: (ProductUpdate_productUpdate_product_images | null)[] | null;
@@ -185,7 +185,7 @@ export interface ProductUpdate {
 export interface ProductUpdateVariables {
   id: string;
   attributes?: (AttributeValueInput | null)[] | null;
-  availableOn?: any | null;
+  publicationDate?: any | null;
   category?: string | null;
   chargeTaxes: boolean;
   collections?: (string | null)[] | null;

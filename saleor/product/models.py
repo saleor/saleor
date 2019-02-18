@@ -1,11 +1,9 @@
-import datetime
 from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import Q
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
@@ -22,7 +20,7 @@ from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..core import TaxRateType
 from ..core.exceptions import InsufficientStock
-from ..core.models import SortableModel
+from ..core.models import PublishableModel, SortableModel
 from ..core.utils.taxes import DEFAULT_TAX_RATE_NAME, apply_tax_to_price
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
@@ -96,23 +94,7 @@ class ProductType(models.Model):
             class_.__module__, class_.__name__, self.pk, self.name)
 
 
-class ProductQuerySet(models.QuerySet):
-
-    def available_products(self):
-        today = datetime.date.today()
-        return self.filter(
-            Q(available_on__lte=today) | Q(available_on__isnull=True),
-            Q(is_published=True))
-
-    def visible_to_user(self, user):
-        has_access_to_all = (
-            user.is_active and user.has_perm('product.manage_products'))
-        if has_access_to_all:
-            return self.all()
-        return self.available_products()
-
-
-class Product(SeoModel):
+class Product(SeoModel, PublishableModel):
     product_type = models.ForeignKey(
         ProductType, related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
@@ -123,8 +105,6 @@ class Product(SeoModel):
         currency=settings.DEFAULT_CURRENCY,
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES)
-    available_on = models.DateField(blank=True, null=True)
-    is_published = models.BooleanField(default=True)
     attributes = HStoreField(default=dict, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
     charge_taxes = models.BooleanField(default=True)
@@ -135,7 +115,6 @@ class Product(SeoModel):
         measurement=Weight, unit_choices=WeightUnits.CHOICES,
         blank=True, null=True)
 
-    objects = ProductQuerySet.as_manager()
     translated = TranslationProxy()
 
     class Meta:
@@ -169,10 +148,6 @@ class Product(SeoModel):
 
     def is_in_stock(self):
         return any(variant.is_in_stock() for variant in self)
-
-    def is_available(self):
-        today = datetime.date.today()
-        return self.available_on is None or self.available_on <= today
 
     def get_first_image(self):
         images = list(self.images.all())
@@ -434,23 +409,7 @@ class VariantImage(models.Model):
         ProductImage, related_name='variant_images', on_delete=models.CASCADE)
 
 
-class CollectionQuerySet(models.QuerySet):
-
-    def public(self):
-        return self.filter(
-            Q(is_published=True),
-            Q(published_date__isnull=True)
-            | Q(published_date__lte=datetime.date.today()))
-
-    def visible_to_user(self, user):
-        has_access_to_all = (
-            user.is_active and user.has_perm('product.manage_products'))
-        if has_access_to_all:
-            return self.all()
-        return self.public()
-
-
-class Collection(SeoModel):
+class Collection(SeoModel, PublishableModel):
     name = models.CharField(max_length=128, unique=True)
     slug = models.SlugField(max_length=128)
     products = models.ManyToManyField(
@@ -458,10 +417,8 @@ class Collection(SeoModel):
     background_image = VersatileImageField(
         upload_to='collection-backgrounds', blank=True, null=True)
     background_image_alt = models.CharField(max_length=128, blank=True)
-    is_published = models.BooleanField(default=False)
     description = models.TextField(blank=True)
-    published_date = models.DateField(blank=True, null=True)
-    objects = CollectionQuerySet.as_manager()
+
     translated = TranslationProxy()
 
     class Meta:
@@ -474,12 +431,6 @@ class Collection(SeoModel):
         return reverse(
             'product:collection',
             kwargs={'pk': self.id, 'slug': self.slug})
-
-    @property
-    def is_visible(self):
-        return self.is_published and (
-            self.published_date is None or
-            self.published_date <= datetime.date.today())
 
 
 class CollectionTranslation(SeoModelTranslation):
