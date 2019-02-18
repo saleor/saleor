@@ -3,12 +3,13 @@ from unittest.mock import ANY, patch
 
 import graphene
 import pytest
+from tests.api.utils import get_graphql_content
 
 from saleor.checkout.models import Cart
-from saleor.checkout.utils import is_fully_paid, ready_to_place_order
+from saleor.checkout.utils import (
+    add_voucher_to_cart, is_fully_paid, ready_to_place_order)
 from saleor.graphql.core.utils import str_to_enum
 from saleor.order.models import Order
-from tests.api.utils import get_graphql_content
 
 MUTATION_CHECKOUT_CREATE = """
     mutation createCheckout($checkoutInput: CheckoutCreateInput!) {
@@ -476,35 +477,39 @@ def test_checkout_lines_update_check_lines_quantity(
     assert data['errors'][0]['field'] == 'quantity'
 
 
+MUTATION_CHECKOUT_LINES_DELETE = """
+    mutation checkoutLineDelete($checkoutId: ID!, $lineId: ID!) {
+        checkoutLineDelete(checkoutId: $checkoutId, lineId: $lineId) {
+            checkout {
+                token
+                lines {
+                    quantity
+                    variant {
+                        id
+                    }
+                }
+            }
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
 def test_checkout_line_delete(user_api_client, cart_with_item):
     cart = cart_with_item
     assert cart.lines.count() == 1
     line = cart.lines.first()
     assert line.quantity == 3
-    query = """
-        mutation checkoutLineDelete($checkoutId: ID!, $lineId: ID!) {
-            checkoutLineDelete(checkoutId: $checkoutId, lineId: $lineId) {
-                checkout {
-                    token
-                    lines {
-                        quantity
-                        variant {
-                            id
-                        }
-                    }
-                }
-                errors {
-                    field
-                    message
-                }
-            }
-        }
-    """
+
     checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
     line_id = graphene.Node.to_global_id('CheckoutLine', line.pk)
 
     variables = {'checkoutId': checkout_id, 'lineId': line_id}
-    response = user_api_client.post_graphql(query, variables)
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_DELETE, variables)
     content = get_graphql_content(response)
 
     data = content['data']['checkoutLineDelete']
@@ -1212,7 +1217,7 @@ def test_checkout_add_voucher_invalid_checkout(api_client, voucher):
     variables = {'checkoutId': 'XXX', 'voucherCode': voucher.code}
     data = _mutate_checkout_update_voucher(api_client, variables)
 
-    assert len(data['errors']) > 0
+    assert data['errors']
     assert data['errors'][0]['field'] == 'checkoutId'
 
 
@@ -1221,7 +1226,7 @@ def test_checkout_add_voucher_invalid_code(api_client, cart_with_item):
     variables = {'checkoutId': checkout_id, 'voucherCode': 'XXX'}
     data = _mutate_checkout_update_voucher(api_client, variables)
 
-    assert len(data['errors']) > 0
+    assert data['errors']
     assert data['errors'][0]['field'] == 'voucherCode'
 
 
@@ -1233,5 +1238,60 @@ def test_checkout_add_voucher_not_applicable_voucher(
         'voucherCode': voucher_with_high_min_amount_spent.code}
     data = _mutate_checkout_update_voucher(api_client, variables)
 
-    assert len(data['errors']) > 0
+    assert data['errors']
     assert data['errors'][0]['field'] == 'voucherCode'
+
+
+def test_checkout_lines_delete_with_not_applicable_voucher(
+        user_api_client, cart_with_item, voucher):
+    voucher.min_amount_spent = cart_with_item.get_subtotal().gross
+    voucher.save(update_fields=['min_amount_spent'])
+
+    add_voucher_to_cart(voucher, cart_with_item)
+    assert cart_with_item.voucher_code == voucher.code
+
+    line = cart_with_item.lines.first()
+
+    checkout_id = graphene.Node.to_global_id('Checkout', cart_with_item.pk)
+    line_id = graphene.Node.to_global_id('CheckoutLine', line.pk)
+    variables = {'checkoutId': checkout_id, 'lineId': line_id}
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_DELETE, variables)
+    content = get_graphql_content(response)
+
+    data = content['data']['checkoutLineDelete']
+    assert not data['errors']
+    cart_with_item.refresh_from_db()
+    assert cart_with_item.lines.count() == 0
+    assert cart_with_item.voucher_code is None
+
+
+def test_checkout_shipping_address_update_with_not_applicable_voucher(
+        user_api_client, cart_with_item, voucher_shipping_type,
+        graphql_address_data, address_other_country, shipping_method):
+    assert cart_with_item.shipping_address is None
+    assert cart_with_item.voucher_code is None
+
+    cart_with_item.shipping_address = address_other_country
+    cart_with_item.shipping_method = shipping_method
+    cart_with_item.save(update_fields=['shipping_address', 'shipping_method'])
+    assert cart_with_item.shipping_address.country == address_other_country.country
+
+    voucher = voucher_shipping_type
+    assert voucher.countries[0].code == address_other_country.country
+
+    add_voucher_to_cart(voucher, cart_with_item)
+    assert cart_with_item.voucher_code == voucher.code
+
+    checkout_id = graphene.Node.to_global_id('Checkout', cart_with_item.pk)
+    new_address = graphql_address_data
+    variables = {'checkoutId': checkout_id, 'shippingAddress': new_address}
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables)
+    content = get_graphql_content(response)
+    data = content['data']['checkoutShippingAddressUpdate']
+    assert not data['errors']
+
+    cart_with_item.refresh_from_db()
+    assert cart_with_item.shipping_address.country == new_address['country']
+    assert cart_with_item.voucher_code is None

@@ -740,7 +740,7 @@ def recalculate_cart_discount(cart, discounts, taxes):
 
 def add_voucher_to_cart(voucher, cart):
     """Add voucher data to cart.
-    
+
     Raise NotApplicable if voucher of given type cannot be applied."""
     discount_amount = get_voucher_discount_for_cart(voucher, cart)
     cart.voucher_code = voucher.code

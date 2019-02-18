@@ -7,7 +7,7 @@ from ...checkout import models
 from ...checkout.utils import (
     add_variant_to_cart, add_voucher_to_cart, change_billing_address_in_cart,
     change_shipping_address_in_cart, create_order, get_taxes_for_cart,
-    get_voucher_for_cart, get_voucher_discount_for_cart, ready_to_place_order,
+    get_voucher_for_cart, ready_to_place_order, recalculate_cart_discount,
     remove_voucher_from_cart)
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
@@ -20,7 +20,6 @@ from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, User
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.types.common import Error
-from ..discount.types import Voucher
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
@@ -239,6 +238,9 @@ class CheckoutLinesAdd(BaseMutation):
                 add_variant_to_cart(
                     checkout, variant, quantity, replace=replace)
 
+        recalculate_cart_discount(
+            checkout, info.context.discounts, info.context.taxes)
+
         return CheckoutLinesAdd(checkout=checkout, errors=errors)
 
 
@@ -282,6 +284,9 @@ class CheckoutLineDelete(BaseMutation):
             taxes=get_taxes_for_address(checkout.shipping_address))
         if errors:
             return CheckoutLineDelete(errors=errors)
+
+        recalculate_cart_discount(
+            checkout, info.context.discounts, info.context.taxes)
 
         return CheckoutLineDelete(checkout=checkout, errors=errors)
 
@@ -367,6 +372,9 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
                 with transaction.atomic():
                     shipping_address.save()
                     change_shipping_address_in_cart(checkout, shipping_address)
+                recalculate_cart_discount(
+                    checkout, info.context.discounts, info.context.taxes)
+
         return CheckoutShippingAddressUpdate(checkout=checkout, errors=errors)
 
 
@@ -451,6 +459,9 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         if not errors:
             checkout.shipping_method = shipping_method
             checkout.save(update_fields=['shipping_method'])
+            recalculate_cart_discount(
+                checkout, info.context.discounts, info.context.taxes)
+
         return CheckoutShippingMethodUpdate(checkout=checkout, errors=errors)
 
 
@@ -537,7 +548,7 @@ class CheckoutUpdateVoucher(BaseMutation):
 
             try:
                 add_voucher_to_cart(voucher, checkout)
-            except voucher_model.NotApplicable as e:
+            except voucher_model.NotApplicable:
                 cls.add_error(
                     errors=errors,
                     field='voucher_code',
