@@ -9,7 +9,6 @@ import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
-import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { UserError } from "../../../types";
 import {
@@ -248,9 +247,6 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                 )}
                 <CardSpacer />
                 <SeoForm
-                  helperText={i18n.t(
-                    "Add search engine title and description to make this product easier to find"
-                  )}
                   title={data.seoTitle}
                   titlePlaceholder={data.name}
                   description={data.seoDescription}
