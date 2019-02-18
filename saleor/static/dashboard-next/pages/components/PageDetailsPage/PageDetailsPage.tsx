@@ -15,14 +15,14 @@ interface PageInput {
   title: string;
   content: string;
   slug: string;
-  availableOn: string;
-  isVisible: boolean;
+  publicationDate: string;
+  isPublished: boolean;
 }
 
 const defaultPage = {
-  availableOn: "",
   content: "",
-  isVisible: false,
+  isPublished: false,
+  publicationDate: "",
   slug: "",
   title: ""
 };
@@ -79,9 +79,9 @@ const PageDetailsPage: React.StatelessComponent<PageDetailsPageProps> = ({
                 </div>
                 <div>
                   <PageProperties
-                    availableOn={data.availableOn}
+                    publicationDate={data.publicationDate}
                     created={page ? page.created : undefined}
-                    isVisible={data.isVisible}
+                    isPublished={data.isPublished}
                     loading={disabled}
                     onChange={change}
                     slug={data.slug}

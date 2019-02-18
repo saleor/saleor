@@ -37,7 +37,7 @@ interface PageListProps extends ListProps, WithStyles<typeof styles> {
     id: string;
     title: string;
     slug: string;
-    isVisible: boolean;
+    isPublished: boolean;
   }>;
 }
 
@@ -89,11 +89,11 @@ export const PageList = withStyles(styles, { name: "PageList" })(
                   {page ? (
                     <StatusLabel
                       label={
-                        page.isVisible
+                        page.isPublished
                           ? i18n.t("Published", { context: "object" })
                           : i18n.t("Not published", { context: "object" })
                       }
-                      status={page.isVisible ? "success" : "error"}
+                      status={page.isPublished ? "success" : "error"}
                     />
                   ) : (
                     <Skeleton />

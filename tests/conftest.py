@@ -1,5 +1,6 @@
 from io import BytesIO
 from unittest.mock import MagicMock, Mock
+
 import pytest
 from django.contrib.auth.models import Permission
 from django.contrib.sites.models import Site
@@ -416,6 +417,24 @@ def unavailable_product(product_type, category):
 
 
 @pytest.fixture
+def unavailable_product_with_variant(product_type, category):
+    product = Product.objects.create(
+        name='Test product', price=Money('10.00', 'USD'),
+        product_type=product_type, is_published=False, category=category)
+
+    variant_attr = product_type.variant_attributes.first()
+    variant_attr_value = variant_attr.values.first()
+    variant_attributes = {
+        smart_text(variant_attr.pk): smart_text(variant_attr_value.pk)}
+
+    ProductVariant.objects.create(
+        product=product, sku='123', attributes=variant_attributes,
+        cost_price=Money('1.00', 'USD'), quantity=10, quantity_allocated=1)
+
+    return product
+
+
+@pytest.fixture
 def product_with_images(product_type, category):
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
@@ -648,7 +667,7 @@ def collection(db):
 @pytest.fixture
 def collection_with_image(db, image):
     collection = Collection.objects.create(
-        name='Collection', slug='collection', is_published=True,
+        name='Collection', slug='collection',
         description='Test description', background_image=image)
     return collection
 
@@ -656,7 +675,16 @@ def collection_with_image(db, image):
 @pytest.fixture
 def draft_collection(db):
     collection = Collection.objects.create(
-        name='Draft collection', slug='draft-collection')
+        name='Draft collection', slug='draft-collection', is_published=False)
+    return collection
+
+
+@pytest.fixture
+def unpublished_collection():
+    collection = Collection.objects.create(
+        name='Unpublished collection',
+        slug='unpublished-collection',
+        is_published=False)
     return collection
 
 

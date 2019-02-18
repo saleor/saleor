@@ -10,7 +10,7 @@ from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import get_taxes_for_address
 from ...payment import PaymentError
-from ...payment.utils import gateway_authorize, gateway_capture, gateway_void
+from ...payment.utils import gateway_process_payment
 from ...shipping.models import ShippingMethod as ShippingMethodModel
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, User
@@ -150,6 +150,11 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             cleaned_input['billing_address'] = billing_address
         else:
             cleaned_input['billing_address'] = default_billing_address
+
+        # Use authenticated user's email as default email
+        if not user.is_anonymous:
+            email = input.pop('email', None)
+            cleaned_input['email'] = email or user.email
 
         return cleaned_input
 
@@ -448,57 +453,45 @@ class CheckoutComplete(BaseMutation):
     order = graphene.Field(Order, description='Placed order')
 
     class Arguments:
-        checkout_id = graphene.ID(description='Checkout ID')
+        checkout_id = graphene.ID(description='Checkout ID', required=True)
 
     class Meta:
         description = (
-            'Completes the checkout, creates an order from it and '
-            'charges the customer\'s funding source.')
+            'Completes the checkout. As a result a new order is created and '
+            'a payment charge is made. This action requires a successful '
+            'payment before it can be performed.')
 
     @classmethod
     def mutate(cls, root, info, checkout_id):
         errors = []
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
-        if checkout is not None:
-            taxes = get_taxes_for_cart(checkout, info.context.taxes)
-            ready, checkout_error = ready_to_place_order(
-                checkout, taxes, info.context.discounts)
-            if not ready:
-                cls.add_error(
-                    field=None, message=checkout_error, errors=errors)
-        if not errors:
-            try:
-                order = create_order(
-                    cart=checkout,
-                    tracking_code=analytics.get_client_id(info.context),
-                    discounts=info.context.discounts, taxes=taxes)
-            except InsufficientStock:
-                order = None
-                cls.add_error(
-                    field=None, message='Insufficient product stock.',
-                    errors=errors)
-        if errors:
+        if checkout is None:
             return CheckoutComplete(errors=errors)
 
-        payment = checkout.payments.filter(is_active=True).first()
-        # FIXME there could be a situation where order was created but payment
-        # failed. we should cancel/delete the order at this moment I think
+        taxes = get_taxes_for_cart(checkout, info.context.taxes)
+        ready, checkout_error = ready_to_place_order(
+            checkout, taxes, info.context.discounts)
+        if not ready:
+            cls.add_error(
+                field=None, message=checkout_error, errors=errors)
+            return CheckoutComplete(errors=errors)
 
-        # authorize payment
         try:
-            gateway_authorize(payment, payment.token)
-        except PaymentError as exc:
-            msg = str(exc)
-            cls.add_error(field=None, message=msg, errors=errors)
-            return CheckoutComplete(order=order, errors=errors)
+            order = create_order(
+                cart=checkout,
+                tracking_code=analytics.get_client_id(info.context),
+                discounts=info.context.discounts, taxes=taxes)
+        except InsufficientStock:
+            cls.add_error(
+                field=None, message='Insufficient product stock.',
+                errors=errors)
+            return CheckoutComplete(errors=errors)
 
-        # capture payment
+        payment = checkout.get_last_active_payment()
         try:
-            gateway_capture(payment, payment.total)
-        except PaymentError as exc:
-            msg = str(exc)
-            cls.add_error(field=None, message=msg, errors=errors)
-            # Void payment if the capture failed
-            gateway_void(payment)
+            gateway_process_payment(
+                payment=payment, payment_token=payment.token)
+        except PaymentError as e:
+            cls.add_error(errors=errors, field=None, message=str(e))
         return CheckoutComplete(order=order, errors=errors)

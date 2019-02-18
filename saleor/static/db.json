@@ -153,7 +153,7 @@
       "amount": "15.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{}",
     "updated_at": "2018-11-05T11:30:13.329Z",
@@ -177,7 +177,7 @@
       "amount": "15.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{}",
     "updated_at": "2018-11-05T11:30:13.431Z",
@@ -201,7 +201,7 @@
       "amount": "15.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{}",
     "updated_at": "2018-11-05T11:30:13.446Z",
@@ -225,7 +225,7 @@
       "amount": "15.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{}",
     "updated_at": "2018-11-05T11:30:13.462Z",
@@ -249,7 +249,7 @@
       "amount": "15.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{}",
     "updated_at": "2018-11-05T11:30:13.477Z",
@@ -273,7 +273,7 @@
       "amount": "3.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"16\": \"49\"}",
     "updated_at": "2018-11-05T11:30:13.493Z",
@@ -297,7 +297,7 @@
       "amount": "3.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"16\": \"3\"}",
     "updated_at": "2018-11-05T11:30:13.508Z",
@@ -321,7 +321,7 @@
       "amount": "3.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"16\": \"52\"}",
     "updated_at": "2018-11-05T11:30:13.523Z",
@@ -345,7 +345,7 @@
       "amount": "3.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"16\": \"50\"}",
     "updated_at": "2018-11-05T11:30:13.538Z",
@@ -369,7 +369,7 @@
       "amount": "3.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"16\": \"1\"}",
     "updated_at": "2018-11-05T11:30:13.553Z",
@@ -393,7 +393,7 @@
       "amount": "3.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"16\": \"2\"}",
     "updated_at": "2018-11-05T11:30:13.568Z",
@@ -417,7 +417,7 @@
       "amount": "3.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"16\": \"54\"}",
     "updated_at": "2018-11-05T11:30:13.583Z",
@@ -441,7 +441,7 @@
       "amount": "3.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"16\": \"53\"}",
     "updated_at": "2018-11-05T11:30:13.597Z",
@@ -465,7 +465,7 @@
       "amount": "3.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"16\": \"51\"}",
     "updated_at": "2018-11-05T11:30:13.613Z",
@@ -489,7 +489,7 @@
       "amount": "15.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"20\": \"67\"}",
     "updated_at": "2018-11-05T11:30:13.628Z",
@@ -513,7 +513,7 @@
       "amount": "15.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"20\": \"67\"}",
     "updated_at": "2018-11-05T11:30:13.644Z",
@@ -537,7 +537,7 @@
       "amount": "3.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"15\": \"46\", \"21\": \"68\"}",
     "updated_at": "2018-11-05T11:30:13.661Z",
@@ -561,7 +561,7 @@
       "amount": "3.20",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"15\": \"46\", \"21\": \"69\"}",
     "updated_at": "2018-11-05T11:30:13.686Z",
@@ -585,7 +585,7 @@
       "amount": "20.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"23\": \"72\"}",
     "updated_at": "2018-11-05T11:30:13.713Z",
@@ -609,7 +609,7 @@
       "amount": "20.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"23\": \"72\"}",
     "updated_at": "2018-11-05T11:30:13.730Z",
@@ -633,7 +633,7 @@
       "amount": "59.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{}",
     "updated_at": "2018-11-05T11:30:13.746Z",
@@ -657,7 +657,7 @@
       "amount": "49.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{}",
     "updated_at": "2018-11-05T11:30:13.792Z",
@@ -681,7 +681,7 @@
       "amount": "30.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"25\": \"82\"}",
     "updated_at": "2018-11-05T11:30:13.840Z",
@@ -705,7 +705,7 @@
       "amount": "30.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"25\": \"82\"}",
     "updated_at": "2018-11-05T11:30:13.867Z",
@@ -729,7 +729,7 @@
       "amount": "30.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"25\": \"82\"}",
     "updated_at": "2018-11-05T11:30:13.884Z",
@@ -753,7 +753,7 @@
       "amount": "30.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"25\": \"82\"}",
     "updated_at": "2018-11-05T11:30:13.901Z",
@@ -777,7 +777,7 @@
       "amount": "30.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"25\": \"82\"}",
     "updated_at": "2018-11-05T11:30:13.918Z",
@@ -801,7 +801,7 @@
       "amount": "30.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"25\": \"82\"}",
     "updated_at": "2018-11-05T11:30:13.935Z",
@@ -825,7 +825,7 @@
       "amount": "30.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"25\": \"82\"}",
     "updated_at": "2018-11-05T11:30:13.972Z",
@@ -849,7 +849,7 @@
       "amount": "30.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"25\": \"82\"}",
     "updated_at": "2018-11-05T11:30:13.999Z",
@@ -873,7 +873,7 @@
       "amount": "30.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"25\": \"82\"}",
     "updated_at": "2018-11-05T11:30:14.025Z",
@@ -897,7 +897,7 @@
       "amount": "30.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"25\": \"82\"}",
     "updated_at": "2018-11-05T11:30:14.050Z",
@@ -921,7 +921,7 @@
       "amount": "30.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"25\": \"82\"}",
     "updated_at": "2018-11-05T11:30:14.066Z",
@@ -945,7 +945,7 @@
       "amount": "30.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"25\": \"82\"}",
     "updated_at": "2018-11-05T11:30:14.083Z",
@@ -969,7 +969,7 @@
       "amount": "30.00",
       "currency": "USD"
     },
-    "available_on": null,
+    "publication_date": null,
     "is_published": true,
     "attributes": "{\"25\": \"82\"}",
     "updated_at": "2018-11-05T11:30:14.101Z",

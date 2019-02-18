@@ -16,7 +16,7 @@ def products_with_availability(products, discounts, taxes, local_currency):
 
 
 def get_product_availability_status(product):
-    is_available = product.is_available()
+    is_visible = product.is_visible
     are_all_variants_in_stock = all(
         variant.is_in_stock() for variant in product.variants.all())
     is_in_stock = any(
@@ -34,7 +34,7 @@ def get_product_availability_status(product):
         return ProductAvailabilityStatus.OUT_OF_STOCK
     if not are_all_variants_in_stock:
         return ProductAvailabilityStatus.LOW_STOCK
-    if not is_available and product.available_on is not None:
+    if not is_visible and product.publication_date is not None:
         return ProductAvailabilityStatus.NOT_YET_AVAILABLE
     return ProductAvailabilityStatus.READY_FOR_PURCHASE
 
@@ -70,9 +70,9 @@ def get_availability(product, discounts=None, taxes=None, local_currency=None):
         price_range_local = None
         discount_local_currency = None
 
-    is_available = product.is_in_stock() and product.is_available()
+    is_available = product.is_in_stock() and product.is_visible
     is_on_sale = (
-        product.is_available() and discount is not None and
+        product.is_visible and discount is not None and
         undiscounted.start != price_range.start)
 
     return ProductAvailability(

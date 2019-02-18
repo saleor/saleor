@@ -19,7 +19,6 @@ interface PaginationState {
 interface QueryString {
   after?: string;
   before?: string;
-  [key: string]: string;
 }
 
 interface PaginatorProps {

@@ -8,6 +8,7 @@ from ..account.types import User
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
+from ..product.types import Image
 from ..shipping.types import ShippingMethod
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import applicable_shipping_methods, can_finalize_draft_order
@@ -106,7 +107,12 @@ class Fulfillment(CountableDjangoObjectType):
 class OrderLine(CountableDjangoObjectType):
     thumbnail_url = graphene.String(
         description='The URL of a main thumbnail for the ordered product.',
-        size=graphene.Int(description='Size of the image'))
+        size=graphene.Int(description='Size of the image'),
+        deprecation_reason=(
+            'thumbnailUrl is deprecated, use thumbnail instead'))
+    thumbnail = graphene.Field(
+        Image, description='The main thumbnail for the ordered product.',
+        size=graphene.Argument(graphene.Int, description='Size of thumbnail'))
     unit_price = graphene.Field(
         TaxedMoney, description='Price of the single item in the order line.')
 
@@ -127,6 +133,18 @@ class OrderLine(CountableDjangoObjectType):
         url = get_product_image_thumbnail(
             self.variant.get_first_image(), size, method='thumbnail')
         return info.context.build_absolute_uri(url)
+
+    @gql_optimizer.resolver_hints(
+        prefetch_related=['variant__images', 'variant__product__images'])
+    def resolve_thumbnail(self, info, *, size=None):
+        if not self.variant_id:
+            return None
+        if not size:
+            size = 255
+        image = self.variant.get_first_image()
+        url = get_product_image_thumbnail(image, size, method='thumbnail')
+        alt = image.alt if image else None
+        return Image(alt=alt, url=info.context.build_absolute_uri(url))
 
     @staticmethod
     def resolve_unit_price(self, info):
@@ -200,8 +218,8 @@ class Order(CountableDjangoObjectType):
         interfaces = [relay.Node]
         model = models.Order
         exclude_fields = [
-            'shipping_price_gross', 'shipping_price_net', 'total_gross',
-            'total_net']
+            'checkout_token', 'shipping_price_gross', 'shipping_price_net',
+            'total_gross', 'total_net']
 
     @staticmethod
     def resolve_shipping_price(self, info):

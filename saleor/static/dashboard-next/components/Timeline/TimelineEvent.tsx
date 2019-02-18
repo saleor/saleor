@@ -12,7 +12,7 @@ import Typography from "@material-ui/core/Typography";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import * as React from "react";
 
-import DateFormatter from "../DateFormatter";
+import { DateTime } from "../Date";
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -89,7 +89,7 @@ export const TimelineEvent = withStyles(styles)(
         <div className={classes.noExpander}>
           <Typography>{title}</Typography>
           <Typography>
-            <DateFormatter date={date} />
+            <DateTime date={date} />
           </Typography>
         </div>
       )}

@@ -11,8 +11,8 @@ export interface PageUpdate_pageUpdate_page {
   slug: string;
   title: string;
   content: string;
-  isVisible: boolean;
-  availableOn: any | null;
+  isPublished: boolean;
+  publicationDate: any | null;
 }
 
 export interface PageUpdate_pageUpdate_errors {
@@ -36,6 +36,6 @@ export interface PageUpdateVariables {
   title: string;
   content: string;
   slug: string;
-  isVisible: boolean;
-  availableOn?: string | null;
+  isPublished: boolean;
+  publicationDate?: string | null;
 }

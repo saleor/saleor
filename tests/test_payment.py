@@ -14,11 +14,12 @@ from saleor.payment import (
 from saleor.payment.models import Payment
 from saleor.payment.utils import (
     ALLOWED_GATEWAY_KINDS, REQUIRED_GATEWAY_KEYS, call_gateway,
-    clean_authorize, clean_capture, clean_charge, create_payment,
-    create_payment_information, create_transaction, gateway_authorize,
-    gateway_capture, gateway_charge, gateway_get_client_token,
-    gateway_process_payment, gateway_refund, gateway_void, get_billing_data,
-    handle_fully_paid_order, validate_gateway_response, validate_payment)
+    clean_authorize, clean_capture, clean_charge, clean_mark_order_as_paid,
+    create_payment, create_payment_information, create_transaction,
+    gateway_authorize, gateway_capture, gateway_charge,
+    gateway_get_client_token, gateway_process_payment, gateway_refund,
+    gateway_void, handle_fully_paid_order, mark_order_as_paid,
+    validate_gateway_response, validate_payment)
 
 NOT_ACTIVE_PAYMENT_ERROR = 'This payment is no longer active.'
 EXAMPLE_ERROR = 'Example dummy error'
@@ -68,28 +69,7 @@ def dummy_response(payment_dummy, transaction_data, transaction_token):
         'error': EXAMPLE_ERROR,
         'amount': payment_dummy.total,
         'currency': payment_dummy.currency,
-        'kind': TransactionKind.AUTH,
-    }
-
-
-def test_get_billing_data(order):
-    assert order.billing_address
-    result = get_billing_data(order)
-    expected_result = {
-        'billing_first_name': order.billing_address.first_name,
-        'billing_last_name': order.billing_address.last_name,
-        'billing_company_name': order.billing_address.company_name,
-        'billing_address_1': order.billing_address.street_address_1,
-        'billing_address_2': order.billing_address.street_address_2,
-        'billing_city': order.billing_address.city,
-        'billing_postal_code': order.billing_address.postal_code,
-        'billing_country_code': order.billing_address.country.code,
-        'billing_email': order.user_email,
-        'billing_country_area': order.billing_address.country_area}
-    assert result == expected_result
-
-    order.billing_address = None
-    assert get_billing_data(order) == {}
+        'kind': TransactionKind.AUTH}
 
 
 def test_get_payment_gateway_not_allowed_checkout_choice(settings):
@@ -153,13 +133,35 @@ def test_validate_payment():
         test_function(non_active_payment)
 
 
-def test_create_payment(settings):
-    data = {'gateway': settings.DUMMY}
+def test_create_payment(address, settings):
+    data = {
+        'gateway': settings.DUMMY,
+        'payment_token': 'token',
+        'total': 10,
+        'currency': settings.DEFAULT_CURRENCY,
+        'email': 'test@example.com',
+        'billing_address': address,
+        'customer_ip_address': '127.0.0.1'}
     payment = create_payment(**data)
     assert payment.gateway == settings.DUMMY
 
     same_payment = create_payment(**data)
     assert payment == same_payment
+
+
+def test_mark_as_paid(admin_user, draft_order):
+    mark_order_as_paid(draft_order, admin_user)
+    payment = draft_order.payments.last()
+    assert payment.charge_status == ChargeStatus.CHARGED
+    assert payment.captured_amount == draft_order.total.gross.amount
+    assert draft_order.events.last().type == (
+        OrderEvents.ORDER_MARKED_AS_PAID.value)
+
+
+def test_clean_mark_order_as_paid(payment_txn_preauth):
+    order = payment_txn_preauth.order
+    with pytest.raises(PaymentError):
+        clean_mark_order_as_paid(order)
 
 
 def test_create_transaction(transaction_data):

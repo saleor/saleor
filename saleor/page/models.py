@@ -1,40 +1,27 @@
-import datetime
-
 from django.db import models
-from django.db.models import Q
 from django.urls import reverse
 from django.utils.translation import pgettext_lazy
 
+from ..core.models import PublishableModel, PublishedQuerySet
 from ..core.utils import build_absolute_uri
 from ..core.utils.translations import TranslationProxy
 from ..seo.models import SeoModel, SeoModelTranslation
 
 
-class PageQuerySet(models.QuerySet):
+class PagePublishedQuerySet(PublishedQuerySet):
 
-    def public(self):
-        today = datetime.date.today()
-        return self.filter(
-            Q(is_visible=True),
-            Q(available_on__lte=today) | Q(available_on__isnull=True))
-
-    def visible_to_user(self, user):
-        has_access_to_all = (
-            user.is_active and user.has_perm('page.manage_pages'))
-        if has_access_to_all:
-            return self.all()
-        return self.public()
+    @staticmethod
+    def user_has_access_to_all(user):
+        return user.is_active and user.has_perm('page.manage_pages')
 
 
-class Page(SeoModel):
+class Page(SeoModel, PublishableModel):
     slug = models.SlugField(unique=True, max_length=100)
     title = models.CharField(max_length=200)
     content = models.TextField()
     created = models.DateTimeField(auto_now_add=True)
-    is_visible = models.BooleanField(default=False)
-    available_on = models.DateField(blank=True, null=True)
 
-    objects = PageQuerySet.as_manager()
+    objects = PagePublishedQuerySet.as_manager()
     translated = TranslationProxy()
 
     class Meta:
@@ -51,12 +38,6 @@ class Page(SeoModel):
 
     def get_full_url(self):
         return build_absolute_uri(self.get_absolute_url())
-
-    @property
-    def is_published(self):
-        today = datetime.date.today()
-        return self.is_visible and (
-            self.available_on is None or self.available_on <= today)
 
 
 class PageTranslation(SeoModelTranslation):
