@@ -16,7 +16,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Use authenticated user's email as default email in creating checkout - #3726 by @jxltom
 - Fix access to unpublished objects via API - #3724 by @Kwaidan00
 - Add thumbnail to OrderLine, deprecate thumbnailUrl - #3737 by @michaljelonek
-
+- Refactor translations in emails - #3701 by @Kwaidan00
 
 ## 2.3.0
 ### API
