@@ -8,12 +8,16 @@ import CardTitle from "../../../components/CardTitle";
 import FormSpacer from "../../../components/FormSpacer";
 import RichTextEditor from "../../../components/RichTextEditor";
 import i18n from "../../../i18n";
+import { maybe } from "../../../misc";
+import { FormErrors } from "../../../types";
+import { PageDetails_page } from "../../types/PageDetails";
 import { FormData } from "../PageDetailsPage";
 
 export interface PageInfoProps {
   data: FormData;
   disabled: boolean;
-  errors: Partial<Record<"title", string>>;
+  errors: FormErrors<"title">;
+  page: PageDetails_page;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
@@ -31,6 +35,7 @@ const PageInfo = withStyles(styles, {
     data,
     disabled,
     errors,
+    page,
     onChange
   }: PageInfoProps & WithStyles<typeof styles>) => (
     <Card className={classes.root}>
@@ -49,7 +54,7 @@ const PageInfo = withStyles(styles, {
         <FormSpacer />
         <RichTextEditor
           disabled={disabled}
-          initial={data.content}
+          initial={maybe(() => JSON.parse(page.content))}
           label={i18n.t("Content")}
           name={"content" as keyof FormData}
           onChange={onChange}
