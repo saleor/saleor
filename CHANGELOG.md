@@ -19,6 +19,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Refactor translations in emails - #3701 by @Kwaidan00
 - Add orderByToken query - #3740 by @michaljelonek
 - Enable existing search with backend picker in products query - #3736 by @michaljelonek
+- New translations:
+  - Indonesian
 
 
 ## 2.3.0

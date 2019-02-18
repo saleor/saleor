@@ -13,18 +13,18 @@
 # NyаnKiyoshi <hello@vanille.bid>, 2018
 # Claudio Schmidt <transifex.newsletter@claudioschmidt.de>, 2018
 # Sebastian Dominik <dsebek@t-online.de>, 2019
-# Michael Bykovski <bykof@me.com>, 2019
 # Max Wessendorf <m.wessendorf@ukd.de>, 2019
 # Herr Hausfrau <herr.hausfrau@gmail.com>, 2019
+# Michael Bykovski <bykof@me.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-28 05:51-0600\n"
+"POT-Creation-Date: 2019-02-12 07:24-0600\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Herr Hausfrau <herr.hausfrau@gmail.com>, 2019\n"
+"Last-Translator: Michael Bykovski <bykof@me.com>, 2019\n"
 "Language-Team: German (https://www.transifex.com/mirumee/teams/34782/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -392,7 +392,7 @@ msgctxt "Checkout discount form label for voucher field"
 msgid "Gift card or discount code"
 msgstr "Geschenkkarte oder Rabattcode"
 
-#: saleor/checkout/utils.py:135
+#: saleor/checkout/utils.py:134
 msgctxt "Cart warning message"
 msgid ""
 "Sorry. We don't have that many items in stock. Quantity was set to maximum "
@@ -401,17 +401,17 @@ msgstr ""
 "Entschuldigung. So viele Produkte haben wir zur Zeit nicht auf Lager. Die "
 "Menge wurde auf die zur Zeit verfügbare Menge gesetzt."
 
-#: saleor/checkout/utils.py:647
+#: saleor/checkout/utils.py:646
 msgctxt "Voucher not applicable"
 msgid "Your order does not require shipping."
 msgstr "Ihre Bestellung muss nicht versendet werden."
 
-#: saleor/checkout/utils.py:653
+#: saleor/checkout/utils.py:652
 msgctxt "Voucher not applicable"
 msgid "Please select a shipping method first."
 msgstr "Bitte wählen Sie eine Versandmethode."
 
-#: saleor/checkout/utils.py:661
+#: saleor/checkout/utils.py:660
 msgctxt "Voucher not applicable"
 msgid "This offer is not valid in your country."
 msgstr "Dieses Angebot ist in Ihrem Land nicht verfügbar."
@@ -927,7 +927,7 @@ msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
 msgstr "Abschluss #%s"
 
-#: saleor/order/views.py:197
+#: saleor/order/views.py:199
 msgctxt "Connect order with user warning message"
 msgid ""
 "We couldn't assign the order to your account as the email addresses don't "
@@ -936,7 +936,7 @@ msgstr ""
 "Wir konnten Ihre Bestellung nicht Ihrem Account zuordnen, da die E-Mail-"
 "Adressen nicht übereinstimmen"
 
-#: saleor/order/views.py:204
+#: saleor/order/views.py:206
 msgctxt "storefront message"
 msgid "The order is now assigned to your account"
 msgstr "Die Bestellungen wurde ihrem Benutzerkonto zugewiesen"
@@ -1969,7 +1969,7 @@ msgctxt "Checkout shipping address title"
 msgid "Shipping address"
 msgstr "Versandadresse"
 
-#: templates/checkout/shipping_address.html:19
+#: templates/checkout/shipping_address.html:21
 msgctxt "Checkout shipping address primary action"
 msgid "Continue"
 msgstr "Weiter"
@@ -2232,12 +2232,12 @@ msgctxt "Dashboard shipping zones list"
 msgid "Shipping"
 msgstr "Versand"
 
-#: templates/dashboard/base.html:207 templates/dashboard/menu/detail.html:21
-#: templates/dashboard/menu/form.html:12 templates/dashboard/menu/form.html:29
-#: templates/dashboard/menu/item/detail.html:22
-#: templates/dashboard/menu/item/detail.html:28
-#: templates/dashboard/menu/item/form.html:29
-#: templates/dashboard/menu/list.html:30
+#: templates/dashboard/base.html:207 templates/dashboard/menu/detail.html:23
+#: templates/dashboard/menu/form.html:12 templates/dashboard/menu/form.html:31
+#: templates/dashboard/menu/item/detail.html:24
+#: templates/dashboard/menu/item/detail.html:30
+#: templates/dashboard/menu/item/form.html:31
+#: templates/dashboard/menu/list.html:32
 msgctxt "Dashboard menus list"
 msgid "Navigation"
 msgstr "Navigation"
@@ -2270,8 +2270,8 @@ msgstr "Umgebung"
 #: templates/dashboard/customer/form.html:66
 #: templates/dashboard/discount/sale/form.html:115
 #: templates/dashboard/discount/voucher/form.html:125
-#: templates/dashboard/menu/form.html:58
-#: templates/dashboard/menu/item/form.html:80
+#: templates/dashboard/menu/form.html:60
+#: templates/dashboard/menu/item/form.html:82
 #: templates/dashboard/order/address_form.html:61
 #: templates/dashboard/order/fulfillment.html:133
 #: templates/dashboard/product/attribute/form.html:77
@@ -2325,7 +2325,7 @@ msgstr "Subkategorien"
 #: templates/dashboard/product/attribute/detail.html:68
 #: templates/dashboard/product/detail.html:93
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:13
-#: templates/dashboard/sites/detail.html:77
+#: templates/dashboard/sites/detail.html:79
 msgid "Add"
 msgstr "Hinzufügen"
 
@@ -2386,8 +2386,8 @@ msgstr "Neue Kategorie hinzufügen"
 #: templates/dashboard/customer/form.html:62
 #: templates/dashboard/discount/sale/form.html:119
 #: templates/dashboard/discount/voucher/form.html:129
-#: templates/dashboard/menu/form.html:62
-#: templates/dashboard/menu/item/form.html:84
+#: templates/dashboard/menu/form.html:64
+#: templates/dashboard/menu/item/form.html:86
 #: templates/dashboard/order/address_form.html:64
 #: templates/dashboard/order/modal/change_quantity.html:19
 #: templates/dashboard/product/product_type/form.html:117
@@ -2401,8 +2401,8 @@ msgstr "Ändern"
 #: templates/dashboard/category/form.html:127
 #: templates/dashboard/discount/sale/form.html:123
 #: templates/dashboard/discount/voucher/form.html:133
-#: templates/dashboard/menu/form.html:66
-#: templates/dashboard/menu/item/form.html:88
+#: templates/dashboard/menu/form.html:68
+#: templates/dashboard/menu/item/form.html:90
 #: templates/dashboard/product/attribute/form.html:87
 #: templates/dashboard/product/attribute/values/form.html:86
 #: templates/dashboard/product/form.html:144
@@ -3112,7 +3112,7 @@ msgstr ""
 "    "
 
 #: templates/dashboard/index.html:15 templates/dashboard/index.html:82
-#: templates/dashboard/index.html:136
+#: templates/dashboard/index.html:138
 #, python-format
 msgctxt "Dashboard homepage summary header title"
 msgid "Showing last %(counter)s results"
@@ -3184,31 +3184,31 @@ msgctxt "Preauthorized payments table header"
 msgid "Amount"
 msgstr "Betrag"
 
-#: templates/dashboard/index.html:115
+#: templates/dashboard/index.html:116
 msgid "Guest"
 msgstr "Gast"
 
-#: templates/dashboard/index.html:128
+#: templates/dashboard/index.html:130
 msgctxt "Empty Preauthorized payments table message"
 msgid "No preauthorized payments."
 msgstr "Keine authorisierte Zahlung."
 
-#: templates/dashboard/index.html:137
+#: templates/dashboard/index.html:139
 msgctxt "Dashboard homepage table title"
 msgid "Products with low stock"
 msgstr "Prokute mit geringem Lagerbestand"
 
-#: templates/dashboard/index.html:146
+#: templates/dashboard/index.html:148
 msgctxt "Low stock product list"
 msgid "Product name"
 msgstr "Produktname"
 
-#: templates/dashboard/index.html:149
+#: templates/dashboard/index.html:151
 msgctxt "Low stock product list"
 msgid "Stock left"
 msgstr "Lagerbestand"
 
-#: templates/dashboard/index.html:170
+#: templates/dashboard/index.html:172
 msgctxt "Empty low stock table message"
 msgid "No products are low in stock."
 msgstr "Keine Produkte mit geringem Lagerbestand"
@@ -3218,12 +3218,12 @@ msgctxt "Menu list page title"
 msgid "Navigation"
 msgstr "Navigation"
 
-#: templates/dashboard/menu/detail.html:48
+#: templates/dashboard/menu/detail.html:50
 msgctxt "Menu detail view action"
 msgid "Edit menu"
 msgstr "Menü bearbeiten"
 
-#: templates/dashboard/menu/detail.html:51
+#: templates/dashboard/menu/detail.html:53
 msgctxt "Menu detail view action"
 msgid "Remove menu"
 msgstr "Menü entfernen"
@@ -3233,12 +3233,12 @@ msgctxt "Menu form page title"
 msgid "Edit menu"
 msgstr "Menü bearbeiten"
 
-#: templates/dashboard/menu/form.html:10 templates/dashboard/menu/form.html:21
+#: templates/dashboard/menu/form.html:10 templates/dashboard/menu/form.html:23
 msgctxt "Menu form page title"
 msgid "Add new menu"
 msgstr "Neues Menü hinzufügen"
 
-#: templates/dashboard/menu/form.html:39
+#: templates/dashboard/menu/form.html:41
 msgctxt "Menu detail breadcrumbs"
 msgid "Add new menu"
 msgstr "Neues Menü hinzufügen"
@@ -3248,17 +3248,17 @@ msgctxt "Menu item list page title"
 msgid "Menu items"
 msgstr "Menü-Elemente"
 
-#: templates/dashboard/menu/item/detail.html:73
+#: templates/dashboard/menu/item/detail.html:75
 msgctxt "Menu item field"
 msgid "Points to"
 msgstr "Verlinkt zu"
 
-#: templates/dashboard/menu/item/detail.html:85
+#: templates/dashboard/menu/item/detail.html:87
 msgctxt "Menu item detail view action"
 msgid "Edit menu item"
 msgstr "Menü-Element bearbeiten"
 
-#: templates/dashboard/menu/item/detail.html:88
+#: templates/dashboard/menu/item/detail.html:90
 msgctxt "Menu item detail view action"
 msgid "Remove menu item"
 msgstr "Menü-Element entfernen"
@@ -3269,7 +3269,7 @@ msgid "Edit menu item"
 msgstr "Menü-Element bearbeiten"
 
 #: templates/dashboard/menu/item/form.html:10
-#: templates/dashboard/menu/item/form.html:21
+#: templates/dashboard/menu/item/form.html:23
 msgctxt "Menu item page title"
 msgid "Add new menu item"
 msgstr "Neues Menü-Element hinzufügen"
@@ -3279,12 +3279,12 @@ msgctxt "Dashboard menu items list"
 msgid "Menu items"
 msgstr "Menü-Elemente"
 
-#: templates/dashboard/menu/item/form.html:54
+#: templates/dashboard/menu/item/form.html:56
 msgctxt "Menu form page title"
 msgid "Edit"
 msgstr "Bearbeiten"
 
-#: templates/dashboard/menu/item/form.html:60
+#: templates/dashboard/menu/item/form.html:62
 msgctxt "Menu form page title"
 msgid "Add new menu item"
 msgstr "Neues Menü-Element hinzufügen"
@@ -3311,26 +3311,26 @@ msgctxt "Remove menu modal text about descendant menu items"
 msgid "The following menu items will be removed:"
 msgstr "Die folgenden Menü-Elemente werden gelöscht:"
 
-#: templates/dashboard/menu/list.html:20
+#: templates/dashboard/menu/list.html:22
 msgctxt "Menu list add button text"
 msgid "Add menu"
 msgstr "Menü hinzufügen"
 
-#: templates/dashboard/menu/list.html:45
+#: templates/dashboard/menu/list.html:47
 msgctxt "Menu list table header Menu name"
 msgid "Menu name"
 msgstr "Menu Name"
 
-#: templates/dashboard/menu/list.html:69
+#: templates/dashboard/menu/list.html:71
 msgctxt "Empty menu list message"
 msgid "No menus found."
 msgstr "Keine Menüs gefunden"
 
-#: templates/dashboard/menu/list.html:82
+#: templates/dashboard/menu/list.html:84
 msgid "Storefront Menus"
 msgstr "Storefront Menüs"
 
-#: templates/dashboard/menu/list.html:95
+#: templates/dashboard/menu/list.html:97
 #: templates/dashboard/product/attribute/form.html:80
 #: templates/dashboard/product/attribute/values/form.html:82
 #: templates/dashboard/product/form.html:137
@@ -5385,52 +5385,52 @@ msgctxt "Authorization key form title"
 msgid "Authorization key"
 msgstr "Autorisierunggsschlüssel"
 
-#: templates/dashboard/sites/detail.html:33
+#: templates/dashboard/sites/detail.html:35
 msgctxt "Site settings field"
 msgid "Domain"
 msgstr "Domain"
 
-#: templates/dashboard/sites/detail.html:43
+#: templates/dashboard/sites/detail.html:45
 msgctxt "Site settings field"
 msgid "Header text"
 msgstr "Kopfzeile"
 
-#: templates/dashboard/sites/detail.html:53
+#: templates/dashboard/sites/detail.html:55
 msgctxt "Site settings field"
 msgid "Description"
 msgstr "Beschreibung"
 
-#: templates/dashboard/sites/detail.html:63
+#: templates/dashboard/sites/detail.html:65
 msgctxt "Site settings action"
 msgid "Edit site settings"
 msgstr "Seiteneinstellungen ändern"
 
-#: templates/dashboard/sites/detail.html:72
+#: templates/dashboard/sites/detail.html:74
 msgctxt "Title of the authorization keys list"
 msgid "Authorization keys"
 msgstr "Autorisierunggsschlüssel"
 
-#: templates/dashboard/sites/detail.html:85
+#: templates/dashboard/sites/detail.html:87
 msgctxt "Header of authorization keys list"
 msgid "Name"
 msgstr "Name"
 
-#: templates/dashboard/sites/detail.html:88
+#: templates/dashboard/sites/detail.html:90
 msgctxt "Header of authorization keys list"
 msgid "Key"
 msgstr "Schlüssel"
 
-#: templates/dashboard/sites/detail.html:99
+#: templates/dashboard/sites/detail.html:101
 msgctxt "Authorization key edit action"
 msgid "Edit"
 msgstr "Bearbeiten"
 
-#: templates/dashboard/sites/detail.html:102
+#: templates/dashboard/sites/detail.html:104
 msgctxt "Authorization key remove action"
 msgid "Remove"
 msgstr "Entfernen"
 
-#: templates/dashboard/sites/detail.html:108
+#: templates/dashboard/sites/detail.html:110
 msgctxt "Empty list of authorization keys"
 msgid "No authorization keys"
 msgstr "Keine Autorisierunggsschlüssel"
@@ -6073,7 +6073,7 @@ msgctxt "Payment details text"
 msgid "You've authorized transaction. Order is in processing"
 msgstr "Die Zahlung ist authorisiert. Die Bestellung wird nun bearbeitet."
 
-#: templates/order/payment/braintree.html:28
+#: templates/order/payment/braintree.html:29
 #: templates/order/payment/dummy.html:30
 msgctxt "Payment form primary action"
 msgid "Make payment"
@@ -6133,22 +6133,22 @@ msgstr ""
 "<strong>Warnung!</strong> Sie betrachten eine Seite, die erst ab dem "
 "<strong>%(date)s</strong> verfügbar ist."
 
-#: templates/product/_filters.html:47
+#: templates/product/_filters.html:46
 msgctxt "Product price filter"
 msgid "from"
 msgstr "ab"
 
-#: templates/product/_filters.html:49
+#: templates/product/_filters.html:48
 msgctxt "Product price filter"
 msgid "to"
 msgstr "bis"
 
-#: templates/product/_filters.html:57
+#: templates/product/_filters.html:56
 msgctxt "Product list page filters"
 msgid "Clear filters"
 msgstr "Filter löschen"
 
-#: templates/product/_filters.html:60
+#: templates/product/_filters.html:59
 msgctxt "Apply filters button"
 msgid "Update results"
 msgstr ""
@@ -6319,6 +6319,32 @@ msgstr ""
 "\n"
 "Mit freundlichen Grüßen,\n"
 "%(site_name)s\n"
+
+#: templates/templated_email/dashboard/customer/set_password.email:2
+#, python-format
+msgctxt "Set password for customer e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr "Hallo von %(site_name)s!"
+
+#: templates/templated_email/dashboard/customer/set_password.email:5
+#, python-format
+msgctxt "Set password for customer e-mail text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"You're receiving this e-mail because you have to set password for your customer account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:14
+msgctxt "Set password for customer e-mail text"
+msgid ""
+"\n"
+"This is an automatically generated email, please do not reply.\n"
+msgstr ""
+"\n"
+"Dies ist eine automatisch generierte E-Mail, bitte antworten Sie nicht auf diese E-Mail-Adresse.\n"
 
 #: templates/templated_email/dashboard/staff/promote_customer.email:2
 #, python-format
@@ -6733,6 +6759,20 @@ msgstr ""
 "Sie wurden zum Mitarbeiter befördert bei %(domain)s.<br/> Klicken Sie auf "
 "den Link, um auf das Dashboard zuzugreifen: <a "
 "href=\"%(dashboard_url)s\">%(dashboard_url)s</a>"
+
+#: templates/templated_email/source/set_customer_password.mjml:13
+msgctxt "Set password for customer e-mail text"
+msgid "Hi!"
+msgstr "Hi!"
+
+#: templates/templated_email/source/set_customer_password.mjml:16
+#, python-format
+msgctxt "Set password for customer e-mail text"
+msgid ""
+"You're receiving this e-mail because you have to set password for your "
+"customer account at %(domain)s.<br/> Click the link below to set up your "
+"password."
+msgstr ""
 
 #: templates/templated_email/source/set_password.mjml:13
 msgctxt "Set password for staff member e-mail text"

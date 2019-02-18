@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-28 05:51-0600\n"
+"POT-Creation-Date: 2019-02-12 07:24-0600\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
 "Last-Translator: Mikkel Scheike, 2019\n"
 "Language-Team: Danish (https://www.transifex.com/mirumee/teams/34782/da/)\n"
@@ -381,7 +381,7 @@ msgctxt "Checkout discount form label for voucher field"
 msgid "Gift card or discount code"
 msgstr "Gavekort eller rabatkode"
 
-#: saleor/checkout/utils.py:135
+#: saleor/checkout/utils.py:134
 msgctxt "Cart warning message"
 msgid ""
 "Sorry. We don't have that many items in stock. Quantity was set to maximum "
@@ -390,17 +390,17 @@ msgstr ""
 "Desværre. Vi har desværre ikke så mange af varen på lager. Mængden er sat "
 "til det maksimale antal, der er tilgængelige."
 
-#: saleor/checkout/utils.py:647
+#: saleor/checkout/utils.py:646
 msgctxt "Voucher not applicable"
 msgid "Your order does not require shipping."
 msgstr "Din ordre kræver ikke forsendelse."
 
-#: saleor/checkout/utils.py:653
+#: saleor/checkout/utils.py:652
 msgctxt "Voucher not applicable"
 msgid "Please select a shipping method first."
 msgstr "Vælg venligst først din forsendelsesmetode."
 
-#: saleor/checkout/utils.py:661
+#: saleor/checkout/utils.py:660
 msgctxt "Voucher not applicable"
 msgid "This offer is not valid in your country."
 msgstr "Dette tilbud er ikke tilgængeligt i dit land."
@@ -914,7 +914,7 @@ msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
 msgstr "Pakke #%s"
 
-#: saleor/order/views.py:197
+#: saleor/order/views.py:199
 msgctxt "Connect order with user warning message"
 msgid ""
 "We couldn't assign the order to your account as the email addresses don't "
@@ -923,7 +923,7 @@ msgstr ""
 "Vi kunne ikke tildele ordren til din konto, da e-mailadresserne ikke stemmer"
 " overens"
 
-#: saleor/order/views.py:204
+#: saleor/order/views.py:206
 msgctxt "storefront message"
 msgid "The order is now assigned to your account"
 msgstr "Ordren er nu tildelt til din konto"
@@ -1951,7 +1951,7 @@ msgctxt "Checkout shipping address title"
 msgid "Shipping address"
 msgstr "Forsendelsesadresse"
 
-#: templates/checkout/shipping_address.html:19
+#: templates/checkout/shipping_address.html:21
 msgctxt "Checkout shipping address primary action"
 msgid "Continue"
 msgstr "Fortsæt"
@@ -2217,12 +2217,12 @@ msgctxt "Dashboard shipping zones list"
 msgid "Shipping"
 msgstr "Forsendelse"
 
-#: templates/dashboard/base.html:207 templates/dashboard/menu/detail.html:21
-#: templates/dashboard/menu/form.html:12 templates/dashboard/menu/form.html:29
-#: templates/dashboard/menu/item/detail.html:22
-#: templates/dashboard/menu/item/detail.html:28
-#: templates/dashboard/menu/item/form.html:29
-#: templates/dashboard/menu/list.html:30
+#: templates/dashboard/base.html:207 templates/dashboard/menu/detail.html:23
+#: templates/dashboard/menu/form.html:12 templates/dashboard/menu/form.html:31
+#: templates/dashboard/menu/item/detail.html:24
+#: templates/dashboard/menu/item/detail.html:30
+#: templates/dashboard/menu/item/form.html:31
+#: templates/dashboard/menu/list.html:32
 msgctxt "Dashboard menus list"
 msgid "Navigation"
 msgstr "Navigering"
@@ -2255,8 +2255,8 @@ msgstr "Ugyldig:"
 #: templates/dashboard/customer/form.html:66
 #: templates/dashboard/discount/sale/form.html:115
 #: templates/dashboard/discount/voucher/form.html:125
-#: templates/dashboard/menu/form.html:58
-#: templates/dashboard/menu/item/form.html:80
+#: templates/dashboard/menu/form.html:60
+#: templates/dashboard/menu/item/form.html:82
 #: templates/dashboard/order/address_form.html:61
 #: templates/dashboard/order/fulfillment.html:133
 #: templates/dashboard/product/attribute/form.html:77
@@ -2310,7 +2310,7 @@ msgstr "Subkategorier"
 #: templates/dashboard/product/attribute/detail.html:68
 #: templates/dashboard/product/detail.html:93
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:13
-#: templates/dashboard/sites/detail.html:77
+#: templates/dashboard/sites/detail.html:79
 msgid "Add"
 msgstr "Tilføj"
 
@@ -2371,8 +2371,8 @@ msgstr "Tilføj ny kategori"
 #: templates/dashboard/customer/form.html:62
 #: templates/dashboard/discount/sale/form.html:119
 #: templates/dashboard/discount/voucher/form.html:129
-#: templates/dashboard/menu/form.html:62
-#: templates/dashboard/menu/item/form.html:84
+#: templates/dashboard/menu/form.html:64
+#: templates/dashboard/menu/item/form.html:86
 #: templates/dashboard/order/address_form.html:64
 #: templates/dashboard/order/modal/change_quantity.html:19
 #: templates/dashboard/product/product_type/form.html:117
@@ -2386,8 +2386,8 @@ msgstr "Opdater"
 #: templates/dashboard/category/form.html:127
 #: templates/dashboard/discount/sale/form.html:123
 #: templates/dashboard/discount/voucher/form.html:133
-#: templates/dashboard/menu/form.html:66
-#: templates/dashboard/menu/item/form.html:88
+#: templates/dashboard/menu/form.html:68
+#: templates/dashboard/menu/item/form.html:90
 #: templates/dashboard/product/attribute/form.html:87
 #: templates/dashboard/product/attribute/values/form.html:86
 #: templates/dashboard/product/form.html:144
@@ -3088,7 +3088,7 @@ msgstr ""
 "  "
 
 #: templates/dashboard/index.html:15 templates/dashboard/index.html:82
-#: templates/dashboard/index.html:136
+#: templates/dashboard/index.html:138
 #, python-format
 msgctxt "Dashboard homepage summary header title"
 msgid "Showing last %(counter)s results"
@@ -3160,31 +3160,31 @@ msgctxt "Preauthorized payments table header"
 msgid "Amount"
 msgstr "Beløb"
 
-#: templates/dashboard/index.html:115
+#: templates/dashboard/index.html:116
 msgid "Guest"
 msgstr "Gæst"
 
-#: templates/dashboard/index.html:128
+#: templates/dashboard/index.html:130
 msgctxt "Empty Preauthorized payments table message"
 msgid "No preauthorized payments."
 msgstr "Ingen reserveret betalinger"
 
-#: templates/dashboard/index.html:137
+#: templates/dashboard/index.html:139
 msgctxt "Dashboard homepage table title"
 msgid "Products with low stock"
 msgstr "Produkter med lavt lager"
 
-#: templates/dashboard/index.html:146
+#: templates/dashboard/index.html:148
 msgctxt "Low stock product list"
 msgid "Product name"
 msgstr "Produktnavn"
 
-#: templates/dashboard/index.html:149
+#: templates/dashboard/index.html:151
 msgctxt "Low stock product list"
 msgid "Stock left"
 msgstr "Lager tilbage"
 
-#: templates/dashboard/index.html:170
+#: templates/dashboard/index.html:172
 msgctxt "Empty low stock table message"
 msgid "No products are low in stock."
 msgstr "Ingen produkter er har lavt lager."
@@ -3194,12 +3194,12 @@ msgctxt "Menu list page title"
 msgid "Navigation"
 msgstr "Navigering"
 
-#: templates/dashboard/menu/detail.html:48
+#: templates/dashboard/menu/detail.html:50
 msgctxt "Menu detail view action"
 msgid "Edit menu"
 msgstr "Rediger menu"
 
-#: templates/dashboard/menu/detail.html:51
+#: templates/dashboard/menu/detail.html:53
 msgctxt "Menu detail view action"
 msgid "Remove menu"
 msgstr "Fjern menu"
@@ -3209,12 +3209,12 @@ msgctxt "Menu form page title"
 msgid "Edit menu"
 msgstr "Rediger menu"
 
-#: templates/dashboard/menu/form.html:10 templates/dashboard/menu/form.html:21
+#: templates/dashboard/menu/form.html:10 templates/dashboard/menu/form.html:23
 msgctxt "Menu form page title"
 msgid "Add new menu"
 msgstr "Tilføj ny menu"
 
-#: templates/dashboard/menu/form.html:39
+#: templates/dashboard/menu/form.html:41
 msgctxt "Menu detail breadcrumbs"
 msgid "Add new menu"
 msgstr "Tilføj ny menu"
@@ -3224,17 +3224,17 @@ msgctxt "Menu item list page title"
 msgid "Menu items"
 msgstr "Menupunkter"
 
-#: templates/dashboard/menu/item/detail.html:73
+#: templates/dashboard/menu/item/detail.html:75
 msgctxt "Menu item field"
 msgid "Points to"
 msgstr "Peger på"
 
-#: templates/dashboard/menu/item/detail.html:85
+#: templates/dashboard/menu/item/detail.html:87
 msgctxt "Menu item detail view action"
 msgid "Edit menu item"
 msgstr "Rediger menupunktet"
 
-#: templates/dashboard/menu/item/detail.html:88
+#: templates/dashboard/menu/item/detail.html:90
 msgctxt "Menu item detail view action"
 msgid "Remove menu item"
 msgstr "Fjern menupunkt"
@@ -3245,7 +3245,7 @@ msgid "Edit menu item"
 msgstr "Rediger menupunktet"
 
 #: templates/dashboard/menu/item/form.html:10
-#: templates/dashboard/menu/item/form.html:21
+#: templates/dashboard/menu/item/form.html:23
 msgctxt "Menu item page title"
 msgid "Add new menu item"
 msgstr "Tilføj nyt menupunkt"
@@ -3255,12 +3255,12 @@ msgctxt "Dashboard menu items list"
 msgid "Menu items"
 msgstr "Menupunkter"
 
-#: templates/dashboard/menu/item/form.html:54
+#: templates/dashboard/menu/item/form.html:56
 msgctxt "Menu form page title"
 msgid "Edit"
 msgstr "Rediger"
 
-#: templates/dashboard/menu/item/form.html:60
+#: templates/dashboard/menu/item/form.html:62
 msgctxt "Menu form page title"
 msgid "Add new menu item"
 msgstr "Tilføj nyt menupunkt"
@@ -3287,26 +3287,26 @@ msgctxt "Remove menu modal text about descendant menu items"
 msgid "The following menu items will be removed:"
 msgstr "Følgende menupunkter vil blive fjernet:"
 
-#: templates/dashboard/menu/list.html:20
+#: templates/dashboard/menu/list.html:22
 msgctxt "Menu list add button text"
 msgid "Add menu"
 msgstr "Tilføj menu"
 
-#: templates/dashboard/menu/list.html:45
+#: templates/dashboard/menu/list.html:47
 msgctxt "Menu list table header Menu name"
 msgid "Menu name"
 msgstr "Menu navn"
 
-#: templates/dashboard/menu/list.html:69
+#: templates/dashboard/menu/list.html:71
 msgctxt "Empty menu list message"
 msgid "No menus found."
 msgstr "Ingen menuer fundet"
 
-#: templates/dashboard/menu/list.html:82
+#: templates/dashboard/menu/list.html:84
 msgid "Storefront Menus"
 msgstr "Storefront Menuer"
 
-#: templates/dashboard/menu/list.html:95
+#: templates/dashboard/menu/list.html:97
 #: templates/dashboard/product/attribute/form.html:80
 #: templates/dashboard/product/attribute/values/form.html:82
 #: templates/dashboard/product/form.html:137
@@ -5349,52 +5349,52 @@ msgctxt "Authorization key form title"
 msgid "Authorization key"
 msgstr "Godkendelsesnøgle"
 
-#: templates/dashboard/sites/detail.html:33
+#: templates/dashboard/sites/detail.html:35
 msgctxt "Site settings field"
 msgid "Domain"
 msgstr "Domænenavn"
 
-#: templates/dashboard/sites/detail.html:43
+#: templates/dashboard/sites/detail.html:45
 msgctxt "Site settings field"
 msgid "Header text"
 msgstr "Hovedtekst"
 
-#: templates/dashboard/sites/detail.html:53
+#: templates/dashboard/sites/detail.html:55
 msgctxt "Site settings field"
 msgid "Description"
 msgstr "Beskrivelse"
 
-#: templates/dashboard/sites/detail.html:63
+#: templates/dashboard/sites/detail.html:65
 msgctxt "Site settings action"
 msgid "Edit site settings"
 msgstr "Rediger sideindstillinger"
 
-#: templates/dashboard/sites/detail.html:72
+#: templates/dashboard/sites/detail.html:74
 msgctxt "Title of the authorization keys list"
 msgid "Authorization keys"
 msgstr "Godkendelsesnøgle"
 
-#: templates/dashboard/sites/detail.html:85
+#: templates/dashboard/sites/detail.html:87
 msgctxt "Header of authorization keys list"
 msgid "Name"
 msgstr "Navn"
 
-#: templates/dashboard/sites/detail.html:88
+#: templates/dashboard/sites/detail.html:90
 msgctxt "Header of authorization keys list"
 msgid "Key"
 msgstr "Key"
 
-#: templates/dashboard/sites/detail.html:99
+#: templates/dashboard/sites/detail.html:101
 msgctxt "Authorization key edit action"
 msgid "Edit"
 msgstr "Rediger"
 
-#: templates/dashboard/sites/detail.html:102
+#: templates/dashboard/sites/detail.html:104
 msgctxt "Authorization key remove action"
 msgid "Remove"
 msgstr "Fjern"
 
-#: templates/dashboard/sites/detail.html:108
+#: templates/dashboard/sites/detail.html:110
 msgctxt "Empty list of authorization keys"
 msgid "No authorization keys"
 msgstr "Ingen godkendelsesnøgle"
@@ -6027,7 +6027,7 @@ msgctxt "Payment details text"
 msgid "You've authorized transaction. Order is in processing"
 msgstr "Du har godkendt transaktion. Ordren er i forarbejdning"
 
-#: templates/order/payment/braintree.html:28
+#: templates/order/payment/braintree.html:29
 #: templates/order/payment/dummy.html:30
 msgctxt "Payment form primary action"
 msgid "Make payment"
@@ -6086,22 +6086,22 @@ msgstr ""
 "<strong>Advarsel!</strong> Du forhåndsvises en side, der bliver synlig på "
 "<strong>%(date)s</strong>."
 
-#: templates/product/_filters.html:47
+#: templates/product/_filters.html:46
 msgctxt "Product price filter"
 msgid "from"
 msgstr "fra"
 
-#: templates/product/_filters.html:49
+#: templates/product/_filters.html:48
 msgctxt "Product price filter"
 msgid "to"
 msgstr "til"
 
-#: templates/product/_filters.html:57
+#: templates/product/_filters.html:56
 msgctxt "Product list page filters"
 msgid "Clear filters"
 msgstr "Ryd filtre"
 
-#: templates/product/_filters.html:60
+#: templates/product/_filters.html:59
 msgctxt "Apply filters button"
 msgid "Update results"
 msgstr "Opdater resultater"
@@ -6273,6 +6273,32 @@ msgstr ""
 "\n"
 "Med venlig hilsen,\n"
 "%(site_name)s\n"
+
+#: templates/templated_email/dashboard/customer/set_password.email:2
+#, python-format
+msgctxt "Set password for customer e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr "Hej fra %(site_name)s!"
+
+#: templates/templated_email/dashboard/customer/set_password.email:5
+#, python-format
+msgctxt "Set password for customer e-mail text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"You're receiving this e-mail because you have to set password for your customer account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:14
+msgctxt "Set password for customer e-mail text"
+msgid ""
+"\n"
+"This is an automatically generated email, please do not reply.\n"
+msgstr ""
+"\n"
+"Dette er en automatisk genereret email, som ikke kan besvares.\n"
 
 #: templates/templated_email/dashboard/staff/promote_customer.email:2
 #, python-format
@@ -6683,6 +6709,20 @@ msgstr ""
 "Du modtager denne e-mail, fordi du er blevet forfremmet til medarbejder hos "
 "%(domain)s. <br/> For at få adgang til instrumentbrættet, gå venligst til: "
 "<a href=\"%(dashboard_url)s\">%(dashboard_url)s</a>"
+
+#: templates/templated_email/source/set_customer_password.mjml:13
+msgctxt "Set password for customer e-mail text"
+msgid "Hi!"
+msgstr "Hej!"
+
+#: templates/templated_email/source/set_customer_password.mjml:16
+#, python-format
+msgctxt "Set password for customer e-mail text"
+msgid ""
+"You're receiving this e-mail because you have to set password for your "
+"customer account at %(domain)s.<br/> Click the link below to set up your "
+"password."
+msgstr ""
 
 #: templates/templated_email/source/set_password.mjml:13
 msgctxt "Set password for staff member e-mail text"
