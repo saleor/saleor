@@ -14,6 +14,8 @@ class DummyPaymentForm(forms.Form):
     def clean(self):
         cleaned_data = super(DummyPaymentForm, self).clean()
 
+        # Partially refunded is not supported directly
+        # since only last transaction of call_gateway will be processed
         charge_status = cleaned_data['charge_status']
         if charge_status == ChargeStatus.PARTIALLY_REFUNDED:
             raise forms.ValidationError(
