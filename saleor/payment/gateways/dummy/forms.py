@@ -1,6 +1,5 @@
 from django import forms
-from django.utils.translation import pgettext_lazy
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import pgettext_lazy, ugettext_lazy as _
 
 from ... import ChargeStatus
 
