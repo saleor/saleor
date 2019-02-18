@@ -16,9 +16,8 @@ from saleor.order.models import Order, OrderEvent
 from saleor.payment import ChargeStatus, CustomPaymentChoices
 from saleor.payment.models import Payment
 from saleor.shipping.models import ShippingMethod
-from tests.api.utils import get_graphql_content
 
-from .utils import assert_no_permission
+from .utils import assert_no_permission, get_graphql_content
 
 
 def test_orderline_query(
@@ -31,6 +30,9 @@ def test_orderline_query(
                     node {
                         lines {
                             thumbnailUrl(size: 540)
+                            thumbnail(size: 540) {
+                                url
+                            }
                         }
                     }
                 }
@@ -44,10 +46,16 @@ def test_orderline_query(
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     order_data = content['data']['orders']['edges'][0]['node']
+
     thumbnails = [l['thumbnailUrl'] for l in order_data['lines']]
     assert len(thumbnails) == 2
     assert thumbnails[0] is None
     assert '/static/images/placeholder540x540.png' in thumbnails[1]
+
+    thumbnails = [l['thumbnail'] for l in order_data['lines']]
+    assert len(thumbnails) == 2
+    assert thumbnails[0] is None
+    assert '/static/images/placeholder540x540.png' in thumbnails[1]['url']
 
 
 def test_order_query(
