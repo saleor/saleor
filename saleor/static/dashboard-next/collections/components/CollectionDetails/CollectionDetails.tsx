@@ -47,7 +47,6 @@ const CollectionDetails = withStyles(styles, { name: "CollectionDetails" })(
         <RichTextEditor
           label={i18n.t("Description")}
           name="description"
-          initial={data.description}
           disabled={disabled}
           onChange={onChange}
         />

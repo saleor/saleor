@@ -118,6 +118,7 @@ export const CategoryUpdatePage: React.StatelessComponent<
             onBack={onBack}
           />
           <CategoryDetailsForm
+            category={category}
             data={data}
             disabled={disabled}
             errors={errors}

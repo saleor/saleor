@@ -9,6 +9,8 @@ import CardTitle from "../../../components/CardTitle";
 import FormSpacer from "../../../components/FormSpacer";
 import RichTextEditor from "../../../components/RichTextEditor";
 import i18n from "../../../i18n";
+import { maybe } from "../../../misc";
+import { CategoryDetails_category } from "../../types/CategoryDetails";
 
 const styles = createStyles({
   root: {
@@ -17,6 +19,7 @@ const styles = createStyles({
 });
 
 interface CategoryDetailsFormProps extends WithStyles<typeof styles> {
+  category?: CategoryDetails_category;
   data: {
     name: string;
     description: RawDraftContentState;
@@ -29,7 +32,14 @@ interface CategoryDetailsFormProps extends WithStyles<typeof styles> {
 export const CategoryDetailsForm = withStyles(styles, {
   name: "CategoryDetailsForm"
 })(
-  ({ classes, disabled, data, onChange, errors }: CategoryDetailsFormProps) => {
+  ({
+    category,
+    classes,
+    disabled,
+    data,
+    onChange,
+    errors
+  }: CategoryDetailsFormProps) => {
     return (
       <Card>
         <CardTitle title={i18n.t("General information")} />
@@ -51,7 +61,7 @@ export const CategoryDetailsForm = withStyles(styles, {
             <RichTextEditor
               disabled={disabled}
               label={i18n.t("Description")}
-              initial={data.description}
+              initial={maybe(() => JSON.parse(category.description))}
               name="description"
               onChange={onChange}
             />

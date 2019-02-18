@@ -45,7 +45,7 @@ const initialForm: CollectionCreatePageFormData = {
     value: null
   },
   backgroundImageAlt: "",
-  description: {} as any,
+  description: null,
   isPublished: false,
   name: "",
   seoDescription: "",
