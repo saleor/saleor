@@ -132,6 +132,7 @@ def create_payment(
         extra_data = {}
 
     data = {
+        'is_active': True,
         'customer_ip_address': customer_ip_address,
         'extra_data': extra_data,
         'token': payment_token}
