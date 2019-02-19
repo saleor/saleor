@@ -22,6 +22,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add orderByToken query - #3740 by @michaljelonek
 - Enable existing search with backend picker in products query - #3736 by @michaljelonek
 - Fix bug where payment is not filtered from active ones when creating payment - #3731 by @jxltom
+- Sort order's payment and history descendingly - #3747 by @jxltom
 
 
 ## 2.3.0

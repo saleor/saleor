@@ -119,12 +119,12 @@ def order_details(request, order_pk):
         'payments__transactions', 'events__user', 'lines__variant__product',
         'fulfillments__lines__order_line')
     order = get_object_or_404(qs, pk=order_pk)
-    all_payments = order.payments.all()
+    all_payments = order.payments.order_by('-pk').all()
     payment = order.get_last_payment()
     ctx = {
         'order': order, 'all_payments': all_payments, 'payment': payment,
         'notes': order.events.filter(type=OrderEvents.NOTE_ADDED.value),
-        'events': order.events.all(),
+        'events': order.events.order_by('-date').all(),
         'order_fulfillments': order.fulfillments.all()}
     return TemplateResponse(request, 'dashboard/order/detail.html', ctx)
 
