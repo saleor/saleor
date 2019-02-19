@@ -725,8 +725,20 @@
         }
       }
       & .image {
-        position: relative;
-        @media (max-width: 768px) {
+        width: 700px;
+        height: 700px;
+        position: absolute;
+        background-image: url('../../images/pirate.svg');
+        background-repeat: no-repeat;
+        background-size: contain;
+        left: 50%;
+        top: -7%;
+        z-index: 1;
+        @media (max-width: 1200px) {
+          width: 600px;
+          height: 600px;
+        }
+        @media (max-width: 991px) {
           display: none;
         }
         & .githubLink {
@@ -749,43 +761,11 @@
             font-size: 3rem;
             line-height: 1;
           }
-          top: 3%;
-          left: 35%;
-          @media (min-width: 2000px) {
-            top: 6%;
+          top: 21%;
+          left: 38%;
+          @media (max-width: 1200px) {
+            top: 17%;
             left: 37%;
-          }
-          @media (max-width: 1680px) {
-            left: 41%;
-          }
-          @media (max-width: 1440px) {
-            top: 4%;
-            left: 35%;
-          }
-          @media (max-width: 1368px) {
-            top: 3%;
-            left: 34%;
-          }
-          @media (max-width: 1024px) {
-            top: 10%;
-            left: 28%;
-          }
-        }
-        & .pirate {
-          width: 120%;
-          position: relative;
-          top: -9rem;
-          left: -4rem;
-          z-index: 1;
-          @media (max-width: 1680px) {
-            width: 140%;
-          }
-          @media (max-width: 1440px) {
-            width: 140%;
-            top: -4rem;
-          }
-          @media (max-width: 1024px) {
-            top: 2rem;
           }
         }
       }
@@ -810,16 +790,16 @@
         & .buttons {
           width: 40%;
           float: left;
-          @media (max-width: 1680px) {
+          @media (max-width: 1820px) {
             width: 45%;
           }
-          @media (max-width: 1440px) {
+          @media (max-width: 1670px) {
             width: 60%;
           }
-          @media (max-width: 1024px) {
-            width: 70%;
+          @media (max-width: 1350px) {
+            width: 65%;
           }
-          @media (max-width: 768px) {
+          @media (max-width: 1280px) {
             width: 100%;
           }
           @media (max-width: 450px) {
@@ -829,16 +809,16 @@
         & .icons {
           width: 60%;
           float: left;
-          @media (max-width: 1680px) {
+          @media (max-width: 1820px) {
             width: 55%;
           }
-          @media (max-width: 1440px) {
+          @media (max-width: 1670px) {
             width: 40%;
           }
-          @media (max-width: 1024px) {
-            width: 30%;
+          @media (max-width: 1350px) {
+            width: 35%;
           }
-          @media (max-width: 768px) {
+          @media (max-width: 1280px) {
             width: 100%;
             text-align: center;
             padding-top: calc(var(--spacer) * 2);

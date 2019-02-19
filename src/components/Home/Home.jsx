@@ -42,8 +42,8 @@ import ogImage from '../../images/og-homepage.jpg';
 class Home extends Component {
   constructor(props) {
     super(props);
-    this.toggleNewsBar = this.toggleNewsBar.bind(this);
 
+    this.toggleNewsBar = this.toggleNewsBar.bind(this);
     this.modernStackEnter = this.modernStackEnter.bind(this);
     this.modernStackLeave = this.modernStackLeave.bind(this);
     this.buildToScaleEnter = this.buildToScaleEnter.bind(this);
@@ -90,10 +90,6 @@ class Home extends Component {
     };
   }
 
-  parrotDelay() {
-    
-  }
-
   parrotPlayAndStop() {
     setTimeout(
       function() {
@@ -130,12 +126,17 @@ class Home extends Component {
   greatExperienceEnter() { this.setState(prevState => ({ greatExperience: { ...prevState.greatExperience, isPaused: false, direction: 1 }}))};
   greatExperienceLeave() { this.setState(prevState => ({ greatExperience: { ...prevState.greatExperience, direction: -1 } }))};
 
+
   componentDidMount() {
     this.setState(prevState => ({ parrot: { ...prevState.parrot, isPaused: false, direction: 1 }}));
     this.parrotPlayAndStop();
   }
 
+
   render() {
+    const pirateRatio = {
+      transform: `scale(${this.state.pirateRatio})`
+    }  
     const modernStackOptions = {
       loop: false,
       autoplay: false,
@@ -367,10 +368,9 @@ class Home extends Component {
                     </div>
                   </div>
                 </div>
-                <div className="col-xs-12 col-sm-12 col-md-5 image">
-                  <GitHubLink owner="mirumee" name="saleor" text="Github Stars" />
-                  <ReactSVG className="pirate" path={pirate} />
-                </div>
+                <div className="image" >
+                    <GitHubLink owner="mirumee" name="saleor" text="Github Stars" />
+                </div> 
               </div>
               <div className="community-links">
                 <h5>Join our developer Community</h5>
