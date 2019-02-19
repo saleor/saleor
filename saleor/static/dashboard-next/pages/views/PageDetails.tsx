@@ -64,7 +64,7 @@ export const PageDetails: React.StatelessComponent<PageDetailsProps> = ({
                               page={pageDetails.data.page}
                               onBack={() => navigate(pageListUrl)}
                               onRemove={() => navigate(pageRemoveUrl(id))}
-                              onSubmit={formData => 
+                              onSubmit={formData =>
                                 pageUpdate({
                                   variables: {
                                     id,
@@ -89,7 +89,7 @@ export const PageDetails: React.StatelessComponent<PageDetailsProps> = ({
                                       title: formData.title
                                     }
                                   }
-                                });
+                                })
                               }
                             />
                             <Route
