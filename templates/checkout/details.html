@@ -7,11 +7,9 @@
 {% block title %}{% trans "Checkout" context "Checkout page title" %} — {{ block.super }}{% endblock %}
 
 {% block header %}
-  <div class="container-fluid navbar__login">
-    <div class="container">
-      <p>{% trans "Easy and secure!" context "Checkout top message" %}</p>
-    </div>
-  </div>
+  {% block navbar_login %}
+    {{ block.super }}
+  {% endblock %}
   <header class="checkout__header">
     <div class="container">
       <a href="{% url 'home'%}">

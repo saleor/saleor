@@ -49,8 +49,9 @@
 <body>
 {% block header %}
   <header class="navbar" role="navigation">
+    {% block navbar_login %}
     <div class="navbar__login container-fluid {% if user.is_impersonate %} bg-warning{% endif %}">
-      <div class=" d-none d-md-block container">
+      <div class="d-none d-md-block container">
       <div class="row">
         <div class="col-6">
           <p class="text-left">{{ site.settings.translated.header_text }}</p>
@@ -110,6 +111,7 @@
         </div>
       </div>
     </div>
+    {% endblock %}
     </div>
     <div class="navbar__brand container-fluid d-block">
       <div class="container">
