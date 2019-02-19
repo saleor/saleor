@@ -10,7 +10,7 @@ export interface PageDetails_page {
   id: string;
   title: string;
   slug: string;
-  isVisible: boolean;
+  isVisible: boolean | null;
   content: string;
   seoTitle: string | null;
   seoDescription: string | null;

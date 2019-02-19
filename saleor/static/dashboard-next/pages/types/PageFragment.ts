@@ -10,5 +10,5 @@ export interface PageFragment {
   id: string;
   title: string;
   slug: string;
-  isVisible: boolean;
+  isVisible: boolean | null;
 }

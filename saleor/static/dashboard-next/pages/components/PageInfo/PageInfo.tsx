@@ -16,7 +16,7 @@ import { FormData } from "../PageDetailsPage";
 export interface PageInfoProps {
   data: FormData;
   disabled: boolean;
-  errors: FormErrors<"title">;
+  errors: FormErrors<"content" | "title">;
   page: PageDetails_page;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
@@ -54,6 +54,8 @@ const PageInfo = withStyles(styles, {
         <FormSpacer />
         <RichTextEditor
           disabled={disabled}
+          error={!!errors.content}
+          helperText={errors.content}
           initial={maybe(() => JSON.parse(page.content))}
           label={i18n.t("Content")}
           name={"content" as keyof FormData}

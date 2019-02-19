@@ -26,6 +26,7 @@ const PageSlug: React.StatelessComponent<PageSlugProps> = ({
       <TextField
         name={"slug" as keyof FormData}
         disabled={disabled}
+        error={!!errors.slug}
         label={i18n.t("Slug")}
         helperText={
           errors.slug ||
@@ -34,6 +35,7 @@ const PageSlug: React.StatelessComponent<PageSlugProps> = ({
         placeholder={data.title.toLowerCase()}
         value={data.slug}
         onChange={onChange}
+        fullWidth
       />
     </CardContent>
   </Card>

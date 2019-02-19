@@ -19,6 +19,12 @@ export interface PageAvailabilityProps {
   onChange: (event: React.ChangeEvent<any>, cb?: () => void) => void;
 }
 
+function isAvailable(data: FormData): boolean {
+  return (
+    (data.availableOn === "" || data.availableOn === null) && data.isVisible
+  );
+}
+
 const PageAvailability: React.StatelessComponent<PageAvailabilityProps> = ({
   data,
   disabled,
@@ -31,25 +37,25 @@ const PageAvailability: React.StatelessComponent<PageAvailabilityProps> = ({
         <CardTitle title={i18n.t("Availability")} />
         <CardContent>
           <ControlledSwitch
-            checked={data.isVisible}
+            checked={isAvailable(data)}
             disabled={disabled}
             label={
               data.isVisible && !data.availableOn ? (
                 i18n.t("Published")
-              ) : !data.isVisible && data.availableOn ? (
+              ) : (
                 <>
                   {i18n.t("Hidden")}
-                  <Typography variant="caption">
-                    {i18n.t("Will become visible on {{ date }}", {
-                      context: "page",
-                      date: moment(data.availableOn)
-                        .locale(locale)
-                        .format("ll")
-                    })}
-                  </Typography>
+                  {data.availableOn && (
+                    <Typography variant="caption">
+                      {i18n.t("Will become visible on {{ date }}", {
+                        context: "page",
+                        date: moment(data.availableOn)
+                          .locale(locale)
+                          .format("ll")
+                      })}
+                    </Typography>
+                  )}
                 </>
-              ) : (
-                i18n.t("Hidden")
               )
             }
             name={"isVisible" as keyof FormData}
@@ -67,7 +73,7 @@ const PageAvailability: React.StatelessComponent<PageAvailabilityProps> = ({
               )
             }
           />
-          {!data.isVisible && (
+          {!isAvailable(data) && (
             <>
               <FormSpacer />
               <TextField
