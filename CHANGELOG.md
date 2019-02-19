@@ -3,6 +3,8 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
+- New translations:
+  - Indonesian
 - Fix problem with l10n in Braintree payment gateway template - #3691 by @Kwaidan00
 - Improve vouchers country limiting  - #3707 by @michaljelonek
 - Add support for date and datetime components - #3708 by @dominik-zeglen
@@ -17,6 +19,12 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix access to unpublished objects via API - #3724 by @Kwaidan00
 - Add thumbnail to OrderLine, deprecate thumbnailUrl - #3737 by @michaljelonek
 - Refactor translations in emails - #3701 by @Kwaidan00
+- Add orderByToken query - #3740 by @michaljelonek
+- Enable existing search with backend picker in products query - #3736 by @michaljelonek
+- Fix bug where payment is not filtered from active ones when creating payment - #3731 by @jxltom
+- Sort order's payment and history descendingly - #3747 by @jxltom
+- Use exact image versions in docker-compose - #3742 by @ashishnitinpatil
+- Add mutation to connect voucher with checkout - #3739 by @Kwaidan00
 - Update S3 deployment documentation to include CORS configuration note - #3743 by @NyanKiyoshi
 
 ## 2.3.0
