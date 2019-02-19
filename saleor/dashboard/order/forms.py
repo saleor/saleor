@@ -251,7 +251,7 @@ class OrderNoteForm(forms.Form):
         label=pgettext_lazy('Order note', 'Note'), widget=forms.Textarea())
 
 
-class ManagePaymentForm(forms.Form):
+class BasePaymentForm(forms.Form):
 
     amount = forms.DecimalField(
         label=pgettext_lazy(
@@ -259,17 +259,13 @@ class ManagePaymentForm(forms.Form):
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES)
 
-    clean_status = None
+    clean_status = tuple()
 
     def __init__(self, *args, **kwargs):
         self.payment = kwargs.pop('payment')
         super().__init__(*args, **kwargs)
 
     def clean(self):
-        # Convert clean_status to a tuple if it is not a tuple or list yet
-        if not isinstance(self.clean_status, (tuple, list)):
-            self.clean_status = (self.clean_status, )
-
         if self.payment.charge_status not in self.clean_status:
             raise forms.ValidationError(self.clean_error)
 
@@ -288,9 +284,9 @@ class ManagePaymentForm(forms.Form):
         return True
 
 
-class CapturePaymentForm(ManagePaymentForm):
+class CapturePaymentForm(BasePaymentForm):
 
-    clean_status = ChargeStatus.NOT_CHARGED
+    clean_status = (ChargeStatus.NOT_CHARGED, )
     clean_error = pgettext_lazy('Payment form error',
                                 'Only pre-authorized payments can be captured')
 
@@ -298,7 +294,7 @@ class CapturePaymentForm(ManagePaymentForm):
         return self.try_payment_action(gateway_capture)
 
 
-class RefundPaymentForm(ManagePaymentForm):
+class RefundPaymentForm(BasePaymentForm):
 
     clean_status = (
         ChargeStatus.PARTIALLY_CHARGED,
@@ -319,15 +315,17 @@ class RefundPaymentForm(ManagePaymentForm):
         return self.try_payment_action(gateway_refund)
 
 
-class VoidPaymentForm(ManagePaymentForm):
+class VoidPaymentForm(BasePaymentForm):
 
-    clean_status = ChargeStatus.NOT_CHARGED
+    clean_status = (ChargeStatus.NOT_CHARGED, )
     clean_error = pgettext_lazy('Payment form error',
                                 'Only pre-authorized payments can be voided')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.payment = kwargs.pop('payment')
+        # The amount field is popped out
+        # since there is no amount argument for void operation
         self.fields.pop('amount')
 
     def void(self):
