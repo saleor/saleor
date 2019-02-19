@@ -403,6 +403,11 @@ type CheckoutShippingMethodUpdate {
   checkout: Checkout
 }
 
+type CheckoutUpdateVoucher {
+  errors: [Error!]
+  checkout: Checkout
+}
+
 type ChoiceValue {
   raw: String
   verbose: String
@@ -932,6 +937,7 @@ type Mutations {
   checkoutPaymentCreate(checkoutId: ID!, input: PaymentInput!): CheckoutPaymentCreate
   checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
+  checkoutUpdateVoucher(checkoutId: ID!, voucherCode: String): CheckoutUpdateVoucher
   passwordReset(email: String!): PasswordReset
   setPassword(id: ID!, input: SetPasswordInput!): SetPassword
   customerCreate(input: UserCreateInput!): CustomerCreate
