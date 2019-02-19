@@ -13,7 +13,7 @@ from prices import TaxedMoneyRange
 
 from . import AddressType, logger
 from ..account.forms import get_address_form
-from ..account.models import Address
+from ..account.models import Address, User
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
 from ..core.utils import to_local_currency
@@ -170,12 +170,16 @@ def get_or_create_anonymous_cart_from_token(
         defaults={'user': None})[0]
 
 
-def get_or_create_user_cart(user, cart_queryset=Cart.objects.all()):
+def get_or_create_user_cart(user: User, cart_queryset=Cart.objects.all()):
     """Return an open cart for given user or create a new one."""
     defaults = {
         'shipping_address': user.default_shipping_address,
         'billing_address': user.default_billing_address}
-    return cart_queryset.get_or_create(user=user, defaults=defaults)[0]
+
+    cart = cart_queryset.filter(user=user).first()
+    if cart is None:
+        cart = Cart.objects.create(user=user, **defaults)
+    return cart
 
 
 def get_anonymous_cart_from_token(token, cart_queryset=Cart.objects.all()):
