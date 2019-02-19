@@ -10,3 +10,7 @@ export const pageUrl = (id: string) => pagePath(encodeURIComponent(id));
 
 export const pageCreatePath = urlJoin(pagesSection, "add");
 export const pageCreateUrl = pageCreatePath;
+
+export const pageRemovePath = (id: string) => urlJoin(pagePath(id), "remove");
+export const pageRemoveUrl = (id: string) =>
+  pageRemovePath(encodeURIComponent(id));

@@ -2,13 +2,16 @@ import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
 import PageDetailsPage, {
+  FormData,
   PageDetailsPageProps
 } from "../../../pages/components/PageDetailsPage";
 import { page } from "../../../pages/fixtures";
 import Decorator from "../../Decorator";
+import { formError } from "../../misc";
 
 const props: PageDetailsPageProps = {
   disabled: false,
+  errors: [],
   onBack: () => undefined,
   onRemove: () => undefined,
   onSubmit: () => undefined,
@@ -21,4 +24,18 @@ storiesOf("Views / Pages / Page details", module)
   .add("default", () => <PageDetailsPage {...props} />)
   .add("loading", () => (
     <PageDetailsPage {...props} disabled={true} page={undefined} />
+  ))
+  .add("form errors", () => (
+    <PageDetailsPage
+      {...props}
+      errors={([
+        "title",
+        "slug",
+        "content",
+        "availableOn",
+        "isVisible",
+        "seoDescription",
+        "seoTitle"
+      ] as Array<keyof FormData>).map(formError)}
+    />
   ));

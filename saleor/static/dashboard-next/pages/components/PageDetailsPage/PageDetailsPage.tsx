@@ -11,6 +11,7 @@ import SaveButtonBar from "../../../components/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
+import { UserError } from "../../../types";
 import { PageDetails_page } from "../../types/PageDetails";
 import PageAvailability from "../PageAvailability";
 import PageInfo from "../PageInfo";
@@ -28,6 +29,7 @@ export interface FormData {
 
 export interface PageDetailsPageProps {
   disabled: boolean;
+  errors: UserError[];
   page: PageDetails_page;
   saveButtonBarState: ConfirmButtonTransitionState;
   onBack: () => void;
@@ -37,6 +39,7 @@ export interface PageDetailsPageProps {
 
 const PageDetailsPage: React.StatelessComponent<PageDetailsPageProps> = ({
   disabled,
+  errors,
   page,
   saveButtonBarState,
   onBack,
@@ -53,10 +56,19 @@ const PageDetailsPage: React.StatelessComponent<PageDetailsPageProps> = ({
     title: maybe(() => page.title, "")
   };
   return (
-    <Form initial={initialForm} onSubmit={onSubmit}>
+    <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container width="md">
-          <PageHeader title={maybe(() => page.title)} onBack={onBack} />
+          <PageHeader
+            title={
+              page === null
+                ? i18n.t("Add Page", {
+                    context: "header"
+                  })
+                : maybe(() => page.title)
+            }
+            onBack={onBack}
+          />
           <Grid>
             <div>
               <PageInfo
