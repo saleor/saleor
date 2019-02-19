@@ -1293,5 +1293,7 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
     assert not data['errors']
 
     cart_with_item.refresh_from_db()
+    cart_with_item.shipping_address.refresh_from_db()
+    
     assert cart_with_item.shipping_address.country == new_address['country']
     assert cart_with_item.voucher_code is None
