@@ -1,5 +1,5 @@
 from django import forms
-from django.db.models import Q
+from django.db.models import F, Max, Q
 from django.utils.translation import npgettext, pgettext_lazy
 from django_filters import (
     CharFilter, ChoiceFilter, DateFromToRangeFilter, NumberFilter,
@@ -45,7 +45,7 @@ class OrderFilter(SortedFilterSet):
         widget=forms.Select)
     payment_status = ChoiceFilter(
         label=pgettext_lazy('Order list filter label', 'Payment status'),
-        field_name='payments__charge_status',
+        method='filter_by_payment_status',
         choices=ChargeStatus.CHOICES,
         empty_label=pgettext_lazy('Filter empty choice label', 'All'),
         widget=forms.Select)
@@ -68,6 +68,10 @@ class OrderFilter(SortedFilterSet):
             Q(user__last_name__icontains=value) |
             Q(user__default_billing_address__first_name__icontains=value) |
             Q(user__default_billing_address__last_name__icontains=value))
+
+    def filter_by_payment_status(self, queryset, name, value):
+        return queryset.annotate(last_payment_pk=Max('payments__pk')).filter(
+            payments__pk=F('last_payment_pk'), payments__charge_status=value)
 
     def get_summary_message(self):
         counter = self.qs.count()
