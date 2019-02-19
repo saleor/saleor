@@ -611,22 +611,6 @@ def test_update_view_must_be_ajax(customer_user, rf):
     assert result.status_code == 302
 
 
-def test_get_or_create_db_cart(customer_user, db, rf):
-    def view(request, cart, *args, **kwargs):
-        return HttpResponse()
-
-    decorated_view = utils.get_or_create_db_cart()(view)
-    assert Cart.objects.filter(user=customer_user).count() == 0
-    request = rf.get(reverse('home'))
-    request.user = customer_user
-    decorated_view(request)
-    assert Cart.objects.filter(user=customer_user).count() == 1
-
-    request.user = AnonymousUser()
-    decorated_view(request)
-    assert Cart.objects.filter(user__isnull=True).count() == 1
-
-
 def test_get_cart_data(request_cart_with_item, shipping_zone, vatlayer):
     cart = request_cart_with_item
     shipment_option = get_shipping_price_estimate(
