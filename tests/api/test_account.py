@@ -183,6 +183,9 @@ def test_query_customers(
             edges {
                 node {
                     isStaff
+                    checkout {
+                        id
+                    }
                 }
             }
         }
@@ -195,6 +198,7 @@ def test_query_customers(
     users = content['data']['customers']['edges']
     assert users
     assert all([not user['node']['isStaff'] for user in users])
+    assert all([user['node']['checkout'] is None for user in users])
 
     # check permissions
     response = user_api_client.post_graphql(query, variables)
