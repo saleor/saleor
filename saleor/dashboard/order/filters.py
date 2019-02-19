@@ -71,8 +71,15 @@ class OrderFilter(SortedFilterSet):
             Q(user__default_billing_address__last_name__icontains=value))
 
     def filter_by_payment_status(self, queryset, name, value):
-        return queryset.annotate(last_payment_pk=Max('payments__pk')).filter(
+        annotated_queryset = queryset.annotate(
+            last_payment_pk=Max('payments__pk'))
+        query_order_with_payments = Q(
             payments__pk=F('last_payment_pk'), payments__charge_status=value)
+        query_order_without_payments = Q(payments__isnull=True)
+        if value == ChargeStatus.NOT_CHARGED:
+            return annotated_queryset.filter(
+                query_order_with_payments | query_order_without_payments)
+        return annotated_queryset.filter(query_order_with_payments)
 
     def get_summary_message(self):
         counter = self.qs.count()
