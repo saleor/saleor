@@ -9,6 +9,7 @@ import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
+import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { PageDetails_page } from "../../types/PageDetails";
 import PageAvailability from "../PageAvailability";
@@ -73,6 +74,9 @@ const PageDetailsPage: React.StatelessComponent<PageDetailsPageProps> = ({
                 onChange={change}
                 title={data.seoTitle}
                 titlePlaceholder={data.title}
+                helperText={i18n.t(
+                  "Add search engine title and description to make this page easier to find"
+                )}
               />
             </div>
             <div>
