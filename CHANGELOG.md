@@ -23,7 +23,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Enable existing search with backend picker in products query - #3736 by @michaljelonek
 - Fix bug where payment is not filtered from active ones when creating payment - #3731 by @jxltom
 - Sort order's payment and history descendingly - #3747 by @jxltom
-
+- Use exact image versions in docker-compose - #3742 by @ashishnitinpatil
 
 ## 2.3.0
 ### API
