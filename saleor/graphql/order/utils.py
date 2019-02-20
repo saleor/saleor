@@ -7,6 +7,8 @@ def can_finalize_draft_order(order, errors):
 
     Checks, if given order has a proper customer data, shipping
     address and method set up and return list of errors if not.
+    Checks if product variants for order lines still exists in
+    database, too.
     """
     if order.get_total_quantity() == 0:
         errors.append(
@@ -25,6 +27,13 @@ def can_finalize_draft_order(order, errors):
                     field='shipping',
                     message='Shipping method is not valid for chosen shipping '
                             'address'))
+    line_variants = [line.variant for line in order]
+    if None in line_variants:
+        errors.append(
+            Error(
+                field='lines',
+                message='Could not create orders with non-existing products.'))
+
     return errors
 
 

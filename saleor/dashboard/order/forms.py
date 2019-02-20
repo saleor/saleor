@@ -16,7 +16,7 @@ from ...order import OrderStatus
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ...order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order,
-    change_order_line_quantity, recalculate_order)
+    change_order_line_quantity, delete_order_line, recalculate_order)
 from ...payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from ...payment.utils import (
     clean_mark_order_as_paid, gateway_capture, gateway_refund, gateway_void,
@@ -362,11 +362,12 @@ class CancelOrderLineForm(forms.Form):
         super().__init__(*args, **kwargs)
 
     def cancel_line(self):
-        if self.line.variant and self.line.variant.track_inventory:
-            deallocate_stock(self.line.variant, self.line.quantity)
-        order = self.line.order
-        self.line.delete()
-        recalculate_order(order)
+        if self.line.variant:
+            if self.line.variant.track_inventory:
+                deallocate_stock(self.line.variant, self.line.quantity)
+            order = self.line.order
+            delete_order_line(self.line)
+            recalculate_order(order)
 
 
 class ChangeQuantityForm(forms.ModelForm):
@@ -401,12 +402,13 @@ class ChangeQuantityForm(forms.ModelForm):
     def save(self):
         quantity = self.cleaned_data['quantity']
         variant = self.instance.variant
-        if variant and variant.track_inventory:
-            # update stock allocation
-            delta = quantity - self.initial_quantity
-            allocate_stock(variant, delta)
-        change_order_line_quantity(self.instance, quantity)
-        recalculate_order(self.instance.order)
+        if variant:
+            if variant.track_inventory:
+                # update stock allocation
+                delta = quantity - self.initial_quantity
+                allocate_stock(variant, delta)
+            change_order_line_quantity(self.instance, quantity)
+            recalculate_order(self.instance.order)
         return self.instance
 
 
