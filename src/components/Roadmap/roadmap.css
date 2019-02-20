@@ -140,8 +140,11 @@
         & .text {
           padding-bottom: calc(var(--spacer) * 3);
           & h2 {
-            padding: var(--spacer) 0  calc(var(--spacer) * 2) 0;
+            padding: calc(var(--spacer)/5) 0  calc(var(--spacer) * 2) 0;
             text-transform: initial;
+            &.first {
+              padding: var(--spacer) 0  calc(var(--spacer) * 2) 0;
+            }
           }
           & h4 {
             padding-top: calc(var(--spacer) / 5);
@@ -150,6 +153,12 @@
             font-size: calc(var(--font-size-base) * 1.2);
             text-transform: initial;
             font-weight: var(--font-weight-medium);
+            &.date {
+              color: var(--primaryColor);
+              text-transform: uppercase;
+              font-weight: var(--font-weight-light);
+              padding-bottom: 0;
+            }
           }
           & p {
             padding-bottom: var(--spacer);
@@ -158,6 +167,13 @@
             @media (max-width: 578px) {
               padding: 0;
               margin-bottom: var(--spacer);
+            }
+          }
+          & a {
+            color: var(--body-color);
+            text-decoration: underline;
+            &:hover {
+              text-decoration: none;
             }
           }
         }
