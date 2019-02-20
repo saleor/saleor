@@ -614,6 +614,16 @@ class BaseFulfillmentLineFormSet(forms.BaseModelFormSet):
         for form in self.forms:
             form.empty_permitted = False
 
+    def clean(self):
+        if any(self.errors):
+            return
+
+        total_quantities = sum(
+            form.cleaned_data['quantity'] for form in self.forms)
+        if total_quantities <= 0:
+            raise forms.ValidationError(
+                'Total quantities must be larger than 0.')
+
 
 class FulfillmentLineForm(forms.ModelForm):
     """Fulfill order line with given quantity by decreasing stock."""
