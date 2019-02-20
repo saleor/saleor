@@ -201,7 +201,7 @@ class Home extends Component {
               <div className="news">
                 <div className="label"><span>NEW</span></div>
                 <div className="content">
-                  <a href="https://medium.com/p/1330f2151585" target="_blank" rel="noopener"><strong>Saleor 2.0 Release:</strong> GraphQL-first Headless E-commerce</a>
+                  <a href="https://medium.com/saleor/january-release-of-saleor-e3ee7e9e13a3" target="_blank" rel="noopener"><strong>January Release of Saleor</strong></a>
                   <div className="close-icon" onClick={this.toggleNewsBar}></div>
                 </div>
               </div>
