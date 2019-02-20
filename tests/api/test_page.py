@@ -1,3 +1,5 @@
+import json
+
 import graphene
 import pytest
 
@@ -86,15 +88,17 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages):
     query = """
         mutation CreatePage(
                 $slug: String!, $title: String!, $content: String!,
-                $isPublished: Boolean!) {
+                $contentJson: JSONString!, $isPublished: Boolean!) {
             pageCreate(
                     input: {
                         slug: $slug, title: $title,
-                        content: $content, isPublished: $isPublished}) {
+                        content: $content, contentJson: $contentJson
+                        isPublished: $isPublished}) {
                 page {
                     id
                     title
                     content
+                    contentJson
                     slug
                     isPublished
                 }
@@ -107,13 +111,15 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages):
     """
     page_slug = 'test-slug'
     page_content = 'test content'
+    page_content_json = json.dumps({'content': 'test content'})
     page_title = 'test title'
-    page_isPublished = True
+    page_is_published = True
 
     # test creating root page
     variables = {
         'title': page_title, 'content': page_content,
-        'isPublished': page_isPublished, 'slug': page_slug}
+        'contentJson': page_content_json, 'isPublished': page_is_published,
+        'slug': page_slug}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_pages])
     content = get_graphql_content(response)
@@ -121,8 +127,9 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages):
     assert data['errors'] == []
     assert data['page']['title'] == page_title
     assert data['page']['content'] == page_content
+    assert data['page']['contentJson'] == page_content_json
     assert data['page']['slug'] == page_slug
-    assert data['page']['isPublished'] == page_isPublished
+    assert data['page']['isPublished'] == page_is_published
 
 
 def test_page_delete_mutation(staff_api_client, page, permission_manage_pages):
