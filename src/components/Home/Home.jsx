@@ -373,7 +373,7 @@ class Home extends Component {
                 </div> 
               </div>
               <div className="community-links">
-                <h5>Join our developer Community</h5>
+                <h5>Join our developer community</h5>
                   <div className="buttons">
                     <a href="https://github.com/mirumee/saleor" target="_blank" rel="noopener" className="btn btn-primary">
                       <span>Become a contributor</span>

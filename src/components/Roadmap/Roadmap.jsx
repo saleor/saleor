@@ -49,7 +49,7 @@ const Roadmap = (props) => (
         <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h4 className="date">Jan 2019</h4>
           <h2>Saleor&nbsp;2.3</h2>
-          <h4>Dashboard 2.0: imgage upload, taxes&nbsp;selection</h4>
+          <h4>Dashboard 2.0: image upload, taxes&nbsp;selection</h4>
           <h4>Docker&nbsp;configuration</h4>
           <a href="https://medium.com/saleor/january-release-of-saleor-e3ee7e9e13a3" target="_blank">Read article</a>
         </div>
