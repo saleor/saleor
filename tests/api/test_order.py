@@ -416,6 +416,21 @@ def test_can_finalize_draft_order_no_order_lines(order):
     assert errors[0].message == 'Could not create order without any products.'
 
 
+def test_can_finalize_draft_order_non_existing_variant(order_with_lines):
+    order = order_with_lines
+    line = order.lines.first()
+    variant = line.variant
+    variant.delete()
+    line.refresh_from_db()
+    assert line.variant is None
+
+    order.refresh_from_db()
+    errors = can_finalize_draft_order(order, [])
+    assert (
+        errors[0].message ==
+        'Could not create orders with non-existing products.')
+
+
 def test_draft_order_complete(
         staff_api_client, permission_manage_orders, staff_user, draft_order):
     order = draft_order
@@ -658,6 +673,22 @@ def test_draft_order_line_update(
     assert data['errors'][0]['field'] == 'quantity'
 
 
+def test_draft_order_update_with_non_existing_product(
+        draft_order, staff_api_client, permission_manage_orders):
+    query = DRAFT_ORDER_LINE_UPDATE_MUTATION
+    order = draft_order
+    line = order.lines.first()
+    variant = line.variant
+    variant.delete()
+    line_id = graphene.Node.to_global_id('OrderLine', line.id)
+    variables = {'lineId': line_id, 'quantity': 2}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+    data = content['data']['draftOrderLineUpdate']
+    assert data['errors']
+
+
 def test_require_draft_order_when_updating_lines(
         order_with_lines, staff_api_client, permission_manage_orders):
     query = DRAFT_ORDER_LINE_UPDATE_MUTATION
@@ -711,6 +742,22 @@ def test_require_draft_order_when_removing_lines(
     query = DRAFT_ORDER_LINE_DELETE_MUTATION
     order = order_with_lines
     line = order.lines.first()
+    line_id = graphene.Node.to_global_id('OrderLine', line.id)
+    variables = {'id': line_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+    data = content['data']['draftOrderLineDelete']
+    assert data['errors']
+
+
+def test_draft_order_remove_with_non_existing_product(
+        draft_order, staff_api_client, permission_manage_orders):
+    query = DRAFT_ORDER_LINE_DELETE_MUTATION
+    order = draft_order
+    line = order.lines.first()
+    variant = line.variant
+    variant.delete()
     line_id = graphene.Node.to_global_id('OrderLine', line.id)
     variables = {'id': line_id}
     response = staff_api_client.post_graphql(
@@ -1119,10 +1166,9 @@ def test_clean_order_void_payment():
 
     payment.is_active = True
     error_msg = 'error has happened.'
-    with patch(
-        'saleor.graphql.order.mutations.orders.gateway_void',
-        side_effect=ValueError(error_msg)):
-            errors = clean_void_payment(payment, [])
+    with patch('saleor.graphql.order.mutations.orders.gateway_void',
+               side_effect=ValueError(error_msg)):
+        errors = clean_void_payment(payment, [])
     assert errors[0].field == 'payment'
     assert errors[0].message == error_msg
 

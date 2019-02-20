@@ -1,6 +1,7 @@
 from functools import wraps
 
 from django.conf import settings
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from prices import Money, TaxedMoney
 
@@ -163,8 +164,13 @@ def attach_order_to_user(order, user):
 
 
 def add_variant_to_order(
-        order, variant, quantity, discounts=None, taxes=None,
-        allow_overselling=False, track_inventory=True):
+        order,
+        variant,
+        quantity,
+        discounts=None,
+        taxes=None,
+        allow_overselling=False,
+        track_inventory=True):
     """Add total_quantity of variant to order.
 
     Returns an order line the variant was added to.
@@ -177,7 +183,10 @@ def add_variant_to_order(
     try:
         line = order.lines.get(variant=variant)
         line.quantity += quantity
-        line.save(update_fields=['quantity'])
+        order.weight += variant.get_weight() * quantity
+        with transaction.atomic():
+            line.save(update_fields=['quantity'])
+            order.save(update_fields=['weight'])
     except OrderLine.DoesNotExist:
         product_name = variant.display_product()
         translated_product_name = variant.display_product(translated=True)
@@ -192,6 +201,7 @@ def add_variant_to_order(
             variant=variant,
             unit_price=variant.get_price(discounts, taxes),
             tax_rate=get_tax_rate_by_name(variant.product.tax_rate, taxes))
+
     if variant.track_inventory and track_inventory:
         allocate_stock(variant, quantity)
     return line
@@ -200,10 +210,27 @@ def add_variant_to_order(
 def change_order_line_quantity(line, new_quantity):
     """Change the quantity of ordered items in a order line."""
     if new_quantity:
+        old_quantity = OrderLine.objects.get(pk=line.pk).quantity
+        order = line.order
+        variant_weight = line.variant.get_weight()
         line.quantity = new_quantity
-        line.save(update_fields=['quantity'])
+        order.weight += (
+            new_quantity * variant_weight - old_quantity * variant_weight)
+        with transaction.atomic():
+            line.save(update_fields=['quantity'])
+            order.save(update_fields=['weight'])
     else:
+        delete_order_line(line)
+
+
+def delete_order_line(line):
+    """Delete order line from order"""
+    order = line.order
+    quantity = line.quantity
+    order.weight -= quantity * line.variant.get_weight()
+    with transaction.atomic():
         line.delete()
+        order.save(update_fields=['weight'])
 
 
 def restock_order_lines(order):
