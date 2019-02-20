@@ -342,7 +342,7 @@ class Home extends Component {
               </div>
             </div>
           </section>
-          <section className="open-source">
+          <section id="open-source" className="open-source">
             <div className="section-container">
               <div className="grid">
                 <div className="col-xs-12 col-sm-12 col-md-7 text">
