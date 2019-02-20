@@ -222,25 +222,27 @@ class CheckoutLinesAdd(BaseMutation):
         errors = []
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
-        variants, quantities = None, None
-        if checkout is not None:
-            if lines:
-                variant_ids = [line.get('variant_id') for line in lines]
-                variants = cls.get_nodes_or_error(
-                    ids=variant_ids, errors=errors, field='variant_id',
-                    only_type=ProductVariant)
-                quantities = [line.get('quantity') for line in lines]
-                if not errors:
-                    line_errors = check_lines_quantity(variants, quantities)
-                    if line_errors:
-                        for err in line_errors:
-                            cls.add_error(errors, field=err[0], message=err[1])
+        if checkout is None:
+            return CheckoutLinesAdd(errors=errors)
 
-            # FIXME test if below function is called
-            clean_shipping_method(
-                checkout=checkout, method=checkout.shipping_method,
-                errors=errors, discounts=info.context.discounts,
-                taxes=get_taxes_for_address(checkout.shipping_address))
+        variants, quantities = None, None
+        if lines:
+            variant_ids = [line.get('variant_id') for line in lines]
+            variants = cls.get_nodes_or_error(
+                ids=variant_ids, errors=errors, field='variant_id',
+                only_type=ProductVariant)
+            quantities = [line.get('quantity') for line in lines]
+            if not errors:
+                line_errors = check_lines_quantity(variants, quantities)
+                if line_errors:
+                    for err in line_errors:
+                        cls.add_error(errors, field=err[0], message=err[1])
+
+        # FIXME test if below function is called
+        clean_shipping_method(
+            checkout=checkout, method=checkout.shipping_method,
+            errors=errors, discounts=info.context.discounts,
+            taxes=get_taxes_for_address(checkout.shipping_address))
 
         if errors:
             return CheckoutLinesAdd(errors=errors)
@@ -286,6 +288,10 @@ class CheckoutLineDelete(BaseMutation):
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
         line = cls.get_node_or_error(
             info, line_id, errors, 'line_id', only_type=CheckoutLine)
+
+        if checkout is None or line is None:
+            return CheckoutLineDelete(errors=errors)
+
         if line and line in checkout.lines.all():
             line.delete()
 
