@@ -591,7 +591,7 @@ def fulfill_order_lines(request, order_pk):
         request.POST or None, queryset=FulfillmentLine.objects.none(),
         initial=initial)
     all_forms_valid = all([line_form.is_valid() for line_form in formset])
-    if all_forms_valid and form.is_valid():
+    if all_forms_valid and formset.is_valid() and form.is_valid():
         forms_to_save = [
             line_form for line_form in formset
             if line_form.cleaned_data.get('quantity') > 0]
