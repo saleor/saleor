@@ -6,9 +6,9 @@ from django.db import transaction
 from ...checkout import models
 from ...checkout.utils import (
     add_variant_to_cart, add_voucher_to_cart, change_billing_address_in_cart,
-    change_shipping_address_in_cart, create_order, get_taxes_for_cart,
-    get_voucher_for_cart, ready_to_place_order, recalculate_cart_discount,
-    remove_voucher_from_cart)
+    change_shipping_address_in_cart, create_order, get_or_create_user_cart,
+    get_taxes_for_cart, get_voucher_for_cart, ready_to_place_order,
+    recalculate_cart_discount, remove_voucher_from_cart)
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import get_taxes_for_address
@@ -106,10 +106,10 @@ class CheckoutCreateInput(graphene.InputObjectType):
 class CheckoutCreate(ModelMutation, I18nMixin):
     class Arguments:
         input = CheckoutCreateInput(
-            required=True, description='Fields required to create a Checkout.')
+            required=True, description='Fields required to create checkout.')
 
     class Meta:
-        description = 'Create a new Checkout.'
+        description = 'Create a new checkout.'
         model = models.Cart
         return_field_name = 'checkout'
 
@@ -135,28 +135,26 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
         default_shipping_address = None
         default_billing_address = None
-        if not user.is_anonymous:
+        if user.is_authenticated:
             default_billing_address = user.default_billing_address
             default_shipping_address = user.default_shipping_address
 
-        shipping_address_data = input.pop('shipping_address', None)
-        if shipping_address_data:
+        if 'shipping_address' in input:
             shipping_address, errors = cls.validate_address(
-                shipping_address_data, errors)
+                input['shipping_address'], errors)
             cleaned_input['shipping_address'] = shipping_address
         else:
             cleaned_input['shipping_address'] = default_shipping_address
 
-        billing_address_data = input.pop('billing_address', None)
-        if billing_address_data:
+        if 'billing_address' in input:
             billing_address, errors = cls.validate_address(
-                billing_address_data, errors)
+                input['billing_address'], errors)
             cleaned_input['billing_address'] = billing_address
         else:
             cleaned_input['billing_address'] = default_billing_address
 
         # Use authenticated user's email as default email
-        if not user.is_anonymous:
+        if user.is_authenticated:
             email = input.pop('email', None)
             cleaned_input['email'] = email or user.email
 
@@ -175,11 +173,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             billing_address.save()
             instance.billing_address = billing_address
             update_fields.append('billing_address')
-        super().save(info, instance, cleaned_input)
-        user = info.context.user
-        if not user.is_anonymous:
-            instance.user = user
-            update_fields.append('user')
         instance.save(update_fields=update_fields)
 
         variants = cleaned_input.get('variants')
@@ -187,6 +180,25 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
                 add_variant_to_cart(instance, variant, quantity)
+
+    @classmethod
+    def mutate(cls, root, info, input):
+        errors = []
+
+        user = info.context.user
+        if user.is_authenticated:
+            checkout = get_or_create_user_cart(user)
+        else:
+            checkout = models.Cart()
+
+        cleaned_input = cls.clean_input(info, checkout, input, errors)
+        checkout = cls.construct_instance(checkout, cleaned_input)
+        cls.clean_instance(checkout, errors)
+        if errors:
+            return CheckoutCreate(errors=errors)
+
+        cls.save(info, checkout, cleaned_input)
+        return CheckoutCreate(checkout=checkout, errors=errors)
 
 
 class CheckoutLinesAdd(BaseMutation):
