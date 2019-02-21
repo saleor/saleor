@@ -1,8 +1,10 @@
+import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import CardSpacer from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton";
 import Container from "../../../components/Container";
+import CountryList from "../../../components/CountryList";
 import Form from "../../../components/Form";
 import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
@@ -20,7 +22,6 @@ import { VoucherDetails_voucher } from "../../types/VoucherDetails";
 import DiscountCategories from "../DiscountCategories";
 import DiscountCollections from "../DiscountCollections";
 import DiscountProducts from "../DiscountProducts";
-import VoucherCountries from "../VoucherCountries";
 import VoucherInfo from "../VoucherInfo";
 import VoucherOptions from "../VoucherOptions";
 import VoucherSummary from "../VoucherSummary";
@@ -220,11 +221,22 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
                   )}
                 </>
               ) : data.type === VoucherType.SHIPPING ? (
-                <VoucherCountries
+                <CountryList
+                  countries={maybe(() => voucher.countries)}
                   disabled={disabled}
+                  emptyText={i18n.t("Voucher applies to all countries")}
+                  title={
+                    <>
+                      {i18n.t("Countries assigned to {{ voucherName }}", {
+                        voucherName: maybe(() => voucher.name)
+                      })}
+                      <Typography variant="caption">
+                        {i18n.t("Vouchers limited to these countries")}
+                      </Typography>
+                    </>
+                  }
                   onCountryAssign={onCountryAssign}
                   onCountryUnassign={onCountryUnassign}
-                  voucher={voucher}
                 />
               ) : null}
             </div>

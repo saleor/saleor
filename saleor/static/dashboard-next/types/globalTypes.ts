@@ -96,6 +96,11 @@ export enum SaleType {
   PERCENTAGE = "PERCENTAGE",
 }
 
+export enum ShippingMethodTypeEnum {
+  PRICE = "PRICE",
+  WEIGHT = "WEIGHT",
+}
+
 export enum StockAvailability {
   IN_STOCK = "IN_STOCK",
   OUT_OF_STOCK = "OUT_OF_STOCK",

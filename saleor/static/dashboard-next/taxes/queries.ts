@@ -6,6 +6,11 @@ export const countryFragment = gql`
   fragment CountryFragment on CountryDisplay {
     country
     code
+  }
+`;
+export const countryWithTaxesFragment = gql`
+  fragment CountryWithTaxesFragment on CountryDisplay {
+    ...CountryFragment
     vat {
       standardRate
       reducedRates {
@@ -24,7 +29,7 @@ export const shopTaxesFragment = gql`
 `;
 
 const countryList = gql`
-  ${countryFragment}
+  ${countryWithTaxesFragment}
   ${shopTaxesFragment}
   query CountryList {
     shop {
