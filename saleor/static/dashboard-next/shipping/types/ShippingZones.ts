@@ -23,9 +23,18 @@ export interface ShippingZones_shippingZones_edges {
   node: ShippingZones_shippingZones_edges_node;
 }
 
+export interface ShippingZones_shippingZones_pageInfo {
+  __typename: "PageInfo";
+  endCursor: string | null;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  startCursor: string | null;
+}
+
 export interface ShippingZones_shippingZones {
   __typename: "ShippingZoneCountableConnection";
   edges: ShippingZones_shippingZones_edges[];
+  pageInfo: ShippingZones_shippingZones_pageInfo;
 }
 
 export interface ShippingZones {

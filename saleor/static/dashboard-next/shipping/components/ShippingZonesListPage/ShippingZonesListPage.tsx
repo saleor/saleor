@@ -13,7 +13,6 @@ import ShippingZonesList from "../ShippingZonesList";
 export interface ShippingZonesListPageProps extends PageListProps {
   defaultWeightUnit: WeightUnitsEnum;
   shippingZones: ShippingZoneFragment[];
-  onBack: () => void;
   onRemove: (id: string) => void;
   onSubmit: (unit: WeightUnitsEnum) => void;
 }
@@ -24,7 +23,6 @@ const ShippingZonesListPage: React.StatelessComponent<
   defaultWeightUnit,
   disabled,
   onAdd,
-  onBack,
   onNextPage,
   onPreviousPage,
   onRemove,
@@ -35,7 +33,6 @@ const ShippingZonesListPage: React.StatelessComponent<
 }) => (
   <Container width="md">
     <PageHeader
-      onBack={onBack}
       title={i18n.t("Shipping", {
         context: "page header"
       })}

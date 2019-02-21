@@ -1,6 +1,6 @@
 import gql from "graphql-tag";
 
-import { TypedQuery } from "../queries";
+import { pageInfoFragment, TypedQuery } from "../queries";
 import { ShippingZones, ShippingZonesVariables } from "./types/ShippingZones";
 
 export const shippingZoneFragment = gql`
@@ -15,6 +15,7 @@ export const shippingZoneFragment = gql`
 `;
 
 const shippingZones = gql`
+  ${pageInfoFragment}
   ${shippingZoneFragment}
   query ShippingZones(
     $first: Int
@@ -27,6 +28,9 @@ const shippingZones = gql`
         node {
           ...ShippingZoneFragment
         }
+      }
+      pageInfo {
+        ...PageInfoFragment
       }
     }
   }
