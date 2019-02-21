@@ -23,6 +23,7 @@ import { SearchProductsProvider } from "../../../containers/SearchProducts";
 import i18n from "../../../i18n";
 import { decimal, getMutationState, maybe } from "../../../misc";
 import { productUrl } from "../../../products/urls";
+import { Pagination } from "../../../types";
 import { DiscountValueTypeEnum, SaleType } from "../../../types/globalTypes";
 import SaleDetailsPage, {
   SaleDetailsPageTab
@@ -51,11 +52,10 @@ import {
 
 const PAGINATE_BY = 20;
 
-export type SaleDetailsQueryParams = Partial<{
-  after: string;
-  before: string;
-  tab: SaleDetailsPageTab;
-}>;
+export type SaleDetailsQueryParams = Pagination &
+  Partial<{
+    tab: SaleDetailsPageTab;
+  }>;
 
 interface SaleDetailsProps {
   id: string;
