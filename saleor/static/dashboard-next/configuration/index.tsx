@@ -12,6 +12,7 @@ import Navigation from "../icons/Navigation";
 import Pages from "../icons/Pages";
 import StoreMall from "../icons/StoreMall";
 import { productTypeListUrl } from "../productTypes/urls";
+import { shippingZonesListUrl } from "../shipping/urls";
 import { siteSettingsUrl } from "../siteSettings/urls";
 import { staffListUrl } from "../staff/urls";
 import { taxSection } from "../taxes/urls";
@@ -37,7 +38,8 @@ export const configurationMenu: MenuItem[] = [
     description: i18n.t("Manage how you ship out orders."),
     icon: <LocalShipping fontSize="inherit" />,
     permission: PermissionEnum.MANAGE_SHIPPING,
-    title: i18n.t("Shipping Methods")
+    title: i18n.t("Shipping Methods"),
+    url: shippingZonesListUrl
   },
   {
     description: i18n.t("Manage how your store charges tax"),
