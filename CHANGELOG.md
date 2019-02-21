@@ -27,6 +27,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add mutation to connect voucher with checkout - #3739 by @Kwaidan00
 - Update S3 deployment documentation to include CORS configuration note - #3743 by @NyanKiyoshi
 - Fix missing migrations for is_published field of product and page model - #3757 by @jxltom
+- Add header and footer for checkout success pages #3752 by @jxltom
+
 
 ## 2.3.0
 ### API
