@@ -13,7 +13,6 @@ const props: ShippingZonesListPageProps = {
   ...pageListProps.default,
   defaultWeightUnit: WeightUnitsEnum.kg,
   onAdd: () => undefined,
-  onBack: () => undefined,
   onRemove: () => undefined,
   onSubmit: () => undefined,
   shippingZones
