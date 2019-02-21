@@ -70,7 +70,8 @@ class User(CountableDjangoObjectType):
         return self.addresses.all()
 
     def resolve_checkout(self, info, **kwargs):
-        if getattr(info.context, 'create_user_checkout', False):
+        context_kwargs = getattr(info.context, 'kwargs', {})
+        if context_kwargs.get('create_user_checkout', False):
             return get_or_create_user_cart(self)
         return get_user_cart(self)
 
