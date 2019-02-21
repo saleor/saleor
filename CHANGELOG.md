@@ -25,6 +25,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Sort order's payment and history descendingly - #3747 by @jxltom
 - Use exact image versions in docker-compose - #3742 by @ashishnitinpatil
 - Add mutation to connect voucher with checkout - #3739 by @Kwaidan00
+- Reuse cart creation logic in API - #3761 by @maarcingebala
 
 ## 2.3.0
 ### API
