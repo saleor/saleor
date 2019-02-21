@@ -111,10 +111,13 @@ function loadStories() {
   require("./stories/productTypes/ProductTypeDetailsPage");
   require("./stories/productTypes/ProductTypeListPage");
 
+  // Shipping
+  require("./stories/shipping/ShippingZonesListPage");
+
   // Site settings
   require("./stories/siteSettings/SiteSettingsKeyDialog");
   require("./stories/siteSettings/SiteSettingsPage");
-  
+
   // Taxes
   require("./stories/taxes/CountryListPage");
   require("./stories/taxes/CountryTaxesPage");
