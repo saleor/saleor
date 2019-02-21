@@ -7,13 +7,15 @@ from django.utils.http import urlsafe_base64_encode
 from graphql_jwt.decorators import permission_required
 from graphql_jwt.exceptions import PermissionDenied
 
-from ...account import emails, models
+from ...account import emails, models, utils
+from ...checkout import AddressType
 from ...core.permissions import MODELS_PERMISSIONS, get_permissions
 from ...dashboard.emails import (
     send_set_password_customer_email, send_set_password_staff_email)
 from ...dashboard.staff.utils import remove_staff_member
+from ..account.enums import AddressTypeEnum
 from ..account.i18n import I18nMixin
-from ..account.types import AddressInput, User
+from ..account.types import Address, AddressInput, User
 from ..core.enums import PermissionEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import Error
@@ -453,10 +455,38 @@ class AddressCreate(ModelMutation):
         return user.has_perm('account.manage_users')
 
 
+class CustomerAddressCreate(ModelMutation):
+    class Arguments:
+        input = AddressInput(
+            description='Fields required to create address', required=True)
+
+    class Meta:
+        description = 'Creates address for user'
+        model = models.Address
+        exclude = ['user_addresses']
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.is_authenticated
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        user = info.context.user
+        super().save(info, instance, cleaned_input)
+        instance.user_addresses.add(user)
+        instance.save()
+
+
+def check_is_stuff_or_user_edit_own_address(info, instance):
+    user = info.context.user
+    if not (user.has_perm('account.manage_users')
+            or user in instance.user_addresses.all()):
+        raise PermissionDenied()
+
+
 class AddressUpdate(ModelMutation):
     class Arguments:
-        id = graphene.ID(
-            description='ID of address to update', required=True)
+        id = graphene.ID(description='ID of address to update', required=True)
         input = AddressInput(
             description='Fields required to update address', required=True)
 
@@ -466,19 +496,55 @@ class AddressUpdate(ModelMutation):
         exclude = ['user_addresses']
 
     @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('account.manage_users')
+    def clean_input(cls, info, instance, input, errors):
+        # Method user_is_allowed cannot be used, because
+        # it doesn't have address instance
+        check_is_stuff_or_user_edit_own_address(info, instance)
+        return super().clean_input(info, instance, input, errors)
 
 
 class AddressDelete(ModelDeleteMutation):
     class Arguments:
-        id = graphene.ID(
-            required=True, description='ID of address to delete.')
+        id = graphene.ID(required=True, description='ID of address to delete.')
 
     class Meta:
         description = 'Deletes an address'
         model = models.Address
 
     @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('account.manage_users')
+    def clean_instance(cls, info, instance, errors):
+        check_is_stuff_or_user_edit_own_address(info, instance)
+
+
+class CustomerSetDefaultAddress(BaseMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of address to set as default.')
+        type = AddressTypeEnum(
+            required=True,
+            description='Address type: set shipping or billing address.')
+
+    class Meta:
+        description = 'Sets one of the customer\'s address as default'
+
+    @classmethod
+    def mutate(cls, root, info, id, type):
+        errors = []
+        address = cls.get_node_or_error(info, id, errors, 'id', Address)
+        if not address:
+            return CustomerSetDefaultAddress(errors=errors)
+
+        user = info.context.user
+        if not (user.is_authenticated and address in user.addresses.all()):
+            raise PermissionDenied()
+
+        if type == AddressTypeEnum.BILLING.value:
+            address_type = AddressType.BILLING
+        elif type == AddressTypeEnum.SHIPPING.value:
+            address_type = AddressType.SHIPPING
+        else:
+            cls.add_error(errors, 'type', 'Invalid AddressTypeEnum value.')
+            return CustomerSetDefaultAddress(errors=errors)
+
+        utils.change_user_default_address(user, address, address_type)
+        return CustomerSetDefaultAddress(errors=errors)
