@@ -18,9 +18,11 @@ class Header extends Component {
     const { cookies } = props;
     this.toggleMenu = this.toggleMenu.bind(this);
     this.closeNewsBar = this.closeNewsBar.bind(this);
+    this.toggleSubMenu = this.toggleSubMenu.bind(this);
     const { cookieValue } =
       this.state = {
         mobileMenu: false,
+        subMenu: false,
         visibleNewsBar: cookies.get('newsbar') ? false : true,
         visiblePrivacyPolicyBar: cookies.get('privacypolicybar') ? false : true,
         sticky: false,
@@ -39,6 +41,11 @@ class Header extends Component {
 
   closeMenu = () => {
     this.setState({ mobileMenu: false });
+  }
+
+  toggleSubMenu = (e) => {
+    e.preventDefault();
+    this.setState(({ subMenu }) => ({ subMenu: !subMenu }))
   }
 
   closeNewsBar = () => {
@@ -99,8 +106,66 @@ class Header extends Component {
                 <li><span className="count">01. </span><NavLink exact to="/" onClick={this.closeMenu}>Home</NavLink></li>
                 <li className="underline"><span className="count">02. </span><NavLink to="/features" onClick={this.closeMenu}>Features</NavLink></li>
                 <li className="underline"><span className="count">03. </span><NavLink to="/roadmap" onClick={this.closeMenu}>Roadmap</NavLink></li>
+                <li className={this.state.subMenu ? 'background open' : 'background'}><span className="count">05. </span><a href="" onClick={e => this.toggleSubMenu (e)}>Developers <span className="trangleContainer"><span className="triangle"></span></span></a>
+                  <div className={this.state.subMenu ? 'submenu open' : 'submenu'}>
+                    <div className="item">
+                      <a href="https://github.com/mirumee/saleor" target="_blank" rel="noopener">
+                        <div className="icon">
+                          <ReactSVG className="github-icon" svgStyle={{ width: 25, height: 25 }} path="images/github-icon.svg" />
+                        </div>
+                        <div className="text">
+                          <p>Github</p>
+                          <span>Suggest features and propose changes</span>
+                        </div>
+                      </a>
+                    </div>
+                    <div className="item">
+                      <a href="https://gitter.im/mirumee/saleor" target="_blank" rel="noopener">
+                        <div className="icon">
+                          <ReactSVG className="gitter-icon" path="images/gitter-icon.svg" />
+                        </div>
+                        <div className="text">
+                          <p>Gitter</p>
+                          <span>Discuss future of Saleor</span>
+                        </div>
+                      </a>  
+                    </div>
+                    <div className="item">
+                      <a href="https://spectrum.chat/saleor" target="_blank" rel="noopener">
+                        <div className="icon">
+                          <ReactSVG className="spectrum-icon" path="images/spectrum-icon.svg" />
+                        </div>
+                        <div className="text">
+                          <p>Spectrum</p>
+                          <span>Thread the needle and get answers</span>
+                        </div>
+                      </a>  
+                    </div>
+                    <div className="item">
+                      <a href="https://stackoverflow.com/questions/tagged/saleor" target="_blank" rel="noopener">
+                        <div className="icon">
+                          <ReactSVG className="stackoverflow-icon" path="images/stackoverflow-icon.svg" />
+                        </div>
+                        <div className="text">
+                          <p>Stack Overflow</p>
+                          <span>Experience problems? Ask for help here</span>
+                        </div>
+                      </a>  
+                    </div>
+                    <div className="item">
+                      <a href="https://www.transifex.com/mirumee/saleor-1/" target="_blank" rel="noopener">
+                        <div className="icon">
+                          <ReactSVG className="transifex-icon" path="images/transifex-icon.svg" />
+                        </div>
+                        <div className="text">
+                          <p>Transifex</p>
+                          <span>Translate Saleor to your language</span>
+                        </div>
+                      </a>  
+                    </div>  
+                  </div>
+                </li>
                 <li className="underline"><span className="count">04. </span><a href="https://docs.getsaleor.com" target="_blank" rel="noopener">Docs</a></li>
-                <li className="underline"><span className="count">05. </span><a href="#open-source" onClick={this.closeMenu}>Community</a></li>
                 <li className="underline"><span className="count">06. </span><a href="https://medium.com/saleor" target="_blank" rel="noopener">Blog</a></li>
                 <li className="github-link"><GitHubLink owner="mirumee" name="saleor" /></li>
                 <li><span className="count">07. </span><a className={this.state.mobileMenu ? null : 'contactBtn'} href="https://mirumee.typeform.com/to/Xwfril">Contact Us</a></li>

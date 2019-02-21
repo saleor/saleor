@@ -817,6 +817,9 @@
         & .icons {
           width: 60%;
           float: left;
+          & svg {
+            fill: var(--body-color);
+          }
           @media (max-width: 1820px) {
             width: 55%;
           }

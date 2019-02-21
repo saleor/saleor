@@ -2,6 +2,7 @@ header {
   width: 100%;
   transition: background-color 0.4s ease;
   & .container {
+    overflow: initial;
     padding: 0 calc(var(--spacer) * 2) 0 calc(var(--spacer) * 1.1);
     @media (max-width: 1024px) {
       padding: 0 calc(var(--spacer) * 2.9) 0 calc(var(--spacer) * 2);
@@ -24,6 +25,13 @@ header {
     }
     &.bottom {
       top: -120px;
+    }
+    & .menu {
+      & li {
+        & .submenu {
+          top: 67px;
+        }
+      }
     }
   }
   & .news {
@@ -162,7 +170,6 @@ header {
       
     }
   }
-
   & .menu {
     height: 70px;
     & ul {
@@ -192,6 +199,108 @@ header {
             font-weight: var(--font-weight-medium);
             padding-right: var(--spacer);
           }
+        }
+        &.background {
+          padding: calc(var(--spacer) * 1.2) calc(var(--spacer) * 1.5) calc(var(--spacer) * 1.2) calc(var(--spacer) / 2);
+          & a {
+            color: var(--body-color);
+            transition: color 0.5s ease;
+            position: relative;
+            & .trangleContainer {
+              position: absolute;
+              width: 11px;
+              height: 6px;
+              top: 6px;
+              right: -17px;
+              border-top: 1px solid var(--body-color);
+              transition: transform 0.3s ease;
+              transform: rotate(180deg);
+              & .triangle {
+                content: "";
+                position: absolute;
+                top: -3px;
+                right: 2px;
+                width: 6px;
+                height: 6px;
+                transform: rotate(45deg);
+                -webkit-transform: rotate(45deg);
+                -moz-transform: rotate(45deg);
+                -o-transform: rotate(45deg);
+                -ms-transform: rotate(45deg);
+                border-right: 1px solid var(--body-color);
+                border-bottom: 1px solid var(--body-color);
+              }
+            }
+          }
+          &:hover {
+            & a {
+              color: var(--primaryColor);
+              & .trangleContainer {
+                  border-color: var(--primaryColor);
+                  transform: initial;
+                  & .triangle {
+                    border-color: var(--primaryColor);
+                  }
+              }
+            }
+          }
+        }
+        & .submenu {
+          display: none;
+          padding: calc(var(--spacer) * 1.5);
+          width: 270px;
+          background: var(--background-color);
+          position: absolute;
+          top: 68px;
+          right: 0;
+          z-index: 9999;
+          & .item {
+            overflow: hidden;
+            padding: calc(var(--spacer)/2) 0;
+            & a {
+              padding: 0;
+              overflow: hidden;
+              clear: both;
+              color: var(--body-color);
+              transition: color 0.5s ease;
+              & .icon {
+                width: 30px;
+                float: left;
+                padding-top: calc(var(--spacer) * 0.6);
+                & svg {
+                  width: 30px;
+                  height: 30px;
+                  transition: fill 0.5s ease;
+                  fill: var(--body-color);
+                }
+              }
+              & .text {
+                width: 240px;
+                float: left;
+                & p {
+                  padding-left: 1rem;
+                }
+                & span {
+                  display: block;
+                  text-transform: initial;
+                  padding: 0 1rem;
+                  font-size: 0.8rem;
+                  &:after {
+                    background: none;
+                  }
+                }
+              }
+              &:hover {
+                color: var(--primaryColor);
+                & svg {
+                  fill: var(--primaryColor);
+                }
+              }
+            }
+          }
+        }
+        &:hover .submenu {
+          display: block;
         }
         &.home {
           display: none;
@@ -273,6 +382,88 @@ header {
           &:first-child {
             display: block;
           }
+          &.background {
+            color: var(--body-color);
+            & a {
+              &:after {
+                background: none;
+              }
+              & .trangleContainer {
+                top: 19px;
+                transform: rotate(180deg);
+                border-color: var(--body-color);
+                & .triangle {
+                  border-color: var(--body-color);
+                }
+              }
+              &:hover {
+                color: var(--body-color);
+              }
+            }
+            &.open {
+              & a {
+                color: var(--primaryColor);
+                & .trangleContainer {
+                  transform: rotate(0);
+                  border-color: var(--primaryColor);
+                  & .triangle {
+                    border-color: var(--primaryColor);
+                  }
+                }
+              }
+              & .submenu {
+                & a {
+                  color: var(--body-color);
+                }
+              }
+            }
+            & .submenu {
+              display: block;
+              position: static;
+              padding: 0;
+              background: none;
+              border: none;
+              height: 0;
+              opacity: 0;
+              transition: height 0.5s ease, opacity 0.8s ease;
+              &.open {
+                height: 100%;
+                opacity: 1;
+              }
+              & .item {
+                & .text {
+                  text-transform: uppercase;
+                  & span {
+                    display: none;
+                  }
+                }
+                & .icon {
+                  height: 30px;
+                  padding: 0;
+                  & .github-icon {
+                    position: relative;
+                    top: -12px;
+                  }
+                  & .gitter-icon {
+                    position: relative;
+                    top: -12px;
+                  }
+                  & .spectrum-icon {
+                    position: relative;
+                    top: -12px;
+                  }
+                  & .stackoverflow-icon {
+                    position: relative;
+                    top: -12px;
+                  }
+                  & .transifex-icon {
+                    position: relative;
+                    top: -12px;
+                  }
+                }
+              }
+            }
+          }
           & a {
             color: var(--body-color);
             font-size: calc(var(--font-size-base) * 2);
@@ -294,43 +485,10 @@ header {
             left: 0;
             bottom: calc(var(--spacer) * 0.2);
             color: var(--primaryColor);
+            top: 13px;
           }
           &.github-link {
-            position: absolute;
-            padding-left: 0;
-            left: var(--spacer);
-            top: initial;
-            bottom: calc(var(--spacer) * 7);
-            & .star-icon {
-              & svg {
-                width: 25px !important;
-                height: 25px !important;
-                padding: 0 calc(var(--spacer) / 2);
-              }
-            }
-            & .github-icon {
-              & svg {
-                width: 35px !important;
-                height: 35px !important;
-              }
-            }
-            
-            @media (max-width: 700px) {
-              left: initial;
-              right: calc(var(--spacer) * -2);
-              bottom: calc(var(--spacer) * 4.5);
-            }
-            @media (max-width: 570px) {
-              bottom: calc(var(--spacer) * 5.5);
-            }
-            @media (max-width: 450px) {
-              left: var(--spacer);
-              right: initial;
-              bottom: calc(var(--spacer) * 7);
-            }
-            & a {
-              color: var(--primaryColor);
-            }
+            display: none;
           }
         }
       }
