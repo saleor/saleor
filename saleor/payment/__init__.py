@@ -74,10 +74,10 @@ class TransactionKind:
 
 class ChargeStatus:
     """
-    - Not charged: No funds were take off the customer founding source yet.
-    - Partially charged: Funds were taken off the customer founding source,
+    - Not charged: No funds were take off the customer's funding source yet.
+    - Partially charged: Funds were taken off the customer's funding source,
         partly covering the payment amount.
-    - Fully charged: Funds were taken off the customer founding source,
+    - Fully charged: Funds were taken off the customer's funding source,
         completely covering the payment amount.
     - Partially refunded: Part of charged funds were returned to the customer.
     - Fully refunded: All charged funds were returned to the customer.
