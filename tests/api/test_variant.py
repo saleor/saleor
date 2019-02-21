@@ -364,7 +364,6 @@ def _fetch_variant(client, variant, permissions=None):
     response = client.post_graphql(
         query, variables, permissions=permissions, check_no_permissions=False)
     content = get_graphql_content(response)
-    print(content)
     return content['data']['productVariant']
 
 
