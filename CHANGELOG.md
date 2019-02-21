@@ -29,6 +29,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix missing migrations for is_published field of product and page model - #3757 by @jxltom
 - Add header and footer for checkout success pages #3752 by @jxltom
 - Filter order by payment status from order's last payment - #3749 @jxltom
+- Reuse cart creation logic in API - #3761 by @maarcingebala
 
 
 ## 2.3.0

@@ -13,7 +13,7 @@ from prices import TaxedMoneyRange
 
 from . import AddressType, logger
 from ..account.forms import get_address_form
-from ..account.models import Address
+from ..account.models import Address, User
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
 from ..core.utils import to_local_currency
@@ -170,12 +170,16 @@ def get_or_create_anonymous_cart_from_token(
         defaults={'user': None})[0]
 
 
-def get_or_create_user_cart(user, cart_queryset=Cart.objects.all()):
+def get_or_create_user_cart(user: User, cart_queryset=Cart.objects.all()):
     """Return an open cart for given user or create a new one."""
     defaults = {
         'shipping_address': user.default_shipping_address,
         'billing_address': user.default_billing_address}
-    return cart_queryset.get_or_create(user=user, defaults=defaults)[0]
+
+    cart = cart_queryset.filter(user=user).first()
+    if cart is None:
+        cart = Cart.objects.create(user=user, **defaults)
+    return cart
 
 
 def get_anonymous_cart_from_token(token, cart_queryset=Cart.objects.all()):
@@ -210,28 +214,6 @@ def get_cart_from_request(request, cart_queryset=Cart.objects.all()):
     if user:
         return Cart(user=user)
     return Cart()
-
-
-def get_or_create_db_cart(cart_queryset=Cart.objects.all()):
-    """Decorate view to always receive a saved cart instance.
-
-    Changes the view signature from `func(request, ...)` to
-    `func(request, cart, ...)`.
-
-    If no matching cart is found, one will be created and a cookie will be set
-    for users who are not logged in.
-    """
-    # FIXME: behave like middleware and assign cart to request instead
-    def get_cart(view):
-        @wraps(view)
-        def func(request, *args, **kwargs):
-            cart = get_or_create_cart_from_request(request, cart_queryset)
-            response = view(request, cart, *args, **kwargs)
-            if not request.user.is_authenticated:
-                set_cart_cookie(cart, response)
-            return response
-        return func
-    return get_cart
 
 
 def get_or_empty_db_cart(cart_queryset=Cart.objects.all()):

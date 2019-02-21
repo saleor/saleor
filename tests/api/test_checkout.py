@@ -66,6 +66,23 @@ def test_checkout_create(api_client, variant, graphql_address_data):
     assert new_cart.shipping_address.city == shipping_address['city']
 
 
+def test_checkout_create_reuse_cart(cart, user_api_client, variant):
+    # assign user to the cart
+    cart.user = user_api_client.user
+    cart.save()
+
+    variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
+    variables = {
+        'checkoutInput': {
+            'lines': [{'quantity': 1, 'variantId': variant_id}], }}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # assert that existing cart was reused and returned by mutation
+    checkout_data = content['data']['checkoutCreate']['checkout']
+    assert checkout_data['token'] == str(cart.token)
+
+
 def test_checkout_create_required_email(api_client, variant):
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
     variables = {
@@ -1294,6 +1311,6 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
 
     cart_with_item.refresh_from_db()
     cart_with_item.shipping_address.refresh_from_db()
-    
+
     assert cart_with_item.shipping_address.country == new_address['country']
     assert cart_with_item.voucher_code is None
