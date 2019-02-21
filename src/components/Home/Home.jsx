@@ -356,7 +356,7 @@ class Home extends Component {
                       <span>Active <br />contributors</span>
                     </div>
                     <div className="col-xs-12 col-ls-12  col-sm-4 col-md-4 number">
-                      <span className="count">190+</span>
+                      <span className="count">200+</span>
                       <span className="separator"></span>
                       <span>Developers<br /> on gitter</span>
                     </div>
