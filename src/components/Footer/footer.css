@@ -103,6 +103,11 @@ footer {
               font-size: var(--font-size);
               color: var(--body-color);
               line-height: var(--line-height-lg);
+              text-decoration: underline;
+              transition: color 0.5s ease;
+              &:hover {
+                color: var(--primaryColor);
+              }
               @media (max-width: 570px) {
                 font-size: calc(var(--font-size-base) * 0.8);
               }
