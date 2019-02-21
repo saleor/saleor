@@ -4,14 +4,12 @@ import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
 import { createPaginationState, Paginator } from "../../components/Paginator";
 import { maybe } from "../../misc";
+import { Pagination } from "../../types";
 import ProductTypeListPage from "../components/ProductTypeListPage";
 import { TypedProductTypeListQuery } from "../queries";
 import { productTypeAddUrl, productTypeUrl } from "../urls";
 
-export type ProductTypeListQueryParams = Partial<{
-  after: string;
-  before: string;
-}>;
+export type ProductTypeListQueryParams = Pagination;
 
 interface ProductTypeListProps {
   params: ProductTypeListQueryParams;

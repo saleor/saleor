@@ -6,16 +6,14 @@ import Shop from "../../components/Shop";
 import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
+import { Pagination } from "../../types";
 import VoucherListPage from "../components/VoucherListPage";
 import { TypedVoucherList } from "../queries";
 import { voucherAddUrl, voucherUrl } from "../urls";
 
 const PAGINATE_BY = 20;
 
-export type VoucherListQueryParams = Partial<{
-  after: string;
-  before: string;
-}>;
+export type VoucherListQueryParams = Pagination;
 
 interface VoucherListProps {
   params: VoucherListQueryParams;
