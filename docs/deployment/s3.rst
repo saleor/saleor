@@ -51,3 +51,22 @@ you can set this environment variable to your custom S3 domain:
 ``AWS_STATIC_CUSTOM_DOMAIN``
   The S3 custom domain to use for the static bucket.
 
+
+.. note::
+  You will need to configure your S3 bucket to allow cross origin requests for
+  some files to be properly served (SVG files, Javascript files, etc.).
+  For that, you have to the below instructions in your
+  S3 Bucket's permissions tab under the CORS section.
+
+  .. code-block:: xml
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <CORSConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+    <CORSRule>
+        <AllowedOrigin>*</AllowedOrigin>
+        <AllowedMethod>GET</AllowedMethod>
+        <AllowedMethod>HEAD</AllowedMethod>
+        <MaxAgeSeconds>3000</MaxAgeSeconds>
+        <AllowedHeader>*</AllowedHeader>
+    </CORSRule>
+    </CORSConfiguration>

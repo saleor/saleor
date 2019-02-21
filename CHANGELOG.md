@@ -25,7 +25,12 @@ All notable, unreleased changes to this project will be documented in this file.
 - Sort order's payment and history descendingly - #3747 by @jxltom
 - Use exact image versions in docker-compose - #3742 by @ashishnitinpatil
 - Add mutation to connect voucher with checkout - #3739 by @Kwaidan00
+- Update S3 deployment documentation to include CORS configuration note - #3743 by @NyanKiyoshi
+- Fix missing migrations for is_published field of product and page model - #3757 by @jxltom
+- Add header and footer for checkout success pages #3752 by @jxltom
+- Filter order by payment status from order's last payment - #3749 @jxltom
 - Reuse cart creation logic in API - #3761 by @maarcingebala
+
 
 ## 2.3.0
 ### API
