@@ -11,22 +11,23 @@ import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableRow from "@material-ui/core/TableRow";
-import Typography from "@material-ui/core/Typography";
 import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import CloseIcon from "@material-ui/icons/Close";
 import classNames from "classnames";
 import * as React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import Skeleton from "../../../components/Skeleton";
-import Toggle from "../../../components/Toggle";
-import i18n from "../../../i18n";
-import { maybe, renderCollection } from "../../../misc";
-import { VoucherDetails_voucher } from "../../types/VoucherDetails";
+import CardTitle from "../../components/CardTitle";
+import Skeleton from "../../components/Skeleton";
+import Toggle from "../../components/Toggle";
+import i18n from "../../i18n";
+import { maybe, renderCollection } from "../../misc";
+import { CountryFragment } from "../../taxes/types/CountryFragment";
 
-export interface VoucherCountriesProps {
+export interface CountryListProps {
+  countries: CountryFragment[];
   disabled: boolean;
-  voucher: VoucherDetails_voucher;
+  emptyText: React.ReactNode;
+  title: React.ReactNode;
   onCountryAssign: () => void;
   onCountryUnassign: (country: string) => void;
 }
@@ -35,9 +36,6 @@ const styles = (theme: Theme) =>
   createStyles({
     arrow: {
       marginRight: theme.spacing.unit * 1.5
-    },
-    caption: {
-      marginTop: theme.spacing.unit
     },
     pointer: {
       cursor: "pointer"
@@ -53,30 +51,23 @@ const styles = (theme: Theme) =>
     }
   });
 
-const VoucherCountries = withStyles(styles, {
-  name: "VoucherCountries"
+const CountryList = withStyles(styles, {
+  name: "CountryList"
 })(
   ({
     classes,
+    countries,
     disabled,
-    voucher,
+    emptyText,
+    title,
     onCountryAssign,
     onCountryUnassign
-  }: VoucherCountriesProps & WithStyles<typeof styles>) => (
+  }: CountryListProps & WithStyles<typeof styles>) => (
     <Toggle initial={true}>
       {(isCollapsed, { toggle: toggleCollapse }) => (
         <Card>
           <CardTitle
-            title={
-              <>
-                {i18n.t("Countries assigned to {{ voucherName }}", {
-                  voucherName: maybe(() => voucher.name)
-                })}
-                <Typography className={classes.caption} variant="caption">
-                  {i18n.t("Vouchers limited to these countries")}
-                </Typography>
-              </>
-            }
+            title={title}
             toolbar={
               <Button
                 variant="flat"
@@ -93,10 +84,7 @@ const VoucherCountries = withStyles(styles, {
                 <TableCell className={classes.wideColumn}>
                   {i18n.t("{{ number }} Countries", {
                     context: "number of countries",
-                    number: maybe(
-                      () => voucher.countries.length.toString(),
-                      "..."
-                    )
+                    number: maybe(() => countries.length.toString(), "...")
                   })}
                 </TableCell>
                 <TableCell className={classes.textRight}>
@@ -110,7 +98,7 @@ const VoucherCountries = withStyles(styles, {
               </TableRow>
               {!isCollapsed &&
                 renderCollection(
-                  maybe(() => voucher.countries),
+                  countries,
                   country => (
                     <TableRow key={country ? country.code : "skeleton"}>
                       <TableCell>
@@ -131,9 +119,7 @@ const VoucherCountries = withStyles(styles, {
                   ),
                   () => (
                     <TableRow>
-                      <TableCell colSpan={2}>
-                        {i18n.t("Voucher applies to all countries")}
-                      </TableCell>
+                      <TableCell colSpan={2}>{emptyText}</TableCell>
                     </TableRow>
                   )
                 )}
@@ -144,4 +130,4 @@ const VoucherCountries = withStyles(styles, {
     </Toggle>
   )
 );
-export default VoucherCountries;
+export default CountryList;
