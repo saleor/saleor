@@ -208,20 +208,20 @@ header {
             position: relative;
             & .trangleContainer {
               position: absolute;
-              width: 11px;
+              width: 9px;
               height: 6px;
               top: 6px;
               right: -17px;
               border-top: 1px solid var(--body-color);
               transition: transform 0.3s ease;
-              transform: rotate(180deg);
+              transform: initial;
               & .triangle {
                 content: "";
                 position: absolute;
                 top: -3px;
                 right: 2px;
-                width: 6px;
-                height: 6px;
+                width: 5px;
+                height: 5px;
                 transform: rotate(45deg);
                 -webkit-transform: rotate(45deg);
                 -moz-transform: rotate(45deg);
@@ -237,7 +237,7 @@ header {
               color: var(--primaryColor);
               & .trangleContainer {
                   border-color: var(--primaryColor);
-                  transform: initial;
+                  transform: rotate(180deg);
                   & .triangle {
                     border-color: var(--primaryColor);
                   }
@@ -390,7 +390,7 @@ header {
               }
               & .trangleContainer {
                 top: 19px;
-                transform: rotate(180deg);
+                transform: initial;
                 border-color: var(--body-color);
                 & .triangle {
                   border-color: var(--body-color);
@@ -404,7 +404,7 @@ header {
               & a {
                 color: var(--primaryColor);
                 & .trangleContainer {
-                  transform: rotate(0);
+                  transform: rotate(180deg);
                   border-color: var(--primaryColor);
                   & .triangle {
                     border-color: var(--primaryColor);
