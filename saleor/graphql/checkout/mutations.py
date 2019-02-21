@@ -164,16 +164,14 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     def save(cls, info, instance, cleaned_input):
         shipping_address = cleaned_input.get('shipping_address')
         billing_address = cleaned_input.get('billing_address')
-        update_fields = []
         if shipping_address:
             shipping_address.save()
             instance.shipping_address = shipping_address
-            update_fields.append('shipping_address')
         if billing_address:
             billing_address.save()
             instance.billing_address = billing_address
-            update_fields.append('billing_address')
-        instance.save(update_fields=update_fields)
+
+        instance.save()
 
         variants = cleaned_input.get('variants')
         quantities = cleaned_input.get('quantities')
@@ -184,8 +182,10 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     @classmethod
     def mutate(cls, root, info, input):
         errors = []
-
         user = info.context.user
+
+        # `mutate` method is overriden to properly get or create a checkout
+        # instance here:
         if user.is_authenticated:
             checkout = get_or_create_user_cart(user)
         else:
@@ -196,8 +196,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         cls.clean_instance(checkout, errors)
         if errors:
             return CheckoutCreate(errors=errors)
-
         cls.save(info, checkout, cleaned_input)
+        cls._save_m2m(info, checkout, cleaned_input)
         return CheckoutCreate(checkout=checkout, errors=errors)
 
 
