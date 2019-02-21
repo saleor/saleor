@@ -54,6 +54,7 @@ const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
   }: ShippingZonesListProps & WithStyles<typeof styles>) => (
     <Card>
       <CardTitle
+        height="const"
         title={i18n.t("Shipping by zone")}
         toolbar={
           <Button color="secondary" onClick={onAdd}>
