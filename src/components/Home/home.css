@@ -782,6 +782,9 @@
         & h5 {
           font-size: calc(var(--font-size-base) * 1.5);
           padding: calc(var(--spacer) * 2) 0;
+          @media (max-width: 768px) {
+            padding: var(--spacer);
+          }
           @media (max-width: 700px) {
             text-align: center;
             font-size: calc(var(--font-size-base) * 1.2);
@@ -812,7 +815,14 @@
           @media (max-width: 1280px) {
             width: 100%;
           }
+          @media (max-width: 768px) {
+            width: 50%;
+            & a {
+              margin-top: var(--spacer);
+            }
+          }
           @media (max-width: 700px) {
+            width: 100%;
             text-align: center;
           }
         }
@@ -832,6 +842,14 @@
             width: 35%;
           }
           @media (max-width: 1280px) {
+            width: 100%;
+            text-align: center;
+            padding-top: calc(var(--spacer) * 2);
+          }
+          @media (max-width: 768px) {
+            width: 50%;
+          }
+          @media (max-width: 700px) {
             width: 100%;
             text-align: center;
             padding-top: calc(var(--spacer) * 2);
