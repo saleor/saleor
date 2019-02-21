@@ -9,8 +9,8 @@ from ....core.exceptions import InsufficientStock
 from ....core.utils.taxes import ZERO_TAXED_MONEY
 from ....order import OrderEvents, OrderStatus, models
 from ....order.utils import (
-    add_variant_to_order, allocate_stock,
-    change_order_line_quantity, delete_order_line, recalculate_order)
+    add_variant_to_order, allocate_stock, change_order_line_quantity,
+    delete_order_line, recalculate_order)
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -287,9 +287,6 @@ class DraftOrderLineDelete(BaseMutation):
         if order.status != OrderStatus.DRAFT:
             cls.add_error(
                 errors, 'id', 'Only draft orders can be edited.')
-        if not line.variant:
-            cls.add_error(
-                errors, None, 'Order line without variant can not be deleted.')
         if not errors:
             db_id = line.id
             delete_order_line(line)
@@ -330,9 +327,6 @@ class DraftOrderLineUpdate(ModelMutation):
                 errors, 'quantity',
                 'Ensure this value is greater than or equal to 1.')
 
-        if not instance.variant:
-            cls.add_error(
-                errors, None, 'Order line without variant can not be edited')
         return cleaned_input
 
     @classmethod

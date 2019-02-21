@@ -311,16 +311,6 @@ class OrderLine(models.Model):
     def __str__(self):
         return self.product_name
 
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            if ('order' in kwargs and 'variant' in kwargs
-                    and 'quantity' in kwargs):
-                order = kwargs['order']
-                order.weight += (
-                    kwargs['variant'].get_weight() * kwargs['quantity'])
-                order.save()
-        super().save(*args, **kwargs)
-
     def get_total(self):
         return self.unit_price * self.quantity
 
