@@ -46,11 +46,11 @@ Payment has 5 possible charge statuses:
 +--------------------+--------------------+-------------------------------------------------------------------------------------- -----+
 | Code               | GraphQL API value  | Description                                                                                |
 +--------------------+--------------------+--------------------------------------------------------------------------------------------+
-| not-charged        | NOT_CHARGED        | No funds were take off the customer founding source yet.                                   |
+| not-charged        | NOT_CHARGED        | No funds were take off the customer's funding source yet.                                   |
 +--------------------+--------------------+--------------------------------------------------------------------------------------------+
-| partially-charged  | PARTIALLY_CHARGED  | Funds were taken off the customer founding source, partly covering the payment amount.     |
+| partially-charged  | PARTIALLY_CHARGED  | Funds were taken off the customer's funding source, partly covering the payment amount.     |
 +--------------------+--------------------+--------------------------------------------------------------------------------------------+
-| fully-charged      | FULLY_CHARGED      | Funds were taken off the customer founding source, completely covering the payment amount. |
+| fully-charged      | FULLY_CHARGED      | Funds were taken off the customer's funding source, completely covering the payment amount. |
 +--------------------+--------------------+--------------------------------------------------------------------------------------------+
 | partially-refunded | PARTIALLY_REFUNDED | Part of charged funds were returned to the customer.                                       |
 +--------------------+--------------------+--------------------------------------------------------------------------------------------+
