@@ -9,6 +9,7 @@ from ..account.utils import store_user_address
 from ..checkout import AddressType
 from ..core.utils.taxes import (
     ZERO_MONEY, get_tax_rate_by_name, get_taxes_for_address)
+from ..core.weight import zero_weight
 from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..discount.models import NotApplicable
 from ..order import FulfillmentStatus, OrderStatus
@@ -76,6 +77,23 @@ def recalculate_order(order, **kwargs):
     if order.discount_amount:
         total -= order.discount_amount
     order.total = total
+    order.save()
+    recalculate_order_weight(order)
+
+
+def recalculate_order_weight(order):
+    """Recalculate order weights.
+
+    It removes lines with non-existing variants.
+    """
+    lines_to_remove = order.lines.filter(variant=None)
+    if lines_to_remove.exists():
+        lines_to_remove.delete()
+
+    weight = zero_weight()
+    for line in order:
+        weight += line.variant.get_weight() * line.quantity
+    order.weight = weight
     order.save()
 
 
@@ -180,10 +198,11 @@ def add_variant_to_order(
     """
     if not allow_overselling:
         variant.check_quantity(quantity)
+
+    order.weight += variant.get_weight() * quantity
     try:
         line = order.lines.get(variant=variant)
         line.quantity += quantity
-        order.weight += variant.get_weight() * quantity
         with transaction.atomic():
             line.save(update_fields=['quantity'])
             order.save(update_fields=['weight'])
@@ -192,15 +211,17 @@ def add_variant_to_order(
         translated_product_name = variant.display_product(translated=True)
         if translated_product_name == product_name:
             translated_product_name = ''
-        line = order.lines.create(
-            product_name=product_name,
-            translated_product_name=translated_product_name,
-            product_sku=variant.sku,
-            is_shipping_required=variant.is_shipping_required(),
-            quantity=quantity,
-            variant=variant,
-            unit_price=variant.get_price(discounts, taxes),
-            tax_rate=get_tax_rate_by_name(variant.product.tax_rate, taxes))
+        with transaction.atomic():
+            line = order.lines.create(
+                product_name=product_name,
+                translated_product_name=translated_product_name,
+                product_sku=variant.sku,
+                is_shipping_required=variant.is_shipping_required(),
+                quantity=quantity,
+                variant=variant,
+                unit_price=variant.get_price(discounts, taxes),
+                tax_rate=get_tax_rate_by_name(variant.product.tax_rate, taxes))
+            order.save(update_fields=['weight'])
 
     if variant.track_inventory and track_inventory:
         allocate_stock(variant, quantity)
@@ -210,27 +231,15 @@ def add_variant_to_order(
 def change_order_line_quantity(line, new_quantity):
     """Change the quantity of ordered items in a order line."""
     if new_quantity:
-        old_quantity = OrderLine.objects.get(pk=line.pk).quantity
-        order = line.order
-        variant_weight = line.variant.get_weight()
         line.quantity = new_quantity
-        order.weight += (
-            new_quantity * variant_weight - old_quantity * variant_weight)
-        with transaction.atomic():
-            line.save(update_fields=['quantity'])
-            order.save(update_fields=['weight'])
+        line.save(update_fields=['quantity'])
     else:
         delete_order_line(line)
 
 
 def delete_order_line(line):
     """Delete order line from order"""
-    order = line.order
-    quantity = line.quantity
-    order.weight -= quantity * line.variant.get_weight()
-    with transaction.atomic():
-        line.delete()
-        order.save(update_fields=['weight'])
+    line.delete()
 
 
 def restock_order_lines(order):
