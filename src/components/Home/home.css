@@ -701,6 +701,7 @@
           padding: calc(var(--spacer) * 3) 0;
           @media (max-width: 700px) {
             text-align: center;
+            padding-bottom: 0;
           }
           & .number {
             @media (max-width: 700px) {
@@ -717,11 +718,17 @@
             @media (max-width: 1300px) {
               font-size: calc(var(--font-size-base) * 1.2);
             }
+            @media (max-width: 700px) {
+              font-size: calc(var(--font-size-base) * 1.5);
+              & br {
+                display: none;
+              }
+            }
             &.count {
               font-size: calc(var(--font-size-base) * 3);
               font-weight: var(--font-weight-medium);
               @media (max-width: 700px) {
-                font-size: calc(var(--font-size-base) * 3);
+                font-size: calc(var(--font-size-base) * 4.5);
               }
             }
             &.separator {
@@ -790,7 +797,7 @@
           }
           @media (max-width: 700px) {
             text-align: center;
-            font-size: calc(var(--font-size-base) * 1.2);
+            font-size: calc(var(--font-size-base) * 1.5);
             padding: calc(var(--spacer) * 2) 0 0 0;
           }
         }
@@ -800,7 +807,7 @@
           margin: 0 calc(var(--spacer) * 1.5);
           @media (max-width: 750px) {
             text-align: center;
-            margin-top: calc(var(--spacer) * 1.5);
+            margin: 0;
           }
         }
         & .buttons {
