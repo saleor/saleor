@@ -1079,6 +1079,13 @@ def test_order_event_display(admin_user, type, order):
 
 def test_filter_order_by_status(admin_client):
     url = reverse('dashboard:orders',)
-    data = {'status': 'unfulfilled', 'payment_status': 'charged'}
+    data = {
+        'status': 'unfulfilled', 'payment_status': ChargeStatus.NOT_CHARGED}
+    response = admin_client.get(url, data)
+    assert response.status_code == 200
+
+    data = {
+        'status': 'unfulfilled',
+        'payment_status': ChargeStatus.FULLY_REFUNDED}
     response = admin_client.get(url, data)
     assert response.status_code == 200
