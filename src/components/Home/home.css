@@ -741,7 +741,7 @@
         background-repeat: no-repeat;
         background-size: contain;
         left: 50%;
-        top: -7%;
+        top: -23%;
         z-index: 1;
         @media (max-width: 1200px) {
           width: 600px;

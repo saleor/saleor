@@ -348,8 +348,7 @@ class Home extends Component {
                 <div className="col-xs-12 col-sm-12 col-md-7 text">
                   <h2>Open source</h2>
                   <p>Join our open source community <br />& change e-commerce</p>
-                  <p className="text-light">Mirumee Software developed Saleor as an answer to challenges we faced internally and, because we love to give back, we opened it up to the open source community. The incredible response convinced us to expand Saleor into a full e-commerce solution and our core in-house team of experts is now augmented by amazing open source developers around the world. </p>
-                  <p className="text-light">By joining the hundreds of active contributors, you gain access to core contributors and the latest discussions. Become part of the world's fastest growing open source e-commerce platform.</p>
+                  <p className="text-light">Gain access to core contributors and the latest discussions.<br /> Become part of the world’s fastest growing open source e-commerce platform </p>
                   <div className="grid numbers">
                     <div className="col-xs-12 col-ls-12 col-sm-4 col-md-4 number">
                       <span className="count">90+</span>
