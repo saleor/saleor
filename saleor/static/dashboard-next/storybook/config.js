@@ -14,6 +14,7 @@ function loadStories() {
   require("./stories/components/ErrorPage");
   require("./stories/components/ExternalLink");
   require("./stories/components/Money");
+  require("./stories/components/MoneyRange");
   require("./stories/components/MultiAutocompleteSelectField");
   require("./stories/components/MultiSelectField");
   require("./stories/components/NotFoundPage");
@@ -28,6 +29,8 @@ function loadStories() {
   require("./stories/components/StatusLabel");
   require("./stories/components/TablePagination");
   require("./stories/components/Timeline");
+  require("./stories/components/Weight");
+  require("./stories/components/WeightRange");
   require("./stories/components/messages");
 
   // Authentication
@@ -112,6 +115,7 @@ function loadStories() {
   require("./stories/productTypes/ProductTypeListPage");
 
   // Shipping
+  require("./stories/shipping/ShippingZoneDetailsPage");
   require("./stories/shipping/ShippingZonesListPage");
 
   // Site settings
