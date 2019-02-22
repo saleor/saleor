@@ -15,9 +15,12 @@ MUTATION_CHECKOUT_CREATE = """
     mutation createCheckout($checkoutInput: CheckoutCreateInput!) {
         checkoutCreate(input: $checkoutInput) {
             checkout {
-                token,
                 id
+                token
                 email
+                lines {
+                    quantity
+                }
             }
             errors {
                 field
@@ -81,6 +84,10 @@ def test_checkout_create_reuse_cart(cart, user_api_client, variant):
     # assert that existing cart was reused and returned by mutation
     checkout_data = content['data']['checkoutCreate']['checkout']
     assert checkout_data['token'] == str(cart.token)
+
+    # if checkout was reused it should be returned unmodified (e.g. without
+    # adding new lines that was passed)
+    assert checkout_data['lines'] == []
 
 
 def test_checkout_create_required_email(api_client, variant):
