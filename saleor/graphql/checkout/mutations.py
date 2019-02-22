@@ -189,7 +189,11 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         # `mutate` method is overriden to properly get or create a checkout
         # instance here:
         if user.is_authenticated:
-            checkout = get_or_create_user_cart(user)
+            checkout, created = get_or_create_user_cart(user)
+            # If user has an active checkout, return it without any
+            # modifications.
+            if not created:
+                return CheckoutCreate(checkout=checkout, errors=errors)
         else:
             checkout = models.Cart()
 
