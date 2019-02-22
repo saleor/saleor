@@ -176,10 +176,12 @@ def get_or_create_user_cart(user: User, cart_queryset=Cart.objects.all()):
         'shipping_address': user.default_shipping_address,
         'billing_address': user.default_billing_address}
 
+    created = False
     cart = cart_queryset.filter(user=user).first()
     if cart is None:
         cart = Cart.objects.create(user=user, **defaults)
-    return cart
+        created = True
+    return cart, created
 
 
 def get_anonymous_cart_from_token(token, cart_queryset=Cart.objects.all()):
@@ -195,7 +197,7 @@ def get_user_cart(user, cart_queryset=Cart.objects.all()):
 def get_or_create_cart_from_request(request, cart_queryset=Cart.objects.all()):
     """Fetch cart from database or create a new one based on cookie."""
     if request.user.is_authenticated:
-        return get_or_create_user_cart(request.user, cart_queryset)
+        return get_or_create_user_cart(request.user, cart_queryset)[0]
     token = request.get_signed_cookie(COOKIE_NAME, default=None)
     return get_or_create_anonymous_cart_from_token(token, cart_queryset)
 
@@ -834,26 +836,12 @@ def _process_user_data_for_order(cart):
     return {
         'user': cart.user,
         'user_email': cart.user.email if cart.user else cart.email,
-        'billing_address': billing_address}
-
-
-def _fill_order_with_cart_data(order, cart, discounts, taxes):
-    """Fill an order with data (variants, note) from cart."""
-    from ..order.utils import add_variant_to_order
-
-    for line in cart:
-        add_variant_to_order(
-            order, line.variant, line.quantity, discounts, taxes)
-
-    cart.payments.update(order=order)
-
-    if cart.note:
-        order.customer_note = cart.note
-        order.save(update_fields=['customer_note'])
+        'billing_address': billing_address,
+        'customer_note': cart.note}
 
 
 @transaction.atomic
-def create_order(cart, tracking_code, discounts, taxes):
+def create_order(cart: Cart, tracking_code: str, discounts, taxes):
     """Create an order from the cart.
 
     Each order will get a private copy of both the billing and the shipping
@@ -865,16 +853,14 @@ def create_order(cart, tracking_code, discounts, taxes):
     Current user's language is saved in the order so we can later determine
     which language to use when sending email.
     """
+    from ..order.utils import add_variant_to_order
+
     order = Order.objects.filter(checkout_token=cart.token).first()
     if order is not None:
         return order
 
-    # FIXME: save locale along with the language
-    try:
-        order_data = _process_voucher_data_for_order(cart)
-    except NotApplicable:
-        return None
-
+    order_data: dict = {}
+    order_data.update(_process_voucher_data_for_order(cart))
     order_data.update(_process_shipping_data_for_order(cart, taxes))
     order_data.update(_process_user_data_for_order(cart))
     order_data.update({
@@ -883,7 +869,14 @@ def create_order(cart, tracking_code, discounts, taxes):
         'total': cart.get_total(discounts, taxes)})
 
     order = Order.objects.create(**order_data, checkout_token=cart.token)
-    _fill_order_with_cart_data(order, cart, discounts, taxes)
+
+    # create order lines from cart lines
+    for line in cart:
+        add_variant_to_order(
+            order, line.variant, line.quantity, discounts, taxes)
+
+    # assign cart payments to the order
+    cart.payments.update(order=order)
     return order
 
 
