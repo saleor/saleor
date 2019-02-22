@@ -1,3 +1,5 @@
+import { ShippingMethodTypeEnum } from "../types/globalTypes";
+import { ShippingZoneDetailsFragment } from "./types/ShippingZoneDetailsFragment";
 import { ShippingZoneFragment } from "./types/ShippingZoneFragment";
 
 export const shippingZones: ShippingZoneFragment[] = [
@@ -1281,3 +1283,366 @@ export const shippingZones: ShippingZoneFragment[] = [
     name: "Africa"
   }
 ];
+
+export const shippingZone: ShippingZoneDetailsFragment = {
+  __typename: "ShippingZone",
+  countries: [
+    {
+      __typename: "CountryDisplay",
+      code: "AX",
+      country: "Wyspy Alandzkie"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "AL",
+      country: "Albania"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "AD",
+      country: "Andora"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "AT",
+      country: "Austria"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "BY",
+      country: "Białoruś"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "BE",
+      country: "Belgia"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "BA",
+      country: "Bośnia i Hercegowina"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "BG",
+      country: "Bułgaria"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "HR",
+      country: "Chorwacja"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "CZ",
+      country: "Czechy"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "DK",
+      country: "Dania"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "EE",
+      country: "Estonia"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "FO",
+      country: "Wyspy Owcze"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "FI",
+      country: "Finlandia"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "FR",
+      country: "Francja"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "DE",
+      country: "Niemcy"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "GI",
+      country: "Gibraltar"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "GR",
+      country: "Grecja"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "GG",
+      country: "Guernsey"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "VA",
+      country: "Watykan"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "HU",
+      country: "Węgry"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "IS",
+      country: "Islandia"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "IE",
+      country: "Irlandia"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "IM",
+      country: "Wyspa Man"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "IT",
+      country: "Włochy"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "JE",
+      country: "Jersey"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "LV",
+      country: "Łotwa"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "LI",
+      country: "Liechtenstein"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "LT",
+      country: "Litwa"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "LU",
+      country: "Luksemburg"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "MK",
+      country: "Macedonia"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "MT",
+      country: "Malta"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "MD",
+      country: "Mołdawia"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "MC",
+      country: "Monako"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "ME",
+      country: "Czarnogóra"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "NL",
+      country: "Holandia"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "NO",
+      country: "Norwegia"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "PL",
+      country: "Polska"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "PT",
+      country: "Portugalia"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "RO",
+      country: "Rumunia"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "RU",
+      country: "Rosja"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "SM",
+      country: "San Marino"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "RS",
+      country: "Serbia"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "SK",
+      country: "Słowacja"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "SI",
+      country: "Słowenia"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "ES",
+      country: "Hiszpania"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "SJ",
+      country: "Svalbard i Jan Mayen"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "SE",
+      country: "Szwecja"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "CH",
+      country: "Szwajcaria"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "UA",
+      country: "Ukraina"
+    },
+    {
+      __typename: "CountryDisplay",
+      code: "GB",
+      country: "Wielka Brytania"
+    }
+  ],
+  default: false,
+  id: "U2hpcHBpbmdab25lOjE=",
+  name: "Europe",
+  shippingMethods: [
+    {
+      __typename: "ShippingMethod",
+      id: "U2hpcHBpbmdNZXRob2Q6NA==",
+      maximumOrderPrice: null,
+      maximumOrderWeight: {
+        __typename: "Weight",
+        unit: "kg",
+        value: 80
+      },
+      minimumOrderPrice: {
+        __typename: "Money",
+        amount: 0,
+        currency: "USD"
+      },
+      minimumOrderWeight: {
+        __typename: "Weight",
+        unit: "kg",
+        value: 0
+      },
+      name: "DB Schenker",
+      price: {
+        __typename: "Money",
+        amount: 45.93,
+        currency: "USD"
+      },
+      type: ShippingMethodTypeEnum.WEIGHT
+    },
+    {
+      __typename: "ShippingMethod",
+      id: "U2hpcHBpbmdNZXRob2Q6Mw==",
+      maximumOrderPrice: null,
+      maximumOrderWeight: null,
+      minimumOrderPrice: {
+        __typename: "Money",
+        amount: 0,
+        currency: "USD"
+      },
+      minimumOrderWeight: {
+        __typename: "Weight",
+        unit: "kg",
+        value: 0
+      },
+      name: "Registred priority",
+      price: {
+        __typename: "Money",
+        amount: 73.87,
+        currency: "USD"
+      },
+      type: ShippingMethodTypeEnum.WEIGHT
+    },
+    {
+      __typename: "ShippingMethod",
+      id: "U2hpcHBpbmdNZXRob2Q6Mg==",
+      maximumOrderPrice: null,
+      maximumOrderWeight: null,
+      minimumOrderPrice: {
+        __typename: "Money",
+        amount: 0,
+        currency: "USD"
+      },
+      minimumOrderWeight: {
+        __typename: "Weight",
+        unit: "kg",
+        value: 0
+      },
+
+      name: "UPS",
+      price: {
+        __typename: "Money",
+        amount: 48.11,
+        currency: "USD"
+      },
+      type: ShippingMethodTypeEnum.PRICE
+    },
+    {
+      __typename: "ShippingMethod",
+      id: "U2hpcHBpbmdNZXRob2Q6MQ==",
+      maximumOrderPrice: null,
+      maximumOrderWeight: null,
+      minimumOrderPrice: {
+        __typename: "Money",
+        amount: 0,
+        currency: "USD"
+      },
+      minimumOrderWeight: {
+        __typename: "Weight",
+        unit: "kg",
+        value: 0
+      },
+      name: "DHL",
+      price: {
+        __typename: "Money",
+        amount: 95.24,
+        currency: "USD"
+      },
+      type: ShippingMethodTypeEnum.PRICE
+    }
+  ]
+};

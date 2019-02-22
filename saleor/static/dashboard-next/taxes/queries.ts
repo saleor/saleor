@@ -35,7 +35,7 @@ const countryList = gql`
     shop {
       ...ShopTaxesFragment
       countries {
-        ...CountryFragment
+        ...CountryWithTaxesFragment
       }
     }
   }

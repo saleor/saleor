@@ -1,6 +1,7 @@
 import gql from "graphql-tag";
 
 import { pageInfoFragment, TypedQuery } from "../queries";
+import { ShippingZone, ShippingZoneVariables } from "./types/ShippingZone";
 import { ShippingZones, ShippingZonesVariables } from "./types/ShippingZones";
 
 export const shippingZoneFragment = gql`
@@ -11,6 +12,38 @@ export const shippingZoneFragment = gql`
       country
     }
     name
+  }
+`;
+export const shippingZoneDetailsFragment = gql`
+  ${shippingZoneFragment}
+  fragment ShippingZoneDetailsFragment on ShippingZone {
+    ...ShippingZoneFragment
+    default
+    shippingMethods {
+      id
+      minimumOrderPrice {
+        amount
+        currency
+      }
+      minimumOrderWeight {
+        unit
+        value
+      }
+      maximumOrderPrice {
+        amount
+        currency
+      }
+      maximumOrderWeight {
+        unit
+        value
+      }
+      name
+      price {
+        amount
+        currency
+      }
+      type
+    }
   }
 `;
 
@@ -39,3 +72,16 @@ export const TypedShippingZones = TypedQuery<
   ShippingZones,
   ShippingZonesVariables
 >(shippingZones);
+
+const shippingZone = gql`
+  ${shippingZoneDetailsFragment}
+  query ShippingZone($id: ID!) {
+    shippingZone(id: $id) {
+      ...ShippingZoneDetailsFragment
+    }
+  }
+`;
+export const TypedShippingZone = TypedQuery<
+  ShippingZone,
+  ShippingZoneVariables
+>(shippingZone);
