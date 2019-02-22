@@ -89,7 +89,6 @@ CREATE_QUERY = """
 def test_checkout_add_payment(
         user_api_client, cart_with_item, graphql_address_data):
     cart = cart_with_item
-    assert cart.user is None
     checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
     variables = {
         'checkoutId': checkout_id,
@@ -112,6 +111,38 @@ def test_checkout_add_payment(
     assert payment.total == total.amount
     assert payment.currency == total.currency
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
+
+
+def test_use_checkout_billing_address_as_payment_billing(
+        user_api_client, cart_with_item, address):
+    cart = cart_with_item
+    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
+    variables = {
+        'checkoutId': checkout_id,
+        'input': {
+            'gateway': 'DUMMY',
+            'token': 'sample-token',
+            'amount': str(cart.get_total().gross.amount)}}
+    response = user_api_client.post_graphql(CREATE_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content['data']['checkoutPaymentCreate']
+
+    # check if proper error is returned if address is missing
+    assert data['errors'][0]['field'] == 'billingAddress'
+
+    # assign the address and try again
+    address.street_address_1 = 'spanish-inqusition'
+    address.save()
+    cart.billing_address = address
+    cart.save()
+    response = user_api_client.post_graphql(CREATE_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content['data']['checkoutPaymentCreate']
+
+    cart.refresh_from_db()
+    assert cart.payments.count() == 1
+    payment = cart.payments.first()
+    assert payment.billing_address_1 == address.street_address_1
 
 
 CAPTURE_QUERY = """
