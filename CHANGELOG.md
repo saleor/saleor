@@ -30,7 +30,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add header and footer for checkout success pages #3752 by @jxltom
 - Filter order by payment status from order's last payment - #3749 @jxltom
 - Reuse cart creation logic in API - #3761 by @maarcingebala
-
+- Add json fields to models for content/description - #3756 by @michaljelonek
 
 ## 2.3.0
 ### API

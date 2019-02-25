@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from unittest.mock import Mock, patch
 
@@ -440,9 +441,10 @@ def test_create_product(
     query = """
         mutation createProduct(
             $productTypeId: ID!,
-            $categoryId: ID!
+            $categoryId: ID!,
             $name: String!,
             $description: String!,
+            $descriptionJson: JSONString!,
             $isPublished: Boolean!,
             $chargeTaxes: Boolean!,
             $taxRate: TaxRateType!,
@@ -454,6 +456,7 @@ def test_create_product(
                         productType: $productTypeId,
                         name: $name,
                         description: $description,
+                        descriptionJson: $descriptionJson,
                         isPublished: $isPublished,
                         chargeTaxes: $chargeTaxes,
                         taxRate: $taxRate,
@@ -465,6 +468,7 @@ def test_create_product(
                                 name
                             }
                             description
+                            descriptionJson
                             isPublished
                             chargeTaxes
                             taxRate
@@ -497,6 +501,7 @@ def test_create_product(
     category_id = graphene.Node.to_global_id(
         'Category', category.pk)
     product_description = 'test description'
+    product_description_json = json.dumps({'content': 'description'})
     product_name = 'test name'
     product_is_published = True
     product_charge_taxes = True
@@ -519,6 +524,7 @@ def test_create_product(
         'categoryId': category_id,
         'name': product_name,
         'description': product_description,
+        'descriptionJson': product_description_json,
         'isPublished': product_is_published,
         'chargeTaxes': product_charge_taxes,
         'taxRate': product_tax_rate,
@@ -534,6 +540,7 @@ def test_create_product(
     assert data['errors'] == []
     assert data['product']['name'] == product_name
     assert data['product']['description'] == product_description
+    assert data['product']['descriptionJson'] == product_description_json
     assert data['product']['isPublished'] == product_is_published
     assert data['product']['chargeTaxes'] == product_charge_taxes
     assert data['product']['taxRate'] == product_tax_rate
