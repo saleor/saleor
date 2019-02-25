@@ -1522,7 +1522,7 @@ def test_stock_availability_filter(user_api_client, product):
     assert content['data']['products']['totalCount'] == 0
 
 
-def test_product_sales(
+def test_report_product_sales(
         staff_api_client, order_with_lines, permission_manage_products,
         permission_manage_orders):
     query = """
@@ -1561,3 +1561,64 @@ def test_product_sales(
     assert (
         node_b['revenue']['gross']['amount'] ==
         line_b.quantity * line_b.unit_price_gross.amount)
+
+
+def test_variant_revenue_permissions(
+        staff_api_client, permission_manage_products,
+        permission_manage_orders, product):
+    query = """
+    query VariantRevenue($id: ID!) {
+        productVariant(id: $id) {
+            revenue(period: TODAY) {
+                gross {
+                    localized
+                }
+            }
+        }
+    }
+    """
+    variant = product.variants.first()
+    variables = {
+        'id': graphene.Node.to_global_id('ProductVariant', variant.pk)}
+    permissions = [permission_manage_orders, permission_manage_products]
+    response = staff_api_client.post_graphql(query, variables, permissions)
+    content = get_graphql_content(response)
+    assert content['data']['productVariant']['revenue']
+
+
+def test_variant_quantity_ordered_permissions(
+        staff_api_client, permission_manage_products,
+        permission_manage_orders, product):
+    query = """
+    query QuantityOrdered($id: ID!) {
+        productVariant(id: $id) {
+            quantityOrdered
+        }
+    }
+    """
+    variant = product.variants.first()
+    variables = {
+        'id': graphene.Node.to_global_id('ProductVariant', variant.pk)}
+    permissions = [permission_manage_orders, permission_manage_products]
+    response = staff_api_client.post_graphql(query, variables, permissions)
+    content = get_graphql_content(response)
+    assert 'quantityOrdered' in content['data']['productVariant']
+
+
+def test_variant_margin_permissions(
+        staff_api_client, permission_manage_products,
+        permission_manage_orders, product):
+    query = """
+    query Margin($id: ID!) {
+        productVariant(id: $id) {
+            margin
+        }
+    }
+    """
+    variant = product.variants.first()
+    variables = {
+        'id': graphene.Node.to_global_id('ProductVariant', variant.pk)}
+    permissions = [permission_manage_orders, permission_manage_products]
+    response = staff_api_client.post_graphql(query, variables, permissions)
+    content = get_graphql_content(response)
+    assert 'margin' in content['data']['productVariant']
