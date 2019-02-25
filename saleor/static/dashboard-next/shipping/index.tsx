@@ -4,7 +4,8 @@ import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
-import { shippingZonesListPath } from "./urls";
+import { shippingZonePath, shippingZonesListPath } from "./urls";
+import ShippingZoneDetailsComponent from "./views/ShippingZoneDetails";
 import ShippingZonesListComponent, {
   ShippingZonesListQueryParams
 } from "./views/ShippingZonesList";
@@ -21,11 +22,21 @@ const ShippingZonesList: React.StatelessComponent<RouteComponentProps<{}>> = ({
   return <ShippingZonesListComponent params={params} />;
 };
 
+interface ShippingZoneDetailsRouteProps {
+  id: string;
+}
+const ShippingZoneDetails: React.StatelessComponent<
+  RouteComponentProps<ShippingZoneDetailsRouteProps>
+> = ({ match }) => (
+  <ShippingZoneDetailsComponent id={decodeURIComponent(match.params.id)} />
+);
+
 export const ShippingRouter: React.StatelessComponent = () => (
   <>
     <WindowTitle title={i18n.t("Shipping")} />
     <Switch>
       <Route exact path={shippingZonesListPath} component={ShippingZonesList} />
+      <Route path={shippingZonePath(":id")} component={ShippingZoneDetails} />
     </Switch>
   </>
 );

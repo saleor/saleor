@@ -28,11 +28,11 @@ export interface ShippingZoneDetailsPageProps {
   onCountryRemove: (code: string) => void;
   onDelete: () => void;
   onPriceRateAdd: () => void;
-  onPriceRateEdit: () => void;
+  onPriceRateEdit: (id: string) => void;
   onRateRemove: () => void;
   onSubmit: (data: FormData) => void;
   onWeightRateAdd: () => void;
-  onWeightRateEdit: () => void;
+  onWeightRateEdit: (id: string) => void;
 }
 
 const ShippingZoneDetailsPage: React.StatelessComponent<
