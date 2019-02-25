@@ -64,7 +64,11 @@ const ShippingZoneRates = withStyles(styles, { name: "ShippingZoneRates" })(
     <Card>
       <CardTitle
         height="const"
-        title={i18n.t("Shipping by zone")}
+        title={
+          variant === "price"
+            ? i18n.t("Price Based Rates")
+            : i18n.t("Weight Based Rates")
+        }
         toolbar={
           <Button color="secondary" onClick={onRateAdd}>
             {i18n.t("Add rate", {
@@ -98,7 +102,7 @@ const ShippingZoneRates = withStyles(styles, { name: "ShippingZoneRates" })(
               <TableRow
                 hover={!!rate}
                 key={rate ? rate.id : "skeleton"}
-                onClick={!!rate && (() => onRateEdit(rate.id))}
+                onClick={!!rate ? () => onRateEdit(rate.id) : undefined}
               >
                 <TableCell className={classes.nameColumn}>
                   {maybe<React.ReactNode>(() => rate.name, <Skeleton />)}
