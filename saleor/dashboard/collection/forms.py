@@ -19,7 +19,7 @@ class CollectionForm(forms.ModelForm):
 
     class Meta:
         model = Collection
-        exclude = ['slug']
+        exclude = ['slug', 'description_json']
         labels = {
             'name': pgettext_lazy('Item name', 'Name'),
             'background_image': pgettext_lazy(
