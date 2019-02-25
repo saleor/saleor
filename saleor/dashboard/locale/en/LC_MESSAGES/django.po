@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-18 05:51-0600\n"
+"POT-Creation-Date: 2019-02-25 10:45-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -49,14 +49,14 @@ msgstr[1] ""
 #: saleor/dashboard/category/forms.py:25
 #: saleor/dashboard/collection/forms.py:24
 #: saleor/dashboard/discount/forms.py:94 saleor/dashboard/product/forms.py:96
-#: saleor/dashboard/product/forms.py:249 saleor/dashboard/product/forms.py:457
+#: saleor/dashboard/product/forms.py:250 saleor/dashboard/product/forms.py:458
 #: saleor/dashboard/sites/forms.py:52
 msgctxt "Item name"
 msgid "Name"
 msgstr ""
 
 #: saleor/dashboard/category/forms.py:26 saleor/dashboard/product/forms.py:235
-#: saleor/dashboard/product/forms.py:406 saleor/dashboard/sites/forms.py:29
+#: saleor/dashboard/product/forms.py:407 saleor/dashboard/sites/forms.py:29
 msgctxt "Description"
 msgid "Description"
 msgstr ""
@@ -120,7 +120,7 @@ msgstr ""
 #: saleor/dashboard/customer/filters.py:38
 #: saleor/dashboard/discount/filters.py:58
 #: saleor/dashboard/discount/filters.py:94 saleor/dashboard/order/filters.py:44
-#: saleor/dashboard/order/filters.py:50 saleor/dashboard/product/filters.py:45
+#: saleor/dashboard/order/filters.py:51 saleor/dashboard/product/filters.py:45
 #: saleor/dashboard/taxes/filters.py:25
 msgctxt "Filter empty choice label"
 msgid "All"
@@ -821,17 +821,17 @@ msgctxt "Order list filter label"
 msgid "Payment status"
 msgstr ""
 
-#: saleor/dashboard/order/filters.py:53
+#: saleor/dashboard/order/filters.py:54
 msgctxt "Order list filter label"
 msgid "Total"
 msgstr ""
 
-#: saleor/dashboard/order/filters.py:56
+#: saleor/dashboard/order/filters.py:57
 msgctxt "Order list filter label"
 msgid "Sort by"
 msgstr ""
 
-#: saleor/dashboard/order/filters.py:76
+#: saleor/dashboard/order/filters.py:88
 #, python-format
 msgctxt "Number of matching records in the dashboard orders list"
 msgid "Found %(counter)d matching order"
@@ -1217,27 +1217,27 @@ msgctxt "Page form: page content field"
 msgid "Content"
 msgstr ""
 
-#: saleor/dashboard/page/forms.py:21
+#: saleor/dashboard/page/forms.py:22
 msgctxt "Page form: title field"
 msgid "Title"
 msgstr ""
 
-#: saleor/dashboard/page/forms.py:22
+#: saleor/dashboard/page/forms.py:23
 msgctxt "Page form: slug field"
 msgid "Slug"
 msgstr ""
 
-#: saleor/dashboard/page/forms.py:24
+#: saleor/dashboard/page/forms.py:25
 msgctxt "Page form: available on which date field"
 msgid "Available on"
 msgstr ""
 
-#: saleor/dashboard/page/forms.py:26
+#: saleor/dashboard/page/forms.py:27
 msgctxt "Page form: publication status indicator"
 msgid "Is published"
 msgstr ""
 
-#: saleor/dashboard/page/forms.py:30
+#: saleor/dashboard/page/forms.py:31
 msgctxt "Form field help text"
 msgid "Slug is being used to create page URL"
 msgstr ""
@@ -1451,109 +1451,109 @@ msgid ""
 "value used on the ProductType."
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:250 saleor/dashboard/shipping/forms.py:123
+#: saleor/dashboard/product/forms.py:251 saleor/dashboard/shipping/forms.py:123
 msgctxt "Currency amount"
 msgid "Price"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:252
+#: saleor/dashboard/product/forms.py:253
 msgctxt "Availability date"
 msgid "Publish product on"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:254
+#: saleor/dashboard/product/forms.py:255
 msgctxt "Product published toggle"
 msgid "Published"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:256
+#: saleor/dashboard/product/forms.py:257
 msgctxt "Charge taxes on product"
 msgid "Charge taxes on this product"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:276
+#: saleor/dashboard/product/forms.py:277
 msgctxt "Currency gross amount"
 msgid "Gross price"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:279
+#: saleor/dashboard/product/forms.py:280
 msgctxt "Currency net amount"
 msgid "Net price"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:307
+#: saleor/dashboard/product/forms.py:308
 msgctxt "ProductVariant weight"
 msgid "Weight"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:310
+#: saleor/dashboard/product/forms.py:311
 msgctxt "ProductVariant weight help text"
 msgid ""
 "Weight will be used to calculate shipping price. If empty, weight from "
 "Product or ProductType will be used."
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:319
+#: saleor/dashboard/product/forms.py:320
 msgctxt "SKU"
 msgid "SKU"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:321
+#: saleor/dashboard/product/forms.py:322
 msgctxt "Override price"
 msgid "Selling price override"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:322
+#: saleor/dashboard/product/forms.py:323
 msgctxt "Integer number"
 msgid "Number in stock"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:323
+#: saleor/dashboard/product/forms.py:324
 msgctxt "Currency amount"
 msgid "Cost price"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:325
+#: saleor/dashboard/product/forms.py:326
 msgctxt "Track inventory field"
 msgid "Track inventory"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:329
+#: saleor/dashboard/product/forms.py:330
 msgctxt "product variant handle stock field help text"
 msgid "Automatically track this product's inventory"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:344
+#: saleor/dashboard/product/forms.py:345
 msgctxt "Override price"
 msgid "Selling gross price override"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:346
+#: saleor/dashboard/product/forms.py:347
 msgctxt "Currency amount"
 msgid "Cost gross price"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:349
+#: saleor/dashboard/product/forms.py:350
 msgctxt "Override price"
 msgid "Selling net price override"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:351
+#: saleor/dashboard/product/forms.py:352
 msgctxt "Currency amount"
 msgid "Cost net price"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:404 saleor/dashboard/product/forms.py:509
+#: saleor/dashboard/product/forms.py:405 saleor/dashboard/product/forms.py:510
 msgctxt "Product image"
 msgid "Image"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:445
+#: saleor/dashboard/product/forms.py:446
 msgctxt "Product display name"
 msgid "Display name"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:447
+#: saleor/dashboard/product/forms.py:448
 msgctxt "Product internal name"
 msgid "Internal name"
 msgstr ""
