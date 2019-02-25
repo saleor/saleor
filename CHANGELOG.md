@@ -4,6 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 - New translations:
+  - Estonian
   - Indonesian
 - Fix problem with l10n in Braintree payment gateway template - #3691 by @Kwaidan00
 - Improve vouchers country limiting  - #3707 by @michaljelonek
