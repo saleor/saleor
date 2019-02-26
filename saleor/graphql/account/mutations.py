@@ -532,7 +532,7 @@ class CustomerSetDefaultAddress(BaseMutation):
 
     class Arguments:
         id = graphene.ID(
-            required=True, description='ID of address to set as default.')
+            required=True, description='ID of the address to set as default.')
         type = AddressTypeEnum(
             required=True, description='The type of address.')
 
