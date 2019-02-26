@@ -3,13 +3,13 @@ from unittest.mock import ANY, patch
 
 import graphene
 import pytest
-from tests.api.utils import get_graphql_content
 
 from saleor.checkout.models import Cart
 from saleor.checkout.utils import (
     add_voucher_to_cart, is_fully_paid, ready_to_place_order)
 from saleor.graphql.core.utils import str_to_enum
 from saleor.order.models import Order
+from tests.api.utils import get_graphql_content
 
 MUTATION_CHECKOUT_CREATE = """
     mutation createCheckout($checkoutInput: CheckoutCreateInput!) {
