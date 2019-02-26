@@ -315,8 +315,6 @@ class OrderLine(models.Model):
     def __str__(self):
         return self.product_name
 
-    __repr__ = __str__
-
     def get_total(self):
         return self.unit_price * self.quantity
 

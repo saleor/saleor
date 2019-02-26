@@ -615,14 +615,11 @@ class BaseFulfillmentLineFormSet(forms.BaseModelFormSet):
             form.empty_permitted = False
 
     def clean(self):
-        if any(self.errors):
-            return
-
-        total_quantities = sum(
-            form.cleaned_data['quantity'] for form in self.forms)
-        if total_quantities <= 0:
+        total_quantity = sum(
+            form.cleaned_data.get('quantity', 0) for form in self.forms)
+        if total_quantity <= 0:
             raise forms.ValidationError(
-                'Total quantities must be larger than 0.')
+                'Total quantity must be larger than 0.')
 
 
 class FulfillmentLineForm(forms.ModelForm):
