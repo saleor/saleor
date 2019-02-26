@@ -3,6 +3,7 @@ import graphene_django_optimizer as gql_optimizer
 from graphene import relay
 
 from ...order import models
+from ...order.models import FulfillmentStatus
 from ...product.templatetags.product_images import get_product_image_thumbnail
 from ..account.types import User
 from ..core.connection import CountableDjangoObjectType
@@ -265,7 +266,12 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_fulfillments(self, info):
-        return self.fulfillments.all().order_by('pk')
+        context_kwargs = getattr(info.context, 'kwargs', {})
+        if context_kwargs.get('ignore_cancelled_fulfillment', False):
+            qs = self.fulfillments.exclude(status=FulfillmentStatus.CANCELED)
+        else:
+            qs = self.fulfillments.all()
+        return qs.order_by('pk')
 
     @staticmethod
     def resolve_lines(self, info):
