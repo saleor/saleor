@@ -99,7 +99,7 @@ def test_create_fulfillment_with_emtpy_quantity(
 @pytest.mark.parametrize(
     'quantity, error_message',
     (
-        (0, 'Total quantities must be larger than 0.'),
+        (0, 'Total quantity must be larger than 0.'),
         (100, 'Only 3 items remaining to fulfill.')))
 def test_create_fulfillment_not_sufficient_quantity(
         staff_api_client, order_with_lines, staff_user, quantity,
@@ -115,8 +115,7 @@ def test_create_fulfillment_not_sufficient_quantity(
     content = get_graphql_content(response)
     data = content['data']['orderFulfillmentCreate']
     assert data['errors']
-    assert data['errors'][0]['field'] in (
-        str(order_line), '[{}]'.format(order_line))
+    assert data['errors'][0]['field'] in (str(order_line), 'lines')
     assert data['errors'][0]['message'] == error_message
 
 

@@ -92,8 +92,7 @@ class FulfillmentCreate(BaseMutation):
 
         if sum(quantities) <= 0:
             cls.add_error(
-                errors, order_lines,
-                'Total quantities must be larger than 0.')
+                errors, 'lines', 'Total quantity must be larger than 0.')
 
         if errors:
             return cls(errors=errors)
