@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-18 08:53-0600\n"
+"POT-Creation-Date: 2019-02-18 05:51-0600\n"
 "PO-Revision-Date: 2017-02-09 15:43+0000\n"
 "Last-Translator: Patryk Zawadzki <patrys@room-303.com>, 2018\n"
 "Language-Team: Chinese Traditional (https://www.transifex.com/mirumee/teams/34782/zh-Hant/)\n"
@@ -50,7 +50,7 @@ msgstr[0] ""
 
 #: saleor/dashboard/category/forms.py:25
 #: saleor/dashboard/collection/forms.py:24
-#: saleor/dashboard/discount/forms.py:95 saleor/dashboard/product/forms.py:96
+#: saleor/dashboard/discount/forms.py:94 saleor/dashboard/product/forms.py:96
 #: saleor/dashboard/product/forms.py:249 saleor/dashboard/product/forms.py:457
 #: saleor/dashboard/sites/forms.py:52
 msgctxt "Item name"
@@ -160,7 +160,14 @@ msgctxt "Collection published toggle"
 msgid "Published"
 msgstr "已發布"
 
-#: saleor/dashboard/collection/forms.py:35
+#: saleor/dashboard/collection/forms.py:36
+msgctxt ""
+"The publication date field, can be a posterior date for a planned "
+"publication."
+msgid "Publication date"
+msgstr ""
+
+#: saleor/dashboard/collection/forms.py:39
 msgctxt "Description field of a collection"
 msgid "Description"
 msgstr "描述"
@@ -460,125 +467,125 @@ msgid "Found %(counter)d matching voucher"
 msgid_plural "Found %(counter)d matching vouchers"
 msgstr[0] ""
 
-#: saleor/dashboard/discount/forms.py:22
+#: saleor/dashboard/discount/forms.py:21
 msgctxt "Lowest value for order to be able to use the voucher"
 msgid "Apply only if the purchase value is greater than or equal to"
 msgstr ""
 
-#: saleor/dashboard/discount/forms.py:30
+#: saleor/dashboard/discount/forms.py:29
 msgctxt "Discounted products"
 msgid "Discounted products"
 msgstr ""
 
-#: saleor/dashboard/discount/forms.py:38
+#: saleor/dashboard/discount/forms.py:37
 msgctxt "Sale name"
 msgid "Name"
 msgstr "名字"
 
-#: saleor/dashboard/discount/forms.py:41
+#: saleor/dashboard/discount/forms.py:40
 msgctxt "Discount type"
 msgid "Fixed or percentage"
 msgstr ""
 
-#: saleor/dashboard/discount/forms.py:44
+#: saleor/dashboard/discount/forms.py:43
 msgctxt "Sale date restrictions"
 msgid "Start date"
 msgstr "開始日期"
 
-#: saleor/dashboard/discount/forms.py:47
+#: saleor/dashboard/discount/forms.py:46
 msgctxt "Sale date restrictions"
 msgid "End date"
 msgstr "結束日期"
 
-#: saleor/dashboard/discount/forms.py:50
+#: saleor/dashboard/discount/forms.py:49
 msgctxt "Percentage or fixed amount value"
 msgid "Value"
 msgstr ""
 
-#: saleor/dashboard/discount/forms.py:53
+#: saleor/dashboard/discount/forms.py:52
 msgctxt "Discounted categories"
 msgid "Discounted categories"
 msgstr ""
 
-#: saleor/dashboard/discount/forms.py:56
+#: saleor/dashboard/discount/forms.py:55
 msgctxt "Discounted collections"
 msgid "Discounted collections"
 msgstr ""
 
-#: saleor/dashboard/discount/forms.py:70
+#: saleor/dashboard/discount/forms.py:69
 msgctxt "Sale (discount) error"
 msgid "Sale cannot exceed 100%"
 msgstr "促銷幅度不能超過 100%"
 
-#: saleor/dashboard/discount/forms.py:77
+#: saleor/dashboard/discount/forms.py:76
 msgctxt "Sale (discount) error"
 msgid ""
 "A single sale must point to at least one product, collectionand/or category."
 msgstr ""
 
-#: saleor/dashboard/discount/forms.py:92
+#: saleor/dashboard/discount/forms.py:91
 msgctxt "Discount type"
 msgid "Discount type"
 msgstr ""
 
-#: saleor/dashboard/discount/forms.py:98
+#: saleor/dashboard/discount/forms.py:97
 msgctxt "Coupon code"
 msgid "Code"
 msgstr ""
 
-#: saleor/dashboard/discount/forms.py:101
+#: saleor/dashboard/discount/forms.py:100
 msgctxt "Usage limit"
 msgid "Usage limit"
 msgstr ""
 
-#: saleor/dashboard/discount/forms.py:104
+#: saleor/dashboard/discount/forms.py:103
 msgctxt "Voucher date restrictions"
 msgid "Start date"
 msgstr "開始日期"
 
-#: saleor/dashboard/discount/forms.py:107
+#: saleor/dashboard/discount/forms.py:106
 msgctxt "Voucher date restrictions"
 msgid "End date"
 msgstr "結束日期"
 
-#: saleor/dashboard/discount/forms.py:110
+#: saleor/dashboard/discount/forms.py:109
 msgctxt "Discount type of the voucher"
 msgid "Discount type"
 msgstr ""
 
-#: saleor/dashboard/discount/forms.py:113
+#: saleor/dashboard/discount/forms.py:112
 msgctxt "Discount value of the voucher"
 msgid "Discount value"
 msgstr ""
 
-#: saleor/dashboard/discount/forms.py:137
+#: saleor/dashboard/discount/forms.py:130
 msgctxt "Text above the dropdown of countries"
 msgid "Limit countries that voucher should apply to"
 msgstr ""
 
-#: saleor/dashboard/discount/forms.py:165
+#: saleor/dashboard/discount/forms.py:158
 msgctxt "Field label, apply discount value only once per order"
 msgid "Only apply once per order"
 msgstr ""
 
-#: saleor/dashboard/discount/forms.py:168
+#: saleor/dashboard/discount/forms.py:161
 msgctxt "Help text of checkbox for applying discount only once per order"
 msgid ""
 "If unchecked, discount value will be taken off each suitable item in an "
 "order."
 msgstr ""
 
-#: saleor/dashboard/discount/forms.py:177
+#: saleor/dashboard/discount/forms.py:170
 msgctxt "Product"
 msgid "Products"
 msgstr "產品"
 
-#: saleor/dashboard/discount/forms.py:191
+#: saleor/dashboard/discount/forms.py:184
 msgctxt "Collections"
 msgid "Collections"
 msgstr ""
 
-#: saleor/dashboard/discount/forms.py:202
+#: saleor/dashboard/discount/forms.py:195
 msgctxt "Categories"
 msgid "Categories"
 msgstr "產品分類"
@@ -699,7 +706,7 @@ msgctxt "Menu item form error"
 msgid "A single menu item must point to an internal link or URL."
 msgstr ""
 
-#: saleor/dashboard/menu/utils.py:103
+#: saleor/dashboard/menu/utils.py:101
 #, python-format
 msgctxt "Menu item page hidden status"
 msgid ""
@@ -917,99 +924,94 @@ msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be voided"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:352
-msgctxt "Mark order as paid form error"
-msgid "Orders with payments can not be manually marked as paid"
-msgstr ""
-
-#: saleor/dashboard/order/forms.py:383
+#: saleor/dashboard/order/forms.py:375
 msgctxt "Integer number"
 msgid "Quantity"
 msgstr "庫存"
 
-#: saleor/dashboard/order/forms.py:402
+#: saleor/dashboard/order/forms.py:394
 #, python-format
 msgctxt "Change quantity form error"
 msgid "Only %(remaining)d remaining in stock."
 msgid_plural "Only %(remaining)d remaining in stock."
 msgstr[0] "庫存僅剩 %(remaining)d"
 
-#: saleor/dashboard/order/forms.py:434
+#: saleor/dashboard/order/forms.py:426
 #, python-format
 msgctxt "Cancel order form action"
 msgid "Restock %(quantity)d item"
 msgid_plural "Restock %(quantity)d items"
 msgstr[0] ""
 
-#: saleor/dashboard/order/forms.py:444
+#: saleor/dashboard/order/forms.py:436
 msgctxt "Cancel order form error"
 msgid "This order can't be canceled"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:464
+#: saleor/dashboard/order/forms.py:456
 #, python-format
 msgctxt "Cancel fulfillment form action"
 msgid "Restock %(quantity)d item"
 msgid_plural "Restock %(quantity)d items"
 msgstr[0] ""
 
-#: saleor/dashboard/order/forms.py:474
+#: saleor/dashboard/order/forms.py:466
 msgctxt "Cancel fulfillment form error"
 msgid "This fulfillment can't be canceled"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:487
+#: saleor/dashboard/order/forms.py:479
 msgctxt "Send mail to customer"
 msgid "Send notification email to customer"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:494
+#: saleor/dashboard/order/forms.py:486
 msgctxt "Fulfillment record"
 msgid "Tracking number"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:515
+#: saleor/dashboard/order/forms.py:507
 msgctxt "Remove voucher form error"
 msgid "This order has no voucher"
 msgstr "訂單無優惠券可用"
 
-#: saleor/dashboard/order/forms.py:528
+#: saleor/dashboard/order/forms.py:520
 msgctxt "Payment status field value"
 msgid "All"
 msgstr "全部"
 
-#: saleor/dashboard/order/forms.py:545
+#: saleor/dashboard/order/forms.py:537
 msgctxt "Order form: subform to add variant to order form: variant field"
 msgid "Variant"
 msgstr "複合式"
 
-#: saleor/dashboard/order/forms.py:548
+#: saleor/dashboard/order/forms.py:540
 msgctxt "Add variant to order form label"
 msgid "Quantity"
 msgstr "數量"
 
-#: saleor/dashboard/order/forms.py:569
+#: saleor/dashboard/order/forms.py:561
 #, python-format
 msgctxt "Add item form error"
 msgid "Could not add item. Only %(remaining)d remaining in stock."
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:592
+#: saleor/dashboard/order/forms.py:584
 msgctxt "Order form: address subform - phone number input field"
 msgid "Phone number"
 msgstr "電話號碼"
 
-#: saleor/dashboard/order/forms.py:601
+#: saleor/dashboard/order/forms.py:593
 msgctxt "Send mail to customer"
 msgid "Send shipment details to your customer now"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:609
+#: saleor/dashboard/order/forms.py:601
 msgctxt "Order tracking number"
 msgid "Tracking number"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:639
+#: saleor/dashboard/order/forms.py:631
 #, python-format
 msgctxt "Fulfill order line form error"
 msgid "%(quantity)d item remaining to fulfill."
@@ -1141,30 +1143,30 @@ msgctxt "Dashboard message"
 msgid "Removed voucher from order"
 msgstr "刪除訂單優惠券"
 
-#: saleor/dashboard/order/views.py:545
+#: saleor/dashboard/order/views.py:546
 msgctxt "Dashboard message"
 msgid "Order manually marked as paid"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:610
+#: saleor/dashboard/order/views.py:611
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Fulfilled %(quantity_fulfilled)d item"
 msgid_plural "Fulfilled %(quantity_fulfilled)d items"
 msgstr[0] ""
 
-#: saleor/dashboard/order/views.py:628
+#: saleor/dashboard/order/views.py:629
 msgctxt "Dashboard message related to an order"
 msgid "No items fulfilled"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:650
+#: saleor/dashboard/order/views.py:651
 #, python-format
 msgctxt "Dashboard message"
 msgid "Fulfillment #%(fulfillment)s canceled"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:696
+#: saleor/dashboard/order/views.py:697
 #, python-format
 msgctxt "Dashboard message"
 msgid "Fulfillment #%(fulfillment)s tracking number updated"
@@ -1223,8 +1225,8 @@ msgid "Available on"
 msgstr ""
 
 #: saleor/dashboard/page/forms.py:26
-msgctxt "Page form: visibility status indicator"
-msgid "Is visible"
+msgctxt "Page form: publication status indicator"
+msgid "Is published"
 msgstr ""
 
 #: saleor/dashboard/page/forms.py:30
