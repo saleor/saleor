@@ -68,6 +68,9 @@ class FulfillmentCreate(BaseMutation):
 
     @classmethod
     def clean_lines(cls, order_lines, quantities, errors):
+        if errors:
+            return errors
+
         for order_line, quantity in zip(order_lines, quantities):
             if quantity > order_line.quantity_unfulfilled:
                 msg = npgettext_lazy(

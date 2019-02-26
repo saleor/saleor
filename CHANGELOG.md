@@ -32,6 +32,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Filter order by payment status from order's last payment - #3749 @jxltom
 - Reuse cart creation logic in API - #3761 by @maarcingebala
 - Add json fields to models for content/description - #3756 by @michaljelonek
+- Fix bug where errors are not returned when creating fulfillment with non-existed order line - #3777 by @jxltom
 - Support fulfill order with 0 quantity only if total quantity is larger than 0 - #3754 by @jxltom
 - Fix storefront styles after bootstrap is updated to 4.3.1 - #3753 by @jxltom
 - Fix logo size in different browser and devices with different sizes - #3722 by @jxltom

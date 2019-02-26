@@ -119,6 +119,23 @@ def test_create_fulfillment_not_sufficient_quantity(
     assert data['errors'][0]['message'] == error_message
 
 
+def test_create_fulfillment_with_invalid_input(
+        staff_api_client, order_with_lines, permission_manage_orders):
+    query = CREATE_FULFILLMENT_QUERY
+    variables = {
+        'order': graphene.Node.to_global_id('Order', order_with_lines.id),
+        'lines': [{'orderLineId': 'fake-orderline-id', 'quantity': 1}]}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+    data = content['data']['orderFulfillmentCreate']
+    assert data['errors']
+    assert data['errors'][0]['field'] == 'lines'
+    assert data['errors'][0]['message'] == (
+        'Could not resolve to a nodes with the global id list'
+        ' of \'[\'fake-orderline-id\']\'.')
+
+
 def test_fulfillment_update_tracking(
         staff_api_client, fulfillment, permission_manage_orders):
     query = """
