@@ -1147,7 +1147,6 @@ def test_customer_set_address_as_default(user_api_client, address):
     user.default_billing_address = None
     user.default_shipping_address = None
     user.save()
-    user.refresh_from_db()
     assert not user.default_billing_address
     assert not user.default_shipping_address
 
@@ -1214,4 +1213,6 @@ def test_customer_change_default_address_invalid_address(
         'id': graphene.Node.to_global_id('Address', address_other_country.id),
         'type': 'SHIPPING'}
     response = user_api_client.post_graphql(query, variables)
-    assert_no_permission(response)
+    content = get_graphql_content(response)
+    data = content['data']['customerSetDefaultAddress']
+    assert data['errors'][0]['field'] == 'id'
