@@ -67,7 +67,17 @@ const ShippingZoneDetailsPage: React.StatelessComponent<
               <CountryList
                 countries={maybe(() => shippingZone.countries)}
                 disabled={disabled}
-                emptyText={i18n.t("Placeholder")}
+                emptyText={maybe(
+                  () =>
+                    shippingZone.default
+                      ? i18n.t(
+                          "This is default shipping zone, which means that it covers all of the countries which are not assigned to other shipping zones"
+                        )
+                      : i18n.t(
+                          "Currently, there are no countries assigned to this shipping zone"
+                        ),
+                  "..."
+                )}
                 onCountryAssign={onCountryAdd}
                 onCountryUnassign={onCountryRemove}
                 title={i18n.t("Countries")}

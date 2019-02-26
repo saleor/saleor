@@ -170,7 +170,9 @@ const CountryList = withStyles(styles, {
                     ),
                     () => (
                       <TableRow>
-                        <TableCell colSpan={2}>{emptyText}</TableCell>
+                        <TableCell className={classes.toLeft} colSpan={2}>
+                          {emptyText}
+                        </TableCell>
                       </TableRow>
                     )
                   )}

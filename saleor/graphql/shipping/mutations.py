@@ -51,7 +51,7 @@ class ShippingZoneMixin:
     def clean_input(cls, info, instance, input, errors):
         cleaned_input = super().clean_input(info, instance, input, errors)
         default = cleaned_input.get('default')
-        if default is not None:
+        if default:
             if default_shipping_zone_exists(instance.pk):
                 cls.add_error(
                     errors, 'default', 'Default shipping zone already exists.')

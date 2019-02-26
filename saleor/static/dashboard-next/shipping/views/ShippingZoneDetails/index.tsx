@@ -9,6 +9,7 @@ import Shop from "../../../components/Shop";
 import i18n from "../../../i18n";
 import { getMutationState, maybe } from "../../../misc";
 import { ShippingMethodTypeEnum } from "../../../types/globalTypes";
+import ShippingZoneCountriesAssignDialog from "../../components/ShippingZoneCountriesAssignDialog";
 import ShippingZoneDetailsPage from "../../components/ShippingZoneDetailsPage";
 import ShippingZoneRateDialog from "../../components/ShippingZoneRateDialog";
 import { TypedShippingZone } from "../../queries";
@@ -20,6 +21,8 @@ import { UpdateShippingZone } from "../../types/UpdateShippingZone";
 import { shippingZonesListUrl, shippingZoneUrl } from "../../urls";
 import ShippingZoneOperations from "./ShippingZoneOperations";
 import {
+  shippingZoneAssignCountryPath,
+  shippingZoneAssignCountryUrl,
   shippingZoneDeletePath,
   shippingZoneDeleteUrl,
   shippingZonePriceRateCreatePath,
@@ -28,6 +31,8 @@ import {
   shippingZoneRateDeleteUrl,
   shippingZoneRatePath,
   shippingZoneRateUrl,
+  shippingZoneUnassignCountryPath,
+  shippingZoneUnassignCountryUrl,
   shippingZoneWeightRateCreatePath,
   shippingZoneWeightRateCreateUrl
 } from "./urls";
@@ -94,6 +99,7 @@ const ShippingZoneDetails: React.StatelessComponent<
                   pushMessage({
                     text: i18n.t("Successfully updated shipping zone")
                   });
+                  closeModal();
                 }
               };
 
@@ -166,8 +172,14 @@ const ShippingZoneDetails: React.StatelessComponent<
                             <ShippingZoneDetailsPage
                               disabled={loading}
                               onBack={() => navigate(shippingZonesListUrl)}
-                              onCountryAdd={() => undefined}
-                              onCountryRemove={() => undefined}
+                              onCountryAdd={() =>
+                                navigate(shippingZoneAssignCountryUrl(id))
+                              }
+                              onCountryRemove={code =>
+                                navigate(
+                                  shippingZoneUnassignCountryUrl(id, code)
+                                )
+                              }
                               onDelete={() =>
                                 navigate(shippingZoneDeleteUrl(id))
                               }
@@ -198,6 +210,38 @@ const ShippingZoneDetails: React.StatelessComponent<
                               shippingZone={maybe(() => data.shippingZone)}
                             />
                             <Switch>
+                              <Route
+                                exact
+                                path={shippingZoneAssignCountryPath(":id")}
+                                render={({ match }) => (
+                                  <ShippingZoneCountriesAssignDialog
+                                    confirmButtonState={formTransitionState}
+                                    countries={maybe(() => shop.countries, [])}
+                                    initial={maybe(
+                                      () =>
+                                        data.shippingZone.countries.map(
+                                          country => country.code
+                                        ),
+                                      []
+                                    )}
+                                    isDefault={maybe(
+                                      () => data.shippingZone.default,
+                                      false
+                                    )}
+                                    onClose={closeModal}
+                                    onConfirm={formData =>
+                                      ops.shippingZoneUpdate.mutate({
+                                        id,
+                                        input: {
+                                          countries: formData.countries,
+                                          default: formData.restOfTheWorld
+                                        }
+                                      })
+                                    }
+                                    open={!!match}
+                                  />
+                                )}
+                              />
                               <Route
                                 exact
                                 path={shippingZonePriceRateCreatePath(
@@ -261,6 +305,54 @@ const ShippingZoneDetails: React.StatelessComponent<
                                             context: "remove shipping zone",
                                             name: maybe(
                                               () => data.shippingZone.name
+                                            )
+                                          }
+                                        )
+                                      }}
+                                    />
+                                  </ActionDialog>
+                                )}
+                              />
+                              <Route
+                                path={shippingZoneUnassignCountryPath(
+                                  ":id",
+                                  ":code"
+                                )}
+                                render={({ match }) => (
+                                  <ActionDialog
+                                    confirmButtonState={formTransitionState}
+                                    onClose={closeModal}
+                                    onConfirm={() =>
+                                      ops.shippingZoneUpdate.mutate({
+                                        id,
+                                        input: {
+                                          countries: data.shippingZone.countries
+                                            .filter(
+                                              country =>
+                                                country.code !==
+                                                match.params.code
+                                            )
+                                            .map(country => country.code)
+                                        }
+                                      })
+                                    }
+                                    open={!!match}
+                                    title={i18n.t("Remove from shipping zone")}
+                                    variant="delete"
+                                  >
+                                    <DialogContentText
+                                      dangerouslySetInnerHTML={{
+                                        __html: i18n.t(
+                                          "Are you sure you want to remove <strong>{{ name }}</strong> from this shipping zone?",
+                                          {
+                                            context: "unassign country",
+                                            name: maybe(
+                                              () =>
+                                                data.shippingZone.countries.find(
+                                                  country =>
+                                                    country.code ===
+                                                    match.params.code
+                                                ).country
                                             )
                                           }
                                         )

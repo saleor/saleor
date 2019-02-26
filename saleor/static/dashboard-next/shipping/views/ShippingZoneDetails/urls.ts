@@ -37,3 +37,13 @@ export const shippingZoneDeletePath = (id: string) =>
   urlJoin(shippingZonePath(id), "delete");
 export const shippingZoneDeleteUrl = (id: string) =>
   shippingZoneDeletePath(encodeURIComponent(id));
+
+export const shippingZoneAssignCountryPath = (id: string) =>
+  urlJoin(shippingZonePath(id), "assign-countries");
+export const shippingZoneAssignCountryUrl = (id: string) =>
+  shippingZoneAssignCountryPath(encodeURIComponent(id));
+
+export const shippingZoneUnassignCountryPath = (id: string, code: string) =>
+  urlJoin(shippingZonePath(id), "unassign-country", code);
+export const shippingZoneUnassignCountryUrl = (id: string, code: string) =>
+  shippingZoneUnassignCountryPath(encodeURIComponent(id), code);
