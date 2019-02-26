@@ -32,6 +32,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Reuse cart creation logic in API - #3761 by @maarcingebala
 - Add json fields to models for content/description - #3756 by @michaljelonek
 - Fix storefront styles after bootstrap is updated to 4.3.1 - #3753 by @jxltom
+- Fix logo size in different browser and devices with different sizes - #3722 by @jxltom
 
 
 ## 2.3.0
