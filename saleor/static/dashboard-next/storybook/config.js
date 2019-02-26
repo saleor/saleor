@@ -115,6 +115,7 @@ function loadStories() {
   require("./stories/productTypes/ProductTypeListPage");
 
   // Shipping
+  require("./stories/shipping/ShippingZoneCountriesAssignDialog");
   require("./stories/shipping/ShippingZoneDetailsPage");
   require("./stories/shipping/ShippingZonesListPage");
   require("./stories/shipping/ShippingZoneRateDialog");
