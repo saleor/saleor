@@ -561,6 +561,7 @@ input CustomerRegisterInput {
 
 type CustomerSetDefaultAddress {
   errors: [Error!]
+  user: User
 }
 
 type CustomerUpdate {
