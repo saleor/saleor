@@ -34,6 +34,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix storefront styles after bootstrap is updated to 4.3.1 - #3753 by @jxltom
 - Fix logo size in different browser and devices with different sizes - #3722 by @jxltom
 
+- Do not return cancelled fulfillments in me API - #3778 by @jxltom
 
 ## 2.3.0
 ### API
