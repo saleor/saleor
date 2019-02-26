@@ -59,14 +59,15 @@ header {
     }
 
     .logo {
+      padding: 0;
       svg {
         max-height: $navbar-height;
-        width: 140px;
+        max-width: 80px;
+        width: auto;
         margin: 9px 0;
         padding: 4px;
         @media (max-width: $small-screen) {
           height: 30px;
-          width: 130px;
           margin: 17px 0;
         }
       }

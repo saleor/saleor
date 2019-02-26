@@ -69,10 +69,37 @@ def test_create_fulfillment(
         'email_type': OrderEventsEmails.FULFILLMENT.value}
 
 
+def test_create_fulfillment_with_emtpy_quantity(
+        staff_api_client, order_with_lines, staff_user,
+        permission_manage_orders):
+    order = order_with_lines
+    query = CREATE_FULFILLMENT_QUERY
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    order_lines = order.lines.all()
+    order_line_ids = [
+        graphene.Node.to_global_id(
+            'OrderLine', order_line.id) for order_line in order_lines]
+    tracking = 'Flames tracking'
+    assert not order.events.all()
+    variables = {
+        'order': order_id,
+        'lines': [{
+            'orderLineId': order_line_id,
+            'quantity': 1} for order_line_id in order_line_ids],
+        'tracking': tracking, 'notify': True}
+    variables['lines'][0]['quantity'] = 0
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+    data = content['data']['orderFulfillmentCreate']['fulfillment']
+    assert data['fulfillmentOrder'] == 1
+    assert data['status'] == FulfillmentStatus.FULFILLED.upper()
+
+
 @pytest.mark.parametrize(
     'quantity, error_message',
     (
-        (0, 'Quantity must be larger than 0.'),
+        (0, 'Total quantity must be larger than 0.'),
         (100, 'Only 3 items remaining to fulfill.')))
 def test_create_fulfillment_not_sufficient_quantity(
         staff_api_client, order_with_lines, staff_user, quantity,
@@ -88,7 +115,7 @@ def test_create_fulfillment_not_sufficient_quantity(
     content = get_graphql_content(response)
     data = content['data']['orderFulfillmentCreate']
     assert data['errors']
-    assert data['errors'][0]['field'] == str(order_line)
+    assert data['errors'][0]['field'] in (str(order_line), 'lines')
     assert data['errors'][0]['message'] == error_message
 
 
