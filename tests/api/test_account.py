@@ -12,6 +12,7 @@ from saleor.account.models import Address, User
 from saleor.graphql.account.mutations import (
     CustomerDelete, SetPassword, StaffDelete, StaffUpdate, UserDelete)
 from saleor.graphql.core.enums import PermissionEnum
+from saleor.order.models import FulfillmentStatus
 from tests.api.utils import get_graphql_content
 
 from .utils import assert_no_permission, convert_dict_keys_to_camel_case
@@ -319,6 +320,71 @@ def test_me_query_checkout(user_api_client, cart):
     content = get_graphql_content(response)
     data = content['data']['me']
     assert data['checkout']['token'] == str(cart.token)
+
+
+def test_me_with_cancelled_fulfillments(
+        user_api_client, fulfilled_order_with_cancelled_fulfillment):
+    query = """
+    query Me {
+        me {
+            orders (first: 1) {
+                edges {
+                    node {
+                        id
+                        fulfillments {
+                            status
+                        }
+                    }
+                }
+            }
+        }
+    }
+    """
+    response = user_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    order_id = graphene.Node.to_global_id(
+        'Order', fulfilled_order_with_cancelled_fulfillment.id)
+    data = content['data']['me']
+    order = data['orders']['edges'][0]['node']
+    assert order['id'] == order_id
+    fulfillments = order['fulfillments']
+    assert len(fulfillments) == 1
+    assert fulfillments[0]['status'] == FulfillmentStatus.FULFILLED.upper()
+
+
+def test_user_with_cancelled_fulfillments(
+        staff_api_client, customer_user, permission_manage_users,
+        fulfilled_order_with_cancelled_fulfillment):
+    query = """
+    query User($id: ID!) {
+        user(id: $id) {
+            orders (first: 1) {
+                edges {
+                    node {
+                        id
+                        fulfillments {
+                            status
+                        }
+                    }
+                }
+            }
+        }
+    }
+    """
+    user_id = graphene.Node.to_global_id('User', customer_user.id)
+    variables = {'id': user_id}
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    order_id = graphene.Node.to_global_id(
+        'Order', fulfilled_order_with_cancelled_fulfillment.id)
+    data = content['data']['user']
+    order = data['orders']['edges'][0]['node']
+    assert order['id'] == order_id
+    fulfillments = order['fulfillments']
+    assert len(fulfillments) == 2
+    assert fulfillments[0]['status'] == FulfillmentStatus.FULFILLED.upper()
+    assert fulfillments[1]['status'] == FulfillmentStatus.CANCELED.upper()
 
 
 def test_customer_register(user_api_client):
