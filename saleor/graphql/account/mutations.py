@@ -549,9 +549,7 @@ class CustomerSetDefaultAddress(BaseMutation):
 
         user = info.context.user
         if address not in user.addresses.all():
-            cls.add_error(
-                errors, 'id',
-                'The address isn\'t associated with this user.')
+            raise PermissionDenied()
 
         if type == AddressTypeEnum.BILLING.value:
             address_type = AddressType.BILLING

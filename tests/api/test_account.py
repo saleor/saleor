@@ -1213,6 +1213,4 @@ def test_customer_change_default_address_invalid_address(
         'id': graphene.Node.to_global_id('Address', address_other_country.id),
         'type': 'SHIPPING'}
     response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content['data']['customerSetDefaultAddress']
-    assert data['errors'][0]['field'] == 'id'
+    assert_no_permission(response)
