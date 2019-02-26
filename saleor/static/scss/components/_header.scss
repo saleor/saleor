@@ -177,12 +177,12 @@
     align-items: center;
     a svg {
       height: 38px;
-      width: 113px;
+      width: auto;
+      max-width: 113px;
     }
     .menu-icon-mobile {
       position: relative;
       display: inline-block;
-      top: -5px;
       span {
         position: absolute;
         top: 1.3rem;
@@ -191,6 +191,7 @@
         font-size: 0.45rem;
       }
       svg {
+        height: 30px;
         vertical-align: top;
       }
       @media (max-width: 370px) {
@@ -297,7 +298,6 @@
       }
     }
     &__menu-toggle {
-      max-height: 22px;
       padding-right: $global-padding;
       padding-left: $global-padding;
       vertical-align: super;
@@ -315,7 +315,7 @@
         background-color: $white;
         padding-left: 0;
         padding-right: $global-padding;
-        padding-top: $global-padding * 5;
+        padding-top: $global-padding * 2;
         transition: 0.3s ease-in-out;
         ul {
           text-align: left;
