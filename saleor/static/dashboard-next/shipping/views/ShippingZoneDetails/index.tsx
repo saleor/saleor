@@ -212,7 +212,9 @@ const ShippingZoneDetails: React.StatelessComponent<
                                     defaultCurrency={maybe(
                                       () => shop.defaultCurrency
                                     )}
-                                    disabled={loading}
+                                    disabled={
+                                      ops.shippingRateCreate.opts.loading
+                                    }
                                     onClose={closeModal}
                                     onSubmit={formData =>
                                       ops.shippingRateCreate.mutate({
@@ -324,7 +326,9 @@ const ShippingZoneDetails: React.StatelessComponent<
                                     defaultCurrency={maybe(
                                       () => shop.defaultCurrency
                                     )}
-                                    disabled={loading}
+                                    disabled={
+                                      ops.shippingRateCreate.opts.loading
+                                    }
                                     onClose={closeModal}
                                     onSubmit={formData =>
                                       ops.shippingRateCreate.mutate({
@@ -364,7 +368,9 @@ const ShippingZoneDetails: React.StatelessComponent<
                                       defaultCurrency={maybe(
                                         () => shop.defaultCurrency
                                       )}
-                                      disabled={loading}
+                                      disabled={
+                                        ops.shippingRateUpdate.opts.loading
+                                      }
                                       onClose={closeModal}
                                       onSubmit={formData =>
                                         ops.shippingRateUpdate.mutate({
