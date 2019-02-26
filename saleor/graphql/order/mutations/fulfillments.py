@@ -69,11 +69,7 @@ class FulfillmentCreate(BaseMutation):
     @classmethod
     def clean_lines(cls, order_lines, quantities, errors):
         for order_line, quantity in zip(order_lines, quantities):
-            if quantity <= 0:
-                cls.add_error(
-                    errors, order_line,
-                    'Quantity must be larger than 0.')
-            elif quantity > order_line.quantity_unfulfilled:
+            if quantity > order_line.quantity_unfulfilled:
                 msg = npgettext_lazy(
                     'Fulfill order line mutation error',
                     'Only %(quantity)d item remaining to fulfill.',
@@ -93,6 +89,11 @@ class FulfillmentCreate(BaseMutation):
             lines_ids, errors, 'lines', OrderLine)
 
         cls.clean_lines(order_lines, quantities, errors)
+
+        if sum(quantities) <= 0:
+            cls.add_error(
+                errors, 'lines', 'Total quantity must be larger than 0.')
+
         if errors:
             return cls(errors=errors)
         input['order_lines'] = order_lines
