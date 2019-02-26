@@ -241,7 +241,7 @@
         display: block;
         border: solid 1px transparent;
         border-radius: 4px 4px 0 0;
-        padding: $global-padding * 2.5;
+        padding: $global-padding * 2.5 $global-padding * 1.5;
         position: absolute;
         right: 0;
         top: 0;
@@ -278,8 +278,8 @@
         }
         .badge {
           position: absolute;
-          right: 20px;
-          top: 20px;
+          right: 10px;
+          top: 30px;
           background-color: $light-turquoise;
           border-radius: 100px;
           color: $white;
