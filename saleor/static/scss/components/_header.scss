@@ -209,7 +209,7 @@
         vertical-align: middle;
       }
       .btn {
-        padding: $global-padding / 2;
+        padding: $global-padding;
       }
     }
     .mobile-search-icon {
@@ -241,7 +241,7 @@
         display: block;
         border: solid 1px transparent;
         border-radius: 4px 4px 0 0;
-        padding: $global-padding * 2;
+        padding: $global-padding * 2.5;
         position: absolute;
         right: 0;
         top: 0;
