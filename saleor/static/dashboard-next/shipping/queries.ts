@@ -14,35 +14,41 @@ export const shippingZoneFragment = gql`
     name
   }
 `;
+export const shippingMethodFragment = gql`
+  fragment ShippingMethodFragment on ShippingMethod {
+    id
+    minimumOrderPrice {
+      amount
+      currency
+    }
+    minimumOrderWeight {
+      unit
+      value
+    }
+    maximumOrderPrice {
+      amount
+      currency
+    }
+    maximumOrderWeight {
+      unit
+      value
+    }
+    name
+    price {
+      amount
+      currency
+    }
+    type
+  }
+`;
 export const shippingZoneDetailsFragment = gql`
   ${shippingZoneFragment}
+  ${shippingMethodFragment}
   fragment ShippingZoneDetailsFragment on ShippingZone {
     ...ShippingZoneFragment
     default
     shippingMethods {
-      id
-      minimumOrderPrice {
-        amount
-        currency
-      }
-      minimumOrderWeight {
-        unit
-        value
-      }
-      maximumOrderPrice {
-        amount
-        currency
-      }
-      maximumOrderWeight {
-        unit
-        value
-      }
-      name
-      price {
-        amount
-        currency
-      }
-      type
+      ...ShippingMethodFragment
     }
   }
 `;

@@ -29,7 +29,7 @@ export interface ShippingZoneDetailsPageProps {
   onDelete: () => void;
   onPriceRateAdd: () => void;
   onPriceRateEdit: (id: string) => void;
-  onRateRemove: () => void;
+  onRateRemove: (rateId: string) => void;
   onSubmit: (data: FormData) => void;
   onWeightRateAdd: () => void;
   onWeightRateEdit: (id: string) => void;

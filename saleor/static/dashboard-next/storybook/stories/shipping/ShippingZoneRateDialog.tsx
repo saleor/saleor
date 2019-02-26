@@ -5,6 +5,7 @@ import ShippingZoneRateDialog, {
   ShippingZoneRateDialogProps
 } from "../../../shipping/components/ShippingZoneRateDialog";
 import { shippingZone } from "../../../shipping/fixtures";
+import { ShippingMethodTypeEnum } from "../../../types/globalTypes";
 import Decorator from "../../Decorator";
 
 const props: ShippingZoneRateDialogProps = {
@@ -16,7 +17,7 @@ const props: ShippingZoneRateDialogProps = {
   onSubmit: () => undefined,
   open: true,
   rate: shippingZone.shippingMethods[0],
-  variant: "price"
+  variant: ShippingMethodTypeEnum.PRICE
 };
 
 storiesOf("Shipping / Rate details", module)
@@ -28,4 +29,9 @@ storiesOf("Shipping / Rate details", module)
   .add("new", () => (
     <ShippingZoneRateDialog {...props} rate={undefined} action="create" />
   ))
-  .add("weight", () => <ShippingZoneRateDialog {...props} variant="weight" />);
+  .add("weight", () => (
+    <ShippingZoneRateDialog
+      {...props}
+      variant={ShippingMethodTypeEnum.WEIGHT}
+    />
+  ));
