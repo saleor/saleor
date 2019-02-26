@@ -20,8 +20,10 @@ import ControlledSwitch from "../../../components/ControlledSwitch";
 import Form from "../../../components/Form";
 import FormSpacer from "../../../components/FormSpacer";
 import Hr from "../../../components/Hr";
+import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
+import { ShippingMethodTypeEnum } from "../../../types/globalTypes";
 import { ShippingZoneDetailsFragment_shippingMethods } from "../../types/ShippingZoneDetailsFragment";
 
 export interface FormData {
@@ -39,7 +41,7 @@ export interface ShippingZoneRateDialogProps {
   disabled: boolean;
   open: boolean;
   rate: ShippingZoneDetailsFragment_shippingMethods;
-  variant: "price" | "weight";
+  variant: ShippingMethodTypeEnum;
   onClose: () => void;
   onSubmit: (data: FormData) => void;
 }
@@ -83,11 +85,11 @@ const ShippingZoneRateDialog = withStyles(styles, {
         : {
             isFree: maybe(() => rate.price.amount === 0, false),
             maxValue:
-              variant === "price"
+              variant === ShippingMethodTypeEnum.PRICE
                 ? maybe(() => rate.maximumOrderPrice.amount, 0)
                 : maybe(() => rate.maximumOrderWeight.value, 0),
             minValue:
-              variant === "price"
+              variant === ShippingMethodTypeEnum.PRICE
                 ? maybe(() => rate.minimumOrderPrice.amount, 0)
                 : maybe(() => rate.minimumOrderWeight.value, 0),
             name: maybe(() => rate.name, ""),
@@ -100,7 +102,7 @@ const ShippingZoneRateDialog = withStyles(styles, {
           {({ change, data, hasChanged }) => (
             <>
               <DialogTitle>
-                {variant === "price"
+                {variant === ShippingMethodTypeEnum.PRICE
                   ? action === "create"
                     ? i18n.t("Add Price Rate")
                     : i18n.t("Edit Price Rate")
@@ -123,39 +125,48 @@ const ShippingZoneRateDialog = withStyles(styles, {
               </DialogContent>
               <Hr />
               <DialogContent>
-                <Typography className={classes.subheading} variant="subheading">
-                  {variant === "price"
-                    ? i18n.t("Value range")
-                    : i18n.t("Weight range")}
-                </Typography>
-                <div className={classes.grid}>
-                  <TextField
-                    disabled={disabled}
-                    fullWidth
-                    label={
-                      variant === "price"
-                        ? i18n.t("Minimal Order Value")
-                        : i18n.t("Minimal Order Weight")
-                    }
-                    name={"minValue" as keyof FormData}
-                    type="number"
-                    value={data.minValue}
-                    onChange={change}
-                  />
-                  <TextField
-                    disabled={disabled}
-                    fullWidth
-                    label={
-                      variant === "price"
-                        ? i18n.t("Maximal Order Value")
-                        : i18n.t("Maximal Order Weight")
-                    }
-                    name={"maxValue" as keyof FormData}
-                    type="number"
-                    value={data.maxValue}
-                    onChange={change}
-                  />
-                </div>
+                {!!variant ? (
+                  <>
+                    <Typography
+                      className={classes.subheading}
+                      variant="subheading"
+                    >
+                      {variant === ShippingMethodTypeEnum.PRICE
+                        ? i18n.t("Value range")
+                        : i18n.t("Weight range")}
+                    </Typography>
+                    <div className={classes.grid}>
+                      <TextField
+                        disabled={disabled}
+                        fullWidth
+                        label={
+                          variant === ShippingMethodTypeEnum.PRICE
+                            ? i18n.t("Minimal Order Value")
+                            : i18n.t("Minimal Order Weight")
+                        }
+                        name={"minValue" as keyof FormData}
+                        type="number"
+                        value={data.minValue}
+                        onChange={change}
+                      />
+                      <TextField
+                        disabled={disabled}
+                        fullWidth
+                        label={
+                          variant === ShippingMethodTypeEnum.PRICE
+                            ? i18n.t("Maximal Order Value")
+                            : i18n.t("Maximal Order Weight")
+                        }
+                        name={"maxValue" as keyof FormData}
+                        type="number"
+                        value={data.maxValue}
+                        onChange={change}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <Skeleton />
+                )}
               </DialogContent>
               <Hr />
               <DialogContent>
