@@ -7,17 +7,17 @@
 # Martin Janšto <mato@jansto.sk>, 2018
 # Patrik Kucavik <pkucavik@gmail.com>, 2018
 # Sebastian Simko <simko22@gmail.com>, 2018
-# Jan M, 2018
 # Stanislav Pavlovic <stanislav.pavlovic@gmail.com>, 2018
+# Jan M, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-07 11:01-0600\n"
+"POT-Creation-Date: 2019-02-18 05:51-0600\n"
 "PO-Revision-Date: 2017-02-09 15:43+0000\n"
-"Last-Translator: Stanislav Pavlovic <stanislav.pavlovic@gmail.com>, 2018\n"
+"Last-Translator: Jan M, 2019\n"
 "Language-Team: Slovak (https://www.transifex.com/mirumee/teams/34782/sk/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -57,7 +57,7 @@ msgstr[3] "Našlo sa %(counter)d zhodných kategórií"
 
 #: saleor/dashboard/category/forms.py:25
 #: saleor/dashboard/collection/forms.py:24
-#: saleor/dashboard/discount/forms.py:95 saleor/dashboard/product/forms.py:96
+#: saleor/dashboard/discount/forms.py:94 saleor/dashboard/product/forms.py:96
 #: saleor/dashboard/product/forms.py:249 saleor/dashboard/product/forms.py:457
 #: saleor/dashboard/sites/forms.py:52
 msgctxt "Item name"
@@ -174,7 +174,7 @@ msgstr "Zverejnené"
 msgctxt ""
 "The publication date field, can be a posterior date for a planned "
 "publication."
-msgid "Published date"
+msgid "Publication date"
 msgstr ""
 
 #: saleor/dashboard/collection/forms.py:39
@@ -487,109 +487,109 @@ msgstr[1] "Našli sa %(counter)dodpovedajúce kupóny"
 msgstr[2] "Našlo sa %(counter)dodpovedajúcich kupónov"
 msgstr[3] "Našlo sa %(counter)dodpovedajúcich kupónov"
 
-#: saleor/dashboard/discount/forms.py:22
+#: saleor/dashboard/discount/forms.py:21
 msgctxt "Lowest value for order to be able to use the voucher"
 msgid "Apply only if the purchase value is greater than or equal to"
 msgstr "Uplatniť iba ak je hodnota nákupu väčšia alebo rovná ako"
 
-#: saleor/dashboard/discount/forms.py:30
+#: saleor/dashboard/discount/forms.py:29
 msgctxt "Discounted products"
 msgid "Discounted products"
 msgstr "Zľavnené produkty"
 
-#: saleor/dashboard/discount/forms.py:38
+#: saleor/dashboard/discount/forms.py:37
 msgctxt "Sale name"
 msgid "Name"
 msgstr "Meno"
 
-#: saleor/dashboard/discount/forms.py:41
+#: saleor/dashboard/discount/forms.py:40
 msgctxt "Discount type"
 msgid "Fixed or percentage"
 msgstr "Pevné alebo percentá"
 
-#: saleor/dashboard/discount/forms.py:44
+#: saleor/dashboard/discount/forms.py:43
 msgctxt "Sale date restrictions"
 msgid "Start date"
 msgstr "Počiatočný dátum"
 
-#: saleor/dashboard/discount/forms.py:47
+#: saleor/dashboard/discount/forms.py:46
 msgctxt "Sale date restrictions"
 msgid "End date"
 msgstr "Konečný dátum"
 
-#: saleor/dashboard/discount/forms.py:50
+#: saleor/dashboard/discount/forms.py:49
 msgctxt "Percentage or fixed amount value"
 msgid "Value"
 msgstr "Hodnota"
 
-#: saleor/dashboard/discount/forms.py:53
+#: saleor/dashboard/discount/forms.py:52
 msgctxt "Discounted categories"
 msgid "Discounted categories"
 msgstr "Zľavnené kategórie"
 
-#: saleor/dashboard/discount/forms.py:56
+#: saleor/dashboard/discount/forms.py:55
 msgctxt "Discounted collections"
 msgid "Discounted collections"
 msgstr "Zľavnené kolekcie"
 
-#: saleor/dashboard/discount/forms.py:70
+#: saleor/dashboard/discount/forms.py:69
 msgctxt "Sale (discount) error"
 msgid "Sale cannot exceed 100%"
 msgstr "Zľava nemôže presiahnuť 100%"
 
-#: saleor/dashboard/discount/forms.py:77
+#: saleor/dashboard/discount/forms.py:76
 msgctxt "Sale (discount) error"
 msgid ""
 "A single sale must point to at least one product, collectionand/or category."
 msgstr ""
 "Predaj musí ukazovať aspoň na jeden produkt, kolekciu alebo kategóriu."
 
-#: saleor/dashboard/discount/forms.py:92
+#: saleor/dashboard/discount/forms.py:91
 msgctxt "Discount type"
 msgid "Discount type"
 msgstr "Typ zľavy"
 
-#: saleor/dashboard/discount/forms.py:98
+#: saleor/dashboard/discount/forms.py:97
 msgctxt "Coupon code"
 msgid "Code"
 msgstr "Kód"
 
-#: saleor/dashboard/discount/forms.py:101
+#: saleor/dashboard/discount/forms.py:100
 msgctxt "Usage limit"
 msgid "Usage limit"
 msgstr "Limit využitia"
 
-#: saleor/dashboard/discount/forms.py:104
+#: saleor/dashboard/discount/forms.py:103
 msgctxt "Voucher date restrictions"
 msgid "Start date"
 msgstr "Počiatočný dátum"
 
-#: saleor/dashboard/discount/forms.py:107
+#: saleor/dashboard/discount/forms.py:106
 msgctxt "Voucher date restrictions"
 msgid "End date"
 msgstr "Konečný dátum"
 
-#: saleor/dashboard/discount/forms.py:110
+#: saleor/dashboard/discount/forms.py:109
 msgctxt "Discount type of the voucher"
 msgid "Discount type"
 msgstr "Typ zľavy"
 
-#: saleor/dashboard/discount/forms.py:113
+#: saleor/dashboard/discount/forms.py:112
 msgctxt "Discount value of the voucher"
 msgid "Discount value"
 msgstr "Výška zľavy"
 
-#: saleor/dashboard/discount/forms.py:137
+#: saleor/dashboard/discount/forms.py:130
 msgctxt "Text above the dropdown of countries"
 msgid "Limit countries that voucher should apply to"
 msgstr "Obmedziť platnosť kupónu na krajiny"
 
-#: saleor/dashboard/discount/forms.py:165
+#: saleor/dashboard/discount/forms.py:158
 msgctxt "Field label, apply discount value only once per order"
 msgid "Only apply once per order"
 msgstr "Pre objednávku uplatniť len raz"
 
-#: saleor/dashboard/discount/forms.py:168
+#: saleor/dashboard/discount/forms.py:161
 msgctxt "Help text of checkbox for applying discount only once per order"
 msgid ""
 "If unchecked, discount value will be taken off each suitable item in an "
@@ -597,17 +597,17 @@ msgid ""
 msgstr ""
 "Ak neoznačené. výška zľavy sa uplatní z každej vhodnej položky v poradí."
 
-#: saleor/dashboard/discount/forms.py:177
+#: saleor/dashboard/discount/forms.py:170
 msgctxt "Product"
 msgid "Products"
 msgstr "Produkty"
 
-#: saleor/dashboard/discount/forms.py:191
+#: saleor/dashboard/discount/forms.py:184
 msgctxt "Collections"
 msgid "Collections"
 msgstr "Kolekcie"
 
-#: saleor/dashboard/discount/forms.py:202
+#: saleor/dashboard/discount/forms.py:195
 msgctxt "Categories"
 msgid "Categories"
 msgstr "Kategórie"
@@ -734,7 +734,7 @@ msgctxt "Menu item form error"
 msgid "A single menu item must point to an internal link or URL."
 msgstr "Jedna položka menu nemôže súčasne ukazovať na interný link a URL."
 
-#: saleor/dashboard/menu/utils.py:103
+#: saleor/dashboard/menu/utils.py:101
 #, python-format
 msgctxt "Menu item page hidden status"
 msgid ""
@@ -957,17 +957,12 @@ msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be voided"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:352
-msgctxt "Mark order as paid form error"
-msgid "Orders with payments can not be manually marked as paid"
-msgstr "Objednávky s platbami nemôžu byť ručne označené ako zaplatené"
-
-#: saleor/dashboard/order/forms.py:383
+#: saleor/dashboard/order/forms.py:375
 msgctxt "Integer number"
 msgid "Quantity"
 msgstr "Počet"
 
-#: saleor/dashboard/order/forms.py:402
+#: saleor/dashboard/order/forms.py:394
 #, python-format
 msgctxt "Change quantity form error"
 msgid "Only %(remaining)d remaining in stock."
@@ -977,7 +972,7 @@ msgstr[1] "Iba %(remaining)d zostáva na sklade."
 msgstr[2] "Iba  %(remaining)d zostáva na sklade."
 msgstr[3] "Iba  %(remaining)d zostáva na sklade."
 
-#: saleor/dashboard/order/forms.py:434
+#: saleor/dashboard/order/forms.py:426
 #, python-format
 msgctxt "Cancel order form action"
 msgid "Restock %(quantity)d item"
@@ -987,12 +982,12 @@ msgstr[1] "Naskladniť %(quantity)d položky"
 msgstr[2] "Naskladniť %(quantity)d položiek"
 msgstr[3] "Naskladniť %(quantity)d položiek"
 
-#: saleor/dashboard/order/forms.py:444
+#: saleor/dashboard/order/forms.py:436
 msgctxt "Cancel order form error"
 msgid "This order can't be canceled"
 msgstr "Táto objednávka nemôže byť zrušená"
 
-#: saleor/dashboard/order/forms.py:464
+#: saleor/dashboard/order/forms.py:456
 #, python-format
 msgctxt "Cancel fulfillment form action"
 msgid "Restock %(quantity)d item"
@@ -1002,64 +997,64 @@ msgstr[1] "Naskladniť %(quantity)d položky"
 msgstr[2] "Naskladniť %(quantity)d položiek"
 msgstr[3] "Naskladniť %(quantity)d položiek"
 
-#: saleor/dashboard/order/forms.py:474
+#: saleor/dashboard/order/forms.py:466
 msgctxt "Cancel fulfillment form error"
 msgid "This fulfillment can't be canceled"
 msgstr "Toto plnenie nemôže byt zrušené"
 
-#: saleor/dashboard/order/forms.py:487
+#: saleor/dashboard/order/forms.py:479
 msgctxt "Send mail to customer"
 msgid "Send notification email to customer"
 msgstr "Zaslať zákazníkovi notifikačný mail"
 
-#: saleor/dashboard/order/forms.py:494
+#: saleor/dashboard/order/forms.py:486
 msgctxt "Fulfillment record"
 msgid "Tracking number"
 msgstr "Sledovacie číslo"
 
-#: saleor/dashboard/order/forms.py:515
+#: saleor/dashboard/order/forms.py:507
 msgctxt "Remove voucher form error"
 msgid "This order has no voucher"
 msgstr "Táto objednávka nemá kupón"
 
-#: saleor/dashboard/order/forms.py:528
+#: saleor/dashboard/order/forms.py:520
 msgctxt "Payment status field value"
 msgid "All"
 msgstr "Všetky"
 
-#: saleor/dashboard/order/forms.py:545
+#: saleor/dashboard/order/forms.py:537
 msgctxt "Order form: subform to add variant to order form: variant field"
 msgid "Variant"
 msgstr "Variant"
 
-#: saleor/dashboard/order/forms.py:548
+#: saleor/dashboard/order/forms.py:540
 msgctxt "Add variant to order form label"
 msgid "Quantity"
 msgstr "Množstvo"
 
-#: saleor/dashboard/order/forms.py:569
+#: saleor/dashboard/order/forms.py:561
 #, python-format
 msgctxt "Add item form error"
 msgid "Could not add item. Only %(remaining)d remaining in stock."
 msgstr ""
 "Nepodarilo sa pridať položku. Ostáva na sklade iba%(remaining)d kusov."
 
-#: saleor/dashboard/order/forms.py:592
+#: saleor/dashboard/order/forms.py:584
 msgctxt "Order form: address subform - phone number input field"
 msgid "Phone number"
 msgstr "Telefónne číslo"
 
-#: saleor/dashboard/order/forms.py:601
+#: saleor/dashboard/order/forms.py:593
 msgctxt "Send mail to customer"
 msgid "Send shipment details to your customer now"
 msgstr "Zaslať doručovacie údaje zákazníkovi"
 
-#: saleor/dashboard/order/forms.py:609
+#: saleor/dashboard/order/forms.py:601
 msgctxt "Order tracking number"
 msgid "Tracking number"
 msgstr "Sledovacie číslo"
 
-#: saleor/dashboard/order/forms.py:639
+#: saleor/dashboard/order/forms.py:631
 #, python-format
 msgctxt "Fulfill order line form error"
 msgid "%(quantity)d item remaining to fulfill."
@@ -1197,12 +1192,12 @@ msgctxt "Dashboard message"
 msgid "Removed voucher from order"
 msgstr "Vymazaný kupón s objednávky"
 
-#: saleor/dashboard/order/views.py:545
+#: saleor/dashboard/order/views.py:546
 msgctxt "Dashboard message"
 msgid "Order manually marked as paid"
 msgstr "Objednávka ručne označená ako zaplatené"
 
-#: saleor/dashboard/order/views.py:610
+#: saleor/dashboard/order/views.py:611
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Fulfilled %(quantity_fulfilled)d item"
@@ -1212,18 +1207,18 @@ msgstr[1] "Naplnené %(quantity_fulfilled)d položky"
 msgstr[2] "Naplnených %(quantity_fulfilled)d položiek"
 msgstr[3] "Naplnených %(quantity_fulfilled)d položiek"
 
-#: saleor/dashboard/order/views.py:628
+#: saleor/dashboard/order/views.py:629
 msgctxt "Dashboard message related to an order"
 msgid "No items fulfilled"
 msgstr "Žiadne položky neboli naplnené"
 
-#: saleor/dashboard/order/views.py:650
+#: saleor/dashboard/order/views.py:651
 #, python-format
 msgctxt "Dashboard message"
 msgid "Fulfillment #%(fulfillment)s canceled"
 msgstr "Plnenie č %(fulfillment)s zrušené"
 
-#: saleor/dashboard/order/views.py:696
+#: saleor/dashboard/order/views.py:697
 #, python-format
 msgctxt "Dashboard message"
 msgid "Fulfillment #%(fulfillment)s tracking number updated"
@@ -1285,9 +1280,9 @@ msgid "Available on"
 msgstr "K dispozícii na"
 
 #: saleor/dashboard/page/forms.py:26
-msgctxt "Page form: visibility status indicator"
-msgid "Is visible"
-msgstr "Je viditeľný"
+msgctxt "Page form: publication status indicator"
+msgid "Is published"
+msgstr "Je zverejnené"
 
 #: saleor/dashboard/page/forms.py:30
 msgctxt "Form field help text"
