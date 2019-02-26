@@ -369,7 +369,7 @@ class FulfillmentLine(models.Model):
         OrderLine, related_name='+', on_delete=models.CASCADE)
     fulfillment = models.ForeignKey(
         Fulfillment, related_name='lines', on_delete=models.CASCADE)
-    quantity = models.IntegerField(validators=[MinValueValidator(0)])
+    quantity = models.PositiveIntegerField()
 
 
 class OrderEvent(models.Model):
