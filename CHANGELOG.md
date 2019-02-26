@@ -31,6 +31,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Filter order by payment status from order's last payment - #3749 @jxltom
 - Reuse cart creation logic in API - #3761 by @maarcingebala
 - Add json fields to models for content/description - #3756 by @michaljelonek
+- Fix bug where errors are not returned when creating fulfillment with non-existed order line - #3777 by @jxltom
 
 ## 2.3.0
 ### API
