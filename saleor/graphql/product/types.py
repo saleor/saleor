@@ -189,11 +189,19 @@ class ProductVariant(CountableDjangoObjectType):
     def resolve_price_override(self, info):
         return self.price_override
 
+    @permission_required('product.manage_products')
+    def resolve_quantity(self, info):
+        return self.quantity
+
     @permission_required(['order.manage_orders', 'product.manage_products'])
     def resolve_quantity_ordered(self, info):
         # This field is added through annotation when using the
         # `resolve_report_product_sales` resolver.
         return getattr(self, 'quantity_ordered', None)
+
+    @permission_required(['order.manage_orders', 'product.manage_products'])
+    def resolve_quantity_allocated(self, info):
+        return self.quantity_allocated
 
     @permission_required(['order.manage_orders', 'product.manage_products'])
     def resolve_revenue(self, info, period):
