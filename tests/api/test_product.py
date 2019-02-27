@@ -1586,6 +1586,24 @@ def test_variant_revenue_permissions(
     assert content['data']['productVariant']['revenue']
 
 
+def test_variant_quantity_permissions(
+        staff_api_client, permission_manage_products, product):
+    query = """
+    query Quantity($id: ID!) {
+        productVariant(id: $id) {
+            quantity
+        }
+    }
+    """
+    variant = product.variants.first()
+    variables = {
+        'id': graphene.Node.to_global_id('ProductVariant', variant.pk)}
+    permissions = [permission_manage_products]
+    response = staff_api_client.post_graphql(query, variables, permissions)
+    content = get_graphql_content(response)
+    assert 'quantity' in content['data']['productVariant']
+
+
 def test_variant_quantity_ordered_permissions(
         staff_api_client, permission_manage_products,
         permission_manage_orders, product):
@@ -1603,6 +1621,25 @@ def test_variant_quantity_ordered_permissions(
     response = staff_api_client.post_graphql(query, variables, permissions)
     content = get_graphql_content(response)
     assert 'quantityOrdered' in content['data']['productVariant']
+
+
+def test_variant_quantity_allocated_permissions(
+        staff_api_client, permission_manage_products,
+        permission_manage_orders, product):
+    query = """
+    query QuantityAllocated($id: ID!) {
+        productVariant(id: $id) {
+            quantityAllocated
+        }
+    }
+    """
+    variant = product.variants.first()
+    variables = {
+        'id': graphene.Node.to_global_id('ProductVariant', variant.pk)}
+    permissions = [permission_manage_orders, permission_manage_products]
+    response = staff_api_client.post_graphql(query, variables, permissions)
+    content = get_graphql_content(response)
+    assert 'quantityAllocated' in content['data']['productVariant']
 
 
 def test_variant_margin_permissions(
