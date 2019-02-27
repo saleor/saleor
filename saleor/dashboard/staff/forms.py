@@ -31,7 +31,7 @@ class StaffForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        self.instance.is_staff = True
+
         if self.user == self.instance:
             self.fields['is_active'].disabled = True
 
