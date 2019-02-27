@@ -61,7 +61,9 @@ class CustomerForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'is_active', 'note']
+        fields = [
+            'first_name', 'last_name', 'email', 'note',
+            'is_active', 'is_staff']
         labels = {
             'first_name': pgettext_lazy(
                 'Customer form: Given name field', 'Given name'),
@@ -69,10 +71,12 @@ class CustomerForm(forms.ModelForm):
                 'Customer form: Family name field', 'Family name'),
             'email': pgettext_lazy(
                 'Customer form: email address field', 'Email'),
+            'note': pgettext_lazy(
+                'Customer form: customer note field', 'Notes'),
             'is_active': pgettext_lazy(
                 'Customer form: is active toggle', 'User is active'),
-            'note': pgettext_lazy(
-                'Customer form: customer note field', 'Notes')}
+            'is_staff': pgettext_lazy(
+                'Customer form: is staff toggle', 'User is staff')}
 
 
 class CustomerNoteForm(forms.ModelForm):
