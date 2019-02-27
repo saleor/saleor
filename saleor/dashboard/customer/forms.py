@@ -44,10 +44,21 @@ class CustomerForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        # disable 'is_active' checkbox if user edits his own account
+
+        # Only user with managing staff privilege or superuser
+        # can assign other user as staff
+        self.fields['is_staff'].disabled = True
+        if self.user and (
+                self.user.has_perms(['account.manage_staff'])
+                or self.user.is_superuser):
+            self.fields['is_staff'].disabled = False
+
+        # Disable editing following fields if user edits his own account
         if self.user == self.instance:
-            self.fields['is_active'].disabled = True
+            self.fields['email'].disabled = True
             self.fields['note'].disabled = True
+            self.fields['is_active'].disabled = True
+            self.fields['is_staff'].disabled = True
 
         address = self.instance.default_billing_address
         if not address:
