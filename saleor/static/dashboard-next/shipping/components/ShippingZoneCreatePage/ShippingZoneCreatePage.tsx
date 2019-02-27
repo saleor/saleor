@@ -11,6 +11,7 @@ import SaveButtonBar from "../../../components/SaveButtonBar";
 import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
 import { CountryFragment } from "../../../taxes/types/CountryFragment";
+import { UserError } from "../../../types";
 import ShippingZoneCountriesAssignDialog from "../ShippingZoneCountriesAssignDialog";
 import ShippingZoneInfo from "../ShippingZoneInfo";
 
@@ -23,6 +24,7 @@ export interface FormData {
 export interface ShippingZoneCreatePageProps {
   countries: CountryFragment[];
   disabled: boolean;
+  errors: UserError[];
   saveButtonBarState: ConfirmButtonTransitionState;
   onBack: () => void;
   onSubmit: (data: FormData) => void;
@@ -30,7 +32,7 @@ export interface ShippingZoneCreatePageProps {
 
 const ShippingZoneCreatePage: React.StatelessComponent<
   ShippingZoneCreatePageProps
-> = ({ countries, disabled, onBack, onSubmit, saveButtonBarState }) => {
+> = ({ countries, disabled, errors, onBack, onSubmit, saveButtonBarState }) => {
   const initialForm: FormData = {
     countries: [],
     default: false,
@@ -42,8 +44,8 @@ const ShippingZoneCreatePage: React.StatelessComponent<
         isCountrySelectionDialogOpened,
         { toggle: toggleCountrySelectionDialog }
       ) => (
-        <Form initial={initialForm} onSubmit={onSubmit}>
-          {({ change, data, hasChanged, submit }) => (
+        <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
+          {({ change, data, errors: formErrors, hasChanged, submit }) => (
             <>
               <Container width="md">
                 <PageHeader
@@ -52,7 +54,11 @@ const ShippingZoneCreatePage: React.StatelessComponent<
                 />
                 <Grid>
                   <div>
-                    <ShippingZoneInfo data={data} onChange={change} />
+                    <ShippingZoneInfo
+                      data={data}
+                      errors={formErrors}
+                      onChange={change}
+                    />
                     <CardSpacer />
                     <CountryList
                       countries={data.countries.map(selectedCountry =>
