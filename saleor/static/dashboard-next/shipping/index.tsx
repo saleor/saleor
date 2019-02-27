@@ -4,7 +4,12 @@ import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
-import { shippingZonePath, shippingZonesListPath } from "./urls";
+import {
+  shippingZoneAddPath,
+  shippingZonePath,
+  shippingZonesListPath
+} from "./urls";
+import ShippingZoneCreate from "./views/ShippingZoneCreate";
 import ShippingZoneDetailsComponent from "./views/ShippingZoneDetails";
 import ShippingZonesListComponent, {
   ShippingZonesListQueryParams
@@ -36,6 +41,7 @@ export const ShippingRouter: React.StatelessComponent = () => (
     <WindowTitle title={i18n.t("Shipping")} />
     <Switch>
       <Route exact path={shippingZonesListPath} component={ShippingZonesList} />
+      <Route exact path={shippingZoneAddPath} component={ShippingZoneCreate} />
       <Route path={shippingZonePath(":id")} component={ShippingZoneDetails} />
     </Switch>
   </>

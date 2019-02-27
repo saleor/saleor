@@ -8,6 +8,10 @@ import {
   CreateShippingRateVariables
 } from "./types/CreateShippingRate";
 import {
+  CreateShippingZone,
+  CreateShippingZoneVariables
+} from "./types/CreateShippingZone";
+import {
   DeleteShippingRate,
   DeleteShippingRateVariables
 } from "./types/DeleteShippingRate";
@@ -60,6 +64,30 @@ export const TypedUpdateDefaultWeightUnit = TypedMutation<
   UpdateDefaultWeightUnit,
   UpdateDefaultWeightUnitVariables
 >(updateDefaultWeightUnit);
+
+const createShippingZone = gql`
+  ${countryFragment}
+  mutation CreateShippingZone($input: ShippingZoneInput!) {
+    shippingZoneCreate(input: $input) {
+      errors {
+        field
+        message
+      }
+      shippingZone {
+        countries {
+          ...CountryFragment
+        }
+        default
+        id
+        name
+      }
+    }
+  }
+`;
+export const TypedCreateShippingZone = TypedMutation<
+  CreateShippingZone,
+  CreateShippingZoneVariables
+>(createShippingZone);
 
 const updateShippingZone = gql`
   ${countryFragment}
