@@ -72,7 +72,8 @@ def customer_create(request):
 @permission_required('account.manage_users')
 def customer_edit(request, pk=None):
     customer = get_object_or_404(User, pk=pk)
-    form = CustomerForm(request.POST or None, instance=customer)
+    form = CustomerForm(
+        request.POST or None, instance=customer, user=request.user)
     if form.is_valid():
         form.save()
         msg = pgettext_lazy(
