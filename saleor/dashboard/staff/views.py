@@ -56,7 +56,8 @@ def staff_create(request):
     except User.DoesNotExist:
         staff = User()
         created = True
-    form = StaffForm(request.POST or None, instance=staff)
+    form = StaffForm(
+        request.POST or None, instance=staff, initial={'is_staff': True})
     if form.is_valid():
         form.save()
         msg = pgettext_lazy(
