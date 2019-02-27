@@ -266,11 +266,11 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_fulfillments(self, info):
-        context_kwargs = getattr(info.context, 'kwargs', {})
-        if context_kwargs.get('ignore_cancelled_fulfillment', False):
-            qs = self.fulfillments.exclude(status=FulfillmentStatus.CANCELED)
-        else:
+        user = info.context.user
+        if user.is_authenticated and user.is_active and user.is_staff:
             qs = self.fulfillments.all()
+        else:
+            qs = self.fulfillments.exclude(status=FulfillmentStatus.CANCELED)
         return qs.order_by('pk')
 
     @staticmethod
