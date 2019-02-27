@@ -39,6 +39,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add missing type definition for dashboard 2.0 - #3776 by @jxltom
 - Add mutations to manage addresses for authenticated customers - #3772 by @Kwaidan00, @maarcingebala
 - Limit access of quantity and allocated quantity to staff in GraphQL API #3780 by @jxltom
+- Only include cancelled fulfillments for staff in fulfillment API - #3778 by @jxltom
 
 
 ## 2.3.1
