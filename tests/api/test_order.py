@@ -673,25 +673,6 @@ def test_draft_order_line_update(
     assert data['errors'][0]['field'] == 'quantity'
 
 
-def test_draft_order_update_with_non_existing_product(
-        draft_order, staff_api_client, permission_manage_orders):
-    # To keep data integrity, delete broken lines from draft order
-    query = DRAFT_ORDER_LINE_UPDATE_MUTATION
-    order = draft_order
-    line = order.lines.first()
-    variant = line.variant
-    variant.delete()
-    line_id = graphene.Node.to_global_id('OrderLine', line.id)
-    variables = {'lineId': line_id, 'quantity': 2}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
-    content = get_graphql_content(response)
-    data = content['data']['draftOrderLineUpdate']
-    assert not data['errors']
-    with pytest.raises(line._meta.model.DoesNotExist):
-        line.refresh_from_db()
-
-
 def test_require_draft_order_when_updating_lines(
         order_with_lines, staff_api_client, permission_manage_orders):
     query = DRAFT_ORDER_LINE_UPDATE_MUTATION
