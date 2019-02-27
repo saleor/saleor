@@ -11,6 +11,7 @@ const props: ShippingZoneCountriesAssignDialogProps = {
   confirmButtonState: "default",
   countries,
   initial: ["PL", "GB", "DE"],
+  isDefault: false,
   onClose: () => undefined,
   onConfirm: () => undefined,
   open: true
