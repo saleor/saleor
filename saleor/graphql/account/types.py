@@ -7,6 +7,7 @@ from graphql_jwt.decorators import permission_required
 from ...account import models
 from ...checkout.utils import get_user_cart
 from ...core.permissions import get_permissions
+from ..account.enums import AddressTypeEnum
 from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
@@ -26,6 +27,10 @@ class AddressInput(graphene.InputObjectType):
     country = graphene.String(required=True, description='Country.')
     country_area = graphene.String(description='State or province.')
     phone = graphene.String(description='Phone number.')
+
+
+class DefaultAddressInput(AddressInput):
+    type = AddressTypeEnum(required=False, description='The type of address.')
 
 
 class Address(CountableDjangoObjectType):

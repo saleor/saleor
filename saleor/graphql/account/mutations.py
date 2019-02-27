@@ -15,7 +15,7 @@ from ...dashboard.emails import (
 from ...dashboard.staff.utils import remove_staff_member
 from ..account.enums import AddressTypeEnum
 from ..account.i18n import I18nMixin
-from ..account.types import Address, AddressInput, User
+from ..account.types import Address, AddressInput, DefaultAddressInput, User
 from ..core.enums import PermissionEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import Error
@@ -469,7 +469,7 @@ class AddressCreate(ModelMutation):
 
 class CustomerAddressCreate(ModelMutation):
     class Arguments:
-        input = AddressInput(
+        input = DefaultAddressInput(
             description='Fields required to create address', required=True)
 
     class Meta:
@@ -486,6 +486,10 @@ class CustomerAddressCreate(ModelMutation):
         super().save(info, instance, cleaned_input)
         user = info.context.user
         instance.user_addresses.add(user)
+
+        address_type = cleaned_input.get('type', None)
+        if address_type:
+            utils.change_user_default_address(user, instance, address_type)
 
 
 class AddressUpdate(ModelMutation):
