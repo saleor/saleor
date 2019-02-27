@@ -41,8 +41,8 @@ def details(request, token):
             if note_form.is_valid():
                 note_form.save()
                 return redirect('order:details', token=order.token)
-    fulfillments = order.fulfillments.filter(
-        status=FulfillmentStatus.FULFILLED)
+    fulfillments = order.fulfillments.exclude(
+        status=FulfillmentStatus.CANCELED)
     ctx = {
         'order': order, 'fulfillments': fulfillments, 'note_form': note_form}
     return TemplateResponse(request, 'order/details.html', ctx)
