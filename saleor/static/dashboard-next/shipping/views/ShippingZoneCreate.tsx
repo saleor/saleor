@@ -2,13 +2,13 @@ import * as React from "react";
 
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
+import Shop from "../../components/Shop";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
+import ShippingZoneCreatePage from "../components/ShippingZoneCreatePage";
 import { TypedCreateShippingZone } from "../mutations";
 import { CreateShippingZone } from "../types/CreateShippingZone";
-import { shippingZoneUrl, shippingZonesListUrl } from "../urls";
-import ShippingZoneCreatePage from "../components/ShippingZoneCreatePage";
-import Shop from "../../components/Shop";
+import { shippingZonesListUrl, shippingZoneUrl } from "../urls";
 
 const ShippingZoneCreate: React.StatelessComponent<{}> = () => (
   <Navigator>
