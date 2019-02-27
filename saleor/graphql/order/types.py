@@ -267,7 +267,7 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_fulfillments(self, info):
         user = info.context.user
-        if user.is_authenticated and user.is_active and user.is_staff:
+        if user.is_staff:
             qs = self.fulfillments.all()
         else:
             qs = self.fulfillments.exclude(status=FulfillmentStatus.CANCELED)
