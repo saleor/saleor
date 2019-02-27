@@ -9,6 +9,7 @@ export const countryFragment = gql`
   }
 `;
 export const countryWithTaxesFragment = gql`
+  ${countryFragment}
   fragment CountryWithTaxesFragment on CountryDisplay {
     ...CountryFragment
     vat {
