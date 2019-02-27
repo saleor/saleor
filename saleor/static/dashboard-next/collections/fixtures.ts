@@ -37,7 +37,7 @@ export const collection: (
     alt: "Alt text",
     url: placeholderCollectionImage
   },
-  description: JSON.stringify(content),
+  descriptionJson: JSON.stringify(content),
   id: "Q29sbGVjdGlvbjox",
   isPublished: true,
   name: "Summer collection",

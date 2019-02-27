@@ -19,7 +19,7 @@ export interface PageUpdate_pageUpdate_page {
   title: string;
   slug: string;
   isVisible: boolean | null;
-  content: string;
+  contentJson: any;
   seoTitle: string | null;
   seoDescription: string | null;
   availableOn: any | null;

@@ -78,7 +78,7 @@ export const ProductUpdate: React.StatelessComponent<
                                           collections: formData.collections.map(
                                             collection => collection.value
                                           ),
-                                          description: JSON.stringify(
+                                          descriptionJson: JSON.stringify(
                                             formData.description
                                           ),
                                           isPublished: formData.available,

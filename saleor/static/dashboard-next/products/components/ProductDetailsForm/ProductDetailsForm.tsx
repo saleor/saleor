@@ -65,7 +65,9 @@ export const ProductDetailsForm = withStyles(styles, {
         <FormSpacer />
         <RichTextEditor
           disabled={disabled}
-          initial={maybe(() => JSON.parse(product.description))}
+          error={!!errors.descriptionJson}
+          helperText={errors.descriptionJson}
+          initial={maybe(() => JSON.parse(product.descriptionJson))}
           label={i18n.t("Description")}
           name="description"
           onChange={onChange}

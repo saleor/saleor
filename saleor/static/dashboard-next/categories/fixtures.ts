@@ -76,7 +76,7 @@ export const category: (
     __typename: "CategoryCountableConnection",
     edges: []
   },
-  description: JSON.stringify(content),
+  descriptionJson: JSON.stringify(content),
   id: "Q2F0ZWdvcnk6NA==",
   name: "Coffees",
   parent: {

@@ -55,7 +55,9 @@ export const CategoryCreateView: React.StatelessComponent<
                         createCategory({
                           variables: {
                             input: {
-                              description: JSON.stringify(formData.description),
+                              descriptionJson: JSON.stringify(
+                                formData.description
+                              ),
                               name: formData.name,
                               seo: {
                                 description: formData.seoDescription,

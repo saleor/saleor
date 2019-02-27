@@ -69,7 +69,9 @@ export const PageDetails: React.StatelessComponent<PageDetailsProps> = ({
                                   variables: {
                                     id,
                                     input: {
-                                      content: JSON.stringify(formData.content),
+                                      contentJson: JSON.stringify(
+                                        formData.content
+                                      ),
                                       isPublished: formData.isVisible
                                         ? true
                                         : formData.availableOn === "" ||
