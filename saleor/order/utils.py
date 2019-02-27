@@ -82,19 +82,13 @@ def recalculate_order(order, **kwargs):
 
 
 def recalculate_order_weight(order):
-    """Recalculate order weights.
-
-    It removes lines with non-existing variants.
-    """
-    lines_to_remove = order.lines.filter(variant=None)
-    if lines_to_remove.exists():
-        lines_to_remove.delete()
-
+    """Recalculate order weights."""
     weight = zero_weight()
     for line in order:
-        weight += line.variant.get_weight() * line.quantity
+        if line.variant:
+            weight += line.variant.get_weight() * line.quantity
     order.weight = weight
-    order.save()
+    order.save(update_fields=['weight'])
 
 
 def update_order_prices(order, discounts):
@@ -181,6 +175,7 @@ def attach_order_to_user(order, user):
     order.save(update_fields=['user'])
 
 
+@transaction.atomic
 def add_variant_to_order(
         order,
         variant,
@@ -199,29 +194,25 @@ def add_variant_to_order(
     if not allow_overselling:
         variant.check_quantity(quantity)
 
-    order.weight += variant.get_weight() * quantity
     try:
         line = order.lines.get(variant=variant)
         line.quantity += quantity
-        with transaction.atomic():
-            line.save(update_fields=['quantity'])
-            order.save(update_fields=['weight'])
+        line.save(update_fields=['quantity'])
     except OrderLine.DoesNotExist:
         product_name = variant.display_product()
         translated_product_name = variant.display_product(translated=True)
         if translated_product_name == product_name:
             translated_product_name = ''
-        with transaction.atomic():
-            line = order.lines.create(
-                product_name=product_name,
-                translated_product_name=translated_product_name,
-                product_sku=variant.sku,
-                is_shipping_required=variant.is_shipping_required(),
-                quantity=quantity,
-                variant=variant,
-                unit_price=variant.get_price(discounts, taxes),
-                tax_rate=get_tax_rate_by_name(variant.product.tax_rate, taxes))
-            order.save(update_fields=['weight'])
+        line = order.lines.create(
+            product_name=product_name,
+            translated_product_name=translated_product_name,
+            product_sku=variant.sku,
+            is_shipping_required=variant.is_shipping_required(),
+            quantity=quantity,
+            variant=variant,
+            unit_price=variant.get_price(discounts, taxes),
+            tax_rate=get_tax_rate_by_name(variant.product.tax_rate, taxes))
+        order.save(update_fields=['weight'])
 
     if variant.track_inventory and track_inventory:
         allocate_stock(variant, quantity)
@@ -238,7 +229,7 @@ def change_order_line_quantity(line, new_quantity):
 
 
 def delete_order_line(line):
-    """Delete order line from order"""
+    """Delete an order line from an order."""
     line.delete()
 
 
