@@ -57,7 +57,7 @@ const CollectionDetailsPage: React.StatelessComponent<
   <Form
     initial={{
       backgroundImageAlt: maybe(() => collection.backgroundImage.alt, ""),
-      description: maybe(() => JSON.parse(collection.description)),
+      description: maybe(() => JSON.parse(collection.descriptionJson)),
       isFeatured,
       isPublished: maybe(() => collection.isPublished, false),
       name: maybe(() => collection.name, ""),

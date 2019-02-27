@@ -92,7 +92,7 @@ export const CategoryUpdatePage: React.StatelessComponent<
   const initialData: FormData = category
     ? {
         backgroundImageAlt: maybe(() => category.backgroundImage.alt, ""),
-        description: maybe(() => JSON.parse(category.description)),
+        description: maybe(() => JSON.parse(category.descriptionJson)),
         name: category.name || "",
         seoDescription: category.seoDescription || "",
         seoTitle: category.seoTitle || ""

@@ -305,6 +305,7 @@ export interface PageInput {
   slug?: string | null;
   title?: string | null;
   content?: string | null;
+  contentJson?: any | null;
   isPublished?: boolean | null;
   publicationDate?: string | null;
   seo?: SeoInput | null;

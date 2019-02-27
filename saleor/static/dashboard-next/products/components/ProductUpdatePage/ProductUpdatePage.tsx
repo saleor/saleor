@@ -143,7 +143,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
           value: collection.id
         }))
       : [],
-    description: maybe(() => JSON.parse(product.description)),
+    description: maybe(() => JSON.parse(product.descriptionJson)),
     name: maybe(() => product.name),
     price: maybe(() => product.price.amount),
     productType: maybe(() => ({

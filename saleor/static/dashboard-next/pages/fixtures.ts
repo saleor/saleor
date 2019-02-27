@@ -35,7 +35,7 @@ export const pageList: PageList_pages_edges_node[] = [
 export const page: PageDetails_page = {
   __typename: "Page",
   availableOn: "",
-  content: JSON.stringify(content),
+  contentJson: JSON.stringify(content),
   id: "Kzx152sEm==",
   isVisible: false,
   seoDescription: "About",

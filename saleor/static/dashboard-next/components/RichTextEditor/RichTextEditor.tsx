@@ -217,7 +217,9 @@ const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
       </Typography>
       <DraftailEditor
         key={JSON.stringify(initial)}
-        rawContentState={initial || null}
+        rawContentState={
+          initial && Object.keys(initial).length > 0 ? initial : null
+        }
         onSave={value =>
           onChange({
             target: {

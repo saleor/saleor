@@ -17,7 +17,7 @@ export const pageDetailsFragment = gql`
   ${pageFragment}
   fragment PageDetailsFragment on Page {
     ...PageFragment
-    content
+    contentJson
     seoTitle
     seoDescription
     availableOn

@@ -10,6 +10,7 @@ import FormSpacer from "../../../components/FormSpacer";
 import RichTextEditor from "../../../components/RichTextEditor";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
+import { FormErrors } from "../../../types";
 import { CollectionDetails_collection } from "../../types/CollectionDetails";
 
 const styles = createStyles({
@@ -25,9 +26,7 @@ export interface CollectionDetailsProps extends WithStyles<typeof styles> {
     name: string;
   };
   disabled: boolean;
-  errors: {
-    name?: string;
-  };
+  errors: FormErrors<"descriptionJson" | "name">;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
@@ -55,7 +54,9 @@ const CollectionDetails = withStyles(styles, { name: "CollectionDetails" })(
         />
         <FormSpacer />
         <RichTextEditor
-          initial={maybe(() => JSON.parse(collection.description))}
+          error={!!errors.descriptionJson}
+          helperText={errors.descriptionJson}
+          initial={maybe(() => JSON.parse(collection.descriptionJson))}
           label={i18n.t("Description")}
           name="description"
           disabled={disabled}

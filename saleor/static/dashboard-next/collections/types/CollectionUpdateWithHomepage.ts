@@ -47,7 +47,7 @@ export interface CollectionUpdateWithHomepage_collectionUpdate_collection {
   isPublished: boolean;
   name: string;
   backgroundImage: CollectionUpdateWithHomepage_collectionUpdate_collection_backgroundImage | null;
-  description: string;
+  descriptionJson: any;
   seoDescription: string | null;
   seoTitle: string | null;
 }

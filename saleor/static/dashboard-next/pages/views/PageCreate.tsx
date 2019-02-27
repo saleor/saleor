@@ -53,7 +53,7 @@ export const PageCreate: React.StatelessComponent<PageCreateProps> = () => (
                       pageCreate({
                         variables: {
                           input: {
-                            content: JSON.stringify(formData.content),
+                            contentJson: JSON.stringify(formData.content),
                             isPublished: formData.isVisible
                               ? true
                               : formData.availableOn === ""

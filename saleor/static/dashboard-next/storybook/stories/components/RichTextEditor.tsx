@@ -89,6 +89,8 @@ storiesOf("Generics / Rich text editor", module)
   .add("default", () => (
     <RichTextEditor
       disabled={false}
+      error={false}
+      helperText={""}
       initial={content}
       label="Content"
       name="content"
