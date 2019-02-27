@@ -9,6 +9,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import reverse
 
 from saleor.account.models import Address, User
+from saleor.checkout import AddressType
 from saleor.graphql.account.mutations import (
     CustomerDelete, SetPassword, StaffDelete, StaffUpdate, UserDelete)
 from saleor.graphql.core.enums import PermissionEnum
@@ -1162,7 +1163,7 @@ def test_customer_reset_password(
 
 
 CUSTOMER_ADDRESS_CREATE_MUTATION = """
-mutation($addressInput: AddressInput!) {
+mutation($addressInput: DefaultAddressInput!) {
   customerAddressCreate(input: $addressInput) {
     address {
         id,
@@ -1187,6 +1188,37 @@ def test_customer_create_address(user_api_client, graphql_address_data):
 
     user.refresh_from_db()
     assert user.addresses.count() == nr_of_addresses + 1
+
+
+def test_customer_create_default_address(
+        user_api_client, graphql_address_data):
+    user = user_api_client.user
+    nr_of_addresses = user.addresses.count()
+
+    query = CUSTOMER_ADDRESS_CREATE_MUTATION
+    graphql_address_data['type'] = AddressType.SHIPPING.upper()
+    variables = {'addressInput': graphql_address_data}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['customerAddressCreate']
+    assert data['address']['city'] == graphql_address_data['city']
+
+    user.refresh_from_db()
+    assert user.addresses.count() == nr_of_addresses + 1
+    assert user.default_shipping_address.id == int(
+        graphene.Node.from_global_id(data['address']['id'])[1])
+
+    graphql_address_data['type'] = AddressType.BILLING.upper()
+    variables = {'addressInput': graphql_address_data}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['customerAddressCreate']
+    assert data['address']['city'] == graphql_address_data['city']
+
+    user.refresh_from_db()
+    assert user.addresses.count() == nr_of_addresses + 2
+    assert user.default_billing_address.id == int(
+        graphene.Node.from_global_id(data['address']['id'])[1])
 
 
 def test_anonymous_user_create_address(api_client, graphql_address_data):
