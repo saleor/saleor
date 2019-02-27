@@ -1253,7 +1253,7 @@ def test_customer_set_address_as_default(user_api_client, address):
     query = CUSTOMER_SET_DEFAULT_ADDRESS_MUTATION
     variables = {
         'id': graphene.Node.to_global_id('Address', address.id),
-        'type': 'SHIPPING'}
+        'type': AddressType.SHIPPING.upper()}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['customerSetDefaultAddress']
@@ -1262,14 +1262,13 @@ def test_customer_set_address_as_default(user_api_client, address):
     user.refresh_from_db()
     assert user.default_shipping_address == address
 
-    variables['type'] = 'BILLING'
+    variables['type'] = AddressType.BILLING.upper()
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['customerSetDefaultAddress']
     assert not data['errors']
 
     user.refresh_from_db()
-
     assert user.default_billing_address == address
 
 
@@ -1290,7 +1289,7 @@ def test_customer_change_default_address(
     query = CUSTOMER_SET_DEFAULT_ADDRESS_MUTATION
     variables = {
         'id': graphene.Node.to_global_id('Address', address.id),
-        'type': 'SHIPPING'}
+        'type': AddressType.SHIPPING.upper()}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['customerSetDefaultAddress']
@@ -1309,6 +1308,6 @@ def test_customer_change_default_address_invalid_address(
     query = CUSTOMER_SET_DEFAULT_ADDRESS_MUTATION
     variables = {
         'id': graphene.Node.to_global_id('Address', address_other_country.id),
-        'type': 'SHIPPING'}
+        'type': AddressType.SHIPPING.upper()}
     response = user_api_client.post_graphql(query, variables)
     assert_no_permission(response)
