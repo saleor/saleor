@@ -212,7 +212,6 @@ def add_variant_to_order(
             variant=variant,
             unit_price=variant.get_price(discounts, taxes),
             tax_rate=get_tax_rate_by_name(variant.product.tax_rate, taxes))
-        order.save(update_fields=['weight'])
 
     if variant.track_inventory and track_inventory:
         allocate_stock(variant, quantity)
