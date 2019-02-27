@@ -58,3 +58,12 @@ class StaffForm(forms.ModelForm):
         if address.last_name:
             placeholder = get_name_placeholder(address.last_name)
             self.fields['last_name'].widget.attrs['placeholder'] = placeholder
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # Remove all permissions if user is not staff
+        if not cleaned_data['is_staff']:
+            cleaned_data['user_permissions'] = []
+
+        return cleaned_data
