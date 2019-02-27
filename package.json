@@ -195,6 +195,7 @@
     "build-types": "apollo client:codegen --target=typescript types --globalTypesFile=saleor/static/dashboard-next/types/globalTypes.ts",
     "generate-component": "plop --plopfile .plop/plopfile.js",
     "heroku-postbuild": "npm run build-assets && npm run build-emails",
+    "lint": "tslint 'saleor/static/dashboard-next/**/*.{ts,tsx}'",
     "start": "webpack -d --watch",
     "build-emails": "mjml --config.beautify false -l skip \"templates/templated_email/source/*.mjml\" -o templates/templated_email/compiled",
     "storybook": "start-storybook -p 3000 -c saleor/static/dashboard-next/storybook/",
