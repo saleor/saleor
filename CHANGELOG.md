@@ -40,6 +40,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add mutations to manage addresses for authenticated customers - #3772 by @Kwaidan00, @maarcingebala
 - Limit access of quantity and allocated quantity to staff in GraphQL API #3780 by @jxltom
 - Only include cancelled fulfillments for staff in fulfillment API - #3778 by @jxltom
+- Add function to recalculate order's total weight - #3755 by @Kwaidan00, @maarcingebala
 
 
 ## 2.3.1
