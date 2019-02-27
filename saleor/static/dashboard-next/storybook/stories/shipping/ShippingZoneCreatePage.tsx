@@ -5,6 +5,7 @@ import ShippingZoneCreatePage, {
   ShippingZoneCreatePageProps
 } from "../../../shipping/components/ShippingZoneCreatePage";
 import Decorator from "../../Decorator";
+import { formError } from "../../misc";
 
 const props: ShippingZoneCreatePageProps = {
   countries: [
@@ -35,6 +36,7 @@ const props: ShippingZoneCreatePageProps = {
     }
   ],
   disabled: false,
+  errors: [],
   onBack: () => undefined,
   onSubmit: () => undefined,
   saveButtonBarState: "default"
@@ -42,4 +44,7 @@ const props: ShippingZoneCreatePageProps = {
 
 storiesOf("Views / Shipping / Create shipping zone", module)
   .addDecorator(Decorator)
-  .add("default", () => <ShippingZoneCreatePage {...props} />);
+  .add("default", () => <ShippingZoneCreatePage {...props} />)
+  .add("form errors", () => (
+    <ShippingZoneCreatePage {...props} errors={["name"].map(formError)} />
+  ));

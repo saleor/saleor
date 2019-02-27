@@ -6,20 +6,21 @@ import ShippingZoneDetailsPage, {
 } from "../../../shipping/components/ShippingZoneDetailsPage";
 import { shippingZone } from "../../../shipping/fixtures";
 import Decorator from "../../Decorator";
+import { formError } from "../../misc";
 
 const props: ShippingZoneDetailsPageProps = {
   disabled: false,
+  errors: [],
   onBack: () => undefined,
   onCountryAdd: () => undefined,
   onCountryRemove: () => undefined,
   onDelete: () => undefined,
   onPriceRateAdd: () => undefined,
   onPriceRateEdit: () => undefined,
-  onPriceRateRemove: () => undefined,
+  onRateRemove: () => undefined,
   onSubmit: () => undefined,
   onWeightRateAdd: () => undefined,
   onWeightRateEdit: () => undefined,
-  onWeightRateRemove: () => undefined,
   saveButtonBarState: "default",
   shippingZone
 };
@@ -33,4 +34,7 @@ storiesOf("Views / Shipping / Shipping zone details", module)
       disabled={true}
       shippingZone={undefined}
     />
+  ))
+  .add("form errors", () => (
+    <ShippingZoneDetailsPage {...props} errors={["name"].map(formError)} />
   ));

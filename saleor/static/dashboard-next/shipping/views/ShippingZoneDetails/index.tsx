@@ -171,6 +171,11 @@ const ShippingZoneDetails: React.StatelessComponent<
                           <>
                             <ShippingZoneDetailsPage
                               disabled={loading}
+                              errors={maybe(
+                                () =>
+                                  ops.shippingZoneUpdate.opts.data
+                                    .shippingZoneUpdate.errors
+                              )}
                               onBack={() => navigate(shippingZonesListUrl)}
                               onCountryAdd={() =>
                                 navigate(shippingZoneAssignCountryUrl(id))

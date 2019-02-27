@@ -10,6 +10,7 @@ import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
+import { UserError } from "../../../types";
 import { ShippingMethodTypeEnum } from "../../../types/globalTypes";
 import { ShippingZoneDetailsFragment } from "../../types/ShippingZoneDetailsFragment";
 import ShippingZoneInfo from "../ShippingZoneInfo";
@@ -21,6 +22,7 @@ export interface FormData {
 
 export interface ShippingZoneDetailsPageProps {
   disabled: boolean;
+  errors: UserError[];
   saveButtonBarState: ConfirmButtonTransitionState;
   shippingZone: ShippingZoneDetailsFragment;
   onBack: () => void;
@@ -39,6 +41,7 @@ const ShippingZoneDetailsPage: React.StatelessComponent<
   ShippingZoneDetailsPageProps
 > = ({
   disabled,
+  errors,
   onBack,
   onCountryAdd,
   onCountryRemove,
@@ -56,13 +59,17 @@ const ShippingZoneDetailsPage: React.StatelessComponent<
     name: maybe(() => shippingZone.name, "")
   };
   return (
-    <Form initial={initialForm} onSubmit={onSubmit}>
-      {({ change, data, hasChanged, submit }) => (
+    <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
+      {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container width="md">
           <PageHeader title={maybe(() => shippingZone.name)} onBack={onBack} />
           <Grid>
             <div>
-              <ShippingZoneInfo data={data} onChange={change} />
+              <ShippingZoneInfo
+                data={data}
+                errors={formErrors}
+                onChange={change}
+              />
               <CardSpacer />
               <CountryList
                 countries={maybe(() => shippingZone.countries)}
