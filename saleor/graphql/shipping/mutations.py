@@ -1,13 +1,14 @@
 from textwrap import dedent
 
 import graphene
+from graphql_jwt.decorators import permission_required
 
 from ...dashboard.shipping.forms import default_shipping_zone_exists
 from ...shipping import models
-from ..core.mutations import ModelDeleteMutation, ModelMutation
+from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import Decimal, WeightScalar
 from .enums import ShippingMethodTypeEnum
-from .types import ShippingZone
+from .types import ShippingMethod, ShippingZone
 
 
 class ShippingPriceInput(graphene.InputObjectType):
@@ -182,15 +183,34 @@ class ShippingPriceUpdate(ShippingPriceMixin, ModelMutation):
         return user.has_perm('shipping.manage_shipping')
 
 
-class ShippingPriceDelete(ModelDeleteMutation):
+class ShippingPriceDelete(BaseMutation):
+    shipping_method = graphene.Field(
+        ShippingMethod, description='A shipping method being deleted.')
+    shipping_zone = graphene.Field(
+        ShippingZone,
+        description='A shipping zone to which the shipping method belongs.')
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a shipping price to delete.')
 
     class Meta:
         description = 'Deletes a shipping price.'
-        model = models.ShippingMethod
 
     @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('shipping.manage_shipping')
+    @permission_required('shipping.manage_shipping')
+    def mutate(cls, root, info, id):
+        errors = []
+        shipping_method = cls.get_node_or_error(
+            info, id, errors, 'id', only_type=ShippingMethod)
+        if not shipping_method:
+            return ShippingPriceDelete(errors=errors)
+
+        shipping_method_id = shipping_method.id
+        shipping_zone = shipping_method.shipping_zone
+
+        shipping_method.delete()
+        shipping_method.id = shipping_method_id
+        return ShippingPriceDelete(
+            shipping_method=shipping_method, shipping_zone=shipping_zone,
+            errors=errors)
