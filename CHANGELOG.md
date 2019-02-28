@@ -37,6 +37,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix storefront styles after bootstrap is updated to 4.3.1 - #3753 by @jxltom
 - Fix logo size in different browser and devices with different sizes - #3722 by @jxltom
 - Add missing type definition for dashboard 2.0 - #3776 by @jxltom
+- Unify behavior after creating checkout in API and Storefront 1.0; code formatting improvements - #3790 by @maarcingebala
 
 
 ## 2.3.1
