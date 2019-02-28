@@ -4,10 +4,10 @@ from graphql_jwt.decorators import login_required, permission_required
 from ..core.fields import PrefetchingConnectionField
 from ..descriptions import DESCRIPTIONS
 from .mutations import (
-    AddressCreate, AddressDelete, AddressUpdate, CustomerCreate,
-    CustomerDelete, CustomerPasswordReset, CustomerRegister, CustomerUpdate,
-    LoggedUserUpdate, PasswordReset, SetPassword, StaffCreate, StaffDelete,
-    StaffUpdate)
+    AddressCreate, AddressDelete, AddressUpdate, CustomerAddressCreate,
+    CustomerCreate, CustomerDelete, CustomerPasswordReset, CustomerRegister,
+    CustomerSetDefaultAddress, CustomerUpdate, LoggedUserUpdate, PasswordReset,
+    SetPassword, StaffCreate, StaffDelete, StaffUpdate)
 from .resolvers import (
     resolve_address_validator, resolve_customers, resolve_staff_users)
 from .types import AddressValidationData, AddressValidationInput, User
@@ -58,6 +58,8 @@ class AccountMutations(graphene.ObjectType):
     customer_password_reset = CustomerPasswordReset.Field()
     customer_register = CustomerRegister.Field()
     customer_update = CustomerUpdate.Field()
+    customer_address_create = CustomerAddressCreate.Field()
+    customer_set_default_address = CustomerSetDefaultAddress.Field()
 
     logged_user_update = LoggedUserUpdate.Field()
 

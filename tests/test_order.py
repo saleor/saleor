@@ -4,21 +4,23 @@ import pytest
 from django.urls import reverse
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
+from tests.utils import get_redirect_location
 
 from saleor.account.models import User
 from saleor.checkout.utils import create_order
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.utils.taxes import (
     DEFAULT_TAX_RATE_NAME, get_tax_rate_by_name, get_taxes_for_country)
+from saleor.core.weight import zero_weight
 from saleor.order import FulfillmentStatus, OrderStatus, models
 from saleor.order.models import Order
 from saleor.order.utils import (
-    add_variant_to_order, cancel_fulfillment, cancel_order, recalculate_order,
-    restock_fulfillment_lines, restock_order_lines, update_order_prices,
-    update_order_status)
+    add_variant_to_order, cancel_fulfillment, cancel_order,
+    change_order_line_quantity, delete_order_line, recalculate_order,
+    recalculate_order_weight, restock_fulfillment_lines, restock_order_lines,
+    update_order_prices, update_order_status)
 from saleor.payment import ChargeStatus
 from saleor.payment.models import Payment
-from tests.utils import get_redirect_location
 
 
 def test_total_setter():
@@ -515,3 +517,63 @@ def test_add_order_note_view(order, authorized_client, customer_user):
     assert get_redirect_location(response) == redirect_url
     order.refresh_from_db()
     assert order.customer_note == customer_note
+
+
+def _calculate_order_weight_from_lines(order):
+    weight = zero_weight()
+    for line in order:
+        weight += line.variant.get_weight() * line.quantity
+    return weight
+
+
+def test_calculate_order_weight(order_with_lines):
+    order_weight = order_with_lines.weight
+    calculated_weight = _calculate_order_weight_from_lines(order_with_lines)
+    assert calculated_weight == order_weight
+
+
+def test_order_weight_add_more_variant(order_with_lines):
+    variant = order_with_lines.lines.first().variant
+    add_variant_to_order(order_with_lines, variant, 2)
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.weight == _calculate_order_weight_from_lines(
+        order_with_lines)
+
+
+def test_order_weight_add_new_variant(order_with_lines, product):
+    variant = product.variants.first()
+    add_variant_to_order(order_with_lines, variant, 2)
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.weight == _calculate_order_weight_from_lines(
+        order_with_lines)
+
+
+def test_order_weight_change_line_quantity(order_with_lines):
+    line = order_with_lines.lines.first()
+    new_quantity = line.quantity + 2
+    change_order_line_quantity(line, new_quantity)
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.weight == _calculate_order_weight_from_lines(
+        order_with_lines)
+
+
+def test_order_weight_delete_line(order_with_lines):
+    line = order_with_lines.lines.first()
+    delete_order_line(line)
+    assert order_with_lines.weight == _calculate_order_weight_from_lines(
+        order_with_lines)
+
+
+def test_get_order_weight_non_existing_product(order_with_lines, product):
+    # Removing product should not affect order's weight
+    order = order_with_lines
+    variant = product.variants.first()
+    add_variant_to_order(order, variant, 1)
+    old_weight = order.get_total_weight()
+
+    product.delete()
+
+    order.refresh_from_db()
+    new_weight = order.get_total_weight()
+
+    assert old_weight == new_weight

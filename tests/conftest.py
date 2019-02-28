@@ -26,7 +26,7 @@ from saleor.discount import VoucherType
 from saleor.discount.models import Sale, Voucher, VoucherTranslation
 from saleor.menu.models import Menu, MenuItem
 from saleor.order import OrderEvents, OrderStatus
-from saleor.order.models import Order, OrderEvent
+from saleor.order.models import FulfillmentStatus, Order, OrderEvent
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.payment import ChargeStatus, TransactionKind
@@ -550,6 +550,18 @@ def fulfilled_order(order_with_lines):
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=['status'])
     return order
+
+
+@pytest.fixture()
+def fulfilled_order_with_cancelled_fulfillment(fulfilled_order):
+    fulfillment = fulfilled_order.fulfillments.create()
+    line_1 = fulfilled_order.lines.first()
+    line_2 = fulfilled_order.lines.last()
+    fulfillment.lines.create(order_line=line_1, quantity=line_1.quantity)
+    fulfillment.lines.create(order_line=line_2, quantity=line_2.quantity)
+    fulfillment.status = FulfillmentStatus.CANCELED
+    fulfillment.save()
+    return fulfilled_order
 
 
 @pytest.fixture
