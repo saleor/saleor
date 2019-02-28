@@ -42,7 +42,7 @@ def staff_details(request, pk):
         msg = pgettext_lazy(
             'Dashboard message', 'Updated staff member %s') % (staff_member,)
         messages.success(request, msg)
-        redirect('dashboard:staff-list')
+        return redirect('dashboard:staff-list')
     ctx = {'staff_member': staff_member, 'form': form}
     return TemplateResponse(request, 'dashboard/staff/detail.html', ctx)
 
