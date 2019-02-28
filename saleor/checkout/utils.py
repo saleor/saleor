@@ -859,7 +859,7 @@ def create_order(cart: Cart, tracking_code: str, discounts, taxes):
     if order is not None:
         return order
 
-    order_data: dict = {}
+    order_data = {}
     order_data.update(_process_voucher_data_for_order(cart))
     order_data.update(_process_shipping_data_for_order(cart, taxes))
     order_data.update(_process_user_data_for_order(cart))
