@@ -14,6 +14,7 @@ from measurement.measures import Weight
 from ..account.models import Address
 from ..core.utils.taxes import ZERO_TAXED_MONEY, zero_money
 from ..shipping.models import ShippingMethod
+from ..core.weight import zero_weight
 
 CENTS = Decimal('0.01')
 
@@ -102,7 +103,7 @@ class Cart(models.Model):
 
     def get_total_weight(self):
         # Cannot use `sum` as it parses an empty Weight to an int
-        weights = Weight(kg=0)
+        weights = zero_weight()
         for line in self:
             weights += line.variant.get_weight() * line.quantity
         return weights
