@@ -40,6 +40,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add mutations to manage addresses for authenticated customers - #3772 by @Kwaidan00, @maarcingebala
 - Only include cancelled fulfillments for staff in fulfillment API - #3778 by @jxltom
 - Fix incorrect cart badge location - #3786 by @jxltom
+- Add function to recalculate order's total weight - #3755 by @Kwaidan00, @maarcingebala
+
 
 ## 2.3.1
 - Fix access to private variant fields in API - #3773 by maarcingebala
