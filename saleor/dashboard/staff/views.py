@@ -57,7 +57,8 @@ def staff_create(request):
         staff = User()
         created = True
     form = StaffForm(
-        request.POST or None, instance=staff, initial={'is_staff': True})
+        request.POST or None,
+        instance=staff, user=request.user, initial={'is_staff': True})
     if form.is_valid():
         form.save()
         msg = pgettext_lazy(
