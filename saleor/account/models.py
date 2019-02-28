@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser, BaseUserManager, PermissionsMixin)
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, Value
 from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.translation import pgettext_lazy
@@ -159,6 +159,13 @@ class User(PermissionsMixin, AbstractBaseUser):
             return '%s %s (%s)' % (
                 address.first_name, address.last_name, self.email)
         return self.email
+
+    def get_addresses(self):
+        return self.addresses.annotate(
+            user_default_shipping_address_pk=Value(
+                self.default_shipping_address.pk, models.IntegerField()),
+            user_default_billing_address_pk=Value(
+                self.default_billing_address.pk, models.IntegerField())).all()
 
 
 class CustomerNote(models.Model):
