@@ -41,6 +41,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Only include cancelled fulfillments for staff in fulfillment API - #3778 by @jxltom
 - Fix incorrect cart badge location - #3786 by @jxltom
 - Add function to recalculate order's total weight - #3755 by @Kwaidan00, @maarcingebala
+- Unify behavior after creating checkout in API and Storefront 1.0; code formatting improvements - #3790 by @maarcingebala
 
 
 ## 2.3.1

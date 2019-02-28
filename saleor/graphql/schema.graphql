@@ -1267,19 +1267,19 @@ type Payment implements Node {
   created: DateTime!
   modified: DateTime!
   chargeStatus: PaymentChargeStatusEnum!
-  billingEmail: String!
-  customerIpAddress: String
-  extraData: String!
   token: String!
   total: Money
   capturedAmount: Money
   checkout: Checkout
   order: Order
+  billingEmail: String!
   ccFirstDigits: String!
   ccLastDigits: String!
   ccBrand: String!
   ccExpMonth: Int
   ccExpYear: Int
+  customerIpAddress: String
+  extraData: String!
   transactions: [Transaction]
   actions: [OrderAction]!
   billingAddress: Address
@@ -1314,7 +1314,7 @@ input PaymentInput {
   gateway: GatewaysEnum!
   token: String!
   amount: Decimal!
-  billingAddress: AddressInput!
+  billingAddress: AddressInput
 }
 
 type PaymentRefund {
