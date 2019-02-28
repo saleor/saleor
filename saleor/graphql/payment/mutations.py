@@ -1,3 +1,5 @@
+from textwrap import dedent
+
 import graphene
 from django.conf import settings
 from graphql_jwt.decorators import permission_required
@@ -31,7 +33,9 @@ class PaymentInput(graphene.InputObjectType):
             'Total amount of the transaction, including '
             'all taxes and discounts.'))
     billing_address = AddressInput(
-        description='Billing address.', required=True)
+        description=dedent(
+            '''Billing address. If empty, the billing address associated with
+            the checkout instance will be used.'''))
 
 
 class CheckoutPaymentCreate(BaseMutation, I18nMixin):
@@ -52,10 +56,17 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         errors = []
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
-        billing_address, errors = cls.validate_address(
-            input['billing_address'], errors, 'billing_address')
+        if checkout is None:
+            return CheckoutPaymentCreate(errors=errors)
 
-        if checkout is None or billing_address is None:
+        billing_address = checkout.billing_address
+        if 'billing_address' in input:
+            billing_address, errors = cls.validate_address(
+                input['billing_address'], errors, 'billing_address')
+        if billing_address is None:
+            cls.add_error(
+                errors, 'billingAddress',
+                'No billing address associated with this checkout.')
             return CheckoutPaymentCreate(errors=errors)
 
         amount = input['amount']

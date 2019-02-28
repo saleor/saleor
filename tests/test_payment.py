@@ -19,7 +19,7 @@ from saleor.payment.utils import (
     gateway_authorize, gateway_capture, gateway_charge,
     gateway_get_client_token, gateway_process_payment, gateway_refund,
     gateway_void, handle_fully_paid_order, mark_order_as_paid,
-    validate_gateway_response, validate_payment)
+    require_active_payment, validate_gateway_response)
 
 NOT_ACTIVE_PAYMENT_ERROR = 'This payment is no longer active.'
 EXAMPLE_ERROR = 'Example dummy error'
@@ -120,8 +120,8 @@ def test_handle_fully_paid_order(mock_send_payment_confirmation, order):
     mock_send_payment_confirmation.assert_called_once_with(order.pk)
 
 
-def test_validate_payment():
-    @validate_payment
+def test_require_active_payment():
+    @require_active_payment
     def test_function(payment, *args, **kwargs):
         return True
 
