@@ -459,21 +459,25 @@ def test_delete_shipping_method(
     query = """
         mutation deleteShippingPrice($id: ID!) {
             shippingPriceDelete(id: $id) {
+                shippingZone {
+                    id
+                }
                 shippingMethod {
-                    price {
-                        amount
-                    }
+                    id
                 }
             }
         }
         """
     shipping_method_id = graphene.Node.to_global_id(
         'ShippingMethod', shipping_method.pk)
+    shipping_zone_id = graphene.Node.to_global_id(
+        'ShippingZone', shipping_method.shipping_zone.pk)
     variables = {'id': shipping_method_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping])
     content = get_graphql_content(response)
-    data = content['data']['shippingPriceDelete']['shippingMethod']
-    assert data['price']['amount'] == float(shipping_method.price.amount)
+    data = content['data']['shippingPriceDelete']
+    assert data['shippingMethod']['id'] == shipping_method_id
+    assert data['shippingZone']['id'] == shipping_zone_id
     with pytest.raises(shipping_method._meta.model.DoesNotExist):
         shipping_method.refresh_from_db()
