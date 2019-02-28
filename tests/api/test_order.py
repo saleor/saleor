@@ -424,7 +424,6 @@ def test_can_finalize_draft_order_non_existing_variant(order_with_lines):
     line.refresh_from_db()
     assert line.variant is None
 
-    order.refresh_from_db()
     errors = can_finalize_draft_order(order, [])
     assert (
         errors[0].message ==
