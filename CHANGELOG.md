@@ -40,7 +40,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add mutations to manage addresses for authenticated customers - #3772 by @Kwaidan00, @maarcingebala
 - Limit access of quantity and allocated quantity to staff in GraphQL API #3780 by @jxltom
 - Only include cancelled fulfillments for staff in fulfillment API - #3778 by @jxltom
-
+- Support is_default_shipping/billing_address for address API - #3787 by @jxltom
 
 ## 2.3.1
 - Fix access to private variant fields in API - #3773 by maarcingebala
