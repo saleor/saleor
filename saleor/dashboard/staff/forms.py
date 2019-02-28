@@ -36,16 +36,13 @@ class StaffForm(forms.ModelForm):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
-        # Only superuser can assign other user as superuser
+        # Expose superuser field but disable it
         self.fields['is_superuser'].disabled = True
-        if self.user and self.user.is_superuser:
-            self.fields['is_superuser'].disabled = False
 
         # Disable users editing their own following fields
         if self.user == self.instance:
             self.fields['is_active'].disabled = True
             self.fields['is_staff'].disabled = True
-            self.fields['is_superuser'].disabled = True
 
         # Non-superuser couldn't edit superuser's profile
         if (self.user and not self.user.is_superuser
@@ -54,7 +51,6 @@ class StaffForm(forms.ModelForm):
             self.fields['user_permissions'].disabled = True
             self.fields['is_active'].disabled = True
             self.fields['is_staff'].disabled = True
-            self.fields['is_superuser'].disabled = True
 
         address = self.instance.default_billing_address
         if not address:
