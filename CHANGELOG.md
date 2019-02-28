@@ -37,11 +37,16 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix storefront styles after bootstrap is updated to 4.3.1 - #3753 by @jxltom
 - Fix logo size in different browser and devices with different sizes - #3722 by @jxltom
 - Add missing type definition for dashboard 2.0 - #3776 by @jxltom
+- Add mutations to manage addresses for authenticated customers - #3772 by @Kwaidan00, @maarcingebala
+- Only include cancelled fulfillments for staff in fulfillment API - #3778 by @jxltom
+- Fix incorrect cart badge location - #3786 by @jxltom
+- Add function to recalculate order's total weight - #3755 by @Kwaidan00, @maarcingebala
 - Unify behavior after creating checkout in API and Storefront 1.0; code formatting improvements - #3790 by @maarcingebala
 
 
 ## 2.3.1
 - Fix access to private variant fields in API - #3773 by maarcingebala
+- Limit access of quantity and allocated quantity to staff in GraphQL API #3780 by @jxltom
 
 
 ## 2.3.0
