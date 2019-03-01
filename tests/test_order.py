@@ -4,7 +4,6 @@ import pytest
 from django.urls import reverse
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
-from tests.utils import get_redirect_location
 
 from saleor.account.models import User
 from saleor.checkout.utils import create_order
@@ -21,6 +20,7 @@ from saleor.order.utils import (
     update_order_prices, update_order_status)
 from saleor.payment import ChargeStatus
 from saleor.payment.models import Payment
+from tests.utils import get_redirect_location
 
 
 def test_total_setter():
