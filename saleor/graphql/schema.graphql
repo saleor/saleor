@@ -57,6 +57,11 @@ input AddressInput {
   phone: String
 }
 
+enum AddressTypeEnum {
+  BILLING
+  SHIPPING
+}
+
 type AddressUpdate {
   errors: [Error!]
   address: Address
@@ -511,6 +516,11 @@ type CreditCard {
   expYear: Int!
 }
 
+type CustomerAddressCreate {
+  errors: [Error!]
+  address: Address
+}
+
 type CustomerCreate {
   errors: [Error!]
   user: User
@@ -547,6 +557,11 @@ type CustomerRegister {
 input CustomerRegisterInput {
   email: String!
   password: String!
+}
+
+type CustomerSetDefaultAddress {
+  errors: [Error!]
+  user: User
 }
 
 type CustomerUpdate {
@@ -950,6 +965,8 @@ type Mutations {
   customerPasswordReset(input: CustomerPasswordResetInput!): CustomerPasswordReset
   customerRegister(input: CustomerRegisterInput!): CustomerRegister
   customerUpdate(id: ID!, input: CustomerInput!): CustomerUpdate
+  customerAddressCreate(input: AddressInput!): CustomerAddressCreate
+  customerSetDefaultAddress(id: ID!, type: AddressTypeEnum!): CustomerSetDefaultAddress
   loggedUserUpdate(input: UserAddressInput!): LoggedUserUpdate
   staffCreate(input: StaffCreateInput!): StaffCreate
   staffDelete(id: ID!): StaffDelete
@@ -1250,19 +1267,19 @@ type Payment implements Node {
   created: DateTime!
   modified: DateTime!
   chargeStatus: PaymentChargeStatusEnum!
-  billingEmail: String!
-  customerIpAddress: String
-  extraData: String!
   token: String!
   total: Money
   capturedAmount: Money
   checkout: Checkout
   order: Order
+  billingEmail: String!
   ccFirstDigits: String!
   ccLastDigits: String!
   ccBrand: String!
   ccExpMonth: Int
   ccExpYear: Int
+  customerIpAddress: String
+  extraData: String!
   transactions: [Transaction]
   actions: [OrderAction]!
   billingAddress: Address
@@ -1297,7 +1314,7 @@ input PaymentInput {
   gateway: GatewaysEnum!
   token: String!
   amount: Decimal!
-  billingAddress: AddressInput!
+  billingAddress: AddressInput
 }
 
 type PaymentRefund {
