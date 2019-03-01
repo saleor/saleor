@@ -17,7 +17,7 @@ class StaffForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'email',
-                  'user_permissions', 'is_active', 'is_staff', 'is_superuser']
+                  'user_permissions', 'is_active', 'is_staff']
         labels = {
             'first_name': pgettext_lazy(
                 'Customer form: Given name field', 'Given name'),
@@ -28,9 +28,7 @@ class StaffForm(forms.ModelForm):
             'is_active': pgettext_lazy(
                 'User active toggle', 'User is active'),
             'is_staff': pgettext_lazy(
-                'User staff toggle', 'User is staff'),
-            'is_superuser': pgettext_lazy(
-                'User superuser toggle', 'User is superuser')}
+                'User staff toggle', 'User is staff')}
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
@@ -54,9 +52,6 @@ class StaffForm(forms.ModelForm):
             self.fields['user_permissions'].disabled = True
             self.fields['is_active'].disabled = True
             self.fields['is_staff'].disabled = True
-
-        # Expose superuser field but disable editing
-        self.fields['is_superuser'].disabled = True
 
         address = self.instance.default_billing_address
         if not address:
