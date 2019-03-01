@@ -34,6 +34,8 @@ class OperationType(Enum):
 
 
 class TransactionError(Enum):
+    """Represents a transaction error."""
+
     INCORRECT_NUMBER = 'incorrect_number'
     INVALID_NUMBER = 'invalid_number'
     INCORRECT_CVV = 'incorrect_cvv'
@@ -47,16 +49,18 @@ class TransactionError(Enum):
 
 
 class TransactionKind:
+    """Represents the type of a transaction.
+
+    The following transactions types are possible:
+    - AUTH - an amount reserved against the customer's funding source. Money
+    does not change hands until the authorization is captured.
+    - CHARGE - authorization and capture in a single step.
+    - VOID - a cancellation of a pending authorization or capture.
+    - CAPTURE - a transfer of the money that was reserved during the
+    authorization stage.
+    - REFUND - full or partial return of captured funds to the customer.
     """
-    - Authorization: An amount reserved against the customer's funding
-                     source. Money does not change hands until the
-                     authorization is captured.
-    - Charge: Authorization and capture in a single step.
-    - Void: A cancellation of a pending authorization or capture.
-    - Capture: A transfer of the money that was reserved during the
-               authorization stage.
-    - Refund: Full or partial return of captured funds to the customer.
-    """
+
     AUTH = 'auth'
     CHARGE = 'charge'
     CAPTURE = 'capture'
@@ -73,20 +77,18 @@ class TransactionKind:
 
 
 class ChargeStatus:
+    """Represents possible statuses of a payment.
+
+    The following statuses are possible:
+    - CHARGED - funds were taken off the customer founding source,
+    partly or completely covering the payment amount.
+    - NOT_CHARGED - no funds were take off the customer founding source yet.
+    - FULLY_REFUNDED - all charged funds were returned to the customer.
     """
-    - Charged: Funds were taken off the customer founding source, partly or
-               completely covering the payment amount.
-    - Not charged: No funds were take off the customer founding source yet.
-    - Fully refunded: All charged funds were returned to the customer.
-    """
+
     CHARGED = 'charged'
     NOT_CHARGED = 'not-charged'
     FULLY_REFUNDED = 'fully-refunded'
-    # FIXME
-    # We could probably support other statuses, like:
-    # partially refunded
-    # fully charged
-    # ...?
     CHOICES = [
         (CHARGED, pgettext_lazy('payment status', 'Charged')),
         (NOT_CHARGED, pgettext_lazy('payment status', 'Not charged')),

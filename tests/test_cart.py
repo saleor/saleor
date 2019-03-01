@@ -79,7 +79,7 @@ def test_get_or_create_anonymous_cart_from_token(anonymous_cart, user_cart):
 
 def test_get_or_create_user_cart(
         customer_user, anonymous_cart, user_cart, admin_user):
-    cart = utils.get_or_create_user_cart(customer_user)
+    cart = utils.get_or_create_user_cart(customer_user)[0]
     assert Cart.objects.all().count() == 2
     assert cart == user_cart
 
@@ -87,7 +87,7 @@ def test_get_or_create_user_cart(
     Cart.objects.create(user=admin_user)
     queryset = Cart.objects.all()
     carts = list(queryset)
-    cart = utils.get_or_create_user_cart(admin_user)
+    cart = utils.get_or_create_user_cart(admin_user)[0]
     assert Cart.objects.all().count() == 3
     assert cart in carts
     assert cart.user == admin_user
@@ -122,7 +122,7 @@ def test_get_or_create_cart_from_request(
     request = cart_request_factory(user=customer_user, token=token)
     user_cart = Cart(user=customer_user)
     anonymous_cart = Cart()
-    mock_get_for_user = Mock(return_value=user_cart)
+    mock_get_for_user = Mock(return_value=(user_cart, False))
     mock_get_for_anonymous = Mock(return_value=anonymous_cart)
     monkeypatch.setattr(
         'saleor.checkout.utils.get_or_create_user_cart', mock_get_for_user)

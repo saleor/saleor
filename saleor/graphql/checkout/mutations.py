@@ -13,6 +13,8 @@ from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import get_taxes_for_address
 from ...discount import models as voucher_model
+from ...order import OrderEvents, OrderEventsEmails
+from ...order.emails import send_order_confirmation
 from ...payment import PaymentError
 from ...payment.utils import gateway_process_payment
 from ...shipping.models import ShippingMethod as ShippingMethodModel
@@ -187,7 +189,11 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         # `mutate` method is overriden to properly get or create a checkout
         # instance here:
         if user.is_authenticated:
-            checkout = get_or_create_user_cart(user)
+            checkout, created = get_or_create_user_cart(user)
+            # If user has an active checkout, return it without any
+            # modifications.
+            if not created:
+                return CheckoutCreate(checkout=checkout, errors=errors)
         else:
             checkout = models.Cart()
 
@@ -521,8 +527,23 @@ class CheckoutComplete(BaseMutation):
                 field=None, message='Insufficient product stock.',
                 errors=errors)
             return CheckoutComplete(errors=errors)
+        except voucher_model.NotApplicable:
+            cls.add_error(
+                field=None, message='Voucher not applicable', errors=errors)
+            return CheckoutComplete(errors=errors)
 
         payment = checkout.get_last_active_payment()
+
+        # remove cart after checkout is created
+        checkout.delete()
+        order.events.create(type=OrderEvents.PLACED.value)
+        send_order_confirmation.delay(order.pk)
+        order.events.create(
+            type=OrderEvents.EMAIL_SENT.value,
+            parameters={
+                'email': order.get_user_current_email(),
+                'email_type': OrderEventsEmails.ORDER.value})
+
         try:
             gateway_process_payment(
                 payment=payment, payment_token=payment.token)
