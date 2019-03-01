@@ -53994,7 +53994,7 @@ exports[`Storyshots Views / Pages / Page details form errors 1`] = `
                 class="FormSpacer-spacer-id"
               />
               <div
-                class="RichTextEditor-error-id RichTextEditor-root-id"
+                class="RichTextEditor-root-id"
               >
                 <span
                   class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -54449,10 +54449,8 @@ Ctrl + K"
                   </div>
                 </div>
                 <span
-                  class="MuiTypography-root-id MuiTypography-caption-id RichTextEditor-error-id RichTextEditor-helperText-id"
-                >
-                  Generic form error
-                </span>
+                  class="MuiTypography-root-id MuiTypography-caption-id RichTextEditor-helperText-id"
+                />
               </div>
             </div>
           </div>
