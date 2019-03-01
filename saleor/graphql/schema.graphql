@@ -1759,6 +1759,7 @@ type ShippingPriceCreate {
 type ShippingPriceDelete {
   errors: [Error!]
   shippingMethod: ShippingMethod
+  shippingZone: ShippingZone
 }
 
 input ShippingPriceInput {
