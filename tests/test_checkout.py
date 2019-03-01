@@ -260,6 +260,9 @@ def test_view_checkout_summary(
     assert response.request['PATH_INFO'] == redirect_url
     mock_send_confirmation.delay.assert_called_once_with(order.pk)
 
+    # cart should be deleted after order is created
+    assert request_cart_with_item.pk is None
+
 
 @patch('saleor.checkout.views.summary.send_order_confirmation')
 def test_view_checkout_summary_authorized_user(
