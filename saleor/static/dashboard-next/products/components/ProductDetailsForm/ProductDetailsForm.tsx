@@ -11,8 +11,12 @@ import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
 import FormSpacer from "../../../components/FormSpacer";
-import { RichTextEditor } from "../../../components/RichTextEditor";
+import RichTextEditor from "../../../components/RichTextEditor";
 import i18n from "../../../i18n";
+import { maybe } from "../../../misc";
+import { ProductDetails_product } from "../../types/ProductDetails";
+import { FormData as CreateFormData } from "../ProductCreatePage";
+import { FormData as UpdateFormData } from "../ProductUpdatePage";
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -24,53 +28,53 @@ const styles = (theme: Theme) =>
   });
 
 interface ProductDetailsFormProps extends WithStyles<typeof styles> {
-  data: {
-    description: string;
-    name: string;
-  };
+  data: CreateFormData & UpdateFormData;
   disabled?: boolean;
   errors: { [key: string]: string };
+  product?: ProductDetails_product;
   onChange(event: any);
 }
 
 export const ProductDetailsForm = withStyles(styles, {
   name: "ProductDetailsForm"
-})(({ classes, data, disabled, errors, onChange }: ProductDetailsFormProps) => (
-  <Card>
-    <CardTitle title={i18n.t("General information")} />
-    <CardContent>
-      <div className={classes.root}>
-        <TextField
-          error={!!errors.name}
-          helperText={errors.name}
+})(
+  ({
+    classes,
+    data,
+    disabled,
+    errors,
+    product,
+    onChange
+  }: ProductDetailsFormProps) => (
+    <Card>
+      <CardTitle title={i18n.t("General information")} />
+      <CardContent>
+        <div className={classes.root}>
+          <TextField
+            error={!!errors.name}
+            helperText={errors.name}
+            disabled={disabled}
+            fullWidth
+            label={i18n.t("Name")}
+            name="name"
+            rows={5}
+            value={data.name}
+            onChange={onChange}
+          />
+        </div>
+        <FormSpacer />
+        <RichTextEditor
           disabled={disabled}
-          fullWidth
-          key="nameInput"
-          label={i18n.t("Name")}
-          name="name"
-          rows={5}
-          value={data.name}
+          error={!!errors.descriptionJson}
+          helperText={errors.descriptionJson}
+          initial={maybe(() => JSON.parse(product.descriptionJson))}
+          label={i18n.t("Description")}
+          name="description"
           onChange={onChange}
         />
-      </div>
-      <FormSpacer />
-      <RichTextEditor
-        error={!!errors.description}
-        disabled={disabled}
-        fullWidth
-        helperText={
-          errors.description
-            ? errors.description
-            : i18n.t("Select text to enable text-formatting tools.")
-        }
-        key="descriptionInput"
-        label={i18n.t("Description")}
-        name="description"
-        value={data.description}
-        onChange={onChange}
-      />
-    </CardContent>
-  </Card>
-));
+      </CardContent>
+    </Card>
+  )
+);
 ProductDetailsForm.displayName = "ProductDetailsForm";
 export default ProductDetailsForm;

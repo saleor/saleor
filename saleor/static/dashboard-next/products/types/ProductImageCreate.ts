@@ -151,7 +151,7 @@ export interface ProductImageCreate_productImageCreate_product {
   __typename: "Product";
   id: string;
   name: string;
-  description: string;
+  descriptionJson: any;
   seoTitle: string | null;
   seoDescription: string | null;
   category: ProductImageCreate_productImageCreate_product_category;
