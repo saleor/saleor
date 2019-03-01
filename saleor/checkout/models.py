@@ -9,7 +9,6 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.encoding import smart_str
 from django_prices.models import MoneyField
-from measurement.measures import Weight
 
 from ..account.models import Address
 from ..core.utils.taxes import ZERO_TAXED_MONEY, zero_money
