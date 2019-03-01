@@ -2,7 +2,7 @@ import gql from "graphql-tag";
 
 import { TypedMutation } from "../mutations";
 import { countryFragment } from "../taxes/queries";
-import { shippingMethodFragment } from "./queries";
+import { shippingMethodFragment, shippingZoneDetailsFragment } from "./queries";
 import {
   CreateShippingRate,
   CreateShippingRateVariables
@@ -152,11 +152,15 @@ export const TypedCreateShippingRate = TypedMutation<
 >(createShippingRate);
 
 const deleteShippingRate = gql`
+  ${shippingZoneDetailsFragment}
   mutation DeleteShippingRate($id: ID!) {
     shippingPriceDelete(id: $id) {
       errors {
         field
         message
+      }
+      shippingZone {
+        ...ShippingZoneDetailsFragment
       }
     }
   }
