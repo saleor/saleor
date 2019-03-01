@@ -2,24 +2,24 @@
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL mutation operation: PageDelete
+// GraphQL mutation operation: PageRemove
 // ====================================================
 
-export interface PageDelete_pageDelete_errors {
+export interface PageRemove_pageDelete_errors {
   __typename: "Error";
   field: string | null;
   message: string | null;
 }
 
-export interface PageDelete_pageDelete {
+export interface PageRemove_pageDelete {
   __typename: "PageDelete";
-  errors: PageDelete_pageDelete_errors[] | null;
+  errors: PageRemove_pageDelete_errors[] | null;
 }
 
-export interface PageDelete {
-  pageDelete: PageDelete_pageDelete | null;
+export interface PageRemove {
+  pageDelete: PageRemove_pageDelete | null;
 }
 
-export interface PageDeleteVariables {
+export interface PageRemoveVariables {
   id: string;
 }

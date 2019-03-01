@@ -42,6 +42,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix incorrect cart badge location - #3786 by @jxltom
 - Add function to recalculate order's total weight - #3755 by @Kwaidan00, @maarcingebala
 - Unify behavior after creating checkout in API and Storefront 1.0; code formatting improvements - #3790 by @maarcingebala
+- Add pages section in Dashboard 2.0; introduce Draftail WYSIWYG editor - #3751 by @dominik-zeglen
 
 
 ## 2.3.1
