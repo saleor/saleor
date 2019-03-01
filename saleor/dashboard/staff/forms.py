@@ -47,8 +47,9 @@ class StaffForm(forms.ModelForm):
                 and self.instance.is_staff):
             self.fields['email'].disabled = True
 
-        # Disable users editing their own following fields
+        # Disable users editing their own following fields except for email
         if self.user == self.instance:
+            self.fields['email'].disabled = False
             self.fields['user_permissions'].disabled = True
             self.fields['is_active'].disabled = True
             self.fields['is_staff'].disabled = True
