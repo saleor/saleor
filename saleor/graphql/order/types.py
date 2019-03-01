@@ -190,7 +190,7 @@ class Order(CountableDjangoObjectType):
     status_display = graphene.String(description='User-friendly order status.')
     can_finalize = graphene.Boolean(
         description=(
-            'Informs whether a draft order can be finalized',
+            'Informs whether a draft order can be finalized'
             '(turned into a regular order).'), required=True)
     total_authorized = graphene.Field(
         Money, description='Amount authorized for the order.')
