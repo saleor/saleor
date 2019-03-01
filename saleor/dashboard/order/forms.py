@@ -16,7 +16,7 @@ from ...order import OrderStatus
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ...order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order,
-    change_order_line_quantity, recalculate_order)
+    change_order_line_quantity, delete_order_line, recalculate_order)
 from ...payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from ...payment.utils import (
     clean_mark_order_as_paid, gateway_capture, gateway_refund, gateway_void,
@@ -366,7 +366,7 @@ class CancelOrderLineForm(forms.Form):
         if self.line.variant and self.line.variant.track_inventory:
             deallocate_stock(self.line.variant, self.line.quantity)
         order = self.line.order
-        self.line.delete()
+        delete_order_line(self.line)
         recalculate_order(order)
 
 
@@ -614,6 +614,13 @@ class BaseFulfillmentLineFormSet(forms.BaseModelFormSet):
         super().__init__(*args, **kwargs)
         for form in self.forms:
             form.empty_permitted = False
+
+    def clean(self):
+        total_quantity = sum(
+            form.cleaned_data.get('quantity', 0) for form in self.forms)
+        if total_quantity <= 0:
+            raise forms.ValidationError(
+                'Total quantity must be larger than 0.')
 
 
 class FulfillmentLineForm(forms.ModelForm):

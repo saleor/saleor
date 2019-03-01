@@ -22,10 +22,11 @@ from saleor.checkout.models import Cart
 from saleor.checkout.utils import add_variant_to_cart
 from saleor.dashboard.menu.utils import update_menu
 from saleor.dashboard.order.utils import fulfill_order_line
+from saleor.discount import VoucherType
 from saleor.discount.models import Sale, Voucher, VoucherTranslation
 from saleor.menu.models import Menu, MenuItem
 from saleor.order import OrderEvents, OrderStatus
-from saleor.order.models import Order, OrderEvent
+from saleor.order.models import FulfillmentStatus, Order, OrderEvent
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.payment import ChargeStatus, TransactionKind
@@ -97,6 +98,19 @@ def address(db):  # pylint: disable=W0613
         postal_code='53-601',
         country='PL',
         phone='+48713988102')
+
+
+@pytest.fixture
+def address_other_country():
+    return Address.objects.create(
+        first_name='John',
+        last_name='Doe',
+        street_address_1='4371 Lucas Knoll Apt. 791',
+        city='Bennettmouth',
+        postal_code='13377',
+        country='IS',
+        phone='')
+
 
 @pytest.fixture
 def graphql_address_data():
@@ -453,6 +467,23 @@ def voucher(db):  # pylint: disable=W0613
     return Voucher.objects.create(code='mirumee', discount_value=20)
 
 
+@pytest.fixture
+def voucher_with_high_min_amount_spent():
+    return Voucher.objects.create(
+        code='mirumee',
+        discount_value=10,
+        min_amount_spent=Money(1000000, 'USD'))
+
+
+@pytest.fixture
+def voucher_shipping_type():
+    return Voucher.objects.create(
+        code='mirumee',
+        discount_value=10,
+        type=VoucherType.SHIPPING,
+        countries='IS')
+
+
 @pytest.fixture()
 def order_with_lines(
         order, product_type, category, shipping_zone, vatlayer):
@@ -519,6 +550,18 @@ def fulfilled_order(order_with_lines):
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=['status'])
     return order
+
+
+@pytest.fixture()
+def fulfilled_order_with_cancelled_fulfillment(fulfilled_order):
+    fulfillment = fulfilled_order.fulfillments.create()
+    line_1 = fulfilled_order.lines.first()
+    line_2 = fulfilled_order.lines.last()
+    fulfillment.lines.create(order_line=line_1, quantity=line_1.quantity)
+    fulfillment.lines.create(order_line=line_2, quantity=line_2.quantity)
+    fulfillment.status = FulfillmentStatus.CANCELED
+    fulfillment.save()
+    return fulfilled_order
 
 
 @pytest.fixture

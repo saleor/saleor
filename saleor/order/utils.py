@@ -1,6 +1,7 @@
 from functools import wraps
 
 from django.conf import settings
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from prices import Money, TaxedMoney
 
@@ -8,6 +9,7 @@ from ..account.utils import store_user_address
 from ..checkout import AddressType
 from ..core.utils.taxes import (
     ZERO_MONEY, get_tax_rate_by_name, get_taxes_for_address)
+from ..core.weight import zero_weight
 from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..discount.models import NotApplicable
 from ..order import FulfillmentStatus, OrderStatus
@@ -76,6 +78,17 @@ def recalculate_order(order, **kwargs):
         total -= order.discount_amount
     order.total = total
     order.save()
+    recalculate_order_weight(order)
+
+
+def recalculate_order_weight(order):
+    """Recalculate order weights."""
+    weight = zero_weight()
+    for line in order:
+        if line.variant:
+            weight += line.variant.get_weight() * line.quantity
+    order.weight = weight
+    order.save(update_fields=['weight'])
 
 
 def update_order_prices(order, discounts):
@@ -166,9 +179,15 @@ def attach_order_to_user(order, user):
     order.save(update_fields=['user'])
 
 
+@transaction.atomic
 def add_variant_to_order(
-        order, variant, quantity, discounts=None, taxes=None,
-        allow_overselling=False, track_inventory=True):
+        order,
+        variant,
+        quantity,
+        discounts=None,
+        taxes=None,
+        allow_overselling=False,
+        track_inventory=True):
     """Add total_quantity of variant to order.
 
     Returns an order line the variant was added to.
@@ -178,6 +197,7 @@ def add_variant_to_order(
     """
     if not allow_overselling:
         variant.check_quantity(quantity)
+
     try:
         line = order.lines.get(variant=variant)
         line.quantity += quantity
@@ -196,6 +216,7 @@ def add_variant_to_order(
             variant=variant,
             unit_price=variant.get_price(discounts, taxes),
             tax_rate=get_tax_rate_by_name(variant.product.tax_rate, taxes))
+
     if variant.track_inventory and track_inventory:
         allocate_stock(variant, quantity)
     return line
@@ -207,7 +228,12 @@ def change_order_line_quantity(line, new_quantity):
         line.quantity = new_quantity
         line.save(update_fields=['quantity'])
     else:
-        line.delete()
+        delete_order_line(line)
+
+
+def delete_order_line(line):
+    """Delete an order line from an order."""
+    line.delete()
 
 
 def restock_order_lines(order):

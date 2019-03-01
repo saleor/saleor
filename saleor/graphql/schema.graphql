@@ -57,6 +57,11 @@ input AddressInput {
   phone: String
 }
 
+enum AddressTypeEnum {
+  BILLING
+  SHIPPING
+}
+
 type AddressUpdate {
   errors: [Error!]
   address: Address
@@ -231,6 +236,7 @@ type Category implements Node {
   name: String!
   slug: String!
   description: String!
+  descriptionJson: JSONString!
   parent: Category
   backgroundImage(size: Int): Image
   level: Int!
@@ -263,6 +269,7 @@ type CategoryDelete {
 
 input CategoryInput {
   description: String
+  descriptionJson: JSONString
   name: String
   slug: String
   seo: SeoInput
@@ -403,6 +410,11 @@ type CheckoutShippingMethodUpdate {
   checkout: Checkout
 }
 
+type CheckoutUpdateVoucher {
+  errors: [Error!]
+  checkout: Checkout
+}
+
 type ChoiceValue {
   raw: String
   verbose: String
@@ -419,6 +431,7 @@ type Collection implements Node {
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   backgroundImage(size: Int): Image
   description: String!
+  descriptionJson: JSONString!
   publishedDate: Date @deprecated(reason: "publishedDate is deprecated, use publicationDate instead")
 }
 
@@ -448,6 +461,7 @@ input CollectionCreateInput {
   name: String
   slug: String
   description: String
+  descriptionJson: JSONString
   backgroundImage: Upload
   backgroundImageAlt: String
   seo: SeoInput
@@ -465,6 +479,7 @@ input CollectionInput {
   name: String
   slug: String
   description: String
+  descriptionJson: JSONString
   backgroundImage: Upload
   backgroundImageAlt: String
   seo: SeoInput
@@ -499,6 +514,11 @@ type CreditCard {
   lastDigits: String!
   expMonth: Int!
   expYear: Int!
+}
+
+type CustomerAddressCreate {
+  errors: [Error!]
+  address: Address
 }
 
 type CustomerCreate {
@@ -537,6 +557,11 @@ type CustomerRegister {
 input CustomerRegisterInput {
   email: String!
   password: String!
+}
+
+type CustomerSetDefaultAddress {
+  errors: [Error!]
+  user: User
 }
 
 type CustomerUpdate {
@@ -932,6 +957,7 @@ type Mutations {
   checkoutPaymentCreate(checkoutId: ID!, input: PaymentInput!): CheckoutPaymentCreate
   checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
+  checkoutUpdateVoucher(checkoutId: ID!, voucherCode: String): CheckoutUpdateVoucher
   passwordReset(email: String!): PasswordReset
   setPassword(id: ID!, input: SetPasswordInput!): SetPassword
   customerCreate(input: UserCreateInput!): CustomerCreate
@@ -939,6 +965,8 @@ type Mutations {
   customerPasswordReset(input: CustomerPasswordResetInput!): CustomerPasswordReset
   customerRegister(input: CustomerRegisterInput!): CustomerRegister
   customerUpdate(id: ID!, input: CustomerInput!): CustomerUpdate
+  customerAddressCreate(input: AddressInput!): CustomerAddressCreate
+  customerSetDefaultAddress(id: ID!, type: AddressTypeEnum!): CustomerSetDefaultAddress
   loggedUserUpdate(input: UserAddressInput!): LoggedUserUpdate
   staffCreate(input: StaffCreateInput!): StaffCreate
   staffDelete(id: ID!): StaffDelete
@@ -1179,6 +1207,7 @@ type Page implements Node {
   slug: String!
   title: String!
   content: String!
+  contentJson: JSONString!
   created: DateTime!
   availableOn: Date @deprecated(reason: "availableOn is deprecated, use publicationDate instead")
   isVisible: Boolean @deprecated(reason: "isVisible is deprecated, use isPublished instead")
@@ -1216,6 +1245,7 @@ input PageInput {
   slug: String
   title: String
   content: String
+  contentJson: JSONString
   isPublished: Boolean
   publicationDate: String
   seo: SeoInput
@@ -1237,19 +1267,19 @@ type Payment implements Node {
   created: DateTime!
   modified: DateTime!
   chargeStatus: PaymentChargeStatusEnum!
-  billingEmail: String!
-  customerIpAddress: String
-  extraData: String!
   token: String!
   total: Money
   capturedAmount: Money
   checkout: Checkout
   order: Order
+  billingEmail: String!
   ccFirstDigits: String!
   ccLastDigits: String!
   ccBrand: String!
   ccExpMonth: Int
   ccExpYear: Int
+  customerIpAddress: String
+  extraData: String!
   transactions: [Transaction]
   actions: [OrderAction]!
   billingAddress: Address
@@ -1286,7 +1316,7 @@ input PaymentInput {
   gateway: GatewaysEnum!
   token: String!
   amount: Decimal!
-  billingAddress: AddressInput!
+  billingAddress: AddressInput
 }
 
 type PaymentRefund {
@@ -1326,6 +1356,7 @@ type Product implements Node {
   productType: ProductType!
   name: String!
   description: String!
+  descriptionJson: JSONString!
   category: Category!
   price: Money
   attributes: [SelectedAttribute!]!
@@ -1379,6 +1410,7 @@ input ProductCreateInput {
   chargeTaxes: Boolean
   collections: [ID]
   description: String
+  descriptionJson: JSONString
   isPublished: Boolean
   name: String
   price: Decimal
@@ -1444,6 +1476,7 @@ input ProductInput {
   chargeTaxes: Boolean
   collections: [ID]
   description: String
+  descriptionJson: JSONString
   isPublished: Boolean
   name: String
   price: Decimal

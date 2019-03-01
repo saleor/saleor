@@ -1,5 +1,3 @@
-from textwrap import dedent
-
 import graphene
 from django.utils.text import slugify
 
@@ -13,8 +11,10 @@ class PageInput(graphene.InputObjectType):
     slug = graphene.String(description='Page internal name.')
     title = graphene.String(description='Page title.')
     content = graphene.String(
-        description=dedent("""Page content.
-        May consists of ordinary text, HTML and images."""))
+        description=(
+            'Page content. May consists of ordinary text, HTML and images.'))
+    content_json = graphene.JSONString(
+        description='Page content in JSON format.')
     is_published = graphene.Boolean(
         description='Determines if page is visible in the storefront')
     publication_date = graphene.String(

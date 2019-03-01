@@ -283,11 +283,7 @@ class Order(models.Model):
         return self.total_captured - self.total.gross
 
     def get_total_weight(self):
-        # Cannot use `sum` as it parses an empty Weight to an int
-        weights = Weight(kg=0)
-        for line in self:
-            weights += line.variant.get_weight() * line.quantity
-        return weights
+        return self.weight
 
 
 class OrderLine(models.Model):
@@ -376,7 +372,7 @@ class FulfillmentLine(models.Model):
         OrderLine, related_name='+', on_delete=models.CASCADE)
     fulfillment = models.ForeignKey(
         Fulfillment, related_name='lines', on_delete=models.CASCADE)
-    quantity = models.IntegerField(validators=[MinValueValidator(1)])
+    quantity = models.PositiveIntegerField()
 
 
 class OrderEvent(models.Model):

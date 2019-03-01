@@ -6,6 +6,7 @@ from django.utils.translation import pgettext
 from ...account.models import Address
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
+from ...discount.models import NotApplicable
 from ...order import OrderEvents, OrderEventsEmails
 from ...order.emails import send_order_confirmation
 from ..forms import CartNoteForm
@@ -18,7 +19,9 @@ from ..utils import (
 def handle_order_placement(request, cart):
     """Try to create an order and redirect the user as necessary.
 
-    This is a helper function.
+    This function creates an order from cart and performs post-create actions
+    such as removing the checkout instance, sending order notification email
+    and creating order history events.
     """
     try:
         order = create_order(
@@ -28,13 +31,13 @@ def handle_order_placement(request, cart):
             taxes=get_taxes_for_cart(cart, request.taxes))
     except InsufficientStock:
         return redirect('cart:index')
-
-    # happens when a voucher is now invalid
-    if not order:
-        msg = pgettext('Checkout warning', 'Please review your checkout.')
-        messages.warning(request, msg)
+    except NotApplicable:
+        messages.warning(
+            request, pgettext(
+                'Checkout warning', 'Please review your checkout.'))
         return redirect('checkout:summary')
 
+    # remove cart after checkout is created
     cart.delete()
     order.events.create(type=OrderEvents.PLACED.value)
     send_order_confirmation.delay(order.pk)

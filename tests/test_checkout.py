@@ -11,7 +11,7 @@ from saleor.account.models import Address
 from saleor.checkout import views
 from saleor.checkout.forms import CartVoucherForm, CountryForm
 from saleor.checkout.utils import (
-    add_variant_to_cart, change_billing_address_in_cart,
+    add_variant_to_cart, add_voucher_to_cart, change_billing_address_in_cart,
     change_shipping_address_in_cart, clear_shipping_method, create_order,
     get_cart_data_for_checkout,
     get_prices_of_products_in_discounted_categories, get_taxes_for_cart,
@@ -259,6 +259,9 @@ def test_view_checkout_summary(
     redirect_url = reverse('order:payment', kwargs={'token': order.token})
     assert response.request['PATH_INFO'] == redirect_url
     mock_send_confirmation.delay.assert_called_once_with(order.pk)
+
+    # cart should be deleted after order is created
+    assert request_cart_with_item.pk is None
 
 
 @patch('saleor.checkout.views.summary.send_order_confirmation')
@@ -975,3 +978,19 @@ def test_get_prices_of_products_in_discounted_categories(cart_with_item):
         lines, [discounted_category])
     # None of the lines are belongs to the discounted category
     assert not discounted_lines
+
+
+def test_add_voucher_to_cart(cart_with_item, voucher):
+    assert cart_with_item.voucher_code is None
+    add_voucher_to_cart(voucher, cart_with_item)
+
+    assert cart_with_item.voucher_code == voucher.code
+
+
+def test_add_voucher_to_cart_fail(
+        cart_with_item, voucher_with_high_min_amount_spent):
+    with pytest.raises(NotApplicable) as e:
+        add_voucher_to_cart(
+            voucher_with_high_min_amount_spent, cart_with_item)
+
+    assert cart_with_item.voucher_code is None

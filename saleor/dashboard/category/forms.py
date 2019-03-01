@@ -20,7 +20,7 @@ class CategoryForm(forms.ModelForm):
 
     class Meta:
         model = Category
-        exclude = ['slug']
+        exclude = ['slug', 'description_json']
         labels = {
             'name': pgettext_lazy('Item name', 'Name'),
             'description': pgettext_lazy('Description', 'Description'),

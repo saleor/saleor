@@ -1011,8 +1011,60 @@ def test_view_fulfill_order_lines(admin_client, order_with_lines):
     assert get_redirect_location(response) == reverse(
         'dashboard:order-details', kwargs={'order_pk': order_with_lines.pk})
     order_with_lines.refresh_from_db()
-    for line in order_with_lines:
+    for line in order_with_lines.lines.all():
         assert line.quantity_unfulfilled == 0
+
+
+def test_view_fulfill_order_lines_with_empty_quantity(admin_client, order_with_lines):
+    url = reverse(
+        'dashboard:fulfill-order-lines',
+        kwargs={'order_pk': order_with_lines.pk})
+    data = {
+        'csrfmiddlewaretoken': 'hello',
+        'form-INITIAL_FORMS': '0',
+        'form-MAX_NUM_FORMS': '1000',
+        'form-MIN_NUM_FORMS': '0',
+        'form-TOTAL_FORMS': order_with_lines.lines.count(),
+        'send_mail': 'on',
+        'tracking_number': ''}
+    for i, line in enumerate(order_with_lines):
+        data['form-{}-order_line'.format(i)] = line.pk
+        data['form-{}-quantity'.format(i)] = line.quantity_unfulfilled
+
+    # Set first order line's fulfill quantity to 0
+    data['form-0-quantity'] = 0
+
+    response = admin_client.post(url, data)
+    assert response.status_code == 302
+    assert get_redirect_location(response) == reverse(
+        'dashboard:order-details', kwargs={'order_pk': order_with_lines.pk})
+    order_with_lines.refresh_from_db()
+    assert not order_with_lines.lines.all()[0].quantity_unfulfilled == 0
+    for line in order_with_lines.lines.all()[1:]:
+        assert line.quantity_unfulfilled == 0
+
+
+def test_view_fulfill_order_lines_with_all_empty_quantity(
+        admin_client, order_with_lines):
+    url = reverse(
+        'dashboard:fulfill-order-lines',
+        kwargs={'order_pk': order_with_lines.pk})
+    data = {
+        'csrfmiddlewaretoken': 'hello',
+        'form-INITIAL_FORMS': '0',
+        'form-MAX_NUM_FORMS': '1000',
+        'form-MIN_NUM_FORMS': '0',
+        'form-TOTAL_FORMS': order_with_lines.lines.count(),
+        'send_mail': 'on',
+        'tracking_number': ''}
+    for i, line in enumerate(order_with_lines):
+        data['form-{}-order_line'.format(i)] = line.pk
+        data['form-{}-quantity'.format(i)] = 0
+
+    response = admin_client.post(url, data)
+    assert response.status_code == 200
+    for line in order_with_lines.lines.all():
+        assert not line.quantity_unfulfilled == 0
 
 
 def test_render_fulfillment_page(admin_client, order_with_lines):
@@ -1079,6 +1131,13 @@ def test_order_event_display(admin_user, type, order):
 
 def test_filter_order_by_status(admin_client):
     url = reverse('dashboard:orders',)
-    data = {'status': 'unfulfilled', 'payment_status': 'charged'}
+    data = {
+        'status': 'unfulfilled', 'payment_status': ChargeStatus.NOT_CHARGED}
+    response = admin_client.get(url, data)
+    assert response.status_code == 200
+
+    data = {
+        'status': 'unfulfilled',
+        'payment_status': ChargeStatus.FULLY_REFUNDED}
     response = admin_client.get(url, data)
     assert response.status_code == 200

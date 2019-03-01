@@ -1,3 +1,4 @@
+import json
 from datetime import date
 from unittest.mock import Mock
 
@@ -57,13 +58,26 @@ def test_create_collection(
         monkeypatch, staff_api_client, product_list, permission_manage_products):
     query = """
         mutation createCollection(
-            $name: String!, $slug: String!, $description: String, $products: [ID], $backgroundImage: Upload!, $backgroundImageAlt: String, $isPublished: Boolean!, $publicationDate: Date) {
+                $name: String!, $slug: String!, $description: String,
+                $descriptionJson: JSONString, $products: [ID],
+                $backgroundImage: Upload!, $backgroundImageAlt: String,
+                $isPublished: Boolean!, $publicationDate: Date) {
             collectionCreate(
-                input: {name: $name, slug: $slug, description: $description, products: $products, backgroundImage: $backgroundImage, backgroundImageAlt: $backgroundImageAlt, isPublished: $isPublished, publicationDate: $publicationDate}) {
+                input: {
+                    name: $name,
+                    slug: $slug,
+                    description: $description,
+                    descriptionJson: $descriptionJson,
+                    products: $products,
+                    backgroundImage: $backgroundImage,
+                    backgroundImageAlt: $backgroundImageAlt,
+                    isPublished: $isPublished,
+                    publicationDate: $publicationDate}) {
                 collection {
                     name
                     slug
                     description
+                    descriptionJson
                     products {
                         totalCount
                     }
@@ -89,12 +103,13 @@ def test_create_collection(
     name = 'test-name'
     slug = 'test-slug'
     description = 'test-description'
+    description_json = json.dumps({'content': 'description'})
     publication_date = date.today()
     variables = {
         'name': name, 'slug': slug, 'description': description,
-        'products': product_ids, 'backgroundImage': image_name,
-        'backgroundImageAlt': image_alt, 'isPublished': True,
-        'publicationDate': publication_date}
+        'descriptionJson': description_json, 'products': product_ids,
+        'backgroundImage': image_name, 'backgroundImageAlt': image_alt,
+        'isPublished': True, 'publicationDate': publication_date}
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products])
@@ -103,6 +118,7 @@ def test_create_collection(
     assert data['name'] == name
     assert data['slug'] == slug
     assert data['description'] == description
+    assert data['descriptionJson'] == description_json
     assert data['publicationDate'] == publication_date.isoformat()
     assert data['products']['totalCount'] == len(product_ids)
     collection = Collection.objects.get(slug=slug)
