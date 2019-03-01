@@ -7,7 +7,8 @@ import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
-import PageDetailsPage from "../components/PageDetailsPage";
+import { PageInput } from "../../types/globalTypes";
+import PageDetailsPage,{FormData} from "../components/PageDetailsPage";
 import { TypedPageRemove, TypedPageUpdate } from "../mutations";
 import { TypedPageDetailsQuery } from "../queries";
 import { PageRemove } from "../types/PageRemove";
@@ -16,6 +17,29 @@ import { pageListUrl, pageRemovePath, pageRemoveUrl, pageUrl } from "../urls";
 export interface PageDetailsProps {
   id: string;
 }
+
+const createPageInput = (data: FormData): PageInput => ({
+  contentJson: JSON.stringify(
+    data.content
+  ),
+  isPublished: data.isVisible
+    ? true
+    : data.availableOn === "" ||
+      data.availableOn === null
+    ? false
+    : true,
+  publicationDate: data.isVisible
+    ? null
+    : data.availableOn === ""
+    ? null
+    : data.availableOn,
+  seo: {
+    description: data.seoDescription,
+    title: data.seoTitle
+  },
+  slug: data.slug,
+  title: data.title
+})
 
 export const PageDetails: React.StatelessComponent<PageDetailsProps> = ({
   id
@@ -68,28 +92,7 @@ export const PageDetails: React.StatelessComponent<PageDetailsProps> = ({
                                 pageUpdate({
                                   variables: {
                                     id,
-                                    input: {
-                                      contentJson: JSON.stringify(
-                                        formData.content
-                                      ),
-                                      isPublished: formData.isVisible
-                                        ? true
-                                        : formData.availableOn === "" ||
-                                          formData.availableOn === null
-                                        ? false
-                                        : true,
-                                      publicationDate: formData.isVisible
-                                        ? null
-                                        : formData.availableOn === ""
-                                        ? null
-                                        : formData.availableOn,
-                                      seo: {
-                                        description: formData.seoDescription,
-                                        title: formData.seoTitle
-                                      },
-                                      slug: formData.slug,
-                                      title: formData.title
-                                    }
+                                    input: createPageInput(formData)
                                   }
                                 })
                               }
