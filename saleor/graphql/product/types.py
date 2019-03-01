@@ -6,6 +6,7 @@ import graphene_django_optimizer as gql_optimizer
 from django.db.models import Prefetch
 from graphene import relay
 from graphql.error import GraphQLError
+from graphql_jwt.decorators import permission_required
 
 from ...product import models
 from ...product.templatetags.product_images import (
@@ -15,7 +16,6 @@ from ...product.utils.availability import get_availability
 from ...product.utils.costs import (
     get_margin_for_variant, get_product_costs_data)
 from ..core.connection import CountableDjangoObjectType
-from ..core.decorators import permission_required
 from ..core.enums import ReportingPeriod, TaxRateType
 from ..core.fields import PrefetchingConnectionField
 from ..core.types import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
@@ -140,7 +140,7 @@ class ProductVariant(CountableDjangoObjectType):
         description=dedent("""Override the base price of a product if necessary.
         A value of `null` indicates that the default product
         price is used."""))
-    price = graphene.Field(Money, description="Price of the product variant.")
+    price = graphene.Field(Money, description='Price of the product variant.')
     attributes = graphene.List(
         graphene.NonNull(SelectedAttribute), required=True,
         description='List of attributes assigned to this variant.')
@@ -176,6 +176,7 @@ class ProductVariant(CountableDjangoObjectType):
         attributes_qs = self.product.product_type.variant_attributes.all()
         return resolve_attribute_list(self.attributes, attributes_qs)
 
+    @permission_required('product.manage_products')
     def resolve_margin(self, info):
         return get_margin_for_variant(self)
 
@@ -188,11 +189,21 @@ class ProductVariant(CountableDjangoObjectType):
     def resolve_price_override(self, info):
         return self.price_override
 
+    @permission_required('product.manage_products')
+    def resolve_quantity(self, info):
+        return self.quantity
+
+    @permission_required(['order.manage_orders', 'product.manage_products'])
     def resolve_quantity_ordered(self, info):
         # This field is added through annotation when using the
         # `resolve_report_product_sales` resolver.
         return getattr(self, 'quantity_ordered', None)
 
+    @permission_required(['order.manage_orders', 'product.manage_products'])
+    def resolve_quantity_allocated(self, info):
+        return self.quantity_allocated
+
+    @permission_required(['order.manage_orders', 'product.manage_products'])
     def resolve_revenue(self, info, period):
         start_date = reporting_period_to_date(period)
         return calculate_revenue_for_variant(self, start_date)

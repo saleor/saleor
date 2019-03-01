@@ -4,6 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 - New translations:
+  - Estonian
   - Indonesian
 - Fix problem with l10n in Braintree payment gateway template - #3691 by @Kwaidan00
 - Improve vouchers country limiting  - #3707 by @michaljelonek
@@ -22,7 +23,31 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add orderByToken query - #3740 by @michaljelonek
 - Enable existing search with backend picker in products query - #3736 by @michaljelonek
 - Fix bug where payment is not filtered from active ones when creating payment - #3731 by @jxltom
+- Sort order's payment and history descendingly - #3747 by @jxltom
+- Use exact image versions in docker-compose - #3742 by @ashishnitinpatil
+- Add mutation to connect voucher with checkout - #3739 by @Kwaidan00
+- Update S3 deployment documentation to include CORS configuration note - #3743 by @NyanKiyoshi
+- Fix missing migrations for is_published field of product and page model - #3757 by @jxltom
+- Add header and footer for checkout success pages #3752 by @jxltom
+- Filter order by payment status from order's last payment - #3749 @jxltom
+- Reuse cart creation logic in API - #3761 by @maarcingebala
+- Add json fields to models for content/description - #3756 by @michaljelonek
+- Fix bug where errors are not returned when creating fulfillment with non-existed order line - #3777 by @jxltom
+- Support fulfill order with 0 quantity only if total quantity is larger than 0 - #3754 by @jxltom
+- Fix storefront styles after bootstrap is updated to 4.3.1 - #3753 by @jxltom
+- Fix logo size in different browser and devices with different sizes - #3722 by @jxltom
+- Add missing type definition for dashboard 2.0 - #3776 by @jxltom
+- Add mutations to manage addresses for authenticated customers - #3772 by @Kwaidan00, @maarcingebala
+- Only include cancelled fulfillments for staff in fulfillment API - #3778 by @jxltom
+- Fix incorrect cart badge location - #3786 by @jxltom
+- Add function to recalculate order's total weight - #3755 by @Kwaidan00, @maarcingebala
+- Unify behavior after creating checkout in API and Storefront 1.0; code formatting improvements - #3790 by @maarcingebala
 - Support partially charged and partially refunded payment status - #3735 by @jxltom
+
+
+## 2.3.1
+- Fix access to private variant fields in API - #3773 by maarcingebala
+- Limit access of quantity and allocated quantity to staff in GraphQL API #3780 by @jxltom
 
 
 ## 2.3.0

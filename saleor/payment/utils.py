@@ -83,7 +83,7 @@ def handle_fully_paid_order(order):
         logger.exception('Recording order in analytics failed')
 
 
-def validate_payment(view):
+def require_active_payment(view):
     """Require an active payment instance.
 
     Decorate a view to check if payment is authorized, so any actions
@@ -380,7 +380,7 @@ def _gateway_postprocess(transaction, payment):
         payment.save(update_fields=changed_fields)
 
 
-@validate_payment
+@require_active_payment
 def gateway_process_payment(
         payment: Payment, payment_token: str) -> Transaction:
     """Performs whole payment process on a gateway."""
@@ -392,7 +392,7 @@ def gateway_process_payment(
     return transaction
 
 
-@validate_payment
+@require_active_payment
 def gateway_charge(
         payment: Payment, payment_token: str,
         amount: Decimal = None) -> Transaction:
@@ -417,7 +417,7 @@ def gateway_charge(
     return transaction
 
 
-@validate_payment
+@require_active_payment
 def gateway_authorize(payment: Payment, payment_token: str) -> Transaction:
     """Authorizes the payment and creates relevant transaction.
 
@@ -431,7 +431,7 @@ def gateway_authorize(payment: Payment, payment_token: str) -> Transaction:
         payment=payment, payment_token=payment_token)
 
 
-@validate_payment
+@require_active_payment
 def gateway_capture(payment: Payment, amount: Decimal = None) -> Transaction:
     """Captures the money that was reserved during the authorization stage."""
     if amount is None:
@@ -452,7 +452,7 @@ def gateway_capture(payment: Payment, amount: Decimal = None) -> Transaction:
     return transaction
 
 
-@validate_payment
+@require_active_payment
 def gateway_void(payment) -> Transaction:
     if not payment.can_void():
         raise PaymentError('Only pre-authorized transactions can be voided.')
@@ -471,7 +471,7 @@ def gateway_void(payment) -> Transaction:
     return transaction
 
 
-@validate_payment
+@require_active_payment
 def gateway_refund(payment, amount: Decimal = None) -> Transaction:
     """Refunds the charged funds back to the customer.
     Refunds can be total or partial.

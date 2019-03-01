@@ -207,6 +207,7 @@ export interface CatalogueInput {
 
 export interface CategoryInput {
   description?: string | null;
+  descriptionJson?: any | null;
   name?: string | null;
   slug?: string | null;
   seo?: SeoInput | null;
@@ -219,6 +220,7 @@ export interface CollectionCreateInput {
   name?: string | null;
   slug?: string | null;
   description?: string | null;
+  descriptionJson?: any | null;
   backgroundImage?: any | null;
   backgroundImageAlt?: string | null;
   seo?: SeoInput | null;
@@ -231,6 +233,7 @@ export interface CollectionInput {
   name?: string | null;
   slug?: string | null;
   description?: string | null;
+  descriptionJson?: any | null;
   backgroundImage?: any | null;
   backgroundImageAlt?: string | null;
   seo?: SeoInput | null;
