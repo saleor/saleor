@@ -40,6 +40,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add mutations to manage addresses for authenticated customers - #3772 by @Kwaidan00, @maarcingebala
 - Limit access of quantity and allocated quantity to staff in GraphQL API #3780 by @jxltom
 - Only include cancelled fulfillments for staff in fulfillment API - #3778 by @jxltom
+- Restyle static pages section and introduce WYSIWYG editor in dashboard 2.0 - #3751 by @dominik-zeglen
 
 
 ## 2.3.1
