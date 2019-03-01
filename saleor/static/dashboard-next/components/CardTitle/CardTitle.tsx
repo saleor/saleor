@@ -61,8 +61,7 @@ const CardTitle = withStyles(styles, { name: "CardTitle" })(
   }: CardTitleProps) => (
     <>
       <div
-        className={classNames({
-          [classes.root]: true,
+        className={classNames(classes.root, {
           [className]: !!className,
           [classes.constantHeight]: height === "const"
         })}

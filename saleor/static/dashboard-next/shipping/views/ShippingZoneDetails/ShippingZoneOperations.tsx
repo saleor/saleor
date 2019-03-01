@@ -30,29 +30,30 @@ import {
   UpdateShippingZoneVariables
 } from "../../types/UpdateShippingZone";
 
+export interface ShippingZoneOperationsOutput {
+  shippingRateCreate: PartialMutationProviderOutput<
+    CreateShippingRate,
+    CreateShippingRateVariables
+  >;
+  shippingRateDelete: PartialMutationProviderOutput<
+    DeleteShippingRate,
+    DeleteShippingRateVariables
+  >;
+  shippingRateUpdate: PartialMutationProviderOutput<
+    UpdateShippingRate,
+    UpdateShippingRateVariables
+  >;
+  shippingZoneDelete: PartialMutationProviderOutput<
+    DeleteShippingZone,
+    DeleteShippingZoneVariables
+  >;
+  shippingZoneUpdate: PartialMutationProviderOutput<
+    UpdateShippingZone,
+    UpdateShippingZoneVariables
+  >;
+}
 interface ShippingZoneOperationsProps {
-  children: (props: {
-    shippingRateCreate: PartialMutationProviderOutput<
-      CreateShippingRate,
-      CreateShippingRateVariables
-    >;
-    shippingRateDelete: PartialMutationProviderOutput<
-      DeleteShippingRate,
-      DeleteShippingRateVariables
-    >;
-    shippingRateUpdate: PartialMutationProviderOutput<
-      UpdateShippingRate,
-      UpdateShippingRateVariables
-    >;
-    shippingZoneDelete: PartialMutationProviderOutput<
-      DeleteShippingZone,
-      DeleteShippingZoneVariables
-    >;
-    shippingZoneUpdate: PartialMutationProviderOutput<
-      UpdateShippingZone,
-      UpdateShippingZoneVariables
-    >;
-  }) => React.ReactNode;
+  children: (props: ShippingZoneOperationsOutput) => React.ReactNode;
   onShippingRateCreate: (data: CreateShippingRate) => void;
   onShippingRateDelete: (data: DeleteShippingRate) => void;
   onShippingRateUpdate: (data: UpdateShippingRate) => void;

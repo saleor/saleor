@@ -9,6 +9,12 @@ export interface MoneyRangeProps {
   to?: IMoney;
 }
 
+const formatMoney = (money: IMoney, locale: string) =>
+  money.amount.toLocaleString(locale, {
+    currency: money.currency,
+    style: "currency"
+  });
+
 export const MoneyRange: React.StatelessComponent<MoneyRangeProps> = ({
   from,
   to
@@ -18,29 +24,17 @@ export const MoneyRange: React.StatelessComponent<MoneyRangeProps> = ({
       from && to
         ? i18n.t("{{ fromMoney }} - {{ toMoney }}", {
             context: "money",
-            fromMoney: from.amount.toLocaleString(locale, {
-              currency: from.currency,
-              style: "currency"
-            }),
-            toMoney: to.amount.toLocaleString(locale, {
-              currency: to.currency,
-              style: "currency"
-            })
+            fromMoney: formatMoney(from, locale),
+            toMoney: formatMoney(to, locale)
           })
         : from && !to
         ? i18n.t("from {{ money }}", {
             context: "money",
-            money: from.amount.toLocaleString(locale, {
-              currency: from.currency,
-              style: "currency"
-            })
+            money: formatMoney(from, locale)
           })
         : i18n.t("to {{ money }}", {
             context: "money",
-            money: to.amount.toLocaleString(locale, {
-              currency: to.currency,
-              style: "currency"
-            })
+            money: formatMoney(to, locale)
           })
     }
   </LocaleConsumer>
