@@ -1753,6 +1753,7 @@ enum ShippingMethodTypeEnum {
 
 type ShippingPriceCreate {
   errors: [Error!]
+  shippingZone: ShippingZone
   shippingMethod: ShippingMethod
 }
 
@@ -1775,6 +1776,7 @@ input ShippingPriceInput {
 
 type ShippingPriceUpdate {
   errors: [Error!]
+  shippingZone: ShippingZone
   shippingMethod: ShippingMethod
 }
 
