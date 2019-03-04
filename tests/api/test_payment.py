@@ -183,6 +183,25 @@ def test_payment_capture_success(
     assert txn.kind == TransactionKind.CAPTURE
 
 
+def test_payment_capture_with_invalid_argument(
+        staff_api_client, permission_manage_orders, payment_txn_preauth):
+    payment = payment_txn_preauth
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    payment_id = graphene.Node.to_global_id(
+        'Payment', payment_txn_preauth.pk)
+
+    variables = {
+        'paymentId': payment_id,
+        'amount': 0}
+    response = staff_api_client.post_graphql(
+        CAPTURE_QUERY, variables, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+    data = content['data']['paymentCapture']
+    assert len(data['errors']) == 1
+    assert data['errors'][0]['message'] == \
+        'Amount should be a positive number.'
+
+
 def test_payment_capture_gateway_error(
         staff_api_client, permission_manage_orders, payment_txn_preauth,
         monkeypatch):
@@ -249,6 +268,27 @@ def test_payment_refund_success(
     assert payment.transactions.count() == 2
     txn = payment.transactions.last()
     assert txn.kind == TransactionKind.REFUND
+
+
+def test_payment_refund_with_invalid_argument(
+        staff_api_client, permission_manage_orders, payment_txn_captured):
+    payment = payment_txn_captured
+    payment.charge_status = ChargeStatus.CHARGED
+    payment.captured_amount = payment.total
+    payment.save()
+    payment_id = graphene.Node.to_global_id(
+        'Payment', payment.pk)
+
+    variables = {
+        'paymentId': payment_id,
+        'amount': 0}
+    response = staff_api_client.post_graphql(
+        REFUND_QUERY, variables, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+    data = content['data']['paymentRefund']
+    assert len(data['errors']) == 1
+    assert data['errors'][0]['message'] == \
+        'Amount should be a positive number.'
 
 
 def test_payment_refund_error(

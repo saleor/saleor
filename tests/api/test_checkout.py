@@ -78,7 +78,8 @@ def test_checkout_create_reuse_cart(cart, user_api_client, variant):
     variables = {
         'checkoutInput': {
             'lines': [{'quantity': 1, 'variantId': variant_id}], }}
-    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)
 
     # assert that existing cart was reused and returned by mutation
@@ -275,7 +276,7 @@ def test_checkout_available_shipping_methods(
 
 
 def test_checkout_no_available_shipping_methods_without_address(
-        api_client, cart_with_item, shipping_zone):
+        api_client, cart_with_item):
     query = """
     query getCheckout($token: UUID!) {
         checkout(token: $token) {
@@ -294,7 +295,7 @@ def test_checkout_no_available_shipping_methods_without_address(
 
 
 def test_checkout_no_available_shipping_methods_without_lines(
-        api_client, cart, shipping_zone):
+        api_client, cart):
     query = """
     query getCheckout($token: UUID!) {
         checkout(token: $token) {
@@ -609,7 +610,7 @@ def test_checkout_customer_detach(
 
 
 def test_checkout_customer_detach_without_customer(
-        user_api_client, cart_with_item, customer_user):
+        user_api_client, cart_with_item):
     cart = cart_with_item
 
     checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
@@ -993,8 +994,8 @@ def test_checkout_prices(user_api_client, cart_with_item):
 
 @patch('saleor.graphql.checkout.mutations.clean_shipping_method')
 def test_checkout_shipping_method_update(
-        mock_clean_shipping, staff_api_client, shipping_method, cart_with_item,
-        sale, vatlayer):
+        mock_clean_shipping, staff_api_client,
+        shipping_method, cart_with_item):
     query = """
     mutation checkoutShippingMethodUpdate(
             $checkoutId:ID!, $shippingMethodId:ID!){
@@ -1140,6 +1141,17 @@ def test_ready_to_place_order_invalid_shipping_method(
     ready, error = ready_to_place_order(checkout, None, None)
     assert not ready
     assert error == 'Shipping method is not valid for your shipping address'
+
+
+def test_ready_to_place_order_no_billing_address(
+        cart_with_item, address, shipping_method):
+    checkout = cart_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.save()
+    ready, error = ready_to_place_order(checkout, None, None)
+    assert not ready
+    assert error == 'Billing address is not set'
 
 
 def test_ready_to_place_order_no_payment(
@@ -1316,7 +1328,8 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
     cart_with_item.shipping_address = address_other_country
     cart_with_item.shipping_method = shipping_method
     cart_with_item.save(update_fields=['shipping_address', 'shipping_method'])
-    assert cart_with_item.shipping_address.country == address_other_country.country
+    assert cart_with_item.shipping_address.country == \
+        address_other_country.country
 
     voucher = voucher_shipping_type
     assert voucher.countries[0].code == address_other_country.country
