@@ -9,6 +9,8 @@ import * as React from "react";
 
 import { appMountPoint } from "../..";
 import { User } from "../../auth/types/User";
+import { configurationMenu, configurationMenuUrl } from "../../configuration";
+import i18n from "../../i18n";
 import { removeDoubleSlashes } from "../../misc";
 import Toggle from "../Toggle";
 import { IMenuItem } from "./menuStructure";
@@ -30,7 +32,7 @@ const styles = (theme: Theme) =>
       alignItems: "center",
       color: "#616161",
       display: "flex",
-      height: 40,
+      marginTop: theme.spacing.unit * 2,
       paddingLeft: 0,
       textDecoration: "none",
       transition: theme.transitions.duration.standard + "ms"
@@ -41,7 +43,7 @@ const styles = (theme: Theme) =>
       },
       cursor: "pointer",
       fontSize: "1rem",
-      marginLeft: theme.spacing.unit * 2,
+      textTransform: "uppercase",
       transition: theme.transitions.duration.standard + "ms"
     },
     menuListNested: {
@@ -50,6 +52,7 @@ const styles = (theme: Theme) =>
   });
 
 interface MenuListProps {
+  className?: string;
   menuItems: IMenuItem[];
   user: User;
   onMenuItemClick: (url: string, event: React.MouseEvent<any>) => void;
@@ -57,11 +60,12 @@ interface MenuListProps {
 const MenuList = withStyles(styles, { name: "MenuList" })(
   ({
     classes,
+    className,
     menuItems,
     user,
     onMenuItemClick
   }: MenuListProps & WithStyles<typeof styles>) => (
-    <div>
+    <div className={className}>
       {menuItems.map(menuItem => {
         if (
           menuItem.permission &&
@@ -75,7 +79,6 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
               {(openedMenu, { toggle: toggleMenu }) => (
                 <>
                   <div onClick={toggleMenu} className={classes.menuListItem}>
-                    {menuItem.icon}
                     <Typography
                       aria-label={menuItem.ariaLabel}
                       className={classes.menuListItemText}
@@ -104,7 +107,6 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
             onClick={event => onMenuItemClick(menuItem.url, event)}
             key={menuItem.label}
           >
-            {menuItem.icon}
             <Typography
               aria-label={menuItem.ariaLabel}
               className={classes.menuListItemText}
@@ -114,6 +116,22 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
           </a>
         );
       })}
+      {configurationMenu.filter(menuItem =>
+        user.permissions.map(perm => perm.code).includes(menuItem.permission)
+      ).length > 0 && (
+        <a
+          className={classes.menuListItem}
+          href={removeDoubleSlashes(appMountPoint + configurationMenuUrl)}
+          onClick={event => onMenuItemClick(configurationMenuUrl, event)}
+        >
+          <Typography
+            aria-label="configure"
+            className={classes.menuListItemText}
+          >
+            {i18n.t("Configure")}
+          </Typography>
+        </a>
+      )}
     </div>
   )
 );
