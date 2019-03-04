@@ -85,6 +85,12 @@ const styles = (theme: Theme) =>
     userChip: {
       backgroundColor: theme.palette.common.white,
       border: `1px solid ${theme.palette.grey[200]}`
+    },
+    userMenuContainer: {
+      position: "relative"
+    },
+    userMenuItem: {
+      textAlign: "right"
     }
   });
 
@@ -334,22 +340,27 @@ const AppLayout = withStyles(styles, {
                                   <div className={classes.header}>
                                     <div ref={appHeaderAnchor} />
                                     <div className={classes.spacer} />
-                                    <MenuToggle ariaOwns="user-menu">
-                                      {({
-                                        open: menuOpen,
-                                        actions: {
-                                          open: openMenu,
-                                          close: closeMenu
-                                        }
-                                      }) => {
-                                        const handleLogout = () => {
-                                          close();
-                                          logout();
-                                        };
-                                        return (
-                                          <Anchor>
-                                            {anchor => (
-                                              <>
+                                    <Anchor>
+                                      {anchor => (
+                                        <Toggle>
+                                          {(
+                                            menuOpen,
+                                            {
+                                              disable: closeMenu,
+                                              enable: openMenu
+                                            }
+                                          ) => {
+                                            const handleLogout = () => {
+                                              close();
+                                              logout();
+                                            };
+                                            return (
+                                              <div
+                                                className={
+                                                  classes.userMenuContainer
+                                                }
+                                                ref={anchor}
+                                              >
                                                 <Chip
                                                   className={classes.userChip}
                                                   label={
@@ -363,7 +374,6 @@ const AppLayout = withStyles(styles, {
                                                       />
                                                     </>
                                                   }
-                                                  innerRef={anchor}
                                                   onClick={openMenu}
                                                 />
                                                 <Popper
@@ -380,7 +390,6 @@ const AppLayout = withStyles(styles, {
                                                     <Grow
                                                       {...TransitionProps}
                                                       style={{
-                                                        minWidth: "10rem",
                                                         transformOrigin:
                                                           placement === "bottom"
                                                             ? "right top"
@@ -396,6 +405,9 @@ const AppLayout = withStyles(styles, {
                                                         >
                                                           <Menu>
                                                             <MenuItem
+                                                              className={
+                                                                classes.userMenuItem
+                                                              }
                                                               onClick={
                                                                 handleLogout
                                                               }
@@ -414,12 +426,12 @@ const AppLayout = withStyles(styles, {
                                                     </Grow>
                                                   )}
                                                 </Popper>
-                                              </>
-                                            )}
-                                          </Anchor>
-                                        );
-                                      }}
-                                    </MenuToggle>
+                                              </div>
+                                            );
+                                          }}
+                                        </Toggle>
+                                      )}
+                                    </Anchor>
                                   </div>
                                 </Container>
                                 <main className={classes.content}>
