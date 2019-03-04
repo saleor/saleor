@@ -98,7 +98,7 @@ class ChargeStatus:
 GATEWAYS_ENUM = Enum(
     'GatewaysEnum',
     {key.upper(): key.lower()
-     for key in settings.PAYMENT_GATEWAYS})
+     for key in settings.CHECKOUT_PAYMENT_GATEWAYS})
 
 
 def get_payment_gateway(gateway_name):
