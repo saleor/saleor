@@ -6,7 +6,6 @@ import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.core import signing
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpResponse
 from django.urls import reverse
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
