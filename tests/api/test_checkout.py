@@ -802,6 +802,7 @@ def test_checkout_complete(
     checkout = cart_with_item
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
+    checkout.billing_address = address
     checkout.save()
 
     checkout_line = checkout.lines.first()
@@ -867,6 +868,7 @@ def test_checkout_complete_no_payment(
     checkout = cart_with_item
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
+    checkout.billing_address = address
     checkout.save()
     checkout_id = graphene.Node.to_global_id('Checkout', checkout.pk)
     variables = {'checkoutId': checkout_id}
@@ -890,6 +892,7 @@ def test_checkout_complete_insufficient_stock(
     cart_line.save()
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
+    checkout.billing_address = address
     checkout.save()
     total = checkout.get_total()
     payment = payment_dummy
@@ -1093,6 +1096,7 @@ def test_ready_to_place_order(
     checkout = cart_with_item
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
+    checkout.billing_address = address
     checkout.save()
     total = checkout.get_total()
     payment = payment_dummy
@@ -1143,6 +1147,7 @@ def test_ready_to_place_order_no_payment(
     checkout = cart_with_item
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
+    checkout.billing_address = address
     checkout.save()
     ready, error = ready_to_place_order(checkout, None, None)
     assert not ready
