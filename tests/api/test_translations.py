@@ -1198,8 +1198,7 @@ def test_shop_update_translation(
     (TranslatableKinds.ATTRIBUTE, 'Attribute'),
     (TranslatableKinds.ATTRIBUTE_VALUE, 'AttributeValue'),
     (TranslatableKinds.VARIANT, 'ProductVariant'),
-    (TranslatableKinds.MENU_ITEM, 'MenuItem'),
-    (TranslatableKinds.SHOP, 'Shop')])
+    (TranslatableKinds.MENU_ITEM, 'MenuItem')])
 def test_translations_query(
         user_api_client, product, collection, voucher, shipping_method,
         page, menu_item, kind, expected_typename):
@@ -1225,21 +1224,21 @@ def test_translations_query_inline_fragment(user_api_client, product):
     product.translations.create(language_code='pl', name='Produkt testowy')
 
     query = """
-        query {
-            translations(kind: PRODUCT, first: 1) {
-                edges {
-                    node {
-                        ... on Product {
+    {
+        translations(kind: PRODUCT, first: 1) {
+            edges {
+                node {
+                    ... on Product {
+                        name
+                        translation(languageCode: "pl") {
                             name
-                            translation(languageCode: "pl") {
-                                name
-                            }
                         }
                     }
                 }
             }
         }
-        """
+    }
+    """
 
     response = user_api_client.post_graphql(query)
     data = get_graphql_content(response)['data']['translations']['edges'][0]
