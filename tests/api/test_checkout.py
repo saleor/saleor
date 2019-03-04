@@ -1154,7 +1154,7 @@ def test_ready_to_place_order_no_payment(
     assert error == 'Checkout can not be fully paid with proper payments'
 
 
-def test_is_fully_paid(cart_with_item, payment_dummy):
+def test_can_be_fully_paid(cart_with_item, payment_dummy):
     checkout = cart_with_item
     total = checkout.get_total()
     payment = payment_dummy
@@ -1168,7 +1168,7 @@ def test_is_fully_paid(cart_with_item, payment_dummy):
     assert is_paid
 
 
-def test_is_fully_paid_many_payments(cart_with_item, payment_dummy):
+def test_can_be_fully_paid_many_payments(cart_with_item, payment_dummy):
     checkout = cart_with_item
     total = checkout.get_total()
     payment = payment_dummy
@@ -1190,7 +1190,7 @@ def test_is_fully_paid_many_payments(cart_with_item, payment_dummy):
     assert is_paid
 
 
-def test_is_fully_paid_partially_paid(cart_with_item, payment_dummy):
+def test_can_be_fully_paid_partially_paid(cart_with_item, payment_dummy):
     checkout = cart_with_item
     total = checkout.get_total()
     payment = payment_dummy
@@ -1204,7 +1204,7 @@ def test_is_fully_paid_partially_paid(cart_with_item, payment_dummy):
     assert not is_paid
 
 
-def test_is_fully_paid_no_payment(cart_with_item):
+def test_can_be_fully_paid_no_payment(cart_with_item):
     checkout = cart_with_item
     is_paid = can_be_fully_paid(checkout, None, None)
     assert not is_paid
