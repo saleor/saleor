@@ -259,7 +259,6 @@ class BasePaymentForm(forms.Form):
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES)
 
-    clean_status = tuple()
     clean_error = pgettext_lazy(
         'Payment form error',
         'This payment action can not be performed.')
@@ -267,10 +266,6 @@ class BasePaymentForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.payment = kwargs.pop('payment')
         super().__init__(*args, **kwargs)
-
-    def clean(self):
-        if self.payment.charge_status not in self.clean_status:
-            raise forms.ValidationError(self.clean_error)
 
     def payment_error(self, message):
         self.add_error(
@@ -289,10 +284,13 @@ class BasePaymentForm(forms.Form):
 
 class CapturePaymentForm(BasePaymentForm):
 
-    clean_status = (ChargeStatus.NOT_CHARGED, )
     clean_error = pgettext_lazy(
         'Payment form error',
         'Only pre-authorized payments can be captured')
+
+    def clean(self):
+        if not self.payment.can_capture():
+            raise forms.ValidationError(self.clean_error)
 
     def capture(self):
         return self.try_payment_action(gateway_capture)
@@ -300,16 +298,14 @@ class CapturePaymentForm(BasePaymentForm):
 
 class RefundPaymentForm(BasePaymentForm):
 
-    clean_status = (
-        ChargeStatus.PARTIALLY_CHARGED,
-        ChargeStatus.FULLY_CHARGED,
-        ChargeStatus.PARTIALLY_REFUNDED)
     clean_error = pgettext_lazy(
         'Payment form error',
         'Only confirmed payments can be refunded')
 
     def clean(self):
-        super().clean()
+        if not self.payment.can_refund():
+            raise forms.ValidationError(self.clean_error)
+
         if self.payment.gateway == CustomPaymentChoices.MANUAL:
             raise forms.ValidationError(
                 pgettext_lazy(
@@ -322,7 +318,6 @@ class RefundPaymentForm(BasePaymentForm):
 
 class VoidPaymentForm(BasePaymentForm):
 
-    clean_status = (ChargeStatus.NOT_CHARGED, )
     clean_error = pgettext_lazy(
         'Payment form error',
         'Only pre-authorized payments can be voided')
@@ -333,6 +328,10 @@ class VoidPaymentForm(BasePaymentForm):
         # The amount field is popped out
         # since there is no amount argument for void operation
         self.fields.pop('amount')
+
+    def clean(self):
+        if not self.payment.can_void():
+            raise forms.ValidationError(self.clean_error)
 
     def void(self):
         try:
