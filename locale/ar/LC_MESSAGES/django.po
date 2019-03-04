@@ -4,17 +4,17 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 # 
 # Translators:
-# Patryk Zawadzki <patrys@room-303.com>, 2019
 # Mohammed Alobaidan <m.a.s.obaidan@gmail.com>, 2019
+# Patryk Zawadzki <patrys@room-303.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-12 07:24-0600\n"
+"POT-Creation-Date: 2019-02-25 10:45-0600\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Mohammed Alobaidan <m.a.s.obaidan@gmail.com>, 2019\n"
+"Last-Translator: Patryk Zawadzki <patrys@room-303.com>, 2019\n"
 "Language-Team: Arabic (https://www.transifex.com/mirumee/teams/34782/ar/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -393,47 +393,47 @@ msgstr ""
 "نأسف. ليس لدينا هذا الكم. تم تعيين الكمية على الحد الأقصى المتاح في الوقت "
 "الحالي"
 
-#: saleor/checkout/utils.py:646
+#: saleor/checkout/utils.py:628
 msgctxt "Voucher not applicable"
 msgid "Your order does not require shipping."
 msgstr "طلبك لا يستوجب الشحن."
 
-#: saleor/checkout/utils.py:652
+#: saleor/checkout/utils.py:634
 msgctxt "Voucher not applicable"
 msgid "Please select a shipping method first."
 msgstr "يرجى اختيار طريقة الشحن أولاً."
 
-#: saleor/checkout/utils.py:660
+#: saleor/checkout/utils.py:642
 msgctxt "Voucher not applicable"
 msgid "This offer is not valid in your country."
 msgstr "هذا العرض غير صالح في دولتك."
 
-#: saleor/checkout/utils.py:682
+#: saleor/checkout/utils.py:664
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for selected items."
 msgstr "هذا العرض صالح فقط للعناصر المحددة."
 
-#: saleor/checkout/utils.py:792
+#: saleor/checkout/utils.py:791
 msgctxt "Voucher not applicable"
 msgid "Voucher expired in meantime. Order placement aborted."
 msgstr "انتهت صلاحية القسيمة في الوقت الحالي. تم إلغاء عملية الطلب."
 
-#: saleor/checkout/utils.py:899
+#: saleor/checkout/utils.py:904
 msgctxt "order placement_error"
 msgid "Shipping method is not set"
 msgstr ""
 
-#: saleor/checkout/utils.py:902
+#: saleor/checkout/utils.py:907
 msgctxt "order placement error"
 msgid "Shipping address is not set"
 msgstr ""
 
-#: saleor/checkout/utils.py:906
+#: saleor/checkout/utils.py:911
 msgctxt "order placement error"
 msgid "Shipping method is not valid for your shipping address"
 msgstr ""
 
-#: saleor/checkout/utils.py:909
+#: saleor/checkout/utils.py:914
 msgctxt "order placement error"
 msgid "Checkout is not fully paid"
 msgstr ""
@@ -448,127 +448,127 @@ msgctxt "Checkout warning"
 msgid "Please review your checkout."
 msgstr "يرجى مراجعة عملية الشراء الخاصة بك."
 
-#: saleor/core/__init__.py:55
+#: saleor/core/__init__.py:54
 msgctxt "VAT rate type"
 msgid "accommodation"
 msgstr "الإقامة"
 
-#: saleor/core/__init__.py:57
+#: saleor/core/__init__.py:56
 msgctxt "VAT rate type"
 msgid "admission to cultural events"
 msgstr "تذاكر لفعاليات ثقافية"
 
-#: saleor/core/__init__.py:59
+#: saleor/core/__init__.py:58
 msgctxt "VAT rate type"
 msgid "admission to entertainment events"
 msgstr "تذاكر لفعاليات ترفيهية"
 
-#: saleor/core/__init__.py:61
+#: saleor/core/__init__.py:60
 msgctxt "VAT rate type"
 msgid "admission to sporting events"
 msgstr "تذاكر لفعاليات رياضية"
 
-#: saleor/core/__init__.py:62
+#: saleor/core/__init__.py:61
 msgctxt "VAT rate type"
 msgid "advertising"
 msgstr "إعلان"
 
-#: saleor/core/__init__.py:64
+#: saleor/core/__init__.py:63
 msgctxt "VAT rate type"
 msgid "agricultural supplies"
 msgstr "الإمدادات الزراعية"
 
-#: saleor/core/__init__.py:65
+#: saleor/core/__init__.py:64
 msgctxt "VAT rate type"
 msgid "baby foodstuffs"
 msgstr "أغذية الأطفال"
 
-#: saleor/core/__init__.py:66
+#: saleor/core/__init__.py:65
 msgctxt "VAT rate type"
 msgid "bikes"
 msgstr "الدراجات"
 
-#: saleor/core/__init__.py:67
+#: saleor/core/__init__.py:66
 msgctxt "VAT rate type"
 msgid "books"
 msgstr "كتب"
 
-#: saleor/core/__init__.py:69
+#: saleor/core/__init__.py:68
 msgctxt "VAT rate type"
 msgid "childrens clothing"
 msgstr "ملابس أطفال"
 
-#: saleor/core/__init__.py:70
+#: saleor/core/__init__.py:69
 msgctxt "VAT rate type"
 msgid "domestic fuel"
 msgstr "وقود منزلي"
 
-#: saleor/core/__init__.py:72
+#: saleor/core/__init__.py:71
 msgctxt "VAT rate type"
 msgid "domestic services"
 msgstr "خدمات منزلية"
 
-#: saleor/core/__init__.py:73
+#: saleor/core/__init__.py:72
 msgctxt "VAT rate type"
 msgid "e-books"
 msgstr "كتب إلكترونية"
 
-#: saleor/core/__init__.py:74
+#: saleor/core/__init__.py:73
 msgctxt "VAT rate type"
 msgid "foodstuffs"
 msgstr "مواد غذائية"
 
-#: saleor/core/__init__.py:75
+#: saleor/core/__init__.py:74
 msgctxt "VAT rate type"
 msgid "hotels"
 msgstr "فنادق"
 
-#: saleor/core/__init__.py:76
+#: saleor/core/__init__.py:75
 msgctxt "VAT rate type"
 msgid "medical"
 msgstr "طبي"
 
-#: saleor/core/__init__.py:77
+#: saleor/core/__init__.py:76
 msgctxt "VAT rate type"
 msgid "newspapers"
 msgstr ""
 
-#: saleor/core/__init__.py:79
+#: saleor/core/__init__.py:78
 msgctxt "VAT rate type"
 msgid "passenger transport"
 msgstr "نقل الركاب"
 
-#: saleor/core/__init__.py:81
+#: saleor/core/__init__.py:80
 msgctxt "VAT rate type"
 msgid "pharmaceuticals"
 msgstr "أدوية"
 
-#: saleor/core/__init__.py:83
+#: saleor/core/__init__.py:82
 msgctxt "VAT rate type"
 msgid "property renovations"
 msgstr "تجديد ممتلكات"
 
-#: saleor/core/__init__.py:84
+#: saleor/core/__init__.py:83
 msgctxt "VAT rate type"
 msgid "restaurants"
 msgstr "مطاعم"
 
-#: saleor/core/__init__.py:85
+#: saleor/core/__init__.py:84
 msgctxt "VAT rate type"
 msgid "social housing"
 msgstr "إسكان اجتماعي"
 
-#: saleor/core/__init__.py:86
+#: saleor/core/__init__.py:85
 msgctxt "VAT rate type"
 msgid "standard"
 msgstr "أساسي"
 
-#: saleor/core/__init__.py:87
+#: saleor/core/__init__.py:86
 msgctxt "VAT rate type"
 msgid "water"
 msgstr "ماء"
 
-#: saleor/core/__init__.py:88
+#: saleor/core/__init__.py:87
 msgctxt "VAT rate type"
 msgid "wine"
 msgstr ""
@@ -691,7 +691,7 @@ msgctxt "Permission description"
 msgid "Manage sales and vouchers."
 msgstr "إدارة المبيعات والقسائم."
 
-#: saleor/discount/utils.py:47
+#: saleor/discount/utils.py:49
 msgctxt "Voucher not applicable"
 msgid "Discount not applicable for this product"
 msgstr "الخصومات لا تنطبق على هذا المنتج"
@@ -924,18 +924,18 @@ msgctxt "Payment delete form error"
 msgid "Payment cannot be cancelled."
 msgstr ""
 
-#: saleor/order/models.py:132
+#: saleor/order/models.py:134
 msgctxt "Permission description"
 msgid "Manage orders."
 msgstr "إدارة طلبات الشراء"
 
-#: saleor/order/models.py:337
+#: saleor/order/models.py:339
 #, python-format
 msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
 msgstr ""
 
-#: saleor/order/views.py:199
+#: saleor/order/views.py:196
 msgctxt "Connect order with user warning message"
 msgid ""
 "We couldn't assign the order to your account as the email addresses don't "
@@ -943,12 +943,12 @@ msgid ""
 msgstr ""
 "لم نتمكن من تعيين الطلب إلى حسابك حيث أن عناوين البريد الإلكتروني لا تتطابق"
 
-#: saleor/order/views.py:206
+#: saleor/order/views.py:203
 msgctxt "storefront message"
 msgid "The order is now assigned to your account"
 msgstr "تم الآن تعيين طلب الشراء إلى حسابك"
 
-#: saleor/page/models.py:44
+#: saleor/page/models.py:33
 msgctxt "Permission description"
 msgid "Manage pages."
 msgstr "إدارة الصفحات"
@@ -998,7 +998,7 @@ msgctxt "payment status"
 msgid "Fully refunded"
 msgstr ""
 
-#: saleor/payment/gateways/braintree/__init__.py:71
+#: saleor/payment/gateways/braintree/__init__.py:68
 #: saleor/payment/gateways/braintree/forms.py:35
 msgctxt "payment error"
 msgid "Unable to process transaction. Please try again in a moment"
@@ -1053,6 +1053,11 @@ msgstr ""
 #: saleor/payment/gateways/stripe/forms.py:11
 msgctxt "Stripe payment gateway description"
 msgid "Total payment"
+msgstr ""
+
+#: saleor/payment/utils.py:236
+msgctxt "Mark order as paid validation error"
+msgid "Orders with payments can not be manually marked as paid."
 msgstr ""
 
 #: saleor/product/__init__.py:15
@@ -1126,7 +1131,7 @@ msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
 msgstr ""
 
-#: saleor/product/models.py:147
+#: saleor/product/models.py:129
 msgctxt "Permission description"
 msgid "Manage products."
 msgstr "إدارة المنتجات"
@@ -1193,83 +1198,87 @@ msgid "Hungarian"
 msgstr "اللغة الهنغارية"
 
 #: saleor/settings.py:75
+msgid "Indonesian"
+msgstr ""
+
+#: saleor/settings.py:76
 msgid "Italian"
 msgstr "اللغة الإيطالية"
 
-#: saleor/settings.py:76
+#: saleor/settings.py:77
 msgid "Japanese"
 msgstr "اللغة اليابانية"
 
-#: saleor/settings.py:77
+#: saleor/settings.py:78
 msgid "Korean"
 msgstr "اللغة الكورية"
 
-#: saleor/settings.py:78
+#: saleor/settings.py:79
 msgid "Mongolian"
 msgstr ""
 
-#: saleor/settings.py:79
+#: saleor/settings.py:80
 msgid "Norwegian"
 msgstr "اللغة النرويجية"
 
-#: saleor/settings.py:80
+#: saleor/settings.py:81
 msgid "Dutch"
 msgstr "اللغة الهولندية"
 
-#: saleor/settings.py:81
+#: saleor/settings.py:82
 msgid "Polish"
 msgstr "اللغة البولندية"
 
-#: saleor/settings.py:82
+#: saleor/settings.py:83
 msgid "Brazilian Portuguese"
 msgstr ""
 
-#: saleor/settings.py:83
+#: saleor/settings.py:84
 msgid "Romanian"
 msgstr "اللغة الرومانية"
 
-#: saleor/settings.py:84
+#: saleor/settings.py:85
 msgid "Russian"
 msgstr "اللغة الروسية"
 
-#: saleor/settings.py:85
+#: saleor/settings.py:86
 msgid "Slovak"
 msgstr "اللغة السلوفاكية"
 
-#: saleor/settings.py:86
+#: saleor/settings.py:87
 msgid "Serbian"
 msgstr ""
 
-#: saleor/settings.py:87
+#: saleor/settings.py:88
 msgid "Swedish"
 msgstr ""
 
-#: saleor/settings.py:88
+#: saleor/settings.py:89
 msgid "Turkish"
 msgstr "اللغة التركية"
 
-#: saleor/settings.py:89
+#: saleor/settings.py:90
 msgid "Ukrainian"
 msgstr "اللغة الأوكرانية"
 
-#: saleor/settings.py:90
+#: saleor/settings.py:91
 msgid "Vietnamese"
 msgstr "الفيتنامية"
 
-#: saleor/settings.py:91
+#: saleor/settings.py:92
 msgid "Simplified Chinese"
 msgstr ""
 
-#: saleor/settings.py:92
+#: saleor/settings.py:93
 msgid "Traditional Chinese"
 msgstr ""
 
-#: saleor/settings.py:328
+#: saleor/settings.py:329
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr "الاتحاد الأوروبي"
 
-#: saleor/settings.py:565
+#: saleor/settings.py:566
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr ""
@@ -6105,12 +6114,10 @@ msgctxt "Account delete reset e-mail subject"
 msgid "Delete your account"
 msgstr "احذف حسابك"
 
-#: templates/templated_email/account/account_delete.email:8
+#: templates/templated_email/account/account_delete.email:9
 #, python-format
 msgctxt "Account delete reset e-mail text"
 msgid ""
-"\n"
-"Hi!\n"
 "\n"
 "You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(domain)s.\n"
 "Click the link below to delete your account.\n"
@@ -6118,38 +6125,18 @@ msgid ""
 "Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
 
-#: templates/templated_email/account/account_delete.email:21
-#, python-format
-msgctxt "Account delete reset e-mail text"
-msgid ""
-"\n"
-"Sincerely,\n"
-"%(site_name)s\n"
-msgstr ""
-
 #: templates/templated_email/account/password_reset.email:4
 msgctxt "Password reset e-mail subject"
 msgid "Password reset e-mail"
 msgstr "بريد الإلكتروني لإعادة تعيين كلمة المرور"
 
-#: templates/templated_email/account/password_reset.email:8
+#: templates/templated_email/account/password_reset.email:9
 #, python-format
 msgctxt "Password reset e-mail text"
 msgid ""
-"\n"
-"Hi!\n"
 "\n"
 "You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
 "It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
-msgstr ""
-
-#: templates/templated_email/account/password_reset.email:19
-#, python-format
-msgctxt "Password reset e-mail text"
-msgid ""
-"\n"
-"Sincerely,\n"
-"%(site_name)s\n"
 msgstr ""
 
 #: templates/templated_email/dashboard/customer/set_password.email:2
@@ -6158,49 +6145,27 @@ msgctxt "Set password for customer e-mail title"
 msgid "Hello from %(site_name)s!"
 msgstr ""
 
-#: templates/templated_email/dashboard/customer/set_password.email:5
+#: templates/templated_email/dashboard/customer/set_password.email:6
 #, python-format
 msgctxt "Set password for customer e-mail text"
 msgid ""
 "\n"
-"Hi!\n"
-"\n"
-"You're receiving this e-mail because you have to set password for your customer account at %(domain)s.\n"
+"You're receiving this e-mail because you have to set a password for your customer account at %(domain)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
-
-#: templates/templated_email/dashboard/customer/set_password.email:14
-msgctxt "Set password for customer e-mail text"
-msgid ""
-"\n"
-"This is an automatically generated email, please do not reply.\n"
-msgstr ""
-"\n"
-"هذا البريد الإلكتروني تم إنشاؤه تلقائياً ، الرجاء عدم الرد\n"
 
 #: templates/templated_email/dashboard/staff/promote_customer.email:2
 #, python-format
 msgid "Hello from %(site_name)s!"
 msgstr ""
 
-#: templates/templated_email/dashboard/staff/promote_customer.email:5
+#: templates/templated_email/dashboard/staff/promote_customer.email:6
 #, python-format
 msgctxt "Promote customer to staff member confirmation e-mail text"
 msgid ""
 "\n"
-"Hi!\n"
-"\n"
 "You're receiving this e-mail because you have been promoted to staff member at %(domain)s."
 msgstr ""
-
-#: templates/templated_email/dashboard/staff/promote_customer.email:10
-msgctxt "Promote customer to staff member confirmation e-mail text"
-msgid ""
-"\n"
-"This is an automatically generated email, please do not reply.\n"
-msgstr ""
-"\n"
-"هذا البريد الإلكتروني تم إنشاؤه تلقائياً ، الرجاء عدم الرد\n"
 
 #: templates/templated_email/dashboard/staff/set_password.email:2
 #, python-format
@@ -6208,25 +6173,14 @@ msgctxt "Set password for staff member e-mail title"
 msgid "Hello from %(site_name)s!"
 msgstr ""
 
-#: templates/templated_email/dashboard/staff/set_password.email:5
+#: templates/templated_email/dashboard/staff/set_password.email:6
 #, python-format
 msgctxt "Set password for staff member e-mail text"
 msgid ""
 "\n"
-"Hi!\n"
-"\n"
-"You're receiving this e-mail because you have to set password for your staff member account at %(domain)s.\n"
+"You're receiving this e-mail because you have to set a password for your staff member account at %(domain)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
-
-#: templates/templated_email/dashboard/staff/set_password.email:14
-msgctxt "Set password for staff member e-mail text"
-msgid ""
-"\n"
-"This is an automatically generated email, please do not reply.\n"
-msgstr ""
-"\n"
-"هذا البريد الإلكتروني تم إنشاؤه تلقائياً ، الرجاء عدم الرد\n"
 
 #: templates/templated_email/order/confirm_fulfillment.email:4
 #, python-format
@@ -6234,31 +6188,18 @@ msgctxt "Fulfillment confirmation email subject"
 msgid "A shipment from order %(order)s is on the way"
 msgstr ""
 
-#: templates/templated_email/order/confirm_fulfillment.email:10
+#: templates/templated_email/order/confirm_fulfillment.email:11
 msgctxt "Fulfillment confirmation email text"
 msgid ""
-"\n"
-"Hi!\n"
 "\n"
 "Thank you for your order. Below is the list of shipped products.\n"
 msgstr ""
 
-#: templates/templated_email/order/confirm_fulfillment.email:16
+#: templates/templated_email/order/confirm_fulfillment.email:15
 #: templates/templated_email/source/confirm_fulfillment.mjml:20
 #, python-format
 msgctxt "Fulfillment confirmation email text"
 msgid "You can track your shipment with %(tracking_number)s code."
-msgstr ""
-
-#: templates/templated_email/order/confirm_fulfillment.email:25
-#, python-format
-msgctxt "Fulfillment confirmation email text"
-msgid ""
-"\n"
-"This is an automatically generated email, please do not reply.\n"
-"\n"
-"Sincerely,\n"
-"%(site_name)s\n"
 msgstr ""
 
 #: templates/templated_email/order/confirm_order.email:6
@@ -6266,100 +6207,80 @@ msgctxt "Order confirmation e-mail subject"
 msgid "Order details"
 msgstr ""
 
-#: templates/templated_email/order/confirm_order.email:10
+#: templates/templated_email/order/confirm_order.email:11
 #, python-format
 msgctxt "Order confirmation e-mail text"
 msgid ""
-"\n"
-"Hi!\n"
 "\n"
 "Thank you for your order. Below is the list of ordered products. To see your payment details please visit:\n"
 "%(order_details_url)s"
 msgstr ""
 
-#: templates/templated_email/order/confirm_order.email:18
+#: templates/templated_email/order/confirm_order.email:17
 msgctxt "Order confirmation e-mail table header"
 msgid "Order summary"
 msgstr "ملخص الطلبية"
 
-#: templates/templated_email/order/confirm_order.email:19
+#: templates/templated_email/order/confirm_order.email:18
 msgctxt "Order confirmation e-mail table header"
 msgid "Subtotal"
 msgstr "المبلغ الإجمالي"
 
-#: templates/templated_email/order/confirm_order.email:20
+#: templates/templated_email/order/confirm_order.email:19
 msgctxt "Order confirmation e-mail table header"
 msgid "Shipping"
 msgstr "الشحن"
 
-#: templates/templated_email/order/confirm_order.email:21
+#: templates/templated_email/order/confirm_order.email:20
 msgctxt "Order confirmation e-mail table header"
 msgid "Taxes (included)"
 msgstr "(شامل) الضرائب"
 
-#: templates/templated_email/order/confirm_order.email:21
+#: templates/templated_email/order/confirm_order.email:20
 msgctxt "Order confirmation e-mail table header"
 msgid "Taxes"
 msgstr "الضرائب"
 
-#: templates/templated_email/order/confirm_order.email:22
+#: templates/templated_email/order/confirm_order.email:21
 msgctxt "Order confirmation e-mail table header"
 msgid "Discount:"
 msgstr "خصم:"
 
-#: templates/templated_email/order/confirm_order.email:23
+#: templates/templated_email/order/confirm_order.email:22
 msgctxt "Order confirmation e-mail table header"
 msgid "Total"
 msgstr "المجموع"
 
-#: templates/templated_email/order/confirm_order.email:25
+#: templates/templated_email/order/confirm_order.email:24
 #: templates/templated_email/source/confirm_order.mjml:29
 msgctxt "Order confirmation e-mail billing address"
 msgid "Billing address"
 msgstr "عنوان الفاتورة"
 
-#: templates/templated_email/order/confirm_order.email:28
+#: templates/templated_email/order/confirm_order.email:27
 #: templates/templated_email/source/confirm_order.mjml:30
 msgctxt "Order confirmation e-mail shipping address"
 msgid "Shipping address"
 msgstr "عنوان الشحن"
 
-#: templates/templated_email/order/confirm_order.email:29
+#: templates/templated_email/order/confirm_order.email:28
 #: templates/templated_email/source/confirm_order.mjml:42
 msgctxt "Order confirmation e-mail text"
 msgid "No shipping required"
 msgstr "لا يتطلب الشحن"
-
-#: templates/templated_email/order/confirm_order.email:31
-#, python-format
-msgctxt "Order confirmation e-mail text"
-msgid ""
-"\n"
-"This is an automatically generated e-mail, please do not reply.\n"
-"\n"
-"Sincerely,\n"
-"%(site_name)s\n"
-msgstr ""
 
 #: templates/templated_email/order/payment/confirm_payment.email:4
 msgctxt "Payment confirmation subject"
 msgid "Payment details"
 msgstr "تفاصيل الدفع"
 
-#: templates/templated_email/order/payment/confirm_payment.email:8
+#: templates/templated_email/order/payment/confirm_payment.email:9
 #, python-format
 msgctxt "Payment confirmation email text"
 msgid ""
 "\n"
-"Hi!\n"
-"\n"
 "Thank you for your payment. To see your payment details please visit:\n"
 "%(order_details_url)s\n"
-"\n"
-"This is an automatically generated email, please do not reply.\n"
-"\n"
-"Sincerely,\n"
-"%(site_name)s\n"
 msgstr ""
 
 #: templates/templated_email/order/update_fulfillment.email:4
@@ -6368,35 +6289,44 @@ msgctxt "Fulfillment update email subject"
 msgid "Shipping update for order %(order)s"
 msgstr ""
 
-#: templates/templated_email/order/update_fulfillment.email:10
+#: templates/templated_email/order/update_fulfillment.email:11
 msgctxt "Fulfillment update email text"
 msgid ""
-"\n"
-"Hi!\n"
 "\n"
 "Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
 msgstr ""
 
-#: templates/templated_email/order/update_fulfillment.email:16
-#: templates/templated_email/source/update_fulfillment.mjml:20
-#, python-format
-msgctxt "Fulfillment update email text"
-msgid "You can track your shipment with %(tracking_number)s code."
-msgstr ""
-
-#: templates/templated_email/order/update_fulfillment.email:25
+#: templates/templated_email/order/update_fulfillment.email:15
 #, python-format
 msgctxt "Fulfillment update email text"
 msgid ""
-"\n"
-"This is an automatically generated email, please do not reply.\n"
-"\n"
-"Sincerely,\n"
-"%(site_name)s\n"
+"You can track your shipment with the following code: %(tracking_number)s."
 msgstr ""
 
+#: templates/templated_email/shared/_footer.email:2
+#: templates/templated_email/source/shared/footer.mjml:4
+msgctxt "Base email text"
+msgid "This is an automatically generated e-mail, please do not reply."
+msgstr ""
+
+#: templates/templated_email/shared/_footer.email:5
+#: templates/templated_email/source/shared/footer.mjml:13
+#, python-format
+msgctxt "Base email footer"
+msgid "Sincerely, %(site_name)s"
+msgstr "مع خالص التقدير'%(site_name)s'"
+
+#: templates/templated_email/shared/_header.email:2
 #: templates/templated_email/source/account_delete.mjml:13
-msgctxt "Account delete e-mail text"
+#: templates/templated_email/source/confirm_fulfillment.mjml:13
+#: templates/templated_email/source/confirm_order.mjml:14
+#: templates/templated_email/source/confirm_payment.mjml:13
+#: templates/templated_email/source/password_reset.mjml:13
+#: templates/templated_email/source/promote_customer.mjml:13
+#: templates/templated_email/source/set_customer_password.mjml:13
+#: templates/templated_email/source/set_password.mjml:13
+#: templates/templated_email/source/update_fulfillment.mjml:13
+msgctxt "Standard e-mail greeting"
 msgid "Hi!"
 msgstr "مرحباً !"
 
@@ -6410,20 +6340,10 @@ msgid ""
 " reversed."
 msgstr ""
 
-#: templates/templated_email/source/confirm_fulfillment.mjml:13
-msgctxt "Fulfillment confirmation email text"
-msgid "Hi!"
-msgstr "مرحباً !"
-
 #: templates/templated_email/source/confirm_fulfillment.mjml:16
 msgctxt "Fulfillment confirmation email text"
 msgid "Thank you for your order. Below is the list of shipped products."
 msgstr ""
-
-#: templates/templated_email/source/confirm_order.mjml:14
-msgctxt "Order confirmation e-mail text"
-msgid "Hi!"
-msgstr "مرحباً !"
 
 #: templates/templated_email/source/confirm_order.mjml:17
 #, python-format
@@ -6433,11 +6353,6 @@ msgid ""
 " payment details please visit: <a "
 "href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
-
-#: templates/templated_email/source/confirm_payment.mjml:13
-msgctxt "Payment confirmation e-mail text"
-msgid "Hi!"
-msgstr "مرحباً !"
 
 #: templates/templated_email/source/confirm_payment.mjml:16
 #, python-format
@@ -6497,11 +6412,6 @@ msgctxt "Ordered item subtotal (unit price * quantity)"
 msgid "Subtotal"
 msgstr "المبلغ الإجمالي"
 
-#: templates/templated_email/source/password_reset.mjml:13
-msgctxt "Password reset e-mail text"
-msgid "Hi!"
-msgstr "مرحباً !"
-
 #: templates/templated_email/source/password_reset.mjml:16
 #, python-format
 msgctxt "Password reset e-mail text"
@@ -6512,11 +6422,6 @@ msgid ""
 "password."
 msgstr ""
 
-#: templates/templated_email/source/promote_customer.mjml:13
-msgctxt "Promote customer to staff member confirmation e-mail text"
-msgid "Hi!"
-msgstr "مرحباً !"
-
 #: templates/templated_email/source/promote_customer.mjml:16
 #, python-format
 msgctxt "Promote customer to staff member confirmation e-mail text"
@@ -6525,11 +6430,6 @@ msgid ""
 "at %(domain)s.<br/> To access dashboard please visit: <a "
 "href=\"%(dashboard_url)s\">%(dashboard_url)s</a>"
 msgstr ""
-
-#: templates/templated_email/source/set_customer_password.mjml:13
-msgctxt "Set password for customer e-mail text"
-msgid "Hi!"
-msgstr "مرحباً !"
 
 #: templates/templated_email/source/set_customer_password.mjml:16
 #, python-format
@@ -6540,11 +6440,6 @@ msgid ""
 "password."
 msgstr ""
 
-#: templates/templated_email/source/set_password.mjml:13
-msgctxt "Set password for staff member e-mail text"
-msgid "Hi!"
-msgstr "مرحباً !"
-
 #: templates/templated_email/source/set_password.mjml:16
 #, python-format
 msgctxt "Set password for staff member e-mail text"
@@ -6554,22 +6449,6 @@ msgid ""
 "password."
 msgstr ""
 
-#: templates/templated_email/source/shared/footer.mjml:4
-msgctxt "Base email text"
-msgid "This is an automatically generated email, please do not reply."
-msgstr "هذا البريد الإلكتروني تم إنشاؤه تلقائيا ، الرجاء عدم الرد."
-
-#: templates/templated_email/source/shared/footer.mjml:13
-#, python-format
-msgctxt "Base email footer"
-msgid "Sincerely, %(site_name)s"
-msgstr "مع خالص التقدير'%(site_name)s'"
-
-#: templates/templated_email/source/update_fulfillment.mjml:13
-msgctxt "Fulfillment update email text"
-msgid "Hi!"
-msgstr "مرحباً !"
-
 #: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"
 msgid ""
@@ -6578,3 +6457,9 @@ msgid ""
 msgstr ""
 "تم تحديث حالة الشحن الخاصة بك. فيما يلي قائمة بالمنتجات المطلوبة والتي تم "
 "تحديثها مع رقم التتبع الجديد."
+
+#: templates/templated_email/source/update_fulfillment.mjml:20
+#, python-format
+msgctxt "Fulfillment update email text"
+msgid "You can track your shipment with %(tracking_number)s code."
+msgstr ""
