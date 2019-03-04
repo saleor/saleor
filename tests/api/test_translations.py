@@ -1,6 +1,8 @@
 import graphene
-
+import pytest
 from tests.api.utils import get_graphql_content
+
+from saleor.graphql.translations.schema import TranslatableKinds
 
 
 def test_product_translation(user_api_client, product):
@@ -14,7 +16,7 @@ def test_product_translation(user_api_client, product):
                 language {
                     code
                 }
-            } 
+            }
         }
     }
     """
@@ -38,7 +40,7 @@ def test_product_variant_translation(user_api_client, variant):
                 language {
                     code
                 }
-            }   
+            }
         }
     }
     """
@@ -64,7 +66,7 @@ def test_collection_translation(user_api_client, collection):
                 language {
                     code
                 }
-            } 
+            }
         }
     }
     """
@@ -89,7 +91,7 @@ def test_category_translation(user_api_client, category):
                 language {
                     code
                 }
-            } 
+            }
         }
     }
     """
@@ -114,7 +116,7 @@ def test_voucher_translation(
                 language {
                     code
                 }
-            } 
+            }
         }
     }
     """
@@ -140,7 +142,7 @@ def test_page_translation(user_api_client, page):
                 language {
                     code
                 }
-            } 
+            }
         }
     }
     """
@@ -167,7 +169,7 @@ def test_attribute_translation(user_api_client, color_attribute):
                             code
                         }
                     }
-                } 
+                }
             }
         }
     }
@@ -197,7 +199,7 @@ def test_attribute_value_translation(user_api_client, pink_attribute_value):
                             }
                         }
                     }
-                } 
+                }
             }
         }
     }
@@ -303,7 +305,7 @@ def test_product_no_translation(user_api_client, product):
                 language {
                     code
                 }
-            } 
+            }
         }
     }
     """
@@ -324,7 +326,7 @@ def test_product_variant_no_translation(user_api_client, variant):
                 language {
                     code
                 }
-            }   
+            }
         }
     }
     """
@@ -347,7 +349,7 @@ def test_collection_no_translation(user_api_client, collection):
                 language {
                     code
                 }
-            } 
+            }
         }
     }
     """
@@ -369,7 +371,7 @@ def test_category_no_translation(user_api_client, category):
                 language {
                     code
                 }
-            } 
+            }
         }
     }
     """
@@ -391,7 +393,7 @@ def test_voucher_no_translation(
                 language {
                     code
                 }
-            } 
+            }
         }
     }
     """
@@ -414,7 +416,7 @@ def test_page_no_translation(user_api_client, page):
                 language {
                     code
                 }
-            } 
+            }
         }
     }
     """
@@ -438,7 +440,7 @@ def test_attribute_no_translation(user_api_client, color_attribute):
                             code
                         }
                     }
-                } 
+                }
             }
         }
     }
@@ -465,7 +467,7 @@ def test_attribute_value_no_translation(user_api_client, pink_attribute_value):
                             }
                         }
                     }
-                } 
+                }
             }
         }
     }
@@ -556,7 +558,7 @@ def test_product_create_translation(
     query = """
     mutation productTranslate($productId: ID!) {
         productTranslate(
-                id: $productId, languageCode: "pl", 
+                id: $productId, languageCode: "pl",
                 input: {name: "Produkt PL"}) {
             product {
                 translation(languageCode: "pl") {
@@ -567,7 +569,7 @@ def test_product_create_translation(
                 }
             }
         }
-    } 
+    }
     """
 
     product_id = graphene.Node.to_global_id('Product', product.id)
@@ -587,7 +589,7 @@ def test_product_update_translation(
     query = """
     mutation productTranslate($productId: ID!) {
         productTranslate(
-                id: $productId, languageCode: "pl", 
+                id: $productId, languageCode: "pl",
                 input: {name: "Produkt PL"}) {
             product {
                 translation(languageCode: "pl") {
@@ -598,7 +600,7 @@ def test_product_update_translation(
                 }
             }
         }
-    } 
+    }
     """
 
     product_id = graphene.Node.to_global_id('Product', product.id)
@@ -616,7 +618,7 @@ def test_product_variant_create_translation(
     query = """
     mutation productVariantTranslate($productVariantId: ID!) {
         productVariantTranslate(
-                id: $productVariantId, languageCode: "pl", 
+                id: $productVariantId, languageCode: "pl",
                 input: {name: "Wariant PL"}) {
             productVariant {
                 translation(languageCode: "pl") {
@@ -627,7 +629,7 @@ def test_product_variant_create_translation(
                 }
             }
         }
-    } 
+    }
     """
 
     product_variant_id = graphene.Node.to_global_id(
@@ -648,7 +650,7 @@ def test_product_variant_update_translation(
     query = """
     mutation productVariantTranslate($productVariantId: ID!) {
         productVariantTranslate(
-                id: $productVariantId, languageCode: "pl", 
+                id: $productVariantId, languageCode: "pl",
                 input: {name: "Wariant PL"}) {
             productVariant {
                 translation(languageCode: "pl") {
@@ -659,7 +661,7 @@ def test_product_variant_update_translation(
                 }
             }
         }
-    } 
+    }
     """
 
     product_variant_id = graphene.Node.to_global_id(
@@ -678,7 +680,7 @@ def test_collection_create_translation(
     query = """
     mutation collectionTranslate($collectionId: ID!) {
         collectionTranslate(
-                id: $collectionId, languageCode: "pl", 
+                id: $collectionId, languageCode: "pl",
                 input: {name: "Kolekcja PL"}) {
             collection {
                 translation(languageCode: "pl") {
@@ -689,7 +691,7 @@ def test_collection_create_translation(
                 }
             }
         }
-    } 
+    }
     """
 
     collection_id = graphene.Node.to_global_id('Collection', collection.id)
@@ -709,7 +711,7 @@ def test_collection_update_translation(
     query = """
     mutation collectionTranslate($collectionId: ID!) {
         collectionTranslate(
-                id: $collectionId, languageCode: "pl", 
+                id: $collectionId, languageCode: "pl",
                 input: {name: "Kolekcja PL"}) {
             collection {
                 translation(languageCode: "pl") {
@@ -720,7 +722,7 @@ def test_collection_update_translation(
                 }
             }
         }
-    } 
+    }
     """
 
     collection_id = graphene.Node.to_global_id('Collection', collection.id)
@@ -738,7 +740,7 @@ def test_category_create_translation(
     query = """
     mutation categoryTranslate($categoryId: ID!) {
         categoryTranslate(
-                id: $categoryId, languageCode: "pl", 
+                id: $categoryId, languageCode: "pl",
                 input: {name: "Kategoria PL"}) {
             category {
                 translation(languageCode: "pl") {
@@ -749,7 +751,7 @@ def test_category_create_translation(
                 }
             }
         }
-    } 
+    }
     """
 
     category_id = graphene.Node.to_global_id('Category', category.id)
@@ -769,7 +771,7 @@ def test_category_update_translation(
     query = """
     mutation categoryTranslate($categoryId: ID!) {
         categoryTranslate(
-                id: $categoryId, languageCode: "pl", 
+                id: $categoryId, languageCode: "pl",
                 input: {name: "Kategoria PL"}) {
             category {
                 translation(languageCode: "pl") {
@@ -780,7 +782,7 @@ def test_category_update_translation(
                 }
             }
         }
-    } 
+    }
     """
 
     category_id = graphene.Node.to_global_id('Category', category.id)
@@ -798,7 +800,7 @@ def test_voucher_create_translation(
     query = """
     mutation voucherTranslate($voucherId: ID!) {
         voucherTranslate(
-                id: $voucherId, languageCode: "pl", 
+                id: $voucherId, languageCode: "pl",
                 input: {name: "Bon PL"}) {
             voucher {
                 translation(languageCode: "pl") {
@@ -809,7 +811,7 @@ def test_voucher_create_translation(
                 }
             }
         }
-    } 
+    }
     """
 
     voucher_id = graphene.Node.to_global_id('Voucher', voucher.id)
@@ -829,7 +831,7 @@ def test_voucher_update_translation(
     query = """
     mutation voucherTranslate($voucherId: ID!) {
         voucherTranslate(
-                id: $voucherId, languageCode: "pl", 
+                id: $voucherId, languageCode: "pl",
                 input: {name: "Bon PL"}) {
             voucher {
                 translation(languageCode: "pl") {
@@ -840,7 +842,7 @@ def test_voucher_update_translation(
                 }
             }
         }
-    } 
+    }
     """
 
     voucher_id = graphene.Node.to_global_id('Voucher', voucher.id)
@@ -858,7 +860,7 @@ def test_page_create_translation(
     query = """
     mutation pageTranslate($pageId: ID!) {
         pageTranslate(
-                id: $pageId, languageCode: "pl", 
+                id: $pageId, languageCode: "pl",
                 input: {title: "Strona PL"}) {
             page {
                 translation(languageCode: "pl") {
@@ -869,7 +871,7 @@ def test_page_create_translation(
                 }
             }
         }
-    } 
+    }
     """
 
     page_id = graphene.Node.to_global_id('Page', page.id)
@@ -889,7 +891,7 @@ def test_page_update_translation(
     query = """
     mutation pageTranslate($pageId: ID!) {
         pageTranslate(
-                id: $pageId, languageCode: "pl", 
+                id: $pageId, languageCode: "pl",
                 input: {title: "Strona PL"}) {
             page {
                 translation(languageCode: "pl") {
@@ -900,7 +902,7 @@ def test_page_update_translation(
                 }
             }
         }
-    } 
+    }
     """
 
     page_id = graphene.Node.to_global_id('Page', page.id)
@@ -918,7 +920,7 @@ def test_attribute_create_translation(
     query = """
     mutation attributeTranslate($attributeId: ID!) {
         attributeTranslate(
-                id: $attributeId, languageCode: "pl", 
+                id: $attributeId, languageCode: "pl",
                 input: {name: "Kolor PL"}) {
             attribute {
                 translation(languageCode: "pl") {
@@ -929,7 +931,7 @@ def test_attribute_create_translation(
                 }
             }
         }
-    } 
+    }
     """
 
     attribute_id = graphene.Node.to_global_id('Attribute', color_attribute.id)
@@ -949,7 +951,7 @@ def test_attribute_update_translation(
     query = """
     mutation attributeTranslate($attributeId: ID!) {
         attributeTranslate(
-                id: $attributeId, languageCode: "pl", 
+                id: $attributeId, languageCode: "pl",
                 input: {name: "Kolor PL"}) {
             attribute {
                 translation(languageCode: "pl") {
@@ -960,7 +962,7 @@ def test_attribute_update_translation(
                 }
             }
         }
-    } 
+    }
     """
 
     attribute_id = graphene.Node.to_global_id('Attribute', color_attribute.id)
@@ -979,7 +981,7 @@ def test_attribute_value_create_translation(
     query = """
     mutation attributeValueTranslate($attributeValueId: ID!) {
         attributeValueTranslate(
-                id: $attributeValueId, languageCode: "pl", 
+                id: $attributeValueId, languageCode: "pl",
                 input: {name: "Róż PL"}) {
             attributeValue {
                 translation(languageCode: "pl") {
@@ -990,7 +992,7 @@ def test_attribute_value_create_translation(
                 }
             }
         }
-    } 
+    }
     """
 
     attribute_value_id = graphene.Node.to_global_id(
@@ -1013,7 +1015,7 @@ def test_attribute_value_update_translation(
     query = """
     mutation attributeValueTranslate($attributeValueId: ID!) {
         attributeValueTranslate(
-                id: $attributeValueId, languageCode: "pl", 
+                id: $attributeValueId, languageCode: "pl",
                 input: {name: "Róż PL"}) {
             attributeValue {
                 translation(languageCode: "pl") {
@@ -1024,7 +1026,7 @@ def test_attribute_value_update_translation(
                 }
             }
         }
-    } 
+    }
     """
 
     attribute_value_id = graphene.Node.to_global_id(
@@ -1043,7 +1045,7 @@ def test_shipping_method_create_translation(
     query = """
     mutation shippingPriceTranslate($shippingMethodId: ID!) {
         shippingPriceTranslate(
-                id: $shippingMethodId, languageCode: "pl", 
+                id: $shippingMethodId, languageCode: "pl",
                 input: {name: "DHL PL"}) {
             shippingMethod {
                 translation(languageCode: "pl") {
@@ -1054,7 +1056,7 @@ def test_shipping_method_create_translation(
                 }
             }
         }
-    } 
+    }
     """
 
     shipping_method_id = graphene.Node.to_global_id(
@@ -1075,7 +1077,7 @@ def test_shipping_method_update_translation(
     query = """
     mutation shippingPriceTranslate($shippingMethodId: ID!) {
         shippingPriceTranslate(
-                id: $shippingMethodId, languageCode: "pl", 
+                id: $shippingMethodId, languageCode: "pl",
                 input: {name: "DHL PL"}) {
             shippingMethod {
                 translation(languageCode: "pl") {
@@ -1086,7 +1088,7 @@ def test_shipping_method_update_translation(
                 }
             }
         }
-    } 
+    }
     """
 
     shipping_method_id = graphene.Node.to_global_id(
@@ -1107,7 +1109,7 @@ def test_menu_item_update_translation(
     query = """
     mutation menuItemTranslate($menuItemId: ID!) {
         menuItemTranslate(
-                id: $menuItemId, languageCode: "pl", 
+                id: $menuItemId, languageCode: "pl",
                 input: {name: "Odnośnik PL"}) {
             menuItem {
                 translation(languageCode: "pl") {
@@ -1118,7 +1120,7 @@ def test_menu_item_update_translation(
                 }
             }
         }
-    } 
+    }
     """
 
     menu_item_id = graphene.Node.to_global_id('MenuItem', menu_item.id)
@@ -1146,7 +1148,7 @@ def test_shop_create_translation(
                 }
             }
         }
-    } 
+    }
     """
 
     response = staff_api_client.post_graphql(
@@ -1175,7 +1177,7 @@ def test_shop_update_translation(
                 }
             }
         }
-    } 
+    }
     """
 
     response = staff_api_client.post_graphql(
@@ -1184,3 +1186,63 @@ def test_shop_update_translation(
 
     assert data['shop']['translation']['headerText'] == 'Nagłówek PL'
     assert data['shop']['translation']['language']['code'] == 'pl'
+
+
+@pytest.mark.parametrize('kind, expected_typename', [
+    (TranslatableKinds.PRODUCT, 'Product'),
+    (TranslatableKinds.COLLECTION, 'Collection'),
+    (TranslatableKinds.CATEGORY, 'Category'),
+    (TranslatableKinds.PAGE, 'Page'),
+    (TranslatableKinds.SHIPPING_METHOD, 'ShippingMethod'),
+    (TranslatableKinds.VOUCHER, 'Voucher'),
+    (TranslatableKinds.ATTRIBUTE, 'Attribute'),
+    (TranslatableKinds.ATTRIBUTE_VALUE, 'AttributeValue'),
+    (TranslatableKinds.VARIANT, 'ProductVariant'),
+    (TranslatableKinds.MENU_ITEM, 'MenuItem'),
+    (TranslatableKinds.SHOP, 'Shop')])
+def test_translations_query(
+        user_api_client, product, collection, voucher, shipping_method,
+        page, menu_item, kind, expected_typename):
+    query = """
+    query TranslationsQuery($kind: TranslatableKinds!) {
+        translations(kind: $kind, first: 1) {
+            edges {
+                node {
+                    __typename
+                }
+            }
+        }
+    }
+    """
+
+    response = user_api_client.post_graphql(query, {'kind': kind.name})
+    data = get_graphql_content(response)['data']['translations']
+
+    assert data['edges'][0]['node']['__typename'] == expected_typename
+
+
+def test_translations_query_inline_fragment(user_api_client, product):
+    product.translations.create(language_code='pl', name='Produkt testowy')
+
+    query = """
+        query {
+            translations(kind: PRODUCT, first: 1) {
+                edges {
+                    node {
+                        ... on Product {
+                            name
+                            translation(languageCode: "pl") {
+                                name
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        """
+
+    response = user_api_client.post_graphql(query)
+    data = get_graphql_content(response)['data']['translations']['edges'][0]
+
+    assert data['node']['name'] == 'Test product'
+    assert data['node']['translation']['name'] == 'Produkt testowy'

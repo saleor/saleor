@@ -1754,6 +1754,7 @@ type ProductVariantUpdate {
 }
 
 type Query {
+  translations(kind: TranslatableKinds!, before: String, after: String, first: Int, last: Int): TranslatableItemConnection
   shop: Shop
   shippingZone(id: ID!): ShippingZone
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
@@ -2174,6 +2175,33 @@ enum TransactionKind {
   REFUND
   CAPTURE
   VOID
+}
+
+union TranslatableItem = Product | Category | Collection | Attribute | AttributeValue | ProductVariant | Page | ShippingMethod | Voucher | MenuItem | Shop
+
+type TranslatableItemConnection {
+  pageInfo: PageInfo!
+  edges: [TranslatableItemEdge!]!
+  totalCount: Int
+}
+
+type TranslatableItemEdge {
+  node: TranslatableItem!
+  cursor: String!
+}
+
+enum TranslatableKinds {
+  PRODUCT
+  COLLECTION
+  CATEGORY
+  PAGE
+  SHIPPING_METHOD
+  VOUCHER
+  ATTRIBUTE
+  ATTRIBUTE_VALUE
+  VARIANT
+  MENU_ITEM
+  SHOP
 }
 
 input TranslationInput {
