@@ -902,6 +902,9 @@ def ready_to_place_order(cart: Cart, taxes, discounts):
             return False, pgettext_lazy(
                 'order placement error',
                 'Shipping method is not valid for your shipping address')
+    if not cart.billing_address:
+        return False, pgettext_lazy(
+            'order placement_error', 'Billing address is not set')
     if not can_be_fully_paid(cart, taxes, discounts):
         return False, pgettext_lazy(
             'order placement error',
