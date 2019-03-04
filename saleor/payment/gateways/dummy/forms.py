@@ -16,11 +16,14 @@ class DummyPaymentForm(forms.Form):
         # Partially refunded is not supported directly
         # since only last transaction of call_gateway will be processed
         charge_status = cleaned_data['charge_status']
-        if charge_status == ChargeStatus.PARTIALLY_REFUNDED:
+        if charge_status in [
+                ChargeStatus.PARTIALLY_CHARGED,
+                ChargeStatus.PARTIALLY_REFUNDED]:
             raise forms.ValidationError(
-                _('Setting charge status to partially refunded directly '
+                _('Setting charge status to {} directly '
                   'is not supported. Please use the dashboard to '
-                  'refund partially.'), code='invalid_charge_status')
+                  'refund partially.'.format(charge_status)),
+                code='invalid_charge_status')
 
         return cleaned_data
 

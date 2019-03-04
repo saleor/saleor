@@ -245,10 +245,9 @@ def test_refund_gateway_error(payment_txn_captured, monkeypatch):
     'kind, charge_status',
     (
         (TransactionKind.AUTH, ChargeStatus.NOT_CHARGED),
-        (TransactionKind.CAPTURE, ChargeStatus.PARTIALLY_CHARGED),
         (TransactionKind.CAPTURE, ChargeStatus.FULLY_CHARGED),
         (TransactionKind.REFUND, ChargeStatus.FULLY_REFUNDED), ))
-def test_dummy_payment_form(kind, charge_status, settings, payment_dummy):
+def test_dummy_payment_form(kind, charge_status, payment_dummy):
     payment = payment_dummy
     data = {'charge_status': charge_status}
     payment_gateway, gateway_params = get_payment_gateway(payment.gateway)
