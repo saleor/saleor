@@ -260,6 +260,9 @@ class BasePaymentForm(forms.Form):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES)
 
     clean_status = tuple()
+    clean_error = pgettext_lazy(
+        'Payment form error',
+        'This payment action can not be performed.')
 
     def __init__(self, *args, **kwargs):
         self.payment = kwargs.pop('payment')
@@ -287,8 +290,9 @@ class BasePaymentForm(forms.Form):
 class CapturePaymentForm(BasePaymentForm):
 
     clean_status = (ChargeStatus.NOT_CHARGED, )
-    clean_error = pgettext_lazy('Payment form error',
-                                'Only pre-authorized payments can be captured')
+    clean_error = pgettext_lazy(
+        'Payment form error',
+        'Only pre-authorized payments can be captured')
 
     def capture(self):
         return self.try_payment_action(gateway_capture)
@@ -300,8 +304,9 @@ class RefundPaymentForm(BasePaymentForm):
         ChargeStatus.PARTIALLY_CHARGED,
         ChargeStatus.FULLY_CHARGED,
         ChargeStatus.PARTIALLY_REFUNDED)
-    clean_error = pgettext_lazy('Payment form error',
-                                'Only confirmed payments can be refunded')
+    clean_error = pgettext_lazy(
+        'Payment form error',
+        'Only confirmed payments can be refunded')
 
     def clean(self):
         super().clean()
@@ -318,8 +323,9 @@ class RefundPaymentForm(BasePaymentForm):
 class VoidPaymentForm(BasePaymentForm):
 
     clean_status = (ChargeStatus.NOT_CHARGED, )
-    clean_error = pgettext_lazy('Payment form error',
-                                'Only pre-authorized payments can be voided')
+    clean_error = pgettext_lazy(
+        'Payment form error',
+        'Only pre-authorized payments can be voided')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
