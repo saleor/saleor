@@ -12,7 +12,6 @@ from ..product.resolvers import (
     resolve_attributes, resolve_categories, resolve_collections,
     resolve_product_variants, resolve_products)
 from ..shipping import types as shipping_types
-from ..shop import types as shop_types
 from .resolvers import resolve_attribute_values, resolve_shipping_methods
 
 
@@ -28,8 +27,7 @@ class TranslatableItem(graphene.Union):
             page_types.Page,
             shipping_types.ShippingMethod,
             discount_types.Voucher,
-            menu_types.MenuItem,
-            shop_types.Shop)
+            menu_types.MenuItem)
 
 
 class TranslatableItemConnection(CountableConnection):
@@ -48,7 +46,6 @@ class TranslatableKinds(graphene.Enum):
     ATTRIBUTE_VALUE = 'Attribute Value'
     VARIANT = 'Variant'
     MENU_ITEM = 'Menu Item'
-    SHOP = 'Shop'
 
 
 class TranslationQueries(graphene.ObjectType):
@@ -79,5 +76,3 @@ class TranslationQueries(graphene.ObjectType):
             return resolve_product_variants(info)
         elif kind == TranslatableKinds.MENU_ITEM:
             return resolve_menu_items(info, query=None)
-        elif kind == TranslatableKinds.SHOP:
-            return [shop_types.Shop()]
