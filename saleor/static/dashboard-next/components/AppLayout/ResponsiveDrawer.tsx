@@ -7,15 +7,14 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import * as React from "react";
-import { drawerWidth, navigationBarHeight } from "./consts";
+import { drawerWidth } from "./consts";
 
 const styles = (theme: Theme) =>
   createStyles({
     drawerDesktop: {
-      backgroundColor: "transparent",
-      borderRight: "none",
-      height: `calc(100vh - ${navigationBarHeight}px)`,
-      marginTop: navigationBarHeight,
+      backgroundColor: theme.palette.common.white,
+      border: "none",
+      height: "100vh",
       padding: `${theme.spacing.unit * 2}px ${theme.spacing.unit * 4}px`,
       position: "fixed" as "fixed",
       width: drawerWidth
