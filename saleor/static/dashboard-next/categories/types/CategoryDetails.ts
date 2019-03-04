@@ -101,7 +101,7 @@ export interface CategoryDetails_category {
   id: string;
   backgroundImage: CategoryDetails_category_backgroundImage | null;
   name: string;
-  description: string;
+  descriptionJson: any;
   seoDescription: string | null;
   seoTitle: string | null;
   parent: CategoryDetails_category_parent | null;

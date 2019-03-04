@@ -153,7 +153,7 @@ export interface SimpleProductUpdate_productUpdate_product {
   __typename: "Product";
   id: string;
   name: string;
-  description: string;
+  descriptionJson: any;
   seoTitle: string | null;
   seoDescription: string | null;
   category: SimpleProductUpdate_productUpdate_product_category;
@@ -298,7 +298,7 @@ export interface SimpleProductUpdateVariables {
   category?: string | null;
   chargeTaxes: boolean;
   collections?: (string | null)[] | null;
-  description?: string | null;
+  descriptionJson?: any | null;
   isPublished: boolean;
   name?: string | null;
   price?: any | null;
