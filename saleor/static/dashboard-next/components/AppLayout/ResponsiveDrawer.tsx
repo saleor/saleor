@@ -13,9 +13,10 @@ const styles = (theme: Theme) =>
   createStyles({
     drawerDesktop: {
       backgroundColor: "transparent",
-      borderRight: "0 none",
-      height: `calc(100vh - ${navigationBarHeight + theme.spacing.unit * 2}px)`,
-      marginTop: navigationBarHeight + theme.spacing.unit * 2,
+      borderRight: "none",
+      height: `calc(100vh - ${navigationBarHeight}px)`,
+      marginTop: navigationBarHeight,
+      padding: `${theme.spacing.unit * 2}px ${theme.spacing.unit * 4}px`,
       position: "fixed" as "fixed",
       width: drawerWidth
     },
