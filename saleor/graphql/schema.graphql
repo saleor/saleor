@@ -1450,6 +1450,7 @@ enum PermissionEnum {
   MANAGE_PRODUCTS
   MANAGE_SHIPPING
   MANAGE_SETTINGS
+  MANAGE_TRANSLATIONS
 }
 
 type Product implements Node {
