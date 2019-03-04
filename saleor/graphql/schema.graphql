@@ -1313,7 +1313,7 @@ type PaymentCountableEdge {
 input PaymentInput {
   gateway: GatewaysEnum!
   token: String!
-  amount: Decimal!
+  amount: Decimal
   billingAddress: AddressInput
 }
 
