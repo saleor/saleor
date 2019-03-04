@@ -28,7 +28,7 @@ class PaymentInput(graphene.InputObjectType):
             'Client-side generated payment token, representing customer\'s '
             'billing data in a secure manner.'))
     amount = Decimal(
-        required=True,
+        required=False,
         description=(
             'Total amount of the transaction, including '
             'all taxes and discounts.'))
@@ -69,10 +69,10 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                 'No billing address associated with this checkout.')
             return CheckoutPaymentCreate(errors=errors)
 
-        amount = input['amount']
         checkout_total = checkout.get_total(
             discounts=info.context.discounts,
             taxes=get_taxes_for_address(checkout.billing_address))
+        amount = input.get('amount', checkout_total)
         if amount < checkout_total.gross.amount:
             cls.add_error(
                 errors, 'amount',
