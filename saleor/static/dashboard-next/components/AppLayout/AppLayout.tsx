@@ -33,10 +33,16 @@ import i18n from "../../i18n";
 import ArrowDropdown from "../../icons/ArrowDropdown";
 import Anchor from "../Anchor";
 import Container from "../Container";
+import AppActionContext from "./AppActionContext";
 import AppHeaderContext from "./AppHeaderContext";
 
 const styles = (theme: Theme) =>
   createStyles({
+    appAction: {
+      bottom: 0,
+      gridColumn: 2,
+      position: "sticky"
+    },
     appLoader: {
       height: appLoaderHeight,
       zIndex: 1201
@@ -46,13 +52,9 @@ const styles = (theme: Theme) =>
       transition: theme.transitions.duration.standard + "ms"
     },
     content: {
-      backgroundColor: theme.palette.background.default,
-      flexGrow: 1,
-      marginLeft: 0,
-      padding: theme.spacing.unit,
-      [theme.breakpoints.up("sm")]: {
-        padding: theme.spacing.unit * 2
-      }
+      display: "flex",
+      flexDirection: "column",
+      minHeight: `calc(100vh - ${appLoaderHeight}px)`
     },
     header: {
       display: "flex",
@@ -95,6 +97,16 @@ const styles = (theme: Theme) =>
     },
     userMenuItem: {
       textAlign: "right"
+    },
+    view: {
+      backgroundColor: theme.palette.background.default,
+      flex: 1,
+      flexGrow: 1,
+      marginLeft: 0,
+      padding: theme.spacing.unit,
+      [theme.breakpoints.up("sm")]: {
+        padding: theme.spacing.unit * 2
+      }
     }
   });
 
@@ -120,162 +132,183 @@ const AppLayout = withStyles(styles, {
               <Anchor>
                 {appHeaderAnchor => (
                   <AppHeaderContext.Provider value={appHeaderAnchor}>
-                    <Navigator>
-                      {navigate => (
-                        <Toggle>
-                          {(isDrawerOpened, { disable: closeDrawer }) => {
-                            const handleMenuItemClick = (
-                              url: string,
-                              event: React.MouseEvent<any>
-                            ) => {
-                              event.stopPropagation();
-                              event.preventDefault();
-                              closeDrawer();
-                              navigate(url);
-                            };
-                            return (
-                              <>
-                                <LinearProgress
-                                  className={classNames(classes.appLoader, {
-                                    [classes.hide]: !isProgressVisible
-                                  })}
-                                  color="secondary"
-                                />
-                                <div className={classes.root}>
-                                  <div className={classes.sideBar}>
-                                    <ResponsiveDrawer
-                                      onClose={closeDrawer}
-                                      open={isDrawerOpened}
-                                    >
-                                      <SVG
-                                        className={classes.logo}
-                                        src={saleorLogo}
+                    <Anchor>
+                      {appActionAnchor => (
+                        <AppActionContext.Provider value={appActionAnchor}>
+                          <Navigator>
+                            {navigate => (
+                              <Toggle>
+                                {(isDrawerOpened, { disable: closeDrawer }) => {
+                                  const handleMenuItemClick = (
+                                    url: string,
+                                    event: React.MouseEvent<any>
+                                  ) => {
+                                    event.stopPropagation();
+                                    event.preventDefault();
+                                    closeDrawer();
+                                    navigate(url);
+                                  };
+                                  return (
+                                    <>
+                                      <LinearProgress
+                                        className={classNames(
+                                          classes.appLoader,
+                                          {
+                                            [classes.hide]: !isProgressVisible
+                                          }
+                                        )}
+                                        color="secondary"
                                       />
-                                      <MenuList
-                                        className={classes.menu}
-                                        menuItems={menuStructure}
-                                        location={location.pathname}
-                                        user={user}
-                                        renderConfigure={true}
-                                        onMenuItemClick={handleMenuItemClick}
-                                      />
-                                    </ResponsiveDrawer>
-                                  </div>
-                                  <div>
-                                    <Container width="md">
-                                      <div className={classes.header}>
-                                        <div ref={appHeaderAnchor} />
-                                        <div className={classes.spacer} />
-                                        <Anchor>
-                                          {anchor => (
-                                            <Toggle>
-                                              {(
-                                                menuOpen,
-                                                {
-                                                  disable: closeMenu,
-                                                  enable: openMenu
-                                                }
-                                              ) => {
-                                                const handleLogout = () => {
-                                                  close();
-                                                  logout();
-                                                };
-                                                return (
-                                                  <div
-                                                    className={
-                                                      classes.userMenuContainer
-                                                    }
-                                                    ref={anchor}
-                                                  >
-                                                    <Chip
-                                                      className={
-                                                        classes.userChip
-                                                      }
-                                                      label={
-                                                        <>
-                                                          {user.email}
-                                                          <ArrowDropdown
-                                                            className={classNames(
-                                                              {
-                                                                [classes.arrow]: true,
-                                                                [classes.rotate]: menuOpen
+                                      <div className={classes.root}>
+                                        <div className={classes.sideBar}>
+                                          <ResponsiveDrawer
+                                            onClose={closeDrawer}
+                                            open={isDrawerOpened}
+                                          >
+                                            <SVG
+                                              className={classes.logo}
+                                              src={saleorLogo}
+                                            />
+                                            <MenuList
+                                              className={classes.menu}
+                                              menuItems={menuStructure}
+                                              location={location.pathname}
+                                              user={user}
+                                              renderConfigure={true}
+                                              onMenuItemClick={
+                                                handleMenuItemClick
+                                              }
+                                            />
+                                          </ResponsiveDrawer>
+                                        </div>
+                                        <div className={classes.content}>
+                                          <div>
+                                            <Container width="md">
+                                              <div className={classes.header}>
+                                                <div ref={appHeaderAnchor} />
+                                                <div
+                                                  className={classes.spacer}
+                                                />
+                                                <Anchor>
+                                                  {anchor => (
+                                                    <Toggle>
+                                                      {(
+                                                        menuOpen,
+                                                        {
+                                                          disable: closeMenu,
+                                                          enable: openMenu
+                                                        }
+                                                      ) => {
+                                                        const handleLogout = () => {
+                                                          close();
+                                                          logout();
+                                                        };
+                                                        return (
+                                                          <div
+                                                            className={
+                                                              classes.userMenuContainer
+                                                            }
+                                                            ref={anchor}
+                                                          >
+                                                            <Chip
+                                                              className={
+                                                                classes.userChip
                                                               }
-                                                            )}
-                                                          />
-                                                        </>
-                                                      }
-                                                      onClick={openMenu}
-                                                    />
-                                                    <Popper
-                                                      open={menuOpen}
-                                                      anchorEl={anchor.current}
-                                                      transition
-                                                      disablePortal
-                                                      placement="bottom-end"
-                                                    >
-                                                      {({
-                                                        TransitionProps,
-                                                        placement
-                                                      }) => (
-                                                        <Grow
-                                                          {...TransitionProps}
-                                                          style={{
-                                                            transformOrigin:
-                                                              placement ===
-                                                              "bottom"
-                                                                ? "right top"
-                                                                : "right bottom"
-                                                          }}
-                                                        >
-                                                          <Paper>
-                                                            <ClickAwayListener
-                                                              onClickAway={
-                                                                closeMenu
+                                                              label={
+                                                                <>
+                                                                  {user.email}
+                                                                  <ArrowDropdown
+                                                                    className={classNames(
+                                                                      {
+                                                                        [classes.arrow]: true,
+                                                                        [classes.rotate]: menuOpen
+                                                                      }
+                                                                    )}
+                                                                  />
+                                                                </>
                                                               }
-                                                              mouseEvent="onClick"
+                                                              onClick={openMenu}
+                                                            />
+                                                            <Popper
+                                                              open={menuOpen}
+                                                              anchorEl={
+                                                                anchor.current
+                                                              }
+                                                              transition
+                                                              disablePortal
+                                                              placement="bottom-end"
                                                             >
-                                                              <Menu>
-                                                                <MenuItem
-                                                                  className={
-                                                                    classes.userMenuItem
-                                                                  }
-                                                                  onClick={
-                                                                    handleLogout
-                                                                  }
+                                                              {({
+                                                                TransitionProps,
+                                                                placement
+                                                              }) => (
+                                                                <Grow
+                                                                  {...TransitionProps}
+                                                                  style={{
+                                                                    transformOrigin:
+                                                                      placement ===
+                                                                      "bottom"
+                                                                        ? "right top"
+                                                                        : "right bottom"
+                                                                  }}
                                                                 >
-                                                                  {i18n.t(
-                                                                    "Log out",
-                                                                    {
-                                                                      context:
-                                                                        "button"
-                                                                    }
-                                                                  )}
-                                                                </MenuItem>
-                                                              </Menu>
-                                                            </ClickAwayListener>
-                                                          </Paper>
-                                                        </Grow>
-                                                      )}
-                                                    </Popper>
-                                                  </div>
-                                                );
-                                              }}
-                                            </Toggle>
-                                          )}
-                                        </Anchor>
+                                                                  <Paper>
+                                                                    <ClickAwayListener
+                                                                      onClickAway={
+                                                                        closeMenu
+                                                                      }
+                                                                      mouseEvent="onClick"
+                                                                    >
+                                                                      <Menu>
+                                                                        <MenuItem
+                                                                          className={
+                                                                            classes.userMenuItem
+                                                                          }
+                                                                          onClick={
+                                                                            handleLogout
+                                                                          }
+                                                                        >
+                                                                          {i18n.t(
+                                                                            "Log out",
+                                                                            {
+                                                                              context:
+                                                                                "button"
+                                                                            }
+                                                                          )}
+                                                                        </MenuItem>
+                                                                      </Menu>
+                                                                    </ClickAwayListener>
+                                                                  </Paper>
+                                                                </Grow>
+                                                              )}
+                                                            </Popper>
+                                                          </div>
+                                                        );
+                                                      }}
+                                                    </Toggle>
+                                                  )}
+                                                </Anchor>
+                                              </div>
+                                            </Container>
+                                          </div>
+                                          <main className={classes.view}>
+                                            {children}
+                                          </main>
+                                          <div
+                                            className={classes.appAction}
+                                            ref={appActionAnchor}
+                                          />
+                                        </div>
                                       </div>
-                                    </Container>
-                                    <main className={classes.content}>
-                                      {children}
-                                    </main>
-                                  </div>
-                                </div>
-                              </>
-                            );
-                          }}
-                        </Toggle>
+                                    </>
+                                  );
+                                }}
+                              </Toggle>
+                            )}
+                          </Navigator>
+                        </AppActionContext.Provider>
                       )}
-                    </Navigator>
+                    </Anchor>
                   </AppHeaderContext.Provider>
                 )}
               </Anchor>
