@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import CardSpacer from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
@@ -61,7 +62,10 @@ const ProductVariantPage: React.StatelessComponent<ProductVariantPageProps> = ({
       {(isImageSelectModalActive, { toggle: toggleImageSelectModal }) => (
         <>
           <Container width="md">
-            <PageHeader title={header} onBack={onBack} />
+            <AppHeader onBack={onBack}>
+              {maybe(() => variant.product.name)}
+            </AppHeader>
+            <PageHeader title={header} />
             <Form
               initial={{
                 attributes:

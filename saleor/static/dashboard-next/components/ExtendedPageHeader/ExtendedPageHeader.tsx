@@ -1,11 +1,9 @@
-import IconButton from "@material-ui/core/IconButton";
 import {
   createStyles,
   Theme,
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
-import ArrowBackIcon from "@material-ui/icons/ArrowBack";
 import * as classNames from "classnames";
 import * as React from "react";
 
@@ -43,27 +41,11 @@ interface ExtendedPageHeaderProps extends WithStyles<typeof styles> {
   children?: React.ReactNode;
   className?: string;
   title?: React.ReactNode;
-  onBack?();
 }
 
 const ExtendedPageHeader = withStyles(styles, { name: "ExtendedPageHeader" })(
-  ({
-    children,
-    classes,
-    className,
-    onBack,
-    title
-  }: ExtendedPageHeaderProps) => (
+  ({ children, classes, className, title }: ExtendedPageHeaderProps) => (
     <div className={classNames(classes.root, className)}>
-      {onBack && (
-        <IconButton
-          color="inherit"
-          className={classes.menuButton}
-          onClick={onBack}
-        >
-          <ArrowBackIcon />
-        </IconButton>
-      )}
       {title}
       <div className={classes.action}>{children}</div>
     </div>

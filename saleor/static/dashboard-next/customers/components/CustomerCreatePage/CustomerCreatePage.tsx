@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import { CardSpacer } from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
@@ -59,7 +60,8 @@ const CustomerCreatePage: React.StatelessComponent<CustomerCreatePageProps> = ({
   <Form initial={initialForm} onSubmit={onSubmit} errors={errors} confirmLeave>
     {({ change, data, errors: formErrors, hasChanged, submit }) => (
       <Container width="md">
-        <PageHeader title={i18n.t("Add customer")} onBack={onBack} />
+        <AppHeader onBack={onBack}>{i18n.t("Customers")}</AppHeader>
+        <PageHeader title={i18n.t("Add customer")} />
         <Grid>
           <div>
             <CustomerCreateDetails

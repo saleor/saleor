@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
@@ -74,7 +75,8 @@ const ProductVariantCreatePage: React.StatelessComponent<
     >
       {({ change, data, errors, hasChanged, submit }) => (
         <Container width="md">
-          <PageHeader title={header} onBack={onBack} />
+          <AppHeader onBack={onBack}>{maybe(() => product.name)}</AppHeader>
+          <PageHeader title={header} />
           <Grid variant="inverted">
             <div>
               <ProductVariantNavigation

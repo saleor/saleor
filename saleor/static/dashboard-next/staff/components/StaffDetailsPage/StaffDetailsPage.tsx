@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import CardSpacer from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
@@ -7,6 +8,7 @@ import Form from "../../../components/Form";
 import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
+import i18n from "../../../i18n";
 import { getUserName, maybe } from "../../../misc";
 import { PermissionEnum } from "../../../types/globalTypes";
 import {
@@ -66,7 +68,8 @@ const StaffDetailsPage: React.StatelessComponent<StaffDetailsPageProps> = ({
     <Form initial={initialForm} onSubmit={onSubmit} confirmLeave>
       {({ data, change, hasChanged, submit }) => (
         <Container width="md">
-          <PageHeader title={getUserName(staffMember)} onBack={onBack} />
+          <AppHeader onBack={onBack}>{i18n.t("Staff Members")}</AppHeader>
+          <PageHeader title={getUserName(staffMember)} />
           <Grid>
             <div>
               <StaffProperties

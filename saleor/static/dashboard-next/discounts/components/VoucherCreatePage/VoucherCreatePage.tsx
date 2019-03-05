@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import CardSpacer from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton";
 import Container from "../../../components/Container";
@@ -63,7 +64,8 @@ const VoucherCreatePage: React.StatelessComponent<VoucherCreatePageProps> = ({
     <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container width="md">
-          <PageHeader title={i18n.t("Create Voucher")} onBack={onBack} />
+          <AppHeader onBack={onBack}>{i18n.t("Vouchers")}</AppHeader>
+          <PageHeader title={i18n.t("Create Voucher")} />
           <Grid>
             <div>
               <VoucherInfo

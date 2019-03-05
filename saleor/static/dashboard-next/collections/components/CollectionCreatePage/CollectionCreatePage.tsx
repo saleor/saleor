@@ -3,6 +3,7 @@ import CardContent from "@material-ui/core/CardContent";
 import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import { CardSpacer } from "../../../components/CardSpacer";
 import CardTitle from "../../../components/CardTitle";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
@@ -64,11 +65,11 @@ const CollectionCreatePage: React.StatelessComponent<
   <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
     {({ change, data, errors: formErrors, hasChanged, submit }) => (
       <Container width="md">
+        <AppHeader onBack={onBack}>{i18n.t("Collections")}</AppHeader>
         <PageHeader
           title={i18n.t("Add collection", {
             context: "page title"
           })}
-          onBack={onBack}
         />
         <Grid>
           <div>

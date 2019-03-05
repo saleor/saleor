@@ -10,6 +10,7 @@ import Typography from "@material-ui/core/Typography";
 import ArrowBackIcon from "@material-ui/icons/ArrowBack";
 import * as React from "react";
 import AppHeaderContext from "../AppLayout/AppHeaderContext";
+import Skeleton from "../Skeleton";
 
 export interface AppHeaderProps {
   children: React.ReactNode;
@@ -29,6 +30,10 @@ const styles = (theme: Theme) =>
       color: theme.palette.grey[500],
       display: "flex",
       marginTop: theme.spacing.unit
+    },
+    skeleton: {
+      marginBottom: theme.spacing.unit * 2,
+      width: "10rem"
     },
     title: {
       color: theme.palette.grey[500],
@@ -57,7 +62,11 @@ const AppHeader = withStyles(styles, { name: "AppHeader" })(
                   <ArrowBackIcon />
                 </IconButton>
               )}
-              <Typography className={classes.title}>{children}</Typography>
+              {children ? (
+                <Typography className={classes.title}>{children}</Typography>
+              ) : (
+                <Skeleton className={classes.skeleton} />
+              )}
             </div>
           </Portal>
         ) : null
