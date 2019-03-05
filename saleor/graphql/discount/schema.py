@@ -2,6 +2,7 @@ import graphene
 from graphql_jwt.decorators import permission_required
 
 from ..core.fields import PrefetchingConnectionField
+from ..translations.mutations import VoucherTranslate
 from .mutations import (
     SaleAddCatalogues, SaleCreate, SaleDelete, SaleRemoveCatalogues,
     SaleUpdate, VoucherAddCatalogues, VoucherCreate, VoucherDelete,
@@ -55,3 +56,4 @@ class DiscountMutations(graphene.ObjectType):
     voucher_update = VoucherUpdate.Field()
     voucher_catalogues_add = VoucherAddCatalogues.Field()
     voucher_catalogues_remove = VoucherRemoveCatalogues.Field()
+    voucher_translate = VoucherTranslate.Field()

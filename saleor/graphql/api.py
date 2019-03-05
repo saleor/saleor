@@ -11,11 +11,12 @@ from .payment.schema import PaymentMutations, PaymentQueries
 from .product.schema import ProductMutations, ProductQueries
 from .shipping.schema import ShippingMutations, ShippingQueries
 from .shop.schema import ShopMutations, ShopQueries
+from .translations.schema import TranslationQueries
 
 
 class Query(AccountQueries, CheckoutQueries, DiscountQueries, MenuQueries,
             OrderQueries, PageQueries, PaymentQueries, ProductQueries,
-            ShippingQueries, ShopQueries):
+            ShippingQueries, ShopQueries, TranslationQueries):
     node = graphene.Node.Field()
 
 

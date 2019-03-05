@@ -80,18 +80,28 @@ class ChargeStatus:
     """Represents possible statuses of a payment.
 
     The following statuses are possible:
-    - CHARGED - funds were taken off the customer founding source,
-    partly or completely covering the payment amount.
     - NOT_CHARGED - no funds were take off the customer founding source yet.
+    - PARTIALLY_CHARGED - funds were taken off the customer's funding source,
+    partly covering the payment amount.
+    - FULLY_CHARGED - funds were taken off the customer founding source,
+    partly or completely covering the payment amount.
+    - PARTIALLY_REFUNDED - part of charged funds were returned to the customer.
     - FULLY_REFUNDED - all charged funds were returned to the customer.
     """
 
-    CHARGED = 'charged'
     NOT_CHARGED = 'not-charged'
+    PARTIALLY_CHARGED = 'partially-charged'
+    FULLY_CHARGED = 'fully-charged'
+    PARTIALLY_REFUNDED = 'partially-refunded'
     FULLY_REFUNDED = 'fully-refunded'
+
     CHOICES = [
-        (CHARGED, pgettext_lazy('payment status', 'Charged')),
         (NOT_CHARGED, pgettext_lazy('payment status', 'Not charged')),
+        (PARTIALLY_CHARGED, pgettext_lazy(
+            'payment status', 'Partially charged')),
+        (FULLY_CHARGED, pgettext_lazy('payment status', 'Fully charged')),
+        (PARTIALLY_REFUNDED, pgettext_lazy(
+            'payment status', 'Partially refunded')),
         (FULLY_REFUNDED, pgettext_lazy('payment status', 'Fully refunded'))]
 
 
