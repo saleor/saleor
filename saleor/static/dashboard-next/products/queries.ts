@@ -50,7 +50,7 @@ export const fragmentProduct = gql`
   fragment Product on Product {
     id
     name
-    description
+    descriptionJson
     seoTitle
     seoDescription
     category {

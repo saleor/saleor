@@ -16,7 +16,7 @@ from ...order import OrderStatus
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ...order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order,
-    change_order_line_quantity, recalculate_order)
+    change_order_line_quantity, delete_order_line, recalculate_order)
 from ...payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from ...payment.utils import (
     clean_mark_order_as_paid, gateway_capture, gateway_refund, gateway_void,
@@ -251,20 +251,21 @@ class OrderNoteForm(forms.Form):
         label=pgettext_lazy('Order note', 'Note'), widget=forms.Textarea())
 
 
-class ManagePaymentForm(forms.Form):
+class BasePaymentForm(forms.Form):
+
     amount = forms.DecimalField(
         label=pgettext_lazy(
             'Payment management form (capture, refund, void)', 'Amount'),
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES)
 
+    clean_error = pgettext_lazy(
+        'Payment form error',
+        'This payment action can not be performed.')
+
     def __init__(self, *args, **kwargs):
         self.payment = kwargs.pop('payment')
         super().__init__(*args, **kwargs)
-
-    def clean(self):
-        if self.payment.charge_status != self.clean_status:
-            raise forms.ValidationError(self.clean_error)
 
     def payment_error(self, message):
         self.add_error(
@@ -281,24 +282,30 @@ class ManagePaymentForm(forms.Form):
         return True
 
 
-class CapturePaymentForm(ManagePaymentForm):
+class CapturePaymentForm(BasePaymentForm):
 
-    clean_status = ChargeStatus.NOT_CHARGED
-    clean_error = pgettext_lazy('Payment form error',
-                                'Only pre-authorized payments can be captured')
+    clean_error = pgettext_lazy(
+        'Payment form error',
+        'Only pre-authorized payments can be captured')
+
+    def clean(self):
+        if not self.payment.can_capture():
+            raise forms.ValidationError(self.clean_error)
 
     def capture(self):
         return self.try_payment_action(gateway_capture)
 
 
-class RefundPaymentForm(ManagePaymentForm):
+class RefundPaymentForm(BasePaymentForm):
 
-    clean_status = ChargeStatus.CHARGED
-    clean_error = pgettext_lazy('Payment form error',
-                                'Only confirmed payments can be refunded')
+    clean_error = pgettext_lazy(
+        'Payment form error',
+        'Only confirmed payments can be refunded')
 
     def clean(self):
-        super().clean()
+        if not self.payment.can_refund():
+            raise forms.ValidationError(self.clean_error)
+
         if self.payment.gateway == CustomPaymentChoices.MANUAL:
             raise forms.ValidationError(
                 pgettext_lazy(
@@ -309,23 +316,22 @@ class RefundPaymentForm(ManagePaymentForm):
         return self.try_payment_action(gateway_refund)
 
 
-class VoidPaymentForm(forms.Form):
+class VoidPaymentForm(BasePaymentForm):
+
+    clean_error = pgettext_lazy(
+        'Payment form error',
+        'Only pre-authorized payments can be voided')
 
     def __init__(self, *args, **kwargs):
-        self.payment = kwargs.pop('payment')
         super().__init__(*args, **kwargs)
+        self.payment = kwargs.pop('payment')
+        # The amount field is popped out
+        # since there is no amount argument for void operation
+        self.fields.pop('amount')
 
     def clean(self):
-        if self.payment.charge_status != ChargeStatus.NOT_CHARGED:
-            raise forms.ValidationError(
-                pgettext_lazy(
-                    'Payment form error',
-                    'Only pre-authorized payments can be voided'))
-
-    def payment_error(self, message):
-        self.add_error(
-            None, pgettext_lazy(
-                'Payment form error', 'Payment gateway error: %s') % message)
+        if not self.payment.can_void():
+            raise forms.ValidationError(self.clean_error)
 
     def void(self):
         try:
@@ -365,7 +371,7 @@ class CancelOrderLineForm(forms.Form):
         if self.line.variant and self.line.variant.track_inventory:
             deallocate_stock(self.line.variant, self.line.quantity)
         order = self.line.order
-        self.line.delete()
+        delete_order_line(self.line)
         recalculate_order(order)
 
 

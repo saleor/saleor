@@ -66,7 +66,7 @@ def stripe_authorized_payment(stripe_payment):
 @pytest.fixture()
 def stripe_captured_payment(stripe_payment):
     stripe_payment.captured_amount = stripe_payment.total
-    stripe_payment.charge_status = ChargeStatus.CHARGED
+    stripe_payment.charge_status = ChargeStatus.FULLY_CHARGED
     stripe_payment.save(update_fields=['captured_amount', 'charge_status'])
 
     return stripe_payment
@@ -75,7 +75,7 @@ def stripe_captured_payment(stripe_payment):
 @pytest.fixture()
 def stripe_charged_payment(stripe_payment):
     stripe_payment.captured_amount = stripe_payment.total
-    stripe_payment.charge_status = ChargeStatus.CHARGED
+    stripe_payment.charge_status = ChargeStatus.FULLY_CHARGED
     stripe_payment.save(update_fields=['captured_amount', 'charge_status'])
 
     stripe_payment.transactions.create(
