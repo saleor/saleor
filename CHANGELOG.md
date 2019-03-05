@@ -47,6 +47,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add translations to GraphQL API - #3789 by @michaljelonek
 - Fix product create when no product type provided - #3804 by @michaljelonek
 - Add ordering to shipping method - #3806 by @michaljelonek
+- Add missing types for dashboard 2.0 after adding translations to API - #3802 by @jxltom
 
 
 ## 2.3.1

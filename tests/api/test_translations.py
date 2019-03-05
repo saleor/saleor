@@ -1,8 +1,8 @@
 import graphene
 import pytest
-from tests.api.utils import get_graphql_content
 
 from saleor.graphql.translations.schema import TranslatableKinds
+from tests.api.utils import get_graphql_content
 
 
 def test_product_translation(user_api_client, product):
