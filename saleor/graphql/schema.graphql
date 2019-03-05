@@ -2177,7 +2177,7 @@ enum TransactionKind {
   VOID
 }
 
-union TranslatableItem = Product | Category | Collection | Attribute | AttributeValue | ProductVariant | Page | ShippingMethod | Voucher | MenuItem | Shop
+union TranslatableItem = Product | Category | Collection | Attribute | AttributeValue | ProductVariant | Page | ShippingMethod | Voucher | MenuItem
 
 type TranslatableItemConnection {
   pageInfo: PageInfo!
@@ -2201,7 +2201,6 @@ enum TranslatableKinds {
   ATTRIBUTE_VALUE
   VARIANT
   MENU_ITEM
-  SHOP
 }
 
 input TranslationInput {
