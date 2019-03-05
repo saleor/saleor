@@ -1,24 +1,41 @@
-import { Omit } from "@material-ui/core";
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
 import PageDetailsPage, {
+  FormData,
   PageDetailsPageProps
 } from "../../../pages/components/PageDetailsPage";
 import { page } from "../../../pages/fixtures";
 import Decorator from "../../Decorator";
+import { formError } from "../../misc";
 
-const callbacks: Omit<PageDetailsPageProps, "classes"> = {
+const props: PageDetailsPageProps = {
+  disabled: false,
+  errors: [],
   onBack: () => undefined,
+  onRemove: () => undefined,
   onSubmit: () => undefined,
+  page,
   saveButtonBarState: "default"
 };
 
 storiesOf("Views / Pages / Page details", module)
   .addDecorator(Decorator)
-  .add("with initial data", () => (
-    <PageDetailsPage title="Lorem Ipsum" page={page} {...callbacks} />
+  .add("default", () => <PageDetailsPage {...props} />)
+  .add("loading", () => (
+    <PageDetailsPage {...props} disabled={true} page={undefined} />
   ))
-  .add("when loading", () => (
-    <PageDetailsPage disabled={true} {...callbacks} />
+  .add("form errors", () => (
+    <PageDetailsPage
+      {...props}
+      errors={([
+        "title",
+        "slug",
+        "content",
+        "availableOn",
+        "isVisible",
+        "seoDescription",
+        "seoTitle"
+      ] as Array<keyof FormData>).map(formError)}
+    />
   ));

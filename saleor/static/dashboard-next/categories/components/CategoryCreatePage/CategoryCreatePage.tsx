@@ -1,26 +1,26 @@
+import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
 import { CardSpacer } from "../../../components/CardSpacer";
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
+import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
 import i18n from "../../../i18n";
 import { UserError } from "../../../types";
 import CategoryDetailsForm from "../../components/CategoryDetailsForm";
 
-import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
-import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
-
 interface FormData {
-  description: string;
+  description: RawDraftContentState;
   name: string;
   seoTitle: string;
   seoDescription: string;
 }
 
 const initialData: FormData = {
-  description: "",
+  description: null,
   name: "",
   seoDescription: "",
   seoTitle: ""
@@ -67,7 +67,7 @@ export const CategoryCreatePage: React.StatelessComponent<
             title={data.seoTitle}
             titlePlaceholder={data.name}
             description={data.seoDescription}
-            descriptionPlaceholder={data.description}
+            descriptionPlaceholder={data.name}
             loading={disabled}
             onChange={change}
             disabled={disabled}
