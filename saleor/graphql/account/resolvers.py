@@ -60,8 +60,13 @@ def resolve_address_validator(info, input):
             ChoiceValue(area[0], area[1])
             for area in rules.country_area_choices],
         city_type=rules.city_type,
+        city_choices=[
+            ChoiceValue(area[0], area[1])
+            for area in rules.city_choices],
+        city_area_type=rules.city_type,
         city_area_choices=[
-            ChoiceValue(area[0], area[1]) for area in rules.city_area_choices],
+            ChoiceValue(area[0], area[1])
+            for area in rules.city_area_choices],
         postal_code_type=rules.postal_code_type,
         postal_code_matchers=[
             compiled.pattern for compiled in rules.postal_code_matchers],
