@@ -10,15 +10,16 @@
 # Ömer Faruk Demirel <farukdemirel@hotmail.com.tr>, 2018
 # Taygun YI <yildirimtaygun@gmail.com>, 2019
 # Engin Öz <o.enginoz@gmail.com>, 2019
+# Ramazan Acar <acarist@gmail.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-12 07:24-0600\n"
+"POT-Creation-Date: 2019-02-25 10:45-0600\n"
 "PO-Revision-Date: 2017-02-09 15:43+0000\n"
-"Last-Translator: Engin Öz <o.enginoz@gmail.com>, 2019\n"
+"Last-Translator: Ramazan Acar <acarist@gmail.com>, 2019\n"
 "Language-Team: Turkish (https://www.transifex.com/mirumee/teams/34782/tr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -56,15 +57,15 @@ msgstr[1] "Eşleşen %(counter)d kategori bulundu"
 
 #: saleor/dashboard/category/forms.py:25
 #: saleor/dashboard/collection/forms.py:24
-#: saleor/dashboard/discount/forms.py:95 saleor/dashboard/product/forms.py:96
-#: saleor/dashboard/product/forms.py:249 saleor/dashboard/product/forms.py:457
+#: saleor/dashboard/discount/forms.py:94 saleor/dashboard/product/forms.py:96
+#: saleor/dashboard/product/forms.py:250 saleor/dashboard/product/forms.py:458
 #: saleor/dashboard/sites/forms.py:52
 msgctxt "Item name"
 msgid "Name"
 msgstr "İsim"
 
 #: saleor/dashboard/category/forms.py:26 saleor/dashboard/product/forms.py:235
-#: saleor/dashboard/product/forms.py:406 saleor/dashboard/sites/forms.py:29
+#: saleor/dashboard/product/forms.py:407 saleor/dashboard/sites/forms.py:29
 msgctxt "Description"
 msgid "Description"
 msgstr "Açıklama"
@@ -128,7 +129,7 @@ msgstr "Yayında mı"
 #: saleor/dashboard/customer/filters.py:38
 #: saleor/dashboard/discount/filters.py:58
 #: saleor/dashboard/discount/filters.py:94
-#: saleor/dashboard/order/filters.py:44 saleor/dashboard/order/filters.py:50
+#: saleor/dashboard/order/filters.py:44 saleor/dashboard/order/filters.py:51
 #: saleor/dashboard/product/filters.py:45 saleor/dashboard/taxes/filters.py:25
 msgctxt "Filter empty choice label"
 msgid "All"
@@ -171,7 +172,7 @@ msgstr "Yayınlandı"
 msgctxt ""
 "The publication date field, can be a posterior date for a planned "
 "publication."
-msgid "Published date"
+msgid "Publication date"
 msgstr "Yayınlanma tarihi"
 
 #: saleor/dashboard/collection/forms.py:39
@@ -477,108 +478,108 @@ msgid_plural "Found %(counter)d matching vouchers"
 msgstr[0] "Eşleşen %(counter)d kupon bulundu."
 msgstr[1] "Eşleşen %(counter)d kupon bulundu."
 
-#: saleor/dashboard/discount/forms.py:22
+#: saleor/dashboard/discount/forms.py:21
 msgctxt "Lowest value for order to be able to use the voucher"
 msgid "Apply only if the purchase value is greater than or equal to"
 msgstr "Satın alma tutarı büyük veya eşit ise uygula : "
 
-#: saleor/dashboard/discount/forms.py:30
+#: saleor/dashboard/discount/forms.py:29
 msgctxt "Discounted products"
 msgid "Discounted products"
 msgstr "İndirimli Ürünler"
 
-#: saleor/dashboard/discount/forms.py:38
+#: saleor/dashboard/discount/forms.py:37
 msgctxt "Sale name"
 msgid "Name"
 msgstr "İsim"
 
-#: saleor/dashboard/discount/forms.py:41
+#: saleor/dashboard/discount/forms.py:40
 msgctxt "Discount type"
 msgid "Fixed or percentage"
 msgstr "Sabit veya komisyonlu"
 
-#: saleor/dashboard/discount/forms.py:44
+#: saleor/dashboard/discount/forms.py:43
 msgctxt "Sale date restrictions"
 msgid "Start date"
 msgstr "Başlangıç tarihi"
 
-#: saleor/dashboard/discount/forms.py:47
+#: saleor/dashboard/discount/forms.py:46
 msgctxt "Sale date restrictions"
 msgid "End date"
 msgstr "Bitiş tarihi"
 
-#: saleor/dashboard/discount/forms.py:50
+#: saleor/dashboard/discount/forms.py:49
 msgctxt "Percentage or fixed amount value"
 msgid "Value"
 msgstr "Değer"
 
-#: saleor/dashboard/discount/forms.py:53
+#: saleor/dashboard/discount/forms.py:52
 msgctxt "Discounted categories"
 msgid "Discounted categories"
 msgstr "İndirimli kategoriler"
 
-#: saleor/dashboard/discount/forms.py:56
+#: saleor/dashboard/discount/forms.py:55
 msgctxt "Discounted collections"
 msgid "Discounted collections"
 msgstr "İndirimli koleksiyonlar"
 
-#: saleor/dashboard/discount/forms.py:70
+#: saleor/dashboard/discount/forms.py:69
 msgctxt "Sale (discount) error"
 msgid "Sale cannot exceed 100%"
 msgstr "İndirim 100%'ü geçemez"
 
-#: saleor/dashboard/discount/forms.py:77
+#: saleor/dashboard/discount/forms.py:76
 msgctxt "Sale (discount) error"
 msgid ""
 "A single sale must point to at least one product, collectionand/or category."
 msgstr "En az bir ürün, koleksiyon veya kategori, bir satışı göstermelidir."
 
-#: saleor/dashboard/discount/forms.py:92
+#: saleor/dashboard/discount/forms.py:91
 msgctxt "Discount type"
 msgid "Discount type"
 msgstr "İndirim türü"
 
-#: saleor/dashboard/discount/forms.py:98
+#: saleor/dashboard/discount/forms.py:97
 msgctxt "Coupon code"
 msgid "Code"
 msgstr "Kod"
 
-#: saleor/dashboard/discount/forms.py:101
+#: saleor/dashboard/discount/forms.py:100
 msgctxt "Usage limit"
 msgid "Usage limit"
 msgstr "Kullanım limiti"
 
-#: saleor/dashboard/discount/forms.py:104
+#: saleor/dashboard/discount/forms.py:103
 msgctxt "Voucher date restrictions"
 msgid "Start date"
 msgstr "Başlangıç tarihi"
 
-#: saleor/dashboard/discount/forms.py:107
+#: saleor/dashboard/discount/forms.py:106
 msgctxt "Voucher date restrictions"
 msgid "End date"
 msgstr "Bitiş tarihi"
 
-#: saleor/dashboard/discount/forms.py:110
+#: saleor/dashboard/discount/forms.py:109
 msgctxt "Discount type of the voucher"
 msgid "Discount type"
 msgstr "İndirim türü"
 
-#: saleor/dashboard/discount/forms.py:113
+#: saleor/dashboard/discount/forms.py:112
 msgctxt "Discount value of the voucher"
 msgid "Discount value"
 msgstr "İndirim değeri"
 
-#: saleor/dashboard/discount/forms.py:137
+#: saleor/dashboard/discount/forms.py:130
 msgctxt "Text above the dropdown of countries"
 msgid "Limit countries that voucher should apply to"
 msgstr "Kuponun kullanılacağı ülkeler : "
 
-#: saleor/dashboard/discount/forms.py:165
+#: saleor/dashboard/discount/forms.py:158
 msgctxt "Field label, apply discount value only once per order"
 msgid "Only apply once per order"
 msgstr "Her sipariş için yanlızca 1 kere uygula"
 
-#: saleor/dashboard/discount/forms.py:168
+#: saleor/dashboard/discount/forms.py:161
 msgctxt "Help text of checkbox for applying discount only once per order"
 msgid ""
 "If unchecked, discount value will be taken off each suitable item in an "
@@ -587,17 +588,17 @@ msgstr ""
 "Eğer çek kaldırılırsa, indirim siparişte uygulanabilecek ürünlerden "
 "kaldırılacak."
 
-#: saleor/dashboard/discount/forms.py:177
+#: saleor/dashboard/discount/forms.py:170
 msgctxt "Product"
 msgid "Products"
 msgstr "Ürünler"
 
-#: saleor/dashboard/discount/forms.py:191
+#: saleor/dashboard/discount/forms.py:184
 msgctxt "Collections"
 msgid "Collections"
 msgstr "Koleksiyonlar"
 
-#: saleor/dashboard/discount/forms.py:202
+#: saleor/dashboard/discount/forms.py:195
 msgctxt "Categories"
 msgid "Categories"
 msgstr "Kategoriler"
@@ -720,7 +721,7 @@ msgctxt "Menu item form error"
 msgid "A single menu item must point to an internal link or URL."
 msgstr "Tek bir menü ürünü iç linki veya URL'i göstermelidir."
 
-#: saleor/dashboard/menu/utils.py:103
+#: saleor/dashboard/menu/utils.py:101
 #, python-format
 msgctxt "Menu item page hidden status"
 msgid ""
@@ -835,17 +836,17 @@ msgctxt "Order list filter label"
 msgid "Payment status"
 msgstr "Ödeme durumu"
 
-#: saleor/dashboard/order/filters.py:53
+#: saleor/dashboard/order/filters.py:54
 msgctxt "Order list filter label"
 msgid "Total"
 msgstr "Toplam"
 
-#: saleor/dashboard/order/filters.py:56
+#: saleor/dashboard/order/filters.py:57
 msgctxt "Order list filter label"
 msgid "Sort by"
 msgstr "Sırala"
 
-#: saleor/dashboard/order/filters.py:76
+#: saleor/dashboard/order/filters.py:88
 #, python-format
 msgctxt "Number of matching records in the dashboard orders list"
 msgid "Found %(counter)d matching order"
@@ -853,105 +854,100 @@ msgid_plural "Found %(counter)d matching orders"
 msgstr[0] "Eşleşen %(counter)d sipariş bulundu"
 msgstr[1] "Eşleşen %(counter)d sipariş bulundu"
 
-#: saleor/dashboard/order/forms.py:40
+#: saleor/dashboard/order/forms.py:39
 msgctxt "Send email to customer about order created by staff users"
 msgid "Send email with order confirmation to the customer"
 msgstr "Sipariş onayını mail ile müşteriye gönder"
 
-#: saleor/dashboard/order/forms.py:58
+#: saleor/dashboard/order/forms.py:57
 msgctxt "Create draft order form error"
 msgid "Could not create order without any products"
 msgstr "Ürünsüz şipariş oluşturulamaz"
 
-#: saleor/dashboard/order/forms.py:68
+#: saleor/dashboard/order/forms.py:67
 msgctxt "Create draft order form error"
 msgid "Shipping method is not valid for chosen shipping address"
 msgstr "Seçilen kargo adresi için kargo metodu geçersizdir"
 
-#: saleor/dashboard/order/forms.py:96
+#: saleor/dashboard/order/forms.py:95
 msgctxt "Update an order with user default addresses"
 msgid "Set billing and shipping address in order to customer defaults"
 msgstr "Müşterinin varsayılan teslimat ve fatura adresini düzenle"
 
-#: saleor/dashboard/order/forms.py:104
+#: saleor/dashboard/order/forms.py:103
 msgctxt "Order form: editing customer details - selecting a customer"
 msgid "Customer"
 msgstr "Müşteri"
 
-#: saleor/dashboard/order/forms.py:112
+#: saleor/dashboard/order/forms.py:111
 msgctxt "Order customer email"
 msgid "Email"
 msgstr "E-posta"
 
-#: saleor/dashboard/order/forms.py:127
+#: saleor/dashboard/order/forms.py:126
 msgctxt "Edit customer details in order form error"
 msgid ""
 "An order can be related either with an email or an existing user account"
 msgstr ""
 "Sipariş eposta adresi veya varolan kullanıcı hesabına ilişkin olabilir"
 
-#: saleor/dashboard/order/forms.py:155
+#: saleor/dashboard/order/forms.py:154
 msgctxt "Shipping method form field label"
 msgid "Shipping method"
 msgstr "Kargo şekli"
 
-#: saleor/dashboard/order/forms.py:212
+#: saleor/dashboard/order/forms.py:211
 msgctxt "Order discount amount fixed value"
 msgid "Discount amount"
 msgstr "İndirim tutarı"
 
-#: saleor/dashboard/order/forms.py:224
+#: saleor/dashboard/order/forms.py:223
 msgctxt "Order voucher"
 msgid "Voucher"
 msgstr "Kupon"
 
-#: saleor/dashboard/order/forms.py:252
+#: saleor/dashboard/order/forms.py:251
 msgctxt "Order note"
 msgid "Note"
 msgstr "Not"
 
-#: saleor/dashboard/order/forms.py:258
+#: saleor/dashboard/order/forms.py:257
 msgctxt "Payment management form (capture, refund, void)"
 msgid "Amount"
 msgstr "Tutar"
 
-#: saleor/dashboard/order/forms.py:273 saleor/dashboard/order/forms.py:329
+#: saleor/dashboard/order/forms.py:272 saleor/dashboard/order/forms.py:328
 #, python-format
 msgctxt "Payment form error"
 msgid "Payment gateway error: %s"
 msgstr "Ödeme sistemi hatası : %s"
 
-#: saleor/dashboard/order/forms.py:289
+#: saleor/dashboard/order/forms.py:288
 msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be captured"
 msgstr "Sadece önyetkili ödemeler yakalanabilir"
 
-#: saleor/dashboard/order/forms.py:299
+#: saleor/dashboard/order/forms.py:298
 msgctxt "Payment form error"
 msgid "Only confirmed payments can be refunded"
 msgstr "Sadece onaylanmış ödemeler iade olabilir"
 
-#: saleor/dashboard/order/forms.py:307
+#: saleor/dashboard/order/forms.py:306
 msgctxt "Payment form error"
 msgid "Manual payments can not be refunded"
 msgstr "Havale/EFT ödemeleri iade olamaz"
 
-#: saleor/dashboard/order/forms.py:324
+#: saleor/dashboard/order/forms.py:323
 msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be voided"
 msgstr "Sadece tekrarlanan ödemeler iptal olabilir"
 
-#: saleor/dashboard/order/forms.py:353
-msgctxt "Mark order as paid form error"
-msgid "Orders with payments can not be manually marked as paid"
-msgstr "Ödemeli siparişler kullanıcı tarafından ödendi olarak işaretlenemez."
-
-#: saleor/dashboard/order/forms.py:384
+#: saleor/dashboard/order/forms.py:375
 msgctxt "Integer number"
 msgid "Quantity"
 msgstr "Adet"
 
-#: saleor/dashboard/order/forms.py:403
+#: saleor/dashboard/order/forms.py:394
 #, python-format
 msgctxt "Change quantity form error"
 msgid "Only %(remaining)d remaining in stock."
@@ -959,7 +955,7 @@ msgid_plural "Only %(remaining)d remaining in stock."
 msgstr[0] "Stokta sadece %(remaining)d adet kaldı."
 msgstr[1] "Stokta sadece %(remaining)d adet kaldı."
 
-#: saleor/dashboard/order/forms.py:435
+#: saleor/dashboard/order/forms.py:426
 #, python-format
 msgctxt "Cancel order form action"
 msgid "Restock %(quantity)d item"
@@ -967,12 +963,12 @@ msgid_plural "Restock %(quantity)d items"
 msgstr[0] "Stoğu %(quantity)d ürünle doldur"
 msgstr[1] "Stoğu %(quantity)d ürünle doldur"
 
-#: saleor/dashboard/order/forms.py:445
+#: saleor/dashboard/order/forms.py:436
 msgctxt "Cancel order form error"
 msgid "This order can't be canceled"
 msgstr "Bu sipariş iptal olamaz"
 
-#: saleor/dashboard/order/forms.py:465
+#: saleor/dashboard/order/forms.py:456
 #, python-format
 msgctxt "Cancel fulfillment form action"
 msgid "Restock %(quantity)d item"
@@ -980,63 +976,63 @@ msgid_plural "Restock %(quantity)d items"
 msgstr[0] "Stoğu %(quantity)d ürünle doldur"
 msgstr[1] "Stoğu %(quantity)d ürünle doldur"
 
-#: saleor/dashboard/order/forms.py:475
+#: saleor/dashboard/order/forms.py:466
 msgctxt "Cancel fulfillment form error"
 msgid "This fulfillment can't be canceled"
 msgstr "Tamamlanmış sipariş iptal olamaz"
 
-#: saleor/dashboard/order/forms.py:488
+#: saleor/dashboard/order/forms.py:479
 msgctxt "Send mail to customer"
 msgid "Send notification email to customer"
 msgstr "Müşteriye bildirim maili gönder"
 
-#: saleor/dashboard/order/forms.py:495
+#: saleor/dashboard/order/forms.py:486
 msgctxt "Fulfillment record"
 msgid "Tracking number"
 msgstr "Takip numarası"
 
-#: saleor/dashboard/order/forms.py:516
+#: saleor/dashboard/order/forms.py:507
 msgctxt "Remove voucher form error"
 msgid "This order has no voucher"
 msgstr "Bu siparişe ait kupon yok"
 
-#: saleor/dashboard/order/forms.py:529
+#: saleor/dashboard/order/forms.py:520
 msgctxt "Payment status field value"
 msgid "All"
 msgstr "Hepsi"
 
-#: saleor/dashboard/order/forms.py:546
+#: saleor/dashboard/order/forms.py:537
 msgctxt "Order form: subform to add variant to order form: variant field"
 msgid "Variant"
 msgstr "Varyant"
 
-#: saleor/dashboard/order/forms.py:549
+#: saleor/dashboard/order/forms.py:540
 msgctxt "Add variant to order form label"
 msgid "Quantity"
 msgstr "Adet"
 
-#: saleor/dashboard/order/forms.py:570
+#: saleor/dashboard/order/forms.py:561
 #, python-format
 msgctxt "Add item form error"
 msgid "Could not add item. Only %(remaining)d remaining in stock."
 msgstr "Ürün eklenemedi. Stokta sadece %(remaining)d adet kaldı."
 
-#: saleor/dashboard/order/forms.py:593
+#: saleor/dashboard/order/forms.py:584
 msgctxt "Order form: address subform - phone number input field"
 msgid "Phone number"
 msgstr "Telefon numarası"
 
-#: saleor/dashboard/order/forms.py:602
+#: saleor/dashboard/order/forms.py:593
 msgctxt "Send mail to customer"
 msgid "Send shipment details to your customer now"
 msgstr "Müşterinize, şimdi kargo detayını gönderin"
 
-#: saleor/dashboard/order/forms.py:610
+#: saleor/dashboard/order/forms.py:601
 msgctxt "Order tracking number"
 msgid "Tracking number"
 msgstr "Takip numarası"
 
-#: saleor/dashboard/order/forms.py:640
+#: saleor/dashboard/order/forms.py:631
 #, python-format
 msgctxt "Fulfill order line form error"
 msgid "%(quantity)d item remaining to fulfill."
@@ -1171,12 +1167,12 @@ msgctxt "Dashboard message"
 msgid "Removed voucher from order"
 msgstr "Siparişten kuponu kaldır"
 
-#: saleor/dashboard/order/views.py:545
+#: saleor/dashboard/order/views.py:546
 msgctxt "Dashboard message"
 msgid "Order manually marked as paid"
 msgstr "Sipariş kullanıcı tarafından ödendi olarak işaretlendi"
 
-#: saleor/dashboard/order/views.py:610
+#: saleor/dashboard/order/views.py:611
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Fulfilled %(quantity_fulfilled)d item"
@@ -1184,18 +1180,18 @@ msgid_plural "Fulfilled %(quantity_fulfilled)d items"
 msgstr[0] " %(quantity_fulfilled)d adet ürün işlemi tamamlandı"
 msgstr[1] "%(quantity_fulfilled)d adet ürün işlemi tamamlandı"
 
-#: saleor/dashboard/order/views.py:628
+#: saleor/dashboard/order/views.py:629
 msgctxt "Dashboard message related to an order"
 msgid "No items fulfilled"
 msgstr "Hiçbir ürün işlemi tamamlanmadı"
 
-#: saleor/dashboard/order/views.py:650
+#: saleor/dashboard/order/views.py:651
 #, python-format
 msgctxt "Dashboard message"
 msgid "Fulfillment #%(fulfillment)s canceled"
 msgstr "Tamamlanan %(fulfillment)s işlemi iptal edildi"
 
-#: saleor/dashboard/order/views.py:696
+#: saleor/dashboard/order/views.py:697
 #, python-format
 msgctxt "Dashboard message"
 msgid "Fulfillment #%(fulfillment)s tracking number updated"
@@ -1239,27 +1235,27 @@ msgctxt "Page form: page content field"
 msgid "Content"
 msgstr "İçerik"
 
-#: saleor/dashboard/page/forms.py:21
+#: saleor/dashboard/page/forms.py:22
 msgctxt "Page form: title field"
 msgid "Title"
 msgstr "Başlık"
 
-#: saleor/dashboard/page/forms.py:22
+#: saleor/dashboard/page/forms.py:23
 msgctxt "Page form: slug field"
 msgid "Slug"
 msgstr "Jeton"
 
-#: saleor/dashboard/page/forms.py:24
+#: saleor/dashboard/page/forms.py:25
 msgctxt "Page form: available on which date field"
 msgid "Available on"
 msgstr "Mevcut"
 
-#: saleor/dashboard/page/forms.py:26
-msgctxt "Page form: visibility status indicator"
-msgid "Is visible"
-msgstr "Görülebilir"
+#: saleor/dashboard/page/forms.py:27
+msgctxt "Page form: publication status indicator"
+msgid "Is published"
+msgstr "Yayında mı"
 
-#: saleor/dashboard/page/forms.py:30
+#: saleor/dashboard/page/forms.py:31
 msgctxt "Form field help text"
 msgid "Slug is being used to create page URL"
 msgstr "Jeton sayfa URL'i oluşturmak için kullanılmaya başlanacak"
@@ -1476,43 +1472,43 @@ msgstr ""
 "Ağırlık kargo ücreti hesaplamak için kullanılacak, eğer boşsa, ürüntipinde "
 "kullanılan varsayılan değere eşittir."
 
-#: saleor/dashboard/product/forms.py:250
+#: saleor/dashboard/product/forms.py:251
 #: saleor/dashboard/shipping/forms.py:123
 msgctxt "Currency amount"
 msgid "Price"
 msgstr "Ücret"
 
-#: saleor/dashboard/product/forms.py:252
+#: saleor/dashboard/product/forms.py:253
 msgctxt "Availability date"
 msgid "Publish product on"
 msgstr "Ürünü yayınla"
 
-#: saleor/dashboard/product/forms.py:254
+#: saleor/dashboard/product/forms.py:255
 msgctxt "Product published toggle"
 msgid "Published"
 msgstr "Yayınlandı"
 
-#: saleor/dashboard/product/forms.py:256
+#: saleor/dashboard/product/forms.py:257
 msgctxt "Charge taxes on product"
 msgid "Charge taxes on this product"
 msgstr "Bu üründe vergi ücreti yansıt"
 
-#: saleor/dashboard/product/forms.py:276
+#: saleor/dashboard/product/forms.py:277
 msgctxt "Currency gross amount"
 msgid "Gross price"
 msgstr "Bürüt fiyat"
 
-#: saleor/dashboard/product/forms.py:279
+#: saleor/dashboard/product/forms.py:280
 msgctxt "Currency net amount"
 msgid "Net price"
 msgstr "Net fiyat"
 
-#: saleor/dashboard/product/forms.py:307
+#: saleor/dashboard/product/forms.py:308
 msgctxt "ProductVariant weight"
 msgid "Weight"
 msgstr "Ağırlık"
 
-#: saleor/dashboard/product/forms.py:310
+#: saleor/dashboard/product/forms.py:311
 msgctxt "ProductVariant weight help text"
 msgid ""
 "Weight will be used to calculate shipping price. If empty, weight from "
@@ -1521,67 +1517,67 @@ msgstr ""
 "Ağırlık kargo ücretini hesaplarken kullanılabilir. Eğer boşsa, ürün veya "
 "ürün tipinden ağırlık kullanılacaktır."
 
-#: saleor/dashboard/product/forms.py:319
+#: saleor/dashboard/product/forms.py:320
 msgctxt "SKU"
 msgid "SKU"
 msgstr "Barkod"
 
-#: saleor/dashboard/product/forms.py:321
+#: saleor/dashboard/product/forms.py:322
 msgctxt "Override price"
 msgid "Selling price override"
 msgstr "Satış fiyatı değişti"
 
-#: saleor/dashboard/product/forms.py:322
+#: saleor/dashboard/product/forms.py:323
 msgctxt "Integer number"
 msgid "Number in stock"
 msgstr "Kalan stok sayısı"
 
-#: saleor/dashboard/product/forms.py:323
+#: saleor/dashboard/product/forms.py:324
 msgctxt "Currency amount"
 msgid "Cost price"
 msgstr "Maliyet ücreti"
 
-#: saleor/dashboard/product/forms.py:325
+#: saleor/dashboard/product/forms.py:326
 msgctxt "Track inventory field"
 msgid "Track inventory"
 msgstr "Stok takip"
 
-#: saleor/dashboard/product/forms.py:329
+#: saleor/dashboard/product/forms.py:330
 msgctxt "product variant handle stock field help text"
 msgid "Automatically track this product's inventory"
 msgstr "Ürünün stoğunu otomatik takip et"
 
-#: saleor/dashboard/product/forms.py:344
+#: saleor/dashboard/product/forms.py:345
 msgctxt "Override price"
 msgid "Selling gross price override"
 msgstr "Satış brüt fiyatı değiştirildi"
 
-#: saleor/dashboard/product/forms.py:346
+#: saleor/dashboard/product/forms.py:347
 msgctxt "Currency amount"
 msgid "Cost gross price"
 msgstr "Maliyet brüt fiyat"
 
-#: saleor/dashboard/product/forms.py:349
+#: saleor/dashboard/product/forms.py:350
 msgctxt "Override price"
 msgid "Selling net price override"
 msgstr "Satış net fiyatı değiştirildi"
 
-#: saleor/dashboard/product/forms.py:351
+#: saleor/dashboard/product/forms.py:352
 msgctxt "Currency amount"
 msgid "Cost net price"
 msgstr "Maliyet net fiyat"
 
-#: saleor/dashboard/product/forms.py:404 saleor/dashboard/product/forms.py:509
+#: saleor/dashboard/product/forms.py:405 saleor/dashboard/product/forms.py:510
 msgctxt "Product image"
 msgid "Image"
 msgstr "İmaj"
 
-#: saleor/dashboard/product/forms.py:445
+#: saleor/dashboard/product/forms.py:446
 msgctxt "Product display name"
 msgid "Display name"
 msgstr "Görünecek isim"
 
-#: saleor/dashboard/product/forms.py:447
+#: saleor/dashboard/product/forms.py:448
 msgctxt "Product internal name"
 msgid "Internal name"
 msgstr "İç isim"

@@ -1,13 +1,49 @@
 import gql from "graphql-tag";
 
 import { TypedMutation } from "../mutations";
-
+import { pageDetailsFragment } from "./queries";
 import { PageCreate, PageCreateVariables } from "./types/PageCreate";
-import { PageDelete, PageDeleteVariables } from "./types/PageDelete";
+import { PageRemove, PageRemoveVariables } from "./types/PageRemove";
 import { PageUpdate, PageUpdateVariables } from "./types/PageUpdate";
 
-export const pageDeleteMutation = gql`
-  mutation PageDelete($id: ID!) {
+const pageCreate = gql`
+  ${pageDetailsFragment}
+  mutation PageCreate($input: PageInput!) {
+    pageCreate(input: $input) {
+      errors {
+        field
+        message
+      }
+      page {
+        ...PageDetailsFragment
+      }
+    }
+  }
+`;
+export const TypedPageCreate = TypedMutation<PageCreate, PageCreateVariables>(
+  pageCreate
+);
+
+const pageUpdate = gql`
+  ${pageDetailsFragment}
+  mutation PageUpdate($id: ID!, $input: PageInput!) {
+    pageUpdate(id: $id, input: $input) {
+      errors {
+        field
+        message
+      }
+      page {
+        ...PageDetailsFragment
+      }
+    }
+  }
+`;
+export const TypedPageUpdate = TypedMutation<PageUpdate, PageUpdateVariables>(
+  pageUpdate
+);
+
+const pageRemove = gql`
+  mutation PageRemove($id: ID!) {
     pageDelete(id: $id) {
       errors {
         field
@@ -16,84 +52,6 @@ export const pageDeleteMutation = gql`
     }
   }
 `;
-export const TypedPageDeleteMutation = TypedMutation<
-  PageDelete,
-  PageDeleteVariables
->(pageDeleteMutation);
-
-export const pageUpdateMutation = gql`
-  mutation PageUpdate(
-    $id: ID!
-    $title: String!
-    $content: String!
-    $slug: String!
-    $isPublished: Boolean!
-    $publicationDate: String
-  ) {
-    pageUpdate(
-      id: $id
-      input: {
-        title: $title
-        content: $content
-        slug: $slug
-        isPublished: $isPublished
-        publicationDate: $publicationDate
-      }
-    ) {
-      page {
-        id
-        slug
-        title
-        content
-        isPublished
-        publicationDate
-      }
-      errors {
-        field
-        message
-      }
-    }
-  }
-`;
-export const TypedPageUpdateMutation = TypedMutation<
-  PageUpdate,
-  PageUpdateVariables
->(pageUpdateMutation);
-
-export const pageCreateMutation = gql`
-  mutation PageCreate(
-    $title: String!
-    $content: String!
-    $slug: String!
-    $isPublished: Boolean!
-    $publicationDate: String
-  ) {
-    pageCreate(
-      input: {
-        title: $title
-        content: $content
-        slug: $slug
-        isPublished: $isPublished
-        publicationDate: $publicationDate
-      }
-    ) {
-      page {
-        id
-        slug
-        title
-        content
-        isPublished
-        publicationDate
-        created
-      }
-      errors {
-        field
-        message
-      }
-    }
-  }
-`;
-export const TypedPageCreateMutation = TypedMutation<
-  PageCreate,
-  PageCreateVariables
->(pageCreateMutation);
+export const TypedPageRemove = TypedMutation<PageRemove, PageRemoveVariables>(
+  pageRemove
+);

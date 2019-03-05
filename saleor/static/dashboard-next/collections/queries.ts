@@ -26,7 +26,7 @@ export const collectionDetailsFragment = gql`
       alt
       url
     }
-    description
+    descriptionJson
     seoDescription
     seoTitle
     isPublished
