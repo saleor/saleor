@@ -273,7 +273,7 @@ def test_payment_refund_success(
 def test_payment_refund_with_invalid_argument(
         staff_api_client, permission_manage_orders, payment_txn_captured):
     payment = payment_txn_captured
-    payment.charge_status = ChargeStatus.CHARGED
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = payment.total
     payment.save()
     payment_id = graphene.Node.to_global_id(
