@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import AppHeader from "../../../components/AppHeader";
+import CardSpacer from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
@@ -95,6 +96,7 @@ const ProductVariantCreatePage: React.StatelessComponent<
                 disabled={loading}
                 onChange={change}
               />
+              <CardSpacer />
               <ProductVariantPrice
                 errors={errors}
                 priceOverride={data.priceOverride}
@@ -103,6 +105,7 @@ const ProductVariantCreatePage: React.StatelessComponent<
                 loading={loading}
                 onChange={change}
               />
+              <CardSpacer />
               <ProductVariantStock
                 errors={errors}
                 sku={data.sku}
