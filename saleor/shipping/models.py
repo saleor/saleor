@@ -109,6 +109,9 @@ class ShippingMethod(models.Model):
     objects = ShippingMethodQueryset.as_manager()
     translated = TranslationProxy()
 
+    class Meta:
+        ordering = ('pk', )
+
     def __str__(self):
         return self.name
 

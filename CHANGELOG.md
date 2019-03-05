@@ -46,6 +46,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Support partially charged and partially refunded payment status - #3735 by @jxltom
 - Add translations to GraphQL API - #3789 by @michaljelonek
 - Fix product create when no product type provided - #3804 by @michaljelonek
+- Add ordering to shipping method - #3806 by @michaljelonek
 
 
 ## 2.3.1
