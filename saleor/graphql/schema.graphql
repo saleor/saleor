@@ -1294,8 +1294,10 @@ type PaymentCapture {
 }
 
 enum PaymentChargeStatusEnum {
-  CHARGED
   NOT_CHARGED
+  PARTIALLY_CHARGED
+  FULLY_CHARGED
+  PARTIALLY_REFUNDED
   FULLY_REFUNDED
 }
 

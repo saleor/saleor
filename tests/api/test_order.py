@@ -978,9 +978,9 @@ def test_order_capture(
     content = get_graphql_content(response)
     data = content['data']['orderCapture']['order']
     order.refresh_from_db()
-    assert data['paymentStatus'] == PaymentChargeStatusEnum.CHARGED.name
+    assert data['paymentStatus'] == PaymentChargeStatusEnum.FULLY_CHARGED.name
     payment_status_display = dict(ChargeStatus.CHOICES).get(
-        ChargeStatus.CHARGED)
+        ChargeStatus.FULLY_CHARGED)
     assert data['paymentStatusDisplay'] == payment_status_display
     assert data['isPaid']
     assert data['totalCaptured']['amount'] == float(amount)

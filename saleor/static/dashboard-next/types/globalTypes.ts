@@ -73,9 +73,11 @@ export enum OrderStatusFilter {
 }
 
 export enum PaymentChargeStatusEnum {
-  CHARGED = "CHARGED",
+  FULLY_CHARGED = "FULLY_CHARGED",
   FULLY_REFUNDED = "FULLY_REFUNDED",
   NOT_CHARGED = "NOT_CHARGED",
+  PARTIALLY_CHARGED = "PARTIALLY_CHARGED",
+  PARTIALLY_REFUNDED = "PARTIALLY_REFUNDED",
 }
 
 export enum PermissionEnum {
