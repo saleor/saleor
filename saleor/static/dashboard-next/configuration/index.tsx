@@ -11,6 +11,7 @@ import Monetization from "../icons/Monetization";
 import Navigation from "../icons/Navigation";
 import Pages from "../icons/Pages";
 import StoreMall from "../icons/StoreMall";
+import { pageListUrl } from "../pages/urls";
 import { productTypeListUrl } from "../productTypes/urls";
 import { siteSettingsUrl } from "../siteSettings/urls";
 import { staffListUrl } from "../staff/urls";
@@ -63,7 +64,8 @@ export const configurationMenu: MenuItem[] = [
     description: i18n.t("Manage and add additional pages"),
     icon: <Pages fontSize="inherit" />,
     permission: PermissionEnum.MANAGE_PAGES,
-    title: i18n.t("Pages")
+    title: i18n.t("Pages"),
+    url: pageListUrl
   }
 ];
 
