@@ -43,6 +43,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add function to recalculate order's total weight - #3755 by @Kwaidan00, @maarcingebala
 - Unify behavior after creating checkout in API and Storefront 1.0; code formatting improvements - #3790 by @maarcingebala
 - Add pages section in Dashboard 2.0; introduce Draftail WYSIWYG editor - #3751 by @dominik-zeglen
+- Support partially charged and partially refunded payment status - #3735 by @jxltom
+- Add translations to GraphQL API - #3789 by @michaljelonek
 - Several improvement on checkout and payment API #3795 by @jxltom
 
 
