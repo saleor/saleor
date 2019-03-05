@@ -45,6 +45,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add pages section in Dashboard 2.0; introduce Draftail WYSIWYG editor - #3751 by @dominik-zeglen
 - Support partially charged and partially refunded payment status - #3735 by @jxltom
 - Add translations to GraphQL API - #3789 by @michaljelonek
+- Add missing types for dashboard 2.0 after adding translations to API - #3802 by @jxltom
 
 
 ## 2.3.1
