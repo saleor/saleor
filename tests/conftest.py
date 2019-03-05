@@ -700,6 +700,11 @@ def permission_manage_pages():
 
 
 @pytest.fixture
+def permission_manage_translations():
+    return Permission.objects.get(codename='manage_translations')
+
+
+@pytest.fixture
 def collection(db):
     collection = Collection.objects.create(
         name='Collection', slug='collection', is_published=True,

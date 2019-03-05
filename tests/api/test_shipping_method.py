@@ -309,7 +309,7 @@ def test_create_price_shipping_method_errors(
 
 
 WEIGHT_BASED_SHIPPING_QUERY = """
-    mutation createShipipngPrice(
+    mutation createShippingPrice(
         $type: ShippingMethodTypeEnum, $name: String!, $price: Decimal,
         $shippingZone: ID!, $maximumOrderWeight: WeightScalar,
         $minimumOrderWeight: WeightScalar) {
