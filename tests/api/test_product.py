@@ -711,10 +711,14 @@ def test_create_product_without_variants_sku_duplication(
 
 
 def test_product_create_without_product_type(
-        staff_api_client, permission_manage_products):
+        staff_api_client, category, permission_manage_products):
     query = """
-    mutation createProduct($name: String!) {
-        productCreate(input: {name: $name, productType: ""}) {
+    mutation createProduct($categoryId: ID!) {
+        productCreate(input: {
+                name: "Product", 
+                price: "2.5", 
+                productType: "",
+                category: $categoryId}) {
             product {
                 id
             }
@@ -726,12 +730,15 @@ def test_product_create_without_product_type(
     }
     """
 
+    category_id = graphene.Node.to_global_id('Category', category.id)
     response = staff_api_client.post_graphql(
-        query, {'name': 'Product'}, permissions=[permission_manage_products])
+        query, {'categoryId': category_id},
+        permissions=[permission_manage_products])
     errors = get_graphql_content(response)['data']['productCreate']['errors']
 
     assert errors[0]['field'] == 'productType'
     assert errors[0]['message'] == 'This field cannot be null.'
+
 
 def test_update_product(
         staff_api_client, category, non_default_category, product,
