@@ -122,9 +122,8 @@ def cancel_order(order, restock):
     order.status = OrderStatus.CANCELED
     order.save(update_fields=['status'])
 
-    payments = order.payments.filter(
-        is_active=True,
-        charge_status__in=[ChargeStatus.NOT_CHARGED, ChargeStatus.CHARGED])
+    payments = order.payments.filter(is_active=True).exclude(
+        charge_status=ChargeStatus.FULLY_REFUNDED)
 
     for payment in payments:
         if payment.can_refund():
