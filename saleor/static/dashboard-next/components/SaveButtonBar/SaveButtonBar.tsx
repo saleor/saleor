@@ -1,18 +1,22 @@
 import Button from "@material-ui/core/Button";
-import gray from "@material-ui/core/colors/grey";
+import Portal from "@material-ui/core/Portal";
 import {
   createStyles,
   Theme,
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
+import classNames from "classnames";
 import * as React from "react";
 
+import useScroll from "../../hooks/useScroll";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
+import AppActionContext from "../AppLayout/AppActionContext";
 import ConfirmButton, {
   ConfirmButtonTransitionState
 } from "../ConfirmButton/ConfirmButton";
+import Container from "../Container";
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -22,6 +26,14 @@ const styles = (theme: Theme) =>
     cancelButton: {
       marginRight: theme.spacing.unit * 2
     },
+    container: {
+      display: "flex",
+      paddingBottom: theme.spacing.unit * 2,
+      paddingTop: theme.spacing.unit * 2,
+      [theme.breakpoints.down("sm")]: {
+        marginTop: theme.spacing.unit
+      }
+    },
     deleteButton: {
       "&:hover": {
         backgroundColor: theme.palette.error.dark
@@ -30,17 +42,19 @@ const styles = (theme: Theme) =>
       color: theme.palette.error.contrastText
     },
     root: {
-      borderTop: `1px ${gray[300]} solid`,
-      display: "flex",
-      marginBottom: theme.spacing.unit * 2,
-      marginTop: theme.spacing.unit * 2,
-      paddingTop: theme.spacing.unit * 2,
-      [theme.breakpoints.down("sm")]: {
-        marginTop: theme.spacing.unit
-      }
+      background: theme.palette.background.default,
+      borderTop: "1px solid transparent",
+      boxShadow: `0px -6px 4px 0px ${theme.palette.grey[200]}`,
+      transition: theme.transitions.duration.standard + "ms"
     },
     spacer: {
       flex: "1"
+    },
+    stop: {
+      "&$root": {
+        borderTopColor: theme.palette.grey[200],
+        boxShadow: `0px 0px 4px 0px ${theme.palette.grey[200]}`
+      }
     }
   });
 
@@ -68,38 +82,59 @@ export const SaveButtonBar = withStyles(styles, { name: "SaveButtonBar" })(
     onSave,
     ...props
   }: SaveButtonBarProps) => {
+    const scrollPosition = useScroll();
+    const scrolledToBottom =
+      scrollPosition.y + window.innerHeight >= document.body.scrollHeight;
+
     return (
-      <div className={classes.root} {...props}>
-        {!!onDelete && (
-          <Button
-            variant="contained"
-            onClick={onDelete}
-            className={classes.deleteButton}
-          >
-            {labels && labels.delete ? labels.delete : i18n.t("Remove")}
-          </Button>
-        )}
-        <div className={classes.spacer} />
-        <Button
-          className={classes.cancelButton}
-          variant="text"
-          onClick={onCancel}
-        >
-          {labels && labels.cancel ? labels.cancel : i18n.t("Cancel")}
-        </Button>
-        <ConfirmButton
-          disabled={disabled}
-          onClick={onSave}
-          transitionState={state}
-        >
-          {maybe(
-            () => labels.save,
-            i18n.t("Save", {
-              context: "button"
-            })
-          )}
-        </ConfirmButton>
-      </div>
+      <AppActionContext.Consumer>
+        {anchor =>
+          anchor ? (
+            <Portal container={anchor.current}>
+              <div
+                className={classNames(classes.root, {
+                  [classes.stop]: scrolledToBottom
+                })}
+                {...props}
+              >
+                <Container width="md" className={classes.container}>
+                  {!!onDelete && (
+                    <Button
+                      variant="contained"
+                      onClick={onDelete}
+                      className={classes.deleteButton}
+                    >
+                      {labels && labels.delete
+                        ? labels.delete
+                        : i18n.t("Remove")}
+                    </Button>
+                  )}
+                  <div className={classes.spacer} />
+                  <Button
+                    className={classes.cancelButton}
+                    variant="text"
+                    onClick={onCancel}
+                  >
+                    {labels && labels.cancel ? labels.cancel : i18n.t("Cancel")}
+                  </Button>
+                  <ConfirmButton
+                    disabled={disabled}
+                    onClick={onSave}
+                    transitionState={state}
+                  >
+                    {maybe(
+                      () => labels.save,
+                      i18n.t("Save", {
+                        context: "button"
+                      })
+                    )}
+                  </ConfirmButton>
+                </Container>
+              </div>
+            </Portal>
+          ) : null
+        }
+      </AppActionContext.Consumer>
     );
   }
 );
