@@ -1,6 +1,7 @@
 import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import { CardSpacer } from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
@@ -113,10 +114,8 @@ export const CategoryUpdatePage: React.StatelessComponent<
     >
       {({ data, change, errors, submit, hasChanged }) => (
         <Container width="md">
-          <PageHeader
-            title={category ? category.name : undefined}
-            onBack={onBack}
-          />
+          <AppHeader onBack={onBack}>{i18n.t("Categories")}</AppHeader>
+          <PageHeader title={category ? category.name : undefined} />
           <CategoryDetailsForm
             category={category}
             data={data}

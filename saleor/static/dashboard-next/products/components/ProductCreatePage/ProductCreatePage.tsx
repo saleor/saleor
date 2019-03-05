@@ -1,6 +1,7 @@
 import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import CardSpacer from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
@@ -128,7 +129,8 @@ export const ProductCreatePage: React.StatelessComponent<
     >
       {({ change, data, errors, hasChanged, submit }) => (
         <Container width="md">
-          <PageHeader title={header} onBack={onBack} />
+          <AppHeader onBack={onBack}>{i18n.t("Products")}</AppHeader>
+          <PageHeader title={header} />
           <Grid>
             <div>
               <ProductDetailsForm

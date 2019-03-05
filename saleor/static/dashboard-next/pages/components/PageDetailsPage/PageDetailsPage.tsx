@@ -1,6 +1,7 @@
 import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import CardSpacer from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton";
 import Container from "../../../components/Container";
@@ -58,7 +59,8 @@ const PageDetailsPage: React.StatelessComponent<PageDetailsPageProps> = ({
   return (
     <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
-        <Container width="md">
+        <Container>
+          <AppHeader onBack={onBack}>{i18n.t("Pages")}</AppHeader>
           <PageHeader
             title={
               page === null
