@@ -177,7 +177,7 @@ def test_payment_capture_success(
     data = content['data']['paymentCapture']
     assert not data['errors']
     payment_txn_preauth.refresh_from_db()
-    assert payment.charge_status == ChargeStatus.CHARGED
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.transactions.count() == 2
     txn = payment.transactions.last()
     assert txn.kind == TransactionKind.CAPTURE
@@ -230,7 +230,7 @@ REFUND_QUERY = """
 def test_payment_refund_success(
         staff_api_client, permission_manage_orders, payment_txn_captured):
     payment = payment_txn_captured
-    payment.charge_status = ChargeStatus.CHARGED
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = payment.total
     payment.save()
     payment_id = graphene.Node.to_global_id(
@@ -255,7 +255,7 @@ def test_payment_refund_error(
         staff_api_client, permission_manage_orders, payment_txn_captured,
         monkeypatch):
     payment = payment_txn_captured
-    payment.charge_status = ChargeStatus.CHARGED
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = payment.total
     payment.save()
     payment_id = graphene.Node.to_global_id(
@@ -274,7 +274,7 @@ def test_payment_refund_error(
     assert data['errors'][0]['field'] is None
     assert data['errors'][0]['message']
     payment.refresh_from_db()
-    assert payment.charge_status == ChargeStatus.CHARGED
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.transactions.count() == 2
     txn = payment.transactions.last()
     assert txn.kind == TransactionKind.REFUND
@@ -341,7 +341,7 @@ def test_payments_query(
     assert data['capturedAmount'] == {
         'amount': pay.captured_amount, 'currency': pay.currency}
     assert data['total'] == {'amount': pay.total, 'currency': pay.currency}
-    assert data['chargeStatus'] == PaymentChargeStatusEnum.CHARGED.name
+    assert data['chargeStatus'] == PaymentChargeStatusEnum.FULLY_CHARGED.name
     assert data['billingAddress'] == {
         'firstName': pay.billing_first_name,
         'lastName': pay.billing_last_name,

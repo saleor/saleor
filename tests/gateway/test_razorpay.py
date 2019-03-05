@@ -43,7 +43,7 @@ def razorpay_payment(payment_dummy):
 @pytest.fixture()
 def charged_payment(razorpay_payment):
     razorpay_payment.captured_amount = razorpay_payment.total
-    razorpay_payment.charge_status = ChargeStatus.CHARGED
+    razorpay_payment.charge_status = ChargeStatus.FULLY_CHARGED
     razorpay_payment.save(update_fields=['captured_amount', 'charge_status'])
 
     razorpay_payment.transactions.create(
