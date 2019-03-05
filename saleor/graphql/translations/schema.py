@@ -51,6 +51,7 @@ class TranslatableKinds(graphene.Enum):
 class TranslationQueries(graphene.ObjectType):
     translations = graphene.ConnectionField(
         TranslatableItemConnection,
+        description='Returns list of all translatable items of a given kind.',
         kind=graphene.Argument(
             TranslatableKinds,
             required=True, description='Kind of objects to retrieve.'))
