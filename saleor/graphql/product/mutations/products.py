@@ -351,7 +351,7 @@ class ProductCreate(ModelMutation):
         See the documentation for `has_variants` field for details:
         http://docs.getsaleor.com/en/latest/architecture/products.html#product-types
         """
-        if not product_type.has_variants:
+        if product_type and not product_type.has_variants:
             input_sku = cleaned_input.get('sku')
             if not input_sku:
                 cls.add_error(errors, 'sku', 'This field cannot be blank.')
