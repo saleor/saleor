@@ -26,19 +26,24 @@ const styles = (theme: Theme) =>
       marginTop: -theme.spacing.unit * 2
     },
     root: {
+      "&:hover": {
+        color: theme.typography.body1.color
+      },
       alignItems: "center",
       color: theme.palette.grey[500],
+      cursor: "pointer",
       display: "flex",
-      marginTop: theme.spacing.unit
+      marginTop: theme.spacing.unit / 2,
+      transition: theme.transitions.duration.standard + "ms"
     },
     skeleton: {
       marginBottom: theme.spacing.unit * 2,
       width: "10rem"
     },
     title: {
-      color: theme.palette.grey[500],
+      color: "inherit",
       flex: 1,
-      paddingBottom: theme.spacing.unit * 2,
+      marginLeft: theme.spacing.unit,
       textTransform: "uppercase"
     }
   });
@@ -52,16 +57,8 @@ const AppHeader = withStyles(styles, { name: "AppHeader" })(
       {anchor =>
         anchor ? (
           <Portal container={anchor.current}>
-            <div className={classes.root}>
-              {onBack && (
-                <IconButton
-                  color="inherit"
-                  className={classes.menuButton}
-                  onClick={onBack}
-                >
-                  <ArrowBackIcon />
-                </IconButton>
-              )}
+            <div className={classes.root} onClick={onBack}>
+              <ArrowBackIcon />
               {children ? (
                 <Typography className={classes.title}>{children}</Typography>
               ) : (
