@@ -75,6 +75,9 @@ const styles = (theme: Theme) =>
     menu: {
       marginTop: theme.spacing.unit * 4
     },
+    popover: {
+      zIndex: 1
+    },
     root: {
       [theme.breakpoints.down("sm")]: {
         gridTemplateColumns: "1fr"
@@ -237,6 +240,9 @@ const AppLayout = withStyles(styles, {
                                                               onClick={openMenu}
                                                             />
                                                             <Popper
+                                                              className={
+                                                                classes.popover
+                                                              }
                                                               open={menuOpen}
                                                               anchorEl={
                                                                 anchor.current
