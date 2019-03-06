@@ -99,6 +99,11 @@ export enum SaleType {
   PERCENTAGE = "PERCENTAGE",
 }
 
+export enum ShippingMethodTypeEnum {
+  PRICE = "PRICE",
+  WEIGHT = "WEIGHT",
+}
+
 export enum StockAvailability {
   IN_STOCK = "IN_STOCK",
   OUT_OF_STOCK = "OUT_OF_STOCK",
@@ -348,6 +353,23 @@ export interface SaleInput {
 export interface SeoInput {
   title?: string | null;
   description?: string | null;
+}
+
+export interface ShippingPriceInput {
+  name?: string | null;
+  price?: any | null;
+  minimumOrderPrice?: any | null;
+  maximumOrderPrice?: any | null;
+  minimumOrderWeight?: any | null;
+  maximumOrderWeight?: any | null;
+  type?: ShippingMethodTypeEnum | null;
+  shippingZone?: string | null;
+}
+
+export interface ShippingZoneInput {
+  name?: string | null;
+  countries?: (string | null)[] | null;
+  default?: boolean | null;
 }
 
 export interface ShopSettingsInput {

@@ -23,6 +23,7 @@ import { SearchProductsProvider } from "../../../containers/SearchProducts";
 import i18n from "../../../i18n";
 import { decimal, getMutationState, maybe } from "../../../misc";
 import { productUrl } from "../../../products/urls";
+import { Pagination } from "../../../types";
 import {
   DiscountValueTypeEnum,
   VoucherDiscountValueType
@@ -57,11 +58,10 @@ import {
 
 const PAGINATE_BY = 20;
 
-export type VoucherDetailsQueryParams = Partial<{
-  after: string;
-  before: string;
-  tab: VoucherDetailsPageTab;
-}>;
+export type VoucherDetailsQueryParams = Pagination &
+  Partial<{
+    tab: VoucherDetailsPageTab;
+  }>;
 
 interface VoucherDetailsProps {
   id: string;

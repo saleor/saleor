@@ -6,6 +6,7 @@ import Navigator from "../../components/Navigator";
 import { createPaginationState, Paginator } from "../../components/Paginator";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
+import { Pagination } from "../../types";
 import StaffAddMemberDialog, {
   FormData as AddStaffMemberForm
 } from "../components/StaffAddMemberDialog";
@@ -20,10 +21,7 @@ import {
   staffMemberDetailsUrl
 } from "../urls";
 
-export type StaffListQueryParams = Partial<{
-  after: string;
-  before: string;
-}>;
+export type StaffListQueryParams = Pagination;
 
 interface StaffListProps {
   params: StaffListQueryParams;

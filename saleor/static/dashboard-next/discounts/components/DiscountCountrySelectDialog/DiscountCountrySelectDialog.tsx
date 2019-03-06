@@ -105,7 +105,7 @@ const DiscountCountrySelectDialog = withStyles(styles, {
                     value={data.query}
                     onChange={event => change(event, () => fetch(data.query))}
                     label={i18n.t("Search Countries", {
-                      context: "product search input label"
+                      context: "country search input label"
                     })}
                     placeholder={i18n.t("Search by country name", {
                       context: "country search input placeholder"

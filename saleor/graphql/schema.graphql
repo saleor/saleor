@@ -1928,12 +1928,14 @@ enum ShippingMethodTypeEnum {
 
 type ShippingPriceCreate {
   errors: [Error!]
+  shippingZone: ShippingZone
   shippingMethod: ShippingMethod
 }
 
 type ShippingPriceDelete {
   errors: [Error!]
   shippingMethod: ShippingMethod
+  shippingZone: ShippingZone
 }
 
 input ShippingPriceInput {
@@ -1954,6 +1956,7 @@ type ShippingPriceTranslate {
 
 type ShippingPriceUpdate {
   errors: [Error!]
+  shippingZone: ShippingZone
   shippingMethod: ShippingMethod
 }
 
