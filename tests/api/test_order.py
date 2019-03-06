@@ -1,8 +1,8 @@
+import uuid
 from unittest.mock import MagicMock, Mock, patch
 
 import graphene
 import pytest
-import uuid
 
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.graphql.core.enums import ReportingPeriod
