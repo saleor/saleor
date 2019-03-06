@@ -46,7 +46,7 @@ const styles = (theme: Theme) =>
         height: "100%",
         left: -32,
         position: "absolute",
-        width: 2
+        width: 3
       },
       position: "relative"
     },
