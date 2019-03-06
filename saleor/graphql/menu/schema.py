@@ -2,6 +2,7 @@ import graphene
 
 from ..core.fields import PrefetchingConnectionField
 from ..descriptions import DESCRIPTIONS
+from ..translations.mutations import MenuItemTranslate
 from .mutations import (
     AssignNavigation, MenuCreate, MenuDelete, MenuItemCreate, MenuItemDelete,
     MenuItemUpdate, MenuUpdate)
@@ -47,3 +48,4 @@ class MenuMutations(graphene.ObjectType):
     menu_item_create = MenuItemCreate.Field()
     menu_item_delete = MenuItemDelete.Field()
     menu_item_update = MenuItemUpdate.Field()
+    menu_item_translate = MenuItemTranslate.Field()

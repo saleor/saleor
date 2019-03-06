@@ -10,7 +10,8 @@ MODELS_PERMISSIONS = [
     'page.manage_pages',
     'product.manage_products',
     'shipping.manage_shipping',
-    'site.manage_settings']
+    'site.manage_settings',
+    'site.manage_translations']
 
 
 def split_permission_codename(permissions):

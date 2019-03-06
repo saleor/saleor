@@ -1,3 +1,4 @@
+import { content } from "../storybook/stories/components/RichTextEditor";
 import { ProductDetails_product } from "./types/ProductDetails";
 import { ProductVariant } from "./types/ProductVariant";
 import { ProductVariantCreateData_product } from "./types/ProductVariantCreateData";
@@ -131,8 +132,7 @@ export const product: (
       name: "Winter sale"
     }
   ],
-  description:
-    "Omnis rerum ea. Fugit dignissimos modi est rerum. Qui corrupti expedita et. Dolorem dolorum illo doloremque. Officia perspiciatis facilis ab maxime voluptatem eligendi ipsam. Quisquam impedit repudiandae eos. Id sit dolores adipisci qui omnis dolores qui. Illo deleniti mollitia perspiciatis.",
+  descriptionJson: JSON.stringify(content),
   id: "p10171",
   images: [
     {
