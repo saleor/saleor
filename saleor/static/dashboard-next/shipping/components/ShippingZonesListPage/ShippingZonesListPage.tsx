@@ -31,7 +31,7 @@ const ShippingZonesListPage: React.StatelessComponent<
   pageInfo,
   shippingZones
 }) => (
-  <Container width="md">
+  <Container>
     <PageHeader
       title={i18n.t("Shipping", {
         context: "page header"
