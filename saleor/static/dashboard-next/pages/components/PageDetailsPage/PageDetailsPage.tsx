@@ -69,7 +69,6 @@ const PageDetailsPage: React.StatelessComponent<PageDetailsPageProps> = ({
                   })
                 : maybe(() => page.title)
             }
-            onBack={onBack}
           />
           <Grid>
             <div>
