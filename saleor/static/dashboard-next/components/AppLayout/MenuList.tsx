@@ -72,6 +72,9 @@ const styles = (theme: Theme) =>
           width: 8
         }
       },
+      "& $menuListItemText": {
+        textTransform: "none"
+      },
       marginLeft: theme.spacing.unit * 3
     }
   });
