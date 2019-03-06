@@ -96,14 +96,26 @@ const ShippingZoneDetailsDialogs: React.StatelessComponent<
                     confirmButtonState={createRateTransitionState}
                     defaultCurrency={maybe(() => shop.defaultCurrency)}
                     disabled={ops.shippingRateCreate.opts.loading}
+                    errors={maybe(
+                      () =>
+                        ops.shippingRateCreate.opts.data.shippingPriceCreate
+                          .errors,
+                      []
+                    )}
                     onClose={closeModal}
                     onSubmit={formData =>
                       ops.shippingRateCreate.mutate({
                         input: {
-                          maximumOrderPrice: formData.maxValue,
-                          minimumOrderPrice: formData.minValue,
+                          maximumOrderPrice: formData.noLimits
+                            ? null
+                            : parseFloat(formData.maxValue),
+                          minimumOrderPrice: formData.noLimits
+                            ? null
+                            : parseFloat(formData.minValue),
                           name: formData.name,
-                          price: formData.isFree ? 0 : formData.price,
+                          price: formData.isFree
+                            ? 0
+                            : parseFloat(formData.price),
                           shippingZone: id,
                           type: ShippingMethodTypeEnum.PRICE
                         }
@@ -228,14 +240,26 @@ const ShippingZoneDetailsDialogs: React.StatelessComponent<
                     confirmButtonState={createRateTransitionState}
                     defaultCurrency={maybe(() => shop.defaultCurrency)}
                     disabled={ops.shippingRateCreate.opts.loading}
+                    errors={maybe(
+                      () =>
+                        ops.shippingRateCreate.opts.data.shippingPriceCreate
+                          .errors,
+                      []
+                    )}
                     onClose={closeModal}
                     onSubmit={formData =>
                       ops.shippingRateCreate.mutate({
                         input: {
-                          maximumOrderWeight: formData.maxValue,
-                          minimumOrderWeight: formData.minValue,
+                          maximumOrderWeight: formData.noLimits
+                            ? null
+                            : parseFloat(formData.maxValue),
+                          minimumOrderWeight: formData.noLimits
+                            ? null
+                            : parseFloat(formData.minValue),
                           name: formData.name,
-                          price: formData.isFree ? 0 : formData.price,
+                          price: formData.isFree
+                            ? 0
+                            : parseFloat(formData.price),
                           shippingZone: id,
                           type: ShippingMethodTypeEnum.WEIGHT
                         }
@@ -259,15 +283,27 @@ const ShippingZoneDetailsDialogs: React.StatelessComponent<
                       confirmButtonState={updateRateTransitionState}
                       defaultCurrency={maybe(() => shop.defaultCurrency)}
                       disabled={ops.shippingRateUpdate.opts.loading}
+                      errors={maybe(
+                        () =>
+                          ops.shippingRateUpdate.opts.data.shippingPriceUpdate
+                            .errors,
+                        []
+                      )}
                       onClose={closeModal}
                       onSubmit={formData =>
                         ops.shippingRateUpdate.mutate({
                           id: decodeURIComponent(match.params.rateId),
                           input: {
-                            maximumOrderPrice: formData.maxValue,
-                            minimumOrderPrice: formData.minValue,
+                            maximumOrderPrice: formData.noLimits
+                              ? null
+                              : parseFloat(formData.maxValue),
+                            minimumOrderPrice: formData.noLimits
+                              ? null
+                              : parseFloat(formData.minValue),
                             name: formData.name,
-                            price: formData.isFree ? 0 : formData.price,
+                            price: formData.isFree
+                              ? 0
+                              : parseFloat(formData.price),
                             shippingZone: id,
                             type: maybe(() => rate.type)
                           }

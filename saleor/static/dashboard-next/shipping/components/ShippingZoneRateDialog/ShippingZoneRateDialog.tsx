@@ -23,15 +23,17 @@ import Hr from "../../../components/Hr";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
+import { FormErrors, UserError } from "../../../types";
 import { ShippingMethodTypeEnum } from "../../../types/globalTypes";
 import { ShippingZoneDetailsFragment_shippingMethods } from "../../types/ShippingZoneDetailsFragment";
 
 export interface FormData {
   name: string;
-  minValue: number;
-  maxValue: number;
+  noLimits: boolean;
+  minValue: string;
+  maxValue: string;
   isFree: boolean;
-  price: number;
+  price: string;
 }
 
 export interface ShippingZoneRateDialogProps {
@@ -39,6 +41,7 @@ export interface ShippingZoneRateDialogProps {
   confirmButtonState: ConfirmButtonTransitionState;
   defaultCurrency: string;
   disabled: boolean;
+  errors: UserError[];
   open: boolean;
   rate: ShippingZoneDetailsFragment_shippingMethods;
   variant: ShippingMethodTypeEnum;
@@ -67,6 +70,7 @@ const ShippingZoneRateDialog = withStyles(styles, {
     confirmButtonState,
     defaultCurrency,
     disabled,
+    errors,
     onClose,
     onSubmit,
     open,
@@ -77,147 +81,207 @@ const ShippingZoneRateDialog = withStyles(styles, {
       action === "create"
         ? {
             isFree: false,
-            maxValue: 0,
-            minValue: 0,
+            maxValue: "",
+            minValue: "",
             name: "",
-            price: 0
+            noLimits: false,
+            price: ""
           }
         : {
             isFree: maybe(() => rate.price.amount === 0, false),
             maxValue:
               variant === ShippingMethodTypeEnum.PRICE
-                ? maybe(() => rate.maximumOrderPrice.amount, 0)
-                : maybe(() => rate.maximumOrderWeight.value, 0),
+                ? maybe(() => rate.maximumOrderPrice.amount.toString(), "")
+                : maybe(() => rate.maximumOrderWeight.value.toString(), ""),
             minValue:
               variant === ShippingMethodTypeEnum.PRICE
-                ? maybe(() => rate.minimumOrderPrice.amount, 0)
-                : maybe(() => rate.minimumOrderWeight.value, 0),
+                ? maybe(() => rate.minimumOrderPrice.amount.toString(), "")
+                : maybe(() => rate.minimumOrderWeight.value.toString(), ""),
             name: maybe(() => rate.name, ""),
-            price: maybe(() => rate.price.amount)
+            noLimits: false,
+            price: maybe(() => rate.price.amount.toString(), "")
           };
+    if (action === "edit") {
+      initialForm.noLimits = !initialForm.maxValue && !initialForm.minValue;
+    }
 
     return (
       <Dialog open={open} fullWidth maxWidth="sm">
-        <Form initial={initialForm} onSubmit={onSubmit}>
-          {({ change, data, hasChanged }) => (
-            <>
-              <DialogTitle>
-                {variant === ShippingMethodTypeEnum.PRICE
-                  ? action === "create"
-                    ? i18n.t("Add Price Rate")
-                    : i18n.t("Edit Price Rate")
-                  : action === "create"
-                  ? i18n.t("Add Weight Rate")
-                  : i18n.t("Edit Weight Rate")}
-              </DialogTitle>
-              <DialogContent>
-                <TextField
-                  disabled={disabled}
-                  fullWidth
-                  helperText={i18n.t(
-                    "This will be shown to customers at checkout"
+        <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
+          {({ change, data, errors: formErrors, hasChanged }) => {
+            const typedFormErrors: FormErrors<
+              | "minimumOrderPrice"
+              | "minimumOrderWeight"
+              | "maximumOrderPrice"
+              | "maximumOrderWeight"
+              | "price"
+              | "name"
+            > = formErrors;
+            return (
+              <>
+                <DialogTitle>
+                  {variant === ShippingMethodTypeEnum.PRICE
+                    ? action === "create"
+                      ? i18n.t("Add Price Rate")
+                      : i18n.t("Edit Price Rate")
+                    : action === "create"
+                    ? i18n.t("Add Weight Rate")
+                    : i18n.t("Edit Weight Rate")}
+                </DialogTitle>
+                <DialogContent>
+                  <TextField
+                    disabled={disabled}
+                    error={!!typedFormErrors.name}
+                    fullWidth
+                    helperText={
+                      typedFormErrors.name ||
+                      i18n.t("This will be shown to customers at checkout")
+                    }
+                    label={i18n.t("Rate Name")}
+                    name={"name" as keyof FormData}
+                    value={data.name}
+                    onChange={change}
+                  />
+                </DialogContent>
+                <Hr />
+                <DialogContent>
+                  {!!variant ? (
+                    <>
+                      <Typography
+                        className={classes.subheading}
+                        variant="subheading"
+                      >
+                        {variant === ShippingMethodTypeEnum.PRICE
+                          ? i18n.t("Value range")
+                          : i18n.t("Weight range")}
+                      </Typography>
+                      <ControlledSwitch
+                        checked={data.noLimits}
+                        name={"noLimits" as keyof FormData}
+                        onChange={change}
+                        label={
+                          <>
+                            {i18n.t("There are no value limits")}
+                            <Typography variant="caption">
+                              {variant === ShippingMethodTypeEnum.PRICE
+                                ? i18n.t(
+                                    "This rate will apply to all orders of all prices"
+                                  )
+                                : i18n.t(
+                                    "This rate will apply to all orders of all weights"
+                                  )}
+                            </Typography>
+                          </>
+                        }
+                      />
+                      {!data.noLimits && (
+                        <>
+                          <FormSpacer />
+                          <div className={classes.grid}>
+                            <TextField
+                              disabled={disabled}
+                              error={
+                                variant === ShippingMethodTypeEnum.PRICE
+                                  ? !!typedFormErrors.minimumOrderPrice
+                                  : !!typedFormErrors.minimumOrderWeight
+                              }
+                              fullWidth
+                              label={
+                                variant === ShippingMethodTypeEnum.PRICE
+                                  ? typedFormErrors.minimumOrderPrice ||
+                                    i18n.t("Minimal Order Value")
+                                  : typedFormErrors.minimumOrderWeight ||
+                                    i18n.t("Minimal Order Weight")
+                              }
+                              name={"minValue" as keyof FormData}
+                              type="number"
+                              value={data.minValue}
+                              onChange={change}
+                            />
+                            <TextField
+                              disabled={disabled}
+                              error={
+                                variant === ShippingMethodTypeEnum.PRICE
+                                  ? !!typedFormErrors.maximumOrderPrice
+                                  : !!typedFormErrors.maximumOrderWeight
+                              }
+                              fullWidth
+                              label={
+                                variant === ShippingMethodTypeEnum.PRICE
+                                  ? typedFormErrors.maximumOrderPrice ||
+                                    i18n.t("Maximal Order Value")
+                                  : typedFormErrors.maximumOrderWeight ||
+                                    i18n.t("Maximal Order Weight")
+                              }
+                              name={"maxValue" as keyof FormData}
+                              type="number"
+                              value={data.maxValue}
+                              onChange={change}
+                            />
+                          </div>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <Skeleton />
                   )}
-                  label={i18n.t("Rate Name")}
-                  name={"name" as keyof FormData}
-                  value={data.name}
-                  onChange={change}
-                />
-              </DialogContent>
-              <Hr />
-              <DialogContent>
-                {!!variant ? (
-                  <>
-                    <Typography
-                      className={classes.subheading}
-                      variant="subheading"
-                    >
-                      {variant === ShippingMethodTypeEnum.PRICE
-                        ? i18n.t("Value range")
-                        : i18n.t("Weight range")}
-                    </Typography>
-                    <div className={classes.grid}>
-                      <TextField
-                        disabled={disabled}
-                        fullWidth
-                        label={
-                          variant === ShippingMethodTypeEnum.PRICE
-                            ? i18n.t("Minimal Order Value")
-                            : i18n.t("Minimal Order Weight")
-                        }
-                        name={"minValue" as keyof FormData}
-                        type="number"
-                        value={data.minValue}
-                        onChange={change}
-                      />
-                      <TextField
-                        disabled={disabled}
-                        fullWidth
-                        label={
-                          variant === ShippingMethodTypeEnum.PRICE
-                            ? i18n.t("Maximal Order Value")
-                            : i18n.t("Maximal Order Weight")
-                        }
-                        name={"maxValue" as keyof FormData}
-                        type="number"
-                        value={data.maxValue}
-                        onChange={change}
-                      />
-                    </div>
-                  </>
-                ) : (
-                  <Skeleton />
-                )}
-              </DialogContent>
-              <Hr />
-              <DialogContent>
-                <Typography className={classes.subheading} variant="subheading">
-                  {i18n.t("Rate")}
-                </Typography>
-                <ControlledSwitch
-                  checked={data.isFree}
-                  disabled={disabled}
-                  label={i18n.t("This is free shipping")}
-                  name={"isFree" as keyof FormData}
-                  onChange={change}
-                />
-                {!data.isFree && (
-                  <>
-                    <FormSpacer />
-                    <div className={classes.grid}>
-                      <TextField
-                        disabled={disabled}
-                        fullWidth
-                        label={i18n.t("Rate Price")}
-                        name={"price" as keyof FormData}
-                        type="number"
-                        value={data.price}
-                        onChange={change}
-                        InputProps={{
-                          endAdornment: defaultCurrency
-                        }}
-                      />
-                    </div>
-                  </>
-                )}
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={onClose}>
-                  {i18n.t("Cancel", { context: "button" })}
-                </Button>
-                <ConfirmButton
-                  disabled={disabled || !hasChanged}
-                  transitionState={confirmButtonState}
-                  color="primary"
-                  variant="contained"
-                  type="submit"
-                >
-                  {action === "create"
-                    ? i18n.t("Create rate", { context: "button" })
-                    : i18n.t("Update rate", { context: "button" })}
-                </ConfirmButton>
-              </DialogActions>
-            </>
-          )}
+                </DialogContent>
+                <Hr />
+                <DialogContent>
+                  <Typography
+                    className={classes.subheading}
+                    variant="subheading"
+                  >
+                    {i18n.t("Rate")}
+                  </Typography>
+                  <ControlledSwitch
+                    checked={data.isFree}
+                    disabled={disabled}
+                    label={i18n.t("This is free shipping")}
+                    name={"isFree" as keyof FormData}
+                    onChange={change}
+                  />
+                  {!data.isFree && (
+                    <>
+                      <FormSpacer />
+                      <div className={classes.grid}>
+                        <TextField
+                          disabled={disabled}
+                          error={!!typedFormErrors.price}
+                          fullWidth
+                          helperText={typedFormErrors.price}
+                          label={i18n.t("Rate Price")}
+                          name={"price" as keyof FormData}
+                          type="number"
+                          value={data.price}
+                          onChange={change}
+                          InputProps={{
+                            endAdornment: defaultCurrency
+                          }}
+                        />
+                      </div>
+                    </>
+                  )}
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={onClose}>
+                    {i18n.t("Cancel", { context: "button" })}
+                  </Button>
+                  <ConfirmButton
+                    disabled={disabled || !hasChanged}
+                    transitionState={confirmButtonState}
+                    color="primary"
+                    variant="contained"
+                    type="submit"
+                  >
+                    {action === "create"
+                      ? i18n.t("Create rate", { context: "button" })
+                      : i18n.t("Update rate", { context: "button" })}
+                  </ConfirmButton>
+                </DialogActions>
+              </>
+            );
+          }}
         </Form>
       </Dialog>
     );
