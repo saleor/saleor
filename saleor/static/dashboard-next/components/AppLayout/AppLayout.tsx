@@ -59,6 +59,7 @@ const styles = (theme: Theme) =>
     header: {
       display: "flex",
       height: 40,
+      marginBottom: theme.spacing.unit * 3,
       marginTop: theme.spacing.unit * 2
     },
     hide: {
@@ -75,6 +76,9 @@ const styles = (theme: Theme) =>
       marginTop: theme.spacing.unit * 4
     },
     root: {
+      [theme.breakpoints.down("sm")]: {
+        gridTemplateColumns: "1fr"
+      },
       display: "grid",
       gridTemplateColumns: `${drawerWidth}px 1fr`
     },
@@ -82,6 +86,9 @@ const styles = (theme: Theme) =>
       transform: "rotate(180deg)"
     },
     sideBar: {
+      [theme.breakpoints.down("sm")]: {
+        padding: 0
+      },
       background: theme.palette.common.white,
       padding: `${theme.spacing.unit * 2}px ${theme.spacing.unit * 4}px`
     },
