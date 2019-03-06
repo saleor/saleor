@@ -63,7 +63,7 @@ const VoucherCreatePage: React.StatelessComponent<VoucherCreatePageProps> = ({
   return (
     <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
-        <Container >
+        <Container>
           <AppHeader onBack={onBack}>{i18n.t("Vouchers")}</AppHeader>
           <PageHeader title={i18n.t("Create Voucher")} />
           <Grid>

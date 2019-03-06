@@ -61,7 +61,7 @@ const ProductVariantPage: React.StatelessComponent<ProductVariantPageProps> = ({
     <Toggle>
       {(isImageSelectModalActive, { toggle: toggleImageSelectModal }) => (
         <>
-          <Container >
+          <Container>
             <AppHeader onBack={onBack}>
               {maybe(() => variant.product.name)}
             </AppHeader>

@@ -113,7 +113,7 @@ export const CategoryUpdatePage: React.StatelessComponent<
       confirmLeave
     >
       {({ data, change, errors, submit, hasChanged }) => (
-        <Container >
+        <Container>
           <AppHeader onBack={onBack}>{i18n.t("Categories")}</AppHeader>
           <PageHeader title={category ? category.name : undefined} />
           <CategoryDetailsForm

@@ -103,7 +103,7 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
   return (
     <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
-        <Container >
+        <Container>
           <AppHeader onBack={onBack}>{i18n.t("Sales")}</AppHeader>
           <PageHeader title={maybe(() => sale.name)} />
           <Grid>

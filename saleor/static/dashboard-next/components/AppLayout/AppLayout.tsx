@@ -183,7 +183,7 @@ const AppLayout = withStyles(styles, {
                                         </div>
                                         <div className={classes.content}>
                                           <div>
-                                            <Container >
+                                            <Container>
                                               <div className={classes.header}>
                                                 <div ref={appHeaderAnchor} />
                                                 <div

@@ -90,7 +90,7 @@ const OrderDetailsPage = withStyles(styles, { name: "OrderDetailsPage" })(
     );
 
     return (
-      <Container >
+      <Container>
         <AppHeader onBack={onBack}>{i18n.t("Orders")}</AppHeader>
         <PageHeader
           className={classes.header}

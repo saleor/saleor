@@ -202,7 +202,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
     >
       {({ change, data, errors, hasChanged, submit }) => (
         <>
-          <Container >
+          <Container>
             <AppHeader onBack={onBack}>{i18n.t("Products")}</AppHeader>
             <PageHeader title={header} />
             <Grid>

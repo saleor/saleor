@@ -51,7 +51,7 @@ export const CategoryCreatePage: React.StatelessComponent<
     confirmLeave
   >
     {({ data, change, errors, submit, hasChanged }) => (
-      <Container >
+      <Container>
         <AppHeader onBack={onBack}>{i18n.t("Categories")}</AppHeader>
         <PageHeader title={i18n.t("Add Category")} />
         <div>

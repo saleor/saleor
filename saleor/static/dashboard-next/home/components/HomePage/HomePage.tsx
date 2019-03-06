@@ -70,7 +70,7 @@ const HomePage = withStyles(styles, { name: "HomePage" })(
     ordersToFulfill,
     productsOutOfStock
   }: HomePageProps) => (
-    <Container >
+    <Container>
       <HomeHeader userName={userName} />
       <CardSpacer />
       <Grid>

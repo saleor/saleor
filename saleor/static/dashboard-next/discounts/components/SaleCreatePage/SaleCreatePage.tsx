@@ -49,7 +49,7 @@ const SaleCreatePage: React.StatelessComponent<SaleCreatePageProps> = ({
   return (
     <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
-        <Container >
+        <Container>
           <AppHeader onBack={onBack}>{i18n.t("Sales")}</AppHeader>
           <PageHeader title={i18n.t("Create Sale")} />
           <Grid>
