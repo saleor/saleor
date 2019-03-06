@@ -23,7 +23,7 @@
         "entityMap": {}
       },
       "parent": null,
-      "background_image": "category-backgrounds/DEMO-04_zmQIhdp.jpg",
+      "background_image": "category-backgrounds/accessories.jpg",
       "background_image_alt": "",
       "lft": 1,
       "rght": 2,
@@ -55,7 +55,7 @@
         "entityMap": {}
       },
       "parent": null,
-      "background_image": "category-backgrounds/groceries_8FzIxbb.jpg",
+      "background_image": "category-backgrounds/groceries_HagDCol.jpg",
       "background_image_alt": "",
       "lft": 1,
       "rght": 2,
@@ -87,7 +87,7 @@
         "entityMap": {}
       },
       "parent": null,
-      "background_image": "category-backgrounds/cos_ki1rulp.jpg",
+      "background_image": "category-backgrounds/apparel.jpg",
       "background_image_alt": "",
       "lft": 1,
       "rght": 2,
@@ -211,7 +211,7 @@
       "category": 7,
       "price": { "_type": "Money", "amount": "15.00", "currency": "USD" },
       "attributes": "{}",
-      "updated_at": "2019-03-06T11:33:17.250Z",
+      "updated_at": "2019-03-06T12:47:35.666Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "0.0 kg"
@@ -245,7 +245,7 @@
       "category": 7,
       "price": { "_type": "Money", "amount": "15.00", "currency": "USD" },
       "attributes": "{}",
-      "updated_at": "2019-03-06T11:33:17.259Z",
+      "updated_at": "2019-03-06T12:47:35.878Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "1.0 kg"
@@ -279,7 +279,7 @@
       "category": 7,
       "price": { "_type": "Money", "amount": "15.00", "currency": "USD" },
       "attributes": "{}",
-      "updated_at": "2019-03-06T11:33:17.266Z",
+      "updated_at": "2019-03-06T12:47:36.096Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "0.0 kg"
@@ -313,7 +313,7 @@
       "category": 7,
       "price": { "_type": "Money", "amount": "15.00", "currency": "USD" },
       "attributes": "{}",
-      "updated_at": "2019-03-06T11:33:17.278Z",
+      "updated_at": "2019-03-06T12:47:36.309Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "0.0 kg"
@@ -347,7 +347,7 @@
       "category": 7,
       "price": { "_type": "Money", "amount": "15.00", "currency": "USD" },
       "attributes": "{}",
-      "updated_at": "2019-03-06T11:33:17.287Z",
+      "updated_at": "2019-03-06T12:47:36.514Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "1.0 kg"
@@ -381,7 +381,7 @@
       "category": 8,
       "price": { "_type": "Money", "amount": "3.00", "currency": "USD" },
       "attributes": "{\"16\": \"49\"}",
-      "updated_at": "2019-03-06T11:33:17.295Z",
+      "updated_at": "2019-03-06T12:47:36.727Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "1.0 kg"
@@ -415,7 +415,7 @@
       "category": 8,
       "price": { "_type": "Money", "amount": "3.00", "currency": "USD" },
       "attributes": "{\"16\": \"3\"}",
-      "updated_at": "2019-03-06T11:33:17.302Z",
+      "updated_at": "2019-03-06T12:47:36.885Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "1.0 kg"
@@ -449,7 +449,7 @@
       "category": 8,
       "price": { "_type": "Money", "amount": "3.00", "currency": "USD" },
       "attributes": "{\"16\": \"52\"}",
-      "updated_at": "2019-03-06T11:33:17.309Z",
+      "updated_at": "2019-03-06T12:47:37.040Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "1.0 kg"
@@ -483,7 +483,7 @@
       "category": 8,
       "price": { "_type": "Money", "amount": "3.00", "currency": "USD" },
       "attributes": "{\"16\": \"50\"}",
-      "updated_at": "2019-03-06T11:33:17.316Z",
+      "updated_at": "2019-03-06T12:47:37.201Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "1.0 kg"
@@ -517,7 +517,7 @@
       "category": 8,
       "price": { "_type": "Money", "amount": "3.00", "currency": "USD" },
       "attributes": "{\"16\": \"1\"}",
-      "updated_at": "2019-03-06T11:33:17.322Z",
+      "updated_at": "2019-03-06T12:47:37.363Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "1.0 kg"
@@ -551,7 +551,7 @@
       "category": 8,
       "price": { "_type": "Money", "amount": "3.00", "currency": "USD" },
       "attributes": "{\"16\": \"2\"}",
-      "updated_at": "2019-03-06T11:33:17.329Z",
+      "updated_at": "2019-03-06T12:47:37.517Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "1.0 kg"
@@ -585,7 +585,7 @@
       "category": 8,
       "price": { "_type": "Money", "amount": "3.00", "currency": "USD" },
       "attributes": "{\"16\": \"54\"}",
-      "updated_at": "2019-03-06T11:33:17.337Z",
+      "updated_at": "2019-03-06T12:47:37.679Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "1.0 kg"
@@ -619,7 +619,7 @@
       "category": 8,
       "price": { "_type": "Money", "amount": "3.00", "currency": "USD" },
       "attributes": "{\"16\": \"53\"}",
-      "updated_at": "2019-03-06T11:33:17.344Z",
+      "updated_at": "2019-03-06T12:47:37.844Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "1.0 kg"
@@ -653,7 +653,7 @@
       "category": 8,
       "price": { "_type": "Money", "amount": "3.00", "currency": "USD" },
       "attributes": "{\"16\": \"51\"}",
-      "updated_at": "2019-03-06T11:33:17.354Z",
+      "updated_at": "2019-03-06T12:47:38.007Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "1.0 kg"
@@ -687,7 +687,7 @@
       "category": 8,
       "price": { "_type": "Money", "amount": "15.00", "currency": "USD" },
       "attributes": "{\"20\": \"67\"}",
-      "updated_at": "2019-03-06T11:33:17.362Z",
+      "updated_at": "2019-03-06T12:47:38.171Z",
       "charge_taxes": true,
       "tax_rate": "",
       "weight": "0.0 kg"
@@ -721,7 +721,7 @@
       "category": 8,
       "price": { "_type": "Money", "amount": "15.00", "currency": "USD" },
       "attributes": "{\"20\": \"67\"}",
-      "updated_at": "2019-03-06T11:33:17.372Z",
+      "updated_at": "2019-03-06T12:47:38.362Z",
       "charge_taxes": true,
       "tax_rate": "",
       "weight": "0.0 kg"
@@ -755,7 +755,7 @@
       "category": 8,
       "price": { "_type": "Money", "amount": "3.00", "currency": "USD" },
       "attributes": "{\"15\": \"46\", \"21\": \"68\"}",
-      "updated_at": "2019-03-06T11:33:17.384Z",
+      "updated_at": "2019-03-06T12:47:38.530Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "1.0 kg"
@@ -789,7 +789,7 @@
       "category": 8,
       "price": { "_type": "Money", "amount": "3.20", "currency": "USD" },
       "attributes": "{\"15\": \"46\", \"21\": \"69\"}",
-      "updated_at": "2019-03-06T11:33:17.394Z",
+      "updated_at": "2019-03-06T12:47:38.875Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "1.0 kg"
@@ -823,7 +823,7 @@
       "category": 7,
       "price": { "_type": "Money", "amount": "20.00", "currency": "USD" },
       "attributes": "{\"23\": \"72\"}",
-      "updated_at": "2019-03-06T11:33:17.402Z",
+      "updated_at": "2019-03-06T12:47:39.256Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "0.0 kg"
@@ -857,7 +857,7 @@
       "category": 7,
       "price": { "_type": "Money", "amount": "20.00", "currency": "USD" },
       "attributes": "{\"23\": \"72\"}",
-      "updated_at": "2019-03-06T11:33:17.410Z",
+      "updated_at": "2019-03-06T12:47:39.501Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "0.0 kg"
@@ -891,7 +891,7 @@
       "category": 9,
       "price": { "_type": "Money", "amount": "59.00", "currency": "USD" },
       "attributes": "{}",
-      "updated_at": "2019-03-06T11:33:17.417Z",
+      "updated_at": "2019-03-06T12:47:39.769Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "0.0 kg"
@@ -925,7 +925,7 @@
       "category": 9,
       "price": { "_type": "Money", "amount": "49.00", "currency": "USD" },
       "attributes": "{}",
-      "updated_at": "2019-03-06T11:33:17.428Z",
+      "updated_at": "2019-03-06T12:47:40.537Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "1.0 kg"
@@ -959,7 +959,7 @@
       "category": 9,
       "price": { "_type": "Money", "amount": "30.00", "currency": "USD" },
       "attributes": "{\"25\": \"82\"}",
-      "updated_at": "2019-03-06T11:33:17.439Z",
+      "updated_at": "2019-03-06T12:47:41.280Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "0.0 kg"
@@ -993,7 +993,7 @@
       "category": 9,
       "price": { "_type": "Money", "amount": "30.00", "currency": "USD" },
       "attributes": "{\"25\": \"82\"}",
-      "updated_at": "2019-03-06T11:33:17.449Z",
+      "updated_at": "2019-03-06T12:47:41.681Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "0.0 kg"
@@ -1027,7 +1027,7 @@
       "category": 9,
       "price": { "_type": "Money", "amount": "30.00", "currency": "USD" },
       "attributes": "{\"25\": \"82\"}",
-      "updated_at": "2019-03-06T11:33:17.457Z",
+      "updated_at": "2019-03-06T12:47:41.972Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "0.0 kg"
@@ -1061,7 +1061,7 @@
       "category": 9,
       "price": { "_type": "Money", "amount": "30.00", "currency": "USD" },
       "attributes": "{\"25\": \"82\"}",
-      "updated_at": "2019-03-06T11:33:17.467Z",
+      "updated_at": "2019-03-06T12:47:42.283Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "0.0 kg"
@@ -1095,7 +1095,7 @@
       "category": 9,
       "price": { "_type": "Money", "amount": "30.00", "currency": "USD" },
       "attributes": "{\"25\": \"82\"}",
-      "updated_at": "2019-03-06T11:33:17.476Z",
+      "updated_at": "2019-03-06T12:47:42.524Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "0.0 kg"
@@ -1129,7 +1129,7 @@
       "category": 9,
       "price": { "_type": "Money", "amount": "30.00", "currency": "USD" },
       "attributes": "{\"25\": \"82\"}",
-      "updated_at": "2019-03-06T11:33:17.484Z",
+      "updated_at": "2019-03-06T12:47:42.771Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "0.0 kg"
@@ -1163,7 +1163,7 @@
       "category": 9,
       "price": { "_type": "Money", "amount": "30.00", "currency": "USD" },
       "attributes": "{\"25\": \"82\"}",
-      "updated_at": "2019-03-06T11:33:17.493Z",
+      "updated_at": "2019-03-06T12:47:43.640Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "0.0 kg"
@@ -1197,7 +1197,7 @@
       "category": 9,
       "price": { "_type": "Money", "amount": "30.00", "currency": "USD" },
       "attributes": "{\"25\": \"82\"}",
-      "updated_at": "2019-03-06T11:33:17.500Z",
+      "updated_at": "2019-03-06T12:47:44.067Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "0.0 kg"
@@ -1231,7 +1231,7 @@
       "category": 9,
       "price": { "_type": "Money", "amount": "30.00", "currency": "USD" },
       "attributes": "{\"25\": \"82\"}",
-      "updated_at": "2019-03-06T11:33:17.510Z",
+      "updated_at": "2019-03-06T12:47:44.582Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "0.0 kg"
@@ -1265,7 +1265,7 @@
       "category": 9,
       "price": { "_type": "Money", "amount": "30.00", "currency": "USD" },
       "attributes": "{\"25\": \"82\"}",
-      "updated_at": "2019-03-06T11:33:17.521Z",
+      "updated_at": "2019-03-06T12:47:45.080Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "0.0 kg"
@@ -1299,7 +1299,7 @@
       "category": 9,
       "price": { "_type": "Money", "amount": "30.00", "currency": "USD" },
       "attributes": "{\"25\": \"82\"}",
-      "updated_at": "2019-03-06T11:33:17.529Z",
+      "updated_at": "2019-03-06T12:47:45.376Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "0.0 kg"
@@ -1333,7 +1333,7 @@
       "category": 9,
       "price": { "_type": "Money", "amount": "30.00", "currency": "USD" },
       "attributes": "{\"25\": \"82\"}",
-      "updated_at": "2019-03-06T11:33:17.536Z",
+      "updated_at": "2019-03-06T12:47:45.669Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "0.0 kg"
@@ -1367,7 +1367,7 @@
       "category": 9,
       "price": { "_type": "Money", "amount": "30.00", "currency": "USD" },
       "attributes": "{\"25\": \"82\"}",
-      "updated_at": "2019-03-06T11:33:17.542Z",
+      "updated_at": "2019-03-06T12:47:45.937Z",
       "charge_taxes": true,
       "tax_rate": "standard",
       "weight": "0.0 kg"
@@ -1427,8 +1427,8 @@
       "product": 61,
       "attributes": "{\"18\": \"62\"}",
       "track_inventory": true,
-      "quantity": 7,
-      "quantity_allocated": 7,
+      "quantity": 11,
+      "quantity_allocated": 11,
       "cost_price": { "_type": "Money", "amount": "20.00", "currency": "USD" },
       "weight": "5.0 kg"
     }
@@ -1487,8 +1487,8 @@
       "product": 62,
       "attributes": "{\"18\": \"62\"}",
       "track_inventory": true,
-      "quantity": 123,
-      "quantity_allocated": 12,
+      "quantity": 125,
+      "quantity_allocated": 14,
       "cost_price": { "_type": "Money", "amount": "25.00", "currency": "USD" },
       "weight": "0.0 kg"
     }
@@ -1547,8 +1547,8 @@
       "product": 63,
       "attributes": "{\"18\": \"62\"}",
       "track_inventory": true,
-      "quantity": 465,
-      "quantity_allocated": 20,
+      "quantity": 472,
+      "quantity_allocated": 27,
       "cost_price": { "_type": "Money", "amount": "20.00", "currency": "USD" },
       "weight": "5.0 kg"
     }
@@ -1607,8 +1607,8 @@
       "product": 64,
       "attributes": "{\"18\": \"62\"}",
       "track_inventory": true,
-      "quantity": 576,
-      "quantity_allocated": 5,
+      "quantity": 578,
+      "quantity_allocated": 7,
       "cost_price": { "_type": "Money", "amount": "15.00", "currency": "USD" },
       "weight": "5.0 kg"
     }
@@ -1667,8 +1667,8 @@
       "product": 65,
       "attributes": "{\"18\": \"62\"}",
       "track_inventory": true,
-      "quantity": 153,
-      "quantity_allocated": 12,
+      "quantity": 155,
+      "quantity_allocated": 14,
       "cost_price": { "_type": "Money", "amount": "15.00", "currency": "USD" },
       "weight": "5.0 kg"
     }
@@ -1787,8 +1787,8 @@
       "product": 84,
       "attributes": "{}",
       "track_inventory": true,
-      "quantity": 975524,
-      "quantity_allocated": 7,
+      "quantity": 975527,
+      "quantity_allocated": 10,
       "cost_price": null,
       "weight": "0.0 kg"
     }
@@ -1823,8 +1823,8 @@
       "product": 85,
       "attributes": "{\"22\": \"71\"}",
       "track_inventory": true,
-      "quantity": 686,
-      "quantity_allocated": 15,
+      "quantity": 687,
+      "quantity_allocated": 16,
       "cost_price": { "_type": "Money", "amount": "12.00", "currency": "USD" },
       "weight": "0.0 kg"
     }
@@ -2023,8 +2023,8 @@
       "product": 74,
       "attributes": "{\"15\": \"48\"}",
       "track_inventory": true,
-      "quantity": 220,
-      "quantity_allocated": 9,
+      "quantity": 225,
+      "quantity_allocated": 14,
       "cost_price": { "_type": "Money", "amount": "2.00", "currency": "USD" },
       "weight": "2.0 kg"
     }
@@ -2079,8 +2079,8 @@
       "product": 75,
       "attributes": "{\"15\": \"48\"}",
       "track_inventory": true,
-      "quantity": 224,
-      "quantity_allocated": 13,
+      "quantity": 225,
+      "quantity_allocated": 14,
       "cost_price": { "_type": "Money", "amount": "2.00", "currency": "USD" },
       "weight": "2.0 kg"
     }
@@ -2135,8 +2135,8 @@
       "product": 76,
       "attributes": "{\"15\": \"48\"}",
       "track_inventory": true,
-      "quantity": 233,
-      "quantity_allocated": 22,
+      "quantity": 238,
+      "quantity_allocated": 27,
       "cost_price": { "_type": "Money", "amount": "2.00", "currency": "USD" },
       "weight": "2.0 kg"
     }
@@ -2191,8 +2191,8 @@
       "product": 77,
       "attributes": "{\"15\": \"48\"}",
       "track_inventory": true,
-      "quantity": 218,
-      "quantity_allocated": 7,
+      "quantity": 221,
+      "quantity_allocated": 10,
       "cost_price": { "_type": "Money", "amount": "2.00", "currency": "USD" },
       "weight": "2.0 kg"
     }
@@ -2247,8 +2247,8 @@
       "product": 78,
       "attributes": "{\"15\": \"48\"}",
       "track_inventory": true,
-      "quantity": 224,
-      "quantity_allocated": 13,
+      "quantity": 228,
+      "quantity_allocated": 17,
       "cost_price": { "_type": "Money", "amount": "2.00", "currency": "USD" },
       "weight": "2.0 kg"
     }
@@ -2303,8 +2303,8 @@
       "product": 79,
       "attributes": "{\"15\": \"48\"}",
       "track_inventory": true,
-      "quantity": 228,
-      "quantity_allocated": 17,
+      "quantity": 229,
+      "quantity_allocated": 18,
       "cost_price": { "_type": "Money", "amount": "2.00", "currency": "USD" },
       "weight": "2.0 kg"
     }
@@ -2383,8 +2383,8 @@
       "product": 87,
       "attributes": "{\"24\": \"79\"}",
       "track_inventory": true,
-      "quantity": 878,
-      "quantity_allocated": 17,
+      "quantity": 882,
+      "quantity_allocated": 21,
       "cost_price": { "_type": "Money", "amount": "20.00", "currency": "USD" },
       "weight": "0.0 kg"
     }
@@ -2447,8 +2447,8 @@
       "product": 88,
       "attributes": "{\"24\": \"81\"}",
       "track_inventory": true,
-      "quantity": 14,
-      "quantity_allocated": 14,
+      "quantity": 15,
+      "quantity_allocated": 15,
       "cost_price": { "_type": "Money", "amount": "20.00", "currency": "USD" },
       "weight": "2.0 kg"
     }
@@ -2527,8 +2527,8 @@
       "product": 89,
       "attributes": "{\"13\": \"40\"}",
       "track_inventory": true,
-      "quantity": 5798,
-      "quantity_allocated": 7,
+      "quantity": 5802,
+      "quantity_allocated": 11,
       "cost_price": { "_type": "Money", "amount": "10.00", "currency": "USD" },
       "weight": "0.0 kg"
     }
@@ -2607,8 +2607,8 @@
       "product": 107,
       "attributes": "{\"13\": \"40\"}",
       "track_inventory": true,
-      "quantity": 5804,
-      "quantity_allocated": 13,
+      "quantity": 5817,
+      "quantity_allocated": 26,
       "cost_price": { "_type": "Money", "amount": "10.00", "currency": "USD" },
       "weight": "0.0 kg"
     }
@@ -2687,8 +2687,8 @@
       "product": 108,
       "attributes": "{\"13\": \"40\"}",
       "track_inventory": true,
-      "quantity": 5813,
-      "quantity_allocated": 22,
+      "quantity": 5820,
+      "quantity_allocated": 29,
       "cost_price": { "_type": "Money", "amount": "10.00", "currency": "USD" },
       "weight": "0.0 kg"
     }
@@ -2767,8 +2767,8 @@
       "product": 109,
       "attributes": "{\"13\": \"40\"}",
       "track_inventory": true,
-      "quantity": 5816,
-      "quantity_allocated": 25,
+      "quantity": 5817,
+      "quantity_allocated": 26,
       "cost_price": { "_type": "Money", "amount": "10.00", "currency": "USD" },
       "weight": "0.0 kg"
     }
@@ -2847,8 +2847,8 @@
       "product": 110,
       "attributes": "{\"13\": \"40\"}",
       "track_inventory": true,
-      "quantity": 5807,
-      "quantity_allocated": 16,
+      "quantity": 5816,
+      "quantity_allocated": 25,
       "cost_price": { "_type": "Money", "amount": "10.00", "currency": "USD" },
       "weight": "0.0 kg"
     }
@@ -2927,8 +2927,8 @@
       "product": 111,
       "attributes": "{\"13\": \"40\"}",
       "track_inventory": true,
-      "quantity": 5804,
-      "quantity_allocated": 13,
+      "quantity": 5807,
+      "quantity_allocated": 16,
       "cost_price": { "_type": "Money", "amount": "10.00", "currency": "USD" },
       "weight": "0.0 kg"
     }
@@ -3007,8 +3007,8 @@
       "product": 112,
       "attributes": "{\"13\": \"40\"}",
       "track_inventory": true,
-      "quantity": 5805,
-      "quantity_allocated": 14,
+      "quantity": 5809,
+      "quantity_allocated": 18,
       "cost_price": { "_type": "Money", "amount": "10.00", "currency": "USD" },
       "weight": "0.0 kg"
     }
@@ -3087,8 +3087,8 @@
       "product": 113,
       "attributes": "{\"13\": \"40\"}",
       "track_inventory": true,
-      "quantity": 5813,
-      "quantity_allocated": 22,
+      "quantity": 5817,
+      "quantity_allocated": 26,
       "cost_price": { "_type": "Money", "amount": "10.00", "currency": "USD" },
       "weight": "0.0 kg"
     }
@@ -3167,8 +3167,8 @@
       "product": 114,
       "attributes": "{\"13\": \"40\"}",
       "track_inventory": true,
-      "quantity": 5802,
-      "quantity_allocated": 11,
+      "quantity": 5805,
+      "quantity_allocated": 14,
       "cost_price": { "_type": "Money", "amount": "10.00", "currency": "USD" },
       "weight": "0.0 kg"
     }
@@ -3247,8 +3247,8 @@
       "product": 115,
       "attributes": "{\"13\": \"40\"}",
       "track_inventory": true,
-      "quantity": 5821,
-      "quantity_allocated": 30,
+      "quantity": 5825,
+      "quantity_allocated": 34,
       "cost_price": { "_type": "Money", "amount": "10.00", "currency": "USD" },
       "weight": "0.0 kg"
     }
@@ -3327,8 +3327,8 @@
       "product": 116,
       "attributes": "{\"13\": \"40\"}",
       "track_inventory": true,
-      "quantity": 5801,
-      "quantity_allocated": 10,
+      "quantity": 5805,
+      "quantity_allocated": 14,
       "cost_price": { "_type": "Money", "amount": "10.00", "currency": "USD" },
       "weight": "0.0 kg"
     }
@@ -3407,8 +3407,8 @@
       "product": 117,
       "attributes": "{\"13\": \"40\"}",
       "track_inventory": true,
-      "quantity": 5803,
-      "quantity_allocated": 12,
+      "quantity": 5805,
+      "quantity_allocated": 14,
       "cost_price": { "_type": "Money", "amount": "10.00", "currency": "USD" },
       "weight": "0.0 kg"
     }
@@ -3487,8 +3487,8 @@
       "product": 118,
       "attributes": "{\"13\": \"40\"}",
       "track_inventory": true,
-      "quantity": 5802,
-      "quantity_allocated": 11,
+      "quantity": 5818,
+      "quantity_allocated": 27,
       "cost_price": { "_type": "Money", "amount": "10.00", "currency": "USD" },
       "weight": "0.0 kg"
     }
@@ -4114,7 +4114,7 @@
     "fields": {
       "sort_order": 0,
       "product": 61,
-      "image": "products/saleordemoproduct_paints_01_qhfSdCd.png",
+      "image": "products/saleordemoproduct_paints_01_oDLxDCy.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4125,7 +4125,7 @@
     "fields": {
       "sort_order": 0,
       "product": 62,
-      "image": "products/saleordemoproduct_paints_02_YtcxbNS.png",
+      "image": "products/saleordemoproduct_paints_02_dYeeCcU.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4136,7 +4136,7 @@
     "fields": {
       "sort_order": 0,
       "product": 63,
-      "image": "products/saleordemoproduct_paints_03_c4ueivL.png",
+      "image": "products/saleordemoproduct_paints_03_ecuGs1J.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4147,7 +4147,7 @@
     "fields": {
       "sort_order": 0,
       "product": 64,
-      "image": "products/saleordemoproduct_paints_04_O9g3mij.png",
+      "image": "products/saleordemoproduct_paints_04_I0scMFo.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4158,7 +4158,7 @@
     "fields": {
       "sort_order": 0,
       "product": 65,
-      "image": "products/saleordemoproduct_paints_05_0LBgKCN.png",
+      "image": "products/saleordemoproduct_paints_05_uUmCypw.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4169,7 +4169,7 @@
     "fields": {
       "sort_order": 0,
       "product": 71,
-      "image": "products/saleordemoproduct_fd_juice_06_FhbZ1Nf.png",
+      "image": "products/saleordemoproduct_fd_juice_06_HmbdNY4.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4180,7 +4180,7 @@
     "fields": {
       "sort_order": 0,
       "product": 72,
-      "image": "products/saleordemoproduct_fd_juice_06_Qzq4UBX.png",
+      "image": "products/saleordemoproduct_fd_juice_06_6xzhMf1.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4191,7 +4191,7 @@
     "fields": {
       "sort_order": 0,
       "product": 73,
-      "image": "products/saleordemoproduct_fd_juice_05_uZBcvTE.png",
+      "image": "products/saleordemoproduct_fd_juice_05_IJL7VJy.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4202,7 +4202,7 @@
     "fields": {
       "sort_order": 0,
       "product": 74,
-      "image": "products/saleordemoproduct_fd_juice_01_hA10c73.png",
+      "image": "products/saleordemoproduct_fd_juice_01_YXqoj52.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4213,7 +4213,7 @@
     "fields": {
       "sort_order": 0,
       "product": 75,
-      "image": "products/saleordemoproduct_fd_juice_03_JswJ4Ca.png",
+      "image": "products/saleordemoproduct_fd_juice_03_daLOjXa.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4224,7 +4224,7 @@
     "fields": {
       "sort_order": 0,
       "product": 76,
-      "image": "products/saleordemoproduct_fd_juice_02_sqggYPs.png",
+      "image": "products/saleordemoproduct_fd_juice_02_Bom9fYH.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4235,7 +4235,7 @@
     "fields": {
       "sort_order": 0,
       "product": 77,
-      "image": "products/saleordemoproduct_fd_juice_03_iSgdFcM.png",
+      "image": "products/saleordemoproduct_fd_juice_03_9VGzlb8.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4246,7 +4246,7 @@
     "fields": {
       "sort_order": 0,
       "product": 78,
-      "image": "products/saleordemoproduct_fd_juice_04_igB94SY.png",
+      "image": "products/saleordemoproduct_fd_juice_04_EBNnBub.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4257,7 +4257,7 @@
     "fields": {
       "sort_order": 0,
       "product": 79,
-      "image": "products/saleordemoproduct_fd_juice_02_yjanumo.png",
+      "image": "products/saleordemoproduct_fd_juice_02_7aTGENJ.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4268,7 +4268,7 @@
     "fields": {
       "sort_order": 0,
       "product": 81,
-      "image": "products/saleordemoproduct_wine-red_ellhuzd.png",
+      "image": "products/saleordemoproduct_wine-red_L78mDRW.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4279,7 +4279,7 @@
     "fields": {
       "sort_order": 0,
       "product": 82,
-      "image": "products/saleordemoproduct_wine-white_cJo2LW3.png",
+      "image": "products/saleordemoproduct_wine-white_1MuPoeA.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4290,7 +4290,7 @@
     "fields": {
       "sort_order": 0,
       "product": 83,
-      "image": "products/saleordemoproduct_beer-02_1_FhcBoLi.png",
+      "image": "products/saleordemoproduct_beer-02_1_oN44DoF.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4301,7 +4301,7 @@
     "fields": {
       "sort_order": 1,
       "product": 83,
-      "image": "products/saleordemoproduct_beer-02_2_v1FNl4l.png",
+      "image": "products/saleordemoproduct_beer-02_2_QTLg6Ak.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4312,7 +4312,7 @@
     "fields": {
       "sort_order": 0,
       "product": 84,
-      "image": "products/saleordemoproduct_beer-01_1_QfS1d8w.png",
+      "image": "products/saleordemoproduct_beer-01_1_4L2SEHt.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4323,7 +4323,7 @@
     "fields": {
       "sort_order": 1,
       "product": 84,
-      "image": "products/saleordemoproduct_beer-01_2_McmaSMk.png",
+      "image": "products/saleordemoproduct_beer-01_2_7EIUR1Y.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4334,7 +4334,7 @@
     "fields": {
       "sort_order": 0,
       "product": 85,
-      "image": "products/saleordemoproduct_cuschion01_JX5q7PU.png",
+      "image": "products/saleordemoproduct_cuschion01_oH3nVyE.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4345,7 +4345,7 @@
     "fields": {
       "sort_order": 0,
       "product": 86,
-      "image": "products/saleordemoproduct_cuschion02_b08zAbo.png",
+      "image": "products/saleordemoproduct_cuschion02_0Ffs5uM.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4356,7 +4356,7 @@
     "fields": {
       "sort_order": 0,
       "product": 87,
-      "image": "products/saleordemoproduct_sneakers_01_1_uPcgQMa.png",
+      "image": "products/saleordemoproduct_sneakers_01_1_XvwtpKL.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4367,7 +4367,7 @@
     "fields": {
       "sort_order": 1,
       "product": 87,
-      "image": "products/saleordemoproduct_sneakers_01_2_3px9XRy.png",
+      "image": "products/saleordemoproduct_sneakers_01_2_MGs9tPf.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4378,7 +4378,7 @@
     "fields": {
       "sort_order": 2,
       "product": 87,
-      "image": "products/saleordemoproduct_sneakers_01_3_q5SKy47.png",
+      "image": "products/saleordemoproduct_sneakers_01_3_Ashbw90.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4389,7 +4389,7 @@
     "fields": {
       "sort_order": 3,
       "product": 87,
-      "image": "products/saleordemoproduct_sneakers_01_4_JT6S6bw.png",
+      "image": "products/saleordemoproduct_sneakers_01_4_Nsfi7nb.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4400,7 +4400,7 @@
     "fields": {
       "sort_order": 0,
       "product": 88,
-      "image": "products/saleordemoproduct_sneakers_02_1_ticUnHl.png",
+      "image": "products/saleordemoproduct_sneakers_02_1_0NmWUHZ.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4411,7 +4411,7 @@
     "fields": {
       "sort_order": 1,
       "product": 88,
-      "image": "products/saleordemoproduct_sneakers_02_2_Lecl5Ie.png",
+      "image": "products/saleordemoproduct_sneakers_02_2_YhRTBfj.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4422,7 +4422,7 @@
     "fields": {
       "sort_order": 2,
       "product": 88,
-      "image": "products/saleordemoproduct_sneakers_02_3_YNgYfa3.png",
+      "image": "products/saleordemoproduct_sneakers_02_3_08YgqUk.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4433,7 +4433,7 @@
     "fields": {
       "sort_order": 3,
       "product": 88,
-      "image": "products/saleordemoproduct_sneakers_02_4_bdTue6w.png",
+      "image": "products/saleordemoproduct_sneakers_02_4_w8mSSO0.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4444,7 +4444,7 @@
     "fields": {
       "sort_order": 0,
       "product": 89,
-      "image": "products/saleordemoproduct_cl_boot07_1_IHyrifG.png",
+      "image": "products/saleordemoproduct_cl_boot07_1_e8sCf37.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4455,7 +4455,7 @@
     "fields": {
       "sort_order": 1,
       "product": 89,
-      "image": "products/saleordemoproduct_cl_boot07_2_Q7vk4Q1.png",
+      "image": "products/saleordemoproduct_cl_boot07_2_AKDlzhy.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4466,7 +4466,7 @@
     "fields": {
       "sort_order": 0,
       "product": 107,
-      "image": "products/saleordemoproduct_cl_polo01_383mmxp.png",
+      "image": "products/saleordemoproduct_cl_polo01_QW0gy1O.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4477,7 +4477,7 @@
     "fields": {
       "sort_order": 0,
       "product": 108,
-      "image": "products/saleordemoproduct_cl_polo02_05f4TL0.png",
+      "image": "products/saleordemoproduct_cl_polo02_v8M2QAi.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4488,7 +4488,7 @@
     "fields": {
       "sort_order": 0,
       "product": 109,
-      "image": "products/saleordemoproduct_cl_polo03-woman_sTMAp2d.png",
+      "image": "products/saleordemoproduct_cl_polo03-woman_oRoDSw5.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4499,7 +4499,7 @@
     "fields": {
       "sort_order": 0,
       "product": 110,
-      "image": "products/saleordemoproduct_cl_polo04-woman_9zXihss.png",
+      "image": "products/saleordemoproduct_cl_polo04-woman_yGAtCeK.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4510,7 +4510,7 @@
     "fields": {
       "sort_order": 0,
       "product": 111,
-      "image": "products/saleordemoproduct_cl_boot01_1_7vrwAUq.png",
+      "image": "products/saleordemoproduct_cl_boot01_1_jI02bAX.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4521,7 +4521,7 @@
     "fields": {
       "sort_order": 1,
       "product": 111,
-      "image": "products/saleordemoproduct_cl_boot01_2_aEdbAwU.png",
+      "image": "products/saleordemoproduct_cl_boot01_2_KLnOyhb.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4532,7 +4532,7 @@
     "fields": {
       "sort_order": 2,
       "product": 111,
-      "image": "products/saleordemoproduct_cl_boot01_3_0OQeJq3.png",
+      "image": "products/saleordemoproduct_cl_boot01_3_Xjg8APp.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4543,7 +4543,7 @@
     "fields": {
       "sort_order": 0,
       "product": 112,
-      "image": "products/saleordemoproduct_cl_boot03_1_CHXbsor.png",
+      "image": "products/saleordemoproduct_cl_boot03_1_ywqz7uH.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4554,7 +4554,7 @@
     "fields": {
       "sort_order": 1,
       "product": 112,
-      "image": "products/saleordemoproduct_cl_boot03_2_qIX8lnB.png",
+      "image": "products/saleordemoproduct_cl_boot03_2_wV7k4pO.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4565,7 +4565,7 @@
     "fields": {
       "sort_order": 0,
       "product": 113,
-      "image": "products/saleordemoproduct_cl_boot06_1_FpDdgjh.png",
+      "image": "products/saleordemoproduct_cl_boot06_1_4bsW9kx.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4576,7 +4576,7 @@
     "fields": {
       "sort_order": 1,
       "product": 113,
-      "image": "products/saleordemoproduct_cl_boot06_2_diAhbl3.png",
+      "image": "products/saleordemoproduct_cl_boot06_2_0RCGicU.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4587,7 +4587,7 @@
     "fields": {
       "sort_order": 0,
       "product": 114,
-      "image": "products/saleordemoproduct_cl_boot06_1_SwHYWgK.png",
+      "image": "products/saleordemoproduct_cl_boot06_1_cYlPLAW.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4598,7 +4598,7 @@
     "fields": {
       "sort_order": 1,
       "product": 114,
-      "image": "products/saleordemoproduct_cl_boot06_2_d2ancg2.png",
+      "image": "products/saleordemoproduct_cl_boot06_2_N2UbilJ.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4609,7 +4609,7 @@
     "fields": {
       "sort_order": 0,
       "product": 115,
-      "image": "products/saleordemoproduct_cl_bogo01_1_AGH1tiC.png",
+      "image": "products/saleordemoproduct_cl_bogo01_1_CyHpJvU.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4620,7 +4620,7 @@
     "fields": {
       "sort_order": 0,
       "product": 116,
-      "image": "products/saleordemoproduct_cl_bogo02_1_RfALgjZ.png",
+      "image": "products/saleordemoproduct_cl_bogo02_1_HaTZ5us.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4631,7 +4631,7 @@
     "fields": {
       "sort_order": 0,
       "product": 117,
-      "image": "products/saleordemoproduct_cl_bogo03_1_Wf6snoX.png",
+      "image": "products/saleordemoproduct_cl_bogo03_1_Zt5it75.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4642,7 +4642,7 @@
     "fields": {
       "sort_order": 0,
       "product": 118,
-      "image": "products/saleordemoproduct_cl_bogo04_1_lYpnzZc.png",
+      "image": "products/saleordemoproduct_cl_bogo04_1_QZj7pyB.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4653,7 +4653,7 @@
     "fields": {
       "sort_order": 1,
       "product": 118,
-      "image": "products/saleordemoproduct_cl_bogo04_2_lDniuMS.png",
+      "image": "products/saleordemoproduct_cl_bogo04_2_NxSedt9.png",
       "ppoi": "0.5x0.5",
       "alt": ""
     }
@@ -4668,7 +4668,7 @@
       "seo_description": null,
       "name": "Summer collection",
       "slug": "summer-collection",
-      "background_image": "collection-backgrounds/summer_y4mfbhv.jpg",
+      "background_image": "collection-backgrounds/summer_O96Ivuv.jpg",
       "background_image_alt": "",
       "description": "The Saleor Summer Collection features a range of products that feel the heat of the market. A demo store for all seasons. Saleor captures the open source, e-commerce sun.",
       "description_json": {
@@ -4698,7 +4698,7 @@
       "seo_description": null,
       "name": "Winter sale",
       "slug": "winter-sale",
-      "background_image": "collection-backgrounds/clothing_StptWFW.jpg",
+      "background_image": "collection-backgrounds/clothing_TuZmZFT.jpg",
       "background_image_alt": "",
       "description": "The Saleor Winter Sale is snowed under with seasonal offers. Unreal products at unreal prices. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader.",
       "description_json": {

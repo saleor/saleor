@@ -105,9 +105,9 @@ IMAGES_MAPPING = {
 
 
 CATEGORY_IMAGES = {
-    7: 'DEMO-04.jpg',
+    7: 'accessories.jpg',
     8: 'groceries.jpg',
-    9: 'cos.jpg'
+    9: 'apparel.jpg'
 }
 
 COLLECTION_IMAGES = {
