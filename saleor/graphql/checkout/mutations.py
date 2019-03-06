@@ -21,7 +21,7 @@ from ...payment import PaymentError
 from ...payment.utils import gateway_process_payment
 from ...shipping.models import ShippingMethod as ShippingMethodModel
 from ..account.i18n import I18nMixin
-from ..account.types import AddressInput, User
+from ..account.types import Address, AddressInput, User
 from ..core.mutations import BaseMutation, ModelMutation
 from ..order.types import Order
 from ..product.types import ProductVariant
@@ -331,12 +331,20 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         shipping_address = AddressInput(
             required=False,
             description=(
+                'The mailling address to where the checkout will be shipped.'))
+        shipping_address_id = graphene.ID(
+            required=False,
+            description=(
+                'ID of the mailing address '
+                'to where the checkout will be shipped.'))
                 'The mailing address to where the checkout will be shipped.'))
 
     class Meta:
         description = 'Update shipping address in the existing Checkout.'
 
     @classmethod
+    def perform_mutation(cls, _root, info, checkout_id,
+            shipping_address=None, shipping_address_id=Nonev):
     def perform_mutation(cls, _root, info, checkout_id, shipping_address):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field='checkout_id')
@@ -382,6 +390,14 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
             billing_address.save()
             change_billing_address_in_checkout(checkout, billing_address)
         return CheckoutShippingAddressUpdate(checkout=checkout)
+
+        if errors:
+            return CheckoutBillingAddressUpdate(errors=errors)
+
+        with transaction.atomic():
+            billing_address.save()
+            change_billing_address_in_cart(checkout, billing_address)
+        return CheckoutBillingAddressUpdate(checkout=checkout, errors=errors)
 
 
 class CheckoutEmailUpdate(BaseMutation):
