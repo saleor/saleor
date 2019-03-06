@@ -6154,6 +6154,8 @@ exports[`Storyshots Shipping / Assign countries default 1`] = `<div />`;
 
 exports[`Storyshots Shipping / Rate details default 1`] = `<div />`;
 
+exports[`Storyshots Shipping / Rate details form errors 1`] = `<div />`;
+
 exports[`Storyshots Shipping / Rate details loading 1`] = `<div />`;
 
 exports[`Storyshots Shipping / Rate details new 1`] = `<div />`;
