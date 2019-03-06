@@ -575,21 +575,6 @@ scalar DateTime
 
 scalar Decimal
 
-input DefaultAddressInput {
-  firstName: String
-  lastName: String
-  companyName: String
-  streetAddress1: String
-  streetAddress2: String
-  city: String
-  cityArea: String
-  postalCode: String
-  country: String!
-  countryArea: String
-  phone: String
-  type: AddressTypeEnum
-}
-
 enum DiscountValueTypeEnum {
   FIXED
   PERCENTAGE
@@ -980,7 +965,7 @@ type Mutations {
   customerPasswordReset(input: CustomerPasswordResetInput!): CustomerPasswordReset
   customerRegister(input: CustomerRegisterInput!): CustomerRegister
   customerUpdate(id: ID!, input: CustomerInput!): CustomerUpdate
-  customerAddressCreate(input: DefaultAddressInput!): CustomerAddressCreate
+  customerAddressCreate(input: AddressInput!, type: AddressTypeEnum): CustomerAddressCreate
   customerSetDefaultAddress(id: ID!, type: AddressTypeEnum!): CustomerSetDefaultAddress
   loggedUserUpdate(input: UserAddressInput!): LoggedUserUpdate
   staffCreate(input: StaffCreateInput!): StaffCreate
