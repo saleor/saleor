@@ -89,7 +89,7 @@ const OrderDraftPage = withStyles(styles, { name: "OrderDraftPage" })(
     users,
     usersLoading
   }: OrderDraftPageProps) => (
-    <Container >
+    <Container>
       <AppHeader onBack={onBack}>{i18n.t("Orders")}</AppHeader>
       <PageHeader
         className={classes.header}

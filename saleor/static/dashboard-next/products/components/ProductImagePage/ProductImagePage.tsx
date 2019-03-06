@@ -77,7 +77,7 @@ const ProductImagePage = withStyles(styles, { name: "ProductImagePage" })(
     >
       {({ change, data, hasChanged, submit }) => {
         return (
-          <Container >
+          <Container>
             <AppHeader onBack={onBack}>{product}</AppHeader>
             <PageHeader title={i18n.t("Edit Photo")} />
             <Grid variant="inverted">

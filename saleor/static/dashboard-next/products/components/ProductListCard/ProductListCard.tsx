@@ -39,7 +39,7 @@ export const ProductListCard: React.StatelessComponent<
   onOfStock,
   onCustomFilter
 }) => (
-  <Container >
+  <Container>
     <PageHeader title={i18n.t("Products")}>
       <Button onClick={onAdd} color="secondary" variant="contained">
         {i18n.t("Add product")} <AddIcon />

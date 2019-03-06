@@ -75,7 +75,7 @@ const ProductVariantCreatePage: React.StatelessComponent<
       key={product ? JSON.stringify(product) : "noproduct"}
     >
       {({ change, data, errors, hasChanged, submit }) => (
-        <Container >
+        <Container>
           <AppHeader onBack={onBack}>{maybe(() => product.name)}</AppHeader>
           <PageHeader title={header} />
           <Grid variant="inverted">

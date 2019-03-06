@@ -64,7 +64,7 @@ const CollectionCreatePage: React.StatelessComponent<
 }: CollectionCreatePageProps) => (
   <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
     {({ change, data, errors: formErrors, hasChanged, submit }) => (
-      <Container >
+      <Container>
         <AppHeader onBack={onBack}>{i18n.t("Collections")}</AppHeader>
         <PageHeader
           title={i18n.t("Add collection", {

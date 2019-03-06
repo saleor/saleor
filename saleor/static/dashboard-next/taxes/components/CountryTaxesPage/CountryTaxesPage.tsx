@@ -37,7 +37,7 @@ const CountryTaxesPage = withStyles(styles, { name: "CountryTaxesPage" })(
   }: CountryTaxesPageProps & WithStyles<typeof styles>) => {
     const taxRates = translatedTaxRates();
     return (
-      <Container >
+      <Container>
         <AppHeader onBack={onBack}>{i18n.t("Taxes")}</AppHeader>
         <PageHeader
           title={

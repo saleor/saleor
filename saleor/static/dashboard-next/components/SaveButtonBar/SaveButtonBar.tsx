@@ -97,7 +97,7 @@ export const SaveButtonBar = withStyles(styles, { name: "SaveButtonBar" })(
                 })}
                 {...props}
               >
-                <Container  className={classes.container}>
+                <Container className={classes.container}>
                   {!!onDelete && (
                     <Button
                       variant="contained"

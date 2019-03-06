@@ -77,7 +77,7 @@ export interface ConfigurationPageProps extends WithStyles<typeof styles> {
 export const ConfigurationPage = withStyles(styles, {
   name: "ConfigurationPage"
 })(({ classes, menu, user, onSectionClick }: ConfigurationPageProps) => (
-  <Container >
+  <Container>
     <PageHeader title={i18n.t("Configure")} />
     <div className={classes.root}>
       {menu

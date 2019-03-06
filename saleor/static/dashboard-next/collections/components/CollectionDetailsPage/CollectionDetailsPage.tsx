@@ -69,7 +69,7 @@ const CollectionDetailsPage: React.StatelessComponent<
     confirmLeave
   >
     {({ change, data, errors: formErrors, hasChanged, submit }) => (
-      <Container >
+      <Container>
         <AppHeader onBack={onBack}>{i18n.t("Collections")}</AppHeader>
         <PageHeader title={maybe(() => collection.name)} />
         <Grid>

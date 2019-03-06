@@ -126,7 +126,7 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
   return (
     <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
-        <Container >
+        <Container>
           <AppHeader onBack={onBack}>{i18n.t("Vouchers")}</AppHeader>
           <PageHeader title={maybe(() => voucher.name)} />
           <Grid>
