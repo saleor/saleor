@@ -95,7 +95,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add missing types for dashboard 2.0 after adding translations to API - #3802 by @jxltom
 - Add city choices and city area type to address validator API - #3788 by @jxltom
 - Support setting as default address directly when creating customer address - #3782 by @jxltom
-- Add draft orders query, improve order status filtering - #3809 by @michaljelonek
+- Add draft orders query - #3809 by @michaljelonek
 
 
 ## 2.3.1
