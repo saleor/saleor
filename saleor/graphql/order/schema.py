@@ -19,8 +19,8 @@ from .mutations.orders import (
     OrderAddNote, OrderCancel, OrderCapture, OrderMarkAsPaid, OrderRefund,
     OrderUpdate, OrderUpdateShipping, OrderVoid)
 from .resolvers import (
-    resolve_homepage_events, resolve_order, resolve_order_by_token,
-    resolve_orders, resolve_orders_total, resolve_draft_orders)
+    resolve_draft_orders, resolve_homepage_events, resolve_order,
+    resolve_order_by_token, resolve_orders, resolve_orders_total)
 from .types import Order, OrderEvent
 
 
