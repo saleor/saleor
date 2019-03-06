@@ -5,7 +5,6 @@ import unicodedata
 import uuid
 from collections import defaultdict
 from datetime import date
-from textwrap import dedent
 from unittest.mock import patch
 
 from django.conf import settings
@@ -45,23 +44,6 @@ from ...shipping.utils import get_taxed_shipping_price
 fake = Factory.create()
 
 PRODUCTS_LIST_DIR = 'products-list/'
-
-GROCERIES_CATEGORY = {'name': 'Groceries', 'image_name': 'groceries.jpg'}
-
-COLLECTIONS_SCHEMA = [
-    {
-        'name': 'Summer collection',
-        'image_name': 'summer.jpg',
-        'description': dedent('''The Saleor Summer Collection features a range
-            of products that feel the heat of the market. A demo store for all
-            seasons. Saleor captures the open source, e-commerce sun.''')},
-    {
-        'name': 'Winter sale',
-        'image_name': 'clothing.jpg',
-        'description': dedent('''The Saleor Winter Sale is snowed under with
-            seasonal offers. Unreal products at unreal prices. Literally,
-            they are not real products, but the Saleor demo store is a
-            genuine e-commerce leader.''')}]
 
 IMAGES_MAPPING = {
     61: ['saleordemoproduct_paints_01.png'],
@@ -128,6 +110,11 @@ CATEGORY_IMAGES = {
     9: 'cos.jpg'
 }
 
+COLLECTION_IMAGES = {
+    1: 'summer.jpg',
+    2: 'clothing.jpg'
+}
+
 
 def get_weight(weight):
     if not weight:
@@ -154,6 +141,22 @@ def create_categories(categories_data, placeholder_dir):
         defaults['background_image'] = background_image
         Category.objects.update_or_create(pk=pk, defaults=defaults)
         create_category_background_image_thumbnails.delay(pk)
+
+
+def create_collections(data, placeholder_dir):
+    placeholder_dir = get_product_list_images_dir(placeholder_dir)
+    for collection in data:
+        pk = collection['pk']
+        defaults = collection['fields']
+        products_in_collection = defaults.pop('products')
+        image_name = COLLECTION_IMAGES[pk]
+        background_image = get_image(placeholder_dir, image_name)
+        defaults['background_image'] = background_image
+        collection = Collection.objects.update_or_create(
+            pk=pk, defaults=defaults)[0]
+        create_collection_background_image_thumbnails.delay(pk)
+        collection.products.set(
+            Product.objects.filter(pk__in=products_in_collection))
 
 
 def create_attributes(attributes_data):
@@ -220,7 +223,8 @@ def get_in_default_currency(defaults, field, currency):
 
 
 def create_products_by_schema(placeholder_dir, create_images):
-    path = os.path.join(settings.PROJECT_ROOT, 'saleor', 'static', 'db.json')
+    path = os.path.join(
+        settings.PROJECT_ROOT, 'saleor', 'static', 'populatedb_data.json')
     with open(path) as f:
         db_items = json.load(f, object_hook=object_hook)
     types = defaultdict(list)
@@ -239,6 +243,8 @@ def create_products_by_schema(placeholder_dir, create_images):
         products_data=types['product.product'],
         placeholder_dir=placeholder_dir, create_images=create_images)
     create_product_variants(variants_data=types['product.productvariant'])
+    create_collections(
+        data=types['product.collection'], placeholder_dir=placeholder_dir)
 
 
 class SaleorProvider(BaseProvider):
@@ -258,15 +264,6 @@ def get_email(first_name, last_name):
     _last = unicodedata.normalize('NFD', last_name).encode('ascii', 'ignore')
     return '%s.%s@example.com' % (
         _first.lower().decode('utf-8'), _last.lower().decode('utf-8'))
-
-
-def get_or_create_collection(name, placeholder_dir, image_name, description):
-    background_image = get_image(placeholder_dir, image_name)
-    defaults = {
-        'slug': fake.slug(name),
-        'background_image': background_image,
-        'description': description}
-    return Collection.objects.get_or_create(name=name, defaults=defaults)[0]
 
 
 def create_product_image(product, placeholder_dir, image_name):
@@ -550,31 +547,83 @@ def add_address_to_admin(email):
     store_user_address(user, address, AddressType.SHIPPING)
 
 
-def create_fake_collection(placeholder_dir, collection_data):
-    image_dir = get_product_list_images_dir(placeholder_dir)
-    collection = get_or_create_collection(
-        name=collection_data['name'], placeholder_dir=image_dir,
-        image_name=collection_data['image_name'],
-        description=collection_data['description'])
-    products = Product.objects.order_by('?')[:4]
-    collection.products.add(*products)
-    create_collection_background_image_thumbnails.delay(collection.pk)
-    return collection
-
-
-def create_collections_by_schema(placeholder_dir, schema=COLLECTIONS_SCHEMA):
-    for collection_data in COLLECTIONS_SCHEMA:
-        collection = create_fake_collection(placeholder_dir, collection_data)
-        yield 'Collection: %s' % (collection,)
-
-
 def create_page():
     content = """
     <h2>E-commerce for the PWA era</h2>
     <h3>A modular, high performance e-commerce storefront built with GraphQL, Django, and ReactJS.</h3>
     <p>Saleor is a rapidly-growing open source e-commerce platform that has served high-volume companies from branches like publishing and apparel since 2012. Based on Python and Django, the latest major update introduces a modular front end with a GraphQL API and storefront and dashboard written in React to make Saleor a full-functionality open source e-commerce.</p>
+    <p><a href="https://github.com/mirumee/saleor">Get Saleor today!</a></p>
     """
-    page_data = {'content': content, 'title': 'About', 'is_published': True}
+    content_json = {
+        'blocks':
+        [{
+            'key': '',
+            'data': {},
+            'text': 'E-commerce for the PWA era',
+            'type': 'header-two',
+            'depth': 0,
+            'entityRanges': [],
+            'inlineStyleRanges': []},
+         {
+             'key':
+             '',
+             'data': {},
+             'text':
+             'A modular, high performance e-commerce storefront built with GraphQL, Django, and ReactJS.',
+             'type':
+             'unstyled',
+             'depth':
+             0,
+             'entityRanges': [],
+             'inlineStyleRanges': []},
+         {
+             'key': '',
+             'data': {},
+             'text': '',
+             'type': 'unstyled',
+             'depth': 0,
+             'entityRanges': [],
+             'inlineStyleRanges': []},
+         {
+             'key':
+             '',
+             'data': {},
+             'text':
+             'Saleor is a rapidly-growing open source e-commerce platform that has served high-volume companies from branches like publishing and apparel since 2012. Based on Python and Django, the latest major update introduces a modular front end with a GraphQL API and storefront and dashboard written in React to make Saleor a full-functionality open source e-commerce.',
+             'type':
+             'unstyled',
+             'depth':
+             0,
+             'entityRanges': [],
+             'inlineStyleRanges': []},
+         {
+             'key': '',
+             'data': {},
+             'text': '',
+             'type': 'unstyled',
+             'depth': 0,
+             'entityRanges': [],
+             'inlineStyleRanges': []},
+         {
+             'key': '',
+             'data': {},
+             'text': 'Get Saleor today!',
+             'type': 'unstyled',
+             'depth': 0,
+             'entityRanges': [{
+                 'key': 0,
+                 'length': 17,
+                 'offset': 0}],
+             'inlineStyleRanges': []}],
+        'entityMap': {
+            '0': {
+                'data': {
+                    'href': 'https://github.com/mirumee/saleor'},
+                'type': 'LINK',
+                'mutability': 'MUTABLE'}}}
+    page_data = {
+        'content': content, 'content_json': content_json, 'title': 'About',
+        'is_published': True}
     page, dummy = Page.objects.get_or_create(slug='about', **page_data)
     yield 'Page %s created' % page.slug
 
