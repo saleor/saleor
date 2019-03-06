@@ -89,7 +89,6 @@ CREATE_QUERY = """
 def test_checkout_add_payment(
         user_api_client, cart_with_item, graphql_address_data):
     cart = cart_with_item
-    assert cart.user is None
     checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
     variables = {
         'checkoutId': checkout_id,
@@ -112,6 +111,38 @@ def test_checkout_add_payment(
     assert payment.total == total.amount
     assert payment.currency == total.currency
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
+
+
+def test_use_checkout_billing_address_as_payment_billing(
+        user_api_client, cart_with_item, address):
+    cart = cart_with_item
+    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
+    variables = {
+        'checkoutId': checkout_id,
+        'input': {
+            'gateway': 'DUMMY',
+            'token': 'sample-token',
+            'amount': str(cart.get_total().gross.amount)}}
+    response = user_api_client.post_graphql(CREATE_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content['data']['checkoutPaymentCreate']
+
+    # check if proper error is returned if address is missing
+    assert data['errors'][0]['field'] == 'billingAddress'
+
+    # assign the address and try again
+    address.street_address_1 = 'spanish-inqusition'
+    address.save()
+    cart.billing_address = address
+    cart.save()
+    response = user_api_client.post_graphql(CREATE_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content['data']['checkoutPaymentCreate']
+
+    cart.refresh_from_db()
+    assert cart.payments.count() == 1
+    payment = cart.payments.first()
+    assert payment.billing_address_1 == address.street_address_1
 
 
 CAPTURE_QUERY = """
@@ -146,7 +177,7 @@ def test_payment_capture_success(
     data = content['data']['paymentCapture']
     assert not data['errors']
     payment_txn_preauth.refresh_from_db()
-    assert payment.charge_status == ChargeStatus.CHARGED
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.transactions.count() == 2
     txn = payment.transactions.last()
     assert txn.kind == TransactionKind.CAPTURE
@@ -199,7 +230,7 @@ REFUND_QUERY = """
 def test_payment_refund_success(
         staff_api_client, permission_manage_orders, payment_txn_captured):
     payment = payment_txn_captured
-    payment.charge_status = ChargeStatus.CHARGED
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = payment.total
     payment.save()
     payment_id = graphene.Node.to_global_id(
@@ -224,7 +255,7 @@ def test_payment_refund_error(
         staff_api_client, permission_manage_orders, payment_txn_captured,
         monkeypatch):
     payment = payment_txn_captured
-    payment.charge_status = ChargeStatus.CHARGED
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = payment.total
     payment.save()
     payment_id = graphene.Node.to_global_id(
@@ -243,7 +274,7 @@ def test_payment_refund_error(
     assert data['errors'][0]['field'] is None
     assert data['errors'][0]['message']
     payment.refresh_from_db()
-    assert payment.charge_status == ChargeStatus.CHARGED
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.transactions.count() == 2
     txn = payment.transactions.last()
     assert txn.kind == TransactionKind.REFUND
@@ -310,7 +341,7 @@ def test_payments_query(
     assert data['capturedAmount'] == {
         'amount': pay.captured_amount, 'currency': pay.currency}
     assert data['total'] == {'amount': pay.total, 'currency': pay.currency}
-    assert data['chargeStatus'] == PaymentChargeStatusEnum.CHARGED.name
+    assert data['chargeStatus'] == PaymentChargeStatusEnum.FULLY_CHARGED.name
     assert data['billingAddress'] == {
         'firstName': pay.billing_first_name,
         'lastName': pay.billing_last_name,

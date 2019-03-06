@@ -105,6 +105,7 @@ def process_payment(payment_information: Dict, connection_params) -> Dict:
     responses = [authorize(payment_information, connection_params)]
     if charge_status == ChargeStatus.NOT_CHARGED:
         return responses
+
     responses.append(capture(payment_information, connection_params))
     if charge_status == ChargeStatus.FULLY_REFUNDED:
         responses.append(refund(payment_information, connection_params))

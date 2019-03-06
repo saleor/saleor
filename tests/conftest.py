@@ -596,7 +596,7 @@ def payment_txn_captured(order_with_lines, payment_dummy):
     order = order_with_lines
     payment = payment_dummy
     payment.order = order
-    payment.charge_status = ChargeStatus.CHARGED
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = payment.total
     payment.save()
 
@@ -697,6 +697,11 @@ def permission_manage_menus():
 @pytest.fixture
 def permission_manage_pages():
     return Permission.objects.get(codename='manage_pages')
+
+
+@pytest.fixture
+def permission_manage_translations():
+    return Permission.objects.get(codename='manage_translations')
 
 
 @pytest.fixture

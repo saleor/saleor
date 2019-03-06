@@ -9,6 +9,8 @@ from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
 from ..core.types import CountryDisplay
 from ..product.types import Category, Collection, Product
+from ..translations.resolvers import resolve_translation
+from ..translations.types import VoucherTranslation
 
 
 class Sale(CountableDjangoObjectType):
@@ -64,12 +66,20 @@ class Voucher(CountableDjangoObjectType):
     countries = graphene.List(
         CountryDisplay,
         description='List of countries available for the shipping voucher.')
+    translation = graphene.Field(
+        VoucherTranslation, language_code=graphene.String(
+            description='A language code to return the translation for.',
+            required=True),
+        description=(
+            'Returns translated Voucher fields for the given language code.'),
+        resolver=resolve_translation)
 
     class Meta:
         description = dedent("""
         Vouchers allow giving discounts to particular customers on categories,
         collections or specific products. They can be used during checkout by
         providing valid voucher codes.""")
+        exclude_fields = ['translations']
         interfaces = [relay.Node]
         model = models.Voucher
 

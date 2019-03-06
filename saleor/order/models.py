@@ -49,11 +49,12 @@ class OrderQueryset(models.QuerySet):
         """Return orders with payments to capture.
 
         Orders ready to capture are those which are not draft or canceled and
-        have a preauthorized payment.
+        have a preauthorized payment. The preauthorized payment can not
+        already be partially or fully captured.
         """
         qs = self.filter(
-            payments__is_active=True, payments__charge_status__in=[
-                ChargeStatus.NOT_CHARGED, ChargeStatus.CHARGED])
+            payments__is_active=True,
+            payments__charge_status=ChargeStatus.NOT_CHARGED)
         qs = qs.exclude(status={OrderStatus.DRAFT, OrderStatus.CANCELED})
         return qs.distinct()
 
@@ -150,8 +151,13 @@ class Order(models.Model):
         return self.user.email if self.user else self.user_email
 
     def _total_paid(self):
+        # Get total paid amount from partially charged,
+        # fully charged and partially refunded payments
         payments = self.payments.filter(
-            charge_status=ChargeStatus.CHARGED)
+            charge_status__in=[
+                ChargeStatus.PARTIALLY_CHARGED,
+                ChargeStatus.FULLY_CHARGED,
+                ChargeStatus.PARTIALLY_REFUNDED])
         total_captured = [
             payment.get_captured_amount() for payment in payments]
         total_paid = sum(total_captured, ZERO_TAXED_MONEY)
@@ -265,7 +271,10 @@ class Order(models.Model):
     @property
     def total_captured(self):
         payment = self.get_last_payment()
-        if payment and payment.charge_status == ChargeStatus.CHARGED:
+        if payment and payment.charge_status in (
+                ChargeStatus.PARTIALLY_CHARGED,
+                ChargeStatus.FULLY_CHARGED,
+                ChargeStatus.PARTIALLY_REFUNDED):
             return Money(payment.captured_amount, payment.currency)
         return zero_money()
 
@@ -274,11 +283,7 @@ class Order(models.Model):
         return self.total_captured - self.total.gross
 
     def get_total_weight(self):
-        # Cannot use `sum` as it parses an empty Weight to an int
-        weights = Weight(kg=0)
-        for line in self:
-            weights += line.variant.get_weight() * line.quantity
-        return weights
+        return self.weight
 
 
 class OrderLine(models.Model):

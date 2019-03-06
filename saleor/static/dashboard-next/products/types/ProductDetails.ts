@@ -145,7 +145,7 @@ export interface ProductDetails_product {
   __typename: "Product";
   id: string;
   name: string;
-  description: string;
+  descriptionJson: any;
   seoTitle: string | null;
   seoDescription: string | null;
   category: ProductDetails_product_category;

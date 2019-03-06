@@ -2,12 +2,15 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
+import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
 import FormSpacer from "../../../components/FormSpacer";
-import { RichTextEditor } from "../../../components/RichTextEditor";
+import RichTextEditor from "../../../components/RichTextEditor";
 import i18n from "../../../i18n";
+import { maybe } from "../../../misc";
+import { CategoryDetails_category } from "../../types/CategoryDetails";
 
 const styles = createStyles({
   root: {
@@ -16,9 +19,10 @@ const styles = createStyles({
 });
 
 interface CategoryDetailsFormProps extends WithStyles<typeof styles> {
+  category?: CategoryDetails_category;
   data: {
     name: string;
-    description: string;
+    description: RawDraftContentState;
   };
   disabled: boolean;
   errors: { [key: string]: string };
@@ -28,7 +32,14 @@ interface CategoryDetailsFormProps extends WithStyles<typeof styles> {
 export const CategoryDetailsForm = withStyles(styles, {
   name: "CategoryDetailsForm"
 })(
-  ({ classes, disabled, data, onChange, errors }: CategoryDetailsFormProps) => {
+  ({
+    category,
+    classes,
+    disabled,
+    data,
+    onChange,
+    errors
+  }: CategoryDetailsFormProps) => {
     return (
       <Card>
         <CardTitle title={i18n.t("General information")} />
@@ -49,17 +60,12 @@ export const CategoryDetailsForm = withStyles(styles, {
             <FormSpacer />
             <RichTextEditor
               disabled={disabled}
+              error={!!errors.descriptionJson}
+              helperText={errors.descriptionJson}
               label={i18n.t("Description")}
-              fullWidth
-              helperText={
-                errors.description
-                  ? errors.description
-                  : i18n.t("Select text to enable text-formatting tools.")
-              }
+              initial={maybe(() => JSON.parse(category.descriptionJson))}
               name="description"
-              value={data.description}
               onChange={onChange}
-              error={!!errors.description}
             />
           </>
         </CardContent>

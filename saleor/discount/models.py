@@ -142,7 +142,8 @@ class Voucher(models.Model):
 class SaleQueryset(models.QuerySet):
     def active(self, date):
         return self.filter(
-            end_date__gte=date, start_date__lte=date)
+            Q(end_date__isnull=True) | Q(end_date__gte=date),
+            start_date__lte=date)
 
 
 class VoucherTranslation(models.Model):
