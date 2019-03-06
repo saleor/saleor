@@ -7,12 +7,14 @@ import ShippingZoneRateDialog, {
 import { shippingZone } from "../../../shipping/fixtures";
 import { ShippingMethodTypeEnum } from "../../../types/globalTypes";
 import Decorator from "../../Decorator";
+import { formError } from "../../misc";
 
 const props: ShippingZoneRateDialogProps = {
   action: "edit",
   confirmButtonState: "default",
   defaultCurrency: "USD",
   disabled: false,
+  errors: [],
   onClose: () => undefined,
   onSubmit: () => undefined,
   open: true,
@@ -33,5 +35,18 @@ storiesOf("Shipping / Rate details", module)
     <ShippingZoneRateDialog
       {...props}
       variant={ShippingMethodTypeEnum.WEIGHT}
+    />
+  ))
+  .add("form errors", () => (
+    <ShippingZoneRateDialog
+      {...props}
+      errors={[
+        "minimumOrderPrice",
+        "minimumOrderWeight",
+        "maximumOrderPrice",
+        "maximumOrderWeight",
+        "price",
+        "name"
+      ].map(formError)}
     />
   ));

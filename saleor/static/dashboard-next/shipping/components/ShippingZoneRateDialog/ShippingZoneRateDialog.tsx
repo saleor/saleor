@@ -186,6 +186,11 @@ const ShippingZoneRateDialog = withStyles(styles, {
                                   : !!typedFormErrors.minimumOrderWeight
                               }
                               fullWidth
+                              helperText={
+                                variant === ShippingMethodTypeEnum.PRICE
+                                  ? typedFormErrors.minimumOrderPrice
+                                  : typedFormErrors.minimumOrderWeight
+                              }
                               label={
                                 variant === ShippingMethodTypeEnum.PRICE
                                   ? typedFormErrors.minimumOrderPrice ||
@@ -206,6 +211,11 @@ const ShippingZoneRateDialog = withStyles(styles, {
                                   : !!typedFormErrors.maximumOrderWeight
                               }
                               fullWidth
+                              helperText={
+                                variant === ShippingMethodTypeEnum.PRICE
+                                  ? typedFormErrors.maximumOrderPrice
+                                  : typedFormErrors.maximumOrderWeight
+                              }
                               label={
                                 variant === ShippingMethodTypeEnum.PRICE
                                   ? typedFormErrors.maximumOrderPrice ||
