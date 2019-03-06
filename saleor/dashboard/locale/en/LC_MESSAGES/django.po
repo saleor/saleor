@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-25 10:45-0600\n"
+"POT-Creation-Date: 2019-03-04 10:43-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1016,7 +1016,7 @@ msgctxt "Order tracking number"
 msgid "Tracking number"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:631
+#: saleor/dashboard/order/forms.py:638
 #, python-format
 msgctxt "Fulfill order line form error"
 msgid "%(quantity)d item remaining to fulfill."

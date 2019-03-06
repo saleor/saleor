@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-12 07:24-0600\n"
+"POT-Creation-Date: 2019-02-25 10:45-0600\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
 "Last-Translator: Jan M, 2019\n"
 "Language-Team: Slovak (https://www.transifex.com/mirumee/teams/34782/sk/)\n"
@@ -397,47 +397,47 @@ msgstr ""
 "Prepáčte. Nemáme toľko položiek na sklade. Množstvo bolo nastavené na "
 "maximum momentálne k dispozícii."
 
-#: saleor/checkout/utils.py:646
+#: saleor/checkout/utils.py:628
 msgctxt "Voucher not applicable"
 msgid "Your order does not require shipping."
 msgstr "Vaša objednávka nevyžaduje prepravu."
 
-#: saleor/checkout/utils.py:652
+#: saleor/checkout/utils.py:634
 msgctxt "Voucher not applicable"
 msgid "Please select a shipping method first."
 msgstr "Prosím vyberte spôsob odoslania."
 
-#: saleor/checkout/utils.py:660
+#: saleor/checkout/utils.py:642
 msgctxt "Voucher not applicable"
 msgid "This offer is not valid in your country."
 msgstr "Táto ponuka neplatí pre vo vašej krajine."
 
-#: saleor/checkout/utils.py:682
+#: saleor/checkout/utils.py:664
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for selected items."
 msgstr "Táto ponuka platí iba pre vybrané položky."
 
-#: saleor/checkout/utils.py:792
+#: saleor/checkout/utils.py:791
 msgctxt "Voucher not applicable"
 msgid "Voucher expired in meantime. Order placement aborted."
 msgstr "Platnosť kupónu medzičasom vypršala. Podaná objednávka bola zrušená."
 
-#: saleor/checkout/utils.py:899
+#: saleor/checkout/utils.py:904
 msgctxt "order placement_error"
 msgid "Shipping method is not set"
 msgstr ""
 
-#: saleor/checkout/utils.py:902
+#: saleor/checkout/utils.py:907
 msgctxt "order placement error"
 msgid "Shipping address is not set"
 msgstr ""
 
-#: saleor/checkout/utils.py:906
+#: saleor/checkout/utils.py:911
 msgctxt "order placement error"
 msgid "Shipping method is not valid for your shipping address"
 msgstr ""
 
-#: saleor/checkout/utils.py:909
+#: saleor/checkout/utils.py:914
 msgctxt "order placement error"
 msgid "Checkout is not fully paid"
 msgstr ""
@@ -452,127 +452,127 @@ msgctxt "Checkout warning"
 msgid "Please review your checkout."
 msgstr "Skontrolujte si platbu."
 
-#: saleor/core/__init__.py:55
+#: saleor/core/__init__.py:54
 msgctxt "VAT rate type"
 msgid "accommodation"
 msgstr "ubytovanie"
 
-#: saleor/core/__init__.py:57
+#: saleor/core/__init__.py:56
 msgctxt "VAT rate type"
 msgid "admission to cultural events"
 msgstr "vstupné na kultúrne podujatia"
 
-#: saleor/core/__init__.py:59
+#: saleor/core/__init__.py:58
 msgctxt "VAT rate type"
 msgid "admission to entertainment events"
 msgstr "vstupné na zábavné podujatia"
 
-#: saleor/core/__init__.py:61
+#: saleor/core/__init__.py:60
 msgctxt "VAT rate type"
 msgid "admission to sporting events"
 msgstr "vstupné na športové podujatia"
 
-#: saleor/core/__init__.py:62
+#: saleor/core/__init__.py:61
 msgctxt "VAT rate type"
 msgid "advertising"
 msgstr "reklama"
 
-#: saleor/core/__init__.py:64
+#: saleor/core/__init__.py:63
 msgctxt "VAT rate type"
 msgid "agricultural supplies"
 msgstr "poľnohospodárske zásoby"
 
-#: saleor/core/__init__.py:65
+#: saleor/core/__init__.py:64
 msgctxt "VAT rate type"
 msgid "baby foodstuffs"
 msgstr "detské potraviny"
 
-#: saleor/core/__init__.py:66
+#: saleor/core/__init__.py:65
 msgctxt "VAT rate type"
 msgid "bikes"
 msgstr "bicykle"
 
-#: saleor/core/__init__.py:67
+#: saleor/core/__init__.py:66
 msgctxt "VAT rate type"
 msgid "books"
 msgstr "knihy"
 
-#: saleor/core/__init__.py:69
+#: saleor/core/__init__.py:68
 msgctxt "VAT rate type"
 msgid "childrens clothing"
 msgstr "detské oblečenie"
 
-#: saleor/core/__init__.py:70
+#: saleor/core/__init__.py:69
 msgctxt "VAT rate type"
 msgid "domestic fuel"
 msgstr "domáce palivo"
 
-#: saleor/core/__init__.py:72
+#: saleor/core/__init__.py:71
 msgctxt "VAT rate type"
 msgid "domestic services"
 msgstr "domáce služby"
 
-#: saleor/core/__init__.py:73
+#: saleor/core/__init__.py:72
 msgctxt "VAT rate type"
 msgid "e-books"
 msgstr "e-knihy"
 
-#: saleor/core/__init__.py:74
+#: saleor/core/__init__.py:73
 msgctxt "VAT rate type"
 msgid "foodstuffs"
 msgstr "potraviny"
 
-#: saleor/core/__init__.py:75
+#: saleor/core/__init__.py:74
 msgctxt "VAT rate type"
 msgid "hotels"
 msgstr "hotely"
 
-#: saleor/core/__init__.py:76
+#: saleor/core/__init__.py:75
 msgctxt "VAT rate type"
 msgid "medical"
 msgstr "lekárske"
 
-#: saleor/core/__init__.py:77
+#: saleor/core/__init__.py:76
 msgctxt "VAT rate type"
 msgid "newspapers"
 msgstr "noviny"
 
-#: saleor/core/__init__.py:79
+#: saleor/core/__init__.py:78
 msgctxt "VAT rate type"
 msgid "passenger transport"
 msgstr "osobná doprava"
 
-#: saleor/core/__init__.py:81
+#: saleor/core/__init__.py:80
 msgctxt "VAT rate type"
 msgid "pharmaceuticals"
 msgstr "farmaceutiká"
 
-#: saleor/core/__init__.py:83
+#: saleor/core/__init__.py:82
 msgctxt "VAT rate type"
 msgid "property renovations"
 msgstr "rekonštrukcie nehnuteľností"
 
-#: saleor/core/__init__.py:84
+#: saleor/core/__init__.py:83
 msgctxt "VAT rate type"
 msgid "restaurants"
 msgstr "reštaurácie"
 
-#: saleor/core/__init__.py:85
+#: saleor/core/__init__.py:84
 msgctxt "VAT rate type"
 msgid "social housing"
 msgstr "sociálne ubytovanie"
 
-#: saleor/core/__init__.py:86
+#: saleor/core/__init__.py:85
 msgctxt "VAT rate type"
 msgid "standard"
 msgstr "štandard"
 
-#: saleor/core/__init__.py:87
+#: saleor/core/__init__.py:86
 msgctxt "VAT rate type"
 msgid "water"
 msgstr "voda"
 
-#: saleor/core/__init__.py:88
+#: saleor/core/__init__.py:87
 msgctxt "VAT rate type"
 msgid "wine"
 msgstr "víno"
@@ -693,7 +693,7 @@ msgctxt "Permission description"
 msgid "Manage sales and vouchers."
 msgstr "Správa výpredajov a kupónov"
 
-#: saleor/discount/utils.py:47
+#: saleor/discount/utils.py:49
 msgctxt "Voucher not applicable"
 msgid "Discount not applicable for this product"
 msgstr "Zľava sa nevzťahuje na tento produkt"
@@ -924,18 +924,18 @@ msgctxt "Payment delete form error"
 msgid "Payment cannot be cancelled."
 msgstr ""
 
-#: saleor/order/models.py:132
+#: saleor/order/models.py:134
 msgctxt "Permission description"
 msgid "Manage orders."
 msgstr "Správa objednávok."
 
-#: saleor/order/models.py:337
+#: saleor/order/models.py:339
 #, python-format
 msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
 msgstr "Naplnené #%s"
 
-#: saleor/order/views.py:199
+#: saleor/order/views.py:196
 msgctxt "Connect order with user warning message"
 msgid ""
 "We couldn't assign the order to your account as the email addresses don't "
@@ -944,12 +944,12 @@ msgstr ""
 "Nemohli sme priradoť objednávku k Vášmu kontu, nakoľko sa emailové adresy "
 "nezhodujú"
 
-#: saleor/order/views.py:206
+#: saleor/order/views.py:203
 msgctxt "storefront message"
 msgid "The order is now assigned to your account"
 msgstr "Objadnávka priradená k Vášmu kontu"
 
-#: saleor/page/models.py:44
+#: saleor/page/models.py:33
 msgctxt "Permission description"
 msgid "Manage pages."
 msgstr "Správa stránok."
@@ -999,7 +999,7 @@ msgctxt "payment status"
 msgid "Fully refunded"
 msgstr ""
 
-#: saleor/payment/gateways/braintree/__init__.py:71
+#: saleor/payment/gateways/braintree/__init__.py:68
 #: saleor/payment/gateways/braintree/forms.py:35
 msgctxt "payment error"
 msgid "Unable to process transaction. Please try again in a moment"
@@ -1054,6 +1054,11 @@ msgstr ""
 #: saleor/payment/gateways/stripe/forms.py:11
 msgctxt "Stripe payment gateway description"
 msgid "Total payment"
+msgstr ""
+
+#: saleor/payment/utils.py:236
+msgctxt "Mark order as paid validation error"
+msgid "Orders with payments can not be manually marked as paid."
 msgstr ""
 
 #: saleor/product/__init__.py:15
@@ -1127,7 +1132,7 @@ msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
 msgstr "%(variant_label)s - %(price)s"
 
-#: saleor/product/models.py:147
+#: saleor/product/models.py:129
 msgctxt "Permission description"
 msgid "Manage products."
 msgstr "Správa produktov."
@@ -1194,83 +1199,87 @@ msgid "Hungarian"
 msgstr "Maďarčina"
 
 #: saleor/settings.py:75
+msgid "Indonesian"
+msgstr ""
+
+#: saleor/settings.py:76
 msgid "Italian"
 msgstr "Taliančina"
 
-#: saleor/settings.py:76
+#: saleor/settings.py:77
 msgid "Japanese"
 msgstr "Japončina"
 
-#: saleor/settings.py:77
+#: saleor/settings.py:78
 msgid "Korean"
 msgstr "Kórejčina"
 
-#: saleor/settings.py:78
+#: saleor/settings.py:79
 msgid "Mongolian"
 msgstr ""
 
-#: saleor/settings.py:79
+#: saleor/settings.py:80
 msgid "Norwegian"
 msgstr "Nórčina"
 
-#: saleor/settings.py:80
+#: saleor/settings.py:81
 msgid "Dutch"
 msgstr "Holandčina"
 
-#: saleor/settings.py:81
+#: saleor/settings.py:82
 msgid "Polish"
 msgstr "Poľština"
 
-#: saleor/settings.py:82
+#: saleor/settings.py:83
 msgid "Brazilian Portuguese"
 msgstr ""
 
-#: saleor/settings.py:83
+#: saleor/settings.py:84
 msgid "Romanian"
 msgstr "Rumunčina"
 
-#: saleor/settings.py:84
+#: saleor/settings.py:85
 msgid "Russian"
 msgstr "Rušština"
 
-#: saleor/settings.py:85
+#: saleor/settings.py:86
 msgid "Slovak"
 msgstr "Slovenčina"
 
-#: saleor/settings.py:86
+#: saleor/settings.py:87
 msgid "Serbian"
 msgstr ""
 
-#: saleor/settings.py:87
+#: saleor/settings.py:88
 msgid "Swedish"
 msgstr ""
 
-#: saleor/settings.py:88
+#: saleor/settings.py:89
 msgid "Turkish"
 msgstr "Turčina"
 
-#: saleor/settings.py:89
+#: saleor/settings.py:90
 msgid "Ukrainian"
 msgstr "Ukrainčina"
 
-#: saleor/settings.py:90
+#: saleor/settings.py:91
 msgid "Vietnamese"
 msgstr "Vietnamčina"
 
-#: saleor/settings.py:91
+#: saleor/settings.py:92
 msgid "Simplified Chinese"
 msgstr ""
 
-#: saleor/settings.py:92
+#: saleor/settings.py:93
 msgid "Traditional Chinese"
 msgstr ""
 
-#: saleor/settings.py:328
+#: saleor/settings.py:329
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr "Európska Únia"
 
-#: saleor/settings.py:565
+#: saleor/settings.py:566
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr ""
@@ -6222,70 +6231,30 @@ msgctxt "Account delete reset e-mail subject"
 msgid "Delete your account"
 msgstr "Odstrániť svoje konto"
 
-#: templates/templated_email/account/account_delete.email:8
+#: templates/templated_email/account/account_delete.email:9
 #, python-format
 msgctxt "Account delete reset e-mail text"
 msgid ""
-"\n"
-"Hi!\n"
 "\n"
 "You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(domain)s.\n"
 "Click the link below to delete your account.\n"
 "\n"
 "Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
-"\n"
-"Dobrý deň\n"
-"\n"
-"Posielame Vám Tento mail pretože niekto požiadal o odstránenie Vášho účtu na %(domain)s.\n"
-"Pre odstránenie účtu kliknite na link nižšie. \n"
-"\n"
-"Pozor, odstránenie účtu je trvalé a nedá sa zvrátiť.\n"
-
-#: templates/templated_email/account/account_delete.email:21
-#, python-format
-msgctxt "Account delete reset e-mail text"
-msgid ""
-"\n"
-"Sincerely,\n"
-"%(site_name)s\n"
-msgstr ""
-"\n"
-"S pozdravom,\n"
-" %(site_name)s\n"
 
 #: templates/templated_email/account/password_reset.email:4
 msgctxt "Password reset e-mail subject"
 msgid "Password reset e-mail"
 msgstr "Email na obnovnie hesla"
 
-#: templates/templated_email/account/password_reset.email:8
+#: templates/templated_email/account/password_reset.email:9
 #, python-format
 msgctxt "Password reset e-mail text"
 msgid ""
-"\n"
-"Hi!\n"
 "\n"
 "You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
 "It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
 msgstr ""
-"\n"
-"Dobrý deň,\n"
-"\n"
-"Posielame Vám Tento mail pretože sa niekto pokúsil zmeniť heslo od Vášho učtu na %(domain)s. Pre obnovu hesla kliknite na link nižšie. \n"
-"Ak však ste o obnovu nežiadali Vy, môžete tento mail pokojne ignorovať.\n"
-
-#: templates/templated_email/account/password_reset.email:19
-#, python-format
-msgctxt "Password reset e-mail text"
-msgid ""
-"\n"
-"Sincerely,\n"
-"%(site_name)s\n"
-msgstr ""
-"\n"
-"S pozdravom,\n"
-" %(site_name)s\n"
 
 #: templates/templated_email/dashboard/customer/set_password.email:2
 #, python-format
@@ -6293,53 +6262,27 @@ msgctxt "Set password for customer e-mail title"
 msgid "Hello from %(site_name)s!"
 msgstr "Dobrý deň z %(site_name)s!"
 
-#: templates/templated_email/dashboard/customer/set_password.email:5
+#: templates/templated_email/dashboard/customer/set_password.email:6
 #, python-format
 msgctxt "Set password for customer e-mail text"
 msgid ""
 "\n"
-"Hi!\n"
-"\n"
-"You're receiving this e-mail because you have to set password for your customer account at %(domain)s.\n"
+"You're receiving this e-mail because you have to set a password for your customer account at %(domain)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
-
-#: templates/templated_email/dashboard/customer/set_password.email:14
-msgctxt "Set password for customer e-mail text"
-msgid ""
-"\n"
-"This is an automatically generated email, please do not reply.\n"
-msgstr ""
-"\n"
-"Toto je automaticky generovaný email, prosím neodpovedajte naň.\n"
 
 #: templates/templated_email/dashboard/staff/promote_customer.email:2
 #, python-format
 msgid "Hello from %(site_name)s!"
 msgstr "Dobrý deň z %(site_name)s!"
 
-#: templates/templated_email/dashboard/staff/promote_customer.email:5
+#: templates/templated_email/dashboard/staff/promote_customer.email:6
 #, python-format
 msgctxt "Promote customer to staff member confirmation e-mail text"
 msgid ""
 "\n"
-"Hi!\n"
-"\n"
 "You're receiving this e-mail because you have been promoted to staff member at %(domain)s."
 msgstr ""
-"\n"
-"Dobrý deň!\n"
-"\n"
-"Dostali ste tento email lebo ste boli povýšení na zamestnanca na %(domain)s."
-
-#: templates/templated_email/dashboard/staff/promote_customer.email:10
-msgctxt "Promote customer to staff member confirmation e-mail text"
-msgid ""
-"\n"
-"This is an automatically generated email, please do not reply.\n"
-msgstr ""
-"\n"
-"Toto je automaticky generovaný email, prosím neodpovedajte naň.\n"
 
 #: templates/templated_email/dashboard/staff/set_password.email:2
 #, python-format
@@ -6347,30 +6290,14 @@ msgctxt "Set password for staff member e-mail title"
 msgid "Hello from %(site_name)s!"
 msgstr "Dobrý deň z %(site_name)s!"
 
-#: templates/templated_email/dashboard/staff/set_password.email:5
+#: templates/templated_email/dashboard/staff/set_password.email:6
 #, python-format
 msgctxt "Set password for staff member e-mail text"
 msgid ""
 "\n"
-"Hi!\n"
-"\n"
-"You're receiving this e-mail because you have to set password for your staff member account at %(domain)s.\n"
+"You're receiving this e-mail because you have to set a password for your staff member account at %(domain)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
-"\n"
-"Dobrý deň\n"
-"\n"
-"Posielame Vám Tento mail pretože musíte nastaviť heslo od Vášho zamestnaneckého učtu na %(domain)s. \n"
-"Pre nastavenie hesla kliknite na link nižšie.\n"
-
-#: templates/templated_email/dashboard/staff/set_password.email:14
-msgctxt "Set password for staff member e-mail text"
-msgid ""
-"\n"
-"This is an automatically generated email, please do not reply.\n"
-msgstr ""
-"\n"
-"Toto je automaticky generovaný email, prosím neodpovedajte naň.\n"
 
 #: templates/templated_email/order/confirm_fulfillment.email:4
 #, python-format
@@ -6378,163 +6305,100 @@ msgctxt "Fulfillment confirmation email subject"
 msgid "A shipment from order %(order)s is on the way"
 msgstr "Zásielka z objednávky %(order)s je na ceste"
 
-#: templates/templated_email/order/confirm_fulfillment.email:10
+#: templates/templated_email/order/confirm_fulfillment.email:11
 msgctxt "Fulfillment confirmation email text"
 msgid ""
 "\n"
-"Hi!\n"
-"\n"
 "Thank you for your order. Below is the list of shipped products.\n"
 msgstr ""
-"\n"
-"Dobrý deň\n"
-"\n"
-"Ďakujeme za Vašu objednávku. Dole je zoznam odoslaných produktov.\n"
 
-#: templates/templated_email/order/confirm_fulfillment.email:16
+#: templates/templated_email/order/confirm_fulfillment.email:15
 #: templates/templated_email/source/confirm_fulfillment.mjml:20
 #, python-format
 msgctxt "Fulfillment confirmation email text"
 msgid "You can track your shipment with %(tracking_number)s code."
 msgstr "Zásielku môžte sledovať s kódom %(tracking_number)s."
 
-#: templates/templated_email/order/confirm_fulfillment.email:25
-#, python-format
-msgctxt "Fulfillment confirmation email text"
-msgid ""
-"\n"
-"This is an automatically generated email, please do not reply.\n"
-"\n"
-"Sincerely,\n"
-"%(site_name)s\n"
-msgstr ""
-"\n"
-"Toto je automaticky generovaný email, prosím neodpovedajte naň.\n"
-"\n"
-"S pozdravom,\n"
-"%(site_name)s\n"
-
 #: templates/templated_email/order/confirm_order.email:6
 msgctxt "Order confirmation e-mail subject"
 msgid "Order details"
 msgstr "Detaily objednávky"
 
-#: templates/templated_email/order/confirm_order.email:10
+#: templates/templated_email/order/confirm_order.email:11
 #, python-format
 msgctxt "Order confirmation e-mail text"
 msgid ""
 "\n"
-"Hi!\n"
-"\n"
 "Thank you for your order. Below is the list of ordered products. To see your payment details please visit:\n"
 "%(order_details_url)s"
 msgstr ""
-"\n"
-"Dobrý deň\n"
-"\n"
-"Ďakujeme za Vašu objednávku. Dole je zoznam objednaných produktov. Pre detaily k platbe navštivte: \n"
-"%(order_details_url)s"
 
-#: templates/templated_email/order/confirm_order.email:18
+#: templates/templated_email/order/confirm_order.email:17
 msgctxt "Order confirmation e-mail table header"
 msgid "Order summary"
 msgstr "Prehľad objednávky"
 
-#: templates/templated_email/order/confirm_order.email:19
+#: templates/templated_email/order/confirm_order.email:18
 msgctxt "Order confirmation e-mail table header"
 msgid "Subtotal"
 msgstr "Medzisúčet"
 
-#: templates/templated_email/order/confirm_order.email:20
+#: templates/templated_email/order/confirm_order.email:19
 msgctxt "Order confirmation e-mail table header"
 msgid "Shipping"
 msgstr "Doprava"
 
-#: templates/templated_email/order/confirm_order.email:21
+#: templates/templated_email/order/confirm_order.email:20
 msgctxt "Order confirmation e-mail table header"
 msgid "Taxes (included)"
 msgstr "Daňe (zahrnuté)"
 
-#: templates/templated_email/order/confirm_order.email:21
+#: templates/templated_email/order/confirm_order.email:20
 msgctxt "Order confirmation e-mail table header"
 msgid "Taxes"
 msgstr "Daňe"
 
-#: templates/templated_email/order/confirm_order.email:22
+#: templates/templated_email/order/confirm_order.email:21
 msgctxt "Order confirmation e-mail table header"
 msgid "Discount:"
 msgstr "Zľava:"
 
-#: templates/templated_email/order/confirm_order.email:23
+#: templates/templated_email/order/confirm_order.email:22
 msgctxt "Order confirmation e-mail table header"
 msgid "Total"
 msgstr "Súčet"
 
-#: templates/templated_email/order/confirm_order.email:25
+#: templates/templated_email/order/confirm_order.email:24
 #: templates/templated_email/source/confirm_order.mjml:29
 msgctxt "Order confirmation e-mail billing address"
 msgid "Billing address"
 msgstr "Fakturačná adresa"
 
-#: templates/templated_email/order/confirm_order.email:28
+#: templates/templated_email/order/confirm_order.email:27
 #: templates/templated_email/source/confirm_order.mjml:30
 msgctxt "Order confirmation e-mail shipping address"
 msgid "Shipping address"
 msgstr "Dodacia adresa"
 
-#: templates/templated_email/order/confirm_order.email:29
+#: templates/templated_email/order/confirm_order.email:28
 #: templates/templated_email/source/confirm_order.mjml:42
 msgctxt "Order confirmation e-mail text"
 msgid "No shipping required"
 msgstr "Doprava nie je nutná"
-
-#: templates/templated_email/order/confirm_order.email:31
-#, python-format
-msgctxt "Order confirmation e-mail text"
-msgid ""
-"\n"
-"This is an automatically generated e-mail, please do not reply.\n"
-"\n"
-"Sincerely,\n"
-"%(site_name)s\n"
-msgstr ""
-"\n"
-"Toto je automaticky generovaný email, prosím neodpovedajte naň.\n"
-"\n"
-"S  pozdravom,\n"
-"%(site_name)s\n"
 
 #: templates/templated_email/order/payment/confirm_payment.email:4
 msgctxt "Payment confirmation subject"
 msgid "Payment details"
 msgstr "Údaje o platbe"
 
-#: templates/templated_email/order/payment/confirm_payment.email:8
+#: templates/templated_email/order/payment/confirm_payment.email:9
 #, python-format
 msgctxt "Payment confirmation email text"
 msgid ""
 "\n"
-"Hi!\n"
-"\n"
 "Thank you for your payment. To see your payment details please visit:\n"
 "%(order_details_url)s\n"
-"\n"
-"This is an automatically generated email, please do not reply.\n"
-"\n"
-"Sincerely,\n"
-"%(site_name)s\n"
 msgstr ""
-"\n"
-"Dobrý deň!\n"
-"\n"
-"Dakujeme za Vašu platbu. Pre detaily o platbe prosím naštívte:\n"
-"%(order_details_url)s\n"
-"\n"
-"\n"
-"Toto je automaticky generovaný email, prosím neodpovedajte naň.\n"
-"\n"
-"S pozdravom,\n"
-"%(site_name)s\n"
 
 #: templates/templated_email/order/update_fulfillment.email:4
 #, python-format
@@ -6542,44 +6406,44 @@ msgctxt "Fulfillment update email subject"
 msgid "Shipping update for order %(order)s"
 msgstr "Zmena v doručení objednávky%(order)s"
 
-#: templates/templated_email/order/update_fulfillment.email:10
+#: templates/templated_email/order/update_fulfillment.email:11
 msgctxt "Fulfillment update email text"
 msgid ""
-"\n"
-"Hi!\n"
 "\n"
 "Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
 msgstr ""
-"\n"
-"Dobrý deň\n"
-"\n"
-"Váš stav doručenia sa zmenil. Dole je zoznam objednaných produktov, ktoré boli aktualizované s novým sledovacím číslom.\n"
 
-#: templates/templated_email/order/update_fulfillment.email:16
-#: templates/templated_email/source/update_fulfillment.mjml:20
-#, python-format
-msgctxt "Fulfillment update email text"
-msgid "You can track your shipment with %(tracking_number)s code."
-msgstr "Zásielku môžte sledovať s kódom %(tracking_number)s."
-
-#: templates/templated_email/order/update_fulfillment.email:25
+#: templates/templated_email/order/update_fulfillment.email:15
 #, python-format
 msgctxt "Fulfillment update email text"
 msgid ""
-"\n"
-"This is an automatically generated email, please do not reply.\n"
-"\n"
-"Sincerely,\n"
-"%(site_name)s\n"
+"You can track your shipment with the following code: %(tracking_number)s."
 msgstr ""
-"\n"
-"Toto je automaticky generovaný email, prosím neodpovedajte naň.\n"
-"\n"
-"S pozdravom,\n"
-"%(site_name)s\n"
 
+#: templates/templated_email/shared/_footer.email:2
+#: templates/templated_email/source/shared/footer.mjml:4
+msgctxt "Base email text"
+msgid "This is an automatically generated e-mail, please do not reply."
+msgstr ""
+
+#: templates/templated_email/shared/_footer.email:5
+#: templates/templated_email/source/shared/footer.mjml:13
+#, python-format
+msgctxt "Base email footer"
+msgid "Sincerely, %(site_name)s"
+msgstr "S pozdravom, %(site_name)s"
+
+#: templates/templated_email/shared/_header.email:2
 #: templates/templated_email/source/account_delete.mjml:13
-msgctxt "Account delete e-mail text"
+#: templates/templated_email/source/confirm_fulfillment.mjml:13
+#: templates/templated_email/source/confirm_order.mjml:14
+#: templates/templated_email/source/confirm_payment.mjml:13
+#: templates/templated_email/source/password_reset.mjml:13
+#: templates/templated_email/source/promote_customer.mjml:13
+#: templates/templated_email/source/set_customer_password.mjml:13
+#: templates/templated_email/source/set_password.mjml:13
+#: templates/templated_email/source/update_fulfillment.mjml:13
+msgctxt "Standard e-mail greeting"
 msgid "Hi!"
 msgstr "Dobrý deň!"
 
@@ -6595,20 +6459,10 @@ msgstr ""
 "Posielame Vám Tento mail pretože sa niekto pokúsil odstrániť Váš účet na %(domain)s. Pre odstránenie účtu kliknite na link nižšie. \n"
 "Pozor, odstránenie účtu je trvalé a nedá sa zvrátiť."
 
-#: templates/templated_email/source/confirm_fulfillment.mjml:13
-msgctxt "Fulfillment confirmation email text"
-msgid "Hi!"
-msgstr "Dobrý deň!"
-
 #: templates/templated_email/source/confirm_fulfillment.mjml:16
 msgctxt "Fulfillment confirmation email text"
 msgid "Thank you for your order. Below is the list of shipped products."
 msgstr "Ďakujeme za Vašu objednávku. Dole je zoznam odoslaných produktov."
-
-#: templates/templated_email/source/confirm_order.mjml:14
-msgctxt "Order confirmation e-mail text"
-msgid "Hi!"
-msgstr "Dobrý deň!"
 
 #: templates/templated_email/source/confirm_order.mjml:17
 #, python-format
@@ -6621,11 +6475,6 @@ msgstr ""
 "Ďakujeme za Vašu objednávku. Dole je zoznam objednaných produktov. Pre "
 "detaily k platbe navštivte: <a "
 "href=\"%(order_details_url)s\">%(order_details_url)s</a>"
-
-#: templates/templated_email/source/confirm_payment.mjml:13
-msgctxt "Payment confirmation e-mail text"
-msgid "Hi!"
-msgstr "Dobrý deň!"
 
 #: templates/templated_email/source/confirm_payment.mjml:16
 #, python-format
@@ -6687,11 +6536,6 @@ msgctxt "Ordered item subtotal (unit price * quantity)"
 msgid "Subtotal"
 msgstr "Medzisúčet"
 
-#: templates/templated_email/source/password_reset.mjml:13
-msgctxt "Password reset e-mail text"
-msgid "Hi!"
-msgstr "Dobrý deň!"
-
 #: templates/templated_email/source/password_reset.mjml:16
 #, python-format
 msgctxt "Password reset e-mail text"
@@ -6703,11 +6547,6 @@ msgid ""
 msgstr ""
 "Posielame Vám Tento mail pretože sa niekto pokúsil zmeniť heslo od Vášho učtu na %(domain)s. Pre obnovu hesla kliknite na link nižšie. \n"
 "Ak však ste o obnovu nežiadali, môžete tento mail pokojne ignorovať."
-
-#: templates/templated_email/source/promote_customer.mjml:13
-msgctxt "Promote customer to staff member confirmation e-mail text"
-msgid "Hi!"
-msgstr "Dobrý deň!"
 
 #: templates/templated_email/source/promote_customer.mjml:16
 #, python-format
@@ -6721,11 +6560,6 @@ msgstr ""
 " <br/> Na prístup k dashboardu, navštivte: <a "
 "href=\"%(dashboard_url)s\">%(dashboard_url)s</a>"
 
-#: templates/templated_email/source/set_customer_password.mjml:13
-msgctxt "Set password for customer e-mail text"
-msgid "Hi!"
-msgstr "Dobrý deň!"
-
 #: templates/templated_email/source/set_customer_password.mjml:16
 #, python-format
 msgctxt "Set password for customer e-mail text"
@@ -6734,11 +6568,6 @@ msgid ""
 "customer account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
-
-#: templates/templated_email/source/set_password.mjml:13
-msgctxt "Set password for staff member e-mail text"
-msgid "Hi!"
-msgstr "Dobrý deň!"
 
 #: templates/templated_email/source/set_password.mjml:16
 #, python-format
@@ -6752,22 +6581,6 @@ msgstr ""
 "zamestnaneckého učtu na %(domain)s. Pre nastavenie hesla kliknite na link "
 "nižšie."
 
-#: templates/templated_email/source/shared/footer.mjml:4
-msgctxt "Base email text"
-msgid "This is an automatically generated email, please do not reply."
-msgstr "Toto je automaticky generovaný email, prosím neodpovedajte naň."
-
-#: templates/templated_email/source/shared/footer.mjml:13
-#, python-format
-msgctxt "Base email footer"
-msgid "Sincerely, %(site_name)s"
-msgstr "S pozdravom, %(site_name)s"
-
-#: templates/templated_email/source/update_fulfillment.mjml:13
-msgctxt "Fulfillment update email text"
-msgid "Hi!"
-msgstr "Dobrý deň!"
-
 #: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"
 msgid ""
@@ -6776,3 +6589,9 @@ msgid ""
 msgstr ""
 "Váš stav doručenia sa zmenil. Dole je zoznam objednaných produktov s novým "
 "sledovacím číslom."
+
+#: templates/templated_email/source/update_fulfillment.mjml:20
+#, python-format
+msgctxt "Fulfillment update email text"
+msgid "You can track your shipment with %(tracking_number)s code."
+msgstr "Zásielku môžte sledovať s kódom %(tracking_number)s."

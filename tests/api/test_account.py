@@ -1136,6 +1136,48 @@ def test_address_validator_uses_geip_when_country_code_missing(
     assert data['countryName'] == 'UNITED STATES'
 
 
+def test_address_validator_with_country_area(user_api_client):
+    query = """
+    query getValidator($input: AddressValidationInput!) {
+        addressValidator(input: $input) {
+            countryCode
+            countryName
+            countryAreaType
+            countryAreaChoices {
+                verbose
+                raw
+            }
+            cityType
+            cityChoices {
+                raw
+                verbose
+            }
+            cityAreaType
+            cityAreaChoices {
+                raw
+                verbose
+            }
+        }
+    }
+    """
+    variables = {
+        'input': {
+            'countryCode': 'CN',
+            'countryArea': 'Fujian Sheng',
+            'cityArea': None}}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['addressValidator']
+    assert data['countryCode'] == 'CN'
+    assert data['countryName'] == 'CHINA'
+    assert data['countryAreaType'] == 'province'
+    assert data['countryAreaChoices']
+    assert data['cityType'] == 'city'
+    assert data['cityChoices']
+    assert data['cityAreaType'] == 'city'
+    assert not data['cityAreaChoices']
+
+
 @patch('saleor.account.emails.send_password_reset_email.delay')
 def test_customer_reset_password(
         send_password_reset_mock, user_api_client, customer_user):

@@ -135,7 +135,7 @@ export const CollectionDetails: React.StatelessComponent<
                       ) => {
                         const input = {
                           backgroundImageAlt: formData.backgroundImageAlt,
-                          description: formData.description,
+                          descriptionJson: JSON.stringify(formData.description),
                           isPublished: formData.isPublished,
                           name: formData.name,
                           seo: {

@@ -416,6 +416,20 @@ def test_can_finalize_draft_order_no_order_lines(order):
     assert errors[0].message == 'Could not create order without any products.'
 
 
+def test_can_finalize_draft_order_non_existing_variant(order_with_lines):
+    order = order_with_lines
+    line = order.lines.first()
+    variant = line.variant
+    variant.delete()
+    line.refresh_from_db()
+    assert line.variant is None
+
+    errors = can_finalize_draft_order(order, [])
+    assert (
+        errors[0].message ==
+        'Could not create orders with non-existing products.')
+
+
 def test_draft_order_complete(
         staff_api_client, permission_manage_orders, staff_user, draft_order):
     order = draft_order
@@ -964,9 +978,9 @@ def test_order_capture(
     content = get_graphql_content(response)
     data = content['data']['orderCapture']['order']
     order.refresh_from_db()
-    assert data['paymentStatus'] == PaymentChargeStatusEnum.CHARGED.name
+    assert data['paymentStatus'] == PaymentChargeStatusEnum.FULLY_CHARGED.name
     payment_status_display = dict(ChargeStatus.CHOICES).get(
-        ChargeStatus.CHARGED)
+        ChargeStatus.FULLY_CHARGED)
     assert data['paymentStatusDisplay'] == payment_status_display
     assert data['isPaid']
     assert data['totalCaptured']['amount'] == float(amount)
@@ -1119,10 +1133,9 @@ def test_clean_order_void_payment():
 
     payment.is_active = True
     error_msg = 'error has happened.'
-    with patch(
-        'saleor.graphql.order.mutations.orders.gateway_void',
-        side_effect=ValueError(error_msg)):
-            errors = clean_void_payment(payment, [])
+    with patch('saleor.graphql.order.mutations.orders.gateway_void',
+               side_effect=ValueError(error_msg)):
+        errors = clean_void_payment(payment, [])
     assert errors[0].field == 'payment'
     assert errors[0].message == error_msg
 
