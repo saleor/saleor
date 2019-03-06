@@ -128,7 +128,7 @@ export const ProductCreatePage: React.StatelessComponent<
       confirmLeave
     >
       {({ change, data, errors, hasChanged, submit }) => (
-        <Container width="md">
+        <Container >
           <AppHeader onBack={onBack}>{i18n.t("Products")}</AppHeader>
           <PageHeader title={header} />
           <Grid>

@@ -59,7 +59,7 @@ const CustomerCreatePage: React.StatelessComponent<CustomerCreatePageProps> = ({
 }: CustomerCreatePageProps) => (
   <Form initial={initialForm} onSubmit={onSubmit} errors={errors} confirmLeave>
     {({ change, data, errors: formErrors, hasChanged, submit }) => (
-      <Container width="md">
+      <Container >
         <AppHeader onBack={onBack}>{i18n.t("Customers")}</AppHeader>
         <PageHeader title={i18n.t("Add customer")} />
         <Grid>

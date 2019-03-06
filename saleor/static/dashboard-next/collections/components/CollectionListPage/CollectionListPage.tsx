@@ -18,7 +18,7 @@ const CollectionListPage: React.StatelessComponent<CollectionListPageProps> = ({
   onAdd,
   ...listProps
 }) => (
-  <Container width="md">
+  <Container >
     <PageHeader title={i18n.t("Collections", { context: "page title" })}>
       <Button
         color="secondary"

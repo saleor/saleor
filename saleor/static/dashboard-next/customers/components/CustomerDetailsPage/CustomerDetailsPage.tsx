@@ -65,7 +65,7 @@ const CustomerDetailsPage: React.StatelessComponent<
     confirmLeave
   >
     {({ change, data, errors: formErrors, hasChanged, submit }) => (
-      <Container width="md">
+      <Container >
         <AppHeader onBack={onBack}>{i18n.t("Customers")}</AppHeader>
         <PageHeader title={getUserName(customer, true)} />
         <Grid>
