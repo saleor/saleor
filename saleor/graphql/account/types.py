@@ -113,6 +113,8 @@ class AddressValidationData(graphene.ObjectType):
     country_area_type = graphene.String()
     country_area_choices = graphene.List(ChoiceValue)
     city_type = graphene.String()
+    city_choices = graphene.List(ChoiceValue)
+    city_area_type = graphene.String()
     city_area_choices = graphene.List(ChoiceValue)
     postal_code_type = graphene.String()
     postal_code_matchers = graphene.List(graphene.String)

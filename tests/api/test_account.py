@@ -9,9 +9,11 @@ from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import reverse
 
 from saleor.account.models import Address, User
+from saleor.checkout import AddressType
 from saleor.graphql.account.mutations import (
     CustomerDelete, SetPassword, StaffDelete, StaffUpdate, UserDelete)
 from saleor.graphql.core.enums import PermissionEnum
+from saleor.order.models import FulfillmentStatus
 from tests.api.utils import get_graphql_content
 
 from .utils import assert_no_permission, convert_dict_keys_to_camel_case
@@ -319,6 +321,71 @@ def test_me_query_checkout(user_api_client, cart):
     content = get_graphql_content(response)
     data = content['data']['me']
     assert data['checkout']['token'] == str(cart.token)
+
+
+def test_me_with_cancelled_fulfillments(
+        user_api_client, fulfilled_order_with_cancelled_fulfillment):
+    query = """
+    query Me {
+        me {
+            orders (first: 1) {
+                edges {
+                    node {
+                        id
+                        fulfillments {
+                            status
+                        }
+                    }
+                }
+            }
+        }
+    }
+    """
+    response = user_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    order_id = graphene.Node.to_global_id(
+        'Order', fulfilled_order_with_cancelled_fulfillment.id)
+    data = content['data']['me']
+    order = data['orders']['edges'][0]['node']
+    assert order['id'] == order_id
+    fulfillments = order['fulfillments']
+    assert len(fulfillments) == 1
+    assert fulfillments[0]['status'] == FulfillmentStatus.FULFILLED.upper()
+
+
+def test_user_with_cancelled_fulfillments(
+        staff_api_client, customer_user, permission_manage_users,
+        fulfilled_order_with_cancelled_fulfillment):
+    query = """
+    query User($id: ID!) {
+        user(id: $id) {
+            orders (first: 1) {
+                edges {
+                    node {
+                        id
+                        fulfillments {
+                            status
+                        }
+                    }
+                }
+            }
+        }
+    }
+    """
+    user_id = graphene.Node.to_global_id('User', customer_user.id)
+    variables = {'id': user_id}
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    order_id = graphene.Node.to_global_id(
+        'Order', fulfilled_order_with_cancelled_fulfillment.id)
+    data = content['data']['user']
+    order = data['orders']['edges'][0]['node']
+    assert order['id'] == order_id
+    fulfillments = order['fulfillments']
+    assert len(fulfillments) == 2
+    assert fulfillments[0]['status'] == FulfillmentStatus.FULFILLED.upper()
+    assert fulfillments[1]['status'] == FulfillmentStatus.CANCELED.upper()
 
 
 def test_customer_register(user_api_client):
@@ -899,10 +966,7 @@ def test_create_address_mutation(
     assert address_obj.user_addresses.first() == customer_user
 
 
-def test_address_update_mutation(
-        staff_api_client, customer_user, permission_manage_users,
-        graphql_address_data):
-    query = """
+ADDRESS_UPDATE_MUTATION = """
     mutation updateUserAddress($addressId: ID!, $address: AddressInput!) {
         addressUpdate(id: $addressId, input: $address) {
             address {
@@ -910,8 +974,15 @@ def test_address_update_mutation(
             }
         }
     }
-    """
+"""
+
+
+def test_address_update_mutation(
+        staff_api_client, customer_user, permission_manage_users,
+        graphql_address_data):
+    query = ADDRESS_UPDATE_MUTATION
     address_obj = customer_user.addresses.first()
+    assert staff_api_client.user not in address_obj.user_addresses.all()
     variables = {
         'addressId': graphene.Node.to_global_id('Address', address_obj.id),
         'address': graphql_address_data}
@@ -924,17 +995,54 @@ def test_address_update_mutation(
     assert address_obj.city == graphql_address_data['city']
 
 
+def test_customer_update_own_address(
+        user_api_client, customer_user, graphql_address_data):
+    query = ADDRESS_UPDATE_MUTATION
+    address_obj = customer_user.addresses.first()
+    address_data = graphql_address_data
+    address_data['city'] = 'Poznań'
+    assert address_data['city'] != address_obj.city
+
+    variables = {
+        'addressId': graphene.Node.to_global_id('Address', address_obj.id),
+        'address': address_data}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['addressUpdate']
+    assert data['address']['city'] == address_data['city']
+    address_obj.refresh_from_db()
+    assert address_obj.city == address_data['city']
+
+
+def test_customer_update_address_for_other(
+        user_api_client, customer_user, address_other_country,
+        graphql_address_data):
+    query = ADDRESS_UPDATE_MUTATION
+    address_obj = address_other_country
+    assert customer_user not in address_obj.user_addresses.all()
+
+    address_data = graphql_address_data
+    variables = {
+        'addressId': graphene.Node.to_global_id('Address', address_obj.id),
+        'address': address_data}
+    response = user_api_client.post_graphql(query, variables)
+    assert_no_permission(response)
+
+
+ADDRESS_DELETE_MUTATION = """
+    mutation deleteUserAddress($id: ID!) {
+        addressDelete(id: $id) {
+            address {
+                city
+            }
+        }
+    }
+"""
+
+
 def test_address_delete_mutation(
         staff_api_client, customer_user, permission_manage_users):
-    query = """
-            mutation deleteUserAddress($id: ID!) {
-                addressDelete(id: $id) {
-                    address {
-                        city
-                    }
-                }
-            }
-        """
+    query = ADDRESS_DELETE_MUTATION
     address_obj = customer_user.addresses.first()
     variables = {'id': graphene.Node.to_global_id('Address', address_obj.id)}
     response = staff_api_client.post_graphql(
@@ -944,6 +1052,29 @@ def test_address_delete_mutation(
     assert data['address']['city'] == address_obj.city
     with pytest.raises(address_obj._meta.model.DoesNotExist):
         address_obj.refresh_from_db()
+
+
+def test_customer_delete_own_address(user_api_client, customer_user):
+    query = ADDRESS_DELETE_MUTATION
+    address_obj = customer_user.addresses.first()
+    variables = {'id': graphene.Node.to_global_id('Address', address_obj.id)}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['addressDelete']
+    assert data['address']['city'] == address_obj.city
+    with pytest.raises(address_obj._meta.model.DoesNotExist):
+        address_obj.refresh_from_db()
+
+
+def test_customer_delete_address_for_other(
+        user_api_client, customer_user, address_other_country):
+    query = ADDRESS_DELETE_MUTATION
+    address_obj = address_other_country
+    assert customer_user not in address_obj.user_addresses.all()
+    variables = {'id': graphene.Node.to_global_id('Address', address_obj.id)}
+    response = user_api_client.post_graphql(query, variables)
+    assert_no_permission(response)
+    address_obj.refresh_from_db()
 
 
 def test_address_validator(user_api_client):
@@ -1005,6 +1136,48 @@ def test_address_validator_uses_geip_when_country_code_missing(
     assert data['countryName'] == 'UNITED STATES'
 
 
+def test_address_validator_with_country_area(user_api_client):
+    query = """
+    query getValidator($input: AddressValidationInput!) {
+        addressValidator(input: $input) {
+            countryCode
+            countryName
+            countryAreaType
+            countryAreaChoices {
+                verbose
+                raw
+            }
+            cityType
+            cityChoices {
+                raw
+                verbose
+            }
+            cityAreaType
+            cityAreaChoices {
+                raw
+                verbose
+            }
+        }
+    }
+    """
+    variables = {
+        'input': {
+            'countryCode': 'CN',
+            'countryArea': 'Fujian Sheng',
+            'cityArea': None}}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['addressValidator']
+    assert data['countryCode'] == 'CN'
+    assert data['countryName'] == 'CHINA'
+    assert data['countryAreaType'] == 'province'
+    assert data['countryAreaChoices']
+    assert data['cityType'] == 'city'
+    assert data['cityChoices']
+    assert data['cityAreaType'] == 'city'
+    assert not data['cityAreaChoices']
+
+
 @patch('saleor.account.emails.send_password_reset_email.delay')
 def test_customer_reset_password(
         send_password_reset_mock, user_api_client, customer_user):
@@ -1029,3 +1202,156 @@ def test_customer_reset_password(
     get_graphql_content(response)
     assert send_password_reset_mock.called
     assert send_password_reset_mock.mock_calls[0][1][1] == customer_user.email
+
+
+CUSTOMER_ADDRESS_CREATE_MUTATION = """
+mutation($addressInput: AddressInput!, $addressType: AddressTypeEnum) {
+  customerAddressCreate(input: $addressInput, type: $addressType) {
+    address {
+        id,
+        city
+    }
+  }
+}
+"""
+
+
+def test_customer_create_address(user_api_client, graphql_address_data):
+    user = user_api_client.user
+    nr_of_addresses = user.addresses.count()
+
+    query = CUSTOMER_ADDRESS_CREATE_MUTATION
+    variables = {'addressInput': graphql_address_data}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['customerAddressCreate']
+
+    assert data['address']['city'] == graphql_address_data['city']
+
+    user.refresh_from_db()
+    assert user.addresses.count() == nr_of_addresses + 1
+
+
+def test_customer_create_default_address(
+        user_api_client, graphql_address_data):
+    user = user_api_client.user
+    nr_of_addresses = user.addresses.count()
+
+    query = CUSTOMER_ADDRESS_CREATE_MUTATION
+    address_type = AddressType.SHIPPING.upper()
+    variables = {
+        'addressInput': graphql_address_data, 'addressType': address_type}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['customerAddressCreate']
+    assert data['address']['city'] == graphql_address_data['city']
+
+    user.refresh_from_db()
+    assert user.addresses.count() == nr_of_addresses + 1
+    assert user.default_shipping_address.id == int(
+        graphene.Node.from_global_id(data['address']['id'])[1])
+
+    address_type = AddressType.BILLING.upper()
+    variables = {
+        'addressInput': graphql_address_data, 'addressType': address_type}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['customerAddressCreate']
+    assert data['address']['city'] == graphql_address_data['city']
+
+    user.refresh_from_db()
+    assert user.addresses.count() == nr_of_addresses + 2
+    assert user.default_billing_address.id == int(
+        graphene.Node.from_global_id(data['address']['id'])[1])
+
+
+def test_anonymous_user_create_address(api_client, graphql_address_data):
+    query = CUSTOMER_ADDRESS_CREATE_MUTATION
+    variables = {'addressInput': graphql_address_data}
+    response = api_client.post_graphql(query, variables)
+    assert_no_permission(response)
+
+
+CUSTOMER_SET_DEFAULT_ADDRESS_MUTATION = """
+mutation($id: ID!, $type: AddressTypeEnum!) {
+  customerSetDefaultAddress(id: $id, type: $type) {
+    errors {
+      field,
+      message
+    }
+  }
+}
+"""
+
+
+def test_customer_set_address_as_default(user_api_client, address):
+    user = user_api_client.user
+    user.default_billing_address = None
+    user.default_shipping_address = None
+    user.save()
+    assert not user.default_billing_address
+    assert not user.default_shipping_address
+
+    assert address in user.addresses.all()
+
+    query = CUSTOMER_SET_DEFAULT_ADDRESS_MUTATION
+    variables = {
+        'id': graphene.Node.to_global_id('Address', address.id),
+        'type': AddressType.SHIPPING.upper()}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['customerSetDefaultAddress']
+    assert not data['errors']
+
+    user.refresh_from_db()
+    assert user.default_shipping_address == address
+
+    variables['type'] = AddressType.BILLING.upper()
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['customerSetDefaultAddress']
+    assert not data['errors']
+
+    user.refresh_from_db()
+    assert user.default_billing_address == address
+
+
+def test_customer_change_default_address(
+        user_api_client, address_other_country):
+    user = user_api_client.user
+    assert user.default_billing_address
+    assert user.default_billing_address
+    address = user.default_shipping_address
+    assert address in user.addresses.all()
+    assert address_other_country not in user.addresses.all()
+
+    user.default_shipping_address = address_other_country
+    user.save()
+    user.refresh_from_db()
+    assert address_other_country not in user.addresses.all()
+
+    query = CUSTOMER_SET_DEFAULT_ADDRESS_MUTATION
+    variables = {
+        'id': graphene.Node.to_global_id('Address', address.id),
+        'type': AddressType.SHIPPING.upper()}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['customerSetDefaultAddress']
+    assert not data['errors']
+
+    user.refresh_from_db()
+    assert user.default_shipping_address == address
+    assert address_other_country in user.addresses.all()
+
+
+def test_customer_change_default_address_invalid_address(
+        user_api_client, address_other_country):
+    user = user_api_client.user
+    assert address_other_country not in user.addresses.all()
+
+    query = CUSTOMER_SET_DEFAULT_ADDRESS_MUTATION
+    variables = {
+        'id': graphene.Node.to_global_id('Address', address_other_country.id),
+        'type': AddressType.SHIPPING.upper()}
+    response = user_api_client.post_graphql(query, variables)
+    assert_no_permission(response)

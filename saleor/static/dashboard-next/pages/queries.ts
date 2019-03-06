@@ -4,16 +4,33 @@ import { TypedQuery } from "../queries";
 import { PageDetails, PageDetailsVariables } from "./types/PageDetails";
 import { PageList, PageListVariables } from "./types/PageList";
 
-const pageListQuery = gql`
+export const pageFragment = gql`
+  fragment PageFragment on Page {
+    id
+    title
+    slug
+    isVisible
+  }
+`;
+
+export const pageDetailsFragment = gql`
+  ${pageFragment}
+  fragment PageDetailsFragment on Page {
+    ...PageFragment
+    contentJson
+    seoTitle
+    seoDescription
+    availableOn
+  }
+`;
+
+const pageList = gql`
+  ${pageFragment}
   query PageList($first: Int, $after: String, $last: Int, $before: String) {
     pages(before: $before, after: $after, first: $first, last: $last) {
       edges {
-        cursor
         node {
-          id
-          slug
-          title
-          isPublished
+          ...PageFragment
         }
       }
       pageInfo {
@@ -26,23 +43,18 @@ const pageListQuery = gql`
   }
 `;
 export const TypedPageListQuery = TypedQuery<PageList, PageListVariables>(
-  pageListQuery
+  pageList
 );
 
-const pageDetailsQuery = gql`
+const pageDetails = gql`
+  ${pageDetailsFragment}
   query PageDetails($id: ID!) {
     page(id: $id) {
-      id
-      slug
-      title
-      content
-      created
-      isPublished
-      publicationDate
+      ...PageDetailsFragment
     }
   }
 `;
 export const TypedPageDetailsQuery = TypedQuery<
   PageDetails,
   PageDetailsVariables
->(pageDetailsQuery);
+>(pageDetails);

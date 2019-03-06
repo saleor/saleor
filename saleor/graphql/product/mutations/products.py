@@ -22,9 +22,12 @@ from ..utils import attributes_to_hstore, validate_image_file
 
 
 class CategoryInput(graphene.InputObjectType):
-    description = graphene.String(description='Category description')
-    name = graphene.String(description='Category name')
-    slug = graphene.String(description='Category slug')
+    description = graphene.String(
+        description='Category description (HTML/text).')
+    description_json = graphene.JSONString(
+        description='Category description (JSON).')
+    name = graphene.String(description='Category name.')
+    slug = graphene.String(description='Category slug.')
     seo = SeoInput(description='Search engine optimization fields.')
     background_image = Upload(description='Background image file.')
     background_image_alt = graphene.String(
@@ -114,7 +117,10 @@ class CollectionInput(graphene.InputObjectType):
         description='Informs whether a collection is published.')
     name = graphene.String(description='Name of the collection.')
     slug = graphene.String(description='Slug of the collection.')
-    description = graphene.String(description='Description of the collection.')
+    description = graphene.String(
+        description='Description of the collection (HTML/text).')
+    description_json = graphene.JSONString(
+        description='Description of the collection (JSON).')
     background_image = Upload(description='Background image file.')
     background_image_alt = graphene.String(
         description='Alt text for an image.')
@@ -270,7 +276,10 @@ class ProductInput(graphene.InputObjectType):
         graphene.ID,
         description='List of IDs of collections that the product belongs to.',
         name='collections')
-    description = graphene.String(description='Product description.')
+    description = graphene.String(
+        description='Product description (HTML/text).')
+    description_json = graphene.JSONString(
+        description='Product description (JSON).')
     is_published = graphene.Boolean(
         description='Determines if product is visible to customers.')
     name = graphene.String(description='Product name.')
@@ -342,7 +351,7 @@ class ProductCreate(ModelMutation):
         See the documentation for `has_variants` field for details:
         http://docs.getsaleor.com/en/latest/architecture/products.html#product-types
         """
-        if not product_type.has_variants:
+        if product_type and not product_type.has_variants:
             input_sku = cleaned_input.get('sku')
             if not input_sku:
                 cls.add_error(errors, 'sku', 'This field cannot be blank.')

@@ -56,7 +56,7 @@ export interface CollectionDetails_collection {
   isPublished: boolean;
   name: string;
   backgroundImage: CollectionDetails_collection_backgroundImage | null;
-  description: string;
+  descriptionJson: any;
   seoDescription: string | null;
   seoTitle: string | null;
   products: CollectionDetails_collection_products | null;

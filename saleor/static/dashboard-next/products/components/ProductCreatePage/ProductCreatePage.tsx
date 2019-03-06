@@ -1,3 +1,4 @@
+import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
 import CardSpacer from "../../../components/CardSpacer";
@@ -30,7 +31,7 @@ export interface FormData {
   category: ChoiceType;
   chargeTaxes: boolean;
   collections: ChoiceType[];
-  description: string;
+  description: RawDraftContentState;
   name: string;
   price: number;
   productType: {
@@ -100,7 +101,7 @@ export const ProductCreatePage: React.StatelessComponent<
     },
     chargeTaxes: false,
     collections: [],
-    description: "",
+    description: {} as any,
     name: "",
     price: 0,
     productType: {
@@ -151,7 +152,7 @@ export const ProductCreatePage: React.StatelessComponent<
                 title={data.seoTitle}
                 titlePlaceholder={data.name}
                 description={data.seoDescription}
-                descriptionPlaceholder={data.description}
+                descriptionPlaceholder={data.seoTitle}
                 loading={disabled}
                 onChange={change}
               />

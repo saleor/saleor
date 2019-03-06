@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from django.conf import settings
-from django.contrib.postgres.fields import HStoreField
+from django.contrib.postgres.fields import HStoreField, JSONField
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.urls import reverse
@@ -32,6 +32,7 @@ class Category(MPTTModel, SeoModel):
     name = models.CharField(max_length=128)
     slug = models.SlugField(max_length=128)
     description = models.TextField(blank=True)
+    description_json = JSONField(blank=True, default=dict)
     parent = models.ForeignKey(
         'self', null=True, blank=True, related_name='children',
         on_delete=models.CASCADE)
@@ -58,6 +59,7 @@ class CategoryTranslation(SeoModelTranslation):
         Category, related_name='translations', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
+    description_json = JSONField(blank=True, default=dict)
 
     class Meta:
         unique_together = (('language_code', 'category'),)
@@ -98,7 +100,8 @@ class Product(SeoModel, PublishableModel):
     product_type = models.ForeignKey(
         ProductType, related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
-    description = models.TextField()
+    description = models.TextField(blank=True)
+    description_json = JSONField(blank=True, default=dict)
     category = models.ForeignKey(
         Category, related_name='products', on_delete=models.CASCADE)
     price = MoneyField(
@@ -172,7 +175,8 @@ class ProductTranslation(SeoModelTranslation):
     product = models.ForeignKey(
         Product, related_name='translations', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
-    description = models.TextField()
+    description = models.TextField(blank=True)
+    description_json = JSONField(blank=True, default=dict)
 
     class Meta:
         unique_together = (('language_code', 'product'),)
@@ -418,6 +422,7 @@ class Collection(SeoModel, PublishableModel):
         upload_to='collection-backgrounds', blank=True, null=True)
     background_image_alt = models.CharField(max_length=128, blank=True)
     description = models.TextField(blank=True)
+    description_json = JSONField(blank=True, default=dict)
 
     translated = TranslationProxy()
 
@@ -440,6 +445,7 @@ class CollectionTranslation(SeoModelTranslation):
         on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
+    description_json = JSONField(blank=True, default=dict)
 
     class Meta:
         unique_together = (('language_code', 'collection'),)

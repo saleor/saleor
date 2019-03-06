@@ -3,21 +3,24 @@ from unittest.mock import ANY, patch
 
 import graphene
 import pytest
-from tests.api.utils import get_graphql_content
 
 from saleor.checkout.models import Cart
 from saleor.checkout.utils import (
     add_voucher_to_cart, is_fully_paid, ready_to_place_order)
 from saleor.graphql.core.utils import str_to_enum
 from saleor.order.models import Order
+from tests.api.utils import get_graphql_content
 
 MUTATION_CHECKOUT_CREATE = """
     mutation createCheckout($checkoutInput: CheckoutCreateInput!) {
         checkoutCreate(input: $checkoutInput) {
             checkout {
-                token,
                 id
+                token
                 email
+                lines {
+                    quantity
+                }
             }
             errors {
                 field
@@ -64,6 +67,27 @@ def test_checkout_create(api_client, variant, graphql_address_data):
         'postalCode']
     assert new_cart.shipping_address.country == shipping_address['country']
     assert new_cart.shipping_address.city == shipping_address['city']
+
+
+def test_checkout_create_reuse_cart(cart, user_api_client, variant):
+    # assign user to the cart
+    cart.user = user_api_client.user
+    cart.save()
+
+    variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
+    variables = {
+        'checkoutInput': {
+            'lines': [{'quantity': 1, 'variantId': variant_id}], }}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # assert that existing cart was reused and returned by mutation
+    checkout_data = content['data']['checkoutCreate']['checkout']
+    assert checkout_data['token'] == str(cart.token)
+
+    # if checkout was reused it should be returned unmodified (e.g. without
+    # adding new lines that was passed)
+    assert checkout_data['lines'] == []
 
 
 def test_checkout_create_required_email(api_client, variant):
@@ -779,6 +803,11 @@ def test_checkout_complete(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.save()
+
+    checkout_line = checkout.lines.first()
+    checkout_line_quantity = checkout_line.quantity
+    checkout_line_variant = checkout_line.variant
+
     total = checkout.get_total()
     payment = payment_dummy
     payment.is_active = True
@@ -787,30 +816,36 @@ def test_checkout_complete(
     payment.currency = total.gross.currency
     payment.checkout = checkout
     payment.save()
-    checkout_id = graphene.Node.to_global_id('Checkout', checkout.pk)
     assert not payment.transactions.exists()
-    variables = {'checkoutId': checkout_id}
+
     orders_count = Order.objects.count()
+    checkout_id = graphene.Node.to_global_id('Checkout', checkout.pk)
+    variables = {'checkoutId': checkout_id}
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
     data = content['data']['checkoutComplete']
     assert not data['errors']
+
     order_token = data['order']['token']
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
     assert order.token == order_token
     assert order.total.gross == total.gross
-    checkout_line = checkout.lines.first()
+
     order_line = order.lines.first()
-    assert checkout_line.quantity == order_line.quantity
-    assert checkout_line.variant == order_line.variant
+    assert checkout_line_quantity == order_line.quantity
+    assert checkout_line_variant == order_line.variant
     assert order.shipping_address == address
     assert order.shipping_method == checkout.shipping_method
     assert order.payments.exists()
     order_payment = order.payments.first()
     assert order_payment == payment
     assert payment.transactions.count() == 2
+
+    # assert that the cart has been delated after checkout
+    with pytest.raises(Cart.DoesNotExist):
+        checkout.refresh_from_db()
 
 
 def test_checkout_complete_invalid_checkout_id(user_api_client):
@@ -1294,6 +1329,6 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
 
     cart_with_item.refresh_from_db()
     cart_with_item.shipping_address.refresh_from_db()
-    
+
     assert cart_with_item.shipping_address.country == new_address['country']
     assert cart_with_item.voucher_code is None

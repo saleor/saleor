@@ -35,9 +35,11 @@ class SiteSettings(models.Model):
     translated = TranslationProxy()
 
     class Meta:
-        permissions = ((
-            'manage_settings', pgettext_lazy(
-                'Permission description', 'Manage settings.')),)
+        permissions = (
+            ('manage_settings', pgettext_lazy(
+                'Permission description', 'Manage settings.')),
+            ('manage_translations', pgettext_lazy(
+                'Permission description', 'Manage translations.')),)
 
     def __str__(self):
         return self.site.name

@@ -26,7 +26,7 @@ from saleor.discount import VoucherType
 from saleor.discount.models import Sale, Voucher, VoucherTranslation
 from saleor.menu.models import Menu, MenuItem
 from saleor.order import OrderEvents, OrderStatus
-from saleor.order.models import Order, OrderEvent
+from saleor.order.models import FulfillmentStatus, Order, OrderEvent
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.payment import ChargeStatus, TransactionKind
@@ -552,6 +552,18 @@ def fulfilled_order(order_with_lines):
     return order
 
 
+@pytest.fixture()
+def fulfilled_order_with_cancelled_fulfillment(fulfilled_order):
+    fulfillment = fulfilled_order.fulfillments.create()
+    line_1 = fulfilled_order.lines.first()
+    line_2 = fulfilled_order.lines.last()
+    fulfillment.lines.create(order_line=line_1, quantity=line_1.quantity)
+    fulfillment.lines.create(order_line=line_2, quantity=line_2.quantity)
+    fulfillment.status = FulfillmentStatus.CANCELED
+    fulfillment.save()
+    return fulfilled_order
+
+
 @pytest.fixture
 def fulfillment(fulfilled_order):
     return fulfilled_order.fulfillments.first()
@@ -584,7 +596,7 @@ def payment_txn_captured(order_with_lines, payment_dummy):
     order = order_with_lines
     payment = payment_dummy
     payment.order = order
-    payment.charge_status = ChargeStatus.CHARGED
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = payment.total
     payment.save()
 
@@ -685,6 +697,11 @@ def permission_manage_menus():
 @pytest.fixture
 def permission_manage_pages():
     return Permission.objects.get(codename='manage_pages')
+
+
+@pytest.fixture
+def permission_manage_translations():
+    return Permission.objects.get(codename='manage_translations')
 
 
 @pytest.fixture

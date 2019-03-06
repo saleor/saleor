@@ -6,6 +6,9 @@ from graphql_jwt.decorators import permission_required
 from ..core.enums import ReportingPeriod
 from ..core.fields import PrefetchingConnectionField
 from ..descriptions import DESCRIPTIONS
+from ..translations.mutations import (
+    AttributeTranslate, AttributeValueTranslate, CategoryTranslate,
+    CollectionTranslate, ProductTranslate, ProductVariantTranslate)
 from .enums import StockAvailability
 from .mutations.attributes import (
     AttributeCreate, AttributeDelete, AttributeUpdate, AttributeValueCreate,
@@ -142,24 +145,29 @@ class ProductMutations(graphene.ObjectType):
     attribute_create = AttributeCreate.Field()
     attribute_delete = AttributeDelete.Field()
     attribute_update = AttributeUpdate.Field()
+    attribute_translate = AttributeTranslate.Field()
 
     attribute_value_create = AttributeValueCreate.Field()
     attribute_value_delete = AttributeValueDelete.Field()
     attribute_value_update = AttributeValueUpdate.Field()
+    attribute_value_translate = AttributeValueTranslate.Field()
 
     category_create = CategoryCreate.Field()
     category_delete = CategoryDelete.Field()
     category_update = CategoryUpdate.Field()
+    category_translate = CategoryTranslate.Field()
 
     collection_add_products = CollectionAddProducts.Field()
     collection_create = CollectionCreate.Field()
     collection_delete = CollectionDelete.Field()
     collection_remove_products = CollectionRemoveProducts.Field()
     collection_update = CollectionUpdate.Field()
+    collection_translate = CollectionTranslate.Field()
 
     product_create = ProductCreate.Field()
     product_delete = ProductDelete.Field()
     product_update = ProductUpdate.Field()
+    product_translate = ProductTranslate.Field()
 
     product_image_create = ProductImageCreate.Field()
     product_image_delete = ProductImageDelete.Field()
@@ -173,6 +181,7 @@ class ProductMutations(graphene.ObjectType):
     product_variant_create = ProductVariantCreate.Field()
     product_variant_delete = ProductVariantDelete.Field()
     product_variant_update = ProductVariantUpdate.Field()
+    product_variant_translate = ProductVariantTranslate.Field()
 
     variant_image_assign = VariantImageAssign.Field()
     variant_image_unassign = VariantImageUnassign.Field()
