@@ -20,7 +20,6 @@ from ..core.enums import PermissionEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import Error
 
-
 BILLING_ADDRESS_FIELD = 'default_billing_address'
 SHIPPING_ADDRESS_FIELD = 'default_shipping_address'
 
