@@ -12,7 +12,6 @@ import * as React from "react";
 import SVG from "react-inlinesvg";
 
 import * as saleorLogo from "../../../../images/logo-document.svg";
-import Container from "../../../components/Container";
 import { ControlledCheckbox } from "../../../components/ControlledCheckbox";
 import Form from "../../../components/Form";
 import { FormSpacer } from "../../../components/FormSpacer";
