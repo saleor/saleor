@@ -1,8 +1,8 @@
 import graphene
 import pytest
-from tests.api.utils import get_graphql_content
 
 from saleor.graphql.translations.schema import TranslatableKinds
+from tests.api.utils import get_graphql_content
 
 
 def test_product_translation(user_api_client, product):
@@ -242,7 +242,7 @@ def test_shipping_method_translation(
         permissions=[permission_manage_shipping])
     data = get_graphql_content(response)['data']
 
-    shipping_method = data['shippingZone']['shippingMethods'][0]
+    shipping_method = data['shippingZone']['shippingMethods'][-1]
     assert shipping_method['translation']['name'] == 'DHL Polska'
     assert shipping_method['translation']['language']['code'] == 'pl'
 
