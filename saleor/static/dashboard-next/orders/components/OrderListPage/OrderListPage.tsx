@@ -37,7 +37,7 @@ const OrderListPage: React.StatelessComponent<OrderListPageProps> = ({
   onToCapture,
   onCustomFilter
 }) => (
-  <Container width="md">
+  <Container >
     <PageHeader title={i18n.t("Orders")}>
       <Button
         color="secondary"

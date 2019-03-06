@@ -67,7 +67,7 @@ const StaffDetailsPage: React.StatelessComponent<StaffDetailsPageProps> = ({
   return (
     <Form initial={initialForm} onSubmit={onSubmit} confirmLeave>
       {({ data, change, hasChanged, submit }) => (
-        <Container width="md">
+        <Container >
           <AppHeader onBack={onBack}>{i18n.t("Staff Members")}</AppHeader>
           <PageHeader title={getUserName(staffMember)} />
           <Grid>

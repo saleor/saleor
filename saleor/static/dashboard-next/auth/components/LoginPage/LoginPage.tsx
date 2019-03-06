@@ -68,7 +68,10 @@ const styles = (theme: Theme) =>
       },
       alignItems: "center",
       display: "flex",
-      height: "100vh"
+      height: "100vh",
+      marginLeft: "auto",
+      marginRight: "auto",
+      maxWidth: theme.breakpoints.width("sm")
     }
   });
 
@@ -87,7 +90,7 @@ const LoginCard = withStyles(styles, { name: "LoginCard" })(
         onSubmit={onSubmit}
       >
         {({ change: handleChange, data, submit: handleSubmit }) => (
-          <Container className={classes.root} width="sm">
+          <div className={classes.root}>
             <Card className={classes.card}>
               <SVG className={classes.logo} src={saleorLogo} />
               {error && (
@@ -144,7 +147,7 @@ const LoginCard = withStyles(styles, { name: "LoginCard" })(
                   {i18n.t("Reset your password")}
                 </Typography> */}
             </Card>
-          </Container>
+          </div>
         )}
       </Form>
     );

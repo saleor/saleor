@@ -19,7 +19,7 @@ const CustomerListPage: React.StatelessComponent<CustomerListPageProps> = ({
   onAdd,
   ...customerListProps
 }) => (
-  <Container width="md">
+  <Container >
     <PageHeader title={i18n.t("Customers")}>
       <Button
         color="secondary"

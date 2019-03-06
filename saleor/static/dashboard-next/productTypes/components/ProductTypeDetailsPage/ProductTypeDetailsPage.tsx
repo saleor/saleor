@@ -109,7 +109,7 @@ const ProductTypeDetailsPage: React.StatelessComponent<
       confirmLeave
     >
       {({ change, data, hasChanged, submit }) => (
-        <Container width="md">
+        <Container >
           <AppHeader onBack={onBack}>{i18n.t("Product Types")}</AppHeader>
           <PageHeader title={pageTitle} />
           <Grid>
