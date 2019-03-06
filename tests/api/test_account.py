@@ -1163,8 +1163,8 @@ def test_customer_reset_password(
 
 
 CUSTOMER_ADDRESS_CREATE_MUTATION = """
-mutation($addressInput: DefaultAddressInput!) {
-  customerAddressCreate(input: $addressInput) {
+mutation($addressInput: AddressInput!, $addressType: AddressTypeEnum) {
+  customerAddressCreate(input: $addressInput, type: $addressType) {
     address {
         id,
         city
@@ -1196,8 +1196,9 @@ def test_customer_create_default_address(
     nr_of_addresses = user.addresses.count()
 
     query = CUSTOMER_ADDRESS_CREATE_MUTATION
-    graphql_address_data['type'] = AddressType.SHIPPING.upper()
-    variables = {'addressInput': graphql_address_data}
+    address_type = AddressType.SHIPPING.upper()
+    variables = {
+        'addressInput': graphql_address_data, 'addressType': address_type}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['customerAddressCreate']
@@ -1208,8 +1209,9 @@ def test_customer_create_default_address(
     assert user.default_shipping_address.id == int(
         graphene.Node.from_global_id(data['address']['id'])[1])
 
-    graphql_address_data['type'] = AddressType.BILLING.upper()
-    variables = {'addressInput': graphql_address_data}
+    address_type = AddressType.BILLING.upper()
+    variables = {
+        'addressInput': graphql_address_data, 'addressType': address_type}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['customerAddressCreate']
