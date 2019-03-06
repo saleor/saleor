@@ -15,11 +15,10 @@ from ...dashboard.emails import (
 from ...dashboard.staff.utils import remove_staff_member
 from ..account.enums import AddressTypeEnum
 from ..account.i18n import I18nMixin
-from ..account.types import Address, AddressInput, DefaultAddressInput, User
+from ..account.types import Address, AddressInput, User
 from ..core.enums import PermissionEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import Error
-
 
 BILLING_ADDRESS_FIELD = 'default_billing_address'
 SHIPPING_ADDRESS_FIELD = 'default_shipping_address'
@@ -469,8 +468,12 @@ class AddressCreate(ModelMutation):
 
 class CustomerAddressCreate(ModelMutation):
     class Arguments:
-        input = DefaultAddressInput(
+        input = AddressInput(
             description='Fields required to create address', required=True)
+        type = AddressTypeEnum(required=False, description=(
+            'A type of address. If provided, the new address will be '
+            'automatically assigned as the customer\'s default address '
+            'of that type.'))
 
     class Meta:
         description = 'Create a new address for the customer.'
@@ -482,14 +485,20 @@ class CustomerAddressCreate(ModelMutation):
         return user.is_authenticated
 
     @classmethod
+    def mutate(cls, root, info, **data):
+        success_response = super().mutate(root, info, **data)
+        address_type = data.get('type', None)
+        if address_type:
+            user = info.context.user
+            instance = success_response.address
+            utils.change_user_default_address(user, instance, address_type)
+        return success_response
+
+    @classmethod
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
         user = info.context.user
         instance.user_addresses.add(user)
-
-        address_type = cleaned_input.get('type', None)
-        if address_type:
-            utils.change_user_default_address(user, instance, address_type)
 
 
 class AddressUpdate(ModelMutation):
