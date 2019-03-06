@@ -83,7 +83,7 @@ def handle_fully_paid_order(order):
         logger.exception('Recording order in analytics failed')
 
 
-def validate_payment(view):
+def require_active_payment(view):
     """Require an active payment instance.
 
     Decorate a view to check if payment is authorized, so any actions
@@ -161,7 +161,7 @@ def mark_order_as_paid(order: Order, request_user: User):
         billing_address=order.billing_address,
         total=order.total.gross.amount,
         order=order)
-    payment.charge_status = ChargeStatus.CHARGED
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = order.total.gross.amount
     payment.save(update_fields=['captured_amount', 'charge_status'])
     order.events.create(
@@ -352,8 +352,14 @@ def _gateway_postprocess(transaction, payment):
     transaction_kind = transaction.kind
 
     if transaction_kind in [TransactionKind.CHARGE, TransactionKind.CAPTURE]:
-        payment.charge_status = ChargeStatus.CHARGED
         payment.captured_amount += transaction.amount
+
+        # Set payment charge status to fully charged
+        # only if there is no more amount needs to charge
+        payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
+        if payment.get_charge_amount() <= 0:
+            payment.charge_status = ChargeStatus.FULLY_CHARGED
+
         payment.save(update_fields=['charge_status', 'captured_amount'])
         order = payment.order
         if order and order.is_fully_paid():
@@ -366,14 +372,15 @@ def _gateway_postprocess(transaction, payment):
     elif transaction_kind == TransactionKind.REFUND:
         changed_fields = ['captured_amount']
         payment.captured_amount -= transaction.amount
+        payment.charge_status = ChargeStatus.PARTIALLY_REFUNDED
         if payment.captured_amount <= 0:
             payment.charge_status = ChargeStatus.FULLY_REFUNDED
             payment.is_active = False
-            changed_fields += ['charge_status', 'is_active']
+        changed_fields += ['charge_status', 'is_active']
         payment.save(update_fields=changed_fields)
 
 
-@validate_payment
+@require_active_payment
 def gateway_process_payment(
         payment: Payment, payment_token: str) -> Transaction:
     """Performs whole payment process on a gateway."""
@@ -385,7 +392,7 @@ def gateway_process_payment(
     return transaction
 
 
-@validate_payment
+@require_active_payment
 def gateway_charge(
         payment: Payment, payment_token: str,
         amount: Decimal = None) -> Transaction:
@@ -410,7 +417,7 @@ def gateway_charge(
     return transaction
 
 
-@validate_payment
+@require_active_payment
 def gateway_authorize(payment: Payment, payment_token: str) -> Transaction:
     """Authorizes the payment and creates relevant transaction.
 
@@ -424,7 +431,7 @@ def gateway_authorize(payment: Payment, payment_token: str) -> Transaction:
         payment=payment, payment_token=payment_token)
 
 
-@validate_payment
+@require_active_payment
 def gateway_capture(payment: Payment, amount: Decimal = None) -> Transaction:
     """Captures the money that was reserved during the authorization stage."""
     if amount is None:
@@ -445,7 +452,7 @@ def gateway_capture(payment: Payment, amount: Decimal = None) -> Transaction:
     return transaction
 
 
-@validate_payment
+@require_active_payment
 def gateway_void(payment) -> Transaction:
     if not payment.can_void():
         raise PaymentError('Only pre-authorized transactions can be voided.')
@@ -464,7 +471,7 @@ def gateway_void(payment) -> Transaction:
     return transaction
 
 
-@validate_payment
+@require_active_payment
 def gateway_refund(payment, amount: Decimal = None) -> Transaction:
     """Refunds the charged funds back to the customer.
     Refunds can be total or partial.

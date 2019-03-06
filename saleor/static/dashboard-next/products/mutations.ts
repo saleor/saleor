@@ -108,7 +108,7 @@ export const productUpdateMutation = gql`
     $category: ID
     $chargeTaxes: Boolean!
     $collections: [ID]
-    $description: String
+    $descriptionJson: JSONString
     $isPublished: Boolean!
     $name: String
     $price: Decimal
@@ -121,7 +121,7 @@ export const productUpdateMutation = gql`
         category: $category
         chargeTaxes: $chargeTaxes
         collections: $collections
-        description: $description
+        descriptionJson: $descriptionJson
         isPublished: $isPublished
         name: $name
         price: $price
@@ -152,7 +152,7 @@ export const simpleProductUpdateMutation = gql`
     $category: ID
     $chargeTaxes: Boolean!
     $collections: [ID]
-    $description: String
+    $descriptionJson: JSONString
     $isPublished: Boolean!
     $name: String
     $price: Decimal
@@ -167,7 +167,7 @@ export const simpleProductUpdateMutation = gql`
         category: $category
         chargeTaxes: $chargeTaxes
         collections: $collections
-        description: $description
+        descriptionJson: $descriptionJson
         isPublished: $isPublished
         name: $name
         price: $price
@@ -205,7 +205,7 @@ export const productCreateMutation = gql`
     $category: ID!
     $chargeTaxes: Boolean!
     $collections: [ID]
-    $description: String
+    $descriptionJson: JSONString
     $isPublished: Boolean!
     $name: String!
     $price: Decimal
@@ -218,7 +218,7 @@ export const productCreateMutation = gql`
         category: $category
         chargeTaxes: $chargeTaxes
         collections: $collections
-        description: $description
+        descriptionJson: $descriptionJson
         isPublished: $isPublished
         name: $name
         price: $price

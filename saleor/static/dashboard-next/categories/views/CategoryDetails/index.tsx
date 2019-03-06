@@ -187,7 +187,9 @@ export const CategoryDetails: React.StatelessComponent<
                                         input: {
                                           backgroundImageAlt:
                                             formData.backgroundImageAlt,
-                                          description: formData.description,
+                                          descriptionJson: JSON.stringify(
+                                            formData.description
+                                          ),
                                           name: formData.name,
                                           seo: {
                                             description:
