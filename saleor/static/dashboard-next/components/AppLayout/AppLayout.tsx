@@ -103,9 +103,9 @@ const styles = (theme: Theme) =>
       flex: 1,
       flexGrow: 1,
       marginLeft: 0,
-      padding: theme.spacing.unit,
+      paddingBottom: theme.spacing.unit,
       [theme.breakpoints.up("sm")]: {
-        padding: theme.spacing.unit * 2
+        paddingBottom: theme.spacing.unit * 3
       }
     }
   });

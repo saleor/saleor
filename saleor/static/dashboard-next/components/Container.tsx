@@ -14,7 +14,11 @@ const styles = (theme: Theme) =>
         marginLeft: "auto",
         marginRight: "auto",
         maxWidth: theme.breakpoints.width("lg")
-      }
+      },
+      [theme.breakpoints.up("sm")]: {
+        padding: `0 ${theme.spacing.unit * 3}px`
+      },
+      padding: `0 ${theme.spacing.unit}px`
     }
   });
 
