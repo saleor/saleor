@@ -6,16 +6,14 @@ import Shop from "../../components/Shop";
 import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
+import { Pagination } from "../../types";
 import SaleListPage from "../components/SaleListPage";
 import { TypedSaleList } from "../queries";
 import { saleAddUrl, saleUrl } from "../urls";
 
 const PAGINATE_BY = 20;
 
-export type SaleListQueryParams = Partial<{
-  after: string;
-  before: string;
-}>;
+export type SaleListQueryParams = Pagination;
 
 interface SaleListProps {
   params: SaleListQueryParams;

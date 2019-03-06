@@ -51,6 +51,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add city choices and city area type to address validator API - #3788 by @jxltom
 - Support setting as default address directly when creating customer address #3782 by @jxltom
 - Include example JSON content in dumpdata file - #3810 by @maarcingebala
+- Add shipping zones to dashboard 2.0 - #3770 by @dominik-zeglen
 
 
 ## 2.3.1

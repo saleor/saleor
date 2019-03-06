@@ -1454,6 +1454,24 @@ exports[`Storyshots Generics / Money formatting default 1`] = `
 </div>
 `;
 
+exports[`Storyshots Generics / Money range from 1`] = `
+<div>
+  from $5.20
+</div>
+`;
+
+exports[`Storyshots Generics / Money range range 1`] = `
+<div>
+  $5.20 - $10.60
+</div>
+`;
+
+exports[`Storyshots Generics / Money range to 1`] = `
+<div>
+  to $10.60
+</div>
+`;
+
 exports[`Storyshots Generics / MultiAutocompleteSelectField with loaded data 1`] = `
 <div>
   <form>
@@ -5358,6 +5376,30 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
 </div>
 `;
 
+exports[`Storyshots Generics / Weight default 1`] = `
+<div>
+  8.4 kg
+</div>
+`;
+
+exports[`Storyshots Generics / Weight range from 1`] = `
+<div>
+  from 4.2 kg
+</div>
+`;
+
+exports[`Storyshots Generics / Weight range range 1`] = `
+<div>
+  4.2 kg - 81.9 kg
+</div>
+`;
+
+exports[`Storyshots Generics / Weight range to 1`] = `
+<div>
+  to 81.9 kg
+</div>
+`;
+
 exports[`Storyshots Orders / OrderAddressEditDialog billing address 1`] = `<div />`;
 
 exports[`Storyshots Orders / OrderAddressEditDialog shipping address 1`] = `<div />`;
@@ -6097,6 +6139,18 @@ exports[`Storyshots Product types / Edit attribute form errors 1`] = `<div />`;
 exports[`Storyshots Product types / Edit attribute loading 1`] = `<div />`;
 
 exports[`Storyshots Products / ProductVariantImageSelectDialog default 1`] = `null`;
+
+exports[`Storyshots Shipping / Assign countries default 1`] = `<div />`;
+
+exports[`Storyshots Shipping / Rate details default 1`] = `<div />`;
+
+exports[`Storyshots Shipping / Rate details form errors 1`] = `<div />`;
+
+exports[`Storyshots Shipping / Rate details loading 1`] = `<div />`;
+
+exports[`Storyshots Shipping / Rate details new 1`] = `<div />`;
+
+exports[`Storyshots Shipping / Rate details weight 1`] = `<div />`;
 
 exports[`Storyshots SiteSettings / Add key dialog default 1`] = `<div />`;
 
@@ -18048,7 +18102,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
         </div>
       </div>
       <div
-        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ConfigurationPage-cardDisabled-id"
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ConfigurationPage-card-id"
       >
         <div
           class="MuiCardContent-root-id ConfigurationPage-cardContent-id"
@@ -70258,6 +70312,3651 @@ exports[`Storyshots Views / Products / Product variant details when loading data
         </button>
       </div>
     </form>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Shipping / Create shipping zone default 1`] = `
+<div>
+  <form>
+    <div
+      class="Container-md-id"
+    >
+      <div
+        class="ExtendedPageHeader-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id ExtendedPageHeader-menuButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+              <path
+                d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+              />
+            </svg>
+          </span>
+        </button>
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
+        >
+          Create New Shipping Zone
+        </h2>
+        <div
+          class="ExtendedPageHeader-action-id"
+        />
+      </div>
+      <div
+        class="Grid-root-id Grid-default-id"
+      >
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
+                General Information
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
+                >
+                  Shipping Zone Name
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiInput-input-id"
+                    name="name"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
+                Countries
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Assign countries
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id CountryList-root-id"
+            >
+              <table
+                class="MuiTable-root-id"
+              >
+                <tbody
+                  class="MuiTableBody-root-id"
+                >
+                  <tr
+                    class="MuiTableRow-root-id CountryList-pointer-id"
+                  >
+                    <td
+                      class="MuiTableCell-root-id MuiTableCell-body-id CountryList-wideColumn-id CountryList-toLeft-id"
+                    >
+                      0 Countries
+                    </td>
+                    <td
+                      class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id CountryList-iconCell-id"
+                    >
+                      <button
+                        class="MuiButtonBase-root-id MuiIconButton-root-id"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M7 10l5 5 5-5z"
+                            />
+                            <path
+                              d="M0 0h24v24H0z"
+                              fill="none"
+                            />
+                          </svg>
+                        </span>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="SaveButtonBar-root-id"
+      >
+        <div
+          class="SaveButtonBar-spacer-id"
+        />
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id SaveButtonBar-cancelButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Cancel
+          </span>
+        </button>
+        <button
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
+          disabled=""
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+              <path
+                d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+              />
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Shipping / Create shipping zone form errors 1`] = `
+<div>
+  <form>
+    <div
+      class="Container-md-id"
+    >
+      <div
+        class="ExtendedPageHeader-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id ExtendedPageHeader-menuButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+              <path
+                d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+              />
+            </svg>
+          </span>
+        </button>
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
+        >
+          Create New Shipping Zone
+        </h2>
+        <div
+          class="ExtendedPageHeader-action-id"
+        />
+      </div>
+      <div
+        class="Grid-root-id Grid-default-id"
+      >
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
+                General Information
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
+                >
+                  Shipping Zone Name
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                >
+                  <input
+                    aria-invalid="true"
+                    class="MuiInputBase-input-id MuiInput-input-id"
+                    name="name"
+                    type="text"
+                    value=""
+                  />
+                </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-error-id"
+                >
+                  Generic form error
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
+                Countries
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Assign countries
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id CountryList-root-id"
+            >
+              <table
+                class="MuiTable-root-id"
+              >
+                <tbody
+                  class="MuiTableBody-root-id"
+                >
+                  <tr
+                    class="MuiTableRow-root-id CountryList-pointer-id"
+                  >
+                    <td
+                      class="MuiTableCell-root-id MuiTableCell-body-id CountryList-wideColumn-id CountryList-toLeft-id"
+                    >
+                      0 Countries
+                    </td>
+                    <td
+                      class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id CountryList-iconCell-id"
+                    >
+                      <button
+                        class="MuiButtonBase-root-id MuiIconButton-root-id"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M7 10l5 5 5-5z"
+                            />
+                            <path
+                              d="M0 0h24v24H0z"
+                              fill="none"
+                            />
+                          </svg>
+                        </span>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="SaveButtonBar-root-id"
+      >
+        <div
+          class="SaveButtonBar-spacer-id"
+        />
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id SaveButtonBar-cancelButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Cancel
+          </span>
+        </button>
+        <button
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
+          disabled=""
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+              <path
+                d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+              />
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Shipping / Shipping zone details default 1`] = `
+<div>
+  <form>
+    <div
+      class="Container-md-id"
+    >
+      <div
+        class="ExtendedPageHeader-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id ExtendedPageHeader-menuButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+              <path
+                d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+              />
+            </svg>
+          </span>
+        </button>
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
+        >
+          Europe
+        </h2>
+        <div
+          class="ExtendedPageHeader-action-id"
+        />
+      </div>
+      <div
+        class="Grid-root-id Grid-default-id"
+      >
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
+                General Information
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
+                >
+                  Shipping Zone Name
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiInput-input-id"
+                    name="name"
+                    type="text"
+                    value="Europe"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
+                Countries
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Assign countries
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id CountryList-root-id"
+            >
+              <table
+                class="MuiTable-root-id"
+              >
+                <tbody
+                  class="MuiTableBody-root-id"
+                >
+                  <tr
+                    class="MuiTableRow-root-id CountryList-pointer-id"
+                  >
+                    <td
+                      class="MuiTableCell-root-id MuiTableCell-body-id CountryList-wideColumn-id CountryList-toLeft-id"
+                    >
+                      51 Countries
+                    </td>
+                    <td
+                      class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id CountryList-iconCell-id"
+                    >
+                      <button
+                        class="MuiButtonBase-root-id MuiIconButton-root-id"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M7 10l5 5 5-5z"
+                            />
+                            <path
+                              d="M0 0h24v24H0z"
+                              fill="none"
+                            />
+                          </svg>
+                        </span>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id CardTitle-constantHeight-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
+                Price Based Rates
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Add rate
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <table
+              class="MuiTable-root-id"
+            >
+              <thead
+                class="MuiTableHead-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-head-id"
+                >
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id ShippingZoneRates-nameColumn-id"
+                    scope="col"
+                  >
+                    Name
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id ShippingZoneRates-valueColumn-id"
+                    scope="col"
+                  >
+                    Value Range
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id ShippingZoneRates-nameColumn-id"
+                    scope="col"
+                  >
+                    Price
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  />
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  />
+                </tr>
+              </thead>
+              <tbody
+                class="MuiTableBody-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-nameColumn-id"
+                  >
+                    UPS
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    from $0.00
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    $48.11
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-nameColumn-id"
+                  >
+                    DHL
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    from $0.00
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    $95.24
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id CardTitle-constantHeight-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
+                Weight Based Rates
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Add rate
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <table
+              class="MuiTable-root-id"
+            >
+              <thead
+                class="MuiTableHead-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-head-id"
+                >
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id ShippingZoneRates-nameColumn-id"
+                    scope="col"
+                  >
+                    Name
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id ShippingZoneRates-valueColumn-id"
+                    scope="col"
+                  >
+                    Weight Range
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id ShippingZoneRates-nameColumn-id"
+                    scope="col"
+                  >
+                    Price
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  />
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  />
+                </tr>
+              </thead>
+              <tbody
+                class="MuiTableBody-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-nameColumn-id"
+                  >
+                    DB Schenker
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    0 kg - 80 kg
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    $45.93
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-nameColumn-id"
+                  >
+                    Registred priority
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    from 0 kg
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    $73.87
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div
+        class="SaveButtonBar-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id SaveButtonBar-deleteButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Remove
+          </span>
+        </button>
+        <div
+          class="SaveButtonBar-spacer-id"
+        />
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id SaveButtonBar-cancelButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Cancel
+          </span>
+        </button>
+        <button
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
+          disabled=""
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+              <path
+                d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+              />
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Shipping / Shipping zone details form errors 1`] = `
+<div>
+  <form>
+    <div
+      class="Container-md-id"
+    >
+      <div
+        class="ExtendedPageHeader-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id ExtendedPageHeader-menuButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+              <path
+                d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+              />
+            </svg>
+          </span>
+        </button>
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
+        >
+          Europe
+        </h2>
+        <div
+          class="ExtendedPageHeader-action-id"
+        />
+      </div>
+      <div
+        class="Grid-root-id Grid-default-id"
+      >
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
+                General Information
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
+                >
+                  Shipping Zone Name
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                >
+                  <input
+                    aria-invalid="true"
+                    class="MuiInputBase-input-id MuiInput-input-id"
+                    name="name"
+                    type="text"
+                    value="Europe"
+                  />
+                </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
+                >
+                  Generic form error
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
+                Countries
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Assign countries
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id CountryList-root-id"
+            >
+              <table
+                class="MuiTable-root-id"
+              >
+                <tbody
+                  class="MuiTableBody-root-id"
+                >
+                  <tr
+                    class="MuiTableRow-root-id CountryList-pointer-id"
+                  >
+                    <td
+                      class="MuiTableCell-root-id MuiTableCell-body-id CountryList-wideColumn-id CountryList-toLeft-id"
+                    >
+                      51 Countries
+                    </td>
+                    <td
+                      class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id CountryList-iconCell-id"
+                    >
+                      <button
+                        class="MuiButtonBase-root-id MuiIconButton-root-id"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M7 10l5 5 5-5z"
+                            />
+                            <path
+                              d="M0 0h24v24H0z"
+                              fill="none"
+                            />
+                          </svg>
+                        </span>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id CardTitle-constantHeight-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
+                Price Based Rates
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Add rate
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <table
+              class="MuiTable-root-id"
+            >
+              <thead
+                class="MuiTableHead-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-head-id"
+                >
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id ShippingZoneRates-nameColumn-id"
+                    scope="col"
+                  >
+                    Name
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id ShippingZoneRates-valueColumn-id"
+                    scope="col"
+                  >
+                    Value Range
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id ShippingZoneRates-nameColumn-id"
+                    scope="col"
+                  >
+                    Price
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  />
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  />
+                </tr>
+              </thead>
+              <tbody
+                class="MuiTableBody-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-nameColumn-id"
+                  >
+                    UPS
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    from $0.00
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    $48.11
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-nameColumn-id"
+                  >
+                    DHL
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    from $0.00
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    $95.24
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id CardTitle-constantHeight-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
+                Weight Based Rates
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Add rate
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <table
+              class="MuiTable-root-id"
+            >
+              <thead
+                class="MuiTableHead-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-head-id"
+                >
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id ShippingZoneRates-nameColumn-id"
+                    scope="col"
+                  >
+                    Name
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id ShippingZoneRates-valueColumn-id"
+                    scope="col"
+                  >
+                    Weight Range
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id ShippingZoneRates-nameColumn-id"
+                    scope="col"
+                  >
+                    Price
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  />
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  />
+                </tr>
+              </thead>
+              <tbody
+                class="MuiTableBody-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-nameColumn-id"
+                  >
+                    DB Schenker
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    0 kg - 80 kg
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    $45.93
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-nameColumn-id"
+                  >
+                    Registred priority
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    from 0 kg
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    $73.87
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div
+        class="SaveButtonBar-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id SaveButtonBar-deleteButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Remove
+          </span>
+        </button>
+        <div
+          class="SaveButtonBar-spacer-id"
+        />
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id SaveButtonBar-cancelButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Cancel
+          </span>
+        </button>
+        <button
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
+          disabled=""
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+              <path
+                d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+              />
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Shipping / Shipping zone details loading 1`] = `
+<div>
+  <form>
+    <div
+      class="Container-md-id"
+    >
+      <div
+        class="ExtendedPageHeader-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id ExtendedPageHeader-menuButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+              <path
+                d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+              />
+            </svg>
+          </span>
+        </button>
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
+        >
+          <span
+            class="Skeleton-skeleton-id"
+            style="width:10em"
+          >
+            ‌
+          </span>
+        </h2>
+        <div
+          class="ExtendedPageHeader-action-id"
+        />
+      </div>
+      <div
+        class="Grid-root-id Grid-default-id"
+      >
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
+                General Information
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
+                >
+                  Shipping Zone Name
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiInput-input-id"
+                    name="name"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
+                Countries
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Assign countries
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id CountryList-root-id"
+            >
+              <table
+                class="MuiTable-root-id"
+              >
+                <tbody
+                  class="MuiTableBody-root-id"
+                >
+                  <tr
+                    class="MuiTableRow-root-id CountryList-pointer-id"
+                  >
+                    <td
+                      class="MuiTableCell-root-id MuiTableCell-body-id CountryList-wideColumn-id CountryList-toLeft-id"
+                    >
+                      ... Countries
+                    </td>
+                    <td
+                      class="MuiTableCell-root-id MuiTableCell-body-id CountryList-textRight-id CountryList-iconCell-id"
+                    >
+                      <button
+                        class="MuiButtonBase-root-id MuiIconButton-root-id"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M7 10l5 5 5-5z"
+                            />
+                            <path
+                              d="M0 0h24v24H0z"
+                              fill="none"
+                            />
+                          </svg>
+                        </span>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id CardTitle-constantHeight-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
+                Price Based Rates
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Add rate
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <table
+              class="MuiTable-root-id"
+            >
+              <thead
+                class="MuiTableHead-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-head-id"
+                >
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id ShippingZoneRates-nameColumn-id"
+                    scope="col"
+                  >
+                    Name
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id ShippingZoneRates-valueColumn-id"
+                    scope="col"
+                  >
+                    Value Range
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id ShippingZoneRates-nameColumn-id"
+                    scope="col"
+                  >
+                    Price
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  />
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  />
+                </tr>
+              </thead>
+              <tbody
+                class="MuiTableBody-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-nameColumn-id"
+                  >
+                    <span
+                      class="Skeleton-skeleton-id"
+                    >
+                      ‌
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    <span
+                      class="Skeleton-skeleton-id"
+                    >
+                      ‌
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    <span
+                      class="Skeleton-skeleton-id"
+                    >
+                      ‌
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-colorSecondary-id MuiIconButton-disabled-id"
+                      disabled=""
+                      tabindex="-1"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-colorSecondary-id MuiIconButton-disabled-id"
+                      disabled=""
+                      tabindex="-1"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id CardTitle-constantHeight-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
+                Weight Based Rates
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Add rate
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <table
+              class="MuiTable-root-id"
+            >
+              <thead
+                class="MuiTableHead-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-head-id"
+                >
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id ShippingZoneRates-nameColumn-id"
+                    scope="col"
+                  >
+                    Name
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id ShippingZoneRates-valueColumn-id"
+                    scope="col"
+                  >
+                    Weight Range
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id ShippingZoneRates-nameColumn-id"
+                    scope="col"
+                  >
+                    Price
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  />
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  />
+                </tr>
+              </thead>
+              <tbody
+                class="MuiTableBody-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-nameColumn-id"
+                  >
+                    <span
+                      class="Skeleton-skeleton-id"
+                    >
+                      ‌
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    <span
+                      class="Skeleton-skeleton-id"
+                    >
+                      ‌
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    <span
+                      class="Skeleton-skeleton-id"
+                    >
+                      ‌
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-colorSecondary-id MuiIconButton-disabled-id"
+                      disabled=""
+                      tabindex="-1"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-colorSecondary-id MuiIconButton-disabled-id"
+                      disabled=""
+                      tabindex="-1"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div
+        class="SaveButtonBar-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id SaveButtonBar-deleteButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Remove
+          </span>
+        </button>
+        <div
+          class="SaveButtonBar-spacer-id"
+        />
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id SaveButtonBar-cancelButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Cancel
+          </span>
+        </button>
+        <button
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id undefined"
+          disabled=""
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-indeterminate-id ConfirmButtonComponent-progress-id ConfirmButtonComponent-invisible-id"
+              role="progressbar"
+              style="width:24px;height:24px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id ConfirmButtonComponent-icon-id ConfirmButtonComponent-invisible-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+              <path
+                d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+              />
+            </svg>
+            <span
+              class="ConfirmButtonComponent-label-id"
+            >
+              Save
+            </span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Shipping / Shipping zones list default 1`] = `
+<div>
+  <div
+    class="Container-md-id"
+  >
+    <div
+      class="ExtendedPageHeader-root-id"
+    >
+      <h2
+        class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
+      >
+        Shipping
+      </h2>
+      <div
+        class="ExtendedPageHeader-action-id"
+      />
+    </div>
+    <div
+      class="Grid-root-id Grid-default-id"
+    >
+      <div>
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <div
+            class="CardTitle-root-id CardTitle-constantHeight-id"
+          >
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+            >
+              Shipping by zone
+            </span>
+            <div
+              class="CardTitle-toolbar-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiButton-label-id"
+                >
+                  Add shipping zone
+                </span>
+              </button>
+            </div>
+          </div>
+          <div
+            class="CardTitle-children-id"
+          />
+          <hr
+            class="CardTitle-hr-id"
+          />
+          <table
+            class="MuiTable-root-id"
+          >
+            <thead
+              class="MuiTableHead-root-id"
+            >
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-head-id"
+              >
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id"
+                  scope="col"
+                >
+                  Name
+                </th>
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id"
+                  scope="col"
+                >
+                  Countries
+                </th>
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id"
+                  scope="col"
+                />
+              </tr>
+            </thead>
+            <tfoot
+              class="MuiTableFooter-root-id"
+            >
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-footer-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
+                  colspan="3"
+                >
+                  <div
+                    class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
+                  >
+                    <div
+                      class="TablePagination-spacer-id"
+                    />
+                    <div
+                      class="TablePaginationActions-root-id"
+                    >
+                      <button
+                        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
+                        disabled=""
+                        tabindex="-1"
+                        type="button"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                            />
+                          </svg>
+                        </span>
+                      </button>
+                      <button
+                        class="MuiButtonBase-root-id MuiIconButton-root-id"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                            />
+                          </svg>
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tfoot>
+            <tbody
+              class="MuiTableBody-root-id"
+            >
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  Europe
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  51
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id ShippingZonesList-alignRight-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                        />
+                        <path
+                          d="M0 0h24v24H0z"
+                          fill="none"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  Oceania
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  29
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id ShippingZonesList-alignRight-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                        />
+                        <path
+                          d="M0 0h24v24H0z"
+                          fill="none"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  Asia
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  51
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id ShippingZonesList-alignRight-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                        />
+                        <path
+                          d="M0 0h24v24H0z"
+                          fill="none"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  Americas
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  57
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id ShippingZonesList-alignRight-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                        />
+                        <path
+                          d="M0 0h24v24H0z"
+                          fill="none"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  Africa
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  60
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id ShippingZonesList-alignRight-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                        />
+                        <path
+                          d="M0 0h24v24H0z"
+                          fill="none"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <form>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
+                Configuration
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="MuiFormControl-root-id SingleSelectField-formControl-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
+                >
+                  Shipping Weight Unit
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                >
+                  <div
+                    class="MuiSelect-root-id"
+                  >
+                    <div
+                      aria-haspopup="true"
+                      aria-pressed="false"
+                      class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                      role="button"
+                      tabindex="0"
+                    >
+                      kg
+                    </div>
+                    <input
+                      name="unit"
+                      type="hidden"
+                      value="kg"
+                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
+                >
+                  This unit will be used as default shipping weight
+                </p>
+              </div>
+            </div>
+            <hr
+              class="Hr-root-id"
+            />
+            <div
+              class="MuiCardActions-root-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiButton-label-id"
+                >
+                  Save
+                </span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Shipping / Shipping zones list loading 1`] = `
+<div>
+  <div
+    class="Container-md-id"
+  >
+    <div
+      class="ExtendedPageHeader-root-id"
+    >
+      <h2
+        class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
+      >
+        Shipping
+      </h2>
+      <div
+        class="ExtendedPageHeader-action-id"
+      />
+    </div>
+    <div
+      class="Grid-root-id Grid-default-id"
+    >
+      <div>
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <div
+            class="CardTitle-root-id CardTitle-constantHeight-id"
+          >
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+            >
+              Shipping by zone
+            </span>
+            <div
+              class="CardTitle-toolbar-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiButton-label-id"
+                >
+                  Add shipping zone
+                </span>
+              </button>
+            </div>
+          </div>
+          <div
+            class="CardTitle-children-id"
+          />
+          <hr
+            class="CardTitle-hr-id"
+          />
+          <table
+            class="MuiTable-root-id"
+          >
+            <thead
+              class="MuiTableHead-root-id"
+            >
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-head-id"
+              >
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id"
+                  scope="col"
+                >
+                  Name
+                </th>
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id"
+                  scope="col"
+                >
+                  Countries
+                </th>
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id"
+                  scope="col"
+                />
+              </tr>
+            </thead>
+            <tfoot
+              class="MuiTableFooter-root-id"
+            >
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-footer-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
+                  colspan="3"
+                >
+                  <div
+                    class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
+                  >
+                    <div
+                      class="TablePagination-spacer-id"
+                    />
+                    <div
+                      class="TablePaginationActions-root-id"
+                    >
+                      <button
+                        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
+                        disabled=""
+                        tabindex="-1"
+                        type="button"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                            />
+                          </svg>
+                        </span>
+                      </button>
+                      <button
+                        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
+                        disabled=""
+                        tabindex="-1"
+                        type="button"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                            />
+                          </svg>
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tfoot>
+            <tbody
+              class="MuiTableBody-root-id"
+            >
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id ShippingZonesList-alignRight-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-colorSecondary-id MuiIconButton-disabled-id"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                        />
+                        <path
+                          d="M0 0h24v24H0z"
+                          fill="none"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <form>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
+                Configuration
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="MuiFormControl-root-id SingleSelectField-formControl-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
+                >
+                  Shipping Weight Unit
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                >
+                  <div
+                    class="MuiSelect-root-id"
+                  >
+                    <div
+                      aria-haspopup="true"
+                      aria-pressed="false"
+                      class="MuiSelect-select-id MuiSelect-selectMenu-id MuiSelect-disabled-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id"
+                      role="button"
+                    >
+                      kg
+                    </div>
+                    <input
+                      name="unit"
+                      type="hidden"
+                      value="kg"
+                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-disabled-id MuiFormHelperText-filled-id"
+                >
+                  This unit will be used as default shipping weight
+                </p>
+              </div>
+            </div>
+            <hr
+              class="Hr-root-id"
+            />
+            <div
+              class="MuiCardActions-root-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiButton-label-id"
+                >
+                  Save
+                </span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Shipping / Shipping zones list no data 1`] = `
+<div>
+  <div
+    class="Container-md-id"
+  >
+    <div
+      class="ExtendedPageHeader-root-id"
+    >
+      <h2
+        class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
+      >
+        Shipping
+      </h2>
+      <div
+        class="ExtendedPageHeader-action-id"
+      />
+    </div>
+    <div
+      class="Grid-root-id Grid-default-id"
+    >
+      <div>
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <div
+            class="CardTitle-root-id CardTitle-constantHeight-id"
+          >
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+            >
+              Shipping by zone
+            </span>
+            <div
+              class="CardTitle-toolbar-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiButton-label-id"
+                >
+                  Add shipping zone
+                </span>
+              </button>
+            </div>
+          </div>
+          <div
+            class="CardTitle-children-id"
+          />
+          <hr
+            class="CardTitle-hr-id"
+          />
+          <table
+            class="MuiTable-root-id"
+          >
+            <thead
+              class="MuiTableHead-root-id"
+            >
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-head-id"
+              >
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id"
+                  scope="col"
+                >
+                  Name
+                </th>
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id"
+                  scope="col"
+                >
+                  Countries
+                </th>
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id"
+                  scope="col"
+                />
+              </tr>
+            </thead>
+            <tfoot
+              class="MuiTableFooter-root-id"
+            >
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-footer-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
+                  colspan="3"
+                >
+                  <div
+                    class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
+                  >
+                    <div
+                      class="TablePagination-spacer-id"
+                    />
+                    <div
+                      class="TablePaginationActions-root-id"
+                    >
+                      <button
+                        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
+                        disabled=""
+                        tabindex="-1"
+                        type="button"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                            />
+                          </svg>
+                        </span>
+                      </button>
+                      <button
+                        class="MuiButtonBase-root-id MuiIconButton-root-id"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                            />
+                          </svg>
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tfoot>
+            <tbody
+              class="MuiTableBody-root-id"
+            >
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                  colspan="3"
+                >
+                  No shipping zones found
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <form>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
+                Configuration
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="MuiFormControl-root-id SingleSelectField-formControl-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
+                >
+                  Shipping Weight Unit
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                >
+                  <div
+                    class="MuiSelect-root-id"
+                  >
+                    <div
+                      aria-haspopup="true"
+                      aria-pressed="false"
+                      class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                      role="button"
+                      tabindex="0"
+                    >
+                      kg
+                    </div>
+                    <input
+                      name="unit"
+                      type="hidden"
+                      value="kg"
+                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
+                >
+                  This unit will be used as default shipping weight
+                </p>
+              </div>
+            </div>
+            <hr
+              class="Hr-root-id"
+            />
+            <div
+              class="MuiCardActions-root-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiButton-label-id"
+                >
+                  Save
+                </span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </div>
 `;

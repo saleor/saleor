@@ -39,6 +39,7 @@ import OrdersSection from "./orders";
 import PageSection from "./pages";
 import ProductSection from "./products";
 import ProductTypesSection from "./productTypes";
+import ShippingSection from "./shipping";
 import SiteSettingsSection from "./siteSettings";
 import StaffSection from "./staff";
 import TaxesSection from "./taxes";
@@ -184,6 +185,11 @@ render(
                               permissions={[PermissionEnum.MANAGE_SETTINGS]}
                               path="/taxes"
                               component={TaxesSection}
+                            />
+                            <SectionRoute
+                              permissions={[PermissionEnum.MANAGE_SHIPPING]}
+                              path="/shipping"
+                              component={ShippingSection}
                             />
                             {configurationMenu.filter(menuItem =>
                               hasPermission(menuItem.permission, user)

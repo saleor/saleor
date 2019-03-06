@@ -1,8 +1,6 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { TaxRateType } from "./../../types/globalTypes";
-
 // ====================================================
 // GraphQL mutation operation: FetchTaxes
 // ====================================================
@@ -13,23 +11,10 @@ export interface FetchTaxes_shopFetchTaxRates_errors {
   message: string | null;
 }
 
-export interface FetchTaxes_shopFetchTaxRates_shop_countries_vat_reducedRates {
-  __typename: "ReducedRate";
-  rateType: TaxRateType;
-  rate: number;
-}
-
-export interface FetchTaxes_shopFetchTaxRates_shop_countries_vat {
-  __typename: "VAT";
-  standardRate: number | null;
-  reducedRates: (FetchTaxes_shopFetchTaxRates_shop_countries_vat_reducedRates | null)[];
-}
-
 export interface FetchTaxes_shopFetchTaxRates_shop_countries {
   __typename: "CountryDisplay";
   country: string;
   code: string;
-  vat: FetchTaxes_shopFetchTaxRates_shop_countries_vat | null;
 }
 
 export interface FetchTaxes_shopFetchTaxRates_shop {
