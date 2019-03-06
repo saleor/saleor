@@ -25,9 +25,11 @@ const WeightRange: React.StatelessComponent<WeightRangeProps> = ({
         context: "weight",
         ...from
       })
-    : i18n.t("to {{ value }} {{ unit }}", {
+    : !from && to
+    ? i18n.t("to {{ value }} {{ unit }}", {
         context: "weight",
         ...to
-      });
+      })
+    : "-";
 WeightRange.displayName = "WeightRange";
 export default WeightRange;
