@@ -1,5 +1,5 @@
 // tslint:disable:no-submodule-imports
-import throttle from "lodash/throttle";
+import * as throttle from "lodash/throttle";
 import { useEffect, useState } from "react";
 
 function getPosition() {
@@ -13,7 +13,7 @@ function useScroll() {
   const [scroll, setScroll] = useState(getPosition);
 
   useEffect(() => {
-    const handleScroll = () => throttle(setScroll(getPosition()), 100);
+    const handleScroll = throttle(() => setScroll(getPosition()), 250);
 
     window.addEventListener("scroll", handleScroll);
 
