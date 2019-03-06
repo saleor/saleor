@@ -49,6 +49,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add ordering to shipping method - #3806 by @michaljelonek
 - Add missing types for dashboard 2.0 after adding translations to API - #3802 by @jxltom
 - Add city choices and city area type to address validator API - #3788 by @jxltom
+- Support setting as default address directly when creating customer address #3782 by @jxltom
 
 
 ## 2.3.1
