@@ -32,10 +32,12 @@ export const MoneyRange: React.StatelessComponent<MoneyRangeProps> = ({
             context: "money",
             money: formatMoney(from, locale)
           })
-        : i18n.t("to {{ money }}", {
+        : !from && to
+        ? i18n.t("to {{ money }}", {
             context: "money",
             money: formatMoney(to, locale)
           })
+        : "-"
     }
   </LocaleConsumer>
 );
