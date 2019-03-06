@@ -31,9 +31,9 @@
       vertical-align: baseline;
       margin-right: $global-margin;
       padding-bottom: 2px;
+      width: 113px;
       @include media-breakpoint-down(sm) {
         max-height: 34px;
-        width: auto;
         vertical-align: text-bottom;
         margin-right: 0;
         padding-bottom: 5px;
@@ -91,8 +91,8 @@
           border-radius: 12px;
         }
         .btn {
-          height: 3.6rem;
-          padding: $global-padding;
+          height: calc(2.25rem + 2px);
+          padding: $global-padding / 2;
         }
         .btn-voucher-remove {
           position: relative;

@@ -73,9 +73,11 @@ export enum OrderStatusFilter {
 }
 
 export enum PaymentChargeStatusEnum {
-  CHARGED = "CHARGED",
+  FULLY_CHARGED = "FULLY_CHARGED",
   FULLY_REFUNDED = "FULLY_REFUNDED",
   NOT_CHARGED = "NOT_CHARGED",
+  PARTIALLY_CHARGED = "PARTIALLY_CHARGED",
+  PARTIALLY_REFUNDED = "PARTIALLY_REFUNDED",
 }
 
 export enum PermissionEnum {
@@ -88,6 +90,7 @@ export enum PermissionEnum {
   MANAGE_SETTINGS = "MANAGE_SETTINGS",
   MANAGE_SHIPPING = "MANAGE_SHIPPING",
   MANAGE_STAFF = "MANAGE_STAFF",
+  MANAGE_TRANSLATIONS = "MANAGE_TRANSLATIONS",
   MANAGE_USERS = "MANAGE_USERS",
 }
 
@@ -210,6 +213,7 @@ export interface CatalogueInput {
 
 export interface CategoryInput {
   description?: string | null;
+  descriptionJson?: any | null;
   name?: string | null;
   slug?: string | null;
   seo?: SeoInput | null;
@@ -222,6 +226,7 @@ export interface CollectionCreateInput {
   name?: string | null;
   slug?: string | null;
   description?: string | null;
+  descriptionJson?: any | null;
   backgroundImage?: any | null;
   backgroundImageAlt?: string | null;
   seo?: SeoInput | null;
@@ -234,6 +239,7 @@ export interface CollectionInput {
   name?: string | null;
   slug?: string | null;
   description?: string | null;
+  descriptionJson?: any | null;
   backgroundImage?: any | null;
   backgroundImageAlt?: string | null;
   seo?: SeoInput | null;
@@ -301,6 +307,16 @@ export interface OrderUpdateInput {
 
 export interface OrderUpdateShippingInput {
   shippingMethod?: string | null;
+}
+
+export interface PageInput {
+  slug?: string | null;
+  title?: string | null;
+  content?: string | null;
+  contentJson?: any | null;
+  isPublished?: boolean | null;
+  publicationDate?: string | null;
+  seo?: SeoInput | null;
 }
 
 export interface ProductTypeInput {

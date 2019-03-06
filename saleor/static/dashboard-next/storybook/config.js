@@ -22,6 +22,7 @@ function loadStories() {
   require("./stories/components/Percent");
   require("./stories/components/PhoneField");
   require("./stories/components/PriceField");
+  require("./stories/components/RichTextEditor");
   require("./stories/components/SaveButtonBar");
   require("./stories/components/SingleAutocompleteSelectField");
   require("./stories/components/SingleSelectField");
@@ -73,11 +74,8 @@ function loadStories() {
   require("./stories/staff/StaffDetailsPage");
 
   // Pages
-  require("./stories/pages/PageContent");
-  require("./stories/pages/PageDeleteDialog");
-  require("./stories/pages/PageDetailsPage");
-  require("./stories/pages/PageListPage");
-  require("./stories/pages/PageProperties");
+  require("./stories/pages/PageDetailsPage")
+  require("./stories/pages/PageListPage")
 
   // Products
   require("./stories/products/ProductCreatePage");

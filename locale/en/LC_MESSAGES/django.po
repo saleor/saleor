@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-18 05:51-0600\n"
+"POT-Creation-Date: 2019-03-04 10:43-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -381,47 +381,47 @@ msgid ""
 "available for now."
 msgstr ""
 
-#: saleor/checkout/utils.py:646
+#: saleor/checkout/utils.py:630
 msgctxt "Voucher not applicable"
 msgid "Your order does not require shipping."
 msgstr ""
 
-#: saleor/checkout/utils.py:652
+#: saleor/checkout/utils.py:636
 msgctxt "Voucher not applicable"
 msgid "Please select a shipping method first."
 msgstr ""
 
-#: saleor/checkout/utils.py:660
+#: saleor/checkout/utils.py:644
 msgctxt "Voucher not applicable"
 msgid "This offer is not valid in your country."
 msgstr ""
 
-#: saleor/checkout/utils.py:682
+#: saleor/checkout/utils.py:666
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for selected items."
 msgstr ""
 
-#: saleor/checkout/utils.py:792
+#: saleor/checkout/utils.py:793
 msgctxt "Voucher not applicable"
 msgid "Voucher expired in meantime. Order placement aborted."
 msgstr ""
 
-#: saleor/checkout/utils.py:905
+#: saleor/checkout/utils.py:897
 msgctxt "order placement_error"
 msgid "Shipping method is not set"
 msgstr ""
 
-#: saleor/checkout/utils.py:908
+#: saleor/checkout/utils.py:900
 msgctxt "order placement error"
 msgid "Shipping address is not set"
 msgstr ""
 
-#: saleor/checkout/utils.py:912
+#: saleor/checkout/utils.py:904
 msgctxt "order placement error"
 msgid "Shipping method is not valid for your shipping address"
 msgstr ""
 
-#: saleor/checkout/utils.py:915
+#: saleor/checkout/utils.py:907
 msgctxt "order placement error"
 msgid "Checkout is not fully paid"
 msgstr ""
@@ -431,7 +431,7 @@ msgctxt "Checkout warning"
 msgid "This voucher has expired. Please review your checkout."
 msgstr ""
 
-#: saleor/checkout/views/summary.py:34
+#: saleor/checkout/views/summary.py:37
 msgctxt "Checkout warning"
 msgid "Please review your checkout."
 msgstr ""
@@ -680,7 +680,7 @@ msgctxt "Voucher not applicable"
 msgid "Discount not applicable for this product"
 msgstr ""
 
-#: saleor/graphql/order/mutations/fulfillments.py:79
+#: saleor/graphql/order/mutations/fulfillments.py:78
 #, python-format
 msgctxt "Fulfill order line mutation error"
 msgid "Only %(quantity)d item remaining to fulfill."
@@ -688,7 +688,7 @@ msgid_plural "Only %(quantity)d items remaining to fulfill."
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/graphql/order/mutations/fulfillments.py:212
+#: saleor/graphql/order/mutations/fulfillments.py:216
 msgctxt "Cancel fulfillment mutation error"
 msgid "This fulfillment can't be canceled"
 msgstr ""
@@ -897,7 +897,7 @@ msgctxt "Permission description"
 msgid "Manage orders."
 msgstr ""
 
-#: saleor/order/models.py:339
+#: saleor/order/models.py:335
 #, python-format
 msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
@@ -915,7 +915,7 @@ msgctxt "storefront message"
 msgid "The order is now assigned to your account"
 msgstr ""
 
-#: saleor/page/models.py:31
+#: saleor/page/models.py:33
 msgctxt "Permission description"
 msgid "Manage pages."
 msgstr ""
@@ -925,42 +925,42 @@ msgctxt "Custom payment choice type"
 msgid "Manual"
 msgstr ""
 
-#: saleor/payment/__init__.py:68
+#: saleor/payment/__init__.py:72
 msgctxt "transaction kind"
 msgid "Authorization"
 msgstr ""
 
-#: saleor/payment/__init__.py:69
+#: saleor/payment/__init__.py:73
 msgctxt "transaction kind"
 msgid "Charge"
 msgstr ""
 
-#: saleor/payment/__init__.py:70
+#: saleor/payment/__init__.py:74
 msgctxt "transaction kind"
 msgid "Refund"
 msgstr ""
 
-#: saleor/payment/__init__.py:71
+#: saleor/payment/__init__.py:75
 msgctxt "transaction kind"
 msgid "Capture"
 msgstr ""
 
-#: saleor/payment/__init__.py:72
+#: saleor/payment/__init__.py:76
 msgctxt "transaction kind"
 msgid "Void"
 msgstr ""
 
-#: saleor/payment/__init__.py:91
+#: saleor/payment/__init__.py:93
 msgctxt "payment status"
 msgid "Charged"
 msgstr ""
 
-#: saleor/payment/__init__.py:92
+#: saleor/payment/__init__.py:94
 msgctxt "payment status"
 msgid "Not charged"
 msgstr ""
 
-#: saleor/payment/__init__.py:93
+#: saleor/payment/__init__.py:95
 msgctxt "payment status"
 msgid "Fully refunded"
 msgstr ""
@@ -1022,7 +1022,7 @@ msgctxt "Stripe payment gateway description"
 msgid "Total payment"
 msgstr ""
 
-#: saleor/payment/utils.py:235
+#: saleor/payment/utils.py:236
 msgctxt "Mark order as paid validation error"
 msgid "Orders with payments can not be manually marked as paid."
 msgstr ""
@@ -1098,7 +1098,7 @@ msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
 msgstr ""
 
-#: saleor/product/models.py:126
+#: saleor/product/models.py:129
 msgctxt "Permission description"
 msgid "Manage products."
 msgstr ""
@@ -1149,99 +1149,107 @@ msgid "Spanish"
 msgstr ""
 
 #: saleor/settings.py:71
-msgid "Persian"
+msgid "Estonian"
 msgstr ""
 
 #: saleor/settings.py:72
-msgid "French"
+msgid "Persian"
 msgstr ""
 
 #: saleor/settings.py:73
-msgid "Hindi"
+msgid "French"
 msgstr ""
 
 #: saleor/settings.py:74
-msgid "Hungarian"
+msgid "Hindi"
 msgstr ""
 
 #: saleor/settings.py:75
-msgid "Italian"
+msgid "Hungarian"
 msgstr ""
 
 #: saleor/settings.py:76
-msgid "Japanese"
+msgid "Indonesian"
 msgstr ""
 
 #: saleor/settings.py:77
-msgid "Korean"
+msgid "Italian"
 msgstr ""
 
 #: saleor/settings.py:78
-msgid "Mongolian"
+msgid "Japanese"
 msgstr ""
 
 #: saleor/settings.py:79
-msgid "Norwegian"
+msgid "Korean"
 msgstr ""
 
 #: saleor/settings.py:80
-msgid "Dutch"
+msgid "Mongolian"
 msgstr ""
 
 #: saleor/settings.py:81
-msgid "Polish"
+msgid "Norwegian"
 msgstr ""
 
 #: saleor/settings.py:82
-msgid "Brazilian Portuguese"
+msgid "Dutch"
 msgstr ""
 
 #: saleor/settings.py:83
-msgid "Romanian"
+msgid "Polish"
 msgstr ""
 
 #: saleor/settings.py:84
-msgid "Russian"
+msgid "Brazilian Portuguese"
 msgstr ""
 
 #: saleor/settings.py:85
-msgid "Slovak"
+msgid "Romanian"
 msgstr ""
 
 #: saleor/settings.py:86
-msgid "Serbian"
+msgid "Russian"
 msgstr ""
 
 #: saleor/settings.py:87
-msgid "Swedish"
+msgid "Slovak"
 msgstr ""
 
 #: saleor/settings.py:88
-msgid "Turkish"
+msgid "Serbian"
 msgstr ""
 
 #: saleor/settings.py:89
-msgid "Ukrainian"
+msgid "Swedish"
 msgstr ""
 
 #: saleor/settings.py:90
-msgid "Vietnamese"
+msgid "Turkish"
 msgstr ""
 
 #: saleor/settings.py:91
-msgid "Simplified Chinese"
+msgid "Ukrainian"
 msgstr ""
 
 #: saleor/settings.py:92
+msgid "Vietnamese"
+msgstr ""
+
+#: saleor/settings.py:93
+msgid "Simplified Chinese"
+msgstr ""
+
+#: saleor/settings.py:94
 msgid "Traditional Chinese"
 msgstr ""
 
-#: saleor/settings.py:328
+#: saleor/settings.py:330
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr ""
 
-#: saleor/settings.py:565
+#: saleor/settings.py:567
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr ""
@@ -2231,7 +2239,7 @@ msgstr ""
 #: templates/dashboard/menu/form.html:60
 #: templates/dashboard/menu/item/form.html:82
 #: templates/dashboard/order/address_form.html:61
-#: templates/dashboard/order/fulfillment.html:133
+#: templates/dashboard/order/fulfillment.html:136
 #: templates/dashboard/product/attribute/form.html:77
 #: templates/dashboard/product/attribute/form.html:84
 #: templates/dashboard/product/attribute/values/form.html:78
@@ -3729,7 +3737,7 @@ msgctxt "Fulfill order table quantity unfulfilled"
 msgid "of %(quantity_unfulfilled)s"
 msgstr ""
 
-#: templates/dashboard/order/fulfillment.html:136
+#: templates/dashboard/order/fulfillment.html:139
 msgctxt "Dashboard update action"
 msgid "Fulfill"
 msgstr ""
