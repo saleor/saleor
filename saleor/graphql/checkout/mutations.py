@@ -7,8 +7,8 @@ from ...checkout import models
 from ...checkout.utils import (
     add_variant_to_cart, add_voucher_to_cart, change_billing_address_in_cart,
     change_shipping_address_in_cart, create_order, get_or_create_user_cart,
-    get_taxes_for_cart, get_voucher_for_cart, ready_to_place_order,
-    recalculate_cart_discount, remove_voucher_from_cart)
+    get_taxes_for_cart, get_voucher_for_cart, is_valid_shipping_method,
+    ready_to_place_order, recalculate_cart_discount, remove_voucher_from_cart)
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import get_taxes_for_address
@@ -17,7 +17,6 @@ from ...order import OrderEvents, OrderEventsEmails
 from ...order.emails import send_order_confirmation
 from ...payment import PaymentError
 from ...payment.utils import gateway_process_payment
-from ...shipping.models import ShippingMethod as ShippingMethodModel
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, User
 from ..core.mutations import BaseMutation, ModelMutation
@@ -29,8 +28,7 @@ from .types import Checkout, CheckoutLine
 
 
 def clean_shipping_method(
-        checkout, method, errors, discounts, taxes, country_code=None,
-        remove=True):
+        checkout, method, errors, discounts, taxes, remove=True):
     # FIXME Add tests for this function
     if not method:
         return errors
@@ -47,14 +45,9 @@ def clean_shipping_method(
                     'Cannot choose a shipping method for a '
                     'checkout without the shipping address.')))
         return errors
-    valid_methods = (
-        ShippingMethodModel.objects.applicable_shipping_methods(
-            price=checkout.get_subtotal(discounts, taxes).gross.amount,
-            weight=checkout.get_total_weight(),
-            country_code=country_code or checkout.shipping_address.country.code
-        ))
-    valid_methods = valid_methods.values_list('id', flat=True)
-    if method.pk not in valid_methods and not remove:
+    shipping_method_is_valid = is_valid_shipping_method(
+        checkout, taxes, discounts)
+    if not shipping_method_is_valid:
         errors.append(
             Error(
                 field='shippingMethod',
