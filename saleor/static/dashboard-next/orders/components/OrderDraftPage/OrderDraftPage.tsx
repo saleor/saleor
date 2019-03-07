@@ -7,6 +7,7 @@ import {
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import { CardMenu } from "../../../components/CardMenu/CardMenu";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import { Container } from "../../../components/Container";
@@ -88,11 +89,11 @@ const OrderDraftPage = withStyles(styles, { name: "OrderDraftPage" })(
     users,
     usersLoading
   }: OrderDraftPageProps) => (
-    <Container width="md">
+    <Container>
+      <AppHeader onBack={onBack}>{i18n.t("Orders")}</AppHeader>
       <PageHeader
         className={classes.header}
         title={maybe(() => order.number) ? "#" + order.number : undefined}
-        onBack={onBack}
       >
         <CardMenu
           className={classes.menu}

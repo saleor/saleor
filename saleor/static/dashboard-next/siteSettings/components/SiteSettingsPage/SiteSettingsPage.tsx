@@ -57,7 +57,7 @@ const SiteSettingsPage: React.StatelessComponent<SiteSettingsPageProps> = ({
       confirmLeave
     >
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
-        <Container width="md">
+        <Container>
           <PageHeader
             title={i18n.t("General Information", {
               context: "page header"
