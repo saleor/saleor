@@ -22,7 +22,7 @@ const PageListPage: React.StatelessComponent<PageListPageProps> = ({
   pageInfo,
   pages
 }) => (
-  <Container width="md">
+  <Container>
     <PageHeader title={i18n.t("Pages")}>
       <Button
         disabled={disabled}

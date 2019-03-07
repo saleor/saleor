@@ -86,6 +86,7 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
                             <>
                               <ProductImagePage
                                 disabled={loading}
+                                product={maybe(() => data.product.name)}
                                 image={image || null}
                                 images={maybe(() => data.product.images)}
                                 onBack={handleBack}
