@@ -24,7 +24,7 @@ const ProductTypeListPage: React.StatelessComponent<
   onPreviousPage,
   onRowClick
 }) => (
-  <Container width="md">
+  <Container>
     <PageHeader title={i18n.t("Product types")}>
       <Button
         color="secondary"

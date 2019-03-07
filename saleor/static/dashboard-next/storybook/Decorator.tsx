@@ -15,7 +15,13 @@ export const Decorator = storyFn => (
         <MuiThemeProvider theme={theme}>
           <CssBaseline />
           <MessageManager>
-            <div>{storyFn()}</div>
+            <div
+              style={{
+                padding: 24
+              }}
+            >
+              {storyFn()}
+            </div>
           </MessageManager>
         </MuiThemeProvider>
       </TimezoneProvider>

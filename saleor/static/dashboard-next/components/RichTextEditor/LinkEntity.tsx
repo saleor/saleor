@@ -71,53 +71,55 @@ const LinkEntity = withStyles(styles, {
     <Toggle>
       {(isOpened, { disable, toggle }) => (
         <>
-          <Anchor className={classes.anchor}>
+          <Anchor>
             {anchor => (
-              <Popper
-                open={isOpened}
-                anchorEl={anchor.current}
-                transition
-                placement="bottom"
-              >
-                {({ TransitionProps, placement }) => (
-                  <Grow
-                    {...TransitionProps}
-                    style={{
-                      transformOrigin: placement
-                    }}
-                  >
-                    <Paper className={classes.root}>
-                      <ClickAwayListener
-                        onClickAway={disable}
-                        mouseEvent="onClick"
-                      >
-                        <div className={classes.container}>
-                          <Typography
-                            className={classes.inline}
-                            variant="body1"
-                          >
-                            {contentState.getEntity(entityKey).getData().href}
-                          </Typography>
-                          <span className={classes.separator} />
-                          <Button
-                            onClick={() => {
-                              disable();
-                              onEdit(entityKey);
-                            }}
-                            color="secondary"
-                            variant="flat"
-                          >
-                            {i18n.t("Edit")}
-                          </Button>
-                          <IconButton onClick={() => onRemove(entityKey)}>
-                            <DeleteIcon color="secondary" />
-                          </IconButton>
-                        </div>
-                      </ClickAwayListener>
-                    </Paper>
-                  </Grow>
-                )}
-              </Popper>
+              <div className={classes.anchor} ref={anchor}>
+                <Popper
+                  open={isOpened}
+                  anchorEl={anchor.current}
+                  transition
+                  placement="bottom"
+                >
+                  {({ TransitionProps, placement }) => (
+                    <Grow
+                      {...TransitionProps}
+                      style={{
+                        transformOrigin: placement
+                      }}
+                    >
+                      <Paper className={classes.root}>
+                        <ClickAwayListener
+                          onClickAway={disable}
+                          mouseEvent="onClick"
+                        >
+                          <div className={classes.container}>
+                            <Typography
+                              className={classes.inline}
+                              variant="body1"
+                            >
+                              {contentState.getEntity(entityKey).getData().href}
+                            </Typography>
+                            <span className={classes.separator} />
+                            <Button
+                              onClick={() => {
+                                disable();
+                                onEdit(entityKey);
+                              }}
+                              color="secondary"
+                              variant="flat"
+                            >
+                              {i18n.t("Edit")}
+                            </Button>
+                            <IconButton onClick={() => onRemove(entityKey)}>
+                              <DeleteIcon color="secondary" />
+                            </IconButton>
+                          </div>
+                        </ClickAwayListener>
+                      </Paper>
+                    </Grow>
+                  )}
+                </Popper>
+              </div>
             )}
           </Anchor>
           <Link

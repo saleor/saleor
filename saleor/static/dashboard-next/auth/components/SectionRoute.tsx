@@ -2,9 +2,9 @@ import * as React from "react";
 import { Route, RouteProps } from "react-router-dom";
 
 import { UserContext } from "..";
-import AppRoot from "../../AppRoot";
+import AppLayout from "../../components/AppLayout";
 import NotFound from "../../NotFound";
-import { PermissionEnum } from '../../types/globalTypes';
+import { PermissionEnum } from "../../types/globalTypes";
 import { hasPermission } from "../misc";
 
 interface SectionRouteProps extends RouteProps {
@@ -21,9 +21,9 @@ export const SectionRoute: React.StatelessComponent<SectionRouteProps> = ({
       permissions
         .map(permission => hasPermission(permission, user))
         .reduce((prev, curr) => prev && curr) ? (
-        <AppRoot>
+        <AppLayout>
           <Route {...props} />
-        </AppRoot>
+        </AppLayout>
       ) : (
         <NotFound />
       )
