@@ -27,16 +27,29 @@ from ..shipping.types import ShippingMethod
 from .types import Checkout, CheckoutLine
 
 
-def clean_shipping_method(
-        checkout, method, errors, discounts, taxes, remove=True):
-    # FIXME Add tests for this function
-    if not method:
+def clean_shipping_address(checkout, shipping_address, errors, remove=True):
+    if not shipping_address:
         return errors
+
     if not checkout.is_shipping_required():
         errors.append(
             Error(
                 field='checkout',
                 message='This checkout does not requires shipping.'))
+
+    if errors and remove:
+        checkout.shipping_address = None
+        checkout.shipping_method = None
+        checkout.save(update_fields=['shipping_address', 'shipping_method'])
+    return errors
+
+
+def clean_shipping_method(
+        checkout, method, errors, discounts, taxes, remove=True):
+    # FIXME Add tests for this function
+    if not method:
+        return errors
+
     if not checkout.shipping_address:
         errors.append(
             Error(
@@ -44,7 +57,7 @@ def clean_shipping_method(
                 message=(
                     'Cannot choose a shipping method for a '
                     'checkout without the shipping address.')))
-        return errors
+
     shipping_method_is_valid = is_valid_shipping_method(
         checkout, taxes, discounts)
     if not shipping_method_is_valid:
@@ -52,7 +65,7 @@ def clean_shipping_method(
             Error(
                 field='shippingMethod',
                 message='Shipping method cannot be used with this checkout.'))
-    if remove:
+    if errors and remove:
         checkout.shipping_method = None
         checkout.save(update_fields=['shipping_method'])
     return errors
@@ -238,6 +251,9 @@ class CheckoutLinesAdd(BaseMutation):
                         cls.add_error(errors, field=err[0], message=err[1])
 
         # FIXME test if below function is called
+        clean_shipping_address(
+            checkout=checkout, shipping_address=checkout.shipping_address,
+            errors=errors)
         clean_shipping_method(
             checkout=checkout, method=checkout.shipping_method,
             errors=errors, discounts=info.context.discounts,
@@ -295,6 +311,9 @@ class CheckoutLineDelete(BaseMutation):
             line.delete()
 
         # FIXME test if below function is called
+        clean_shipping_address(
+            checkout=checkout, shipping_address=checkout.shipping_address,
+            errors=errors)
         clean_shipping_method(
             checkout=checkout, method=checkout.shipping_method, errors=errors,
             discounts=info.context.discounts,
@@ -381,6 +400,9 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             shipping_address, errors = cls.validate_address(
                 shipping_address, errors, instance=checkout.shipping_address)
             # FIXME test if below function is called
+            clean_shipping_address(
+                checkout=checkout, shipping_address=shipping_address,
+                errors=errors, remove=False)
             clean_shipping_method(
                 checkout, checkout.shipping_method, errors,
                 info.context.discounts,
@@ -469,6 +491,9 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             only_type=ShippingMethod)
 
         if checkout is not None and shipping_method:
+            clean_shipping_address(
+                checkout=checkout, shipping_address=checkout.shipping_address,
+                errors=errors)
             clean_shipping_method(
                 checkout, shipping_method, errors, info.context.discounts,
                 info.context.taxes, remove=False)
