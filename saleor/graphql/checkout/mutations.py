@@ -250,6 +250,14 @@ class CheckoutLinesAdd(BaseMutation):
                     for err in line_errors:
                         cls.add_error(errors, field=err[0], message=err[1])
 
+        if errors:
+            return CheckoutLinesAdd(errors=errors)
+
+        if variants and quantities:
+            for variant, quantity in zip(variants, quantities):
+                add_variant_to_cart(
+                    checkout, variant, quantity, replace=replace)
+
         # FIXME test if below function is called
         clean_shipping_address(
             checkout=checkout, shipping_address=checkout.shipping_address,
@@ -258,14 +266,6 @@ class CheckoutLinesAdd(BaseMutation):
             checkout=checkout, method=checkout.shipping_method,
             errors=errors, discounts=info.context.discounts,
             taxes=get_taxes_for_address(checkout.shipping_address))
-
-        if errors:
-            return CheckoutLinesAdd(errors=errors)
-
-        if variants and quantities:
-            for variant, quantity in zip(variants, quantities):
-                add_variant_to_cart(
-                    checkout, variant, quantity, replace=replace)
 
         recalculate_cart_discount(
             checkout, info.context.discounts, info.context.taxes)
@@ -318,8 +318,6 @@ class CheckoutLineDelete(BaseMutation):
             checkout=checkout, method=checkout.shipping_method, errors=errors,
             discounts=info.context.discounts,
             taxes=get_taxes_for_address(checkout.shipping_address))
-        if errors:
-            return CheckoutLineDelete(errors=errors)
 
         recalculate_cart_discount(
             checkout, info.context.discounts, info.context.taxes)
