@@ -115,7 +115,12 @@ export const SaveButtonBar = withStyles(styles, { name: "SaveButtonBar" })(
                     variant="text"
                     onClick={onCancel}
                   >
-                    {labels && labels.cancel ? labels.cancel : i18n.t("Cancel")}
+                    {maybe(
+                      () => labels.cancel,
+                      i18n.t("Cancel", {
+                        context: "button"
+                      })
+                    )}
                   </Button>
                   <ConfirmButton
                     disabled={disabled}
