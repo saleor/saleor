@@ -44,7 +44,7 @@ const styles = (theme: Theme) =>
     root: {
       background: theme.palette.background.default,
       borderTop: "1px solid transparent",
-      boxShadow: `0px -6px 4px 0px ${theme.palette.grey[200]}`,
+      boxShadow: `0px -5px 5px 0px ${theme.palette.grey[200]}`,
       transition: theme.transitions.duration.standard + "ms"
     },
     spacer: {
