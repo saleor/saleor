@@ -68,7 +68,7 @@ export const PageCreate: React.StatelessComponent<PageCreateProps> = () => (
                               description: formData.seoDescription,
                               title: formData.seoTitle
                             },
-                            slug: formData.slug,
+                            slug: formData.slug === "" ? null : formData.slug,
                             title: formData.title
                           }
                         }

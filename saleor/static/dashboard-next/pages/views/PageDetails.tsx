@@ -8,7 +8,7 @@ import Navigator from "../../components/Navigator";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import { PageInput } from "../../types/globalTypes";
-import PageDetailsPage,{FormData} from "../components/PageDetailsPage";
+import PageDetailsPage, { FormData } from "../components/PageDetailsPage";
 import { TypedPageRemove, TypedPageUpdate } from "../mutations";
 import { TypedPageDetailsQuery } from "../queries";
 import { PageRemove } from "../types/PageRemove";
@@ -19,13 +19,10 @@ export interface PageDetailsProps {
 }
 
 const createPageInput = (data: FormData): PageInput => ({
-  contentJson: JSON.stringify(
-    data.content
-  ),
+  contentJson: JSON.stringify(data.content),
   isPublished: data.isVisible
     ? true
-    : data.availableOn === "" ||
-      data.availableOn === null
+    : data.availableOn === "" || data.availableOn === null
     ? false
     : true,
   publicationDate: data.isVisible
@@ -37,9 +34,9 @@ const createPageInput = (data: FormData): PageInput => ({
     description: data.seoDescription,
     title: data.seoTitle
   },
-  slug: data.slug,
+  slug: data.slug === "" ? null : data.slug,
   title: data.title
-})
+});
 
 export const PageDetails: React.StatelessComponent<PageDetailsProps> = ({
   id

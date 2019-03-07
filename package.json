@@ -83,6 +83,7 @@
     "react-sortable-hoc": "^0.6.8",
     "react-svg": "^2.2.11",
     "select2": "^4.0.5",
+    "slugify": "^1.3.4",
     "sortablejs": "^1.5.0-rc1",
     "string-similarity": "^1.2.0",
     "svg-injector-2": "^2.0.35",
