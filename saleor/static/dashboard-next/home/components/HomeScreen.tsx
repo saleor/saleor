@@ -17,7 +17,7 @@ interface HomeScreenProps {
 export const HomeScreen: React.StatelessComponent<HomeScreenProps> = ({
   user
 }) => (
-  <Container width="md">
+  <Container>
     <PageHeader
       title={i18n.t("Hello there, {{userName}}", { userName: user.email })}
     />

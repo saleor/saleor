@@ -53,6 +53,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Include example JSON content in dumpdata file - #3810 by @maarcingebala
 - Add shipping zones to dashboard 2.0 - #3770 by @dominik-zeglen
 - Prefetch collections for product availability - #3813 by @michaljelonek
+- Restyle app layout - #3811 by @dominik-zeglen
 
 
 ## 2.3.1
