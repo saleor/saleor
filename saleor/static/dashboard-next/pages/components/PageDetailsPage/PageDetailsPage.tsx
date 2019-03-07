@@ -1,4 +1,9 @@
-import { ContentState, convertToRaw, RawDraftContentState } from "draft-js";
+import {
+  ContentState,
+  convertFromRaw,
+  convertToRaw,
+  RawDraftContentState
+} from "draft-js";
 import * as React from "react";
 
 import AppHeader from "../../../components/AppHeader";
@@ -54,8 +59,8 @@ const PageDetailsPage: React.StatelessComponent<PageDetailsPageProps> = ({
       convertToRaw(ContentState.createFromText(""))
     ),
     isVisible: maybe(() => page.isVisible, false),
-    seoDescription: maybe(() => page.seoDescription, ""),
-    seoTitle: maybe(() => page.seoTitle, ""),
+    seoDescription: maybe(() => page.seoDescription || "", ""),
+    seoTitle: maybe(() => page.seoTitle || "", ""),
     slug: maybe(() => page.slug, ""),
     title: maybe(() => page.title, "")
   };
@@ -86,7 +91,11 @@ const PageDetailsPage: React.StatelessComponent<PageDetailsPageProps> = ({
               <SeoForm
                 description={data.seoDescription}
                 disabled={disabled}
-                descriptionPlaceholder={data.title}
+                descriptionPlaceholder={maybe(() => {
+                  return convertFromRaw(data.content)
+                    .getPlainText()
+                    .slice(0, 300);
+                }, "")}
                 onChange={change}
                 title={data.seoTitle}
                 titlePlaceholder={data.title}

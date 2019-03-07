@@ -13,6 +13,7 @@ import { TypedPageRemove, TypedPageUpdate } from "../mutations";
 import { TypedPageDetailsQuery } from "../queries";
 import { PageRemove } from "../types/PageRemove";
 import { pageListUrl, pageRemovePath, pageRemoveUrl, pageUrl } from "../urls";
+import { WindowTitle } from "../../components/WindowTitle";
 
 export interface PageDetailsProps {
   id: string;
@@ -75,6 +76,9 @@ export const PageDetails: React.StatelessComponent<PageDetailsProps> = ({
 
                         return (
                           <>
+                            <WindowTitle
+                              title={maybe(() => pageDetails.data.page.title)}
+                            />
                             <PageDetailsPage
                               disabled={pageDetails.loading}
                               errors={maybe(
@@ -82,7 +86,7 @@ export const PageDetails: React.StatelessComponent<PageDetailsProps> = ({
                                 []
                               )}
                               saveButtonBarState={formTransitionState}
-                              page={pageDetails.data.page}
+                              page={maybe(() => pageDetails.data.page)}
                               onBack={() => navigate(pageListUrl)}
                               onRemove={() => navigate(pageRemoveUrl(id))}
                               onSubmit={formData =>
