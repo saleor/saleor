@@ -45,9 +45,9 @@ def clean_shipping_address(checkout, shipping_address, errors, remove=True):
 
 
 def clean_shipping_method(
-        checkout, method, errors, discounts, taxes, remove=True):
+        checkout, shipping_method, errors, discounts, taxes, remove=True):
     # FIXME Add tests for this function
-    if not method:
+    if not shipping_method:
         return errors
 
     if not checkout.shipping_address:
@@ -59,7 +59,7 @@ def clean_shipping_method(
                     'checkout without the shipping address.')))
 
     shipping_method_is_valid = is_valid_shipping_method(
-        checkout, taxes, discounts)
+        checkout, taxes, discounts, shipping_method=shipping_method)
     if not shipping_method_is_valid:
         errors.append(
             Error(
@@ -263,7 +263,7 @@ class CheckoutLinesAdd(BaseMutation):
             checkout=checkout, shipping_address=checkout.shipping_address,
             errors=errors)
         clean_shipping_method(
-            checkout=checkout, method=checkout.shipping_method,
+            checkout=checkout, shipping_method=checkout.shipping_method,
             errors=errors, discounts=info.context.discounts,
             taxes=get_taxes_for_address(checkout.shipping_address))
 
@@ -315,8 +315,8 @@ class CheckoutLineDelete(BaseMutation):
             checkout=checkout, shipping_address=checkout.shipping_address,
             errors=errors)
         clean_shipping_method(
-            checkout=checkout, method=checkout.shipping_method, errors=errors,
-            discounts=info.context.discounts,
+            checkout=checkout, shipping_method=checkout.shipping_method,
+            errors=errors, discounts=info.context.discounts,
             taxes=get_taxes_for_address(checkout.shipping_address))
 
         recalculate_cart_discount(

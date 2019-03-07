@@ -762,16 +762,17 @@ def get_taxes_for_cart(cart, default_taxes):
     return default_taxes
 
 
-def is_valid_shipping_method(cart, taxes, discounts):
+def is_valid_shipping_method(cart, taxes, discounts, shipping_method=None):
     """Check if shipping method is valid and remove (if not)."""
-    if not cart.shipping_method:
+    shipping_method = shipping_method or cart.shipping_method
+    if not shipping_method:
         return False
 
     valid_methods = ShippingMethod.objects.applicable_shipping_methods(
         price=cart.get_subtotal(discounts, taxes).gross,
         weight=cart.get_total_weight(),
         country_code=cart.shipping_address.country.code)
-    if cart.shipping_method not in valid_methods:
+    if shipping_method not in valid_methods:
         clear_shipping_method(cart)
         return False
     return True
