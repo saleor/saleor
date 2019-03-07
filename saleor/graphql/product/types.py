@@ -359,7 +359,7 @@ class Product(CountableDjangoObjectType):
         return self.get_absolute_url()
 
     @gql_optimizer.resolver_hints(
-        prefetch_related='variants',
+        prefetch_related=('variants', 'collections'),
         only=['publication_date', 'charge_taxes', 'price', 'tax_rate'])
     def resolve_availability(self, info):
         context = info.context
