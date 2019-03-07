@@ -229,8 +229,8 @@ const AppLayout = withStyles(styles, {
                                                                   {user.email}
                                                                   <ArrowDropdown
                                                                     className={classNames(
+                                                                      classes.arrow,
                                                                       {
-                                                                        [classes.arrow]: true,
                                                                         [classes.rotate]: menuOpen
                                                                       }
                                                                     )}
