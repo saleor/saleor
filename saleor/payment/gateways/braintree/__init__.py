@@ -1,12 +1,9 @@
 import logging
-from decimal import Decimal
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 import braintree as braintree_sdk
-from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import pgettext_lazy
-from prices import Money
 
 from .errors import DEFAULT_ERROR_MESSAGE, BraintreeException
 from .forms import BraintreePaymentForm

@@ -13,11 +13,10 @@ from prices import TaxedMoneyRange
 
 from . import AddressType, logger
 from ..account.forms import get_address_form
-from ..account.models import Address
+from ..account.models import Address, User
 from ..account.utils import store_user_address
-from ..core.exceptions import InsufficientStock
 from ..core.demo_obfuscators import obfuscate_cart, obfuscate_order
-from ..core.i18n import ANY_COUNTRY
+from ..core.exceptions import InsufficientStock
 from ..core.utils import to_local_currency
 from ..core.utils.taxes import ZERO_MONEY, get_taxes_for_country
 from ..discount import VoucherType
@@ -172,12 +171,18 @@ def get_or_create_anonymous_cart_from_token(
         defaults={'user': None})[0]
 
 
-def get_or_create_user_cart(user, cart_queryset=Cart.objects.all()):
+def get_or_create_user_cart(user: User, cart_queryset=Cart.objects.all()):
     """Return an open cart for given user or create a new one."""
     defaults = {
         'shipping_address': user.default_shipping_address,
         'billing_address': user.default_billing_address}
-    return cart_queryset.get_or_create(user=user, defaults=defaults)[0]
+
+    created = False
+    cart = cart_queryset.filter(user=user).first()
+    if cart is None:
+        cart = Cart.objects.create(user=user, **defaults)
+        created = True
+    return cart, created
 
 
 def get_anonymous_cart_from_token(token, cart_queryset=Cart.objects.all()):
@@ -193,7 +198,7 @@ def get_user_cart(user, cart_queryset=Cart.objects.all()):
 def get_or_create_cart_from_request(request, cart_queryset=Cart.objects.all()):
     """Fetch cart from database or create a new one based on cookie."""
     if request.user.is_authenticated:
-        return get_or_create_user_cart(request.user, cart_queryset)
+        return get_or_create_user_cart(request.user, cart_queryset)[0]
     token = request.get_signed_cookie(COOKIE_NAME, default=None)
     return get_or_create_anonymous_cart_from_token(token, cart_queryset)
 
@@ -212,28 +217,6 @@ def get_cart_from_request(request, cart_queryset=Cart.objects.all()):
     if user:
         return Cart(user=user)
     return Cart()
-
-
-def get_or_create_db_cart(cart_queryset=Cart.objects.all()):
-    """Decorate view to always receive a saved cart instance.
-
-    Changes the view signature from `func(request, ...)` to
-    `func(request, cart, ...)`.
-
-    If no matching cart is found, one will be created and a cookie will be set
-    for users who are not logged in.
-    """
-    # FIXME: behave like middleware and assign cart to request instead
-    def get_cart(view):
-        @wraps(view)
-        def func(request, *args, **kwargs):
-            cart = get_or_create_cart_from_request(request, cart_queryset)
-            response = view(request, cart, *args, **kwargs)
-            if not request.user.is_authenticated:
-                set_cart_cookie(cart, response)
-            return response
-        return func
-    return get_cart
 
 
 def get_or_empty_db_cart(cart_queryset=Cart.objects.all()):
@@ -653,14 +636,15 @@ def _get_shipping_voucher_discount_for_cart(voucher, cart):
             'Voucher not applicable',
             'Please select a shipping method first.')
         raise NotApplicable(msg)
-    not_valid_for_country = all([
-        voucher.countries, ANY_COUNTRY not in voucher.countries,
-        cart.shipping_address.country.code not in voucher.countries])
-    if not_valid_for_country:
+
+    # check if voucher is limited to specified countries
+    shipping_country = cart.shipping_address.country
+    if voucher.countries and shipping_country.code not in voucher.countries:
         msg = pgettext(
             'Voucher not applicable',
             'This offer is not valid in your country.')
         raise NotApplicable(msg)
+
     return get_shipping_voucher_discount(
         voucher, cart.get_subtotal(), shipping_method.get_total())
 
@@ -737,6 +721,23 @@ def recalculate_cart_discount(cart, discounts, taxes):
                     'discount_amount', 'discount_name'])
     else:
         remove_voucher_from_cart(cart)
+
+
+def add_voucher_to_cart(voucher, cart):
+    """Add voucher data to cart.
+
+    Raise NotApplicable if voucher of given type cannot be applied."""
+    discount_amount = get_voucher_discount_for_cart(voucher, cart)
+    cart.voucher_code = voucher.code
+    cart.discount_name = voucher.name
+    cart.translated_discount_name = (
+        voucher.translated.name
+        if voucher.translated.name != voucher.name else '')
+    cart.discount_amount = discount_amount
+    cart.save(
+        update_fields=[
+            'voucher_code', 'discount_name', 'translated_discount_name',
+            'discount_amount'])
 
 
 def remove_voucher_from_cart(cart):
@@ -836,26 +837,12 @@ def _process_user_data_for_order(cart):
     return {
         'user': cart.user,
         'user_email': cart.user.email if cart.user else cart.email,
-        'billing_address': billing_address}
-
-
-def _fill_order_with_cart_data(order, cart, discounts, taxes):
-    """Fill an order with data (variants, note) from cart."""
-    from ..order.utils import add_variant_to_order
-
-    for line in cart:
-        add_variant_to_order(
-            order, line.variant, line.quantity, discounts, taxes)
-
-    cart.payments.update(order=order)
-
-    if cart.note:
-        order.customer_note = cart.note
-        order.save(update_fields=['customer_note'])
+        'billing_address': billing_address,
+        'customer_note': cart.note}
 
 
 @transaction.atomic
-def create_order(cart, tracking_code, discounts, taxes):
+def create_order(cart: Cart, tracking_code: str, discounts, taxes):
     """Create an order from the cart.
 
     Each order will get a private copy of both the billing and the shipping
@@ -867,12 +854,14 @@ def create_order(cart, tracking_code, discounts, taxes):
     Current user's language is saved in the order so we can later determine
     which language to use when sending email.
     """
-    # FIXME: save locale along with the language
-    try:
-        order_data = _process_voucher_data_for_order(cart)
-    except NotApplicable:
-        return None
+    from ..order.utils import add_variant_to_order
 
+    order = Order.objects.filter(checkout_token=cart.token).first()
+    if order is not None:
+        return order
+
+    order_data = {}
+    order_data.update(_process_voucher_data_for_order(cart))
     order_data.update(_process_shipping_data_for_order(cart, taxes))
     order_data.update(_process_user_data_for_order(cart))
     order_data.update({
@@ -880,25 +869,33 @@ def create_order(cart, tracking_code, discounts, taxes):
         'tracking_client_id': tracking_code,
         'total': cart.get_total(discounts, taxes)})
 
-    order = Order.objects.create(**order_data)
-
-    _fill_order_with_cart_data(order, cart, discounts, taxes)
+    order = Order.objects.create(**order_data, checkout_token=cart.token)
 
     # DEMO: anonymize order and cart data
     obfuscate_cart(cart)
     obfuscate_order(order)
 
+    # create order lines from cart lines
+    for line in cart:
+        add_variant_to_order(
+            order, line.variant, line.quantity, discounts, taxes)
+
+    # assign cart payments to the order
+    cart.payments.update(order=order)
     return order
 
 
-def is_fully_paid(cart: Cart):
-    payments = cart.payments.filter(is_active=True)
-    total_paid = sum(
-        [p.total for p in payments])
-    return total_paid >= cart.get_total().gross.amount
+def is_fully_paid(cart: Cart, taxes, discounts):
+    """Check if checkout is fully paid."""
+    payments = [
+        payment for payment in cart.payments.all() if payment.is_active]
+    total_paid = sum([p.total for p in payments])
+    cart_total = cart.get_total(discounts=discounts, taxes=taxes).gross.amount
+    return total_paid >= cart_total
 
 
 def ready_to_place_order(cart: Cart, taxes, discounts):
+    """Check if checkout can be completed."""
     if cart.is_shipping_required():
         if not cart.shipping_method:
             return False, pgettext_lazy(
@@ -910,7 +907,7 @@ def ready_to_place_order(cart: Cart, taxes, discounts):
             return False, pgettext_lazy(
                 'order placement error',
                 'Shipping method is not valid for your shipping address')
-    if not is_fully_paid(cart):
+    if not is_fully_paid(cart, taxes, discounts):
         return False, pgettext_lazy(
             'order placement error', 'Checkout is not fully paid')
     return True, None

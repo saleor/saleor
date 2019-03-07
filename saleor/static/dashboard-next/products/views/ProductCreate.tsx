@@ -73,21 +73,23 @@ export const ProductUpdate: React.StatelessComponent<
                                       productCreate({
                                         variables: {
                                           attributes: formData.attributes,
-                                          availableOn:
-                                            formData.availableOn !== ""
-                                              ? formData.availableOn
-                                              : null,
                                           category: formData.category.value,
                                           chargeTaxes: formData.chargeTaxes,
                                           collections: formData.collections.map(
                                             collection => collection.value
                                           ),
-                                          description: formData.description,
+                                          descriptionJson: JSON.stringify(
+                                            formData.description
+                                          ),
                                           isPublished: formData.available,
                                           name: formData.name,
                                           price: decimal(formData.price),
                                           productType:
-                                            formData.productType.value.id
+                                            formData.productType.value.id,
+                                          publicationDate:
+                                            formData.publicationDate !== ""
+                                              ? formData.publicationDate
+                                              : null
                                         }
                                       });
                                     };

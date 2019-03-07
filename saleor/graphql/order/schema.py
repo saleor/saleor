@@ -10,7 +10,7 @@ from ..descriptions import DESCRIPTIONS
 from .enums import OrderStatusFilter
 from .mutations.draft_orders import (
     DraftOrderComplete, DraftOrderCreate, DraftOrderDelete,
-    DraftOrderLinesCreate, DraftOrderLineDelete, DraftOrderLineUpdate,
+    DraftOrderLineDelete, DraftOrderLinesCreate, DraftOrderLineUpdate,
     DraftOrderUpdate)
 from .mutations.fulfillments import (
     FulfillmentCancel, FulfillmentCreate, FulfillmentUpdateTracking)
@@ -18,8 +18,8 @@ from .mutations.orders import (
     OrderAddNote, OrderCancel, OrderCapture, OrderMarkAsPaid, OrderRefund,
     OrderUpdate, OrderUpdateShipping, OrderVoid)
 from .resolvers import (
-    resolve_homepage_events, resolve_order, resolve_orders,
-    resolve_orders_total)
+    resolve_homepage_events, resolve_order, resolve_order_by_token,
+    resolve_orders, resolve_orders_total)
 from .types import Order, OrderEvent
 
 
@@ -44,6 +44,9 @@ class OrderQueries(graphene.ObjectType):
         period=graphene.Argument(
             ReportingPeriod,
             description='Get total sales for selected span of time.'))
+    order_by_token = graphene.Field(
+        Order, description='Lookup an order by token.',
+        token=graphene.Argument(graphene.String, required=True))
 
     @permission_required('order.manage_orders')
     def resolve_homepage_events(self, info, **kwargs):
@@ -61,6 +64,9 @@ class OrderQueries(graphene.ObjectType):
     @permission_required('order.manage_orders')
     def resolve_orders_total(self, info, period, **kwargs):
         return resolve_orders_total(info, period)
+
+    def resolve_order_by_token(self, info, token):
+        return resolve_order_by_token(info, token)
 
 
 class OrderMutations(graphene.ObjectType):

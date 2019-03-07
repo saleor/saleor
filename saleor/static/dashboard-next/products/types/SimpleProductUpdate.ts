@@ -153,7 +153,7 @@ export interface SimpleProductUpdate_productUpdate_product {
   __typename: "Product";
   id: string;
   name: string;
-  description: string;
+  descriptionJson: any;
   seoTitle: string | null;
   seoDescription: string | null;
   category: SimpleProductUpdate_productUpdate_product_category;
@@ -163,7 +163,7 @@ export interface SimpleProductUpdate_productUpdate_product {
   purchaseCost: SimpleProductUpdate_productUpdate_product_purchaseCost | null;
   isPublished: boolean;
   chargeTaxes: boolean;
-  availableOn: any | null;
+  publicationDate: any | null;
   attributes: SimpleProductUpdate_productUpdate_product_attributes[];
   availability: SimpleProductUpdate_productUpdate_product_availability | null;
   images: (SimpleProductUpdate_productUpdate_product_images | null)[] | null;
@@ -294,11 +294,11 @@ export interface SimpleProductUpdate {
 export interface SimpleProductUpdateVariables {
   id: string;
   attributes?: (AttributeValueInput | null)[] | null;
-  availableOn?: any | null;
+  publicationDate?: any | null;
   category?: string | null;
   chargeTaxes: boolean;
   collections?: (string | null)[] | null;
-  description?: string | null;
+  descriptionJson?: any | null;
   isPublished: boolean;
   name?: string | null;
   price?: any | null;

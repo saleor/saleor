@@ -1,3 +1,4 @@
+import json
 from datetime import date
 from unittest.mock import Mock
 
@@ -5,9 +6,9 @@ import graphene
 import pytest
 from django.utils.text import slugify
 from graphql_relay import to_global_id
-from tests.utils import create_image, create_pdf_file_with_image_ext
 
 from saleor.product.models import Collection
+from tests.utils import create_image, create_pdf_file_with_image_ext
 
 from .utils import (
     assert_read_only_mode, get_graphql_content, get_multipart_request_body)
@@ -58,17 +59,30 @@ def test_create_collection(
         monkeypatch, staff_api_client, product_list, permission_manage_products):
     query = """
         mutation createCollection(
-            $name: String!, $slug: String!, $description: String, $products: [ID], $backgroundImage: Upload!, $backgroundImageAlt: String, $isPublished: Boolean!, $publishedDate: Date) {
+                $name: String!, $slug: String!, $description: String,
+                $descriptionJson: JSONString, $products: [ID],
+                $backgroundImage: Upload!, $backgroundImageAlt: String,
+                $isPublished: Boolean!, $publicationDate: Date) {
             collectionCreate(
-                input: {name: $name, slug: $slug, description: $description, products: $products, backgroundImage: $backgroundImage, backgroundImageAlt: $backgroundImageAlt, isPublished: $isPublished, publishedDate: $publishedDate}) {
+                input: {
+                    name: $name,
+                    slug: $slug,
+                    description: $description,
+                    descriptionJson: $descriptionJson,
+                    products: $products,
+                    backgroundImage: $backgroundImage,
+                    backgroundImageAlt: $backgroundImageAlt,
+                    isPublished: $isPublished,
+                    publicationDate: $publicationDate}) {
                 collection {
                     name
                     slug
                     description
+                    descriptionJson
                     products {
                         totalCount
                     }
-                    publishedDate
+                    publicationDate
                     backgroundImage{
                         alt
                     }
@@ -90,12 +104,13 @@ def test_create_collection(
     name = 'test-name'
     slug = 'test-slug'
     description = 'test-description'
-    published_date = date.today()
+    description_json = json.dumps({'content': 'description'})
+    publication_date = date.today()
     variables = {
         'name': name, 'slug': slug, 'description': description,
-        'products': product_ids, 'backgroundImage': image_name,
-        'backgroundImageAlt': image_alt, 'isPublished': True,
-        'publishedDate': published_date}
+        'descriptionJson': description_json, 'products': product_ids,
+        'backgroundImage': image_name, 'backgroundImageAlt': image_alt,
+        'isPublished': True, 'publicationDate': publication_date}
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products])
@@ -134,14 +149,14 @@ def test_update_collection(
         monkeypatch, staff_api_client, collection, permission_manage_products):
     query = """
         mutation updateCollection(
-            $name: String!, $slug: String!, $description: String, $id: ID!, $isPublished: Boolean!, $publishedDate: Date) {
+            $name: String!, $slug: String!, $description: String, $id: ID!, $isPublished: Boolean!, $publicationDate: Date) {
             collectionUpdate(
-                id: $id, input: {name: $name, slug: $slug, description: $description, isPublished: $isPublished, publishedDate: $publishedDate}) {
+                id: $id, input: {name: $name, slug: $slug, description: $description, isPublished: $isPublished, publicationDate: $publicationDate}) {
                 collection {
                     name
                     slug
                     description
-                    publishedDate
+                    publicationDate
                 }
             }
         }
@@ -156,10 +171,10 @@ def test_update_collection(
     name = 'new-name'
     slug = 'new-slug'
     description = 'new-description'
-    published_date = date.today()
+    publication_date = date.today()
     variables = {
         'name': name, 'slug': slug, 'description': description,
-        'id': to_global_id('Collection', collection.id), 'isPublished': True, 'publishedDate': published_date}
+        'id': to_global_id('Collection', collection.id), 'isPublished': True, 'publicationDate': publication_date}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     assert_read_only_mode(response)
@@ -392,3 +407,45 @@ def test_update_collection_mutation_remove_background_image(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     assert_read_only_mode(response)
+
+
+def _fetch_collection(client, collection, permissions=None):
+    query = """
+    query fetchCollection($collectionId: ID!){
+        collection(id: $collectionId) {
+            name,
+            isPublished
+        }
+    }
+    """
+    variables = {
+        'collectionId': graphene.Node.to_global_id(
+            'Collection', collection.id)}
+    response = client.post_graphql(
+        query, variables, permissions=permissions, check_no_permissions=False)
+    content = get_graphql_content(response)
+    return content['data']['collection']
+
+
+def test_fetch_unpublished_collection_staff_user(
+        staff_api_client, unpublished_collection, permission_manage_products):
+    collection_data = _fetch_collection(
+        staff_api_client,
+        unpublished_collection,
+        permissions=[permission_manage_products])
+    assert collection_data['name'] == unpublished_collection.name
+    assert collection_data[
+        'isPublished'] == unpublished_collection.is_published
+
+
+def test_fetch_unpublished_collection_customer(
+        user_api_client, unpublished_collection):
+    collection_data = _fetch_collection(
+        user_api_client, unpublished_collection)
+    assert collection_data is None
+
+
+def test_fetch_unpublished_collection_anonymous_user(
+        api_client, unpublished_collection):
+    collection_data = _fetch_collection(api_client, unpublished_collection)
+    assert collection_data is None

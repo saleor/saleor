@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-28 05:51-0600\n"
+"POT-Creation-Date: 2019-02-25 10:45-0600\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
 "Last-Translator: Mikkel Scheike, 2019\n"
 "Language-Team: Danish (https://www.transifex.com/mirumee/teams/34782/da/)\n"
@@ -381,7 +381,7 @@ msgctxt "Checkout discount form label for voucher field"
 msgid "Gift card or discount code"
 msgstr "Gavekort eller rabatkode"
 
-#: saleor/checkout/utils.py:135
+#: saleor/checkout/utils.py:134
 msgctxt "Cart warning message"
 msgid ""
 "Sorry. We don't have that many items in stock. Quantity was set to maximum "
@@ -390,47 +390,47 @@ msgstr ""
 "Desværre. Vi har desværre ikke så mange af varen på lager. Mængden er sat "
 "til det maksimale antal, der er tilgængelige."
 
-#: saleor/checkout/utils.py:647
+#: saleor/checkout/utils.py:628
 msgctxt "Voucher not applicable"
 msgid "Your order does not require shipping."
 msgstr "Din ordre kræver ikke forsendelse."
 
-#: saleor/checkout/utils.py:653
+#: saleor/checkout/utils.py:634
 msgctxt "Voucher not applicable"
 msgid "Please select a shipping method first."
 msgstr "Vælg venligst først din forsendelsesmetode."
 
-#: saleor/checkout/utils.py:661
+#: saleor/checkout/utils.py:642
 msgctxt "Voucher not applicable"
 msgid "This offer is not valid in your country."
 msgstr "Dette tilbud er ikke tilgængeligt i dit land."
 
-#: saleor/checkout/utils.py:682
+#: saleor/checkout/utils.py:664
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for selected items."
 msgstr "Dette tilbud er kun tilgængeligt for udvalgte varer."
 
-#: saleor/checkout/utils.py:792
+#: saleor/checkout/utils.py:791
 msgctxt "Voucher not applicable"
 msgid "Voucher expired in meantime. Order placement aborted."
 msgstr "Rabatkode er udløbet i mellemtiden. Din ordre er blevet afbrudt."
 
-#: saleor/checkout/utils.py:899
+#: saleor/checkout/utils.py:904
 msgctxt "order placement_error"
 msgid "Shipping method is not set"
 msgstr "Forsendelsesmetode er ikke angivet"
 
-#: saleor/checkout/utils.py:902
+#: saleor/checkout/utils.py:907
 msgctxt "order placement error"
 msgid "Shipping address is not set"
 msgstr "Afsendelsesadresse er ikke angivet"
 
-#: saleor/checkout/utils.py:906
+#: saleor/checkout/utils.py:911
 msgctxt "order placement error"
 msgid "Shipping method is not valid for your shipping address"
 msgstr "Forsendelsesmetode er ikke gyldig for din forsendelsesadresse"
 
-#: saleor/checkout/utils.py:909
+#: saleor/checkout/utils.py:914
 msgctxt "order placement error"
 msgid "Checkout is not fully paid"
 msgstr "Checkout er ikke fuldt betalt"
@@ -445,127 +445,127 @@ msgctxt "Checkout warning"
 msgid "Please review your checkout."
 msgstr "Gennemse venligst din checkout."
 
-#: saleor/core/__init__.py:55
+#: saleor/core/__init__.py:54
 msgctxt "VAT rate type"
 msgid "accommodation"
 msgstr "indkvartering"
 
-#: saleor/core/__init__.py:57
+#: saleor/core/__init__.py:56
 msgctxt "VAT rate type"
 msgid "admission to cultural events"
 msgstr "Adgang til kulturelle arrangementer"
 
-#: saleor/core/__init__.py:59
+#: saleor/core/__init__.py:58
 msgctxt "VAT rate type"
 msgid "admission to entertainment events"
 msgstr "Adgang til underholdnings arrangementer"
 
-#: saleor/core/__init__.py:61
+#: saleor/core/__init__.py:60
 msgctxt "VAT rate type"
 msgid "admission to sporting events"
 msgstr "Adgang til sports arrangementer"
 
-#: saleor/core/__init__.py:62
+#: saleor/core/__init__.py:61
 msgctxt "VAT rate type"
 msgid "advertising"
 msgstr "reklame"
 
-#: saleor/core/__init__.py:64
+#: saleor/core/__init__.py:63
 msgctxt "VAT rate type"
 msgid "agricultural supplies"
 msgstr "landbrugsprodukter"
 
-#: saleor/core/__init__.py:65
+#: saleor/core/__init__.py:64
 msgctxt "VAT rate type"
 msgid "baby foodstuffs"
 msgstr "baby fødevarer"
 
-#: saleor/core/__init__.py:66
+#: saleor/core/__init__.py:65
 msgctxt "VAT rate type"
 msgid "bikes"
 msgstr "cykler"
 
-#: saleor/core/__init__.py:67
+#: saleor/core/__init__.py:66
 msgctxt "VAT rate type"
 msgid "books"
 msgstr "bøger"
 
-#: saleor/core/__init__.py:69
+#: saleor/core/__init__.py:68
 msgctxt "VAT rate type"
 msgid "childrens clothing"
 msgstr "børnetøj"
 
-#: saleor/core/__init__.py:70
+#: saleor/core/__init__.py:69
 msgctxt "VAT rate type"
 msgid "domestic fuel"
 msgstr "husholdningsbrændstof"
 
-#: saleor/core/__init__.py:72
+#: saleor/core/__init__.py:71
 msgctxt "VAT rate type"
 msgid "domestic services"
 msgstr "indenlandske tjenester"
 
-#: saleor/core/__init__.py:73
+#: saleor/core/__init__.py:72
 msgctxt "VAT rate type"
 msgid "e-books"
 msgstr "ebøger"
 
-#: saleor/core/__init__.py:74
+#: saleor/core/__init__.py:73
 msgctxt "VAT rate type"
 msgid "foodstuffs"
 msgstr "fødevarer"
 
-#: saleor/core/__init__.py:75
+#: saleor/core/__init__.py:74
 msgctxt "VAT rate type"
 msgid "hotels"
 msgstr "hoteller"
 
-#: saleor/core/__init__.py:76
+#: saleor/core/__init__.py:75
 msgctxt "VAT rate type"
 msgid "medical"
 msgstr "medicinsk"
 
-#: saleor/core/__init__.py:77
+#: saleor/core/__init__.py:76
 msgctxt "VAT rate type"
 msgid "newspapers"
 msgstr "aviser"
 
-#: saleor/core/__init__.py:79
+#: saleor/core/__init__.py:78
 msgctxt "VAT rate type"
 msgid "passenger transport"
 msgstr "passagertransport"
 
-#: saleor/core/__init__.py:81
+#: saleor/core/__init__.py:80
 msgctxt "VAT rate type"
 msgid "pharmaceuticals"
 msgstr "lægemidler"
 
-#: saleor/core/__init__.py:83
+#: saleor/core/__init__.py:82
 msgctxt "VAT rate type"
 msgid "property renovations"
 msgstr "ejendomsrenoveringer"
 
-#: saleor/core/__init__.py:84
+#: saleor/core/__init__.py:83
 msgctxt "VAT rate type"
 msgid "restaurants"
 msgstr "restauranter"
 
-#: saleor/core/__init__.py:85
+#: saleor/core/__init__.py:84
 msgctxt "VAT rate type"
 msgid "social housing"
 msgstr "sociale boliger"
 
-#: saleor/core/__init__.py:86
+#: saleor/core/__init__.py:85
 msgctxt "VAT rate type"
 msgid "standard"
 msgstr "standard"
 
-#: saleor/core/__init__.py:87
+#: saleor/core/__init__.py:86
 msgctxt "VAT rate type"
 msgid "water"
 msgstr "vand"
 
-#: saleor/core/__init__.py:88
+#: saleor/core/__init__.py:87
 msgctxt "VAT rate type"
 msgid "wine"
 msgstr "vin"
@@ -684,7 +684,7 @@ msgctxt "Permission description"
 msgid "Manage sales and vouchers."
 msgstr "Administrer salg og kuponer."
 
-#: saleor/discount/utils.py:47
+#: saleor/discount/utils.py:49
 msgctxt "Voucher not applicable"
 msgid "Discount not applicable for this product"
 msgstr "Rabat gælder ikke dette produkt"
@@ -903,18 +903,18 @@ msgctxt "Payment delete form error"
 msgid "Payment cannot be cancelled."
 msgstr "Betaling kan ikke annulleres."
 
-#: saleor/order/models.py:132
+#: saleor/order/models.py:134
 msgctxt "Permission description"
 msgid "Manage orders."
 msgstr "Administrer ordrer."
 
-#: saleor/order/models.py:337
+#: saleor/order/models.py:339
 #, python-format
 msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
 msgstr "Pakke #%s"
 
-#: saleor/order/views.py:197
+#: saleor/order/views.py:196
 msgctxt "Connect order with user warning message"
 msgid ""
 "We couldn't assign the order to your account as the email addresses don't "
@@ -923,12 +923,12 @@ msgstr ""
 "Vi kunne ikke tildele ordren til din konto, da e-mailadresserne ikke stemmer"
 " overens"
 
-#: saleor/order/views.py:204
+#: saleor/order/views.py:203
 msgctxt "storefront message"
 msgid "The order is now assigned to your account"
 msgstr "Ordren er nu tildelt til din konto"
 
-#: saleor/page/models.py:44
+#: saleor/page/models.py:33
 msgctxt "Permission description"
 msgid "Manage pages."
 msgstr "Administrer sider."
@@ -978,7 +978,7 @@ msgctxt "payment status"
 msgid "Fully refunded"
 msgstr "Fuldt refunderet"
 
-#: saleor/payment/gateways/braintree/__init__.py:71
+#: saleor/payment/gateways/braintree/__init__.py:68
 #: saleor/payment/gateways/braintree/forms.py:35
 msgctxt "payment error"
 msgid "Unable to process transaction. Please try again in a moment"
@@ -1034,6 +1034,11 @@ msgstr "Ordren blev ikke opkrævet."
 msgctxt "Stripe payment gateway description"
 msgid "Total payment"
 msgstr "Samlet betaling"
+
+#: saleor/payment/utils.py:236
+msgctxt "Mark order as paid validation error"
+msgid "Orders with payments can not be manually marked as paid."
+msgstr ""
 
 #: saleor/product/__init__.py:15
 msgctxt "Product status"
@@ -1106,7 +1111,7 @@ msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
 msgstr "%(variant_label)s - %(price)s"
 
-#: saleor/product/models.py:147
+#: saleor/product/models.py:129
 msgctxt "Permission description"
 msgid "Manage products."
 msgstr "Administrer produkter."
@@ -1173,83 +1178,87 @@ msgid "Hungarian"
 msgstr "Ungarnsk"
 
 #: saleor/settings.py:75
+msgid "Indonesian"
+msgstr ""
+
+#: saleor/settings.py:76
 msgid "Italian"
 msgstr "Italiensk"
 
-#: saleor/settings.py:76
+#: saleor/settings.py:77
 msgid "Japanese"
 msgstr "Japansk"
 
-#: saleor/settings.py:77
+#: saleor/settings.py:78
 msgid "Korean"
 msgstr "Koreansk"
 
-#: saleor/settings.py:78
+#: saleor/settings.py:79
 msgid "Mongolian"
 msgstr "Mongolsk"
 
-#: saleor/settings.py:79
+#: saleor/settings.py:80
 msgid "Norwegian"
 msgstr "Norsk"
 
-#: saleor/settings.py:80
+#: saleor/settings.py:81
 msgid "Dutch"
 msgstr "Hollandsk"
 
-#: saleor/settings.py:81
+#: saleor/settings.py:82
 msgid "Polish"
 msgstr "Polsk"
 
-#: saleor/settings.py:82
+#: saleor/settings.py:83
 msgid "Brazilian Portuguese"
 msgstr "Brasiliansk portugisisk"
 
-#: saleor/settings.py:83
+#: saleor/settings.py:84
 msgid "Romanian"
 msgstr "Rumænsk"
 
-#: saleor/settings.py:84
+#: saleor/settings.py:85
 msgid "Russian"
 msgstr "Russisk"
 
-#: saleor/settings.py:85
+#: saleor/settings.py:86
 msgid "Slovak"
 msgstr "Slovakisk"
 
-#: saleor/settings.py:86
+#: saleor/settings.py:87
 msgid "Serbian"
 msgstr "Serbisk"
 
-#: saleor/settings.py:87
+#: saleor/settings.py:88
 msgid "Swedish"
 msgstr "Svensk"
 
-#: saleor/settings.py:88
+#: saleor/settings.py:89
 msgid "Turkish"
 msgstr "Tyrkisk"
 
-#: saleor/settings.py:89
+#: saleor/settings.py:90
 msgid "Ukrainian"
 msgstr "Ukranisk"
 
-#: saleor/settings.py:90
+#: saleor/settings.py:91
 msgid "Vietnamese"
 msgstr "Vietnamesisk"
 
-#: saleor/settings.py:91
+#: saleor/settings.py:92
 msgid "Simplified Chinese"
 msgstr "Forenklet kinesisk"
 
-#: saleor/settings.py:92
+#: saleor/settings.py:93
 msgid "Traditional Chinese"
 msgstr "Traditionelt kinesisk"
 
-#: saleor/settings.py:328
+#: saleor/settings.py:329
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr "Den Europæiske Union"
 
-#: saleor/settings.py:565
+#: saleor/settings.py:566
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr "Dummy gateway"
@@ -1951,7 +1960,7 @@ msgctxt "Checkout shipping address title"
 msgid "Shipping address"
 msgstr "Forsendelsesadresse"
 
-#: templates/checkout/shipping_address.html:19
+#: templates/checkout/shipping_address.html:21
 msgctxt "Checkout shipping address primary action"
 msgid "Continue"
 msgstr "Fortsæt"
@@ -2217,12 +2226,12 @@ msgctxt "Dashboard shipping zones list"
 msgid "Shipping"
 msgstr "Forsendelse"
 
-#: templates/dashboard/base.html:207 templates/dashboard/menu/detail.html:21
-#: templates/dashboard/menu/form.html:12 templates/dashboard/menu/form.html:29
-#: templates/dashboard/menu/item/detail.html:22
-#: templates/dashboard/menu/item/detail.html:28
-#: templates/dashboard/menu/item/form.html:29
-#: templates/dashboard/menu/list.html:30
+#: templates/dashboard/base.html:207 templates/dashboard/menu/detail.html:23
+#: templates/dashboard/menu/form.html:12 templates/dashboard/menu/form.html:31
+#: templates/dashboard/menu/item/detail.html:24
+#: templates/dashboard/menu/item/detail.html:30
+#: templates/dashboard/menu/item/form.html:31
+#: templates/dashboard/menu/list.html:32
 msgctxt "Dashboard menus list"
 msgid "Navigation"
 msgstr "Navigering"
@@ -2255,8 +2264,8 @@ msgstr "Ugyldig:"
 #: templates/dashboard/customer/form.html:66
 #: templates/dashboard/discount/sale/form.html:115
 #: templates/dashboard/discount/voucher/form.html:125
-#: templates/dashboard/menu/form.html:58
-#: templates/dashboard/menu/item/form.html:80
+#: templates/dashboard/menu/form.html:60
+#: templates/dashboard/menu/item/form.html:82
 #: templates/dashboard/order/address_form.html:61
 #: templates/dashboard/order/fulfillment.html:133
 #: templates/dashboard/product/attribute/form.html:77
@@ -2310,7 +2319,7 @@ msgstr "Subkategorier"
 #: templates/dashboard/product/attribute/detail.html:68
 #: templates/dashboard/product/detail.html:93
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:13
-#: templates/dashboard/sites/detail.html:77
+#: templates/dashboard/sites/detail.html:79
 msgid "Add"
 msgstr "Tilføj"
 
@@ -2371,8 +2380,8 @@ msgstr "Tilføj ny kategori"
 #: templates/dashboard/customer/form.html:62
 #: templates/dashboard/discount/sale/form.html:119
 #: templates/dashboard/discount/voucher/form.html:129
-#: templates/dashboard/menu/form.html:62
-#: templates/dashboard/menu/item/form.html:84
+#: templates/dashboard/menu/form.html:64
+#: templates/dashboard/menu/item/form.html:86
 #: templates/dashboard/order/address_form.html:64
 #: templates/dashboard/order/modal/change_quantity.html:19
 #: templates/dashboard/product/product_type/form.html:117
@@ -2386,8 +2395,8 @@ msgstr "Opdater"
 #: templates/dashboard/category/form.html:127
 #: templates/dashboard/discount/sale/form.html:123
 #: templates/dashboard/discount/voucher/form.html:133
-#: templates/dashboard/menu/form.html:66
-#: templates/dashboard/menu/item/form.html:88
+#: templates/dashboard/menu/form.html:68
+#: templates/dashboard/menu/item/form.html:90
 #: templates/dashboard/product/attribute/form.html:87
 #: templates/dashboard/product/attribute/values/form.html:86
 #: templates/dashboard/product/form.html:144
@@ -3088,7 +3097,7 @@ msgstr ""
 "  "
 
 #: templates/dashboard/index.html:15 templates/dashboard/index.html:82
-#: templates/dashboard/index.html:136
+#: templates/dashboard/index.html:138
 #, python-format
 msgctxt "Dashboard homepage summary header title"
 msgid "Showing last %(counter)s results"
@@ -3160,31 +3169,31 @@ msgctxt "Preauthorized payments table header"
 msgid "Amount"
 msgstr "Beløb"
 
-#: templates/dashboard/index.html:115
+#: templates/dashboard/index.html:116
 msgid "Guest"
 msgstr "Gæst"
 
-#: templates/dashboard/index.html:128
+#: templates/dashboard/index.html:130
 msgctxt "Empty Preauthorized payments table message"
 msgid "No preauthorized payments."
 msgstr "Ingen reserveret betalinger"
 
-#: templates/dashboard/index.html:137
+#: templates/dashboard/index.html:139
 msgctxt "Dashboard homepage table title"
 msgid "Products with low stock"
 msgstr "Produkter med lavt lager"
 
-#: templates/dashboard/index.html:146
+#: templates/dashboard/index.html:148
 msgctxt "Low stock product list"
 msgid "Product name"
 msgstr "Produktnavn"
 
-#: templates/dashboard/index.html:149
+#: templates/dashboard/index.html:151
 msgctxt "Low stock product list"
 msgid "Stock left"
 msgstr "Lager tilbage"
 
-#: templates/dashboard/index.html:170
+#: templates/dashboard/index.html:172
 msgctxt "Empty low stock table message"
 msgid "No products are low in stock."
 msgstr "Ingen produkter er har lavt lager."
@@ -3194,12 +3203,12 @@ msgctxt "Menu list page title"
 msgid "Navigation"
 msgstr "Navigering"
 
-#: templates/dashboard/menu/detail.html:48
+#: templates/dashboard/menu/detail.html:50
 msgctxt "Menu detail view action"
 msgid "Edit menu"
 msgstr "Rediger menu"
 
-#: templates/dashboard/menu/detail.html:51
+#: templates/dashboard/menu/detail.html:53
 msgctxt "Menu detail view action"
 msgid "Remove menu"
 msgstr "Fjern menu"
@@ -3209,12 +3218,12 @@ msgctxt "Menu form page title"
 msgid "Edit menu"
 msgstr "Rediger menu"
 
-#: templates/dashboard/menu/form.html:10 templates/dashboard/menu/form.html:21
+#: templates/dashboard/menu/form.html:10 templates/dashboard/menu/form.html:23
 msgctxt "Menu form page title"
 msgid "Add new menu"
 msgstr "Tilføj ny menu"
 
-#: templates/dashboard/menu/form.html:39
+#: templates/dashboard/menu/form.html:41
 msgctxt "Menu detail breadcrumbs"
 msgid "Add new menu"
 msgstr "Tilføj ny menu"
@@ -3224,17 +3233,17 @@ msgctxt "Menu item list page title"
 msgid "Menu items"
 msgstr "Menupunkter"
 
-#: templates/dashboard/menu/item/detail.html:73
+#: templates/dashboard/menu/item/detail.html:75
 msgctxt "Menu item field"
 msgid "Points to"
 msgstr "Peger på"
 
-#: templates/dashboard/menu/item/detail.html:85
+#: templates/dashboard/menu/item/detail.html:87
 msgctxt "Menu item detail view action"
 msgid "Edit menu item"
 msgstr "Rediger menupunktet"
 
-#: templates/dashboard/menu/item/detail.html:88
+#: templates/dashboard/menu/item/detail.html:90
 msgctxt "Menu item detail view action"
 msgid "Remove menu item"
 msgstr "Fjern menupunkt"
@@ -3245,7 +3254,7 @@ msgid "Edit menu item"
 msgstr "Rediger menupunktet"
 
 #: templates/dashboard/menu/item/form.html:10
-#: templates/dashboard/menu/item/form.html:21
+#: templates/dashboard/menu/item/form.html:23
 msgctxt "Menu item page title"
 msgid "Add new menu item"
 msgstr "Tilføj nyt menupunkt"
@@ -3255,12 +3264,12 @@ msgctxt "Dashboard menu items list"
 msgid "Menu items"
 msgstr "Menupunkter"
 
-#: templates/dashboard/menu/item/form.html:54
+#: templates/dashboard/menu/item/form.html:56
 msgctxt "Menu form page title"
 msgid "Edit"
 msgstr "Rediger"
 
-#: templates/dashboard/menu/item/form.html:60
+#: templates/dashboard/menu/item/form.html:62
 msgctxt "Menu form page title"
 msgid "Add new menu item"
 msgstr "Tilføj nyt menupunkt"
@@ -3287,26 +3296,26 @@ msgctxt "Remove menu modal text about descendant menu items"
 msgid "The following menu items will be removed:"
 msgstr "Følgende menupunkter vil blive fjernet:"
 
-#: templates/dashboard/menu/list.html:20
+#: templates/dashboard/menu/list.html:22
 msgctxt "Menu list add button text"
 msgid "Add menu"
 msgstr "Tilføj menu"
 
-#: templates/dashboard/menu/list.html:45
+#: templates/dashboard/menu/list.html:47
 msgctxt "Menu list table header Menu name"
 msgid "Menu name"
 msgstr "Menu navn"
 
-#: templates/dashboard/menu/list.html:69
+#: templates/dashboard/menu/list.html:71
 msgctxt "Empty menu list message"
 msgid "No menus found."
 msgstr "Ingen menuer fundet"
 
-#: templates/dashboard/menu/list.html:82
+#: templates/dashboard/menu/list.html:84
 msgid "Storefront Menus"
 msgstr "Storefront Menuer"
 
-#: templates/dashboard/menu/list.html:95
+#: templates/dashboard/menu/list.html:97
 #: templates/dashboard/product/attribute/form.html:80
 #: templates/dashboard/product/attribute/values/form.html:82
 #: templates/dashboard/product/form.html:137
@@ -5349,52 +5358,52 @@ msgctxt "Authorization key form title"
 msgid "Authorization key"
 msgstr "Godkendelsesnøgle"
 
-#: templates/dashboard/sites/detail.html:33
+#: templates/dashboard/sites/detail.html:35
 msgctxt "Site settings field"
 msgid "Domain"
 msgstr "Domænenavn"
 
-#: templates/dashboard/sites/detail.html:43
+#: templates/dashboard/sites/detail.html:45
 msgctxt "Site settings field"
 msgid "Header text"
 msgstr "Hovedtekst"
 
-#: templates/dashboard/sites/detail.html:53
+#: templates/dashboard/sites/detail.html:55
 msgctxt "Site settings field"
 msgid "Description"
 msgstr "Beskrivelse"
 
-#: templates/dashboard/sites/detail.html:63
+#: templates/dashboard/sites/detail.html:65
 msgctxt "Site settings action"
 msgid "Edit site settings"
 msgstr "Rediger sideindstillinger"
 
-#: templates/dashboard/sites/detail.html:72
+#: templates/dashboard/sites/detail.html:74
 msgctxt "Title of the authorization keys list"
 msgid "Authorization keys"
 msgstr "Godkendelsesnøgle"
 
-#: templates/dashboard/sites/detail.html:85
+#: templates/dashboard/sites/detail.html:87
 msgctxt "Header of authorization keys list"
 msgid "Name"
 msgstr "Navn"
 
-#: templates/dashboard/sites/detail.html:88
+#: templates/dashboard/sites/detail.html:90
 msgctxt "Header of authorization keys list"
 msgid "Key"
 msgstr "Key"
 
-#: templates/dashboard/sites/detail.html:99
+#: templates/dashboard/sites/detail.html:101
 msgctxt "Authorization key edit action"
 msgid "Edit"
 msgstr "Rediger"
 
-#: templates/dashboard/sites/detail.html:102
+#: templates/dashboard/sites/detail.html:104
 msgctxt "Authorization key remove action"
 msgid "Remove"
 msgstr "Fjern"
 
-#: templates/dashboard/sites/detail.html:108
+#: templates/dashboard/sites/detail.html:110
 msgctxt "Empty list of authorization keys"
 msgid "No authorization keys"
 msgstr "Ingen godkendelsesnøgle"
@@ -6027,7 +6036,7 @@ msgctxt "Payment details text"
 msgid "You've authorized transaction. Order is in processing"
 msgstr "Du har godkendt transaktion. Ordren er i forarbejdning"
 
-#: templates/order/payment/braintree.html:28
+#: templates/order/payment/braintree.html:29
 #: templates/order/payment/dummy.html:30
 msgctxt "Payment form primary action"
 msgid "Make payment"
@@ -6086,22 +6095,22 @@ msgstr ""
 "<strong>Advarsel!</strong> Du forhåndsvises en side, der bliver synlig på "
 "<strong>%(date)s</strong>."
 
-#: templates/product/_filters.html:47
+#: templates/product/_filters.html:46
 msgctxt "Product price filter"
 msgid "from"
 msgstr "fra"
 
-#: templates/product/_filters.html:49
+#: templates/product/_filters.html:48
 msgctxt "Product price filter"
 msgid "to"
 msgstr "til"
 
-#: templates/product/_filters.html:57
+#: templates/product/_filters.html:56
 msgctxt "Product list page filters"
 msgid "Clear filters"
 msgstr "Ryd filtre"
 
-#: templates/product/_filters.html:60
+#: templates/product/_filters.html:59
 msgctxt "Apply filters button"
 msgid "Update results"
 msgstr "Opdater resultater"
@@ -6209,98 +6218,58 @@ msgctxt "Account delete reset e-mail subject"
 msgid "Delete your account"
 msgstr "Slet din konto"
 
-#: templates/templated_email/account/account_delete.email:8
+#: templates/templated_email/account/account_delete.email:9
 #, python-format
 msgctxt "Account delete reset e-mail text"
 msgid ""
-"\n"
-"Hi!\n"
 "\n"
 "You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(domain)s.\n"
 "Click the link below to delete your account.\n"
 "\n"
 "Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
-"\n"
-"Hej!\n"
-"\n"
-"Du modtager denne e-mail, fordi du eller en anden har anmodet om sletning af din brugerkonto på %(domain)s.\n"
-"Klik på linket herunder for at slette din konto.\n"
-"\n"
-"Bemærk, at denne handling er permanent og ikke kan fortrydes.\n"
-
-#: templates/templated_email/account/account_delete.email:21
-#, python-format
-msgctxt "Account delete reset e-mail text"
-msgid ""
-"\n"
-"Sincerely,\n"
-"%(site_name)s\n"
-msgstr ""
-"\n"
-"Med venlig hilsen,\n"
-"%(site_name)s\n"
 
 #: templates/templated_email/account/password_reset.email:4
 msgctxt "Password reset e-mail subject"
 msgid "Password reset e-mail"
 msgstr "Kodeord nulstillings email"
 
-#: templates/templated_email/account/password_reset.email:8
+#: templates/templated_email/account/password_reset.email:9
 #, python-format
 msgctxt "Password reset e-mail text"
 msgid ""
-"\n"
-"Hi!\n"
 "\n"
 "You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
 "It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
 msgstr ""
-"\n"
-"Hej!\n"
-"\n"
-"Du modtager denne e-mail, fordi du eller en anden har anmodet om et kodeord til din brugerkonto på %(domain)s.\n"
-"Det kan ignorere denne mail, hvis du ikke anmodede om en nulstilling af adgangskode. Klik på linket herunder for at nulstille din adgangskode.\n"
 
-#: templates/templated_email/account/password_reset.email:19
+#: templates/templated_email/dashboard/customer/set_password.email:2
 #, python-format
-msgctxt "Password reset e-mail text"
+msgctxt "Set password for customer e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr "Hej fra %(site_name)s!"
+
+#: templates/templated_email/dashboard/customer/set_password.email:6
+#, python-format
+msgctxt "Set password for customer e-mail text"
 msgid ""
 "\n"
-"Sincerely,\n"
-"%(site_name)s\n"
+"You're receiving this e-mail because you have to set a password for your customer account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
 msgstr ""
-"\n"
-"Med venlig hilsen,\n"
-"%(site_name)s\n"
 
 #: templates/templated_email/dashboard/staff/promote_customer.email:2
 #, python-format
 msgid "Hello from %(site_name)s!"
 msgstr "Hej fra %(site_name)s!"
 
-#: templates/templated_email/dashboard/staff/promote_customer.email:5
+#: templates/templated_email/dashboard/staff/promote_customer.email:6
 #, python-format
 msgctxt "Promote customer to staff member confirmation e-mail text"
 msgid ""
 "\n"
-"Hi!\n"
-"\n"
 "You're receiving this e-mail because you have been promoted to staff member at %(domain)s."
 msgstr ""
-"\n"
-"Hej!\n"
-"\n"
-"Du modtager denne email, fordi du er blevet forfremmet til medarbejder hos %(domain)s."
-
-#: templates/templated_email/dashboard/staff/promote_customer.email:10
-msgctxt "Promote customer to staff member confirmation e-mail text"
-msgid ""
-"\n"
-"This is an automatically generated email, please do not reply.\n"
-msgstr ""
-"\n"
-"Dette er en automatisk genereret email, som ikke kan besvares.\n"
 
 #: templates/templated_email/dashboard/staff/set_password.email:2
 #, python-format
@@ -6308,30 +6277,14 @@ msgctxt "Set password for staff member e-mail title"
 msgid "Hello from %(site_name)s!"
 msgstr "Hej fra %(site_name)s!"
 
-#: templates/templated_email/dashboard/staff/set_password.email:5
+#: templates/templated_email/dashboard/staff/set_password.email:6
 #, python-format
 msgctxt "Set password for staff member e-mail text"
 msgid ""
 "\n"
-"Hi!\n"
-"\n"
-"You're receiving this e-mail because you have to set password for your staff member account at %(domain)s.\n"
+"You're receiving this e-mail because you have to set a password for your staff member account at %(domain)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
-"\n"
-"Hej!\n"
-"\n"
-"Du modtager denne e-mail, fordi du skal angive adgangskode til din medarbejderkonto på%(domain)s.\n"
-"Klik på linket herunder for at nulstille din adgangskode.\n"
-
-#: templates/templated_email/dashboard/staff/set_password.email:14
-msgctxt "Set password for staff member e-mail text"
-msgid ""
-"\n"
-"This is an automatically generated email, please do not reply.\n"
-msgstr ""
-"\n"
-"Dette er en automatisk genereret email, som ikke kan besvares.\n"
 
 #: templates/templated_email/order/confirm_fulfillment.email:4
 #, python-format
@@ -6339,162 +6292,100 @@ msgctxt "Fulfillment confirmation email subject"
 msgid "A shipment from order %(order)s is on the way"
 msgstr "En forsendelse fra ordre %(order)s er på vej"
 
-#: templates/templated_email/order/confirm_fulfillment.email:10
+#: templates/templated_email/order/confirm_fulfillment.email:11
 msgctxt "Fulfillment confirmation email text"
 msgid ""
 "\n"
-"Hi!\n"
-"\n"
 "Thank you for your order. Below is the list of shipped products.\n"
 msgstr ""
-"\n"
-"Hej!\n"
-"\n"
-"Tak for din ordre. Nedenfor er listen over afsendte produkter.\n"
 
-#: templates/templated_email/order/confirm_fulfillment.email:16
+#: templates/templated_email/order/confirm_fulfillment.email:15
 #: templates/templated_email/source/confirm_fulfillment.mjml:20
 #, python-format
 msgctxt "Fulfillment confirmation email text"
 msgid "You can track your shipment with %(tracking_number)s code."
 msgstr "Du kan følge din forsendelese med %(tracking_number)s."
 
-#: templates/templated_email/order/confirm_fulfillment.email:25
-#, python-format
-msgctxt "Fulfillment confirmation email text"
-msgid ""
-"\n"
-"This is an automatically generated email, please do not reply.\n"
-"\n"
-"Sincerely,\n"
-"%(site_name)s\n"
-msgstr ""
-"\n"
-"Dette er en automatisk genereret email, den kan ikke besvares.\n"
-"\n"
-"Med venlig hilsen\n"
-"%(site_name)s\n"
-
 #: templates/templated_email/order/confirm_order.email:6
 msgctxt "Order confirmation e-mail subject"
 msgid "Order details"
 msgstr "Ordredetaljer"
 
-#: templates/templated_email/order/confirm_order.email:10
+#: templates/templated_email/order/confirm_order.email:11
 #, python-format
 msgctxt "Order confirmation e-mail text"
 msgid ""
 "\n"
-"Hi!\n"
-"\n"
 "Thank you for your order. Below is the list of ordered products. To see your payment details please visit:\n"
 "%(order_details_url)s"
 msgstr ""
-"\n"
-"Hej!\n"
-"\n"
-"Tak for din ordre. Nedenfor er listen over bestilte produkter. For at se dine betalingsoplysninger, besøg venligst:\n"
-"%(order_details_url)s"
 
-#: templates/templated_email/order/confirm_order.email:18
+#: templates/templated_email/order/confirm_order.email:17
 msgctxt "Order confirmation e-mail table header"
 msgid "Order summary"
 msgstr "Ordresammendrag"
 
-#: templates/templated_email/order/confirm_order.email:19
+#: templates/templated_email/order/confirm_order.email:18
 msgctxt "Order confirmation e-mail table header"
 msgid "Subtotal"
 msgstr "Subtotal"
 
-#: templates/templated_email/order/confirm_order.email:20
+#: templates/templated_email/order/confirm_order.email:19
 msgctxt "Order confirmation e-mail table header"
 msgid "Shipping"
 msgstr "Forsendelse"
 
-#: templates/templated_email/order/confirm_order.email:21
+#: templates/templated_email/order/confirm_order.email:20
 msgctxt "Order confirmation e-mail table header"
 msgid "Taxes (included)"
 msgstr "Skatter (inkluderet)"
 
-#: templates/templated_email/order/confirm_order.email:21
+#: templates/templated_email/order/confirm_order.email:20
 msgctxt "Order confirmation e-mail table header"
 msgid "Taxes"
 msgstr "Skatter"
 
-#: templates/templated_email/order/confirm_order.email:22
+#: templates/templated_email/order/confirm_order.email:21
 msgctxt "Order confirmation e-mail table header"
 msgid "Discount:"
 msgstr "Rabat"
 
-#: templates/templated_email/order/confirm_order.email:23
+#: templates/templated_email/order/confirm_order.email:22
 msgctxt "Order confirmation e-mail table header"
 msgid "Total"
 msgstr "Total"
 
-#: templates/templated_email/order/confirm_order.email:25
+#: templates/templated_email/order/confirm_order.email:24
 #: templates/templated_email/source/confirm_order.mjml:29
 msgctxt "Order confirmation e-mail billing address"
 msgid "Billing address"
 msgstr "Betalingsadresse"
 
-#: templates/templated_email/order/confirm_order.email:28
+#: templates/templated_email/order/confirm_order.email:27
 #: templates/templated_email/source/confirm_order.mjml:30
 msgctxt "Order confirmation e-mail shipping address"
 msgid "Shipping address"
 msgstr "Forsendelsesadresse"
 
-#: templates/templated_email/order/confirm_order.email:29
+#: templates/templated_email/order/confirm_order.email:28
 #: templates/templated_email/source/confirm_order.mjml:42
 msgctxt "Order confirmation e-mail text"
 msgid "No shipping required"
 msgstr "Ingen fragt kræves"
-
-#: templates/templated_email/order/confirm_order.email:31
-#, python-format
-msgctxt "Order confirmation e-mail text"
-msgid ""
-"\n"
-"This is an automatically generated e-mail, please do not reply.\n"
-"\n"
-"Sincerely,\n"
-"%(site_name)s\n"
-msgstr ""
-"\n"
-"Dette er en automatisk genereret e-mail, som ikke kan besvares.\n"
-"\n"
-"Med venlig hilsen,\n"
-"%(site_name)s\n"
 
 #: templates/templated_email/order/payment/confirm_payment.email:4
 msgctxt "Payment confirmation subject"
 msgid "Payment details"
 msgstr "Betalingsdetaljer"
 
-#: templates/templated_email/order/payment/confirm_payment.email:8
+#: templates/templated_email/order/payment/confirm_payment.email:9
 #, python-format
 msgctxt "Payment confirmation email text"
 msgid ""
 "\n"
-"Hi!\n"
-"\n"
 "Thank you for your payment. To see your payment details please visit:\n"
 "%(order_details_url)s\n"
-"\n"
-"This is an automatically generated email, please do not reply.\n"
-"\n"
-"Sincerely,\n"
-"%(site_name)s\n"
 msgstr ""
-"\n"
-"Hej!\n"
-"\n"
-"Tak for din betaling. For at se dine betalingsoplysninger, besøg venligst:\n"
-"%(order_details_url)s\n"
-"\n"
-"Dette er en automatisk genereret email, skal du ikke svare.\n"
-"\n"
-"Med venlig hilsen\n"
-"%(site_name)s\n"
 
 #: templates/templated_email/order/update_fulfillment.email:4
 #, python-format
@@ -6502,44 +6393,44 @@ msgctxt "Fulfillment update email subject"
 msgid "Shipping update for order %(order)s"
 msgstr "Forsendelsesopdatering for  ordre %(order)s"
 
-#: templates/templated_email/order/update_fulfillment.email:10
+#: templates/templated_email/order/update_fulfillment.email:11
 msgctxt "Fulfillment update email text"
 msgid ""
-"\n"
-"Hi!\n"
 "\n"
 "Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
 msgstr ""
-"\n"
-"Hej!\n"
-"\n"
-"Din fragtstatus er opdateret. Nedenfor er listen over bestilte produkter, der er opdateret med et nyt sporingsnummer.\n"
 
-#: templates/templated_email/order/update_fulfillment.email:16
-#: templates/templated_email/source/update_fulfillment.mjml:20
-#, python-format
-msgctxt "Fulfillment update email text"
-msgid "You can track your shipment with %(tracking_number)s code."
-msgstr "Du kan følge din forsendelese med %(tracking_number)s."
-
-#: templates/templated_email/order/update_fulfillment.email:25
+#: templates/templated_email/order/update_fulfillment.email:15
 #, python-format
 msgctxt "Fulfillment update email text"
 msgid ""
-"\n"
-"This is an automatically generated email, please do not reply.\n"
-"\n"
-"Sincerely,\n"
-"%(site_name)s\n"
+"You can track your shipment with the following code: %(tracking_number)s."
 msgstr ""
-"\n"
-"Dette er en automatisk genereret email, den kan ikke besvares.\n"
-"\n"
-"Med venlig hilsen\n"
-"%(site_name)s\n"
 
+#: templates/templated_email/shared/_footer.email:2
+#: templates/templated_email/source/shared/footer.mjml:4
+msgctxt "Base email text"
+msgid "This is an automatically generated e-mail, please do not reply."
+msgstr ""
+
+#: templates/templated_email/shared/_footer.email:5
+#: templates/templated_email/source/shared/footer.mjml:13
+#, python-format
+msgctxt "Base email footer"
+msgid "Sincerely, %(site_name)s"
+msgstr "Med venlig hilsen %(site_name)s"
+
+#: templates/templated_email/shared/_header.email:2
 #: templates/templated_email/source/account_delete.mjml:13
-msgctxt "Account delete e-mail text"
+#: templates/templated_email/source/confirm_fulfillment.mjml:13
+#: templates/templated_email/source/confirm_order.mjml:14
+#: templates/templated_email/source/confirm_payment.mjml:13
+#: templates/templated_email/source/password_reset.mjml:13
+#: templates/templated_email/source/promote_customer.mjml:13
+#: templates/templated_email/source/set_customer_password.mjml:13
+#: templates/templated_email/source/set_password.mjml:13
+#: templates/templated_email/source/update_fulfillment.mjml:13
+msgctxt "Standard e-mail greeting"
 msgid "Hi!"
 msgstr "Hej!"
 
@@ -6556,20 +6447,10 @@ msgstr ""
 " din brugerkonto på %(domain)s.<br/>Klik på linket herunder for at slette "
 "din konto. Bemærk, at denne handling er permanent og ikke kan vendes."
 
-#: templates/templated_email/source/confirm_fulfillment.mjml:13
-msgctxt "Fulfillment confirmation email text"
-msgid "Hi!"
-msgstr "Hej!"
-
 #: templates/templated_email/source/confirm_fulfillment.mjml:16
 msgctxt "Fulfillment confirmation email text"
 msgid "Thank you for your order. Below is the list of shipped products."
 msgstr "Tak for din ordre. Nedenfor er listen over afsendte produkter."
-
-#: templates/templated_email/source/confirm_order.mjml:14
-msgctxt "Order confirmation e-mail text"
-msgid "Hi!"
-msgstr "Hej!"
 
 #: templates/templated_email/source/confirm_order.mjml:17
 #, python-format
@@ -6582,11 +6463,6 @@ msgstr ""
 "Tak for din ordre. Nedenfor er en liste over bestilte produkter. For at se "
 "dine betalingsoplysninger, besøg venligst: <a "
 "href=\"%(order_details_url)s\">%(order_details_url)s</a>"
-
-#: templates/templated_email/source/confirm_payment.mjml:13
-msgctxt "Payment confirmation e-mail text"
-msgid "Hi!"
-msgstr "Hej!"
 
 #: templates/templated_email/source/confirm_payment.mjml:16
 #, python-format
@@ -6648,11 +6524,6 @@ msgctxt "Ordered item subtotal (unit price * quantity)"
 msgid "Subtotal"
 msgstr "Subtotal"
 
-#: templates/templated_email/source/password_reset.mjml:13
-msgctxt "Password reset e-mail text"
-msgid "Hi!"
-msgstr "Hej!"
-
 #: templates/templated_email/source/password_reset.mjml:16
 #, python-format
 msgctxt "Password reset e-mail text"
@@ -6667,11 +6538,6 @@ msgstr ""
 "ikke anmodede om en nulstilling af adgangskode. Klik på linket herunder for "
 "at nulstille din adgangskode."
 
-#: templates/templated_email/source/promote_customer.mjml:13
-msgctxt "Promote customer to staff member confirmation e-mail text"
-msgid "Hi!"
-msgstr "Hej!"
-
 #: templates/templated_email/source/promote_customer.mjml:16
 #, python-format
 msgctxt "Promote customer to staff member confirmation e-mail text"
@@ -6684,10 +6550,14 @@ msgstr ""
 "%(domain)s. <br/> For at få adgang til instrumentbrættet, gå venligst til: "
 "<a href=\"%(dashboard_url)s\">%(dashboard_url)s</a>"
 
-#: templates/templated_email/source/set_password.mjml:13
-msgctxt "Set password for staff member e-mail text"
-msgid "Hi!"
-msgstr "Hej!"
+#: templates/templated_email/source/set_customer_password.mjml:16
+#, python-format
+msgctxt "Set password for customer e-mail text"
+msgid ""
+"You're receiving this e-mail because you have to set password for your "
+"customer account at %(domain)s.<br/> Click the link below to set up your "
+"password."
+msgstr ""
 
 #: templates/templated_email/source/set_password.mjml:16
 #, python-format
@@ -6701,22 +6571,6 @@ msgstr ""
 "medarbejderkonto på %(domain)s. <br/> Klik på linket herunder for at oprette"
 " dit kodeord."
 
-#: templates/templated_email/source/shared/footer.mjml:4
-msgctxt "Base email text"
-msgid "This is an automatically generated email, please do not reply."
-msgstr "Dette er en automatisk genereret email og kan ikke besvares."
-
-#: templates/templated_email/source/shared/footer.mjml:13
-#, python-format
-msgctxt "Base email footer"
-msgid "Sincerely, %(site_name)s"
-msgstr "Med venlig hilsen %(site_name)s"
-
-#: templates/templated_email/source/update_fulfillment.mjml:13
-msgctxt "Fulfillment update email text"
-msgid "Hi!"
-msgstr "Hej!"
-
 #: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"
 msgid ""
@@ -6725,3 +6579,9 @@ msgid ""
 msgstr ""
 "Din fragtstatus er opdateret. Nedenfor er listen over bestilte produkter, "
 "der er opdateret med nyt sporingsnummer."
+
+#: templates/templated_email/source/update_fulfillment.mjml:20
+#, python-format
+msgctxt "Fulfillment update email text"
+msgid "You can track your shipment with %(tracking_number)s code."
+msgstr "Du kan følge din forsendelese med %(tracking_number)s."

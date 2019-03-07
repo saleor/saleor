@@ -232,7 +232,7 @@ class ProductForm(forms.ModelForm, AttributesMixin):
         required=False, queryset=Collection.objects.all(),
         label=pgettext_lazy('Add to collection select', 'Collections'))
     description = RichTextField(
-        label=pgettext_lazy('Description', 'Description'))
+        label=pgettext_lazy('Description', 'Description'), required=True)
     weight = WeightField(
         required=False, label=pgettext_lazy('ProductType weight', 'Weight'),
         help_text=pgettext_lazy(
@@ -244,11 +244,12 @@ class ProductForm(forms.ModelForm, AttributesMixin):
 
     class Meta:
         model = Product
-        exclude = ['attributes', 'product_type', 'updated_at']
+        exclude = [
+            'attributes', 'product_type', 'updated_at', 'description_json']
         labels = {
             'name': pgettext_lazy('Item name', 'Name'),
             'price': pgettext_lazy('Currency amount', 'Price'),
-            'available_on': pgettext_lazy(
+            'publication_date': pgettext_lazy(
                 'Availability date', 'Publish product on'),
             'is_published': pgettext_lazy(
                 'Product published toggle', 'Published'),

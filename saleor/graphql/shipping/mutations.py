@@ -1,31 +1,28 @@
 from textwrap import dedent
 
 import graphene
+from graphql_jwt.decorators import permission_required
+from graphql_jwt.exceptions import PermissionDenied
 
 from ...dashboard.shipping.forms import default_shipping_zone_exists
 from ...shipping import models
-from ..core.mutations import ModelDeleteMutation, ModelMutation
+from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import Decimal, WeightScalar
 from .enums import ShippingMethodTypeEnum
-from .types import ShippingZone
+from .types import ShippingMethod, ShippingZone
 
 
 class ShippingPriceInput(graphene.InputObjectType):
-    name = graphene.String(
-        description='Name of the shipping method. Visible to customers')
+    name = graphene.String(description='Name of the shipping method.')
     price = Decimal(description='Shipping price of the shipping method.')
     minimum_order_price = Decimal(
-        description='Minimum order price to use this shipping method',
-        required=False)
+        description='Minimum order price to use this shipping method')
     maximum_order_price = Decimal(
-        description='Maximum order price to use this shipping method',
-        required=False)
+        description='Maximum order price to use this shipping method')
     minimum_order_weight = WeightScalar(
-        description='Minimum order weight to use this shipping method',
-        required=False)
+        description='Minimum order weight to use this shipping method')
     maximum_order_weight = WeightScalar(
-        description='Maximum order weight to use this shipping method',
-        required=False)
+        description='Maximum order weight to use this shipping method')
     type = ShippingMethodTypeEnum(
         description='Shipping type: price or weight based.')
     shipping_zone = graphene.ID(
@@ -40,18 +37,18 @@ class ShippingZoneInput(graphene.InputObjectType):
         graphene.String,
         description='List of countries in this shipping zone.')
     default = graphene.Boolean(
-        description=dedent("""
+        description=dedent(
+            """
             Is default shipping zone, that will be used
             for countries not covered by other zones."""))
 
 
 class ShippingZoneMixin:
-
     @classmethod
     def clean_input(cls, info, instance, input, errors):
         cleaned_input = super().clean_input(info, instance, input, errors)
         default = cleaned_input.get('default')
-        if default is not None:
+        if default:
             if default_shipping_zone_exists(instance.pk):
                 cls.add_error(
                     errors, 'default', 'Default shipping zone already exists.')
@@ -115,42 +112,37 @@ class ShippingZoneDelete(ModelDeleteMutation):
 
 
 class ShippingPriceMixin:
-
     @classmethod
     def clean_input(cls, info, instance, input, errors):
         cleaned_input = super().clean_input(info, instance, input, errors)
         type = cleaned_input.get('type')
-        if not type:
-            return cleaned_input
-
-        if type == ShippingMethodTypeEnum.PRICE.value:
-            min_price = cleaned_input.get('minimum_order_price')
-            max_price = cleaned_input.get('maximum_order_price')
-            if min_price is None:
-                cls.add_error(
-                    errors, 'minimum_order_price',
-                    'Minimum order price is required'
-                    ' for Price Based shipping.')
-            elif max_price is not None and max_price <= min_price:
-                cls.add_error(
-                    errors, 'maximum_order_price',
-                    'Maximum order price should be larger than the minimum.')
-        else:
-            min_weight = cleaned_input.get('minimum_order_weight')
-            max_weight = cleaned_input.get('maximum_order_weight')
-            if min_weight is None:
-                cls.add_error(
-                    errors, 'minimum_order_weight',
-                    'Minimum order weight is required for'
-                    ' Weight Based shipping.')
-            elif max_weight is not None and max_weight <= min_weight:
-                cls.add_error(
-                    errors, 'maximum_order_weight',
-                    'Maximum order weight should be larger than the minimum.')
+        if type:
+            if type == ShippingMethodTypeEnum.PRICE.value:
+                min_price = cleaned_input.get('minimum_order_price')
+                max_price = cleaned_input.get('maximum_order_price')
+                if (min_price is not None and max_price is not None
+                        and max_price <= min_price):
+                    cls.add_error(
+                        errors, 'maximum_order_price',
+                        'Maximum order price should be larger than the '
+                        'minimum order price.')
+            else:
+                min_weight = cleaned_input.get('minimum_order_weight')
+                max_weight = cleaned_input.get('maximum_order_weight')
+                if (min_weight is not None and max_weight is not None
+                        and max_weight <= min_weight):
+                    cls.add_error(
+                        errors, 'maximum_order_weight',
+                        'Maximum order weight should be larger than the '
+                        'minimum order weight.')
         return cleaned_input
 
 
 class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
+    shipping_zone = graphene.Field(
+        ShippingZone,
+        description='A shipping zone to which the shipping method belongs.')
+
     class Arguments:
         input = ShippingPriceInput(
             description='Fields required to create a shipping price',
@@ -164,8 +156,18 @@ class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
     def user_is_allowed(cls, user, input):
         return user.has_perm('shipping.manage_shipping')
 
+    @classmethod
+    def success_response(cls, instance):
+        response = super().success_response(instance)
+        response.shipping_zone = instance.shipping_zone
+        return response
+
 
 class ShippingPriceUpdate(ShippingPriceMixin, ModelMutation):
+    shipping_zone = graphene.Field(
+        ShippingZone,
+        description='A shipping zone to which the shipping method belongs.')
+
     class Arguments:
         id = graphene.ID(
             description='ID of a shipping price to update.', required=True)
@@ -181,16 +183,45 @@ class ShippingPriceUpdate(ShippingPriceMixin, ModelMutation):
     def user_is_allowed(cls, user, input):
         return user.has_perm('shipping.manage_shipping')
 
+    @classmethod
+    def success_response(cls, instance):
+        response = super().success_response(instance)
+        response.shipping_zone = instance.shipping_zone
+        return response
 
-class ShippingPriceDelete(ModelDeleteMutation):
+
+class ShippingPriceDelete(BaseMutation):
+    shipping_method = graphene.Field(
+        ShippingMethod, description='A shipping method to delete.')
+    shipping_zone = graphene.Field(
+        ShippingZone,
+        description='A shipping zone to which the shipping method belongs.')
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a shipping price to delete.')
 
     class Meta:
         description = 'Deletes a shipping price.'
-        model = models.ShippingMethod
 
     @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('shipping.manage_shipping')
+    @permission_required('shipping.manage_shipping')
+    def mutate(cls, root, info, id):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
+        errors = []
+        shipping_method = cls.get_node_or_error(
+            info, id, errors, 'id', only_type=ShippingMethod)
+        if not shipping_method:
+            return ShippingPriceDelete(errors=errors)
+
+        shipping_method_id = shipping_method.id
+        shipping_zone = shipping_method.shipping_zone
+
+        shipping_method.delete()
+        shipping_method.id = shipping_method_id
+        return ShippingPriceDelete(
+            shipping_method=shipping_method,
+            shipping_zone=shipping_zone,
+            errors=errors)

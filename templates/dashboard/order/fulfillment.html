@@ -110,6 +110,9 @@
                       {% for error in line_form.quantity.errors %}
                         <p class="help-block materialize-red-text">{{ error }}</p>
                       {% endfor %}
+                      {% for error in formset.non_form_errors %}
+                        <p class="help-block materialize-red-text">{{ error }}</p>
+                      {% endfor %}
                       {% if line_form.quantity.help_text %}
                         <p class="help-block">
                           {{ line_form.quantity.field.help_text|safe }}

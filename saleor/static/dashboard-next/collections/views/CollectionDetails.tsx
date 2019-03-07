@@ -3,20 +3,21 @@ import * as React from "react";
 import { Route } from "react-router-dom";
 
 import ActionDialog from "../../components/ActionDialog";
+import AssignProductDialog from "../../components/AssignProductDialog";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import { createPaginationState, Paginator } from "../../components/Paginator";
 import { WindowTitle } from "../../components/WindowTitle";
+import { SearchProductsProvider } from "../../containers/SearchProducts";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import { productUrl } from "../../products/urls";
+import { Pagination } from "../../types";
 import { CollectionInput } from "../../types/globalTypes";
-import CollectionAssignProductDialog from "../components/CollectionAssignProductDialog/CollectionAssignProductDialog";
 import CollectionDetailsPage, {
   CollectionDetailsPageFormData
 } from "../components/CollectionDetailsPage/CollectionDetailsPage";
 import CollectionOperations from "../containers/CollectionOperations";
-import { SearchProductsProvider } from "../containers/ProductSearch";
 import { TypedCollectionDetailsQuery } from "../queries";
 import { CollectionAssignProduct } from "../types/CollectionAssignProduct";
 import { CollectionUpdate } from "../types/CollectionUpdate";
@@ -33,10 +34,7 @@ import {
   collectionUrl
 } from "../urls";
 
-export type CollectionDetailsQueryParams = Partial<{
-  after: string;
-  before: string;
-}>;
+export type CollectionDetailsQueryParams = Pagination;
 
 interface CollectionDetailsProps {
   id: string;
@@ -135,7 +133,7 @@ export const CollectionDetails: React.StatelessComponent<
                       ) => {
                         const input = {
                           backgroundImageAlt: formData.backgroundImageAlt,
-                          description: formData.description,
+                          descriptionJson: JSON.stringify(formData.description),
                           isPublished: formData.isPublished,
                           name: formData.name,
                           seo: {
@@ -278,7 +276,7 @@ export const CollectionDetails: React.StatelessComponent<
                             render={({ match }) => (
                               <SearchProductsProvider>
                                 {(searchProducts, searchProductsOpts) => (
-                                  <CollectionAssignProductDialog
+                                  <AssignProductDialog
                                     confirmButtonState={assignTransitionState}
                                     open={!!match}
                                     onFetch={searchProducts}

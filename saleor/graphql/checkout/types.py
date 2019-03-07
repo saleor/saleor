@@ -28,7 +28,7 @@ class CheckoutLine(CountableDjangoObjectType):
 
     def resolve_total_price(self, info):
         taxes = get_taxes_for_address(self.cart.shipping_address)
-        return self.get_total(taxes=taxes)
+        return self.get_total(discounts=info.context.discounts, taxes=taxes)
 
     def resolve_requires_shipping(self, info):
         return self.is_shipping_required()
@@ -41,6 +41,7 @@ class Checkout(CountableDjangoObjectType):
     available_payment_gateways = graphene.List(
         PaymentGatewayEnum, description='List of available payment gateways.',
         required=True)
+    email = graphene.String(description='Email of a customer', required=True)
     is_shipping_required = graphene.Boolean(
         description='Returns True, if checkout requires shipping.',
         required=True)
@@ -72,7 +73,7 @@ class Checkout(CountableDjangoObjectType):
 
     def resolve_total_price(self, info):
         taxes = get_taxes_for_address(self.shipping_address)
-        return self.get_total(taxes=taxes)
+        return self.get_total(discounts=info.context.discounts, taxes=taxes)
 
     def resolve_subtotal_price(self, info):
         taxes = get_taxes_for_address(self.shipping_address)

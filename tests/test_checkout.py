@@ -12,7 +12,7 @@ from saleor.core import demo_obfuscators
 from saleor.checkout import views
 from saleor.checkout.forms import CartVoucherForm, CountryForm
 from saleor.checkout.utils import (
-    add_variant_to_cart, change_billing_address_in_cart,
+    add_variant_to_cart, add_voucher_to_cart, change_billing_address_in_cart,
     change_shipping_address_in_cart, clear_shipping_method, create_order,
     get_cart_data_for_checkout,
     get_prices_of_products_in_discounted_categories, get_taxes_for_cart,
@@ -263,6 +263,9 @@ def test_view_checkout_summary(
     redirect_url = reverse('order:payment', kwargs={'token': order.token})
     assert response.request['PATH_INFO'] == redirect_url
     mock_send_confirmation.delay.assert_called_once_with(order.pk)
+
+    # cart should be deleted after order is created
+    assert request_cart_with_item.pk is None
 
 
 @patch('saleor.checkout.views.summary.send_order_confirmation')
@@ -530,11 +533,27 @@ def test_create_order_insufficient_stock(
     add_variant_to_cart(request_cart, variant, 10, check_quantity=False)
     request_cart.user = customer_user
     request_cart.billing_address = customer_user.default_billing_address
+    request_cart.shipping_address = customer_user.default_billing_address
     request_cart.save()
 
     with pytest.raises(InsufficientStock):
         create_order(
             request_cart, 'tracking_code', discounts=None, taxes=None)
+
+
+def test_create_order_doesnt_duplicate_order(
+        cart_with_item, customer_user, shipping_method):
+    cart = cart_with_item
+    cart.user = customer_user
+    cart.billing_address = customer_user.default_billing_address
+    cart.shipping_address = customer_user.default_billing_address
+    cart.shipping_method = shipping_method
+    cart.save()
+
+    order_1 = create_order(cart, tracking_code='', discounts=None, taxes=None)
+    assert order_1.checkout_token == cart_with_item.token
+    order_2 = create_order(cart, tracking_code='', discounts=None, taxes=None)
+    assert order_1.pk == order_2.pk
 
 
 def test_note_in_created_order(request_cart_with_item, address):
@@ -607,6 +626,41 @@ def test_get_discount_for_cart_shipping_voucher(
         countries=countries)
     discount = get_voucher_discount_for_cart(voucher, cart)
     assert discount == Money(expected_value, 'USD')
+
+
+def test_get_discount_for_cart_shipping_voucher_all_countries():
+    subtotal = TaxedMoney(net=Money(100, 'USD'), gross=Money(100, 'USD'))
+    shipping_total = TaxedMoney(net=Money(10, 'USD'), gross=Money(10, 'USD'))
+    cart = Mock(
+        get_subtotal=Mock(return_value=subtotal),
+        is_shipping_required=Mock(return_value=True),
+        shipping_method=Mock(get_total=Mock(return_value=shipping_total)),
+        shipping_address=Mock(country=Country('PL')))
+    voucher = Voucher(
+        code='unique', type=VoucherType.SHIPPING,
+        discount_value_type=DiscountValueType.PERCENTAGE,
+        discount_value=50, countries=[])
+
+    discount = get_voucher_discount_for_cart(voucher, cart)
+
+    assert discount == Money(5, 'USD')
+
+
+def test_get_discount_for_cart_shipping_voucher_limited_countries():
+    subtotal = TaxedMoney(net=Money(100, 'USD'), gross=Money(100, 'USD'))
+    shipping_total = TaxedMoney(net=Money(10, 'USD'), gross=Money(10, 'USD'))
+    cart = Mock(
+        get_subtotal=Mock(return_value=subtotal),
+        is_shipping_required=Mock(return_value=True),
+        shipping_method=Mock(get_total=Mock(return_value=shipping_total)),
+        shipping_address=Mock(country=Country('PL')))
+    voucher = Voucher(
+        code='unique', type=VoucherType.SHIPPING,
+        discount_value_type=DiscountValueType.PERCENTAGE,
+        discount_value=50, countries=['UK', 'DE'])
+
+    with pytest.raises(NotApplicable):
+        get_voucher_discount_for_cart(voucher, cart)
 
 
 @pytest.mark.parametrize(
@@ -933,3 +987,19 @@ def test_get_prices_of_products_in_discounted_categories(cart_with_item):
         lines, [discounted_category])
     # None of the lines are belongs to the discounted category
     assert not discounted_lines
+
+
+def test_add_voucher_to_cart(cart_with_item, voucher):
+    assert cart_with_item.voucher_code is None
+    add_voucher_to_cart(voucher, cart_with_item)
+
+    assert cart_with_item.voucher_code == voucher.code
+
+
+def test_add_voucher_to_cart_fail(
+        cart_with_item, voucher_with_high_min_amount_spent):
+    with pytest.raises(NotApplicable) as e:
+        add_voucher_to_cart(
+            voucher_with_high_min_amount_spent, cart_with_item)
+
+    assert cart_with_item.voucher_code is None

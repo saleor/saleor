@@ -151,7 +151,7 @@ export interface ProductImageCreate_productImageCreate_product {
   __typename: "Product";
   id: string;
   name: string;
-  description: string;
+  descriptionJson: any;
   seoTitle: string | null;
   seoDescription: string | null;
   category: ProductImageCreate_productImageCreate_product_category;
@@ -161,7 +161,7 @@ export interface ProductImageCreate_productImageCreate_product {
   purchaseCost: ProductImageCreate_productImageCreate_product_purchaseCost | null;
   isPublished: boolean;
   chargeTaxes: boolean;
-  availableOn: any | null;
+  publicationDate: any | null;
   attributes: ProductImageCreate_productImageCreate_product_attributes[];
   availability: ProductImageCreate_productImageCreate_product_availability | null;
   images: (ProductImageCreate_productImageCreate_product_images | null)[] | null;

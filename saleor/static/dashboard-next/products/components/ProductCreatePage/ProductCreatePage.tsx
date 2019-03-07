@@ -1,3 +1,4 @@
+import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
 import CardSpacer from "../../../components/CardSpacer";
@@ -26,11 +27,11 @@ export interface FormData {
     value: string;
   }>;
   available: boolean;
-  availableOn: string;
+  publicationDate: string;
   category: ChoiceType;
   chargeTaxes: boolean;
   collections: ChoiceType[];
-  description: string;
+  description: RawDraftContentState;
   name: string;
   price: number;
   productType: {
@@ -94,14 +95,13 @@ export const ProductCreatePage: React.StatelessComponent<
   const initialData: FormData = {
     attributes: [],
     available: false,
-    availableOn: "",
     category: {
       label: "",
       value: ""
     },
     chargeTaxes: false,
     collections: [],
-    description: "",
+    description: {} as any,
     name: "",
     price: 0,
     productType: {
@@ -113,6 +113,7 @@ export const ProductCreatePage: React.StatelessComponent<
         productAttributes: [] as ProductCreateData_productTypes_edges_node_productAttributes[]
       }
     },
+    publicationDate: "",
     seoDescription: "",
     seoTitle: "",
     sku: null,
@@ -151,7 +152,7 @@ export const ProductCreatePage: React.StatelessComponent<
                 title={data.seoTitle}
                 titlePlaceholder={data.name}
                 description={data.seoDescription}
-                descriptionPlaceholder={data.description}
+                descriptionPlaceholder={data.seoTitle}
                 loading={disabled}
                 onChange={change}
               />

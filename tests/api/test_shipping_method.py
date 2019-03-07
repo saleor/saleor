@@ -181,7 +181,7 @@ def test_delete_shipping_zone(
 
 
 PRICE_BASED_SHIPPING_QUERY = """
-    mutation createShipipngPrice(
+    mutation createShippingPrice(
         $type: ShippingMethodTypeEnum, $name: String!, $price: Decimal,
         $shippingZone: ID!, $minimumOrderPrice: Decimal,
         $maximumOrderPrice: Decimal) {
@@ -192,6 +192,9 @@ PRICE_BASED_SHIPPING_QUERY = """
         errors {
             field
             message
+        }
+        shippingZone {
+            id
         }
         shippingMethod {
             name
@@ -213,10 +216,11 @@ PRICE_BASED_SHIPPING_QUERY = """
 
 @pytest.mark.parametrize(
     'min_price, max_price, expected_min_price, expected_max_price',
-    ((10.32, 15.43, {
-        'amount': 10.32}, {
-            'amount': 15.43}), (10.33, None, {
-                'amount': 10.33}, None)))
+    (
+        (10.32, 15.43, {'amount': 10.32}, {'amount': 15.43}),
+        (10.33, None, {'amount': 10.33}, None)
+    )
+)
 def test_create_shipping_method(
         staff_api_client, shipping_zone, min_price, max_price,
         expected_min_price, expected_max_price, permission_manage_shipping):
@@ -237,23 +241,8 @@ def test_create_shipping_method(
     assert_read_only_mode(response)
 
 
-@pytest.mark.parametrize(
-    'min_price, max_price, expected_error',
-    ((
-        None, 15.11, {
-            'field':
-            'minimumOrderPrice',
-            'message':
-            'Minimum order price is required'
-            ' for Price Based shipping.'}),
-     (
-         20.21, 15.11, {
-             'field': 'maximumOrderPrice',
-             'message':
-             'Maximum order price should be larger than the minimum.'})))
 def test_create_price_shipping_method_errors(
-        shipping_zone, staff_api_client, min_price, max_price, expected_error,
-        permission_manage_shipping):
+        shipping_zone, staff_api_client, permission_manage_shipping):
     query = PRICE_BASED_SHIPPING_QUERY
     shipping_zone_id = graphene.Node.to_global_id(
         'ShippingZone', shipping_zone.pk)
@@ -261,8 +250,8 @@ def test_create_price_shipping_method_errors(
         'shippingZone': shipping_zone_id,
         'name': 'DHL',
         'price': 12.34,
-        'minimumOrderPrice': min_price,
-        'maximumOrderPrice': max_price,
+        'minimumOrderPrice': 20,
+        'maximumOrderPrice': 15,
         'type': ShippingMethodTypeEnum.PRICE.name}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping])
@@ -270,7 +259,7 @@ def test_create_price_shipping_method_errors(
 
 
 WEIGHT_BASED_SHIPPING_QUERY = """
-    mutation createShipipngPrice(
+    mutation createShippingPrice(
         $type: ShippingMethodTypeEnum, $name: String!, $price: Decimal,
         $shippingZone: ID!, $maximumOrderWeight: WeightScalar,
         $minimumOrderWeight: WeightScalar) {
@@ -292,6 +281,9 @@ WEIGHT_BASED_SHIPPING_QUERY = """
                     value
                     unit
                 }
+            }
+            shippingZone {
+                id
             }
         }
     }
@@ -327,28 +319,8 @@ def test_create_weight_based_shipping_method(
     assert_read_only_mode(response)
 
 
-@pytest.mark.parametrize(
-    'min_weight, max_weight, expected_error',
-    (
-        (
-            None, 15.11, {
-                'field':
-                'minimumOrderWeight',
-                'message':
-                'Minimum order weight is required for'
-                ' Weight Based shipping.'}),
-        (
-            20.21,
-            15.11,
-            {
-                'field':
-                'maximumOrderWeight',
-                'message':
-                'Maximum order weight should be larger than the minimum.'  # noqa
-            })))
 def test_create_weight_shipping_method_errors(
-        shipping_zone, staff_api_client, min_weight, max_weight,
-        expected_error, permission_manage_shipping):
+        shipping_zone, staff_api_client, permission_manage_shipping):
     query = WEIGHT_BASED_SHIPPING_QUERY
     shipping_zone_id = graphene.Node.to_global_id(
         'ShippingZone', shipping_zone.pk)
@@ -356,8 +328,8 @@ def test_create_weight_shipping_method_errors(
         'shippingZone': shipping_zone_id,
         'name': 'DHL',
         'price': 12.34,
-        'minimumOrderWeight': min_weight,
-        'maximumOrderWeight': max_weight,
+        'minimumOrderWeight': 20,
+        'maximumOrderWeight': 15,
         'type': ShippingMethodTypeEnum.WEIGHT.name}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping])
@@ -377,6 +349,9 @@ def test_update_shipping_method(
             errors {
                 field
                 message
+            }
+            shippingZone {
+                id
             }
             shippingMethod {
                 price {
@@ -413,16 +388,19 @@ def test_delete_shipping_method(
     query = """
         mutation deleteShippingPrice($id: ID!) {
             shippingPriceDelete(id: $id) {
+                shippingZone {
+                    id
+                }
                 shippingMethod {
-                    price {
-                        amount
-                    }
+                    id
                 }
             }
         }
         """
     shipping_method_id = graphene.Node.to_global_id(
         'ShippingMethod', shipping_method.pk)
+    shipping_zone_id = graphene.Node.to_global_id(
+        'ShippingZone', shipping_method.shipping_zone.pk)
     variables = {'id': shipping_method_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping])

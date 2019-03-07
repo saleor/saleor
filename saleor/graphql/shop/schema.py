@@ -1,5 +1,6 @@
 import graphene
 
+from ..translations.mutations import ShopSettingsTranslate
 from .mutations import (
     AuthorizationKeyAdd, AuthorizationKeyDelete, HomepageCollectionUpdate,
     ShopDomainUpdate, ShopFetchTaxRates, ShopSettingsUpdate)
@@ -21,3 +22,4 @@ class ShopMutations(graphene.ObjectType):
     shop_domain_update = ShopDomainUpdate.Field()
     shop_settings_update = ShopSettingsUpdate.Field()
     shop_fetch_tax_rates = ShopFetchTaxRates.Field()
+    shop_settings_translate = ShopSettingsTranslate.Field()

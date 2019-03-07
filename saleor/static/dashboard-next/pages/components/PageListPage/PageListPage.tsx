@@ -1,4 +1,4 @@
-import IconButton from "@material-ui/core/IconButton";
+import Button from "@material-ui/core/Button";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
@@ -6,43 +6,41 @@ import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
 import { PageListProps } from "../../../types";
-import PageList from "../../components/PageList";
+import { PageList_pages_edges_node } from "../../types/PageList";
+import PageList from "../PageList/PageList";
 
-interface PageListPageProps extends PageListProps {
-  pages?: Array<{
-    id: string;
-    title: string;
-    slug: string;
-    isVisible: boolean;
-  }>;
+export interface PageListPageProps extends PageListProps {
+  pages: PageList_pages_edges_node[];
 }
 
 const PageListPage: React.StatelessComponent<PageListPageProps> = ({
   disabled,
-  pages,
-  pageInfo,
   onAdd,
   onNextPage,
   onPreviousPage,
-  onRowClick
+  onRowClick,
+  pageInfo,
+  pages
 }) => (
   <Container width="md">
-    <PageHeader
-      title={i18n.t("Pages", {
-        context: "title"
-      })}
-    >
-      <IconButton disabled={disabled} onClick={onAdd}>
+    <PageHeader title={i18n.t("Pages")}>
+      <Button
+        disabled={disabled}
+        onClick={onAdd}
+        variant="contained"
+        color="secondary"
+      >
+        {i18n.t("Add page")}
         <AddIcon />
-      </IconButton>
+      </Button>
     </PageHeader>
     <PageList
       disabled={disabled}
-      pageInfo={pageInfo}
       pages={pages}
       onNextPage={onNextPage}
       onPreviousPage={onPreviousPage}
       onRowClick={onRowClick}
+      pageInfo={pageInfo}
     />
   </Container>
 );

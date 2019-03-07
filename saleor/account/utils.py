@@ -11,12 +11,31 @@ def store_user_address(user, address, address_type):
 
     if address_type == AddressType.BILLING:
         if not user.default_billing_address:
-            user.default_billing_address = address
-            user.save(update_fields=['default_billing_address'])
+            set_user_default_billing_address(user, address)
     elif address_type == AddressType.SHIPPING:
         if not user.default_shipping_address:
-            user.default_shipping_address = address
-            user.save(update_fields=['default_shipping_address'])
+            set_user_default_shipping_address(user, address)
+
+
+def set_user_default_billing_address(user, address):
+    user.default_billing_address = address
+    user.save(update_fields=['default_billing_address'])
+
+
+def set_user_default_shipping_address(user, address):
+    user.default_shipping_address = address
+    user.save(update_fields=['default_shipping_address'])
+
+
+def change_user_default_address(user, address, address_type):
+    if address_type == AddressType.BILLING:
+        if user.default_billing_address:
+            user.addresses.add(user.default_billing_address)
+        set_user_default_billing_address(user, address)
+    elif address_type == AddressType.SHIPPING:
+        if user.default_shipping_address:
+            user.addresses.add(user.default_shipping_address)
+        set_user_default_shipping_address(user, address)
 
 
 def get_user_first_name(user):

@@ -6,7 +6,6 @@ import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.core import signing
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpResponse
 from django.urls import reverse
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
@@ -79,7 +78,7 @@ def test_get_or_create_anonymous_cart_from_token(anonymous_cart, user_cart):
 
 def test_get_or_create_user_cart(
         customer_user, anonymous_cart, user_cart, admin_user):
-    cart = utils.get_or_create_user_cart(customer_user)
+    cart = utils.get_or_create_user_cart(customer_user)[0]
     assert Cart.objects.all().count() == 2
     assert cart == user_cart
 
@@ -87,7 +86,7 @@ def test_get_or_create_user_cart(
     Cart.objects.create(user=admin_user)
     queryset = Cart.objects.all()
     carts = list(queryset)
-    cart = utils.get_or_create_user_cart(admin_user)
+    cart = utils.get_or_create_user_cart(admin_user)[0]
     assert Cart.objects.all().count() == 3
     assert cart in carts
     assert cart.user == admin_user
@@ -122,7 +121,7 @@ def test_get_or_create_cart_from_request(
     request = cart_request_factory(user=customer_user, token=token)
     user_cart = Cart(user=customer_user)
     anonymous_cart = Cart()
-    mock_get_for_user = Mock(return_value=user_cart)
+    mock_get_for_user = Mock(return_value=(user_cart, False))
     mock_get_for_anonymous = Mock(return_value=anonymous_cart)
     monkeypatch.setattr(
         'saleor.checkout.utils.get_or_create_user_cart', mock_get_for_user)
@@ -609,22 +608,6 @@ def test_update_view_must_be_ajax(customer_user, rf):
     request.discounts = None
     result = update_cart_line(request, 1)
     assert result.status_code == 302
-
-
-def test_get_or_create_db_cart(customer_user, db, rf):
-    def view(request, cart, *args, **kwargs):
-        return HttpResponse()
-
-    decorated_view = utils.get_or_create_db_cart()(view)
-    assert Cart.objects.filter(user=customer_user).count() == 0
-    request = rf.get(reverse('home'))
-    request.user = customer_user
-    decorated_view(request)
-    assert Cart.objects.filter(user=customer_user).count() == 1
-
-    request.user = AnonymousUser()
-    decorated_view(request)
-    assert Cart.objects.filter(user__isnull=True).count() == 1
 
 
 def test_get_cart_data(request_cart_with_item, shipping_zone, vatlayer):
