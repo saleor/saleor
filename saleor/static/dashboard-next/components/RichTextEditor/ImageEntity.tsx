@@ -10,17 +10,15 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
 import DeleteIcon from "@material-ui/icons/Delete";
 import { ContentState } from "draft-js";
 import * as React from "react";
 
 import i18n from "../../i18n";
 import Anchor from "../Anchor";
-import Link from "../Link";
 import Toggle from "../Toggle";
 
-interface LinkEntityProps {
+interface ImageEntityProps {
   children: React.ReactNode;
   contentState: ContentState;
   entityKey: string;
@@ -37,6 +35,7 @@ const styles = (theme: Theme) =>
       alignItems: "center",
       display: "flex"
     },
+    image: { maxWidth: "100%" },
     inline: {
       display: "inline-block"
     },
@@ -44,30 +43,20 @@ const styles = (theme: Theme) =>
       alignItems: "center",
       display: "flex",
       minHeight: 72,
-      padding: `${theme.spacing.unit * 1.5}px ${theme.spacing.unit *
-        1.5}px ${theme.spacing.unit * 1.5}px ${theme.spacing.unit * 3}px`
-    },
-    separator: {
-      backgroundColor: theme.palette.grey[300],
-      display: "inline-block",
-      height: 30,
-      marginLeft: theme.spacing.unit * 2,
-      marginRight: theme.spacing.unit,
-      width: 1
+      padding: theme.spacing.unit * 1.5
     }
   });
 
-const LinkEntity = withStyles(styles, {
-  name: "LinkEntity"
+const ImageEntity = withStyles(styles, {
+  name: "ImageEntity"
 })(
   ({
     classes,
-    children,
     contentState,
     entityKey,
     onEdit,
     onRemove
-  }: LinkEntityProps & WithStyles<typeof styles>) => (
+  }: ImageEntityProps & WithStyles<typeof styles>) => (
     <Toggle>
       {(isOpened, { disable, toggle }) => (
         <>
@@ -94,13 +83,6 @@ const LinkEntity = withStyles(styles, {
                           mouseEvent="onClick"
                         >
                           <div className={classes.container}>
-                            <Typography
-                              className={classes.inline}
-                              variant="body1"
-                            >
-                              {contentState.getEntity(entityKey).getData().href}
-                            </Typography>
-                            <span className={classes.separator} />
                             <Button
                               onClick={() => {
                                 disable();
@@ -109,7 +91,7 @@ const LinkEntity = withStyles(styles, {
                               color="secondary"
                               variant="flat"
                             >
-                              {i18n.t("Edit")}
+                              {i18n.t("Replace")}
                             </Button>
                             <IconButton onClick={() => onRemove(entityKey)}>
                               <DeleteIcon color="secondary" />
@@ -123,15 +105,14 @@ const LinkEntity = withStyles(styles, {
               </div>
             )}
           </Anchor>
-          <Link
-            href={contentState.getEntity(entityKey).getData().href}
+          <img
+            className={classes.image}
+            src={contentState.getEntity(entityKey).getData().href}
             onClick={toggle}
-          >
-            {children}
-          </Link>
+          />
         </>
       )}
     </Toggle>
   )
 );
-export default LinkEntity;
+export default ImageEntity;

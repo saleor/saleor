@@ -1,4 +1,9 @@
-import { RawDraftContentState } from "draft-js";
+import {
+  ContentState,
+  convertFromRaw,
+  convertToRaw,
+  RawDraftContentState
+} from "draft-js";
 import * as React from "react";
 
 import AppHeader from "../../../components/AppHeader";
@@ -49,10 +54,13 @@ const PageDetailsPage: React.StatelessComponent<PageDetailsPageProps> = ({
 }) => {
   const initialForm: FormData = {
     availableOn: maybe(() => page.availableOn, ""),
-    content: maybe(() => JSON.parse(page.contentJson)),
+    content: maybe(
+      () => JSON.parse(page.contentJson),
+      convertToRaw(ContentState.createFromText(""))
+    ),
     isVisible: maybe(() => page.isVisible, false),
-    seoDescription: maybe(() => page.seoDescription, ""),
-    seoTitle: maybe(() => page.seoTitle, ""),
+    seoDescription: maybe(() => page.seoDescription || "", ""),
+    seoTitle: maybe(() => page.seoTitle || "", ""),
     slug: maybe(() => page.slug, ""),
     title: maybe(() => page.title, "")
   };
@@ -83,7 +91,11 @@ const PageDetailsPage: React.StatelessComponent<PageDetailsPageProps> = ({
               <SeoForm
                 description={data.seoDescription}
                 disabled={disabled}
-                descriptionPlaceholder={data.title}
+                descriptionPlaceholder={maybe(() => {
+                  return convertFromRaw(data.content)
+                    .getPlainText()
+                    .slice(0, 300);
+                }, "")}
                 onChange={change}
                 title={data.seoTitle}
                 titlePlaceholder={data.title}
@@ -112,7 +124,7 @@ const PageDetailsPage: React.StatelessComponent<PageDetailsPageProps> = ({
             disabled={disabled || !hasChanged}
             state={saveButtonBarState}
             onCancel={onBack}
-            onDelete={onRemove}
+            onDelete={page === null ? undefined : onRemove}
             onSave={submit}
           />
         </Container>
