@@ -11,7 +11,7 @@ import ItalicIcon from "@material-ui/icons/FormatItalic";
 import UnorderedListIcon from "@material-ui/icons/FormatListBulleted";
 import OrderedListIcon from "@material-ui/icons/FormatListNumbered";
 import QuotationIcon from "@material-ui/icons/FormatQuote";
-import ImageIcon from "@material-ui/icons/Image";
+// import ImageIcon from "@material-ui/icons/Image";
 import LinkIcon from "@material-ui/icons/Link";
 import * as classNames from "classnames";
 import { RawDraftContentState } from "draft-js";
@@ -25,8 +25,8 @@ import * as React from "react";
 
 import HeaderThree from "../../icons/HeaderThree";
 import HeaderTwo from "../../icons/HeaderTwo";
-import ImageEntity from "./ImageEntity";
-import ImageSource from "./ImageSource";
+// import ImageEntity from "./ImageEntity";
+// import ImageSource from "./ImageSource";
 import LinkEntity from "./LinkEntity";
 import LinkSource from "./LinkSource";
 
@@ -256,14 +256,14 @@ const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
             icon: <LinkIcon />,
             source: LinkSource,
             type: ENTITY_TYPE.LINK
-          },
-          {
-            attributes: ["href"],
-            decorator: ImageEntity,
-            icon: <ImageIcon />,
-            source: ImageSource,
-            type: ENTITY_TYPE.IMAGE
           }
+          // {
+          //   attributes: ["href"],
+          //   decorator: ImageEntity,
+          //   icon: <ImageIcon />,
+          //   source: ImageSource,
+          //   type: ENTITY_TYPE.IMAGE
+          // }
         ]}
       />
       <Typography
