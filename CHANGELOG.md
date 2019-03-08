@@ -56,6 +56,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Restyle app layout - #3811 by @dominik-zeglen
 - Bump django-graphql-jwt - #3814 by @michaljelonek
 - Fix generating slug from title - #3816 by @maarcingebala
+- Add languageCode enum to API - #3819 by @michaljelonek
 
 
 ## 2.3.1
