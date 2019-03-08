@@ -98,13 +98,6 @@ def test_create_fake_user(db):
     assert not user.is_superuser
 
 
-def test_create_fake_users(db):
-    how_many = 5
-    for _ in random_data.create_users(how_many):
-        pass
-    assert User.objects.all().count() == 5
-
-
 def test_create_address(db):
     assert Address.objects.all().count() == 0
     random_data.create_address()

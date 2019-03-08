@@ -130,7 +130,7 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages):
         'isPublished': page_is_published,
         'slug': page_slug}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_pages])
+        CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages])
     assert_read_only_mode(response)
 
 
@@ -140,11 +140,7 @@ def test_create_default_slug(staff_api_client, permission_manage_pages):
     response = staff_api_client.post_graphql(
         CREATE_PAGE_MUTATION, {'title': title},
         permissions=[permission_manage_pages])
-    content = get_graphql_content(response)
-    data = content['data']['pageCreate']
-    assert not data['errors']
-    assert data['page']['title'] == title
-    assert data['page']['slug'] == slugify(title)
+    assert_read_only_mode(response)
 
 
 def test_page_delete_mutation(staff_api_client, page, permission_manage_pages):
