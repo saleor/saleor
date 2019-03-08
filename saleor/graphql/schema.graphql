@@ -1251,6 +1251,7 @@ enum OrderEventsEmails {
 
 type OrderLine implements Node {
   id: ID!
+  variant: ProductVariant
   productName: String!
   translatedProductName: String!
   productSku: String!
