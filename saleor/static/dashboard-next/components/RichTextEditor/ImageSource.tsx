@@ -40,7 +40,6 @@ class ImageSource extends React.Component<ImageSourceProps> {
           nextContent,
           "apply-entity"
         );
-        EditorState.forceSelection(editorState, editorState.getSelection());
         onComplete(nextState);
       } else {
         const contentWithEntity = content.createEntity(
@@ -51,7 +50,7 @@ class ImageSource extends React.Component<ImageSourceProps> {
         const nextState = AtomicBlockUtils.insertAtomicBlock(
           editorState,
           contentWithEntity.getLastCreatedEntityKey(),
-          ""
+          " "
         );
 
         onComplete(nextState);
