@@ -3353,11 +3353,9 @@ Ctrl + K"
                   class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
                   data-offset-key="5aejo-0-0"
                 >
-                  <div>
-                    <div
-                      class="LinkEntity-anchor-id"
-                    />
-                  </div>
+                  <div
+                    class="LinkEntity-anchor-id"
+                  />
                   <a
                     class="MuiTypography-root-id MuiTypography-body1-id Link-root-id Link-primary-id"
                     href="#"
@@ -8148,11 +8146,9 @@ Ctrl + K"
                           class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
                           data-offset-key="5aejo-0-0"
                         >
-                          <div>
-                            <div
-                              class="LinkEntity-anchor-id"
-                            />
-                          </div>
+                          <div
+                            class="LinkEntity-anchor-id"
+                          />
                           <a
                             class="MuiTypography-root-id MuiTypography-body1-id Link-root-id Link-primary-id"
                             href="#"
@@ -9702,11 +9698,9 @@ Ctrl + K"
                           class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
                           data-offset-key="5aejo-0-0"
                         >
-                          <div>
-                            <div
-                              class="LinkEntity-anchor-id"
-                            />
-                          </div>
+                          <div
+                            class="LinkEntity-anchor-id"
+                          />
                           <a
                             class="MuiTypography-root-id MuiTypography-body1-id Link-root-id Link-primary-id"
                             href="#"
@@ -10593,11 +10587,9 @@ Ctrl + K"
                           class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
                           data-offset-key="5aejo-0-0"
                         >
-                          <div>
-                            <div
-                              class="LinkEntity-anchor-id"
-                            />
-                          </div>
+                          <div
+                            class="LinkEntity-anchor-id"
+                          />
                           <a
                             class="MuiTypography-root-id MuiTypography-body1-id Link-root-id Link-primary-id"
                             href="#"
@@ -11490,11 +11482,9 @@ Ctrl + K"
                           class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
                           data-offset-key="5aejo-0-0"
                         >
-                          <div>
-                            <div
-                              class="LinkEntity-anchor-id"
-                            />
-                          </div>
+                          <div
+                            class="LinkEntity-anchor-id"
+                          />
                           <a
                             class="MuiTypography-root-id MuiTypography-body1-id Link-root-id Link-primary-id"
                             href="#"
@@ -12383,11 +12373,9 @@ Ctrl + K"
                               class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
                               data-offset-key="5aejo-0-0"
                             >
-                              <div>
-                                <div
-                                  class="LinkEntity-anchor-id"
-                                />
-                              </div>
+                              <div
+                                class="LinkEntity-anchor-id"
+                              />
                               <a
                                 class="MuiTypography-root-id MuiTypography-body1-id Link-root-id Link-primary-id"
                                 href="#"
@@ -14449,11 +14437,9 @@ Ctrl + K"
                               class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
                               data-offset-key="5aejo-0-0"
                             >
-                              <div>
-                                <div
-                                  class="LinkEntity-anchor-id"
-                                />
-                              </div>
+                              <div
+                                class="LinkEntity-anchor-id"
+                              />
                               <a
                                 class="MuiTypography-root-id MuiTypography-body1-id Link-root-id Link-primary-id"
                                 href="#"
@@ -22462,51 +22448,49 @@ exports[`Storyshots Views / Discounts / Sale create default 1`] = `
             <div
               class="MuiCardContent-root-id SalePricing-root-id"
             >
-              <div>
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                    data-shrink="false"
-                  >
-                    Discount Value
-                  </label>
+                  Discount Value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
+                    min="0"
+                    name="value"
+                    type="number"
+                    value=""
+                  />
                   <div
-                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="TextFieldWithChoices-adornment-id"
                   >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
-                      min="0"
-                      name="value"
-                      type="number"
-                      value=""
-                    />
-                    <div
-                      class="TextFieldWithChoices-adornment-id"
+                    <span
+                      class="MuiTypography-root-id MuiTypography-caption-id"
                     >
-                      <span
-                        class="MuiTypography-root-id MuiTypography-caption-id"
-                      >
-                        USD
-                      </span>
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id"
-                        focusable="false"
-                        role="presentation"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                        <path
-                          d="M0 0h24v24H0z"
-                          fill="none"
-                        />
-                      </svg>
-                    </div>
+                      USD
+                    </span>
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                 </div>
               </div>
@@ -22676,58 +22660,56 @@ exports[`Storyshots Views / Discounts / Sale create form errors 1`] = `
             <div
               class="MuiCardContent-root-id SalePricing-root-id"
             >
-              <div>
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                    data-shrink="false"
-                  >
-                    Discount Value
-                  </label>
+                  Discount Value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                >
+                  <input
+                    aria-invalid="true"
+                    class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
+                    min="0"
+                    name="value"
+                    type="number"
+                    value=""
+                  />
                   <div
-                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="TextFieldWithChoices-adornment-id"
                   >
-                    <input
-                      aria-invalid="true"
-                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
-                      min="0"
-                      name="value"
-                      type="number"
-                      value=""
-                    />
-                    <div
-                      class="TextFieldWithChoices-adornment-id"
+                    <span
+                      class="MuiTypography-root-id MuiTypography-caption-id"
                     >
-                      <span
-                        class="MuiTypography-root-id MuiTypography-caption-id"
-                      >
-                        USD
-                      </span>
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id"
-                        focusable="false"
-                        role="presentation"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                        <path
-                          d="M0 0h24v24H0z"
-                          fill="none"
-                        />
-                      </svg>
-                    </div>
+                      USD
+                    </span>
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
-                  <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-error-id"
-                  >
-                    Generic form error
-                  </p>
                 </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-error-id"
+                >
+                  Generic form error
+                </p>
               </div>
             </div>
             <hr
@@ -22901,52 +22883,50 @@ exports[`Storyshots Views / Discounts / Sale create loading 1`] = `
             <div
               class="MuiCardContent-root-id SalePricing-root-id"
             >
-              <div>
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                    data-shrink="false"
-                  >
-                    Discount Value
-                  </label>
+                  Discount Value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
+                    disabled=""
+                    min="0"
+                    name="value"
+                    type="number"
+                    value=""
+                  />
                   <div
-                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="TextFieldWithChoices-adornment-id"
                   >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
-                      disabled=""
-                      min="0"
-                      name="value"
-                      type="number"
-                      value=""
-                    />
-                    <div
-                      class="TextFieldWithChoices-adornment-id"
+                    <span
+                      class="MuiTypography-root-id MuiTypography-caption-id"
                     >
-                      <span
-                        class="MuiTypography-root-id MuiTypography-caption-id"
-                      >
-                        USD
-                      </span>
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id"
-                        focusable="false"
-                        role="presentation"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                        <path
-                          d="M0 0h24v24H0z"
-                          fill="none"
-                        />
-                      </svg>
-                    </div>
+                      USD
+                    </span>
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                 </div>
               </div>
@@ -23113,51 +23093,49 @@ exports[`Storyshots Views / Discounts / Sale details collections 1`] = `
             <div
               class="MuiCardContent-root-id SalePricing-root-id"
             >
-              <div>
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                    data-shrink="true"
-                  >
-                    Discount Value
-                  </label>
+                  Discount Value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
+                    min="0"
+                    name="value"
+                    type="number"
+                    value="30"
+                  />
                   <div
-                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="TextFieldWithChoices-adornment-id"
                   >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
-                      min="0"
-                      name="value"
-                      type="number"
-                      value="30"
-                    />
-                    <div
-                      class="TextFieldWithChoices-adornment-id"
+                    <span
+                      class="MuiTypography-root-id MuiTypography-caption-id"
                     >
-                      <span
-                        class="MuiTypography-root-id MuiTypography-caption-id"
-                      >
-                        %
-                      </span>
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id"
-                        focusable="false"
-                        role="presentation"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                        <path
-                          d="M0 0h24v24H0z"
-                          fill="none"
-                        />
-                      </svg>
-                    </div>
+                      %
+                    </span>
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                 </div>
               </div>
@@ -23604,51 +23582,49 @@ exports[`Storyshots Views / Discounts / Sale details default 1`] = `
             <div
               class="MuiCardContent-root-id SalePricing-root-id"
             >
-              <div>
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                    data-shrink="true"
-                  >
-                    Discount Value
-                  </label>
+                  Discount Value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
+                    min="0"
+                    name="value"
+                    type="number"
+                    value="30"
+                  />
                   <div
-                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="TextFieldWithChoices-adornment-id"
                   >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
-                      min="0"
-                      name="value"
-                      type="number"
-                      value="30"
-                    />
-                    <div
-                      class="TextFieldWithChoices-adornment-id"
+                    <span
+                      class="MuiTypography-root-id MuiTypography-caption-id"
                     >
-                      <span
-                        class="MuiTypography-root-id MuiTypography-caption-id"
-                      >
-                        %
-                      </span>
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id"
-                        focusable="false"
-                        role="presentation"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                        <path
-                          d="M0 0h24v24H0z"
-                          fill="none"
-                        />
-                      </svg>
-                    </div>
+                      %
+                    </span>
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                 </div>
               </div>
@@ -24100,58 +24076,56 @@ exports[`Storyshots Views / Discounts / Sale details form errors 1`] = `
             <div
               class="MuiCardContent-root-id SalePricing-root-id"
             >
-              <div>
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                    data-shrink="true"
-                  >
-                    Discount Value
-                  </label>
+                  Discount Value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                >
+                  <input
+                    aria-invalid="true"
+                    class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
+                    min="0"
+                    name="value"
+                    type="number"
+                    value="30"
+                  />
                   <div
-                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="TextFieldWithChoices-adornment-id"
                   >
-                    <input
-                      aria-invalid="true"
-                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
-                      min="0"
-                      name="value"
-                      type="number"
-                      value="30"
-                    />
-                    <div
-                      class="TextFieldWithChoices-adornment-id"
+                    <span
+                      class="MuiTypography-root-id MuiTypography-caption-id"
                     >
-                      <span
-                        class="MuiTypography-root-id MuiTypography-caption-id"
-                      >
-                        %
-                      </span>
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id"
-                        focusable="false"
-                        role="presentation"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                        <path
-                          d="M0 0h24v24H0z"
-                          fill="none"
-                        />
-                      </svg>
-                    </div>
+                      %
+                    </span>
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
-                  <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
-                  >
-                    Generic form error
-                  </p>
                 </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
+                >
+                  Generic form error
+                </p>
               </div>
             </div>
             <hr
@@ -24612,52 +24586,50 @@ exports[`Storyshots Views / Discounts / Sale details loading 1`] = `
             <div
               class="MuiCardContent-root-id SalePricing-root-id"
             >
-              <div>
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                    data-shrink="false"
-                  >
-                    Discount Value
-                  </label>
+                  Discount Value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
+                    disabled=""
+                    min="0"
+                    name="value"
+                    type="number"
+                    value=""
+                  />
                   <div
-                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="TextFieldWithChoices-adornment-id"
                   >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
-                      disabled=""
-                      min="0"
-                      name="value"
-                      type="number"
-                      value=""
-                    />
-                    <div
-                      class="TextFieldWithChoices-adornment-id"
+                    <span
+                      class="MuiTypography-root-id MuiTypography-caption-id"
                     >
-                      <span
-                        class="MuiTypography-root-id MuiTypography-caption-id"
-                      >
-                        USD
-                      </span>
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id"
-                        focusable="false"
-                        role="presentation"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                        <path
-                          d="M0 0h24v24H0z"
-                          fill="none"
-                        />
-                      </svg>
-                    </div>
+                      USD
+                    </span>
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                 </div>
               </div>
@@ -25132,51 +25104,49 @@ exports[`Storyshots Views / Discounts / Sale details products 1`] = `
             <div
               class="MuiCardContent-root-id SalePricing-root-id"
             >
-              <div>
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                    data-shrink="true"
-                  >
-                    Discount Value
-                  </label>
+                  Discount Value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
+                    min="0"
+                    name="value"
+                    type="number"
+                    value="30"
+                  />
                   <div
-                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="TextFieldWithChoices-adornment-id"
                   >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
-                      min="0"
-                      name="value"
-                      type="number"
-                      value="30"
-                    />
-                    <div
-                      class="TextFieldWithChoices-adornment-id"
+                    <span
+                      class="MuiTypography-root-id MuiTypography-caption-id"
                     >
-                      <span
-                        class="MuiTypography-root-id MuiTypography-caption-id"
-                      >
-                        %
-                      </span>
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id"
-                        focusable="false"
-                        role="presentation"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                        <path
-                          d="M0 0h24v24H0z"
-                          fill="none"
-                        />
-                      </svg>
-                    </div>
+                      %
+                    </span>
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                 </div>
               </div>
@@ -26600,51 +26570,49 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
             <div
               class="MuiCardContent-root-id VoucherOptions-root-id"
             >
-              <div>
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                    data-shrink="true"
-                  >
-                    Discount Value
-                  </label>
+                  Discount Value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
+                    min="0"
+                    name="value"
+                    type="number"
+                    value="0"
+                  />
                   <div
-                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="TextFieldWithChoices-adornment-id"
                   >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
-                      min="0"
-                      name="value"
-                      type="number"
-                      value="0"
-                    />
-                    <div
-                      class="TextFieldWithChoices-adornment-id"
+                    <span
+                      class="MuiTypography-root-id MuiTypography-caption-id"
                     >
-                      <span
-                        class="MuiTypography-root-id MuiTypography-caption-id"
-                      >
-                        USD
-                      </span>
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id"
-                        focusable="false"
-                        role="presentation"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                        <path
-                          d="M0 0h24v24H0z"
-                          fill="none"
-                        />
-                      </svg>
-                    </div>
+                      USD
+                    </span>
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                 </div>
               </div>
@@ -27021,51 +26989,49 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
             <div
               class="MuiCardContent-root-id VoucherOptions-root-id"
             >
-              <div>
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                    data-shrink="true"
-                  >
-                    Discount Value
-                  </label>
+                  Discount Value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
+                    min="0"
+                    name="value"
+                    type="number"
+                    value="0"
+                  />
                   <div
-                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="TextFieldWithChoices-adornment-id"
                   >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
-                      min="0"
-                      name="value"
-                      type="number"
-                      value="0"
-                    />
-                    <div
-                      class="TextFieldWithChoices-adornment-id"
+                    <span
+                      class="MuiTypography-root-id MuiTypography-caption-id"
                     >
-                      <span
-                        class="MuiTypography-root-id MuiTypography-caption-id"
-                      >
-                        USD
-                      </span>
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id"
-                        focusable="false"
-                        role="presentation"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                        <path
-                          d="M0 0h24v24H0z"
-                          fill="none"
-                        />
-                      </svg>
-                    </div>
+                      USD
+                    </span>
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                 </div>
               </div>
@@ -27436,51 +27402,49 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
             <div
               class="MuiCardContent-root-id VoucherOptions-root-id"
             >
-              <div>
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                    data-shrink="true"
-                  >
-                    Discount Value
-                  </label>
+                  Discount Value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
+                    min="0"
+                    name="value"
+                    type="number"
+                    value="25"
+                  />
                   <div
-                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="TextFieldWithChoices-adornment-id"
                   >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
-                      min="0"
-                      name="value"
-                      type="number"
-                      value="25"
-                    />
-                    <div
-                      class="TextFieldWithChoices-adornment-id"
+                    <span
+                      class="MuiTypography-root-id MuiTypography-caption-id"
                     >
-                      <span
-                        class="MuiTypography-root-id MuiTypography-caption-id"
-                      >
-                        USD
-                      </span>
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id"
-                        focusable="false"
-                        role="presentation"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                        <path
-                          d="M0 0h24v24H0z"
-                          fill="none"
-                        />
-                      </svg>
-                    </div>
+                      USD
+                    </span>
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                 </div>
               </div>
@@ -27979,58 +27943,56 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
             <div
               class="MuiCardContent-root-id VoucherOptions-root-id"
             >
-              <div>
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                    data-shrink="true"
-                  >
-                    Discount Value
-                  </label>
+                  Discount Value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                >
+                  <input
+                    aria-invalid="true"
+                    class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
+                    min="0"
+                    name="value"
+                    type="number"
+                    value="25"
+                  />
                   <div
-                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="TextFieldWithChoices-adornment-id"
                   >
-                    <input
-                      aria-invalid="true"
-                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
-                      min="0"
-                      name="value"
-                      type="number"
-                      value="25"
-                    />
-                    <div
-                      class="TextFieldWithChoices-adornment-id"
+                    <span
+                      class="MuiTypography-root-id MuiTypography-caption-id"
                     >
-                      <span
-                        class="MuiTypography-root-id MuiTypography-caption-id"
-                      >
-                        USD
-                      </span>
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id"
-                        focusable="false"
-                        role="presentation"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                        <path
-                          d="M0 0h24v24H0z"
-                          fill="none"
-                        />
-                      </svg>
-                    </div>
+                      USD
+                    </span>
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
-                  <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
-                  >
-                    Generic form error
-                  </p>
                 </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
+                >
+                  Generic form error
+                </p>
               </div>
               <div
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
@@ -28529,52 +28491,50 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
             <div
               class="MuiCardContent-root-id VoucherOptions-root-id"
             >
-              <div>
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                    data-shrink="true"
-                  >
-                    Discount Value
-                  </label>
+                  Discount Value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
+                    disabled=""
+                    min="0"
+                    name="value"
+                    type="number"
+                    value="0"
+                  />
                   <div
-                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    class="TextFieldWithChoices-adornment-id"
                   >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
-                      disabled=""
-                      min="0"
-                      name="value"
-                      type="number"
-                      value="0"
-                    />
-                    <div
-                      class="TextFieldWithChoices-adornment-id"
+                    <span
+                      class="MuiTypography-root-id MuiTypography-caption-id"
                     >
-                      <span
-                        class="MuiTypography-root-id MuiTypography-caption-id"
-                      >
-                        USD
-                      </span>
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id"
-                        focusable="false"
-                        role="presentation"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                        <path
-                          d="M0 0h24v24H0z"
-                          fill="none"
-                        />
-                      </svg>
-                    </div>
+                      USD
+                    </span>
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                 </div>
               </div>
@@ -49429,11 +49389,9 @@ Ctrl + K"
                               class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
                               data-offset-key="5aejo-0-0"
                             >
-                              <div>
-                                <div
-                                  class="LinkEntity-anchor-id"
-                                />
-                              </div>
+                              <div
+                                class="LinkEntity-anchor-id"
+                              />
                               <a
                                 class="MuiTypography-root-id MuiTypography-body1-id Link-root-id Link-primary-id"
                                 href="#"
@@ -49549,7 +49507,7 @@ Ctrl + K"
                     aria-invalid="false"
                     class="MuiInputBase-input-id MuiInput-input-id"
                     name="slug"
-                    placeholder="about"
+                    placeholder="About"
                     type="text"
                     value="about"
                   />
@@ -50166,11 +50124,9 @@ Ctrl + K"
                               class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
                               data-offset-key="5aejo-0-0"
                             >
-                              <div>
-                                <div
-                                  class="LinkEntity-anchor-id"
-                                />
-                              </div>
+                              <div
+                                class="LinkEntity-anchor-id"
+                              />
                               <a
                                 class="MuiTypography-root-id MuiTypography-body1-id Link-root-id Link-primary-id"
                                 href="#"
@@ -50286,7 +50242,7 @@ Ctrl + K"
                     aria-invalid="true"
                     class="MuiInputBase-input-id MuiInput-input-id"
                     name="slug"
-                    placeholder="about"
+                    placeholder="About"
                     type="text"
                     value="about"
                   />
@@ -56471,11 +56427,9 @@ Ctrl + K"
                               class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
                               data-offset-key="5aejo-0-0"
                             >
-                              <div>
-                                <div
-                                  class="LinkEntity-anchor-id"
-                                />
-                              </div>
+                              <div
+                                class="LinkEntity-anchor-id"
+                              />
                               <a
                                 class="MuiTypography-root-id MuiTypography-body1-id Link-root-id Link-primary-id"
                                 href="#"
@@ -58844,11 +58798,9 @@ Ctrl + K"
                               class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
                               data-offset-key="5aejo-0-0"
                             >
-                              <div>
-                                <div
-                                  class="LinkEntity-anchor-id"
-                                />
-                              </div>
+                              <div
+                                class="LinkEntity-anchor-id"
+                              />
                               <a
                                 class="MuiTypography-root-id MuiTypography-body1-id Link-root-id Link-primary-id"
                                 href="#"
@@ -60180,11 +60132,9 @@ Ctrl + K"
                               class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
                               data-offset-key="5aejo-0-0"
                             >
-                              <div>
-                                <div
-                                  class="LinkEntity-anchor-id"
-                                />
-                              </div>
+                              <div
+                                class="LinkEntity-anchor-id"
+                              />
                               <a
                                 class="MuiTypography-root-id MuiTypography-body1-id Link-root-id Link-primary-id"
                                 href="#"
