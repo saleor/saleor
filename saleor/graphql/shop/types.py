@@ -18,6 +18,7 @@ from ..core.types.common import (
     CountryDisplay, LanguageDisplay, PermissionDisplay)
 from ..menu.types import Menu
 from ..product.types import Collection
+from ..translations.enums import LanguageCodeEnum
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
 from ..utils import format_permissions_for_display
@@ -108,7 +109,9 @@ class Shop(graphene.ObjectType):
         description='Enable inventory tracking')
     default_weight_unit = WeightUnitsEnum(description='Default weight unit')
     translation = graphene.Field(
-        ShopTranslation, language_code=graphene.String(
+        ShopTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
             description='A language code to return the translation for.',
             required=True),
         description=(

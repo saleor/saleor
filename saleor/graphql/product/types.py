@@ -19,6 +19,7 @@ from ..core.connection import CountableDjangoObjectType
 from ..core.enums import ReportingPeriod, TaxRateType
 from ..core.fields import PrefetchingConnectionField
 from ..core.types import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+from ..translations.enums import LanguageCodeEnum
 from ..translations.resolvers import resolve_translation
 from ..translations.types import (
     AttributeTranslation, AttributeValueTranslation, CategoryTranslation,
@@ -82,7 +83,8 @@ class AttributeValue(CountableDjangoObjectType):
     value = graphene.String(description=AttributeValueDescriptions.VALUE)
     translation = graphene.Field(
         AttributeValueTranslation,
-        language_code=graphene.String(
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
             description='A language code to return the translation for.',
             required=True),
         description=(
@@ -108,7 +110,9 @@ class Attribute(CountableDjangoObjectType):
             AttributeValue, description=AttributeDescriptions.VALUES),
         model_field='values')
     translation = graphene.Field(
-        AttributeTranslation, language_code=graphene.String(
+        AttributeTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
             description='A language code to return the translation for.',
             required=True),
         description=(
@@ -182,7 +186,8 @@ class ProductVariant(CountableDjangoObjectType):
         model_field='images')
     translation = graphene.Field(
         ProductVariantTranslation,
-        language_code=graphene.String(
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
             description='A language code to return the translation for.',
             required=True),
         description=(
@@ -323,7 +328,9 @@ class Product(CountableDjangoObjectType):
         deprecation_reason=(
             'availableOn is deprecated, use publicationDate instead'))
     translation = graphene.Field(
-        ProductTranslation, language_code=graphene.String(
+        ProductTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
             description='A language code to return the translation for.',
             required=True),
         description=(
@@ -476,7 +483,9 @@ class Collection(CountableDjangoObjectType):
         deprecation_reason=(
             'publishedDate is deprecated, use publicationDate instead'))
     translation = graphene.Field(
-        CollectionTranslation, language_code=graphene.String(
+        CollectionTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
             description='A language code to return the translation for.',
             required=True),
         description=(
@@ -535,7 +544,9 @@ class Category(CountableDjangoObjectType):
     background_image = graphene.Field(
         Image, size=graphene.Int(description='Size of the image'))
     translation = graphene.Field(
-        CategoryTranslation, language_code=graphene.String(
+        CategoryTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
             description='A language code to return the translation for.',
             required=True),
         description=(
