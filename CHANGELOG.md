@@ -57,6 +57,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Bump django-graphql-jwt - #3814 by @michaljelonek
 - Fix generating slug from title - #3816 by @maarcingebala
 - Fix minor bugs in page details' view - #3818 by @dominik-zeglen
+- Add `variant` field to `OrderLine` type - #3820 by @maarcingebala
 
 
 ## 2.3.1
