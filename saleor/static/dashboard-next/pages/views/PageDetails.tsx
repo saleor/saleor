@@ -5,6 +5,7 @@ import { Route } from "react-router-dom";
 import ActionDialog from "../../components/ActionDialog";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
+import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import { PageInput } from "../../types/globalTypes";
@@ -13,7 +14,6 @@ import { TypedPageRemove, TypedPageUpdate } from "../mutations";
 import { TypedPageDetailsQuery } from "../queries";
 import { PageRemove } from "../types/PageRemove";
 import { pageListUrl, pageRemovePath, pageRemoveUrl, pageUrl } from "../urls";
-import { WindowTitle } from "../../components/WindowTitle";
 
 export interface PageDetailsProps {
   id: string;
