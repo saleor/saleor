@@ -41,6 +41,9 @@ export default createMuiTheme({
       input: {
         "&:-webkit-autofill": {
           boxShadow: "inset 0 0 0px 9999px #EFF8F2"
+        },
+        "&::placeholder": {
+          opacity: "initial !important" as "initial"
         }
       },
       root: {
