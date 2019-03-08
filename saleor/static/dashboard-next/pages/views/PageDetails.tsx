@@ -5,10 +5,11 @@ import { Route } from "react-router-dom";
 import ActionDialog from "../../components/ActionDialog";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
+import { WindowTitle } from "../../components/WindowTitle";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import { PageInput } from "../../types/globalTypes";
-import PageDetailsPage,{FormData} from "../components/PageDetailsPage";
+import PageDetailsPage, { FormData } from "../components/PageDetailsPage";
 import { TypedPageRemove, TypedPageUpdate } from "../mutations";
 import { TypedPageDetailsQuery } from "../queries";
 import { PageRemove } from "../types/PageRemove";
@@ -19,13 +20,10 @@ export interface PageDetailsProps {
 }
 
 const createPageInput = (data: FormData): PageInput => ({
-  contentJson: JSON.stringify(
-    data.content
-  ),
+  contentJson: JSON.stringify(data.content),
   isPublished: data.isVisible
     ? true
-    : data.availableOn === "" ||
-      data.availableOn === null
+    : data.availableOn === "" || data.availableOn === null
     ? false
     : true,
   publicationDate: data.isVisible
@@ -37,9 +35,9 @@ const createPageInput = (data: FormData): PageInput => ({
     description: data.seoDescription,
     title: data.seoTitle
   },
-  slug: data.slug,
+  slug: data.slug === "" ? null : data.slug,
   title: data.title
-})
+});
 
 export const PageDetails: React.StatelessComponent<PageDetailsProps> = ({
   id
@@ -78,6 +76,9 @@ export const PageDetails: React.StatelessComponent<PageDetailsProps> = ({
 
                         return (
                           <>
+                            <WindowTitle
+                              title={maybe(() => pageDetails.data.page.title)}
+                            />
                             <PageDetailsPage
                               disabled={pageDetails.loading}
                               errors={maybe(
@@ -85,7 +86,7 @@ export const PageDetails: React.StatelessComponent<PageDetailsProps> = ({
                                 []
                               )}
                               saveButtonBarState={formTransitionState}
-                              page={pageDetails.data.page}
+                              page={maybe(() => pageDetails.data.page)}
                               onBack={() => navigate(pageListUrl)}
                               onRemove={() => navigate(pageRemoveUrl(id))}
                               onSubmit={formData =>

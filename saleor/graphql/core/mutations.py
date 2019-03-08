@@ -384,7 +384,7 @@ class CreateToken(ObtainJSONWebToken):
             return result
 
     @classmethod
-    def resolve(cls, root, info):
+    def resolve(cls, root, info, **kwargs):
         return cls(user=info.context.user, errors=[])
 
 

@@ -53,6 +53,11 @@ All notable, unreleased changes to this project will be documented in this file.
 - Include example JSON content in dumpdata file - #3810 by @maarcingebala
 - Add shipping zones to dashboard 2.0 - #3770 by @dominik-zeglen
 - Prefetch collections for product availability - #3813 by @michaljelonek
+- Restyle app layout - #3811 by @dominik-zeglen
+- Bump django-graphql-jwt - #3814 by @michaljelonek
+- Fix generating slug from title - #3816 by @maarcingebala
+- Fix minor bugs in page details' view - #3818 by @dominik-zeglen
+- Add `variant` field to `OrderLine` type - #3820 by @maarcingebala
 
 
 ## 2.3.1
