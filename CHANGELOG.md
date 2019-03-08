@@ -55,6 +55,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Prefetch collections for product availability - #3813 by @michaljelonek
 - Restyle app layout - #3811 by @dominik-zeglen
 - Bump django-graphql-jwt - #3814 by @michaljelonek
+- Fix generating slug from title - #3816 by @maarcingebala
 
 
 ## 2.3.1

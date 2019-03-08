@@ -1,5 +1,6 @@
 import json
 
+from django.utils.text import slugify
 import graphene
 import pytest
 
@@ -71,44 +72,50 @@ def test_staff_query_unpublished_page(
     # query by ID with page permissions
     variables = {'id': graphene.Node.to_global_id('Page', page.id)}
     response = staff_api_client.post_graphql(
-        PAGE_QUERY, variables, permissions=[permission_manage_pages],
+        PAGE_QUERY,
+        variables,
+        permissions=[permission_manage_pages],
         check_no_permissions=False)
     content = get_graphql_content(response)
     assert content['data']['page'] is not None
     # query by slug with page permissions
     variables = {'slug': page.slug}
     response = staff_api_client.post_graphql(
-        PAGE_QUERY, variables, permissions=[permission_manage_pages],
+        PAGE_QUERY,
+        variables,
+        permissions=[permission_manage_pages],
         check_no_permissions=False)
     content = get_graphql_content(response)
     assert content['data']['page'] is not None
 
 
-def test_page_create_mutation(staff_api_client, permission_manage_pages):
-    query = """
-        mutation CreatePage(
-                $slug: String!, $title: String!, $content: String!,
-                $contentJson: JSONString!, $isPublished: Boolean!) {
-            pageCreate(
-                    input: {
-                        slug: $slug, title: $title,
-                        content: $content, contentJson: $contentJson
-                        isPublished: $isPublished}) {
-                page {
-                    id
-                    title
-                    content
-                    contentJson
-                    slug
-                    isPublished
-                }
-                errors {
-                    field
-                    message
-                }
+CREATE_PAGE_MUTATION = """
+    mutation CreatePage(
+            $slug: String, $title: String, $content: String,
+            $contentJson: JSONString, $isPublished: Boolean) {
+        pageCreate(
+                input: {
+                    slug: $slug, title: $title,
+                    content: $content, contentJson: $contentJson
+                    isPublished: $isPublished}) {
+            page {
+                id
+                title
+                content
+                contentJson
+                slug
+                isPublished
+            }
+            errors {
+                field
+                message
             }
         }
-    """
+    }
+"""
+
+
+def test_page_create_mutation(staff_api_client, permission_manage_pages):
     page_slug = 'test-slug'
     page_content = 'test content'
     page_content_json = json.dumps({'content': 'test content'})
@@ -117,11 +124,13 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages):
 
     # test creating root page
     variables = {
-        'title': page_title, 'content': page_content,
-        'contentJson': page_content_json, 'isPublished': page_is_published,
+        'title': page_title,
+        'content': page_content,
+        'contentJson': page_content_json,
+        'isPublished': page_is_published,
         'slug': page_slug}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_pages])
+        CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages])
     content = get_graphql_content(response)
     data = content['data']['pageCreate']
     assert data['errors'] == []
@@ -130,6 +139,19 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages):
     assert data['page']['contentJson'] == page_content_json
     assert data['page']['slug'] == page_slug
     assert data['page']['isPublished'] == page_is_published
+
+
+def test_create_default_slug(staff_api_client, permission_manage_pages):
+    # test creating root page
+    title = 'Spanish inquisition'
+    response = staff_api_client.post_graphql(
+        CREATE_PAGE_MUTATION, {'title': title},
+        permissions=[permission_manage_pages])
+    content = get_graphql_content(response)
+    data = content['data']['pageCreate']
+    assert not data['errors']
+    assert data['page']['title'] == title
+    assert data['page']['slug'] == slugify(title)
 
 
 def test_page_delete_mutation(staff_api_client, page, permission_manage_pages):
