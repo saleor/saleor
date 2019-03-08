@@ -56,7 +56,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Restyle app layout - #3811 by @dominik-zeglen
 - Bump django-graphql-jwt - #3814 by @michaljelonek
 - Fix generating slug from title - #3816 by @maarcingebala
-- Fix minor bugs and add image upload - #3818 by @dominik-zeglen
+- Fix minor bugs in page details' view - #3818 by @dominik-zeglen
 
 
 ## 2.3.1
