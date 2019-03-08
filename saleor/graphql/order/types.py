@@ -1,3 +1,5 @@
+from textwrap import dedent
+
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from graphene import relay
@@ -9,7 +11,7 @@ from ..account.types import User
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
-from ..product.types import Image
+from ..product.types import Image, ProductVariant
 from ..shipping.types import ShippingMethod
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import applicable_shipping_methods, can_finalize_draft_order
@@ -116,13 +118,19 @@ class OrderLine(CountableDjangoObjectType):
         size=graphene.Argument(graphene.Int, description='Size of thumbnail'))
     unit_price = graphene.Field(
         TaxedMoney, description='Price of the single item in the order line.')
+    variant = graphene.Field(
+        ProductVariant,
+        required=False,
+        description=dedent('''
+            A purchased product variant. Note: this field may be null if the
+            variant has been removed from stock at all.'''))
 
     class Meta:
         description = 'Represents order line of particular order.'
         model = models.OrderLine
         interfaces = [relay.Node]
         exclude_fields = [
-            'order', 'unit_price_gross', 'unit_price_net', 'variant']
+            'order', 'unit_price_gross', 'unit_price_net']
 
     @gql_optimizer.resolver_hints(
         prefetch_related=['variant__images', 'variant__product__images'])

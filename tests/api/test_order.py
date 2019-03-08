@@ -29,9 +29,11 @@ def test_orderline_query(
                 edges {
                     node {
                         lines {
-                            thumbnailUrl(size: 540)
                             thumbnail(size: 540) {
                                 url
+                            }
+                            variant {
+                                id
                             }
                         }
                     }
@@ -40,22 +42,15 @@ def test_orderline_query(
         }
     """
     line = order.lines.first()
-    line.variant = None
     line.save()
+
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     order_data = content['data']['orders']['edges'][0]['node']
-
-    thumbnails = [l['thumbnailUrl'] for l in order_data['lines']]
-    assert len(thumbnails) == 2
-    assert thumbnails[0] is None
-    assert '/static/images/placeholder540x540.png' in thumbnails[1]
-
-    thumbnails = [l['thumbnail'] for l in order_data['lines']]
-    assert len(thumbnails) == 2
-    assert thumbnails[0] is None
-    assert '/static/images/placeholder540x540.png' in thumbnails[1]['url']
+    assert '/static/images/placeholder540x540.png' in order_data['lines'][0]['thumbnail']['url']
+    variant_id = graphene.Node.to_global_id('ProductVariant', line.variant.pk)
+    assert order_data['lines'][0]['variant']['id'] == variant_id
 
 
 def test_order_query(
