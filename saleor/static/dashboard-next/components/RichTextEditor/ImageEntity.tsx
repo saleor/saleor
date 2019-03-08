@@ -10,7 +10,6 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
 import DeleteIcon from "@material-ui/icons/Delete";
 import { ContentState } from "draft-js";
 import * as React from "react";
