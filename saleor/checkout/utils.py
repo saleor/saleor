@@ -768,6 +768,9 @@ def is_valid_shipping_method(cart, taxes, discounts, shipping_method=None):
     if not shipping_method:
         return False
 
+    if not cart.shipping_address:
+        return False
+
     valid_methods = ShippingMethod.objects.applicable_shipping_methods(
         price=cart.get_subtotal(discounts, taxes).gross,
         weight=cart.get_total_weight(),
