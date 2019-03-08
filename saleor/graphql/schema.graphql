@@ -105,7 +105,7 @@ type Attribute implements Node {
   productType: ProductType
   productVariantType: ProductType
   values: [AttributeValue]
-  translation(languageCode: String!): AttributeTranslation
+  translation(languageCode: LanguageCodeEnum!): AttributeTranslation
 }
 
 type AttributeCountableConnection {
@@ -173,7 +173,7 @@ type AttributeValue implements Node {
   value: String
   slug: String
   type: AttributeValueType
-  translation(languageCode: String!): AttributeValueTranslation
+  translation(languageCode: LanguageCodeEnum!): AttributeValueTranslation
 }
 
 type AttributeValueCreate {
@@ -270,7 +270,7 @@ type Category implements Node {
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   ancestors(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   url: String
-  translation(languageCode: String!): CategoryTranslation
+  translation(languageCode: LanguageCodeEnum!): CategoryTranslation
 }
 
 type CategoryCountableConnection {
@@ -475,7 +475,7 @@ type Collection implements Node {
   description: String!
   descriptionJson: JSONString!
   publishedDate: Date @deprecated(reason: "publishedDate is deprecated, use publicationDate instead")
-  translation(languageCode: String!): CollectionTranslation
+  translation(languageCode: LanguageCodeEnum!): CollectionTranslation
 }
 
 type CollectionAddProducts {
@@ -792,6 +792,43 @@ type Image {
 
 scalar JSONString
 
+enum LanguageCodeEnum {
+  AR
+  AZ
+  BG
+  BN
+  CA
+  CS
+  DA
+  DE
+  EN
+  ES
+  ET
+  FA
+  FR
+  HI
+  HU
+  ID
+  IT
+  JA
+  KO
+  MN
+  NB
+  NL
+  PL
+  PT_BR
+  RO
+  RU
+  SK
+  SR
+  SV
+  TR
+  UK
+  VI
+  ZH_HANS
+  ZH_HANT
+}
+
 type LanguageDisplay {
   code: String!
   language: String!
@@ -855,7 +892,7 @@ type MenuItem implements Node {
   page: Page
   level: Int!
   children: [MenuItem]
-  translation(languageCode: String!): MenuItemTranslation
+  translation(languageCode: LanguageCodeEnum!): MenuItemTranslation
 }
 
 type MenuItemCountableConnection {
@@ -936,36 +973,36 @@ type Mutations {
   shopDomainUpdate(input: SiteDomainInput): ShopDomainUpdate
   shopSettingsUpdate(input: ShopSettingsInput!): ShopSettingsUpdate
   shopFetchTaxRates: ShopFetchTaxRates
-  shopSettingsTranslate(input: ShopSettingsTranslationInput!, languageCode: String!): ShopSettingsTranslate
+  shopSettingsTranslate(input: ShopSettingsTranslationInput!, languageCode: LanguageCodeEnum!): ShopSettingsTranslate
   shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
   shippingPriceDelete(id: ID!): ShippingPriceDelete
   shippingPriceUpdate(id: ID!, input: ShippingPriceInput!): ShippingPriceUpdate
-  shippingPriceTranslate(id: ID!, input: NameTranslationInput!, languageCode: String!): ShippingPriceTranslate
+  shippingPriceTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ShippingPriceTranslate
   shippingZoneCreate(input: ShippingZoneInput!): ShippingZoneCreate
   shippingZoneDelete(id: ID!): ShippingZoneDelete
   shippingZoneUpdate(id: ID!, input: ShippingZoneInput!): ShippingZoneUpdate
   attributeCreate(id: ID!, input: AttributeCreateInput!, type: AttributeTypeEnum!): AttributeCreate
   attributeDelete(id: ID!): AttributeDelete
   attributeUpdate(id: ID!, input: AttributeUpdateInput!): AttributeUpdate
-  attributeTranslate(id: ID!, input: NameTranslationInput!, languageCode: String!): AttributeTranslate
+  attributeTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeTranslate
   attributeValueCreate(attribute: ID!, input: AttributeValueCreateInput!): AttributeValueCreate
   attributeValueDelete(id: ID!): AttributeValueDelete
   attributeValueUpdate(id: ID!, input: AttributeValueCreateInput!): AttributeValueUpdate
-  attributeValueTranslate(id: ID!, input: NameTranslationInput!, languageCode: String!): AttributeValueTranslate
+  attributeValueTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeValueTranslate
   categoryCreate(input: CategoryInput!, parent: ID): CategoryCreate
   categoryDelete(id: ID!): CategoryDelete
   categoryUpdate(id: ID!, input: CategoryInput!): CategoryUpdate
-  categoryTranslate(id: ID!, input: TranslationInput!, languageCode: String!): CategoryTranslate
+  categoryTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): CategoryTranslate
   collectionAddProducts(collectionId: ID!, products: [ID]!): CollectionAddProducts
   collectionCreate(input: CollectionCreateInput!): CollectionCreate
   collectionDelete(id: ID!): CollectionDelete
   collectionRemoveProducts(collectionId: ID!, products: [ID]!): CollectionRemoveProducts
   collectionUpdate(id: ID!, input: CollectionInput!): CollectionUpdate
-  collectionTranslate(id: ID!, input: TranslationInput!, languageCode: String!): CollectionTranslate
+  collectionTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): CollectionTranslate
   productCreate(input: ProductCreateInput!): ProductCreate
   productDelete(id: ID!): ProductDelete
   productUpdate(id: ID!, input: ProductInput!): ProductUpdate
-  productTranslate(id: ID!, input: TranslationInput!, languageCode: String!): ProductTranslate
+  productTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): ProductTranslate
   productImageCreate(input: ProductImageCreateInput!): ProductImageCreate
   productImageDelete(id: ID!): ProductImageDelete
   productImageReorder(imagesIds: [ID]!, productId: ID!): ProductImageReorder
@@ -976,7 +1013,7 @@ type Mutations {
   productVariantCreate(input: ProductVariantCreateInput!): ProductVariantCreate
   productVariantDelete(id: ID!): ProductVariantDelete
   productVariantUpdate(id: ID!, input: ProductVariantInput!): ProductVariantUpdate
-  productVariantTranslate(id: ID!, input: NameTranslationInput!, languageCode: String!): ProductVariantTranslate
+  productVariantTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ProductVariantTranslate
   variantImageAssign(imageId: ID!, variantId: ID!): VariantImageAssign
   variantImageUnassign(imageId: ID!, variantId: ID!): VariantImageUnassign
   paymentCapture(amount: Decimal, paymentId: ID!): PaymentCapture
@@ -985,7 +1022,7 @@ type Mutations {
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageUpdate(id: ID!, input: PageInput!): PageUpdate
-  pageTranslate(id: ID!, input: PageTranslationInput!, languageCode: String!): PageTranslate
+  pageTranslate(id: ID!, input: PageTranslationInput!, languageCode: LanguageCodeEnum!): PageTranslate
   draftOrderComplete(id: ID!): DraftOrderComplete
   draftOrderCreate(input: DraftOrderCreateInput!): DraftOrderCreate
   draftOrderDelete(id: ID!): DraftOrderDelete
@@ -1011,7 +1048,7 @@ type Mutations {
   menuItemCreate(input: MenuItemCreateInput!): MenuItemCreate
   menuItemDelete(id: ID!): MenuItemDelete
   menuItemUpdate(id: ID!, input: MenuItemInput!): MenuItemUpdate
-  menuItemTranslate(id: ID!, input: NameTranslationInput!, languageCode: String!): MenuItemTranslate
+  menuItemTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): MenuItemTranslate
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleUpdate(id: ID!, input: SaleInput!): SaleUpdate
@@ -1022,7 +1059,7 @@ type Mutations {
   voucherUpdate(id: ID!, input: VoucherInput!): VoucherUpdate
   voucherCataloguesAdd(id: ID!, input: CatalogueInput!): VoucherAddCatalogues
   voucherCataloguesRemove(id: ID!, input: CatalogueInput!): VoucherRemoveCatalogues
-  voucherTranslate(id: ID!, input: NameTranslationInput!, languageCode: String!): VoucherTranslate
+  voucherTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): VoucherTranslate
   tokenCreate(email: String!, password: String!): CreateToken
   tokenRefresh(token: String!): Refresh
   tokenVerify(token: String!): VerifyToken
@@ -1296,7 +1333,7 @@ type Page implements Node {
   created: DateTime!
   availableOn: Date @deprecated(reason: "availableOn is deprecated, use publicationDate instead")
   isVisible: Boolean @deprecated(reason: "isVisible is deprecated, use isPublished instead")
-  translation(languageCode: String!): PageTranslation
+  translation(languageCode: LanguageCodeEnum!): PageTranslation
 }
 
 type PageCountableConnection {
@@ -1485,7 +1522,7 @@ type Product implements Node {
   margin: Margin
   imageById(id: ID): ProductImage
   availableOn: Date @deprecated(reason: "availableOn is deprecated, use publicationDate instead")
-  translation(languageCode: String!): ProductTranslation
+  translation(languageCode: LanguageCodeEnum!): ProductTranslation
 }
 
 type ProductAvailability {
@@ -1696,7 +1733,7 @@ type ProductVariant implements Node {
   margin: Int
   quantityOrdered: Int
   revenue(period: ReportingPeriod): TaxedMoney
-  translation(languageCode: String!): ProductVariantTranslation
+  translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
 }
 
 type ProductVariantCountableConnection {
@@ -1912,7 +1949,7 @@ type ShippingMethod implements Node {
   maximumOrderPrice: Money
   minimumOrderWeight: Weight
   maximumOrderWeight: Weight
-  translation(languageCode: String!): ShippingMethodTranslation
+  translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
 }
 
 type ShippingMethodTranslation implements Node {
@@ -2022,7 +2059,7 @@ type Shop {
   chargeTaxesOnShipping: Boolean!
   trackInventoryByDefault: Boolean
   defaultWeightUnit: WeightUnitsEnum
-  translation(languageCode: String!): ShopTranslation
+  translation(languageCode: LanguageCodeEnum!): ShopTranslation
 }
 
 type ShopDomainUpdate {
@@ -2308,7 +2345,7 @@ type Voucher implements Node {
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
-  translation(languageCode: String!): VoucherTranslation
+  translation(languageCode: LanguageCodeEnum!): VoucherTranslation
 }
 
 type VoucherAddCatalogues {
