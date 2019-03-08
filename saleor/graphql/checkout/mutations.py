@@ -59,7 +59,8 @@ def clean_shipping_method(
                     'checkout without the shipping address.')))
 
     shipping_method_is_valid = is_valid_shipping_method(
-        checkout, taxes, discounts, shipping_method=shipping_method)
+        checkout, taxes, discounts,
+        shipping_method=shipping_method, remove=remove)
     if not shipping_method_is_valid:
         errors.append(
             Error(
