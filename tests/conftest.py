@@ -79,6 +79,22 @@ def cart_with_item(cart, product):
 
 
 @pytest.fixture
+def cart_with_item_and_address(cart_with_item, address):
+    cart_with_item.shipping_address = address
+    cart_with_item.save()
+    return cart_with_item
+
+
+@pytest.fixture
+def cart_with_invalid_shipping_method(
+        cart_with_item_and_address, shipping_zone_without_countries):
+    shipping_method = shipping_zone_without_countries.shipping_methods.first()
+    cart_with_item_and_address.shipping_method = shipping_method
+    cart_with_item_and_address.save()
+    return cart_with_item_and_address
+
+
+@pytest.fixture
 def cart_with_voucher(cart, product, voucher):
     variant = product.variants.get()
     add_variant_to_cart(cart, variant, 3)
@@ -219,6 +235,7 @@ def shipping_zone_without_countries(db):  # pylint: disable=W0613
         type=ShippingMethodType.PRICE_BASED, price=Money(10, 'USD'),
         shipping_zone=shipping_zone)
     return shipping_zone
+
 
 @pytest.fixture
 def shipping_method(shipping_zone):
