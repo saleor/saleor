@@ -791,7 +791,7 @@ def test_get_taxes_for_cart(cart, vatlayer):
 
 
 def test_get_taxes_for_cart_with_shipping_address(cart, address, vatlayer):
-    address.country = 'DE'
+    address.country = Country('DE')
     address.save()
     cart.shipping_address = address
     cart.save()
@@ -802,7 +802,7 @@ def test_get_taxes_for_cart_with_shipping_address(cart, address, vatlayer):
 def test_get_taxes_for_cart_with_shipping_address_taxes_not_handled(
         cart, settings, address, vatlayer):
     settings.VATLAYER_ACCESS_KEY = ''
-    address.country = 'DE'
+    address.country = Country('DE')
     address.save()
     cart.shipping_address = address
     cart.save()

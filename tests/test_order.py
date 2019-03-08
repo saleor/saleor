@@ -415,7 +415,7 @@ def test_queryset_ready_to_capture():
 def test_update_order_prices(order_with_lines):
     taxes = get_taxes_for_country(Country('DE'))
     address = order_with_lines.shipping_address
-    address.country = 'DE'
+    address.country = Country('DE')
     address.save()
 
     line_1 = order_with_lines.lines.first()

@@ -157,7 +157,7 @@ def test_get_taxes_for_address_fallback_default(settings, vatlayer):
 
 
 def test_get_taxes_for_address_other_country(address, vatlayer):
-    address.country = 'DE'
+    address.country = Country('DE')
     address.save()
     tax_rates = get_taxes_for_country(Country('DE'))
 
