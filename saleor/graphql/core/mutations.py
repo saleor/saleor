@@ -331,7 +331,6 @@ class ModelDeleteMutation(ModelMutation):
         Override this method to raise custom validation error and abort
         the deletion process.
         """
-        pass
 
     @classmethod
     def mutate(cls, root, info, **data):
@@ -385,7 +384,7 @@ class CreateToken(ObtainJSONWebToken):
             return result
 
     @classmethod
-    def resolve(cls, root, info):
+    def resolve(cls, root, info, **kwargs):
         return cls(user=info.context.user, errors=[])
 
 

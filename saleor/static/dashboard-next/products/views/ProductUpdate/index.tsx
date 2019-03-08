@@ -115,34 +115,34 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                                     if (product.productType.hasVariants) {
                                       updateProduct.mutate({
                                         attributes: data.attributes,
-                                        availableOn:
-                                          data.availableOn !== ""
-                                            ? data.availableOn
-                                            : null,
                                         category: data.category.value,
                                         chargeTaxes: data.chargeTaxes,
                                         collections: data.collections.map(
                                           collection => collection.value
                                         ),
-                                        description: data.description,
+                                        descriptionJson: JSON.stringify(
+                                          data.description
+                                        ),
                                         id: product.id,
                                         isPublished: data.available,
                                         name: data.name,
-                                        price: decimal(data.price)
+                                        price: decimal(data.price),
+                                        publicationDate:
+                                          data.publicationDate !== ""
+                                            ? data.publicationDate
+                                            : null
                                       });
                                     } else {
                                       updateSimpleProduct.mutate({
                                         attributes: data.attributes,
-                                        availableOn:
-                                          data.availableOn !== ""
-                                            ? data.availableOn
-                                            : null,
                                         category: data.category.value,
                                         chargeTaxes: data.chargeTaxes,
                                         collections: data.collections.map(
                                           collection => collection.value
                                         ),
-                                        description: data.description,
+                                        descriptionJson: JSON.stringify(
+                                          data.description
+                                        ),
                                         id: product.id,
                                         isPublished: data.available,
                                         name: data.name,
@@ -152,7 +152,11 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                                         productVariantInput: {
                                           quantity: data.stockQuantity,
                                           sku: data.sku
-                                        }
+                                        },
+                                        publicationDate:
+                                          data.publicationDate !== ""
+                                            ? data.publicationDate
+                                            : null
                                       });
                                     }
                                   }

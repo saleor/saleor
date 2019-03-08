@@ -1,7 +1,9 @@
 import json
-from django.core.serializers.json import DjangoJSONEncoder
+
+import graphene
 import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.core.serializers.json import DjangoJSONEncoder
 from django.shortcuts import reverse
 from django.test.client import MULTIPART_CONTENT, Client
 from graphql_jwt.shortcuts import get_token
@@ -92,3 +94,9 @@ def user_api_client(customer_user):
 @pytest.fixture
 def api_client():
     return ApiClient(user=AnonymousUser())
+
+
+@pytest.fixture
+def schema_context():
+    params = {'user': AnonymousUser()}
+    return graphene.types.Context(**params)

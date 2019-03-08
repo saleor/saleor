@@ -52,6 +52,7 @@ export interface ProductVariantCreateData_product {
   __typename: "Product";
   id: string;
   images: (ProductVariantCreateData_product_images | null)[] | null;
+  name: string;
   productType: ProductVariantCreateData_product_productType;
   variants: (ProductVariantCreateData_product_variants | null)[] | null;
 }

@@ -145,7 +145,7 @@ export interface Product {
   __typename: "Product";
   id: string;
   name: string;
-  description: string;
+  descriptionJson: any;
   seoTitle: string | null;
   seoDescription: string | null;
   category: Product_category;
@@ -155,7 +155,7 @@ export interface Product {
   purchaseCost: Product_purchaseCost | null;
   isPublished: boolean;
   chargeTaxes: boolean;
-  availableOn: any | null;
+  publicationDate: any | null;
   attributes: Product_attributes[];
   availability: Product_availability | null;
   images: (Product_images | null)[] | null;

@@ -1,13 +1,17 @@
+from textwrap import dedent
+
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from graphene import relay
 
 from ...order import models
+from ...order.models import FulfillmentStatus
 from ...product.templatetags.product_images import get_product_image_thumbnail
 from ..account.types import User
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
+from ..product.types import Image, ProductVariant
 from ..shipping.types import ShippingMethod
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import applicable_shipping_methods, can_finalize_draft_order
@@ -106,16 +110,27 @@ class Fulfillment(CountableDjangoObjectType):
 class OrderLine(CountableDjangoObjectType):
     thumbnail_url = graphene.String(
         description='The URL of a main thumbnail for the ordered product.',
-        size=graphene.Int(description='Size of the image'))
+        size=graphene.Int(description='Size of the image'),
+        deprecation_reason=(
+            'thumbnailUrl is deprecated, use thumbnail instead'))
+    thumbnail = graphene.Field(
+        Image, description='The main thumbnail for the ordered product.',
+        size=graphene.Argument(graphene.Int, description='Size of thumbnail'))
     unit_price = graphene.Field(
         TaxedMoney, description='Price of the single item in the order line.')
+    variant = graphene.Field(
+        ProductVariant,
+        required=False,
+        description=dedent('''
+            A purchased product variant. Note: this field may be null if the
+            variant has been removed from stock at all.'''))
 
     class Meta:
         description = 'Represents order line of particular order.'
         model = models.OrderLine
         interfaces = [relay.Node]
         exclude_fields = [
-            'order', 'unit_price_gross', 'unit_price_net', 'variant']
+            'order', 'unit_price_gross', 'unit_price_net']
 
     @gql_optimizer.resolver_hints(
         prefetch_related=['variant__images', 'variant__product__images'])
@@ -127,6 +142,18 @@ class OrderLine(CountableDjangoObjectType):
         url = get_product_image_thumbnail(
             self.variant.get_first_image(), size, method='thumbnail')
         return info.context.build_absolute_uri(url)
+
+    @gql_optimizer.resolver_hints(
+        prefetch_related=['variant__images', 'variant__product__images'])
+    def resolve_thumbnail(self, info, *, size=None):
+        if not self.variant_id:
+            return None
+        if not size:
+            size = 255
+        image = self.variant.get_first_image()
+        url = get_product_image_thumbnail(image, size, method='thumbnail')
+        alt = image.alt if image else None
+        return Image(alt=alt, url=info.context.build_absolute_uri(url))
 
     @staticmethod
     def resolve_unit_price(self, info):
@@ -200,8 +227,8 @@ class Order(CountableDjangoObjectType):
         interfaces = [relay.Node]
         model = models.Order
         exclude_fields = [
-            'shipping_price_gross', 'shipping_price_net', 'total_gross',
-            'total_net']
+            'checkout_token', 'shipping_price_gross', 'shipping_price_net',
+            'total_gross', 'total_net']
 
     @staticmethod
     def resolve_shipping_price(self, info):
@@ -247,7 +274,12 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_fulfillments(self, info):
-        return self.fulfillments.all().order_by('pk')
+        user = info.context.user
+        if user.is_staff:
+            qs = self.fulfillments.all()
+        else:
+            qs = self.fulfillments.exclude(status=FulfillmentStatus.CANCELED)
+        return qs.order_by('pk')
 
     @staticmethod
     def resolve_lines(self, info):

@@ -11,6 +11,9 @@ import * as React from "react";
 const styles = (theme: Theme) =>
   createStyles({
     children: theme.mixins.gutters({}),
+    constantHeight: {
+      height: 48
+    },
     hr: {
       backgroundColor: "#eaeaea",
       border: "none",
@@ -21,7 +24,9 @@ const styles = (theme: Theme) =>
     root: theme.mixins.gutters({
       alignItems: "center",
       display: "flex",
-      height: theme.spacing.unit * 6
+      minHeight: theme.spacing.unit * 6,
+      paddingBottom: theme.spacing.unit * 2,
+      paddingTop: theme.spacing.unit * 2
     }),
     title: {
       flex: 1,
@@ -37,6 +42,7 @@ const styles = (theme: Theme) =>
 interface CardTitleProps extends WithStyles<typeof styles> {
   children?: React.ReactNode;
   className?: string;
+  height?: "default" | "const";
   title: string | React.ReactNode;
   toolbar?: React.ReactNode;
   onClick?: (event: React.MouseEvent<any>) => void;
@@ -47,13 +53,20 @@ const CardTitle = withStyles(styles, { name: "CardTitle" })(
     classes,
     className,
     children,
+    height,
     title,
     toolbar,
     onClick,
     ...props
   }: CardTitleProps) => (
     <>
-      <div className={classNames(classes.root, className)} {...props}>
+      <div
+        className={classNames(classes.root, {
+          [className]: !!className,
+          [classes.constantHeight]: height === "const"
+        })}
+        {...props}
+      >
         <Typography
           className={classes.title}
           variant="body1"

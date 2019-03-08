@@ -3,12 +3,12 @@ from unittest.mock import patch
 import graphene
 from django_countries import countries
 from django_prices_vatlayer.models import VAT
-from tests.api.utils import get_graphql_content
 
 from saleor.core.permissions import MODELS_PERMISSIONS
 from saleor.graphql.core.utils import str_to_enum
 from saleor.site import AuthenticationBackends
 from saleor.site.models import Site
+from tests.api.utils import get_graphql_content
 
 from .utils import assert_read_only_mode
 

@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from unittest.mock import Mock, patch
 
@@ -160,6 +161,34 @@ def test_product_query(staff_api_client, product, permission_manage_products):
     assert margin[1] == product_data['margin']['stop']
 
 
+def test_product_query_search(user_api_client, product_type, category):
+    blue_product = Product.objects.create(
+        name='Blue Paint', price=Money('10.00', 'USD'),
+        product_type=product_type, category=category)
+    Product.objects.create(
+        name='Red Paint', price=Money('10.00', 'USD'),
+        product_type=product_type, category=category)
+
+    query = """
+    query productSearch($query: String) {
+        products(query: $query, first: 10) {
+            edges {
+                node {
+                    name
+                }
+            }
+        }
+    }
+    """
+
+    response = user_api_client.post_graphql(query, {'query': 'blu p4int'})
+    content = get_graphql_content(response)
+    products = content['data']['products']['edges']
+
+    assert len(products) == 1
+    assert products[0]['node']['name'] == blue_product.name
+
+
 def test_query_product_image_by_id(user_api_client, product_with_image):
     image = product_with_image.images.first()
     query = """
@@ -240,6 +269,47 @@ def test_fetch_product_by_id(user_api_client, product):
     content = get_graphql_content(response)
     product_data = content['data']['node']
     assert product_data['name'] == product.name
+
+
+def _fetch_product(client, product, permissions=None):
+    query = """
+    query ($productId: ID!) {
+        node(id: $productId) {
+            ... on Product {
+                name,
+                isPublished
+            }
+        }
+    }
+    """
+    variables = {
+        'productId': graphene.Node.to_global_id('Product', product.id)}
+    response = client.post_graphql(
+        query, variables, permissions=permissions, check_no_permissions=False)
+    content = get_graphql_content(response)
+    return content['data']['node']
+
+
+def test_fetch_unpublished_product_staff_user(
+        staff_api_client, unavailable_product, permission_manage_products):
+    product_data = _fetch_product(
+        staff_api_client,
+        unavailable_product,
+        permissions=[permission_manage_products])
+    assert product_data['name'] == unavailable_product.name
+    assert product_data['isPublished'] == unavailable_product.is_published
+
+
+def test_fetch_unpublished_product_customer(
+        user_api_client, unavailable_product):
+    product_data = _fetch_product(user_api_client, unavailable_product)
+    assert product_data is None
+
+
+def test_fetch_unpublished_product_anonymous_user(
+        api_client, unavailable_product):
+    product_data = _fetch_product(api_client, unavailable_product)
+    assert product_data is None
 
 
 def test_filter_products_by_attributes(user_api_client, product):
@@ -372,9 +442,10 @@ def test_create_product(
     query = """
         mutation createProduct(
             $productTypeId: ID!,
-            $categoryId: ID!
+            $categoryId: ID!,
             $name: String!,
             $description: String!,
+            $descriptionJson: JSONString!,
             $isPublished: Boolean!,
             $chargeTaxes: Boolean!,
             $taxRate: TaxRateType!,
@@ -386,6 +457,7 @@ def test_create_product(
                         productType: $productTypeId,
                         name: $name,
                         description: $description,
+                        descriptionJson: $descriptionJson,
                         isPublished: $isPublished,
                         chargeTaxes: $chargeTaxes,
                         taxRate: $taxRate,
@@ -397,6 +469,7 @@ def test_create_product(
                                 name
                             }
                             description
+                            descriptionJson
                             isPublished
                             chargeTaxes
                             taxRate
@@ -429,6 +502,7 @@ def test_create_product(
     category_id = graphene.Node.to_global_id(
         'Category', category.pk)
     product_description = 'test description'
+    product_description_json = json.dumps({'content': 'description'})
     product_name = 'test name'
     product_is_published = True
     product_charge_taxes = True
@@ -451,6 +525,7 @@ def test_create_product(
         'categoryId': category_id,
         'name': product_name,
         'description': product_description,
+        'descriptionJson': product_description_json,
         'isPublished': product_is_published,
         'chargeTaxes': product_charge_taxes,
         'taxRate': product_tax_rate,
@@ -604,6 +679,33 @@ def test_create_product_without_variants_sku_duplication(
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
+    assert_read_only_mode(response)
+
+
+def test_product_create_without_product_type(
+        staff_api_client, category, permission_manage_products):
+    query = """
+    mutation createProduct($categoryId: ID!) {
+        productCreate(input: {
+                name: "Product",
+                price: "2.5",
+                productType: "",
+                category: $categoryId}) {
+            product {
+                id
+            }
+            errors {
+                message
+                field
+            }
+        }
+    }
+    """
+
+    category_id = graphene.Node.to_global_id('Category', category.id)
+    response = staff_api_client.post_graphql(
+        query, {'categoryId': category_id},
+        permissions=[permission_manage_products])
     assert_read_only_mode(response)
 
 
@@ -1402,7 +1504,7 @@ def test_stock_availability_filter(user_api_client, product):
     assert content['data']['products']['totalCount'] == 0
 
 
-def test_product_sales(
+def test_report_product_sales(
         staff_api_client, order_with_lines, permission_manage_products,
         permission_manage_orders):
     query = """
@@ -1441,3 +1543,101 @@ def test_product_sales(
     assert (
         node_b['revenue']['gross']['amount'] ==
         line_b.quantity * line_b.unit_price_gross.amount)
+
+
+def test_variant_revenue_permissions(
+        staff_api_client, permission_manage_products,
+        permission_manage_orders, product):
+    query = """
+    query VariantRevenue($id: ID!) {
+        productVariant(id: $id) {
+            revenue(period: TODAY) {
+                gross {
+                    localized
+                }
+            }
+        }
+    }
+    """
+    variant = product.variants.first()
+    variables = {
+        'id': graphene.Node.to_global_id('ProductVariant', variant.pk)}
+    permissions = [permission_manage_orders, permission_manage_products]
+    response = staff_api_client.post_graphql(query, variables, permissions)
+    content = get_graphql_content(response)
+    assert content['data']['productVariant']['revenue']
+
+
+def test_variant_quantity_permissions(
+        staff_api_client, permission_manage_products, product):
+    query = """
+    query Quantity($id: ID!) {
+        productVariant(id: $id) {
+            quantity
+        }
+    }
+    """
+    variant = product.variants.first()
+    variables = {
+        'id': graphene.Node.to_global_id('ProductVariant', variant.pk)}
+    permissions = [permission_manage_products]
+    response = staff_api_client.post_graphql(query, variables, permissions)
+    content = get_graphql_content(response)
+    assert 'quantity' in content['data']['productVariant']
+
+
+def test_variant_quantity_ordered_permissions(
+        staff_api_client, permission_manage_products,
+        permission_manage_orders, product):
+    query = """
+    query QuantityOrdered($id: ID!) {
+        productVariant(id: $id) {
+            quantityOrdered
+        }
+    }
+    """
+    variant = product.variants.first()
+    variables = {
+        'id': graphene.Node.to_global_id('ProductVariant', variant.pk)}
+    permissions = [permission_manage_orders, permission_manage_products]
+    response = staff_api_client.post_graphql(query, variables, permissions)
+    content = get_graphql_content(response)
+    assert 'quantityOrdered' in content['data']['productVariant']
+
+
+def test_variant_quantity_allocated_permissions(
+        staff_api_client, permission_manage_products,
+        permission_manage_orders, product):
+    query = """
+    query QuantityAllocated($id: ID!) {
+        productVariant(id: $id) {
+            quantityAllocated
+        }
+    }
+    """
+    variant = product.variants.first()
+    variables = {
+        'id': graphene.Node.to_global_id('ProductVariant', variant.pk)}
+    permissions = [permission_manage_orders, permission_manage_products]
+    response = staff_api_client.post_graphql(query, variables, permissions)
+    content = get_graphql_content(response)
+    assert 'quantityAllocated' in content['data']['productVariant']
+
+
+def test_variant_margin_permissions(
+        staff_api_client, permission_manage_products,
+        permission_manage_orders, product):
+    query = """
+    query Margin($id: ID!) {
+        productVariant(id: $id) {
+            margin
+        }
+    }
+    """
+    variant = product.variants.first()
+    variables = {
+        'id': graphene.Node.to_global_id('ProductVariant', variant.pk)}
+    permissions = [permission_manage_orders, permission_manage_products]
+    response = staff_api_client.post_graphql(query, variables, permissions)
+    content = get_graphql_content(response)
+    assert 'margin' in content['data']['productVariant']

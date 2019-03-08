@@ -1,13 +1,14 @@
+import json
 from unittest.mock import Mock
 
 import graphene
 from django.template.defaultfilters import slugify
 from graphql_relay import to_global_id
+
+from saleor.product.models import Category
 from tests.api.utils import get_graphql_content, get_multipart_request_body
 from tests.utils import create_image, create_pdf_file_with_image_ext
 from .utils import assert_read_only_mode
-
-from saleor.product.models import Category
 
 
 def test_category_query(user_api_client, product):
@@ -50,12 +51,16 @@ def test_category_query(user_api_client, product):
 def test_category_create_mutation(
         monkeypatch, staff_api_client, permission_manage_products):
     query = """
-        mutation($name: String, $slug: String, $description: String, $backgroundImage: Upload, $backgroundImageAlt: String, $parentId: ID) {
+        mutation(
+                $name: String, $slug: String, $description: String,
+                $descriptionJson: JSONString, $backgroundImage: Upload,
+                $backgroundImageAlt: String, $parentId: ID) {
             categoryCreate(
                 input: {
                     name: $name
                     slug: $slug
                     description: $description
+                    descriptionJson: $descriptionJson
                     backgroundImage: $backgroundImage
                     backgroundImageAlt: $backgroundImageAlt
                 },
@@ -66,6 +71,7 @@ def test_category_create_mutation(
                     name
                     slug
                     description
+                    descriptionJson
                     parent {
                         name
                         id
@@ -91,6 +97,7 @@ def test_category_create_mutation(
     category_name = 'Test category'
     category_slug = slugify(category_name)
     category_description = 'Test description'
+    category_description_json = json.dumps({'content': 'description'})
     image_file, image_name = create_image()
     image_alt = 'Alt text for an image.'
 

@@ -3,12 +3,12 @@ from datetime import date
 import graphene
 import pytest
 from django_countries import countries
-from tests.api.utils import assert_read_only_mode, get_graphql_content
 
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import Sale, Voucher
 from saleor.graphql.discount.enums import (
     DiscountValueTypeEnum, VoucherTypeEnum)
+from tests.api.utils import (assert_read_only_mode, get_graphql_content)
 
 
 @pytest.fixture
@@ -96,37 +96,39 @@ def test_sale_query(staff_api_client, sale, permission_manage_discounts):
     assert data['startDate'] == sale.start_date.isoformat()
 
 
-def test_create_voucher(staff_api_client, permission_manage_discounts):
-    query = """
-    mutation  voucherCreate(
-        $type: VoucherTypeEnum, $name: String, $code: String,
-        $discountValueType: DiscountValueTypeEnum,
-        $discountValue: Decimal, $minAmountSpent: Decimal,
-        $startDate: Date, $endDate: Date) {
-            voucherCreate(input: {
-                    name: $name, type: $type, code: $code,
-                    discountValueType: $discountValueType,
-                    discountValue: $discountValue,
-                    minAmountSpent: $minAmountSpent,
-                    startDate: $startDate, endDate: $endDate}) {
-                errors {
-                    field
-                    message
+CREATE_VOUCHER_MUTATION = """
+mutation  voucherCreate(
+    $type: VoucherTypeEnum, $name: String, $code: String,
+    $discountValueType: DiscountValueTypeEnum,
+    $discountValue: Decimal, $minAmountSpent: Decimal,
+    $startDate: Date, $endDate: Date) {
+        voucherCreate(input: {
+                name: $name, type: $type, code: $code,
+                discountValueType: $discountValueType,
+                discountValue: $discountValue,
+                minAmountSpent: $minAmountSpent,
+                startDate: $startDate, endDate: $endDate}) {
+            errors {
+                field
+                message
+            }
+            voucher {
+                type
+                minAmountSpent {
+                    amount
                 }
-                voucher {
-                    type
-                    minAmountSpent {
-                        amount
-                    }
-                    name
-                    code
-                    discountValueType
-                    startDate
-                    endDate
-                }
+                name
+                code
+                discountValueType
+                startDate
+                endDate
             }
         }
-    """
+    }
+"""
+
+
+def test_create_voucher(staff_api_client, permission_manage_discounts):
     start_date = date(day=1, month=1, year=2018)
     end_date = date(day=1, month=1, year=2019)
     variables = {
@@ -140,7 +142,28 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
         'endDate': end_date.isoformat()}
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_discounts])
+        CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts])
+    assert_read_only_mode(response)
+
+
+def test_create_voucher_with_empty_code(
+        staff_api_client, permission_manage_discounts):
+    start_date = date(day=1, month=1, year=2018)
+    end_date = date(day=1, month=1, year=2019)
+    variables = {
+        'name': 'test voucher',
+        'type': VoucherTypeEnum.VALUE.name,
+        'code': '',
+        'discountValueType': DiscountValueTypeEnum.FIXED.name,
+        'discountValue': 10.12,
+        'minAmountSpent': 1.12,
+        'startDate': start_date.isoformat(),
+        'endDate': end_date.isoformat()}
+
+    response = staff_api_client.post_graphql(
+        CREATE_VOUCHER_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts])
     assert_read_only_mode(response)
 
 
@@ -200,8 +223,8 @@ def test_voucher_delete_mutation(
 
 
 def test_voucher_add_catalogues(
-        staff_api_client, voucher, category,
-        product, collection, permission_manage_discounts):
+        staff_api_client, voucher, category, product, collection,
+        permission_manage_discounts):
     query = """
         mutation voucherCataloguesAdd($id: ID!, $input: CatalogueInput!) {
             voucherCataloguesAdd(id: $id, input: $input) {
@@ -224,18 +247,12 @@ def test_voucher_add_catalogues(
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts])
-    content = get_graphql_content(response)
-    data = content['data']['voucherCataloguesAdd']
-
-    assert not data['errors']
-    assert product in voucher.products.all()
-    assert category in voucher.categories.all()
-    assert collection in voucher.collections.all()
+    assert_read_only_mode(response)
 
 
 def test_voucher_remove_catalogues(
-        staff_api_client, voucher, category,
-        product, collection, permission_manage_discounts):
+        staff_api_client, voucher, category, product, collection,
+        permission_manage_discounts):
     voucher.products.add(product)
     voucher.collections.add(collection)
     voucher.categories.add(category)
@@ -262,13 +279,7 @@ def test_voucher_remove_catalogues(
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts])
-    content = get_graphql_content(response)
-    data = content['data']['voucherCataloguesRemove']
-
-    assert not data['errors']
-    assert product not in voucher.products.all()
-    assert category not in voucher.categories.all()
-    assert collection not in voucher.collections.all()
+    assert_read_only_mode(response)
 
 
 def test_voucher_add_no_catalogues(
@@ -291,18 +302,12 @@ def test_voucher_add_no_catalogues(
             'categories': []}}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts])
-    content = get_graphql_content(response)
-    data = content['data']['voucherCataloguesAdd']
-
-    assert not data['errors']
-    assert not voucher.products.exists()
-    assert not voucher.categories.exists()
-    assert not voucher.collections.exists()
+    assert_read_only_mode(response)
 
 
 def test_voucher_remove_no_catalogues(
-        staff_api_client, voucher, category,
-        product, collection, permission_manage_discounts):
+        staff_api_client, voucher, category, product, collection,
+        permission_manage_discounts):
     voucher.products.add(product)
     voucher.collections.add(collection)
     voucher.categories.add(category)
@@ -325,13 +330,7 @@ def test_voucher_remove_no_catalogues(
             'categories': []}}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts])
-    content = get_graphql_content(response)
-    data = content['data']['voucherCataloguesAdd']
-
-    assert not data['errors']
-    assert voucher.products.exists()
-    assert voucher.categories.exists()
-    assert voucher.collections.exists()
+    assert_read_only_mode(response)
 
 
 def test_create_sale(staff_api_client, permission_manage_discounts):
@@ -420,8 +419,8 @@ def test_sale_delete_mutation(
 
 
 def test_sale_add_catalogues(
-        staff_api_client, sale, category,
-        product, collection, permission_manage_discounts):
+        staff_api_client, sale, category, product, collection,
+        permission_manage_discounts):
     query = """
         mutation saleCataloguesAdd($id: ID!, $input: CatalogueInput!) {
             saleCataloguesAdd(id: $id, input: $input) {
@@ -444,18 +443,12 @@ def test_sale_add_catalogues(
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts])
-    content = get_graphql_content(response)
-    data = content['data']['saleCataloguesAdd']
-
-    assert not data['errors']
-    assert product in sale.products.all()
-    assert category in sale.categories.all()
-    assert collection in sale.collections.all()
+    assert_read_only_mode(response)
 
 
 def test_sale_remove_catalogues(
-        staff_api_client, sale, category,
-        product, collection, permission_manage_discounts):
+        staff_api_client, sale, category, product, collection,
+        permission_manage_discounts):
     sale.products.add(product)
     sale.collections.add(collection)
     sale.categories.add(category)
@@ -482,13 +475,7 @@ def test_sale_remove_catalogues(
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts])
-    content = get_graphql_content(response)
-    data = content['data']['saleCataloguesRemove']
-
-    assert not data['errors']
-    assert product not in sale.products.all()
-    assert category not in sale.categories.all()
-    assert collection not in sale.collections.all()
+    assert_read_only_mode(response)
 
 
 def test_sale_add_no_catalogues(
@@ -511,18 +498,12 @@ def test_sale_add_no_catalogues(
             'categories': []}}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts])
-    content = get_graphql_content(response)
-    data = content['data']['saleCataloguesAdd']
-
-    assert not data['errors']
-    assert not sale.products.exists()
-    assert not sale.categories.exists()
-    assert not sale.collections.exists()
+    assert_read_only_mode(response)
 
 
 def test_sale_remove_no_catalogues(
-        staff_api_client, sale, category,
-        product, collection, permission_manage_discounts):
+        staff_api_client, sale, category, product, collection,
+        permission_manage_discounts):
     sale.products.add(product)
     sale.collections.add(collection)
     sale.categories.add(category)
@@ -545,13 +526,7 @@ def test_sale_remove_no_catalogues(
             'categories': []}}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts])
-    content = get_graphql_content(response)
-    data = content['data']['saleCataloguesAdd']
-
-    assert not data['errors']
-    assert sale.products.exists()
-    assert sale.categories.exists()
-    assert sale.collections.exists()
+    assert_read_only_mode(response)
 
 
 @pytest.mark.parametrize('voucher_type,field_name', (

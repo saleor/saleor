@@ -4,6 +4,7 @@ from django.db.models import Q, Sum
 
 from ...order import OrderStatus
 from ...product import models
+from ...search.backends import picker
 from ..utils import (
     filter_by_period, filter_by_query_param, get_database_id, get_nodes)
 from .enums import StockAvailability
@@ -12,7 +13,7 @@ from .filters import (
     filter_products_by_collections, filter_products_by_price, sort_qs)
 from .types import Category, Collection, ProductVariant
 
-PRODUCT_SEARCH_FIELDS = ('name', 'description', 'category__name')
+PRODUCT_SEARCH_FIELDS = ('name', 'description')
 CATEGORY_SEARCH_FIELDS = ('name', 'slug', 'description', 'parent__name')
 COLLECTION_SEARCH_FIELDS = ('name', 'slug')
 ATTRIBUTES_SEARCH_FIELDS = ('name', 'slug')
@@ -80,7 +81,10 @@ def resolve_products(
 
     user = info.context.user
     qs = models.Product.objects.visible_to_user(user)
-    qs = filter_by_query_param(qs, query, PRODUCT_SEARCH_FIELDS)
+
+    if query:
+        search = picker.pick_backend()
+        qs &= search(query)
 
     if attributes:
         qs = filter_products_by_attributes(qs, attributes)
@@ -113,7 +117,11 @@ def resolve_product_types(info):
 
 
 def resolve_product_variants(info, ids=None):
-    qs = models.ProductVariant.objects.all()
+    user = info.context.user
+    visible_products = models.Product.objects.visible_to_user(
+        user).values_list('pk', flat=True)
+    qs = models.ProductVariant.objects.filter(
+        product__id__in=visible_products)
     if ids:
         db_ids = [
             get_database_id(info, node_id, only_type=ProductVariant)

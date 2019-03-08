@@ -59,7 +59,7 @@
 {% block content %}
   {% if not is_visible %}
     <div class="alert alert-warning" role="alert">
-      {% blocktrans trimmed with date=product.available_on|date context "Product details text" %}
+      {% blocktrans trimmed with date=product.publication_date|date context "Product details text" %}
         <strong>Warning!</strong>
         You are previewing a product that will become visible on <strong>{{ date }}</strong>.
       {% endblocktrans %}

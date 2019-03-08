@@ -1,5 +1,6 @@
 """Cart-related ORM models."""
 from decimal import Decimal
+from operator import attrgetter
 from uuid import uuid4
 
 from django.conf import settings
@@ -8,10 +9,10 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.encoding import smart_str
 from django_prices.models import MoneyField
-from measurement.measures import Weight
 
 from ..account.models import Address
 from ..core.utils.taxes import ZERO_TAXED_MONEY, zero_money
+from ..core.weight import zero_weight
 from ..shipping.models import ShippingMethod
 
 CENTS = Decimal('0.01')
@@ -101,7 +102,7 @@ class Cart(models.Model):
 
     def get_total_weight(self):
         # Cannot use `sum` as it parses an empty Weight to an int
-        weights = Weight(kg=0)
+        weights = zero_weight()
         for line in self:
             weights += line.variant.get_weight() * line.quantity
         return weights
@@ -110,6 +111,11 @@ class Cart(models.Model):
         """Return a line matching the given variant and data if any."""
         matching_lines = (line for line in self if line.variant == variant)
         return next(matching_lines, None)
+
+    def get_last_active_payment(self):
+        payments = [
+            payment for payment in self.payments.all() if payment.is_active]
+        return max(payments, default=None, key=attrgetter('pk'))
 
 
 class CartLine(models.Model):

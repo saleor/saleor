@@ -1,23 +1,45 @@
-export const pages = [
+import { content } from "../storybook/stories/components/RichTextEditor";
+import { PageDetails_page } from "./types/PageDetails";
+import { PageList_pages_edges_node } from "./types/PageList";
+
+export const pageList: PageList_pages_edges_node[] = [
   {
-    id: "UGFnZTox",
+    __typename: "Page",
+    id: "Jzx123sEt==",
     isVisible: true,
     slug: "about",
     title: "About"
   },
   {
-    id: "UGFnZToy",
+    __typename: "Page",
+    id: "Jzx123sEx==",
     isVisible: false,
-    slug: "terms-of-use",
-    title: "Terms of use"
+    slug: "about",
+    title: "About"
+  },
+  {
+    __typename: "Page",
+    id: "Jzx123sEu==",
+    isVisible: true,
+    slug: "about",
+    title: "About"
+  },
+  {
+    __typename: "Page",
+    id: "Jzx123sEm==",
+    isVisible: true,
+    slug: "about",
+    title: "About"
   }
 ];
-export const page = {
-  availableOn: "2018-03-20T16:39:08.850105+00:00",
-  content:
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin bibendum et justo sit amet viverra. Maecenas euismod auctor nisi et tincidunt. Maecenas ante urna, aliquet at odio sed, gravida efficitur purus. Morbi ut dapibus ante. Nulla eu neque sit amet odio tincidunt porttitor eu quis purus. Aliquam at diam sit amet turpis varius semper vitae non lectus. Vivamus lectus ligula, molestie eu augue eu, cursus tincidunt sem. Nam ornare egestas tincidunt.",
-  createdAt: "2018-03-13T16:39:08.850105+00:00",
-  isVisible: true,
-  slug: "lorem-ipsum-dolor",
-  title: "Lorem Ipsum"
+export const page: PageDetails_page = {
+  __typename: "Page",
+  availableOn: "",
+  contentJson: JSON.stringify(content),
+  id: "Kzx152sEm==",
+  isVisible: false,
+  seoDescription: "About",
+  seoTitle: "About",
+  slug: "about",
+  title: "About"
 };

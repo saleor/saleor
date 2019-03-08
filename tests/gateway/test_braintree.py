@@ -1,6 +1,5 @@
-import datetime
 from decimal import Decimal
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from braintree import (
@@ -9,9 +8,7 @@ from braintree.errors import Errors
 from braintree.exceptions import NotFoundError
 from braintree.validation_error import ValidationError
 from django.core.exceptions import ImproperlyConfigured
-from prices import Money
 
-from saleor.payment import get_payment_gateway
 from saleor.payment.gateways.braintree import (
     CONFIRM_MANUALLY, THREE_D_SECURE_REQUIRED, TransactionKind, authorize,
     capture, create_form, extract_gateway_response, get_braintree_gateway,

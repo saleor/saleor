@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import { CardSpacer } from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
@@ -7,6 +8,7 @@ import Form from "../../../components/Form";
 import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
+import i18n from "../../../i18n";
 import { getUserName, maybe } from "../../../misc";
 import { UserError } from "../../../types";
 import { CustomerDetails_user } from "../../types/CustomerDetails";
@@ -63,8 +65,9 @@ const CustomerDetailsPage: React.StatelessComponent<
     confirmLeave
   >
     {({ change, data, errors: formErrors, hasChanged, submit }) => (
-      <Container width="md">
-        <PageHeader onBack={onBack} title={getUserName(customer, true)} />
+      <Container>
+        <AppHeader onBack={onBack}>{i18n.t("Customers")}</AppHeader>
+        <PageHeader title={getUserName(customer, true)} />
         <Grid>
           <div>
             <CustomerDetails

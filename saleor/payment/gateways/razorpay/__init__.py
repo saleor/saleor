@@ -1,7 +1,7 @@
 import logging
 import uuid
 from decimal import Decimal
-from typing import Dict, Tuple
+from typing import Dict
 
 import razorpay
 import razorpay.errors

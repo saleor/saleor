@@ -8,11 +8,12 @@
 export interface PageDetails_page {
   __typename: "Page";
   id: string;
-  slug: string;
   title: string;
-  content: string;
-  created: any;
-  isVisible: boolean;
+  slug: string;
+  isVisible: boolean | null;
+  contentJson: any;
+  seoTitle: string | null;
+  seoDescription: string | null;
   availableOn: any | null;
 }
 

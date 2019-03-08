@@ -30,7 +30,7 @@ export const CategoryListPage: React.StatelessComponent<CategoryTableProps> = ({
   onRowClick,
   pageInfo
 }) => (
-  <Container width="md">
+  <Container>
     <PageHeader title={i18n.t("Category")}>
       <Button color="secondary" variant="contained" onClick={onAdd}>
         {i18n.t("Add category")} <AddIcon />

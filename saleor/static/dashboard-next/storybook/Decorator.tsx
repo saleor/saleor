@@ -2,7 +2,7 @@ import CssBaseline from "@material-ui/core/CssBaseline";
 import MuiThemeProvider from "@material-ui/core/styles/MuiThemeProvider";
 import * as React from "react";
 
-import { Provider as DateProvider } from "../components/DateFormatter/DateContext";
+import { Provider as DateProvider } from "../components/Date/DateContext";
 import { FormProvider } from "../components/Form";
 import { MessageManager } from "../components/messages";
 import { TimezoneProvider } from "../components/Timezone";
@@ -15,7 +15,13 @@ export const Decorator = storyFn => (
         <MuiThemeProvider theme={theme}>
           <CssBaseline />
           <MessageManager>
-            <div>{storyFn()}</div>
+            <div
+              style={{
+                padding: 24
+              }}
+            >
+              {storyFn()}
+            </div>
           </MessageManager>
         </MuiThemeProvider>
       </TimezoneProvider>

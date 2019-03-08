@@ -42,7 +42,7 @@ WeightUnitsEnum = Enum(
 
 
 def zero_weight():
-    """Function used as a model's default."""
+    """Represent the zero weight value."""
     return Weight(kg=0)
 
 

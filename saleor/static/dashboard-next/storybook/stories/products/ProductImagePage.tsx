@@ -14,6 +14,7 @@ storiesOf("Views / Products / Product image details", module)
   .addDecorator(Decorator)
   .add("when loaded data", () => (
     <ProductImagePage
+      product="Example product"
       disabled={false}
       image={image}
       images={images}
@@ -26,6 +27,7 @@ storiesOf("Views / Products / Product image details", module)
   ))
   .add("when loading data", () => (
     <ProductImagePage
+      product="Example product"
       disabled={true}
       onBack={() => undefined}
       onDelete={undefined}

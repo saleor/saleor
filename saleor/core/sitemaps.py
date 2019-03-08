@@ -26,14 +26,14 @@ class CategorySitemap(I18nSitemap):
 class CollectionSitemap(I18nSitemap):
 
     def items(self):
-        collections = Collection.objects.public().order_by('id')
+        collections = Collection.objects.published().order_by('id')
         return collections.only('id', 'name', 'slug')
 
 
 class PageSitemap(I18nSitemap):
 
     def items(self):
-        posts = Page.objects.public()
+        posts = Page.objects.published()
         return posts.only('id', 'title', 'slug')
 
 

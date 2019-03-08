@@ -7,6 +7,12 @@ import { WeightUnitsEnum } from "./../../../types/globalTypes";
 // GraphQL query operation: ShopInfo
 // ====================================================
 
+export interface ShopInfo_shop_countries {
+  __typename: "CountryDisplay";
+  country: string;
+  code: string;
+}
+
 export interface ShopInfo_shop_defaultCountry {
   __typename: "CountryDisplay";
   code: string;
@@ -21,6 +27,7 @@ export interface ShopInfo_shop_domain {
 
 export interface ShopInfo_shop {
   __typename: "Shop";
+  countries: (ShopInfo_shop_countries | null)[];
   defaultCountry: ShopInfo_shop_defaultCountry | null;
   defaultCurrency: string;
   defaultWeightUnit: WeightUnitsEnum | null;
