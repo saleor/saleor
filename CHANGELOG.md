@@ -4,6 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 - Update typescript types after apollo is upgraded - #3823 by @jxltom
+- Add languageCode enum to API - #3819 by @michaljelonek
 
 
 ## 2.4.0
@@ -64,10 +65,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Rename dumpdata file `db.json` to `populatedb_data.json` - #3810 by @maarcingebala
 - Prefetch collections for product availability - #3813 by @michaljelonek
 - Bump django-graphql-jwt - #3814 by @michaljelonek
+- Fix generating slug from title - #3816 by @maarcingebala
 - New translations:
   - Estonian
   - Indonesian
-
 
 
 ## 2.3.1
