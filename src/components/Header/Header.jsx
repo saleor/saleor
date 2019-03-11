@@ -1,13 +1,14 @@
+import detectPassiveEvents from 'detect-passive-events';
 import React, { Component } from 'react';
 import { NavLink } from 'react-router-dom';
 import { withRouter } from 'react-router';
 import ReactSVG from 'react-svg';
-import { withCookies, Cookies } from 'react-cookie';
-import { hotjar } from '../HotJar/HotJar'
+import { withCookies } from 'react-cookie';
 
 import { GitHubLink } from '..';
+import { hotjar } from '../HotJar/HotJar'
 
-import css from './header.css';
+import './header.css';
 import cookieImg from './../../images/cookie.png'
 import cookieAcceptImg from './../../images/cookie-accept.png'
 
@@ -16,19 +17,19 @@ class Header extends Component {
   constructor(props) {
     super(props);
     const { cookies } = props;
-    this.toggleMenu = this.toggleMenu.bind(this);
-    this.closeNewsBar = this.closeNewsBar.bind(this);
-    this.toggleSubMenu = this.toggleSubMenu.bind(this);
-    const { cookieValue } =
-      this.state = {
-        mobileMenu: false,
-        subMenu: false,
-        visibleNewsBar: cookies.get('newsbar') ? false : true,
-        visiblePrivacyPolicyBar: cookies.get('privacypolicybar') ? false : true,
-        sticky: false,
-        scrollDirection: 'bottom',
-        lastScrollPos: null
-      }
+    const visiblePrivacyPolicyBar = cookies.get('privacypolicybar') ? false : true;
+    this.state = {
+      mobileMenu: false,
+      subMenu: false,
+      visibleNewsBar: cookies.get('newsbar') ? false : true,
+      visiblePrivacyPolicyBar,
+      sticky: false,
+      scrollDirection: 'bottom'
+    }
+    this.lastScrollPos = null;
+    if (!visiblePrivacyPolicyBar) {
+      this.runHotJar();
+    }
   }
 
   runHotJar = () => {
@@ -60,30 +61,38 @@ class Header extends Component {
     const maxAge = 30 * (24 * 3600);
     cookies.set('privacypolicybar', 1, { path: '/', maxAge: maxAge });
     this.setState({ visiblePrivacyPolicyBar: false });
+    this.runHotJar();
   }
 
   componentDidMount() {
-    window.addEventListener('scroll', this.handleScroll.bind(this), true);
+    this.lastScrollPos = window.scrollY;
+    const opts = detectPassiveEvents.hasSupport ? { passive: true } : false;
+    window.addEventListener('scroll', this.handleScroll, opts);
   }
 
   componentWillUnmount() {
-    window.removeEventListener('scroll', this.handleScroll.bind(this), false);
+    const opts = detectPassiveEvents.hasSupport ? { passive: true } : false;
+    window.removeEventListener('scroll', this.handleScroll, opts);
   }
 
   handleScroll = (event) => {
     const scrollPosition = window.scrollY;
-    if (this.state.lastScrollPos > scrollPosition) {
+    const { scrollDirection } = this.state;
+    if (this.lastScrollPos > scrollPosition && scrollDirection !== 'top') {
       this.setState({
-        scrollDirection: 'top',
-        lastScrollPos: scrollPosition
+        scrollDirection: 'top'
       });
-    } else if (this.state.lastScrollPos < scrollPosition) {
+    } else if (this.lastScrollPos < scrollPosition && scrollDirection !== 'bottom') {
       this.setState({
-        scrollDirection: 'bottom',
-        lastScrollPos: scrollPosition
+        scrollDirection: 'bottom'
       });
     }
-    if (scrollPosition > 120) { this.setState({ sticky: true }); } else { this.setState({ sticky: false }); }
+    if (scrollPosition > 120) {
+      this.setState({ sticky: true });
+    } else {
+      this.setState({ sticky: false });
+    }
+    this.lastScrollPos = scrollPosition;
   }
 
   render() {
@@ -128,7 +137,7 @@ class Header extends Component {
                           <p>Gitter</p>
                           <span>Discuss future of Saleor</span>
                         </div>
-                      </a>  
+                      </a>
                     </div>
                     <div className="item">
                       <a href="https://spectrum.chat/saleor" target="_blank" rel="noopener">
@@ -139,7 +148,7 @@ class Header extends Component {
                           <p>Spectrum</p>
                           <span>Thread the needle and get answers</span>
                         </div>
-                      </a>  
+                      </a>
                     </div>
                     <div className="item">
                       <a href="https://stackoverflow.com/questions/tagged/saleor" target="_blank" rel="noopener">
@@ -150,7 +159,7 @@ class Header extends Component {
                           <p>Stack Overflow</p>
                           <span>Experience problems? Ask for help here</span>
                         </div>
-                      </a>  
+                      </a>
                     </div>
                     <div className="item">
                       <a href="https://www.transifex.com/mirumee/saleor-1/" target="_blank" rel="noopener">
@@ -161,8 +170,8 @@ class Header extends Component {
                           <p>Transifex</p>
                           <span>Translate Saleor to your language</span>
                         </div>
-                      </a>  
-                    </div>  
+                      </a>
+                    </div>
                   </div>
                 </li>
                 <li className="underline"><span className="count">04. </span><a href="https://docs.getsaleor.com" target="_blank" rel="noopener">Docs</a></li>
@@ -190,7 +199,7 @@ class Header extends Component {
               <h5 className="acceptButton" onClick={this.closePrivacyPolicyBar}>ACCEPT</h5>
               <img className="cookieAcceptImg" src={cookieAcceptImg} onClick={this.closePrivacyPolicyBar} />
             </div>
-          </div> : this.runHotJar()}
+          </div> : null}
       </header>
     );
   }
