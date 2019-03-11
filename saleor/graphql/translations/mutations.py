@@ -10,6 +10,7 @@ from ..core.mutations import BaseMutation, ModelMutation, registry
 # discount types need to be imported to get Voucher in the graphene registry
 from ..discount import types  # noqa # pylint: disable=unused-import
 from ..shop.types import Shop
+from .enums import LanguageCodeEnum
 
 
 class BaseTranslateMutation(ModelMutation):
@@ -50,7 +51,8 @@ class TranslationInput(NameTranslationInput, SeoTranslationInput):
 class CategoryTranslate(BaseTranslateMutation):
     class Arguments:
         id = graphene.ID(required=True, description='Category ID')
-        language_code = graphene.String(
+        language_code = graphene.Argument(
+            LanguageCodeEnum,
             required=True, description='Translation language code')
         input = TranslationInput(required=True)
 
@@ -62,7 +64,8 @@ class CategoryTranslate(BaseTranslateMutation):
 class ProductTranslate(BaseTranslateMutation):
     class Arguments:
         id = graphene.ID(required=True, description='Product ID')
-        language_code = graphene.String(
+        language_code = graphene.Argument(
+            LanguageCodeEnum,
             required=True, description='Translation language code')
         input = TranslationInput(required=True)
 
@@ -74,7 +77,8 @@ class ProductTranslate(BaseTranslateMutation):
 class CollectionTranslate(BaseTranslateMutation):
     class Arguments:
         id = graphene.ID(required=True, description='Collection ID')
-        language_code = graphene.String(
+        language_code = graphene.Argument(
+            LanguageCodeEnum,
             required=True, description='Translation language code')
         input = TranslationInput(required=True)
 
@@ -86,7 +90,8 @@ class CollectionTranslate(BaseTranslateMutation):
 class ProductVariantTranslate(BaseTranslateMutation):
     class Arguments:
         id = graphene.ID(required=True, description='Product Variant ID')
-        language_code = graphene.String(
+        language_code = graphene.Argument(
+            LanguageCodeEnum,
             required=True, description='Translation language code')
         input = NameTranslationInput(required=True)
 
@@ -98,7 +103,8 @@ class ProductVariantTranslate(BaseTranslateMutation):
 class AttributeTranslate(BaseTranslateMutation):
     class Arguments:
         id = graphene.ID(required=True, description='Attribute ID')
-        language_code = graphene.String(
+        language_code = graphene.Argument(
+            LanguageCodeEnum,
             required=True, description='Translation language code')
         input = NameTranslationInput(required=True)
 
@@ -110,7 +116,8 @@ class AttributeTranslate(BaseTranslateMutation):
 class AttributeValueTranslate(BaseTranslateMutation):
     class Arguments:
         id = graphene.ID(required=True, description='Attribute Value ID')
-        language_code = graphene.String(
+        language_code = graphene.Argument(
+            LanguageCodeEnum,
             required=True, description='Translation language code')
         input = NameTranslationInput(required=True)
 
@@ -122,7 +129,8 @@ class AttributeValueTranslate(BaseTranslateMutation):
 class VoucherTranslate(BaseTranslateMutation):
     class Arguments:
         id = graphene.ID(required=True, description='Voucher ID')
-        language_code = graphene.String(
+        language_code = graphene.Argument(
+            LanguageCodeEnum,
             required=True, description='Translation language code')
         input = NameTranslationInput(required=True)
 
@@ -134,7 +142,8 @@ class VoucherTranslate(BaseTranslateMutation):
 class ShippingPriceTranslate(BaseTranslateMutation):
     class Arguments:
         id = graphene.ID(required=True, description='Shipping Method ID')
-        language_code = graphene.String(
+        language_code = graphene.Argument(
+            LanguageCodeEnum,
             required=True, description='Translation language code')
         input = NameTranslationInput(required=True)
 
@@ -146,7 +155,8 @@ class ShippingPriceTranslate(BaseTranslateMutation):
 class MenuItemTranslate(BaseTranslateMutation):
     class Arguments:
         id = graphene.ID(required=True, description='Menu Item ID')
-        language_code = graphene.String(
+        language_code = graphene.Argument(
+            LanguageCodeEnum,
             required=True, description='Translation language code')
         input = NameTranslationInput(required=True)
 
@@ -164,7 +174,8 @@ class PageTranslationInput(SeoTranslationInput):
 class PageTranslate(BaseTranslateMutation):
     class Arguments:
         id = graphene.ID(required=True, description='Page ID')
-        language_code = graphene.String(
+        language_code = graphene.Argument(
+            LanguageCodeEnum,
             required=True, description='Translation language code')
         input = PageTranslationInput(required=True)
 
@@ -182,7 +193,8 @@ class ShopSettingsTranslate(BaseMutation):
     shop = graphene.Field(Shop, description='Updated Shop')
 
     class Arguments:
-        language_code = graphene.String(
+        language_code = graphene.Argument(
+            LanguageCodeEnum,
             required=True, description='Translation language code')
         input = ShopSettingsTranslationInput(
             description=(
