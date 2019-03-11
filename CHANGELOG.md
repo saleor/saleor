@@ -3,6 +3,7 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
+- Update typescript types after apollo is upgraded - #3823 by @jxltom
 
 
 ## 2.4.0
