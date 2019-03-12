@@ -8,6 +8,7 @@
     "dependencies": {
         "axios": "^0.18.0",
         "babel-eslint": "^8.2.6",
+        "detect-passive-events": "^1.0.4",
         "eslint-config-prettier": "^2.9.0",
         "eslint-plugin-prettier": "^2.6.2",
         "lottie-web": "^5.4.1",
