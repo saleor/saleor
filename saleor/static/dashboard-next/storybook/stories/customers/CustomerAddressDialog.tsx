@@ -6,10 +6,8 @@ import CustomerAddressDialog, {
 } from "../../../customers/components/CustomerAddressDialog";
 import Decorator from "../../Decorator";
 
-const props: CustomerAddressDialogProps = {
+const props: CustomerAddressDialogProps = {};
 
-};
-
-storiesOf("Customers / CustomerAddressDialog", module)
+storiesOf("Customers / Address editing dialog", module)
   .addDecorator(Decorator)
   .add("default", () => <CustomerAddressDialog {...props} />);
