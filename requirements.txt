@@ -98,7 +98,7 @@ mysqlclient==1.3.10
 
 
 # Proprietary Oye Saleor Plugin
--e git+git@github.com:tillkolter/saleor-oye-records.git@master#egg=saleor_oye
+-e git+git@github.com:tillkolter/saleor-oye-records.git@hotfix/tested-depot-to-cart#egg=saleor_oye
 
 # Fixed migration overkill by sorting currencies
 # -e git+git@github.com:tillkolter/django-prices-openexchangerates@master#egg=django-prices-openexchangerates
