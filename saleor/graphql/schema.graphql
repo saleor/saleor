@@ -59,6 +59,11 @@ input AddressInput {
   phone: String
 }
 
+type AddressSetDefault {
+  errors: [Error!]
+  user: User
+}
+
 enum AddressTypeEnum {
   BILLING
   SHIPPING
@@ -1149,6 +1154,7 @@ type Mutations {
   addressCreate(input: AddressCreateInput!): AddressCreate
   addressDelete(id: ID!): AddressDelete
   addressUpdate(id: ID!, input: AddressInput!): AddressUpdate
+  addressSetDefault(addressId: ID!, type: AddressTypeEnum!, userId: ID!): AddressSetDefault
 }
 
 input NameTranslationInput {

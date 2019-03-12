@@ -444,41 +444,6 @@ class AddressCreate(ModelMutation):
         return user.has_perm('account.manage_users')
 
 
-class CustomerAddressCreate(ModelMutation):
-    class Arguments:
-        input = AddressInput(
-            description='Fields required to create address', required=True)
-        type = AddressTypeEnum(required=False, description=(
-            'A type of address. If provided, the new address will be '
-            'automatically assigned as the customer\'s default address '
-            'of that type.'))
-
-    class Meta:
-        description = 'Create a new address for the customer.'
-        model = models.Address
-        exclude = ['user_addresses']
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.is_authenticated
-
-    @classmethod
-    def mutate(cls, root, info, **data):
-        success_response = super().mutate(root, info, **data)
-        address_type = data.get('type', None)
-        if address_type:
-            user = info.context.user
-            instance = success_response.address
-            utils.change_user_default_address(user, instance, address_type)
-        return success_response
-
-    @classmethod
-    def save(cls, info, instance, cleaned_input):
-        super().save(info, instance, cleaned_input)
-        user = info.context.user
-        instance.user_addresses.add(user)
-
-
 class AddressUpdate(ModelMutation):
     class Arguments:
         id = graphene.ID(
@@ -518,6 +483,86 @@ class AddressDelete(ModelDeleteMutation):
         return super().clean_instance(info, instance, errors)
 
 
+class AddressSetDefault(BaseMutation):
+    user = graphene.Field(User, description='An updated user instance.')
+
+    class Arguments:
+        address_id = graphene.ID(
+            required=True, description='ID of the address.')
+        user_id = graphene.ID(
+            required=True, description='ID of the user to change the address for.')
+        type = AddressTypeEnum(
+            required=True, description='The type of address.')
+
+    class Meta:
+        description = 'Sets a default address for the given user.'
+
+    @classmethod
+    @permission_required('account.manage_users')
+    def mutate(cls, root, info, address_id, user_id, type):
+        errors = []
+        address = cls.get_node_or_error(info, address_id, errors, 'addressId', Address)
+        if not address:
+            return cls(errors=errors)
+
+        user = cls.get_node_or_error(info, user_id, errors, 'userId', User)
+        if not user:
+            return cls(errors=errors)
+
+        if address not in user.addresses.all():
+            cls.add_error(
+                errors, 'address_id',
+                'The address doesn\'t belong to that user.')
+            return cls(errors=errors)
+
+        if type == AddressTypeEnum.BILLING.value:
+            address_type = AddressType.BILLING
+        elif type == AddressTypeEnum.SHIPPING.value:
+            address_type = AddressType.SHIPPING
+        else:
+            raise ValueError('Unknown value of AddressTypeEnum: %s' % type)
+
+        utils.change_user_default_address(user, address, address_type)
+        return cls(errors=errors, user=user)
+
+
+# The same as AddressCreate, but for the currenty authenticated user.
+class CustomerAddressCreate(ModelMutation):
+    class Arguments:
+        input = AddressInput(
+            description='Fields required to create address', required=True)
+        type = AddressTypeEnum(required=False, description=(
+            'A type of address. If provided, the new address will be '
+            'automatically assigned as the customer\'s default address '
+            'of that type.'))
+
+    class Meta:
+        description = 'Create a new address for the customer.'
+        model = models.Address
+        exclude = ['user_addresses']
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.is_authenticated
+
+    @classmethod
+    def mutate(cls, root, info, **data):
+        success_response = super().mutate(root, info, **data)
+        address_type = data.get('type', None)
+        if address_type:
+            user = info.context.user
+            instance = success_response.address
+            utils.change_user_default_address(user, instance, address_type)
+        return success_response
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        super().save(info, instance, cleaned_input)
+        user = info.context.user
+        instance.user_addresses.add(user)
+
+
+# The same as SetDefaultAddress, but for the currenty authenticated user.
 class CustomerSetDefaultAddress(BaseMutation):
     user = graphene.Field(User, description='An updated user instance.')
 
@@ -528,7 +573,7 @@ class CustomerSetDefaultAddress(BaseMutation):
             required=True, description='The type of address.')
 
     class Meta:
-        description = 'Sets one of the customer\'s address as default'
+        description = 'Sets a default address for the authenticated user.'
 
     @classmethod
     @login_required
@@ -536,11 +581,13 @@ class CustomerSetDefaultAddress(BaseMutation):
         errors = []
         address = cls.get_node_or_error(info, id, errors, 'id', Address)
         if not address:
-            return CustomerSetDefaultAddress(errors=errors)
+            return cls(errors=errors)
 
         user = info.context.user
         if address not in user.addresses.all():
-            raise PermissionDenied()
+            cls.add_error(
+                errors, 'id', 'The address doesn\'t belong to that user.')
+            return cls(errors=errors)
 
         if type == AddressTypeEnum.BILLING.value:
             address_type = AddressType.BILLING
@@ -550,4 +597,4 @@ class CustomerSetDefaultAddress(BaseMutation):
             raise ValueError('Unknown value of AddressTypeEnum: %s' % type)
 
         utils.change_user_default_address(user, address, address_type)
-        return CustomerSetDefaultAddress(errors=errors, user=user)
+        return cls(errors=errors, user=user)
