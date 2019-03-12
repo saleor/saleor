@@ -409,35 +409,32 @@ class CustomerPasswordReset(BaseMutation):
         send_user_password_reset_email(user, site)
 
 
-class AddressCreateInput(AddressInput):
-    user_id = graphene.ID(
-        description='ID of a user to create address for', required=True)
-
-
 class AddressCreate(ModelMutation):
+    user = graphene.Field(
+        User, description='A user instance for which the address was created.')
+
     class Arguments:
-        input = AddressCreateInput(
+        input = AddressInput(
             description='Fields required to create address', required=True)
+        user_id = graphene.ID(
+            description='ID of a user to create address for', required=True)
 
     class Meta:
         description = 'Creates user address'
         model = models.Address
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        user_id = input.pop('user_id')
-        user = cls.get_node_or_error(info, user_id, errors, 'user_id', User)
-        cleaned_input = super().clean_input(info, instance, input, errors)
-        cleaned_input['user'] = user
-        return cleaned_input
+    def mutate(cls, root, info, **data):
+        errors = []
+        user_id = data['user_id']
+        user = cls.get_node_or_error(info, user_id, errors, 'userId', User)
+        if not user:
+            return cls(errors=errors)
 
-    @classmethod
-    def save(cls, info, instance, cleaned_input):
-        super().save(info, instance, cleaned_input)
-        user = cleaned_input.get('user')
-        if user:
-            instance.user_addresses.add(user)
-            instance.save()
+        response = super().mutate(root, info, **data)
+        user.addresses.add(response.address)
+        response.user = user
+        return response
 
     @classmethod
     def user_is_allowed(cls, user, input):
