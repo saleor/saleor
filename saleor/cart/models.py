@@ -5,26 +5,17 @@ from decimal import Decimal
 from uuid import uuid4
 
 from django.conf import settings
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible, smart_str
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
-from django_extensions.db.decorators import modify_fields
 from django_prices.models import PriceField
 from prices import Price
-from satchless.item import ItemLine, ItemList, partition
+from satchless.item import ItemList, partition
 
 from . import CartStatus, logger
 
-
 CENTS = Decimal('0.01')
 SimpleCart = namedtuple('SimpleCart', ('quantity', 'total', 'token'))
-
-
-class ProductGroup(ItemList):
-    def is_shipping_required(self):
-        return any(p.is_shipping_required() for p in self)
 
 
 class CartQueryset(models.QuerySet):
@@ -216,12 +207,12 @@ class AbstractCartModel(models.Model):
 
     objects = CartQueryset.as_manager()
 
-
-@modify_fields(
-    user={
-        'related_name': 'carts',
-    }
-)
+#
+# @modify_fields(
+#     user={
+#         'related_name': 'carts',
+#     }
+# )
 class Cart(AbstractCartModel):
 
     class Meta:
@@ -229,61 +220,61 @@ class Cart(AbstractCartModel):
         verbose_name = pgettext_lazy('Cart model', 'Cart')
         verbose_name_plural = pgettext_lazy('Cart model', 'Carts')
 
-
-@python_2_unicode_compatible
-class CartLine(models.Model, ItemLine):
-
-    cart = models.ForeignKey(
-        Cart, related_name='lines',
-        verbose_name=pgettext_lazy('Cart line field', 'cart'))
-    variant = models.ForeignKey(
-        'product.ProductVariant', related_name='+',
-        verbose_name=pgettext_lazy('Cart line field', 'product'))
-    quantity = models.PositiveIntegerField(
-        pgettext_lazy('Cart line field', 'quantity'),
-        validators=[MinValueValidator(0), MaxValueValidator(999)])
-    # data = JSONField(
-    #     blank=True, default={},
-    #     verbose_name=pgettext_lazy('Cart line field', 'data'))
-
-    class Meta:
-        unique_together = ('cart', 'variant')
-        verbose_name = pgettext_lazy('Cart line model', 'Cart line')
-        verbose_name_plural = pgettext_lazy('Cart line model', 'Cart lines')
-
-    def __str__(self):
-        return smart_str(self.variant)
-
-    def __eq__(self, other):
-        if not isinstance(other, CartLine):
-            return NotImplemented
-
-        return (self.variant == other.variant and
-                self.quantity == other.quantity and
-                self.data == other.data)
-
-    def __ne__(self, other):
-        return not self == other  # pragma: no cover
-
-    def __repr__(self):
-        return 'CartLine(variant=%r, quantity=%r, data=%r)' % (
-            self.variant, self.quantity, self.data)
-
-    def __getstate__(self):
-        return self.variant, self.quantity, self.data
-
-    def __setstate__(self, data):
-        self.variant, self.quantity, self.data = data
-
-    def get_total(self, **kwargs):
-        amount = super(CartLine, self).get_total(**kwargs)
-        return amount.quantize(CENTS)
-
-    def get_quantity(self, **kwargs):
-        return self.quantity
-
-    def get_price_per_item(self, discounts=None, **kwargs):
-        return self.variant.get_price_per_item(discounts=discounts, **kwargs)
-
-    def is_shipping_required(self):
-        return self.variant.is_shipping_required()
+#
+# @python_2_unicode_compatible
+# class CartLine(models.Model, ItemLine):
+#
+#     cart = models.ForeignKey(
+#         Cart, related_name='lines',
+#         verbose_name=pgettext_lazy('Cart line field', 'cart'))
+#     variant = models.ForeignKey(
+#         'product.ProductVariant', related_name='+',
+#         verbose_name=pgettext_lazy('Cart line field', 'product'))
+#     quantity = models.PositiveIntegerField(
+#         pgettext_lazy('Cart line field', 'quantity'),
+#         validators=[MinValueValidator(0), MaxValueValidator(999)])
+#     # data = JSONField(
+#     #     blank=True, default={},
+#     #     verbose_name=pgettext_lazy('Cart line field', 'data'))
+#
+#     class Meta:
+#         unique_together = ('cart', 'variant')
+#         verbose_name = pgettext_lazy('Cart line model', 'Cart line')
+#         verbose_name_plural = pgettext_lazy('Cart line model', 'Cart lines')
+#
+#     def __str__(self):
+#         return smart_str(self.variant)
+#
+#     def __eq__(self, other):
+#         if not isinstance(other, CartLine):
+#             return NotImplemented
+#
+#         return (self.variant == other.variant and
+#                 self.quantity == other.quantity and
+#                 self.data == other.data)
+#
+#     def __ne__(self, other):
+#         return not self == other  # pragma: no cover
+#
+#     def __repr__(self):
+#         return 'CartLine(variant=%r, quantity=%r, data=%r)' % (
+#             self.variant, self.quantity, self.data)
+#
+#     def __getstate__(self):
+#         return self.variant, self.quantity, self.data
+#
+#     def __setstate__(self, data):
+#         self.variant, self.quantity, self.data = data
+#
+#     def get_total(self, **kwargs):
+#         amount = super(CartLine, self).get_total(**kwargs)
+#         return amount.quantize(CENTS)
+#
+#     def get_quantity(self, **kwargs):
+#         return self.quantity
+#
+#     def get_price_per_item(self, discounts=None, **kwargs):
+#         return self.variant.get_price_per_item(discounts=discounts, **kwargs)
+#
+#     def is_shipping_required(self):
+#         return self.variant.is_shipping_required()

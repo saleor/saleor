@@ -20,7 +20,7 @@ from satchless.item import InsufficientStock, Item, ItemRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import VersatileImageField, PPOIField
 
-from ..discount.models import calculate_discounted_price
+# from ..discount.models import calculate_discounted_price
 from ..search import index
 from .utils import get_attributes_display_map
 
@@ -112,6 +112,7 @@ class ProductManager(models.Manager):
 class Product(models.Model, ItemRange, index.Indexed):
     product_class = models.ForeignKey(
         ProductClass, related_name='products',
+        on_delete=models.CASCADE,
         verbose_name=pgettext_lazy('Product field', 'product class'))
     name = models.CharField(
         pgettext_lazy('Product field', 'name'), max_length=128)
@@ -210,7 +211,11 @@ class ProductVariant(models.Model, Item):
         pgettext_lazy('Product variant field', 'price override'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
-    product = models.ForeignKey(Product, related_name='variants')
+    product = models.ForeignKey(
+        Product,
+        related_name='variants',
+        on_delete=models.CASCADE
+    )
     images = models.ManyToManyField(
         'ProductImage', through='VariantImage',
         verbose_name=pgettext_lazy('Product variant field', 'images'))
@@ -328,8 +333,12 @@ class StockManager(models.Manager):
 class Stock(models.Model):
     variant = models.ForeignKey(
         ProductVariant, related_name='stock',
-        verbose_name=pgettext_lazy('Stock item field', 'variant'))
-    location = models.ForeignKey(StockLocation, null=True)
+        verbose_name=pgettext_lazy('Stock item field', 'variant'),
+        on_delete=models.CASCADE
+    )
+    location = models.ForeignKey(StockLocation,
+                                 on_delete=models.CASCADE,
+                                 null=True)
     quantity = models.IntegerField(
         pgettext_lazy('Stock item field', 'quantity'),
         validators=[MinValueValidator(0)], default=Decimal(1))
@@ -390,7 +399,11 @@ class AttributeChoiceValue(models.Model):
         max_length=7,
         validators=[RegexValidator('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')],
         blank=True)
-    attribute = models.ForeignKey(ProductAttribute, related_name='values')
+    attribute = models.ForeignKey(
+        ProductAttribute,
+        related_name='values',
+        on_delete=models.CASCADE
+    )
 
     class Meta:
         unique_together = ('display', 'attribute')
@@ -415,8 +428,11 @@ class ImageManager(models.Manager):
 
 class ProductImage(models.Model):
     product = models.ForeignKey(
-        Product, related_name='images',
-        verbose_name=pgettext_lazy('Product image field', 'product'))
+        Product,
+        related_name='images',
+        on_delete=models.CASCADE,
+        verbose_name=pgettext_lazy('Product image field', 'product'),
+    )
     image = VersatileImageField(
         upload_to='products', ppoi_field='ppoi', blank=False,
         verbose_name=pgettext_lazy('Product image field', 'image'))

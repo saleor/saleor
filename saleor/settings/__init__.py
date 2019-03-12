@@ -3,19 +3,19 @@ from __future__ import unicode_literals
 import ast
 import datetime
 import os.path
-import raven
 
 import dj_email_url
 import django_cache_url
 from django.contrib.messages import constants as messages
 from dotenv import load_dotenv
+
 load_dotenv()
 
 DEBUG = ast.literal_eval(os.environ.get('DEBUG', 'False'))
 
-SITE_ID = int(os.environ.get('SITE_ID', 2))
+SITE_ID = int(os.environ.get('SITE_ID', 1))
 
-PROJECT_ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
+PROJECT_ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), '../..'))
 
 ROOT_URLCONF = 'saleor.urls'
 
@@ -140,7 +140,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'babeldjango.middleware.LocaleMiddleware',
-    'saleor.core.middleware.CountryMiddleware',
+    # 'saleor.core.middleware.CountryMiddleware',
     'saleor.core.middleware.CurrencyMiddleware',
 ]
 
@@ -149,32 +149,30 @@ INSTALLED_APPS = [
     'storages',
     'django_nose',
 
-
     # Django modules
     'django.contrib.contenttypes',
     'django.contrib.sessions',
+    'django.contrib.auth',
     'django.contrib.messages',
     'django.contrib.sitemaps',
     'django.contrib.sites',
     'django.contrib.staticfiles',
-    'django.contrib.auth',
     # 'django.contrib.postgres',
-    'django.contrib.admin',
 
     # Local apps
     'saleor.userprofile',
     'saleor.discount',
     'saleor.product',
     'saleor.cart',
-    'saleor.checkout',
+    # 'saleor.checkout',
     'saleor.core',
     'saleor.graphql',
     # 'saleor.order',
-    'saleor.dashboard',
+    # 'saleor.dashboard',
     'saleor.shipping',
-    'saleor.search',
+    # 'saleor.search',
     'saleor.site',
-    'saleor.data_feeds',
+    # 'saleor.data_feeds',
     'saleor.elasticsearch',
 
     # External apps
@@ -196,11 +194,13 @@ INSTALLED_APPS = [
     # developer stuff
     'django_extensions',
 
-    # my proprietary oye stuff
+    # my proprietary oye stuffs
     'saleor_oye',
+    'saleor_oye.api',
     'saleor_oye.discogs',
     'saleor_oye.customers',
     'saleor_oye.payments',
+    'django.contrib.admin',
 
     'corsheaders',
     # We authenticate via authtoken
@@ -274,6 +274,10 @@ LOGGING = {
         },
         'django.security': {
             'handlers': ['mail_admins'],
+        },
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
         },
     },
 }
@@ -597,3 +601,9 @@ RAVEN_CONFIG = {
 MAILCHIMP_API_KEY = os.environ.get('MAILCHIMP_API_KEY')
 MAILCHIMP_USER = os.environ.get('MAILCHIMP_USER')
 MAILCHIMP_DEFAULT_LIST_ID = os.environ.get('MAILCHIMP_DEFAULT_LIST_ID')
+
+# TEST_RUNNER = 'saleor_oye.tests.legacy.ManagedModelTestRunner'
+TEST_RUNNER = 'snapshottest.django.TestRunner'
+
+IS_TESTING = os.environ.get('IS_TESTING', False)
+RUN_EMAIL_TESTS = os.environ.get('RUN_EMAIL_TESTS', False)

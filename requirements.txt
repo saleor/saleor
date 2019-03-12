@@ -64,7 +64,6 @@ pyasn1==0.1.9             # via cryptography
 pycparser==2.17           # via cffi
 pyjwt==1.4.2              # via django-payments
 pyparsing==2.1.10         # via packaging
-pytest-django==3.1.2
 pytest==3.0.5
 python-dateutil==2.6.0    # via botocore, faker
 python3-openid==3.1.0     # via django-allauth
@@ -157,3 +156,12 @@ python-logstash==0.4.6
 mailchimp3==3.0.2
 
 python-dotenv==0.9.1
+
+
+#### TESTS
+
+# Snapshots for python
+snapshottest==0.5.0
+
+pytest-django==4.1.1
+factory-boy==2.11.1
