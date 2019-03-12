@@ -16,7 +16,6 @@ import CardMenu from "../../../components/CardMenu";
 import CardTitle from "../../../components/CardTitle";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
 import { AddressTypeEnum } from "../../../types/globalTypes";
 import { CustomerAddresses_user_addresses } from "../../types/CustomerAddresses";
 
@@ -31,12 +30,11 @@ export interface CustomerAddressProps {
   onSetAsDefault: (type: AddressTypeEnum) => void;
 }
 
-const styles = (theme: Theme) =>
-  createStyles({
-    actions: {
-      flexDirection: "row"
-    }
-  });
+const styles = createStyles({
+  actions: {
+    flexDirection: "row"
+  }
+});
 const CustomerAddress = withStyles(styles, { name: "CustomerAddress" })(
   ({
     address,
