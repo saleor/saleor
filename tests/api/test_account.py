@@ -993,18 +993,21 @@ def test_create_address_mutation(
         staff_api_client, customer_user, permission_manage_users):
     query = """
     mutation CreateUserAddress($user: ID!, $city: String!, $country: String!) {
-        addressCreate(input: {userId: $user, city: $city, country: $country}) {
-         errors {
-            field
-            message
-         }
-         address {
-            id
-            city
-            country {
-                code
+        addressCreate(userId: $user, input: {city: $city, country: $country}) {
+            errors {
+                field
+                message
             }
-         }
+            address {
+                id
+                city
+                country {
+                    code
+                }
+            }
+            user {
+                id
+            }
         }
     }
     """
@@ -1014,11 +1017,12 @@ def test_create_address_mutation(
         query, variables, permissions=[permission_manage_users])
     content = get_graphql_content(response)
     assert content['data']['addressCreate']['errors'] == []
-    address_response = content['data']['addressCreate']['address']
-    assert address_response['city'] == 'Dummy'
-    assert address_response['country']['code'] == 'PL'
+    data = content['data']['addressCreate']
+    assert data['address']['city'] == 'Dummy'
+    assert data['address']['country']['code'] == 'PL'
     address_obj = Address.objects.get(city='Dummy')
     assert address_obj.user_addresses.first() == customer_user
+    assert data['user']['id'] == user_id
 
 
 ADDRESS_UPDATE_MUTATION = """
