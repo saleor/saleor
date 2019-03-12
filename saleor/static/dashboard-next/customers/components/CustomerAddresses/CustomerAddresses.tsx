@@ -1,3 +1,4 @@
+import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import {
@@ -31,20 +32,25 @@ export interface CustomerAddressesProps extends WithStyles<typeof styles> {
 }
 
 const CustomerAddresses = withStyles(styles, { name: "CustomerAddresses" })(
-  ({ classes, customer }: CustomerAddressesProps) => (
+  ({
+    classes,
+    customer,
+    disabled,
+    onAddressManageClick
+  }: CustomerAddressesProps) => (
     <Card>
       <CardTitle
         title={i18n.t("Address Information")}
-        // toolbar={ // TODO: add address management #3173
-        //   <Button
-        //     color="secondary"
-        //     disabled={disabled}
-        //     variant="text"
-        //     onClick={onAddressManageClick}
-        //   >
-        //     {i18n.t("Manage", { context: "button" })}
-        //   </Button>
-        // }
+        toolbar={
+          <Button
+            color="secondary"
+            disabled={disabled}
+            variant="text"
+            onClick={onAddressManageClick}
+          >
+            {i18n.t("Manage", { context: "button" })}
+          </Button>
+        }
       />
       {customer &&
       customer.defaultBillingAddress &&
