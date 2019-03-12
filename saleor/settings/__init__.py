@@ -194,16 +194,12 @@ INSTALLED_APPS = [
     # developer stuff
     'django_extensions',
 
-    # my proprietary oye stuff
-    # 'saleor_oye',
+    # my proprietary oye stuffs
     'saleor_oye',
     'saleor_oye.api',
-    # 'saleor_oye.cart',
     'saleor_oye.discogs',
     'saleor_oye.customers',
     'saleor_oye.payments',
-    # 'saleor_oye.discount',
-
     'django.contrib.admin',
 
     'corsheaders',
