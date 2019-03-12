@@ -1,7 +1,7 @@
 import gql from "graphql-tag";
 
 import { TypedMutation } from "../mutations";
-import { customerDetailsFragment } from "./queries";
+import { customerAddressesFragment, customerDetailsFragment } from "./queries";
 import {
   CreateCustomer,
   CreateCustomerVariables
@@ -10,6 +10,10 @@ import {
   RemoveCustomer,
   RemoveCustomerVariables
 } from "./types/RemoveCustomer";
+import {
+  SetCustomerDefaultAddress,
+  SetCustomerDefaultAddressVariables
+} from "./types/SetCustomerDefaultAddress";
 import {
   UpdateCustomer,
   UpdateCustomerVariables
@@ -66,3 +70,22 @@ export const TypedRemoveCustomerMutation = TypedMutation<
   RemoveCustomer,
   RemoveCustomerVariables
 >(removeCustomer);
+
+const setCustomerDefaultAddress = gql`
+  ${customerAddressesFragment}
+  mutation SetCustomerDefaultAddress($id: ID!, $type: AddressTypeEnum!) {
+    customerSetDefaultAddress(id: $id, type: $type) {
+      errors {
+        field
+        message
+      }
+      user {
+        ...CustomerAddressesFragment
+      }
+    }
+  }
+`;
+export const TypedSetCustomerDefaultAddressMutation = TypedMutation<
+  SetCustomerDefaultAddress,
+  SetCustomerDefaultAddressVariables
+>(setCustomerDefaultAddress);

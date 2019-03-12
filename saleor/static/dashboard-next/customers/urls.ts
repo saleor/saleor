@@ -15,3 +15,8 @@ export const customerRemovePath = (id: string) =>
   urlJoin(customerPath(id), "remove");
 export const customerRemoveUrl = (id: string) =>
   customerRemovePath(encodeURIComponent(id));
+
+export const customerAddressesPath = (id: string) =>
+  urlJoin(customerPath(id), "addresses");
+export const customerAddressesUrl = (id: string) =>
+  customerAddressesPath(encodeURIComponent(id));
