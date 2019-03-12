@@ -31,7 +31,8 @@ class PaymentInput(graphene.InputObjectType):
         required=False,
         description=(
             'Total amount of the transaction, including '
-            'all taxes and discounts.'))
+            'all taxes and discounts. If no amount is provided, '
+            'the checkout total will be used.'))
     billing_address = AddressInput(
         description=dedent(
             '''Billing address. If empty, the billing address associated with

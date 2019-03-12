@@ -290,7 +290,7 @@ class OrderCapture(BaseMutation):
         errors = []
         if amount <= 0:
             cls.add_error(
-                errors, amount, 'Amount should be a positive number.')
+                errors, 'amount', 'Amount should be a positive number.')
             return OrderCapture(errors=errors)
 
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
@@ -357,7 +357,7 @@ class OrderRefund(BaseMutation):
         errors = []
         if amount <= 0:
             cls.add_error(
-                errors, amount, 'Amount should be a positive number.')
+                errors, 'amount', 'Amount should be a positive number.')
             return OrderRefund(errors=errors)
 
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
