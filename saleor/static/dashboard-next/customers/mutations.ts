@@ -150,7 +150,6 @@ export const TypedUpdateCustomerAddressMutation = TypedMutation<
 >(updateCustomerAddress);
 
 const removeCustomerAddress = gql`
-  # ${customerAddressesFragment}
   mutation RemoveCustomerAddress($id: ID!) {
     addressDelete(id: $id) {
       errors {
