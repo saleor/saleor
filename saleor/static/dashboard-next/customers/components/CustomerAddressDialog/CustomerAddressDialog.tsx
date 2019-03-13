@@ -13,6 +13,7 @@ import ConfirmButton, {
 } from "../../../components/ConfirmButton";
 import Form from "../../../components/Form";
 import i18n from "../../../i18n";
+import { maybe } from "../../../misc";
 import { UserError } from "../../../types";
 import { AddressTypeInput } from "../../types";
 import { CustomerAddresses_user_addresses } from "../../types/CustomerAddresses";
@@ -50,11 +51,20 @@ const CustomerAddressDialog = withStyles(styles, {})(
     onConfirm
   }: CustomerAddressDialogProps & WithStyles<typeof styles>) => {
     const initialForm: AddressTypeInput = {
-      ...address,
+      city: maybe(() => address.city, ""),
+      cityArea: maybe(() => address.cityArea, ""),
+      companyName: maybe(() => address.companyName, ""),
       country: {
-        label: address.country.country,
-        value: address.country.code
-      }
+        label: maybe(() => address.country.country),
+        value: maybe(() => address.country.code)
+      },
+      countryArea: maybe(() => address.countryArea, ""),
+      firstName: maybe(() => address.firstName, ""),
+      lastName: maybe(() => address.lastName, ""),
+      phone: maybe(() => address.phone, ""),
+      postalCode: maybe(() => address.postalCode, ""),
+      streetAddress1: maybe(() => address.streetAddress1, ""),
+      streetAddress2: maybe(() => address.streetAddress2, "")
     };
     return (
       <Dialog
