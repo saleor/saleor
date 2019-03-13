@@ -163,5 +163,5 @@ python-dotenv==0.9.1
 # Snapshots for python
 snapshottest==0.5.0
 
-pytest-django==4.1.1
+pytest-django==3.4.5
 factory-boy==2.11.1
