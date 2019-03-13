@@ -30,10 +30,10 @@ export interface CustomerAddressListPageProps {
 const styles = (theme: Theme) =>
   createStyles({
     root: {
-      columnGap: theme.spacing.unit * 3,
+      columnGap: theme.spacing.unit * 3 + "px",
       display: "grid",
       gridTemplateColumns: "repeat(3, 1fr)",
-      rowGap: theme.spacing.unit * 3
+      rowGap: theme.spacing.unit * 3 + "px"
     }
   });
 
@@ -91,6 +91,7 @@ const CustomerAddressListPage = withStyles(styles, {
               onEdit={() => onEdit(address.id)}
               onRemove={() => onRemove(address.id)}
               onSetAsDefault={type => onSetAsDefault(address.id, type)}
+              key={maybe(() => address.id, "skeleton")}
             />
           )
         )}
