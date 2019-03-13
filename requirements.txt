@@ -66,7 +66,7 @@ ipaddress==1.0.22
 jinja2==2.10
 jmespath==0.9.4
 jsonfield==2.0.2
-kombu==4.4.0
+kombu==4.3.0
 markdown==3.0.1
 markupsafe==1.1.1
 maxminddb-geolite2==2018.703
@@ -90,7 +90,7 @@ python3-openid==3.1.0 ; python_version >= '3.0'
 pytz==2018.9
 raven==6.9.0
 razorpay==1.2.0
-redis==3.2.0
+redis==2.10.6
 requests-oauthlib==1.2.0
 requests==2.21.0
 rx==1.6.1
