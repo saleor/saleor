@@ -90,7 +90,7 @@ python3-openid==3.1.0 ; python_version >= '3.0'
 pytz==2018.9
 raven==6.9.0
 razorpay==1.2.0
-redis==2.10.6
+redis==3.2.0
 requests-oauthlib==1.2.0
 requests==2.21.0
 rx==1.6.1
