@@ -523,7 +523,7 @@ class AddressSetDefault(BaseMutation):
         return cls(errors=errors, user=user)
 
 
-# The same as AddressCreate, but for the currenty authenticated user.
+# The same as AddressCreate, but for the currently authenticated user.
 class CustomerAddressCreate(ModelMutation):
     class Arguments:
         input = AddressInput(
