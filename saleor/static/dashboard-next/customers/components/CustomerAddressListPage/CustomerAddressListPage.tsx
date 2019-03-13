@@ -37,7 +37,7 @@ const styles = (theme: Theme) =>
       marginTop: theme.spacing.unit
     },
     empty: {
-      margin: `${theme.spacing.unit * 5}px auto 0`,
+      margin: `${theme.spacing.unit * 13}px auto 0`,
       textAlign: "center",
       width: 600
     },
@@ -70,24 +70,24 @@ const CustomerAddressListPage = withStyles(styles, {
             context: "navigation"
           })}
         </AppHeader>
-        <PageHeader
-          title={maybe(() =>
-            i18n.t("{{ firstName }} {{ lastName }} Address Book", {
-              context: "customer address book",
-              firstName: customer.firstName,
-              lastName: customer.lastName
-            })
-          )}
-        >
-          {!isEmpty && (
+        {!isEmpty && (
+          <PageHeader
+            title={maybe(() =>
+              i18n.t("{{ firstName }} {{ lastName }} Address Book", {
+                context: "customer address book",
+                firstName: customer.firstName,
+                lastName: customer.lastName
+              })
+            )}
+          >
             <Button color="secondary" variant="contained" onClick={onAdd}>
               {i18n.t("Add address", {
                 context: "add customer address"
               })}
               <AddIcon />
             </Button>
-          )}
-        </PageHeader>
+          </PageHeader>
+        )}
         {isEmpty ? (
           <div className={classes.empty}>
             <Typography variant="headline">
