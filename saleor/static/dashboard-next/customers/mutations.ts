@@ -86,8 +86,12 @@ export const TypedRemoveCustomerMutation = TypedMutation<
 
 const setCustomerDefaultAddress = gql`
   ${customerAddressesFragment}
-  mutation SetCustomerDefaultAddress($id: ID!, $type: AddressTypeEnum!) {
-    customerSetDefaultAddress(id: $id, type: $type) {
+  mutation SetCustomerDefaultAddress(
+    $addressId: ID!
+    $userId: ID!
+    $type: AddressTypeEnum!
+  ) {
+    addressSetDefault(addressId: $addressId, userId: $userId, type: $type) {
       errors {
         field
         message
@@ -104,6 +108,7 @@ export const TypedSetCustomerDefaultAddressMutation = TypedMutation<
 >(setCustomerDefaultAddress);
 
 const createCustomerAddress = gql`
+  ${customerAddressesFragment}
   ${fragmentAddress}
   mutation CreateCustomerAddress($id: ID!, $input: AddressInput!) {
     addressCreate(userId: $id, input: $input) {
@@ -145,12 +150,16 @@ export const TypedUpdateCustomerAddressMutation = TypedMutation<
 >(updateCustomerAddress);
 
 const removeCustomerAddress = gql`
+  # ${customerAddressesFragment}
   mutation RemoveCustomerAddress($id: ID!) {
     addressDelete(id: $id) {
       errors {
         field
         message
       }
+      # user {
+      #   ...CustomerAddressesFragment
+      # }
     }
   }
 `;

@@ -8,7 +8,7 @@ import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
 import useShop from "../../hooks/useShop";
 import i18n from "../../i18n";
-import { maybe } from "../../misc";
+import { getMutationState, maybe } from "../../misc";
 import CustomerAddressDialog from "../components/CustomerAddressDialog";
 import CustomerAddressListPage from "../components/CustomerAddressListPage";
 import {
@@ -45,7 +45,7 @@ const CustomerAddresses: React.FC<CustomerAddressesProps> = ({ id }) => {
   const closeModal = () => navigate(customerAddressesUrl(id), true);
 
   const handleSetAddressAsDefault = (data: SetCustomerDefaultAddress) => {
-    if (data.customerSetDefaultAddress.errors.length === 0) {
+    if (data.addressSetDefault.errors.length === 0) {
       closeModal();
       notify({
         text: i18n.t("Set address as default", {
@@ -87,7 +87,7 @@ const CustomerAddresses: React.FC<CustomerAddressesProps> = ({ id }) => {
     <TypedSetCustomerDefaultAddressMutation
       onCompleted={handleSetAddressAsDefault}
     >
-      {(setCustomerDefaultAddress, setCustomerDefaultAddressOpts) => (
+      {setCustomerDefaultAddress => (
         <TypedCreateCustomerAddressMutation onCompleted={handleAddressCreate}>
           {(createCustomerAddress, createCustomerAddressOpts) => (
             <TypedUpdateCustomerAddressMutation
@@ -100,6 +100,38 @@ const CustomerAddresses: React.FC<CustomerAddressesProps> = ({ id }) => {
                   {(removeCustomerAddress, removeCustomerAddressOpts) => (
                     <TypedCustomerAddressesQuery variables={{ id }}>
                       {customerData => {
+                        const createAddressTransitionState = getMutationState(
+                          createCustomerAddressOpts.called,
+                          createCustomerAddressOpts.loading,
+                          maybe(
+                            () =>
+                              createCustomerAddressOpts.data.addressCreate
+                                .errors,
+                            []
+                          )
+                        );
+
+                        const updateAddressTransitionState = getMutationState(
+                          updateCustomerAddressOpts.called,
+                          updateCustomerAddressOpts.loading,
+                          maybe(
+                            () =>
+                              updateCustomerAddressOpts.data.addressUpdate
+                                .errors,
+                            []
+                          )
+                        );
+
+                        const removeAddressTransitionState = getMutationState(
+                          removeCustomerAddressOpts.called,
+                          removeCustomerAddressOpts.loading,
+                          maybe(
+                            () =>
+                              removeCustomerAddressOpts.data.addressDelete
+                                .errors,
+                            []
+                          )
+                        );
                         return (
                           <>
                             <WindowTitle
@@ -125,7 +157,7 @@ const CustomerAddresses: React.FC<CustomerAddressesProps> = ({ id }) => {
                               }
                               onSetAsDefault={(addressId, type) =>
                                 setCustomerDefaultAddress({
-                                  variables: { id: addressId, type }
+                                  variables: { addressId, type, userId: id }
                                 })
                               }
                             />
@@ -135,7 +167,9 @@ const CustomerAddresses: React.FC<CustomerAddressesProps> = ({ id }) => {
                                 render={({ match }) => (
                                   <CustomerAddressDialog
                                     address={undefined}
-                                    confirmButtonState={"default"}
+                                    confirmButtonState={
+                                      createAddressTransitionState
+                                    }
                                     countries={maybe(
                                       () =>
                                         shop.countries.map(country => ({
@@ -156,10 +190,10 @@ const CustomerAddresses: React.FC<CustomerAddressesProps> = ({ id }) => {
                                     onConfirm={formData =>
                                       createCustomerAddress({
                                         variables: {
+                                          id,
                                           input: {
                                             ...formData,
-                                            country: formData.country.value,
-                                            userId: id
+                                            country: formData.country.value
                                           }
                                         }
                                       })
@@ -177,7 +211,9 @@ const CustomerAddresses: React.FC<CustomerAddressesProps> = ({ id }) => {
                                     open={!!match}
                                     variant="delete"
                                     title={i18n.t("Remove Address")}
-                                    confirmButtonState={"default"}
+                                    confirmButtonState={
+                                      removeAddressTransitionState
+                                    }
                                     onClose={closeModal}
                                     onConfirm={() =>
                                       removeCustomerAddress({
@@ -213,7 +249,9 @@ const CustomerAddresses: React.FC<CustomerAddressesProps> = ({ id }) => {
                                           )
                                       )
                                     )}
-                                    confirmButtonState={"default"}
+                                    confirmButtonState={
+                                      updateAddressTransitionState
+                                    }
                                     countries={[]}
                                     errors={maybe(
                                       () =>
