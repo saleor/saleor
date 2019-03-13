@@ -463,6 +463,9 @@ class AddressUpdate(ModelMutation):
 
 
 class AddressDelete(ModelDeleteMutation):
+    user = graphene.Field(
+        User, description='A user instance for which the address was deleted.')
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of the address to delete.')
@@ -478,6 +481,33 @@ class AddressDelete(ModelDeleteMutation):
         if not can_edit_address(info.context.user, instance):
             raise PermissionDenied()
         return super().clean_instance(info, instance, errors)
+
+    @classmethod
+    def mutate(cls, root, info, **data):
+        if not cls.user_is_allowed(info.context.user, data):
+            raise PermissionDenied()
+
+        errors = []
+        node_id = data.get('id')
+        instance = cls.get_node_or_error(info, node_id, errors, 'id', Address)
+        if instance:
+            cls.clean_instance(info, instance, errors)
+        if errors:
+            return cls(errors=errors)
+
+        db_id = instance.id
+
+        # Return the first user that the address is assigned to. There is M2M
+        # relation between users and addresses, but in most cases address is
+        # related to only one user.
+        user = instance.user_addresses.first()
+
+        instance.delete()
+        instance.id = db_id
+
+        response = cls.success_response(instance)
+        response.user = user
+        return response
 
 
 class AddressSetDefault(BaseMutation):

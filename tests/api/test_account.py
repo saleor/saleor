@@ -1031,6 +1031,9 @@ ADDRESS_UPDATE_MUTATION = """
             address {
                 city
             }
+            user {
+                id
+            }
         }
     }
 """
@@ -1109,6 +1112,8 @@ def test_address_delete_mutation(
     content = get_graphql_content(response)
     data = content['data']['addressDelete']
     assert data['address']['city'] == address_obj.city
+    assert data['user']['id'] == graphene.Node.to_global_id(
+        'User', customer_user.pk)
     with pytest.raises(address_obj._meta.model.DoesNotExist):
         address_obj.refresh_from_db()
 
