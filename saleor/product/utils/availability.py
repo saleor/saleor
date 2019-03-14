@@ -1,7 +1,7 @@
 from collections import namedtuple
 
-from .. import ProductAvailabilityStatus, VariantAvailabilityStatus
 from ...core.utils import to_local_currency
+from .. import ProductAvailabilityStatus, VariantAvailabilityStatus
 
 ProductAvailability = namedtuple(
     'ProductAvailability', (
