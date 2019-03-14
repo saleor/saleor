@@ -769,9 +769,6 @@ input FulfillmentUpdateTrackingInput {
 
 enum GatewaysEnum {
   DUMMY
-  BRAINTREE
-  RAZORPAY
-  STRIPE
 }
 
 scalar GenericScalar
@@ -1462,7 +1459,7 @@ type PaymentCountableEdge {
 input PaymentInput {
   gateway: GatewaysEnum!
   token: String!
-  amount: Decimal!
+  amount: Decimal
   billingAddress: AddressInput
 }
 
