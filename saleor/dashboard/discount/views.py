@@ -9,11 +9,11 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
-from . import forms
 from ...core.utils import get_paginator_items
 from ...discount import VoucherType
 from ...discount.models import Sale, Voucher
 from ..views import staff_member_required
+from . import forms
 from .filters import SaleFilter, VoucherFilter
 
 

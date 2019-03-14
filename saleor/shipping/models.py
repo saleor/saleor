@@ -8,11 +8,11 @@ from django_prices.models import MoneyField
 from measurement.measures import Weight
 from prices import MoneyRange
 
-from . import ShippingMethodType
 from ..core.utils import format_money
 from ..core.utils.taxes import get_taxed_shipping_price
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
+from . import ShippingMethodType
 from .utils import (
     applicable_price_based_methods, applicable_weight_based_methods,
     get_price_type_display, get_weight_type_display)
