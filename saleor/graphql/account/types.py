@@ -105,7 +105,7 @@ class User(CountableDjangoObjectType):
         model = get_user_model()
 
     def resolve_addresses(self, info, **kwargs):
-        return self.get_addresses()
+        return self.addresses.annotate_default(self)
 
     def resolve_checkout(self, info, **kwargs):
         return get_user_cart(self)
