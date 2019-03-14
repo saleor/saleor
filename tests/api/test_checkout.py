@@ -6,7 +6,7 @@ import pytest
 
 from saleor.checkout.models import Cart
 from saleor.checkout.utils import (
-    add_voucher_to_cart, can_be_fully_paid, ready_to_place_order)
+    add_voucher_to_cart, is_fully_paid, ready_to_place_order)
 from saleor.graphql.core.utils import str_to_enum
 from saleor.order.models import Order
 from tests.api.utils import get_graphql_content
@@ -1179,11 +1179,11 @@ def test_is_fully_paid(cart_with_item, payment_dummy):
     payment.currency = total.gross.currency
     payment.checkout = checkout
     payment.save()
-    is_paid = can_be_fully_paid(checkout, None, None)
+    is_paid = is_fully_paid(checkout, None, None)
     assert is_paid
 
 
-def test_can_be_fully_paid_many_payments(cart_with_item, payment_dummy):
+def test_is_fully_paid_many_payments(cart_with_item, payment_dummy):
     checkout = cart_with_item
     total = checkout.get_total()
     payment = payment_dummy
@@ -1201,11 +1201,11 @@ def test_can_be_fully_paid_many_payments(cart_with_item, payment_dummy):
     payment2.currency = total.gross.currency
     payment2.checkout = checkout
     payment2.save()
-    is_paid = can_be_fully_paid(checkout, None, None)
+    is_paid = is_fully_paid(checkout, None, None)
     assert is_paid
 
 
-def test_can_be_fully_paid_partially_paid(cart_with_item, payment_dummy):
+def test_is_fully_paid_partially_paid(cart_with_item, payment_dummy):
     checkout = cart_with_item
     total = checkout.get_total()
     payment = payment_dummy
@@ -1215,13 +1215,13 @@ def test_can_be_fully_paid_partially_paid(cart_with_item, payment_dummy):
     payment.currency = total.gross.currency
     payment.checkout = checkout
     payment.save()
-    is_paid = can_be_fully_paid(checkout, None, None)
+    is_paid = is_fully_paid(checkout, None, None)
     assert not is_paid
 
 
-def test_can_be_fully_paid_no_payment(cart_with_item):
+def test_is_fully_paid_no_payment(cart_with_item):
     checkout = cart_with_item
-    is_paid = can_be_fully_paid(checkout, None, None)
+    is_paid = is_fully_paid(checkout, None, None)
     assert not is_paid
 
 
