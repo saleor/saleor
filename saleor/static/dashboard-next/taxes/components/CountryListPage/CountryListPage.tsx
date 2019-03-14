@@ -38,7 +38,7 @@ const CountryListPage: React.StatelessComponent<CountryListPageProps> = ({
   return (
     <Form initial={initialForm} onSubmit={onSubmit}>
       {({ change, data, submit }) => (
-        <Container width="md">
+        <Container>
           <PageHeader title={i18n.t("Taxes", { context: "page title" })} />
           <Grid>
             <div>
