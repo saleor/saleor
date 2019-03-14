@@ -16,6 +16,8 @@ type Address implements Node {
   country: CountryDisplay!
   countryArea: String!
   phone: String
+  isDefaultShippingAddress: Boolean
+  isDefaultBillingAddress: Boolean
 }
 
 type AddressCreate {
