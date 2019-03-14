@@ -7,6 +7,7 @@ from graphene import relay
 
 from ...menu import models
 from ..core.connection import CountableDjangoObjectType
+from ..translations.enums import LanguageCodeEnum
 from ..translations.resolvers import resolve_translation
 from ..translations.types import MenuItemTranslation
 
@@ -44,7 +45,9 @@ class MenuItem(CountableDjangoObjectType):
         graphene.List(lambda: MenuItem), model_field='children')
     url = graphene.String(description='URL to the menu item.')
     translation = graphene.Field(
-        MenuItemTranslation, language_code=graphene.String(
+        MenuItemTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
             description='A language code to return the translation for.',
             required=True),
         description=(

@@ -4,7 +4,7 @@ import * as React from "react";
 
 interface ControlledCheckboxProps {
   name: string;
-  label?: string;
+  label?: React.ReactNode;
   checked: boolean;
   disabled?: boolean;
   onChange(event: any);

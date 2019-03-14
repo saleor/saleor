@@ -21,8 +21,8 @@ def resolve_page(info, id=None, slug=None):
         # Resolve to null if page is not published and user has no permission
         # to manage pages.
         is_available_to_user = (
-            page.is_published or user.has_perm('page.manage_pages'))
-        if page and not is_available_to_user:
+            page and page.is_published or user.has_perm('page.manage_pages'))
+        if not is_available_to_user:
             page = None
     return page
 

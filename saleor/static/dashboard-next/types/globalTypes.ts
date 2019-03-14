@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 //==============================================================
@@ -97,6 +98,11 @@ export enum PermissionEnum {
 export enum SaleType {
   FIXED = "FIXED",
   PERCENTAGE = "PERCENTAGE",
+}
+
+export enum ShippingMethodTypeEnum {
+  PRICE = "PRICE",
+  WEIGHT = "WEIGHT",
 }
 
 export enum StockAvailability {
@@ -348,6 +354,23 @@ export interface SaleInput {
 export interface SeoInput {
   title?: string | null;
   description?: string | null;
+}
+
+export interface ShippingPriceInput {
+  name?: string | null;
+  price?: any | null;
+  minimumOrderPrice?: any | null;
+  maximumOrderPrice?: any | null;
+  minimumOrderWeight?: any | null;
+  maximumOrderWeight?: any | null;
+  type?: ShippingMethodTypeEnum | null;
+  shippingZone?: string | null;
+}
+
+export interface ShippingZoneInput {
+  name?: string | null;
+  countries?: (string | null)[] | null;
+  default?: boolean | null;
 }
 
 export interface ShopSettingsInput {

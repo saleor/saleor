@@ -3,14 +3,12 @@ import * as React from "react";
 import Navigator from "../../components/Navigator";
 import { createPaginationState, Paginator } from "../../components/Paginator";
 import { maybe } from "../../misc";
+import { Pagination } from "../../types";
 import CollectionListPage from "../components/CollectionListPage/CollectionListPage";
 import { TypedCollectionListQuery } from "../queries";
 import { collectionAddUrl, collectionUrl } from "../urls";
 
-export type CollectionListQueryParams = Partial<{
-  after: string;
-  before: string;
-}>;
+export type CollectionListQueryParams = Pagination;
 
 interface CollectionListProps {
   params: CollectionListQueryParams;
