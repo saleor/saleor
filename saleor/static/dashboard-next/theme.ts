@@ -7,10 +7,11 @@ const createShadow = (pv, pb, ps, uv, ub, us, av, ab, as) =>
     `0 ${av}px ${ab}px ${as}px rgba(0, 0, 0, 0.12)`
   ].join(",");
 
-// const primary = "#2bb673";
-const primary = "#5AB378";
-const secondary = "#03a9f4";
-const error = "#CD5E5E";
+const primary = "#13BEBB";
+// TODO: fix secondary buttons lol
+const secondary = "#13BEBB";
+const error = "#C22D74";
+const fontColor = "#3d3d3d";
 
 export const ICONBUTTON_SIZE = 48;
 
@@ -29,7 +30,9 @@ export default createMuiTheme({
     },
     MuiCard: {
       root: {
-        borderRadius: 8
+        border: "1px solid #EAEAEA",
+        borderRadius: 8,
+        boxShadow: "none"
       }
     },
     MuiCardActions: {
@@ -45,10 +48,6 @@ export default createMuiTheme({
         "&::placeholder": {
           opacity: "initial !important" as "initial"
         }
-      },
-      root: {
-        color: "#616161",
-        fontSize: "0.875rem"
       },
       underline: {
         "&:after": {
@@ -108,10 +107,11 @@ export default createMuiTheme({
     },
     MuiTableCell: {
       body: {
-        color: "#616161"
+        fontSize: ".875rem",
+        paddingBottom: 8,
+        paddingTop: 8
       },
       head: {
-        color: "#616161",
         fontSize: ".875rem",
         fontWeight: 600
       },
@@ -142,6 +142,9 @@ export default createMuiTheme({
     }
   },
   palette: {
+    background: {
+      default: "#F1F6F6"
+    },
     error: {
       main: error
     },
@@ -154,7 +157,7 @@ export default createMuiTheme({
       main: secondary
     },
     text: {
-      primary: "#616161"
+      primary: fontColor
     }
   },
   shadows: [
@@ -185,9 +188,19 @@ export default createMuiTheme({
     createShadow(9, 46, 8, 11, 15, -7, 24, 38, 3)
   ],
   typography: {
+    allVariants: {
+      fontFamily: '"Inter", "roboto", "sans-serif"'
+    },
+    body1: {
+      color: fontColor,
+      fontSize: "1rem"
+    },
     body2: {
       fontSize: "0.75rem",
       fontWeight: 600 as 600
+    },
+    headline: {
+      fontSize: "1.3125rem"
     }
   }
 });

@@ -65,6 +65,7 @@ const styles = (theme: Theme) =>
       marginTop: theme.spacing.unit * 0.75
     },
     label: {
+      fontSize: theme.typography.caption.fontSize,
       marginBottom: theme.spacing.unit * 2
     },
     root: {
