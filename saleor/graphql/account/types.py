@@ -49,29 +49,33 @@ class Address(CountableDjangoObjectType):
             code=self.country.code, country=self.country.name)
 
     def resolve_is_default_shipping_address(self, info):
-        # This field is added through annotation when using the
-        # `resolve_addresses` resolver. It's invalid for
-        # `resolve_default_shipping_address` and
-        # `resolve_default_billing_address`
-        user_default_shipping_address_pk = getattr(
-            self, 'user_default_shipping_address_pk', None)
-        if user_default_shipping_address_pk is None:
+        """
+        This field is added through annotation when using the
+        `resolve_addresses` resolver. It's invalid for
+        `resolve_default_shipping_address` and
+        `resolve_default_billing_address`
+        """
+        if not hasattr(self, 'user_default_shipping_address_pk'):
             return None
 
+        user_default_shipping_address_pk = getattr(
+            self, 'user_default_shipping_address_pk')
         if user_default_shipping_address_pk == self.pk:
             return True
         return False
 
     def resolve_is_default_billing_address(self, info):
-        # This field is added through annotation when using the
-        # `resolve_addresses` resolver. It's invalid for
-        # `resolve_default_shipping_address` and
-        # `resolve_default_billing_address`
-        user_default_billing_address_pk = getattr(
-            self, 'user_default_billing_address_pk', None)
-        if user_default_billing_address_pk is None:
+        """
+        This field is added through annotation when using the
+        `resolve_addresses` resolver. It's invalid for
+        `resolve_default_shipping_address` and
+        `resolve_default_billing_address`
+        """
+        if not hasattr(self, 'user_default_billing_address_pk'):
             return None
 
+        user_default_billing_address_pk = getattr(
+            self, 'user_default_billing_address_pk')
         if user_default_billing_address_pk == self.pk:
             return True
         return False
