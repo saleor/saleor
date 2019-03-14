@@ -161,9 +161,9 @@ class User(PermissionsMixin, AbstractBaseUser):
         return self.email
 
     def get_addresses(self):
-        # Set default shipping/billing address pk to -1
+        # Set default shipping/billing address pk to None
         # if default shipping/billing address doesn't exist
-        default_shipping_address_pk, default_billing_address_pk = -1, -1
+        default_shipping_address_pk, default_billing_address_pk = None, None
         if self.default_shipping_address:
             default_shipping_address_pk = self.default_shipping_address.pk
         if self.default_billing_address:
