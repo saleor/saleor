@@ -1,5 +1,7 @@
+import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import CardSpacer from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
@@ -9,6 +11,7 @@ import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
 import i18n from "../../../i18n";
+import { maybe } from "../../../misc";
 import { UserError } from "../../../types";
 import {
   ProductDetails_product,
@@ -74,9 +77,9 @@ export interface FormData {
   category: ChoiceType | null;
   chargeTaxes: boolean;
   collections: ChoiceType[];
-  description: string;
+  description: RawDraftContentState;
   name: string;
-  price: string;
+  price: number;
   productType: {
     label: string;
     value: {
@@ -121,75 +124,57 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
   onVariantAdd,
   onVariantShow
 }) => {
-  const initialData: FormData = product
-    ? {
-        attributes: product.attributes
-          ? product.attributes.map(a => ({
-              slug: a.attribute.slug,
-              value: a.value ? a.value.slug : null
-            }))
-          : undefined,
-        available: product.isPublished,
-        category: product.category
-          ? {
-              label: product.category.name,
-              value: product.category.id
-            }
-          : undefined,
-        chargeTaxes: product.chargeTaxes ? product.chargeTaxes : false,
-        collections: productCollections
-          ? productCollections.map(collection => ({
-              label: collection.name,
-              value: collection.id
-            }))
-          : [],
-        description: product.description,
-        name: product.name,
-        price: product.price ? product.price.amount.toString() : undefined,
-        productType:
-          product.productType && product.attributes
-            ? {
-                label: product.productType.name,
-                value: {
-                  hasVariants: product.productType.hasVariants,
-                  id: product.productType.id,
-                  name: product.productType.name,
-                  productAttributes: product.attributes.map(a => a.attribute)
-                }
-              }
-            : undefined,
-        publicationDate: product.publicationDate,
-        seoDescription: product.seoDescription,
-        seoTitle: product.seoTitle,
-        sku:
-          product.productType && product.productType.hasVariants
-            ? undefined
-            : variants && variants[0]
-            ? variants[0].sku
-            : undefined,
-        stockQuantity:
-          product.productType && product.productType.hasVariants
-            ? undefined
-            : variants && variants[0]
-            ? variants[0].quantity
-            : undefined
+  const initialData: FormData = {
+    attributes: maybe(
+      () =>
+        product.attributes.map(a => ({
+          slug: a.attribute.slug,
+          value: a.value ? a.value.slug : null
+        })),
+      []
+    ),
+    available: maybe(() => product.isPublished, false),
+    category: maybe(() => ({
+      label: product.category.name,
+      value: product.category.id
+    })),
+    chargeTaxes: maybe(() => product.chargeTaxes, false),
+    collections: productCollections
+      ? productCollections.map(collection => ({
+          label: collection.name,
+          value: collection.id
+        }))
+      : [],
+    description: maybe(() => JSON.parse(product.descriptionJson)),
+    name: maybe(() => product.name),
+    price: maybe(() => product.price.amount),
+    productType: maybe(() => ({
+      label: product.productType.name,
+      value: {
+        hasVariants: product.productType.hasVariants,
+        id: product.productType.id,
+        name: product.productType.name,
+        productAttributes: product.attributes.map(a => a.attribute)
       }
-    : {
-        attributes: [],
-        available: false,
-        category: null,
-        chargeTaxes: false,
-        collections: [],
-        description: "",
-        name: "",
-        price: "",
-        productType: null,
-        publicationDate: "",
-        seoDescription: "",
-        seoTitle: "",
-        sku: "",
-        stockQuantity: 0
-      };
+    })),
+    publicationDate: maybe(() => product.publicationDate),
+    seoDescription: maybe(() => product.seoDescription),
+    seoTitle: maybe(() => product.seoTitle),
+    sku: maybe(() =>
+      product.productType.hasVariants
+        ? undefined
+        : variants && variants[0]
+        ? variants[0].sku
+        : undefined
+    ),
+    stockQuantity: maybe(() =>
+      product.productType.hasVariants
+        ? undefined
+        : variants && variants[0]
+        ? variants[0].quantity
+        : undefined
+    )
+  };
   const categories =
     categoryChoiceList !== undefined
       ? categoryChoiceList.map(category => ({
@@ -218,14 +203,16 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
     >
       {({ change, data, errors, hasChanged, submit }) => (
         <>
-          <Container width="md">
-            <PageHeader title={header} onBack={onBack} />
+          <Container>
+            <AppHeader onBack={onBack}>{i18n.t("Products")}</AppHeader>
+            <PageHeader title={header} />
             <Grid>
               <div>
                 <ProductDetailsForm
                   data={data}
                   disabled={disabled}
                   errors={errors}
+                  product={product}
                   onChange={change}
                 />
                 <CardSpacer />
@@ -263,9 +250,6 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                 )}
                 <CardSpacer />
                 <SeoForm
-                  helperText={i18n.t(
-                    "Add search engine title and description to make this product easier to find"
-                  )}
                   title={data.seoTitle}
                   titlePlaceholder={data.name}
                   description={data.seoDescription}

@@ -12,6 +12,7 @@ import { SearchProductsProvider } from "../../containers/SearchProducts";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import { productUrl } from "../../products/urls";
+import { Pagination } from "../../types";
 import { CollectionInput } from "../../types/globalTypes";
 import CollectionDetailsPage, {
   CollectionDetailsPageFormData
@@ -33,10 +34,7 @@ import {
   collectionUrl
 } from "../urls";
 
-export type CollectionDetailsQueryParams = Partial<{
-  after: string;
-  before: string;
-}>;
+export type CollectionDetailsQueryParams = Pagination;
 
 interface CollectionDetailsProps {
   id: string;
@@ -135,7 +133,7 @@ export const CollectionDetails: React.StatelessComponent<
                       ) => {
                         const input = {
                           backgroundImageAlt: formData.backgroundImageAlt,
-                          description: formData.description,
+                          descriptionJson: JSON.stringify(formData.description),
                           isPublished: formData.isPublished,
                           name: formData.name,
                           seo: {

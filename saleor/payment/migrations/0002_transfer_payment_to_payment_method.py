@@ -23,11 +23,13 @@ def is_fully_refunded(payment):
 
 def get_charge_status(payment):
     if payment.status == PaymentStatus.CONFIRMED:
-        return ChargeStatus.CHARGED
+        if payment.get_charge_amount() <= 0:
+            return ChargeStatus.FULLY_CHARGED
+        return ChargeStatus.PARTIALLY_CHARGED
     if payment.status == PaymentStatus.REFUNDED:
         if is_fully_refunded(payment):
             return ChargeStatus.FULLY_REFUNDED
-        return ChargeStatus.CHARGED
+        return ChargeStatus.PARTIALLY_REFUNDED
     return ChargeStatus.NOT_CHARGED
 
 

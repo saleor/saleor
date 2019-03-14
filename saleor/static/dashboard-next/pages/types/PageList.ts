@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 // ====================================================
@@ -8,14 +9,13 @@
 export interface PageList_pages_edges_node {
   __typename: "Page";
   id: string;
-  slug: string;
   title: string;
-  isPublished: boolean;
+  slug: string;
+  isVisible: boolean | null;
 }
 
 export interface PageList_pages_edges {
   __typename: "PageCountableEdge";
-  cursor: string;
   node: PageList_pages_edges_node;
 }
 

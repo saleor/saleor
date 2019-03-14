@@ -2,9 +2,9 @@ from django.contrib.sites.models import Site
 from django.db import models
 from django.utils.translation import pgettext_lazy
 
-from . import AuthenticationBackends
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits
+from . import AuthenticationBackends
 from .patch_sites import patch_contrib_sites
 
 patch_contrib_sites()
@@ -35,9 +35,11 @@ class SiteSettings(models.Model):
     translated = TranslationProxy()
 
     class Meta:
-        permissions = ((
-            'manage_settings', pgettext_lazy(
-                'Permission description', 'Manage settings.')),)
+        permissions = (
+            ('manage_settings', pgettext_lazy(
+                'Permission description', 'Manage settings.')),
+            ('manage_translations', pgettext_lazy(
+                'Permission description', 'Manage translations.')),)
 
     def __str__(self):
         return self.site.name

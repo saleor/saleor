@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 //==============================================================
@@ -73,9 +74,11 @@ export enum OrderStatusFilter {
 }
 
 export enum PaymentChargeStatusEnum {
-  CHARGED = "CHARGED",
+  FULLY_CHARGED = "FULLY_CHARGED",
   FULLY_REFUNDED = "FULLY_REFUNDED",
   NOT_CHARGED = "NOT_CHARGED",
+  PARTIALLY_CHARGED = "PARTIALLY_CHARGED",
+  PARTIALLY_REFUNDED = "PARTIALLY_REFUNDED",
 }
 
 export enum PermissionEnum {
@@ -88,12 +91,18 @@ export enum PermissionEnum {
   MANAGE_SETTINGS = "MANAGE_SETTINGS",
   MANAGE_SHIPPING = "MANAGE_SHIPPING",
   MANAGE_STAFF = "MANAGE_STAFF",
+  MANAGE_TRANSLATIONS = "MANAGE_TRANSLATIONS",
   MANAGE_USERS = "MANAGE_USERS",
 }
 
 export enum SaleType {
   FIXED = "FIXED",
   PERCENTAGE = "PERCENTAGE",
+}
+
+export enum ShippingMethodTypeEnum {
+  PRICE = "PRICE",
+  WEIGHT = "WEIGHT",
 }
 
 export enum StockAvailability {
@@ -301,6 +310,16 @@ export interface OrderUpdateShippingInput {
   shippingMethod?: string | null;
 }
 
+export interface PageInput {
+  slug?: string | null;
+  title?: string | null;
+  content?: string | null;
+  contentJson?: any | null;
+  isPublished?: boolean | null;
+  publicationDate?: string | null;
+  seo?: SeoInput | null;
+}
+
 export interface ProductTypeInput {
   name?: string | null;
   hasVariants?: boolean | null;
@@ -335,6 +354,23 @@ export interface SaleInput {
 export interface SeoInput {
   title?: string | null;
   description?: string | null;
+}
+
+export interface ShippingPriceInput {
+  name?: string | null;
+  price?: any | null;
+  minimumOrderPrice?: any | null;
+  maximumOrderPrice?: any | null;
+  minimumOrderWeight?: any | null;
+  maximumOrderWeight?: any | null;
+  type?: ShippingMethodTypeEnum | null;
+  shippingZone?: string | null;
+}
+
+export interface ShippingZoneInput {
+  name?: string | null;
+  countries?: (string | null)[] | null;
+  default?: boolean | null;
 }
 
 export interface ShopSettingsInput {

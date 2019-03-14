@@ -50,7 +50,7 @@ export const fragmentProduct = gql`
   fragment Product on Product {
     id
     name
-    description
+    descriptionJson
     seoTitle
     seoDescription
     category {
@@ -304,6 +304,7 @@ const productVariantCreateQuery = gql`
         sortOrder
         url
       }
+      name
       productType {
         id
         variantAttributes {
@@ -339,6 +340,7 @@ const productImageQuery = gql`
   query ProductImageById($productId: ID!, $imageId: ID!) {
     product(id: $productId) {
       id
+      name
       mainImage: imageById(id: $imageId) {
         id
         alt

@@ -5,9 +5,12 @@ import { createPaginationState, Paginator } from "../../components/Paginator";
 import { maybe } from "../../misc";
 import PageListPage from "../components/PageListPage/PageListPage";
 import { TypedPageListQuery } from "../queries";
-import { pageAddUrl, pageUrl } from "../urls";
+import { pageCreateUrl, pageUrl } from "../urls";
 
-export type PageListQueryParams = Partial<{ after: string; before: string }>;
+export type PageListQueryParams = Partial<{
+  after: string;
+  before: string;
+}>;
 
 interface PageListProps {
   params: PageListQueryParams;
@@ -21,7 +24,7 @@ export const PageList: React.StatelessComponent<PageListProps> = ({
   <Navigator>
     {navigate => {
       const paginationState = createPaginationState(PAGINATE_BY, params);
-      const handleEditClick = (id: string) => () => navigate(pageUrl(id));
+
       return (
         <TypedPageListQuery displayLoader variables={paginationState}>
           {({ data, loading }) => (
@@ -33,16 +36,12 @@ export const PageList: React.StatelessComponent<PageListProps> = ({
               {({ loadNextPage, loadPreviousPage, pageInfo }) => (
                 <PageListPage
                   disabled={loading}
-                  pages={
-                    data && data.pages
-                      ? data.pages.edges.map(edge => edge.node)
-                      : undefined
-                  }
+                  pages={maybe(() => data.pages.edges.map(edge => edge.node))}
                   pageInfo={pageInfo}
-                  onAdd={() => navigate(pageAddUrl)}
-                  onRowClick={handleEditClick}
+                  onAdd={() => navigate(pageCreateUrl)}
                   onNextPage={loadNextPage}
                   onPreviousPage={loadPreviousPage}
+                  onRowClick={id => () => navigate(pageUrl(id))}
                 />
               )}
             </Paginator>

@@ -11,8 +11,8 @@ from django_prices.models import MoneyField
 from django_prices.templatetags.prices_i18n import amount
 from prices import Money, fixed_discount, percentage_discount
 
-from . import DiscountValueType, VoucherType
 from ..core.utils.translations import TranslationProxy
+from . import DiscountValueType, VoucherType
 
 
 class NotApplicable(ValueError):
@@ -142,7 +142,8 @@ class Voucher(models.Model):
 class SaleQueryset(models.QuerySet):
     def active(self, date):
         return self.filter(
-            end_date__gte=date, start_date__lte=date)
+            Q(end_date__isnull=True) | Q(end_date__gte=date),
+            start_date__lte=date)
 
 
 class VoucherTranslation(models.Model):

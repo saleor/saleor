@@ -8,11 +8,11 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from prices import Money
 
-from . import (
-    ChargeStatus, CustomPaymentChoices, TransactionError, TransactionKind)
 from ..checkout.models import Cart
 from ..core.utils.taxes import zero_money
 from ..order.models import Order
+from . import (
+    ChargeStatus, CustomPaymentChoices, TransactionError, TransactionKind)
 
 
 class Payment(models.Model):
@@ -35,7 +35,7 @@ class Payment(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     charge_status = models.CharField(
-        max_length=15, choices=ChargeStatus.CHOICES,
+        max_length=20, choices=ChargeStatus.CHOICES,
         default=ChargeStatus.NOT_CHARGED)
     token = models.CharField(max_length=128, blank=True, default='')
     total = models.DecimalField(
@@ -143,16 +143,19 @@ class Payment(models.Model):
 
     def can_charge(self):
         not_fully_charged = (
-            self.charge_status == ChargeStatus.CHARGED
-            and self.get_total() > self.get_captured_amount())
+            self.charge_status == ChargeStatus.PARTIALLY_CHARGED)
         return self.is_active and (self.not_charged or not_fully_charged)
 
     def can_void(self):
         return self.is_active and self.not_charged and self.is_authorized
 
     def can_refund(self):
+        can_refund_charge_status = (
+            ChargeStatus.PARTIALLY_CHARGED,
+            ChargeStatus.FULLY_CHARGED,
+            ChargeStatus.PARTIALLY_REFUNDED)
         return (
-            self.is_active and self.charge_status == ChargeStatus.CHARGED
+            self.is_active and self.charge_status in can_refund_charge_status
             and self.gateway != CustomPaymentChoices.MANUAL)
 
 

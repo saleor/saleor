@@ -120,7 +120,9 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                                         collections: data.collections.map(
                                           collection => collection.value
                                         ),
-                                        description: data.description,
+                                        descriptionJson: JSON.stringify(
+                                          data.description
+                                        ),
                                         id: product.id,
                                         isPublished: data.available,
                                         name: data.name,
@@ -138,7 +140,9 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                                         collections: data.collections.map(
                                           collection => collection.value
                                         ),
-                                        description: data.description,
+                                        descriptionJson: JSON.stringify(
+                                          data.description
+                                        ),
                                         id: product.id,
                                         isPublished: data.available,
                                         name: data.name,
