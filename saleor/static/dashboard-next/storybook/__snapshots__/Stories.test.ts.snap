@@ -53732,6 +53732,81 @@ Ctrl + K"
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
               >
+                Inventory
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="ProductStock-root-id"
+              >
+                <div
+                  class="MuiFormControl-root-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                    data-shrink="false"
+                  >
+                    SKU (Stock Keeping Unit)
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id"
+                      disabled=""
+                      name="sku"
+                      type="text"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="MuiFormControl-root-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                    data-shrink="false"
+                  >
+                    Inventory
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputType-id MuiInput-inputType-id"
+                      disabled=""
+                      name="stockQuantity"
+                      type="number"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
                 Search Engine Preview
               </span>
               <div
@@ -54522,6 +54597,79 @@ Ctrl + K"
                         USD
                       </p>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+              >
+                Inventory
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="ProductStock-root-id"
+              >
+                <div
+                  class="MuiFormControl-root-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                    data-shrink="false"
+                  >
+                    SKU (Stock Keeping Unit)
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInputBase-input-id MuiInput-input-id"
+                      name="sku"
+                      type="text"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="MuiFormControl-root-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                    data-shrink="false"
+                  >
+                    Inventory
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id"
+                      name="stockQuantity"
+                      type="number"
+                    />
                   </div>
                 </div>
               </div>
@@ -57942,11 +58090,6 @@ Ctrl + K"
                       type="number"
                     />
                   </div>
-                  <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-disabled-id"
-                  >
-                    Allocated: 
-                  </p>
                 </div>
               </div>
             </div>
