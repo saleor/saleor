@@ -34,7 +34,7 @@ class AddressQueryset(models.QuerySet):
             user_default_shipping_address_pk=Value(
                 default_shipping_address_pk, models.IntegerField()),
             user_default_billing_address_pk=Value(
-                default_billing_address_pk, models.IntegerField())).all()
+                default_billing_address_pk, models.IntegerField()))
 
 
 class Address(models.Model):
