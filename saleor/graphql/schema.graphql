@@ -108,6 +108,11 @@ type Attribute implements Node {
   translation(languageCode: LanguageCodeEnum!): AttributeTranslation
 }
 
+type AttributeBulkDelete {
+  errors: [Error!]
+  count: Int!
+}
+
 type AttributeCountableConnection {
   pageInfo: PageInfo!
   edges: [AttributeCountableEdge!]!
@@ -174,6 +179,11 @@ type AttributeValue implements Node {
   slug: String
   type: AttributeValueType
   translation(languageCode: LanguageCodeEnum!): AttributeValueTranslation
+}
+
+type AttributeValueBulkDelete {
+  errors: [Error!]
+  count: Int!
 }
 
 type AttributeValueCreate {
@@ -271,6 +281,11 @@ type Category implements Node {
   ancestors(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   url: String
   translation(languageCode: LanguageCodeEnum!): CategoryTranslation
+}
+
+type CategoryBulkDelete {
+  errors: [Error!]
+  count: Int!
 }
 
 type CategoryCountableConnection {
@@ -483,6 +498,11 @@ type CollectionAddProducts {
   collection: Collection
 }
 
+type CollectionBulkDelete {
+  errors: [Error!]
+  count: Int!
+}
+
 type CollectionCountableConnection {
   pageInfo: PageInfo!
   edges: [CollectionCountableEdge!]!
@@ -579,6 +599,11 @@ type CustomerAddressCreate {
   address: Address
 }
 
+type CustomerBulkDelete {
+  errors: [Error!]
+  count: Int!
+}
+
 type CustomerCreate {
   errors: [Error!]
   user: User
@@ -642,6 +667,11 @@ type Domain {
   host: String!
   sslEnabled: Boolean!
   url: String!
+}
+
+type DraftOrderBulkDelete {
+  errors: [Error!]
+  count: Int!
 }
 
 type DraftOrderComplete {
@@ -851,6 +881,11 @@ type Menu implements Node {
   children: [MenuItem]!
 }
 
+type MenuBulkDelete {
+  errors: [Error!]
+  count: Int!
+}
+
 type MenuCountableConnection {
   pageInfo: PageInfo!
   edges: [MenuCountableEdge!]!
@@ -893,6 +928,11 @@ type MenuItem implements Node {
   level: Int!
   children: [MenuItem]
   translation(languageCode: LanguageCodeEnum!): MenuItemTranslation
+}
+
+type MenuItemBulkDelete {
+  errors: [Error!]
+  count: Int!
 }
 
 type MenuItemCountableConnection {
@@ -976,42 +1016,52 @@ type Mutations {
   shopSettingsTranslate(input: ShopSettingsTranslationInput!, languageCode: LanguageCodeEnum!): ShopSettingsTranslate
   shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
   shippingPriceDelete(id: ID!): ShippingPriceDelete
+  shippingPriceBulkDelete(ids: [ID]!): ShippingPriceBulkDelete
   shippingPriceUpdate(id: ID!, input: ShippingPriceInput!): ShippingPriceUpdate
   shippingPriceTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ShippingPriceTranslate
   shippingZoneCreate(input: ShippingZoneInput!): ShippingZoneCreate
   shippingZoneDelete(id: ID!): ShippingZoneDelete
+  shippingZoneBulkDelete(ids: [ID]!): ShippingZoneBulkDelete
   shippingZoneUpdate(id: ID!, input: ShippingZoneInput!): ShippingZoneUpdate
   attributeCreate(id: ID!, input: AttributeCreateInput!, type: AttributeTypeEnum!): AttributeCreate
   attributeDelete(id: ID!): AttributeDelete
+  attributeBulkDelete(ids: [ID]!): AttributeBulkDelete
   attributeUpdate(id: ID!, input: AttributeUpdateInput!): AttributeUpdate
   attributeTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeTranslate
   attributeValueCreate(attribute: ID!, input: AttributeValueCreateInput!): AttributeValueCreate
   attributeValueDelete(id: ID!): AttributeValueDelete
+  attributeValueBulkDelete(ids: [ID]!): AttributeValueBulkDelete
   attributeValueUpdate(id: ID!, input: AttributeValueCreateInput!): AttributeValueUpdate
   attributeValueTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeValueTranslate
   categoryCreate(input: CategoryInput!, parent: ID): CategoryCreate
   categoryDelete(id: ID!): CategoryDelete
+  categoryBulkDelete(ids: [ID]!): CategoryBulkDelete
   categoryUpdate(id: ID!, input: CategoryInput!): CategoryUpdate
   categoryTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): CategoryTranslate
   collectionAddProducts(collectionId: ID!, products: [ID]!): CollectionAddProducts
   collectionCreate(input: CollectionCreateInput!): CollectionCreate
   collectionDelete(id: ID!): CollectionDelete
+  collectionBulkDelete(ids: [ID]!): CollectionBulkDelete
   collectionRemoveProducts(collectionId: ID!, products: [ID]!): CollectionRemoveProducts
   collectionUpdate(id: ID!, input: CollectionInput!): CollectionUpdate
   collectionTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): CollectionTranslate
   productCreate(input: ProductCreateInput!): ProductCreate
   productDelete(id: ID!): ProductDelete
+  productBulkDelete(ids: [ID]!): ProductBulkDelete
   productUpdate(id: ID!, input: ProductInput!): ProductUpdate
   productTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): ProductTranslate
   productImageCreate(input: ProductImageCreateInput!): ProductImageCreate
   productImageDelete(id: ID!): ProductImageDelete
+  productImageBulkDelete(ids: [ID]!): ProductImageBulkDelete
   productImageReorder(imagesIds: [ID]!, productId: ID!): ProductImageReorder
   productImageUpdate(id: ID!, input: ProductImageUpdateInput!): ProductImageUpdate
   productTypeCreate(input: ProductTypeInput!): ProductTypeCreate
   productTypeDelete(id: ID!): ProductTypeDelete
+  productTypeBulkDelete(ids: [ID]!): ProductTypeBulkDelete
   productTypeUpdate(id: ID!, input: ProductTypeInput!): ProductTypeUpdate
   productVariantCreate(input: ProductVariantCreateInput!): ProductVariantCreate
   productVariantDelete(id: ID!): ProductVariantDelete
+  productVariantBulkDelete(ids: [ID]!): ProductVariantBulkDelete
   productVariantUpdate(id: ID!, input: ProductVariantInput!): ProductVariantUpdate
   productVariantTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ProductVariantTranslate
   variantImageAssign(imageId: ID!, variantId: ID!): VariantImageAssign
@@ -1021,11 +1071,13 @@ type Mutations {
   paymentVoid(paymentId: ID!): PaymentVoid
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
+  pageBulkDelete(ids: [ID]!): PageBulkDelete
   pageUpdate(id: ID!, input: PageInput!): PageUpdate
   pageTranslate(id: ID!, input: PageTranslationInput!, languageCode: LanguageCodeEnum!): PageTranslate
   draftOrderComplete(id: ID!): DraftOrderComplete
   draftOrderCreate(input: DraftOrderCreateInput!): DraftOrderCreate
   draftOrderDelete(id: ID!): DraftOrderDelete
+  draftOrderBulkDelete(ids: [ID]!): DraftOrderBulkDelete
   draftOrderLinesCreate(id: ID!, input: [OrderLineCreateInput]!): DraftOrderLinesCreate
   draftOrderLineDelete(id: ID!): DraftOrderLineDelete
   draftOrderLineUpdate(id: ID!, input: OrderLineInput!): DraftOrderLineUpdate
@@ -1044,18 +1096,22 @@ type Mutations {
   assignNavigation(menu: ID, navigationType: NavigationType!): AssignNavigation
   menuCreate(input: MenuCreateInput!): MenuCreate
   menuDelete(id: ID!): MenuDelete
+  menuBulkDelete(ids: [ID]!): MenuBulkDelete
   menuUpdate(id: ID!, input: MenuInput!): MenuUpdate
   menuItemCreate(input: MenuItemCreateInput!): MenuItemCreate
   menuItemDelete(id: ID!): MenuItemDelete
+  menuItemBulkDelete(ids: [ID]!): MenuItemBulkDelete
   menuItemUpdate(id: ID!, input: MenuItemInput!): MenuItemUpdate
   menuItemTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): MenuItemTranslate
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
+  saleBulkDelete(ids: [ID]!): SaleBulkDelete
   saleUpdate(id: ID!, input: SaleInput!): SaleUpdate
   saleCataloguesAdd(id: ID!, input: CatalogueInput!): SaleAddCatalogues
   saleCataloguesRemove(id: ID!, input: CatalogueInput!): SaleRemoveCatalogues
   voucherCreate(input: VoucherInput!): VoucherCreate
   voucherDelete(id: ID!): VoucherDelete
+  voucherBulkDelete(ids: [ID]!): VoucherBulkDelete
   voucherUpdate(id: ID!, input: VoucherInput!): VoucherUpdate
   voucherCataloguesAdd(id: ID!, input: CatalogueInput!): VoucherAddCatalogues
   voucherCataloguesRemove(id: ID!, input: CatalogueInput!): VoucherRemoveCatalogues
@@ -1080,6 +1136,7 @@ type Mutations {
   setPassword(id: ID!, input: SetPasswordInput!): SetPassword
   customerCreate(input: UserCreateInput!): CustomerCreate
   customerDelete(id: ID!): CustomerDelete
+  customerBulkDelete(ids: [ID]!): CustomerBulkDelete
   customerPasswordReset(input: CustomerPasswordResetInput!): CustomerPasswordReset
   customerRegister(input: CustomerRegisterInput!): CustomerRegister
   customerUpdate(id: ID!, input: CustomerInput!): CustomerUpdate
@@ -1088,6 +1145,7 @@ type Mutations {
   loggedUserUpdate(input: UserAddressInput!): LoggedUserUpdate
   staffCreate(input: StaffCreateInput!): StaffCreate
   staffDelete(id: ID!): StaffDelete
+  staffBulkDelete: StaffBulkDelete
   staffUpdate(id: ID!, input: StaffInput!): StaffUpdate
   addressCreate(input: AddressCreateInput!): AddressCreate
   addressDelete(id: ID!): AddressDelete
@@ -1337,6 +1395,11 @@ type Page implements Node {
   translation(languageCode: LanguageCodeEnum!): PageTranslation
 }
 
+type PageBulkDelete {
+  errors: [Error!]
+  count: Int!
+}
+
 type PageCountableConnection {
   pageInfo: PageInfo!
   edges: [PageCountableEdge!]!
@@ -1536,6 +1599,11 @@ type ProductAvailability {
   priceRangeLocalCurrency: TaxedMoneyRange
 }
 
+type ProductBulkDelete {
+  errors: [Error!]
+  count: Int!
+}
+
 type ProductCountableConnection {
   pageInfo: PageInfo!
   edges: [ProductCountableEdge!]!
@@ -1582,6 +1650,11 @@ type ProductImage implements Node {
   id: ID!
   alt: String!
   url(size: Int): String!
+}
+
+type ProductImageBulkDelete {
+  errors: [Error!]
+  count: Int!
 }
 
 type ProductImageCreate {
@@ -1675,6 +1748,11 @@ type ProductType implements Node {
   variantAttributes: [Attribute]
 }
 
+type ProductTypeBulkDelete {
+  errors: [Error!]
+  count: Int!
+}
+
 type ProductTypeCountableConnection {
   pageInfo: PageInfo!
   edges: [ProductTypeCountableEdge!]!
@@ -1735,6 +1813,11 @@ type ProductVariant implements Node {
   quantityOrdered: Int
   revenue(period: ReportingPeriod): TaxedMoney
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
+}
+
+type ProductVariantBulkDelete {
+  errors: [Error!]
+  count: Int!
 }
 
 type ProductVariantCountableConnection {
@@ -1874,6 +1957,11 @@ type SaleAddCatalogues {
   sale: Sale
 }
 
+type SaleBulkDelete {
+  errors: [Error!]
+  count: Int!
+}
+
 type SaleCountableConnection {
   pageInfo: PageInfo!
   edges: [SaleCountableEdge!]!
@@ -1964,6 +2052,11 @@ enum ShippingMethodTypeEnum {
   WEIGHT
 }
 
+type ShippingPriceBulkDelete {
+  errors: [Error!]
+  shippingMethod: ShippingMethod
+}
+
 type ShippingPriceCreate {
   errors: [Error!]
   shippingZone: ShippingZone
@@ -2005,6 +2098,11 @@ type ShippingZone implements Node {
   default: Boolean!
   shippingMethods: [ShippingMethod]
   priceRange: MoneyRange
+}
+
+type ShippingZoneBulkDelete {
+  errors: [Error!]
+  shippingZone: ShippingZone
 }
 
 type ShippingZoneCountableConnection {
@@ -2108,6 +2206,11 @@ type ShopTranslation implements Node {
 input SiteDomainInput {
   domain: String
   name: String
+}
+
+type StaffBulkDelete {
+  errors: [Error!]
+  count: Int!
 }
 
 type StaffCreate {
@@ -2352,6 +2455,11 @@ type Voucher implements Node {
 type VoucherAddCatalogues {
   errors: [Error!]
   voucher: Voucher
+}
+
+type VoucherBulkDelete {
+  errors: [Error!]
+  count: Int!
 }
 
 type VoucherCountableConnection {

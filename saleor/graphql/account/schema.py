@@ -3,6 +3,7 @@ from graphql_jwt.decorators import login_required, permission_required
 
 from ..core.fields import PrefetchingConnectionField
 from ..descriptions import DESCRIPTIONS
+from .bulk_mutations import CustomerBulkDelete, StaffBulkDelete
 from .mutations import (
     AddressCreate, AddressDelete, AddressUpdate, CustomerAddressCreate,
     CustomerCreate, CustomerDelete, CustomerPasswordReset, CustomerRegister,
@@ -55,6 +56,7 @@ class AccountMutations(graphene.ObjectType):
 
     customer_create = CustomerCreate.Field()
     customer_delete = CustomerDelete.Field()
+    customer_bulk_delete = CustomerBulkDelete.Field()
     customer_password_reset = CustomerPasswordReset.Field()
     customer_register = CustomerRegister.Field()
     customer_update = CustomerUpdate.Field()
@@ -65,6 +67,7 @@ class AccountMutations(graphene.ObjectType):
 
     staff_create = StaffCreate.Field()
     staff_delete = StaffDelete.Field()
+    staff_bulk_delete = StaffBulkDelete.Field()
     staff_update = StaffUpdate.Field()
 
     address_create = AddressCreate.Field()
