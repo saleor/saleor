@@ -878,8 +878,9 @@ def test_checkout_complete_no_payment(
         MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
     data = content['data']['checkoutComplete']
-    assert data['errors'][0]['message'] == \
-        'Checkout can not be fully paid with proper payments'
+    assert data['errors'][0]['message'] == (
+        'Provided payment methods can not '
+        'cover the checkout\'s total amount')
     assert orders_count == Order.objects.count()
 
 
@@ -1163,10 +1164,12 @@ def test_ready_to_place_order_no_payment(
     checkout.save()
     ready, error = ready_to_place_order(checkout, None, None)
     assert not ready
-    assert error == 'Checkout can not be fully paid with proper payments'
+    assert error == (
+        'Provided payment methods can not '
+        'cover the checkout\'s total amount')
 
 
-def test_can_be_fully_paid(cart_with_item, payment_dummy):
+def test_is_fully_paid(cart_with_item, payment_dummy):
     checkout = cart_with_item
     total = checkout.get_total()
     payment = payment_dummy
