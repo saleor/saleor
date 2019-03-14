@@ -430,10 +430,10 @@ class AddressCreate(ModelMutation):
         user = cls.get_node_or_error(info, user_id, errors, 'userId', User)
         if not user:
             return cls(errors=errors)
-
         response = super().mutate(root, info, **data)
-        user.addresses.add(response.address)
-        response.user = user
+        if not response.errors:
+            user.addresses.add(response.address)
+            response.user = user
         return response
 
     @classmethod
