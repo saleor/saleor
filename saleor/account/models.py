@@ -179,9 +179,6 @@ class User(PermissionsMixin, AbstractBaseUser):
                 address.first_name, address.last_name, self.email)
         return self.email
 
-    def get_addresses(self):
-        return self.addresses.annotate_default(self)
-
 
 class CustomerNote(models.Model):
     user = models.ForeignKey(
