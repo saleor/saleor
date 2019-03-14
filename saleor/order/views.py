@@ -10,13 +10,13 @@ from django.urls import reverse
 from django.utils.translation import pgettext_lazy
 from django.views.decorators.csrf import csrf_exempt
 
-from . import FulfillmentStatus
 from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
 from ..payment import ChargeStatus, TransactionKind, get_payment_gateway
 from ..payment.utils import (
     create_payment, create_payment_information, gateway_process_payment)
+from . import FulfillmentStatus
 from .forms import (
     CustomerNoteForm, PasswordForm, PaymentDeleteForm, PaymentsForm)
 from .models import Order

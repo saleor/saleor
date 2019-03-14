@@ -11,7 +11,6 @@ from django.utils.encoding import smart_text
 from django.utils.translation import get_language, pgettext, pgettext_lazy
 from prices import TaxedMoneyRange
 
-from . import AddressType, logger
 from ..account.forms import get_address_form
 from ..account.models import Address, User
 from ..account.utils import store_user_address
@@ -25,6 +24,7 @@ from ..discount.utils import (
     get_value_voucher_discount, increase_voucher_usage)
 from ..order.models import Order
 from ..shipping.models import ShippingMethod
+from . import AddressType, logger
 from .forms import (
     AddressChoiceForm, AnonymousUserBillingForm, AnonymousUserShippingForm,
     BillingAddressChoiceForm)

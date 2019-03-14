@@ -8,11 +8,11 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from prices import Money
 
-from . import (
-    ChargeStatus, CustomPaymentChoices, TransactionError, TransactionKind)
 from ..checkout.models import Cart
 from ..core.utils.taxes import zero_money
 from ..order.models import Order
+from . import (
+    ChargeStatus, CustomPaymentChoices, TransactionError, TransactionKind)
 
 
 class Payment(models.Model):

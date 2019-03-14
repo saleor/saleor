@@ -28,3 +28,8 @@ export interface PartialMutationProviderOutput<
 }
 
 export type FormErrors<TKeys extends string> = Partial<Record<TKeys, string>>;
+
+export type Pagination = Partial<{
+  after: string;
+  before: string;
+}>;

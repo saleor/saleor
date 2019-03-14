@@ -11,7 +11,7 @@ def test_product_translation(user_api_client, product):
     query = """
     query productById($productId: ID!) {
         product(id: $productId) {
-            translation(languageCode: "pl") {
+            translation(languageCode: PL) {
                 name
                 language {
                     code
@@ -35,7 +35,7 @@ def test_product_variant_translation(user_api_client, variant):
     query = """
     query productVariantById($productVariantId: ID!) {
         productVariant(id: $productVariantId) {
-            translation(languageCode: "pl") {
+            translation(languageCode: PL) {
                 name
                 language {
                     code
@@ -61,7 +61,7 @@ def test_collection_translation(user_api_client, collection):
     query = """
     query collectionById($collectionId: ID!) {
         collection(id: $collectionId) {
-            translation(languageCode: "pl") {
+            translation(languageCode: PL) {
                 name
                 language {
                     code
@@ -86,7 +86,7 @@ def test_category_translation(user_api_client, category):
     query = """
     query categoryById($categoryId: ID!) {
         category(id: $categoryId) {
-            translation(languageCode: "pl") {
+            translation(languageCode: PL) {
                 name
                 language {
                     code
@@ -111,7 +111,7 @@ def test_voucher_translation(
     query = """
     query voucherById($voucherId: ID!) {
         voucher(id: $voucherId) {
-            translation(languageCode: "pl") {
+            translation(languageCode: PL) {
                 name
                 language {
                     code
@@ -137,7 +137,7 @@ def test_page_translation(user_api_client, page):
     query = """
     query pageById($pageId: ID!) {
         page(id: $pageId) {
-            translation(languageCode: "pl") {
+            translation(languageCode: PL) {
                 title
                 language {
                     code
@@ -163,7 +163,7 @@ def test_attribute_translation(user_api_client, color_attribute):
         attributes(first: 1) {
             edges {
                 node {
-                    translation(languageCode: "pl") {
+                    translation(languageCode: PL) {
                         name
                         language {
                             code
@@ -192,7 +192,7 @@ def test_attribute_value_translation(user_api_client, pink_attribute_value):
             edges {
                 node {
                     values {
-                        translation(languageCode: "pl") {
+                        translation(languageCode: PL) {
                             name
                             language {
                                 code
@@ -224,7 +224,7 @@ def test_shipping_method_translation(
     query shippingZoneById($shippingZoneId: ID!) {
         shippingZone(id: $shippingZoneId) {
             shippingMethods {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     name
                     language {
                         code
@@ -253,7 +253,7 @@ def test_menu_item_translation(user_api_client, menu_item):
     query = """
     query menuItemById($menuItemId: ID!) {
         menuItem(id: $menuItemId) {
-            translation(languageCode: "pl") {
+            translation(languageCode: PL) {
                 name
                 language {
                     code
@@ -279,7 +279,7 @@ def test_shop_translation(user_api_client, site_settings):
     query = """
     query {
         shop {
-            translation(languageCode: "pl") {
+            translation(languageCode: PL) {
                 headerText
                 language {
                     code
@@ -300,7 +300,7 @@ def test_product_no_translation(user_api_client, product):
     query = """
     query productById($productId: ID!) {
         product(id: $productId) {
-            translation(languageCode: "pl") {
+            translation(languageCode: PL) {
                 name
                 language {
                     code
@@ -321,7 +321,7 @@ def test_product_variant_no_translation(user_api_client, variant):
     query = """
     query productVariantById($productVariantId: ID!) {
         productVariant(id: $productVariantId) {
-            translation(languageCode: "pl") {
+            translation(languageCode: PL) {
                 name
                 language {
                     code
@@ -344,7 +344,7 @@ def test_collection_no_translation(user_api_client, collection):
     query = """
     query collectionById($collectionId: ID!) {
         collection(id: $collectionId) {
-            translation(languageCode: "pl") {
+            translation(languageCode: PL) {
                 name
                 language {
                     code
@@ -366,7 +366,7 @@ def test_category_no_translation(user_api_client, category):
     query = """
     query categoryById($categoryId: ID!) {
         category(id: $categoryId) {
-            translation(languageCode: "pl") {
+            translation(languageCode: PL) {
                 name
                 language {
                     code
@@ -388,7 +388,7 @@ def test_voucher_no_translation(
     query = """
     query voucherById($voucherId: ID!) {
         voucher(id: $voucherId) {
-            translation(languageCode: "pl") {
+            translation(languageCode: PL) {
                 name
                 language {
                     code
@@ -411,7 +411,7 @@ def test_page_no_translation(user_api_client, page):
     query = """
     query pageById($pageId: ID!) {
         page(id: $pageId) {
-            translation(languageCode: "pl") {
+            translation(languageCode: PL) {
                 title
                 language {
                     code
@@ -434,7 +434,7 @@ def test_attribute_no_translation(user_api_client, color_attribute):
         attributes(first: 1) {
             edges {
                 node {
-                    translation(languageCode: "pl") {
+                    translation(languageCode: PL) {
                         name
                         language {
                             code
@@ -460,7 +460,7 @@ def test_attribute_value_no_translation(user_api_client, pink_attribute_value):
             edges {
                 node {
                     values {
-                        translation(languageCode: "pl") {
+                        translation(languageCode: PL) {
                             name
                             language {
                                 code
@@ -489,7 +489,7 @@ def test_shipping_method_no_translation(
     query shippingZoneById($shippingZoneId: ID!) {
         shippingZone(id: $shippingZoneId) {
             shippingMethods {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     name
                     language {
                         code
@@ -515,7 +515,7 @@ def test_menu_item_no_translation(user_api_client, menu_item):
     query = """
     query menuItemById($menuItemId: ID!) {
         menuItem(id: $menuItemId) {
-            translation(languageCode: "pl") {
+            translation(languageCode: PL) {
                 name
                 language {
                     code
@@ -537,7 +537,7 @@ def test_shop_no_translation(user_api_client, site_settings):
     query = """
     query {
         shop {
-            translation(languageCode: "pl") {
+            translation(languageCode: PL) {
                 headerText
                 language {
                     code
@@ -558,10 +558,10 @@ def test_product_create_translation(
     query = """
     mutation productTranslate($productId: ID!) {
         productTranslate(
-                id: $productId, languageCode: "pl",
+                id: $productId, languageCode: PL,
                 input: {name: "Produkt PL"}) {
             product {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     name
                     language {
                         code
@@ -589,10 +589,10 @@ def test_product_update_translation(
     query = """
     mutation productTranslate($productId: ID!) {
         productTranslate(
-                id: $productId, languageCode: "pl",
+                id: $productId, languageCode: PL,
                 input: {name: "Produkt PL"}) {
             product {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     name
                     language {
                         code
@@ -618,10 +618,10 @@ def test_product_variant_create_translation(
     query = """
     mutation productVariantTranslate($productVariantId: ID!) {
         productVariantTranslate(
-                id: $productVariantId, languageCode: "pl",
+                id: $productVariantId, languageCode: PL,
                 input: {name: "Wariant PL"}) {
             productVariant {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     name
                     language {
                         code
@@ -650,10 +650,10 @@ def test_product_variant_update_translation(
     query = """
     mutation productVariantTranslate($productVariantId: ID!) {
         productVariantTranslate(
-                id: $productVariantId, languageCode: "pl",
+                id: $productVariantId, languageCode: PL,
                 input: {name: "Wariant PL"}) {
             productVariant {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     name
                     language {
                         code
@@ -680,10 +680,10 @@ def test_collection_create_translation(
     query = """
     mutation collectionTranslate($collectionId: ID!) {
         collectionTranslate(
-                id: $collectionId, languageCode: "pl",
+                id: $collectionId, languageCode: PL,
                 input: {name: "Kolekcja PL"}) {
             collection {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     name
                     language {
                         code
@@ -711,10 +711,10 @@ def test_collection_update_translation(
     query = """
     mutation collectionTranslate($collectionId: ID!) {
         collectionTranslate(
-                id: $collectionId, languageCode: "pl",
+                id: $collectionId, languageCode: PL,
                 input: {name: "Kolekcja PL"}) {
             collection {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     name
                     language {
                         code
@@ -740,10 +740,10 @@ def test_category_create_translation(
     query = """
     mutation categoryTranslate($categoryId: ID!) {
         categoryTranslate(
-                id: $categoryId, languageCode: "pl",
+                id: $categoryId, languageCode: PL,
                 input: {name: "Kategoria PL"}) {
             category {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     name
                     language {
                         code
@@ -771,10 +771,10 @@ def test_category_update_translation(
     query = """
     mutation categoryTranslate($categoryId: ID!) {
         categoryTranslate(
-                id: $categoryId, languageCode: "pl",
+                id: $categoryId, languageCode: PL,
                 input: {name: "Kategoria PL"}) {
             category {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     name
                     language {
                         code
@@ -800,10 +800,10 @@ def test_voucher_create_translation(
     query = """
     mutation voucherTranslate($voucherId: ID!) {
         voucherTranslate(
-                id: $voucherId, languageCode: "pl",
+                id: $voucherId, languageCode: PL,
                 input: {name: "Bon PL"}) {
             voucher {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     name
                     language {
                         code
@@ -831,10 +831,10 @@ def test_voucher_update_translation(
     query = """
     mutation voucherTranslate($voucherId: ID!) {
         voucherTranslate(
-                id: $voucherId, languageCode: "pl",
+                id: $voucherId, languageCode: PL,
                 input: {name: "Bon PL"}) {
             voucher {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     name
                     language {
                         code
@@ -860,10 +860,10 @@ def test_page_create_translation(
     query = """
     mutation pageTranslate($pageId: ID!) {
         pageTranslate(
-                id: $pageId, languageCode: "pl",
+                id: $pageId, languageCode: PL,
                 input: {title: "Strona PL"}) {
             page {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     title
                     language {
                         code
@@ -891,10 +891,10 @@ def test_page_update_translation(
     query = """
     mutation pageTranslate($pageId: ID!) {
         pageTranslate(
-                id: $pageId, languageCode: "pl",
+                id: $pageId, languageCode: PL,
                 input: {title: "Strona PL"}) {
             page {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     title
                     language {
                         code
@@ -920,10 +920,10 @@ def test_attribute_create_translation(
     query = """
     mutation attributeTranslate($attributeId: ID!) {
         attributeTranslate(
-                id: $attributeId, languageCode: "pl",
+                id: $attributeId, languageCode: PL,
                 input: {name: "Kolor PL"}) {
             attribute {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     name
                     language {
                         code
@@ -951,10 +951,10 @@ def test_attribute_update_translation(
     query = """
     mutation attributeTranslate($attributeId: ID!) {
         attributeTranslate(
-                id: $attributeId, languageCode: "pl",
+                id: $attributeId, languageCode: PL,
                 input: {name: "Kolor PL"}) {
             attribute {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     name
                     language {
                         code
@@ -981,10 +981,10 @@ def test_attribute_value_create_translation(
     query = """
     mutation attributeValueTranslate($attributeValueId: ID!) {
         attributeValueTranslate(
-                id: $attributeValueId, languageCode: "pl",
+                id: $attributeValueId, languageCode: PL,
                 input: {name: "Róż PL"}) {
             attributeValue {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     name
                     language {
                         code
@@ -1015,10 +1015,10 @@ def test_attribute_value_update_translation(
     query = """
     mutation attributeValueTranslate($attributeValueId: ID!) {
         attributeValueTranslate(
-                id: $attributeValueId, languageCode: "pl",
+                id: $attributeValueId, languageCode: PL,
                 input: {name: "Róż PL"}) {
             attributeValue {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     name
                     language {
                         code
@@ -1045,10 +1045,10 @@ def test_shipping_method_create_translation(
     query = """
     mutation shippingPriceTranslate($shippingMethodId: ID!) {
         shippingPriceTranslate(
-                id: $shippingMethodId, languageCode: "pl",
+                id: $shippingMethodId, languageCode: PL,
                 input: {name: "DHL PL"}) {
             shippingMethod {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     name
                     language {
                         code
@@ -1077,10 +1077,10 @@ def test_shipping_method_update_translation(
     query = """
     mutation shippingPriceTranslate($shippingMethodId: ID!) {
         shippingPriceTranslate(
-                id: $shippingMethodId, languageCode: "pl",
+                id: $shippingMethodId, languageCode: PL,
                 input: {name: "DHL PL"}) {
             shippingMethod {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     name
                     language {
                         code
@@ -1109,10 +1109,10 @@ def test_menu_item_update_translation(
     query = """
     mutation menuItemTranslate($menuItemId: ID!) {
         menuItemTranslate(
-                id: $menuItemId, languageCode: "pl",
+                id: $menuItemId, languageCode: PL,
                 input: {name: "Odnośnik PL"}) {
             menuItem {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     name
                     language {
                         code
@@ -1138,9 +1138,9 @@ def test_shop_create_translation(
     query = """
     mutation shopSettingsTranslate {
         shopSettingsTranslate(
-                languageCode: "pl", input: {headerText: "Nagłówek PL"}) {
+                languageCode: PL, input: {headerText: "Nagłówek PL"}) {
             shop {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     headerText
                     language {
                         code
@@ -1167,9 +1167,9 @@ def test_shop_update_translation(
     query = """
     mutation shopSettingsTranslate {
         shopSettingsTranslate(
-                languageCode: "pl", input: {headerText: "Nagłówek PL"}) {
+                languageCode: PL, input: {headerText: "Nagłówek PL"}) {
             shop {
-                translation(languageCode: "pl") {
+                translation(languageCode: PL) {
                     headerText
                     language {
                         code
@@ -1230,7 +1230,7 @@ def test_translations_query_inline_fragment(user_api_client, product):
                 node {
                     ... on Product {
                         name
-                        translation(languageCode: "pl") {
+                        translation(languageCode: PL) {
                             name
                         }
                     }

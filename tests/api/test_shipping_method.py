@@ -93,7 +93,7 @@ def test_create_shipping_zone(staff_api_client, permission_manage_shipping):
     zone = data['shippingZone']
     assert zone['name'] == 'test shipping'
     assert zone['countries'] == [{'code': 'PL'}]
-    assert zone['default'] == False
+    assert not zone['default']
 
 
 def test_create_default_shipping_zone(
@@ -108,7 +108,7 @@ def test_create_default_shipping_zone(
     zone = data['shippingZone']
     assert zone['name'] == 'test shipping'
     assert zone['countries'] == []
-    assert zone['default'] == True
+    assert zone['default']
 
 
 def test_create_duplicated_default_shipping_zone(
@@ -211,7 +211,7 @@ def test_delete_shipping_zone(
 
 
 PRICE_BASED_SHIPPING_QUERY = """
-    mutation createShipipngPrice(
+    mutation createShippingPrice(
         $type: ShippingMethodTypeEnum, $name: String!, $price: Decimal,
         $shippingZone: ID!, $minimumOrderPrice: Decimal,
         $maximumOrderPrice: Decimal) {
@@ -222,6 +222,9 @@ PRICE_BASED_SHIPPING_QUERY = """
         errors {
             field
             message
+        }
+        shippingZone {
+            id
         }
         shippingMethod {
             name
@@ -243,10 +246,11 @@ PRICE_BASED_SHIPPING_QUERY = """
 
 @pytest.mark.parametrize(
     'min_price, max_price, expected_min_price, expected_max_price',
-    ((10.32, 15.43, {
-        'amount': 10.32}, {
-            'amount': 15.43}), (10.33, None, {
-                'amount': 10.33}, None)))
+    (
+        (10.32, 15.43, {'amount': 10.32}, {'amount': 15.43}),
+        (10.33, None, {'amount': 10.33}, None)
+    )
+)
 def test_create_shipping_method(
         staff_api_client, shipping_zone, min_price, max_price,
         expected_min_price, expected_max_price, permission_manage_shipping):
@@ -265,32 +269,18 @@ def test_create_shipping_method(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping])
     content = get_graphql_content(response)
-    data = content['data']['shippingPriceCreate']['shippingMethod']
-    assert 'errors' not in data
-    assert data['name'] == name
-    assert data['price']['amount'] == float(price)
-    assert data['minimumOrderPrice'] == expected_min_price
-    assert data['maximumOrderPrice'] == expected_max_price
-    assert data['type'] == ShippingMethodTypeEnum.PRICE.name
+    data = content['data']['shippingPriceCreate']
+    assert 'errors' not in data['shippingMethod']
+    assert data['shippingMethod']['name'] == name
+    assert data['shippingMethod']['price']['amount'] == float(price)
+    assert data['shippingMethod']['minimumOrderPrice'] == expected_min_price
+    assert data['shippingMethod']['maximumOrderPrice'] == expected_max_price
+    assert data['shippingMethod']['type'] == ShippingMethodTypeEnum.PRICE.name
+    assert data['shippingZone']['id'] == shipping_zone_id
 
 
-@pytest.mark.parametrize(
-    'min_price, max_price, expected_error',
-    ((
-        None, 15.11, {
-            'field':
-            'minimumOrderPrice',
-            'message':
-            'Minimum order price is required'
-            ' for Price Based shipping.'}),
-     (
-         20.21, 15.11, {
-             'field': 'maximumOrderPrice',
-             'message':
-             'Maximum order price should be larger than the minimum.'})))
 def test_create_price_shipping_method_errors(
-        shipping_zone, staff_api_client, min_price, max_price, expected_error,
-        permission_manage_shipping):
+        shipping_zone, staff_api_client, permission_manage_shipping):
     query = PRICE_BASED_SHIPPING_QUERY
     shipping_zone_id = graphene.Node.to_global_id(
         'ShippingZone', shipping_zone.pk)
@@ -298,14 +288,16 @@ def test_create_price_shipping_method_errors(
         'shippingZone': shipping_zone_id,
         'name': 'DHL',
         'price': 12.34,
-        'minimumOrderPrice': min_price,
-        'maximumOrderPrice': max_price,
+        'minimumOrderPrice': 20,
+        'maximumOrderPrice': 15,
         'type': ShippingMethodTypeEnum.PRICE.name}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping])
     content = get_graphql_content(response)
     data = content['data']['shippingPriceCreate']
-    assert data['errors'][0] == expected_error
+    assert (
+        data['errors'][0]['message'] ==
+        'Maximum order price should be larger than the minimum order price.')
 
 
 WEIGHT_BASED_SHIPPING_QUERY = """
@@ -331,6 +323,9 @@ WEIGHT_BASED_SHIPPING_QUERY = """
                     value
                     unit
                 }
+            }
+            shippingZone {
+                id
             }
         }
     }
@@ -364,33 +359,14 @@ def test_create_weight_based_shipping_method(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping])
     content = get_graphql_content(response)
-    data = content['data']['shippingPriceCreate']['shippingMethod']
-    assert data['minimumOrderWeight'] == expected_min_weight
-    assert data['maximumOrderWeight'] == expected_max_weight
+    data = content['data']['shippingPriceCreate']
+    assert data['shippingMethod']['minimumOrderWeight'] == expected_min_weight
+    assert data['shippingMethod']['maximumOrderWeight'] == expected_max_weight
+    assert data['shippingZone']['id'] == shipping_zone_id
 
 
-@pytest.mark.parametrize(
-    'min_weight, max_weight, expected_error',
-    (
-        (
-            None, 15.11, {
-                'field':
-                'minimumOrderWeight',
-                'message':
-                'Minimum order weight is required for'
-                ' Weight Based shipping.'}),
-        (
-            20.21,
-            15.11,
-            {
-                'field':
-                'maximumOrderWeight',
-                'message':
-                'Maximum order weight should be larger than the minimum.'  # noqa
-            })))
 def test_create_weight_shipping_method_errors(
-        shipping_zone, staff_api_client, min_weight, max_weight,
-        expected_error, permission_manage_shipping):
+        shipping_zone, staff_api_client, permission_manage_shipping):
     query = WEIGHT_BASED_SHIPPING_QUERY
     shipping_zone_id = graphene.Node.to_global_id(
         'ShippingZone', shipping_zone.pk)
@@ -398,14 +374,16 @@ def test_create_weight_shipping_method_errors(
         'shippingZone': shipping_zone_id,
         'name': 'DHL',
         'price': 12.34,
-        'minimumOrderWeight': min_weight,
-        'maximumOrderWeight': max_weight,
+        'minimumOrderWeight': 20,
+        'maximumOrderWeight': 15,
         'type': ShippingMethodTypeEnum.WEIGHT.name}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping])
     content = get_graphql_content(response)
     data = content['data']['shippingPriceCreate']
-    assert data['errors'][0] == expected_error
+    assert (
+        data['errors'][0]['message'] ==
+        'Maximum order weight should be larger than the minimum order weight.')
 
 
 def test_update_shipping_method(
@@ -421,6 +399,9 @@ def test_update_shipping_method(
             errors {
                 field
                 message
+            }
+            shippingZone {
+                id
             }
             shippingMethod {
                 price {
@@ -450,8 +431,9 @@ def test_update_shipping_method(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping])
     content = get_graphql_content(response)
-    data = content['data']['shippingPriceUpdate']['shippingMethod']
-    assert data['price']['amount'] == float(price)
+    data = content['data']['shippingPriceUpdate']
+    assert data['shippingMethod']['price']['amount'] == float(price)
+    assert data['shippingZone']['id'] == shipping_zone_id
 
 
 def test_delete_shipping_method(
@@ -459,21 +441,25 @@ def test_delete_shipping_method(
     query = """
         mutation deleteShippingPrice($id: ID!) {
             shippingPriceDelete(id: $id) {
+                shippingZone {
+                    id
+                }
                 shippingMethod {
-                    price {
-                        amount
-                    }
+                    id
                 }
             }
         }
         """
     shipping_method_id = graphene.Node.to_global_id(
         'ShippingMethod', shipping_method.pk)
+    shipping_zone_id = graphene.Node.to_global_id(
+        'ShippingZone', shipping_method.shipping_zone.pk)
     variables = {'id': shipping_method_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping])
     content = get_graphql_content(response)
-    data = content['data']['shippingPriceDelete']['shippingMethod']
-    assert data['price']['amount'] == float(shipping_method.price.amount)
+    data = content['data']['shippingPriceDelete']
+    assert data['shippingMethod']['id'] == shipping_method_id
+    assert data['shippingZone']['id'] == shipping_zone_id
     with pytest.raises(shipping_method._meta.model.DoesNotExist):
         shipping_method.refresh_from_db()

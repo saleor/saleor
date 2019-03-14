@@ -23,7 +23,7 @@ const StaffListPage: React.StatelessComponent<StaffListPageProps> = ({
   onPreviousPage,
   onRowClick
 }) => (
-  <Container width="md">
+  <Container>
     <PageHeader title={i18n.t("Staff members", { context: "page title" })}>
       <Button
         color="secondary"

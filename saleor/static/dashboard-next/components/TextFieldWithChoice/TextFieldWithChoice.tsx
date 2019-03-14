@@ -9,8 +9,8 @@ import TextField, { TextFieldProps } from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import DropdownIcon from "@material-ui/icons/ArrowDropDown";
 import * as React from "react";
+import Anchor from "../Anchor";
 import MenuToggle from "../MenuToggle";
-import Anchor from "./Anchor";
 
 export type TextFieldWithChoiceProps<TValue = string> = TextFieldProps & {
   ChoiceProps: {
