@@ -30,9 +30,6 @@ Describes common details of a few *product variants*. When the shop displays the
 - ``publication_date``
     Until this date the product is not listed in storefront and is unavailable for users.
 
-- ``is_featured``
-    Featured products are displayed on the front page.
-
 
 Product Types
 ---------------

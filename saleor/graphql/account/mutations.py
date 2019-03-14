@@ -470,6 +470,10 @@ class CustomerAddressCreate(ModelMutation):
     class Arguments:
         input = AddressInput(
             description='Fields required to create address', required=True)
+        type = AddressTypeEnum(required=False, description=(
+            'A type of address. If provided, the new address will be '
+            'automatically assigned as the customer\'s default address '
+            'of that type.'))
 
     class Meta:
         description = 'Create a new address for the customer.'
@@ -479,6 +483,16 @@ class CustomerAddressCreate(ModelMutation):
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.is_authenticated
+
+    @classmethod
+    def mutate(cls, root, info, **data):
+        success_response = super().mutate(root, info, **data)
+        address_type = data.get('type', None)
+        if address_type:
+            user = info.context.user
+            instance = success_response.address
+            utils.change_user_default_address(user, instance, address_type)
+        return success_response
 
     @classmethod
     def save(cls, info, instance, cleaned_input):

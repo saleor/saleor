@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 import { CollectionCreateInput } from "./../../types/globalTypes";
@@ -25,7 +26,7 @@ export interface CreateCollection_collectionCreate_collection {
   isPublished: boolean;
   name: string;
   backgroundImage: CreateCollection_collectionCreate_collection_backgroundImage | null;
-  description: string;
+  descriptionJson: any;
   seoDescription: string | null;
   seoTitle: string | null;
 }

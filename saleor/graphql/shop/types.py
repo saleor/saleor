@@ -18,6 +18,9 @@ from ..core.types.common import (
     CountryDisplay, LanguageDisplay, PermissionDisplay)
 from ..menu.types import Menu
 from ..product.types import Collection
+from ..translations.enums import LanguageCodeEnum
+from ..translations.resolvers import resolve_translation
+from ..translations.types import ShopTranslation
 from ..utils import format_permissions_for_display
 from .enums import AuthorizationKeyType
 
@@ -105,6 +108,14 @@ class Shop(graphene.ObjectType):
     track_inventory_by_default = graphene.Boolean(
         description='Enable inventory tracking')
     default_weight_unit = WeightUnitsEnum(description='Default weight unit')
+    translation = graphene.Field(
+        ShopTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description='A language code to return the translation for.',
+            required=True),
+        description=(
+            'Returns translated Shop fields for the given language code.'))
 
     class Meta:
         description = dedent('''
@@ -207,6 +218,10 @@ class Shop(graphene.ObjectType):
         else:
             default_country = None
         return default_country
+
+    def resolve_translation(self, info, language_code):
+        return resolve_translation(
+            info.context.site.settings, info, language_code)
 
 
 def get_node_optimized(qs, lookup, info):

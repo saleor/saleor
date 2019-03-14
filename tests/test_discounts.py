@@ -213,15 +213,19 @@ def test_get_voucher_discount_all_products(
     assert discount == Money(expected_value, 'USD')
 
 
-@pytest.mark.parametrize('current_date, is_active', (
-    (date.today(), True),
-    (date.today() + timedelta(days=1), True),
-    (date.today() + timedelta(days=2), False),
-    (date.today() - timedelta(days=2), False)))
-def test_sale_active(current_date, is_active):
+@pytest.mark.parametrize('current_date, start_date, end_date, is_active', (
+    (date.today(), date.today(), date.today() + timedelta(days=1), True),
+    (date.today() + timedelta(days=1), date.today(), date.today() + timedelta(days=1), True),
+    (date.today() + timedelta(days=2), date.today(), date.today() + timedelta(days=1), False),
+    (date.today() - timedelta(days=2), date.today(), date.today() + timedelta(days=1), False),
+    (date.today(), date.today(), None, True),
+    (date.today() + timedelta(weeks=10), date.today(), None, True),
+    ))
+def test_sale_active(current_date, start_date, end_date, is_active):
     Sale.objects.create(
         type=DiscountValueType.FIXED,
-        value=5, start_date=date.today(),
-        end_date=date.today() + timedelta(days=1))
+        value=5,
+        start_date=start_date,
+        end_date=end_date)
     sale_is_active = Sale.objects.active(date=current_date).exists()
     assert is_active == sale_is_active

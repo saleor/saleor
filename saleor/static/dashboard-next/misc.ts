@@ -55,10 +55,14 @@ export const removeDoubleSlashes = (url: string) =>
 
 export const transformPaymentStatus = (status: string) => {
   switch (status) {
-    case PaymentChargeStatusEnum.CHARGED:
-      return { localized: i18n.t("Paid"), status: "success" };
+    case PaymentChargeStatusEnum.PARTIALLY_CHARGED:
+      return { localized: i18n.t("Partially paid"), status: "error" };
+    case PaymentChargeStatusEnum.FULLY_CHARGED:
+      return { localized: i18n.t("Fully paid"), status: "success" };
+    case PaymentChargeStatusEnum.PARTIALLY_REFUNDED:
+      return { localized: i18n.t("Partially refunded"), status: "error" };
     case PaymentChargeStatusEnum.FULLY_REFUNDED:
-      return { localized: i18n.t("Refunded"), status: "success" };
+      return { localized: i18n.t("Fully refunded"), status: "success" };
     default:
       return { localized: i18n.t("Unpaid"), status: "error" };
   }
@@ -204,7 +208,7 @@ export function getUserName(user?: User, returnEmail?: boolean) {
       : returnEmail
       ? user.email
       : user.email.split("@")[0]
-    : null;
+    : undefined;
 }
 
 export function getUserInitials(user?: User) {
@@ -213,5 +217,5 @@ export function getUserInitials(user?: User) {
         ? user.firstName[0] + user.lastName[0]
         : user.email.slice(0, 2)
       ).toUpperCase()
-    : null;
+    : undefined;
 }

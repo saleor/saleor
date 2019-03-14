@@ -9,7 +9,9 @@ from ...product.utils.availability import (
 register = Library()
 
 
-SUCCESSES = {ChargeStatus.CHARGED, ChargeStatus.FULLY_REFUNDED}
+SUCCESSES = {
+    ChargeStatus.FULLY_CHARGED,
+    ChargeStatus.FULLY_REFUNDED}
 
 
 LABEL_DANGER = 'danger'

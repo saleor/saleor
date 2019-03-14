@@ -19,6 +19,11 @@ from ..core.connection import CountableDjangoObjectType
 from ..core.enums import ReportingPeriod, TaxRateType
 from ..core.fields import PrefetchingConnectionField
 from ..core.types import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+from ..translations.enums import LanguageCodeEnum
+from ..translations.resolvers import resolve_translation
+from ..translations.types import (
+    AttributeTranslation, AttributeValueTranslation, CategoryTranslation,
+    CollectionTranslation, ProductTranslation, ProductVariantTranslation)
 from ..utils import get_database_id, reporting_period_to_date
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeValueType, OrderDirection, ProductOrderField
@@ -76,10 +81,20 @@ class AttributeValue(CountableDjangoObjectType):
     slug = graphene.String(description=AttributeValueDescriptions.SLUG)
     type = AttributeValueType(description=AttributeValueDescriptions.TYPE)
     value = graphene.String(description=AttributeValueDescriptions.VALUE)
+    translation = graphene.Field(
+        AttributeValueTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description='A language code to return the translation for.',
+            required=True),
+        description=(
+            'Returns translated Attribute Value fields '
+            'for the given language code.'),
+        resolver=resolve_translation)
 
     class Meta:
         description = 'Represents a value of an attribute.'
-        exclude_fields = ['attribute']
+        exclude_fields = ['attribute', 'translations']
         interfaces = [relay.Node]
         model = models.AttributeValue
 
@@ -94,11 +109,21 @@ class Attribute(CountableDjangoObjectType):
         graphene.List(
             AttributeValue, description=AttributeDescriptions.VALUES),
         model_field='values')
+    translation = graphene.Field(
+        AttributeTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description='A language code to return the translation for.',
+            required=True),
+        description=(
+            'Returns translated Attribute fields '
+            'for the given language code.'),
+        resolver=resolve_translation)
 
     class Meta:
         description = dedent("""Custom attribute of a product. Attributes can be
         assigned to products and variants at the product type level.""")
-        exclude_fields = []
+        exclude_fields = ['translations']
         interfaces = [relay.Node]
         model = models.Attribute
 
@@ -159,11 +184,21 @@ class ProductVariant(CountableDjangoObjectType):
             lambda: ProductImage,
             description='List of images for the product variant'),
         model_field='images')
+    translation = graphene.Field(
+        ProductVariantTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description='A language code to return the translation for.',
+            required=True),
+        description=(
+            'Returns translated Product Variant fields '
+            'for the given language code.'),
+        resolver=resolve_translation)
 
     class Meta:
         description = dedent("""Represents a version of a product such as
         different size or color.""")
-        exclude_fields = ['order_lines', 'variant_images']
+        exclude_fields = ['order_lines', 'variant_images', 'translations']
         interfaces = [relay.Node]
         model = models.ProductVariant
 
@@ -292,13 +327,22 @@ class Product(CountableDjangoObjectType):
     available_on = graphene.Date(
         deprecation_reason=(
             'availableOn is deprecated, use publicationDate instead'))
+    translation = graphene.Field(
+        ProductTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description='A language code to return the translation for.',
+            required=True),
+        description=(
+            'Returns translated Product fields for the given language code.'),
+        resolver=resolve_translation)
 
     class Meta:
         description = dedent("""Represents an individual item for sale in the
         storefront.""")
         interfaces = [relay.Node]
         model = models.Product
-        exclude_fields = ['voucher_set', 'sale_set']
+        exclude_fields = ['voucher_set', 'sale_set', 'translations']
 
     @gql_optimizer.resolver_hints(prefetch_related='images')
     def resolve_thumbnail_url(self, info, *, size=None):
@@ -322,7 +366,7 @@ class Product(CountableDjangoObjectType):
         return self.get_absolute_url()
 
     @gql_optimizer.resolver_hints(
-        prefetch_related='variants',
+        prefetch_related=('variants', 'collections'),
         only=['publication_date', 'charge_taxes', 'price', 'tax_rate'])
     def resolve_availability(self, info):
         context = info.context
@@ -438,11 +482,22 @@ class Collection(CountableDjangoObjectType):
     published_date = graphene.Date(
         deprecation_reason=(
             'publishedDate is deprecated, use publicationDate instead'))
+    translation = graphene.Field(
+        CollectionTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description='A language code to return the translation for.',
+            required=True),
+        description=(
+            'Returns translated Collection fields '
+            'for the given language code.'),
+        resolver=resolve_translation)
 
     class Meta:
         description = "Represents a collection of products."
         exclude_fields = [
-            'voucher_set', 'sale_set', 'menuitem_set', 'background_image_alt']
+            'voucher_set', 'sale_set', 'menuitem_set', 'background_image_alt',
+            'translations']
         interfaces = [relay.Node]
         model = models.Collection
 
@@ -458,6 +513,9 @@ class Collection(CountableDjangoObjectType):
         qs = self.products.visible_to_user(info.context.user)
         return gql_optimizer.query(qs, info)
 
+    def resolve_published_date(self, info):
+        return self.publication_date
+
     @classmethod
     def get_node(cls, info, id):
         if info.context:
@@ -468,9 +526,6 @@ class Collection(CountableDjangoObjectType):
             except cls._meta.model.DoesNotExist:
                 return None
         return None
-
-    def resolve_published_date(self, info):
-        return self.publication_date
 
 
 class Category(CountableDjangoObjectType):
@@ -488,6 +543,15 @@ class Category(CountableDjangoObjectType):
         description='List of children of the category.')
     background_image = graphene.Field(
         Image, size=graphene.Int(description='Size of the image'))
+    translation = graphene.Field(
+        CategoryTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description='A language code to return the translation for.',
+            required=True),
+        description=(
+            'Returns translated Category fields for the given language code.'),
+        resolver=resolve_translation)
 
     class Meta:
         description = dedent("""Represents a single category of products.
@@ -495,7 +559,7 @@ class Category(CountableDjangoObjectType):
         be used for navigation in the storefront.""")
         exclude_fields = [
             'lft', 'rght', 'tree_id', 'voucher_set', 'sale_set',
-            'menuitem_set', 'background_image_alt']
+            'menuitem_set', 'background_image_alt', 'translations']
         interfaces = [relay.Node]
         model = models.Category
 

@@ -1,19 +1,12 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
+
+import { PageInput } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: PageUpdate
 // ====================================================
-
-export interface PageUpdate_pageUpdate_page {
-  __typename: "Page";
-  id: string;
-  slug: string;
-  title: string;
-  content: string;
-  isPublished: boolean;
-  publicationDate: any | null;
-}
 
 export interface PageUpdate_pageUpdate_errors {
   __typename: "Error";
@@ -21,10 +14,22 @@ export interface PageUpdate_pageUpdate_errors {
   message: string | null;
 }
 
+export interface PageUpdate_pageUpdate_page {
+  __typename: "Page";
+  id: string;
+  title: string;
+  slug: string;
+  isVisible: boolean | null;
+  contentJson: any;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  availableOn: any | null;
+}
+
 export interface PageUpdate_pageUpdate {
   __typename: "PageUpdate";
-  page: PageUpdate_pageUpdate_page | null;
   errors: PageUpdate_pageUpdate_errors[] | null;
+  page: PageUpdate_pageUpdate_page | null;
 }
 
 export interface PageUpdate {
@@ -33,9 +38,5 @@ export interface PageUpdate {
 
 export interface PageUpdateVariables {
   id: string;
-  title: string;
-  content: string;
-  slug: string;
-  isPublished: boolean;
-  publicationDate?: string | null;
+  input: PageInput;
 }

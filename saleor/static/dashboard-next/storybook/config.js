@@ -14,6 +14,7 @@ function loadStories() {
   require("./stories/components/ErrorPage");
   require("./stories/components/ExternalLink");
   require("./stories/components/Money");
+  require("./stories/components/MoneyRange");
   require("./stories/components/MultiAutocompleteSelectField");
   require("./stories/components/MultiSelectField");
   require("./stories/components/NotFoundPage");
@@ -21,6 +22,7 @@ function loadStories() {
   require("./stories/components/Percent");
   require("./stories/components/PhoneField");
   require("./stories/components/PriceField");
+  require("./stories/components/RichTextEditor");
   require("./stories/components/SaveButtonBar");
   require("./stories/components/SingleAutocompleteSelectField");
   require("./stories/components/SingleSelectField");
@@ -28,6 +30,8 @@ function loadStories() {
   require("./stories/components/StatusLabel");
   require("./stories/components/TablePagination");
   require("./stories/components/Timeline");
+  require("./stories/components/Weight");
+  require("./stories/components/WeightRange");
   require("./stories/components/messages");
 
   // Authentication
@@ -70,11 +74,8 @@ function loadStories() {
   require("./stories/staff/StaffDetailsPage");
 
   // Pages
-  require("./stories/pages/PageContent");
-  require("./stories/pages/PageDeleteDialog");
-  require("./stories/pages/PageDetailsPage");
-  require("./stories/pages/PageListPage");
-  require("./stories/pages/PageProperties");
+  require("./stories/pages/PageDetailsPage")
+  require("./stories/pages/PageListPage")
 
   // Products
   require("./stories/products/ProductCreatePage");
@@ -111,10 +112,17 @@ function loadStories() {
   require("./stories/productTypes/ProductTypeDetailsPage");
   require("./stories/productTypes/ProductTypeListPage");
 
+  // Shipping
+  require("./stories/shipping/ShippingZoneCountriesAssignDialog");
+  require("./stories/shipping/ShippingZoneCreatePage");
+  require("./stories/shipping/ShippingZoneDetailsPage");
+  require("./stories/shipping/ShippingZoneRateDialog");
+  require("./stories/shipping/ShippingZonesListPage");
+
   // Site settings
   require("./stories/siteSettings/SiteSettingsKeyDialog");
   require("./stories/siteSettings/SiteSettingsPage");
-  
+
   // Taxes
   require("./stories/taxes/CountryListPage");
   require("./stories/taxes/CountryTaxesPage");

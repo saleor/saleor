@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import CardSpacer from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton";
 import Container from "../../../components/Container";
@@ -48,8 +49,9 @@ const SaleCreatePage: React.StatelessComponent<SaleCreatePageProps> = ({
   return (
     <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
-        <Container width="md">
-          <PageHeader title={i18n.t("Create Sale")} onBack={onBack} />
+        <Container>
+          <AppHeader onBack={onBack}>{i18n.t("Sales")}</AppHeader>
+          <PageHeader title={i18n.t("Create Sale")} />
           <Grid>
             <div>
               <SaleInfo
