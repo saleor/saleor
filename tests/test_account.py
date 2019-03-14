@@ -6,6 +6,7 @@ from urllib.parse import urlencode
 import i18naddress
 import pytest
 from captcha import constants as recaptcha_constants
+from captcha.client import RecaptchaResponse
 from django.core.exceptions import ValidationError
 from django.forms import Form
 from django.http import QueryDict
@@ -292,12 +293,14 @@ def test_disabled_recaptcha():
     assert form.is_valid()
 
 
-@patch.dict(os.environ, {'RECAPTCHA_TESTING': 'True'})
-def test_requires_recaptcha(settings):
+@patch('captcha.fields.client.submit')
+def test_requires_recaptcha(captcha_submit_mock, settings):
     """
     This test creates a new form
     that should contain a (required) recaptcha field.
     """
+    captcha_submit_mock.return_value = RecaptchaResponse(is_valid=True)
+
     settings.RECAPTCHA_PUBLIC_KEY = recaptcha_constants.TEST_PUBLIC_KEY
     settings.RECAPTCHA_PRIVATE_KEY = recaptcha_constants.TEST_PRIVATE_KEY
 
