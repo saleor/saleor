@@ -194,4 +194,6 @@ export interface ProductCreateVariables {
   name: string;
   price?: any | null;
   productType: string;
+  sku?: string | null;
+  stockQuantity?: number | null;
 }
