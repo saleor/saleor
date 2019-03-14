@@ -9,6 +9,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import reverse
 
 from saleor.account.models import Address, User
+from saleor.checkout import AddressType
 from saleor.graphql.account.mutations import (
     CustomerDelete, SetPassword, StaffDelete, StaffUpdate, UserDelete)
 from saleor.graphql.core.enums import PermissionEnum
@@ -1259,8 +1260,8 @@ def test_customer_reset_password(
 
 
 CUSTOMER_ADDRESS_CREATE_MUTATION = """
-mutation($addressInput: AddressInput!) {
-  customerAddressCreate(input: $addressInput) {
+mutation($addressInput: AddressInput!, $addressType: AddressTypeEnum) {
+  customerAddressCreate(input: $addressInput, type: $addressType) {
     address {
         id,
         city
@@ -1284,6 +1285,39 @@ def test_customer_create_address(user_api_client, graphql_address_data):
 
     user.refresh_from_db()
     assert user.addresses.count() == nr_of_addresses + 1
+
+
+def test_customer_create_default_address(
+        user_api_client, graphql_address_data):
+    user = user_api_client.user
+    nr_of_addresses = user.addresses.count()
+
+    query = CUSTOMER_ADDRESS_CREATE_MUTATION
+    address_type = AddressType.SHIPPING.upper()
+    variables = {
+        'addressInput': graphql_address_data, 'addressType': address_type}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['customerAddressCreate']
+    assert data['address']['city'] == graphql_address_data['city']
+
+    user.refresh_from_db()
+    assert user.addresses.count() == nr_of_addresses + 1
+    assert user.default_shipping_address.id == int(
+        graphene.Node.from_global_id(data['address']['id'])[1])
+
+    address_type = AddressType.BILLING.upper()
+    variables = {
+        'addressInput': graphql_address_data, 'addressType': address_type}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['customerAddressCreate']
+    assert data['address']['city'] == graphql_address_data['city']
+
+    user.refresh_from_db()
+    assert user.addresses.count() == nr_of_addresses + 2
+    assert user.default_billing_address.id == int(
+        graphene.Node.from_global_id(data['address']['id'])[1])
 
 
 def test_anonymous_user_create_address(api_client, graphql_address_data):
@@ -1318,7 +1352,7 @@ def test_customer_set_address_as_default(user_api_client, address):
     query = CUSTOMER_SET_DEFAULT_ADDRESS_MUTATION
     variables = {
         'id': graphene.Node.to_global_id('Address', address.id),
-        'type': 'SHIPPING'}
+        'type': AddressType.SHIPPING.upper()}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['customerSetDefaultAddress']
@@ -1327,14 +1361,13 @@ def test_customer_set_address_as_default(user_api_client, address):
     user.refresh_from_db()
     assert user.default_shipping_address == address
 
-    variables['type'] = 'BILLING'
+    variables['type'] = AddressType.BILLING.upper()
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['customerSetDefaultAddress']
     assert not data['errors']
 
     user.refresh_from_db()
-
     assert user.default_billing_address == address
 
 
@@ -1355,7 +1388,7 @@ def test_customer_change_default_address(
     query = CUSTOMER_SET_DEFAULT_ADDRESS_MUTATION
     variables = {
         'id': graphene.Node.to_global_id('Address', address.id),
-        'type': 'SHIPPING'}
+        'type': AddressType.SHIPPING.upper()}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['customerSetDefaultAddress']
@@ -1374,6 +1407,6 @@ def test_customer_change_default_address_invalid_address(
     query = CUSTOMER_SET_DEFAULT_ADDRESS_MUTATION
     variables = {
         'id': graphene.Node.to_global_id('Address', address_other_country.id),
-        'type': 'SHIPPING'}
+        'type': AddressType.SHIPPING.upper()}
     response = user_api_client.post_graphql(query, variables)
     assert_no_permission(response)

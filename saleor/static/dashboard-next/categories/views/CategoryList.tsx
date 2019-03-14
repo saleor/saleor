@@ -3,14 +3,12 @@ import * as React from "react";
 import Navigator from "../../components/Navigator";
 import { createPaginationState, Paginator } from "../../components/Paginator";
 import { maybe } from "../../misc";
+import { Pagination } from "../../types";
 import { CategoryListPage } from "../components/CategoryListPage/CategoryListPage";
 import { TypedRootCategoriesQuery } from "../queries";
 import { categoryAddUrl, categoryUrl } from "../urls";
 
-export type CategoryListQueryParams = Partial<{
-  after: string;
-  before: string;
-}>;
+export type CategoryListQueryParams = Pagination;
 
 interface CategoryListProps {
   params: CategoryListQueryParams;

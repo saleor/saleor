@@ -60,89 +60,100 @@ class QueryProgress extends React.Component<QueryProgressProps, {}> {
 
 export function TypedQuery<TData, TVariables>(query: DocumentNode) {
   class StrictTypedQuery extends Query<TData, TVariables> {}
-  return ({
-    children,
-    displayLoader,
-    skip,
-    variables,
-    require
-  }: TypedQueryInnerProps<TData, TVariables>) => (
+  return (props: TypedQueryInnerProps<TData, TVariables>) => (
     <AppProgress>
       {({ funcs: changeProgressState }) => (
         <Navigator>
           {navigate => (
             <Messages>
-              {pushMessage => (
-                <StrictTypedQuery
-                  fetchPolicy="cache-and-network"
-                  query={query}
-                  variables={variables}
-                  skip={skip}
-                  context={{ useBatching: true }}
-                >
-                  {queryData => {
-                    if (queryData.error) {
-                      const msg = i18n.t(
-                        "Something went wrong: {{ message }}",
-                        {
-                          message: queryData.error.message
-                        }
-                      );
-                      pushMessage({ text: msg });
-                    }
-
-                    const loadMore = (
-                      mergeFunc: (
-                        previousResults: TData,
-                        fetchMoreResult: TData
-                      ) => TData,
-                      extraVariables: RequireAtLeastOne<TVariables>
-                    ) =>
-                      queryData.fetchMore({
-                        query,
-                        updateQuery: (previousResults, { fetchMoreResult }) => {
-                          if (!fetchMoreResult) {
-                            return previousResults;
+              {pushMessage => {
+                // Obviously, this is workaround to the problem described here:
+                // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/32588
+                const {
+                  children,
+                  displayLoader,
+                  skip,
+                  variables,
+                  require
+                } = props as JSX.LibraryManagedAttributes<
+                  typeof StrictTypedQuery,
+                  typeof props
+                >;
+                return (
+                  <StrictTypedQuery
+                    fetchPolicy="cache-and-network"
+                    query={query}
+                    variables={variables}
+                    skip={skip}
+                    context={{ useBatching: true }}
+                  >
+                    {queryData => {
+                      if (queryData.error) {
+                        const msg = i18n.t(
+                          "Something went wrong: {{ message }}",
+                          {
+                            message: queryData.error.message
                           }
-                          return mergeFunc(previousResults, fetchMoreResult);
-                        },
-                        variables: { ...variables, ...extraVariables }
+                        );
+                        pushMessage({ text: msg });
+                      }
+
+                      const loadMore = (
+                        mergeFunc: (
+                          previousResults: TData,
+                          fetchMoreResult: TData
+                        ) => TData,
+                        extraVariables: RequireAtLeastOne<TVariables>
+                      ) =>
+                        queryData.fetchMore({
+                          query,
+                          updateQuery: (
+                            previousResults,
+                            { fetchMoreResult }
+                          ) => {
+                            if (!fetchMoreResult) {
+                              return previousResults;
+                            }
+                            return mergeFunc(previousResults, fetchMoreResult);
+                          },
+                          variables: { ...variables, ...extraVariables }
+                        });
+
+                      let childrenOrNotFound = children({
+                        ...queryData,
+                        loadMore
                       });
+                      if (
+                        !queryData.loading &&
+                        require &&
+                        queryData.data &&
+                        !require.reduce(
+                          (acc, key) => acc && queryData.data[key] !== null,
+                          true
+                        )
+                      ) {
+                        childrenOrNotFound = (
+                          <ErrorPage onBack={() => navigate("/")} />
+                        );
+                      }
 
-                    let childrenOrNotFound = children({
-                      ...queryData,
-                      loadMore
-                    });
-                    if (
-                      !queryData.loading &&
-                      require &&
-                      queryData.data &&
-                      !require.reduce(
-                        (acc, key) => acc && queryData.data[key] !== null,
-                        true
-                      )
-                    ) {
-                      childrenOrNotFound = (
-                        <ErrorPage onBack={() => navigate("/")} />
-                      );
-                    }
+                      if (displayLoader) {
+                        return (
+                          <QueryProgress
+                            loading={queryData.loading}
+                            onCompleted={changeProgressState.disable}
+                            onLoading={changeProgressState.enable}
+                          >
+                            {childrenOrNotFound}
+                          </QueryProgress>
+                        );
+                      }
 
-                    if (displayLoader) {
-                      return (
-                        <QueryProgress
-                          loading={queryData.loading}
-                          onCompleted={changeProgressState.disable}
-                          onLoading={changeProgressState.enable}
-                        >
-                          {childrenOrNotFound}
-                        </QueryProgress>
-                      );
-                    }
-
-                    return childrenOrNotFound;
-                  }}
-                </StrictTypedQuery>
-              )}
+                      return childrenOrNotFound;
+                    }}
+                  </StrictTypedQuery>
+                );
+              }}
             </Messages>
           )}
         </Navigator>
