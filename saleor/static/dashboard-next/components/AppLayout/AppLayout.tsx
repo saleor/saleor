@@ -38,6 +38,9 @@ import AppHeaderContext from "./AppHeaderContext";
 
 const styles = (theme: Theme) =>
   createStyles({
+    "@global": {
+      "@import": "url('https://rsms.me/inter/inter.css')"
+    },
     appAction: {
       bottom: 0,
       gridColumn: 2,

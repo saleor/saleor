@@ -28,7 +28,7 @@ const styles = (theme: Theme) =>
   createStyles({
     card: {
       "&:hover": {
-        boxShadow: theme.shadows[12]
+        boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.15);"
       },
       cursor: "pointer",
       marginBottom: theme.spacing.unit * 3,
