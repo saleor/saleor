@@ -15,7 +15,6 @@ from django_prices.models import MoneyField, TaxedMoneyField
 from measurement.measures import Weight
 from prices import Money
 
-from . import FulfillmentStatus, OrderEvents, OrderStatus, display_order_event
 from ..account.models import Address
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.taxes import ZERO_TAXED_MONEY, zero_money
@@ -23,6 +22,7 @@ from ..core.weight import WeightUnits, zero_weight
 from ..discount.models import Voucher
 from ..payment import ChargeStatus, TransactionKind
 from ..shipping.models import ShippingMethod
+from . import FulfillmentStatus, OrderEvents, OrderStatus, display_order_event
 
 
 class OrderQueryset(models.QuerySet):
