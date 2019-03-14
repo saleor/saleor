@@ -201,7 +201,7 @@ class Home extends Component {
               <div className="news">
                 <div className="label"><span>NEW</span></div>
                 <div className="content">
-                  <a href="https://medium.com/saleor/january-release-of-saleor-e3ee7e9e13a3" target="_blank" rel="noopener"><strong>January Release of Saleor</strong></a>
+                  <a href="http://bit.ly/ReleaseHomepage" target="_blank" rel="noopener"><strong>February Release of Saleor: Three New Dashboard 2.0 Sections</strong></a>
                   <div className="close-icon" onClick={this.toggleNewsBar}></div>
                 </div>
               </div>
