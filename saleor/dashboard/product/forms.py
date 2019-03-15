@@ -10,7 +10,6 @@ from django.utils.translation import pgettext_lazy
 from django_prices_vatlayer.utils import get_tax_rate_types
 from mptt.forms import TreeNodeChoiceField
 
-from . import ProductBulkAction
 from ...core import TaxRateType
 from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME, include_taxes_in_prices
 from ...core.weight import WeightField
@@ -24,6 +23,7 @@ from ..forms import ModelChoiceOrCreationField, OrderedModelMultipleChoiceField
 from ..seo.fields import SeoDescriptionField, SeoTitleField
 from ..seo.utils import prepare_seo_description
 from ..widgets import RichTextEditorWidget
+from . import ProductBulkAction
 from .widgets import ImagePreviewWidget
 
 

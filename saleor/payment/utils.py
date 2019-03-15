@@ -9,15 +9,15 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
 from django.utils.translation import pgettext_lazy
 
-from . import (
-    ChargeStatus, CustomPaymentChoices, GatewayError, OperationType,
-    PaymentError, TransactionKind, get_payment_gateway)
 from ..account.models import Address, User
 from ..checkout.models import Cart
 from ..core import analytics
 from ..order import OrderEvents, OrderEventsEmails
 from ..order.emails import send_payment_confirmation
 from ..order.models import Order
+from . import (
+    ChargeStatus, CustomPaymentChoices, GatewayError, OperationType,
+    PaymentError, TransactionKind, get_payment_gateway)
 from .models import Payment, Transaction
 
 logger = logging.getLogger(__name__)
