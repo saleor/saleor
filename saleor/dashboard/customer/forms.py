@@ -42,7 +42,8 @@ class CustomerDeleteForm(forms.Form):
 
 class CustomerForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
+        # The user argument is required
+        self.user = kwargs.pop('user')
         super().__init__(*args, **kwargs)
 
         # Disable editing following fields if user edits his own account

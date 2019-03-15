@@ -50,19 +50,20 @@ def test_view_customer_create(admin_client):
     assert User.objects.filter(email='customer01@example.com').exists()
 
 
-def test_add_customer_form():
+def test_add_customer_form(staff_user):
     user_count = User.objects.count()
-    customer_form = CustomerForm({'email': 'customer01@example.com'})
+    customer_form = CustomerForm(
+        {'email': 'customer01@example.com'}, user=staff_user)
     customer_form.is_valid()
     customer_form.save()
     assert User.objects.count() == user_count + 1
 
 
-def test_edit_customer_form(customer_user):
+def test_edit_customer_form(customer_user, staff_user):
     customer = customer_user
     customer_form = CustomerForm(
         {'first_name': 'Jan', 'last_name': 'Nowak', 'email': customer.email},
-        instance=customer)
+        instance=customer, user=staff_user)
     customer_form.is_valid()
     customer_form.save()
     customer.refresh_from_db()

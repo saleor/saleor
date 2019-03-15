@@ -31,21 +31,20 @@ class StaffForm(forms.ModelForm):
                 'User staff toggle', 'User is staff')}
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
+        # The user argument is required
+        self.user = kwargs.pop('user')
         super().__init__(*args, **kwargs)
 
         # Non-superuser couldn't edit superuser's profile
-        if self.instance.is_superuser:
-            if self.user is None or not self.user.is_superuser:
-                self.fields['email'].disabled = True
-                self.fields['user_permissions'].disabled = True
-                self.fields['is_active'].disabled = True
-                self.fields['is_staff'].disabled = True
+        if self.instance.is_superuser and not self.user.is_superuser:
+            self.fields['email'].disabled = True
+            self.fields['user_permissions'].disabled = True
+            self.fields['is_active'].disabled = True
+            self.fields['is_staff'].disabled = True
 
         # Disable editing other staff's email for non-superuser staff
-        if self.instance.is_staff:
-            if self.user is None or not self.user.is_superuser:
-                self.fields['email'].disabled = True
+        if self.instance.is_staff and not self.user.is_superuser:
+            self.fields['email'].disabled = True
 
         # Disable users editing their own following fields except for email
         if self.user == self.instance:

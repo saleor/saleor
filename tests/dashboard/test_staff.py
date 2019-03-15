@@ -30,9 +30,9 @@ def test_remove_staff_member(staff_user):
     assert not User.objects.filter(pk=staff_user.pk).exists()
 
 
-def test_staff_form_not_valid(db):
+def test_staff_form_not_valid(staff_user):
     data = {'user_permissions': 1}
-    form = StaffForm(data=data)
+    form = StaffForm(data=data, user=staff_user)
     assert not form.is_valid()
 
 
