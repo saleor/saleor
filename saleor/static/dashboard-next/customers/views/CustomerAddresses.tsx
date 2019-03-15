@@ -135,12 +135,7 @@ const CustomerAddresses: React.FC<CustomerAddressesProps> = ({ id }) => {
                         return (
                           <>
                             <WindowTitle
-                              title={maybe(() =>
-                                i18n.t("{{ firstName }} {{ lastName }}", {
-                                  firstName: customerData.data.user.firstName,
-                                  lastName: customerData.data.user.lastName
-                                })
-                              )}
+                              title={maybe(() => customerData.data.user.email)}
                             />
                             <CustomerAddressListPage
                               customer={maybe(() => customerData.data.user)}
