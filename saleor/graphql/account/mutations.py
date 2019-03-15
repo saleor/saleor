@@ -19,6 +19,7 @@ from ..account.types import Address, AddressInput, User
 from ..core.enums import PermissionEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import Error
+from .utils import CustomerDeleteMixin, StaffDeleteMixin, UserDeleteMixin
 
 BILLING_ADDRESS_FIELD = 'default_billing_address'
 SHIPPING_ADDRESS_FIELD = 'default_shipping_address'
@@ -192,22 +193,12 @@ class LoggedUserUpdate(CustomerCreate):
         return super().mutate(root, info, **data)
 
 
-class UserDelete(ModelDeleteMutation):
+class UserDelete(UserDeleteMixin, ModelDeleteMutation):
     class Meta:
         abstract = True
 
-    @classmethod
-    def clean_instance(cls, info, instance, errors):
-        user = info.context.user
-        if instance == user:
-            cls.add_error(
-                errors, 'id', 'You cannot delete your own account.')
-        elif instance.is_superuser:
-            cls.add_error(
-                errors, 'id', 'Only superuser can delete his own account.')
 
-
-class CustomerDelete(UserDelete):
+class CustomerDelete(CustomerDeleteMixin, UserDelete):
     class Meta:
         description = 'Deletes a customer.'
         model = models.User
@@ -219,12 +210,6 @@ class CustomerDelete(UserDelete):
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('account.manage_users')
-
-    @classmethod
-    def clean_instance(cls, info, instance, errors):
-        super().clean_instance(info, instance, errors)
-        if instance.is_staff:
-            cls.add_error(errors, 'id', 'Cannot delete a staff account.')
 
 
 class StaffCreate(ModelMutation):
@@ -308,7 +293,7 @@ class StaffUpdate(StaffCreate):
         return cleaned_input
 
 
-class StaffDelete(UserDelete):
+class StaffDelete(StaffDeleteMixin, UserDelete):
     class Meta:
         description = 'Deletes a staff user.'
         model = models.User
@@ -320,13 +305,6 @@ class StaffDelete(UserDelete):
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('account.manage_staff')
-
-    @classmethod
-    def clean_instance(cls, info, instance, errors):
-        super().clean_instance(info, instance, errors)
-        if not instance.is_staff:
-            cls.add_error(
-                errors, 'id', 'Cannot delete a non-staff user.')
 
     @classmethod
     def mutate(cls, root, info, **data):
