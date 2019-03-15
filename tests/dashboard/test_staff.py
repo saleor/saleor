@@ -70,6 +70,26 @@ def test_admin_cant_change_his_permissions(admin_client, admin_user):
     assert admin_user.is_staff
 
 
+def test_staff_form_remove_permissions_after_unassign_is_staff(
+        admin_client, staff_user, permission_manage_products):
+    staff_user.user_permissions.add(permission_manage_products)
+    assert staff_user.is_active
+    assert staff_user.is_staff
+    assert staff_user.user_permissions.count() == 1
+
+    url = reverse('dashboard:staff-details', kwargs={'pk': staff_user.pk})
+    data = {
+        'email': staff_user.email, 'is_active': True, 'is_staff': False,
+        'user_permissions': permission_manage_products.pk}
+    response = admin_client.post(url, data)
+
+    staff_user.refresh_from_db()
+    assert response.status_code == 302
+    assert staff_user.is_active
+    assert not staff_user.is_staff
+    assert staff_user.user_permissions.count() == 0
+
+
 def test_delete_staff(admin_client, staff_user):
     user_count = User.objects.all().count()
     url = reverse('dashboard:staff-delete', kwargs={'pk': staff_user.pk})
