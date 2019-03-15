@@ -7,8 +7,8 @@ from django.utils.functional import SimpleLazyObject
 from django.utils.translation import get_language
 from django_countries.fields import Country
 
-from . import analytics
 from ..discount.models import Sale
+from . import analytics
 from .utils import get_client_ip, get_country_by_ip, get_currency_for_country
 from .utils.taxes import get_taxes_for_country
 

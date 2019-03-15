@@ -90,8 +90,13 @@ def test_token_create_user_data(
     assert token_data['user']['permissions'][0]['code'] == 'MANAGE_ORDERS'
 
 
-def test_query_user(staff_api_client, customer_user, permission_manage_users):
+def test_query_user(
+        staff_api_client, customer_user, address, permission_manage_users):
     user = customer_user
+    user.default_shipping_address.country = 'US'
+    user.default_shipping_address.save()
+    user.addresses.add(address.get_copy())
+
     query = """
     query User($id: ID!) {
         user(id: $id) {
@@ -102,6 +107,8 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
             isActive
             addresses {
                 id
+                isDefaultShippingAddress
+                isDefaultBillingAddress
             }
             orders {
                 totalCount
@@ -122,6 +129,25 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
                 country {
                     code
                 }
+                isDefaultShippingAddress
+                isDefaultBillingAddress
+            }
+            defaultBillingAddress {
+                firstName
+                lastName
+                companyName
+                streetAddress1
+                streetAddress2
+                city
+                cityArea
+                postalCode
+                countryArea
+                phone
+                country {
+                    code
+                }
+                isDefaultShippingAddress
+                isDefaultBillingAddress
             }
         }
     }
@@ -137,8 +163,19 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
     assert data['lastName'] == user.last_name
     assert data['isStaff'] == user.is_staff
     assert data['isActive'] == user.is_active
-    assert len(data['addresses']) == user.addresses.count()
     assert data['orders']['totalCount'] == user.orders.count()
+
+    assert len(data['addresses']) == user.addresses.count()
+    for address in data['addresses']:
+        if address['isDefaultShippingAddress']:
+            address_id = graphene.Node.to_global_id(
+                'Address', user.default_shipping_address.id)
+            assert address['id'] == address_id
+        if address['isDefaultBillingAddress']:
+            address_id = graphene.Node.to_global_id(
+                'Address', user.default_billing_address.id)
+            assert address['id'] == address_id
+
     address = data['defaultShippingAddress']
     user_address = user.default_shipping_address
     assert address['firstName'] == user_address.first_name
@@ -152,6 +189,24 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
     assert address['country']['code'] == user_address.country.code
     assert address['countryArea'] == user_address.country_area
     assert address['phone'] == user_address.phone.as_e164
+    assert address['isDefaultShippingAddress'] is None
+    assert address['isDefaultBillingAddress'] is None
+
+    address = data['defaultBillingAddress']
+    user_address = user.default_billing_address
+    assert address['firstName'] == user_address.first_name
+    assert address['lastName'] == user_address.last_name
+    assert address['companyName'] == user_address.company_name
+    assert address['streetAddress1'] == user_address.street_address_1
+    assert address['streetAddress2'] == user_address.street_address_2
+    assert address['city'] == user_address.city
+    assert address['cityArea'] == user_address.city_area
+    assert address['postalCode'] == user_address.postal_code
+    assert address['country']['code'] == user_address.country.code
+    assert address['countryArea'] == user_address.country_area
+    assert address['phone'] == user_address.phone.as_e164
+    assert address['isDefaultShippingAddress'] is None
+    assert address['isDefaultBillingAddress'] is None
 
 
 USER_QUERY = """
