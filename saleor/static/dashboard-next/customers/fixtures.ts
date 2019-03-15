@@ -1,7 +1,7 @@
 import { PaymentChargeStatusEnum } from "../types/globalTypes";
+import { CustomerAddresses_user } from "./types/CustomerAddresses";
 import { CustomerDetails_user } from "./types/CustomerDetails";
 import { ListCustomers_customers_edges_node } from "./types/ListCustomers";
-import { CustomerAddresses_user } from "./types/CustomerAddresses";
 
 export const customers = [
   {
