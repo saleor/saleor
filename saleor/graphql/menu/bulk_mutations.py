@@ -29,7 +29,7 @@ class MenuItemBulkDelete(ModelBulkDeleteMutation):
 
     class Meta:
         description = 'Deletes menu items.'
-        model = models.Menu
+        model = models.MenuItem
 
     @classmethod
     def user_is_allowed(cls, user, input):

@@ -1,10 +1,10 @@
 import graphene
 
 from ...shipping import models
-from ..core.mutations import ModelDeleteMutation
+from ..core.mutations import ModelBulkDeleteMutation
 
 
-class ShippingZoneBulkDelete(ModelDeleteMutation):
+class ShippingZoneBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID,
@@ -20,7 +20,7 @@ class ShippingZoneBulkDelete(ModelDeleteMutation):
         return user.has_perm('shipping.manage_shipping')
 
 
-class ShippingPriceBulkDelete(ModelDeleteMutation):
+class ShippingPriceBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID,
