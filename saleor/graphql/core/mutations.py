@@ -402,21 +402,19 @@ class ModelBulkDeleteMutation(BaseBulkMutation):
         if not cls.user_is_allowed(info.context.user, ids):
             raise PermissionDenied()
 
+        count, errors = 0, []
         model_type = registry.get_type_for_model(cls._meta.model)
-        count, all_errors = 0, []
-        for id in ids:
-            errors = []
-            instance = cls.get_node_or_error(
-                info, id, errors, 'id', model_type)
-            if instance:
-                cls.clean_instance(info, instance, errors)
+        instances = cls.get_nodes_or_error(ids, errors, 'id', model_type)
+        for instance in instances:
+            instance_errors = []
+            cls.clean_instance(info, instance, instance_errors)
 
-            if not errors:
+            if not instance_errors:
                 instance.delete()
                 count += 1
-            all_errors.extend(errors)
+            errors.extend(instance_errors)
 
-        return cls(count=count, errors=all_errors)
+        return cls(count=count, errors=errors)
 
 
 class CreateToken(ObtainJSONWebToken):
