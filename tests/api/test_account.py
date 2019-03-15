@@ -809,7 +809,7 @@ def test_user_delete_errors(staff_user, admin_user):
     errors = []
     UserDelete.clean_instance(info, admin_user, errors)
     assert errors[0].field == 'id'
-    assert errors[0].message == 'Only superuser can delete his own account.'
+    assert errors[0].message == 'Cannot delete this account.'
 
 
 def test_staff_delete_errors(staff_user, customer_user, admin_user):
