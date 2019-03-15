@@ -964,7 +964,7 @@ export const customer: CustomerDetails_user & CustomerAddresses_user = {
       phone: "",
       postalCode: "52203",
       streetAddress1: "419 Ruiz Orchard Apt. 199",
-      streetAddress2: ""
+      streetAddress2: "0238 Cremin Freeway"
     },
     {
       __typename: "Address",
