@@ -10,6 +10,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Resort imports by upgraded isort - #3836 by @jxltom
 - Support is_default_shipping/billing_address for address API - #3787 by @jxltom
 - Add bulk delete mutations - #3838 by @michaljelonek
+- Fix product creating - #3837 by @dominik-zeglen
 
 
 ## 2.4.0
