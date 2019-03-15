@@ -13,8 +13,7 @@ import i18n from "../../../i18n";
 const styles = (theme: Theme) =>
   createStyles({
     headerContainer: {
-      marginBottom: theme.spacing.unit * 3,
-      marginTop: theme.spacing.unit * 3
+      marginBottom: theme.spacing.unit * 3
     },
     pageHeader: {
       fontWeight: 600 as 600
@@ -29,7 +28,7 @@ const HomeOrdersCard = withStyles(styles, { name: "HomeOrdersCard" })(
   ({ classes, userName }: HomeOrdersCardProps) => {
     return (
       <div className={classes.headerContainer}>
-        <Typography className={classes.pageHeader} variant="headline">
+        <Typography className={classes.pageHeader} variant="display1">
           {userName ? (
             i18n.t("Hello there, {{userName}}", { userName })
           ) : (

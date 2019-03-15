@@ -1,6 +1,7 @@
 import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import { CardSpacer } from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
@@ -50,8 +51,9 @@ export const CategoryCreatePage: React.StatelessComponent<
     confirmLeave
   >
     {({ data, change, errors, submit, hasChanged }) => (
-      <Container width="md">
-        <PageHeader title={i18n.t("Add Category")} onBack={onBack} />
+      <Container>
+        <AppHeader onBack={onBack}>{i18n.t("Categories")}</AppHeader>
+        <PageHeader title={i18n.t("Add Category")} />
         <div>
           <CategoryDetailsForm
             disabled={disabled}

@@ -1,6 +1,12 @@
-import { RawDraftContentState } from "draft-js";
+import {
+  ContentState,
+  convertFromRaw,
+  convertToRaw,
+  RawDraftContentState
+} from "draft-js";
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import CardSpacer from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton";
 import Container from "../../../components/Container";
@@ -48,17 +54,21 @@ const PageDetailsPage: React.StatelessComponent<PageDetailsPageProps> = ({
 }) => {
   const initialForm: FormData = {
     availableOn: maybe(() => page.availableOn, ""),
-    content: maybe(() => JSON.parse(page.contentJson)),
+    content: maybe(
+      () => JSON.parse(page.contentJson),
+      convertToRaw(ContentState.createFromText(""))
+    ),
     isVisible: maybe(() => page.isVisible, false),
-    seoDescription: maybe(() => page.seoDescription, ""),
-    seoTitle: maybe(() => page.seoTitle, ""),
+    seoDescription: maybe(() => page.seoDescription || "", ""),
+    seoTitle: maybe(() => page.seoTitle || "", ""),
     slug: maybe(() => page.slug, ""),
     title: maybe(() => page.title, "")
   };
   return (
     <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
-        <Container width="md">
+        <Container>
+          <AppHeader onBack={onBack}>{i18n.t("Pages")}</AppHeader>
           <PageHeader
             title={
               page === null
@@ -67,7 +77,6 @@ const PageDetailsPage: React.StatelessComponent<PageDetailsPageProps> = ({
                   })
                 : maybe(() => page.title)
             }
-            onBack={onBack}
           />
           <Grid>
             <div>
@@ -82,7 +91,11 @@ const PageDetailsPage: React.StatelessComponent<PageDetailsPageProps> = ({
               <SeoForm
                 description={data.seoDescription}
                 disabled={disabled}
-                descriptionPlaceholder={data.title}
+                descriptionPlaceholder={maybe(() => {
+                  return convertFromRaw(data.content)
+                    .getPlainText()
+                    .slice(0, 300);
+                }, "")}
                 onChange={change}
                 title={data.seoTitle}
                 titlePlaceholder={data.title}
@@ -111,7 +124,7 @@ const PageDetailsPage: React.StatelessComponent<PageDetailsPageProps> = ({
             disabled={disabled || !hasChanged}
             state={saveButtonBarState}
             onCancel={onBack}
-            onDelete={onRemove}
+            onDelete={page === null ? undefined : onRemove}
             onSave={submit}
           />
         </Container>
