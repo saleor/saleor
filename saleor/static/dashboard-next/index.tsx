@@ -1,5 +1,4 @@
 import CssBaseline from "@material-ui/core/CssBaseline";
-import MuiThemeProvider from "@material-ui/core/styles/MuiThemeProvider";
 import { defaultDataIdFromObject, InMemoryCache } from "apollo-cache-inmemory";
 import { ApolloClient } from "apollo-client";
 import { ApolloLink } from "apollo-link";
@@ -28,11 +27,13 @@ import { FormProvider } from "./components/Form";
 import { LocaleProvider } from "./components/Locale";
 import { MessageManager } from "./components/messages";
 import { ShopProvider } from "./components/Shop";
+import ThemeProvider from "./components/Theme";
 import { WindowTitle } from "./components/WindowTitle";
 import ConfigurationSection, { configurationMenu } from "./configuration";
 import { CustomerSection } from "./customers";
 import DiscountSection from "./discounts";
 import HomePage from "./home";
+import useTheme from "./hooks/useTheme";
 import i18n from "./i18n";
 import { NotFound } from "./NotFound";
 import OrdersSection from "./orders";
@@ -43,7 +44,6 @@ import ShippingSection from "./shipping";
 import SiteSettingsSection from "./siteSettings";
 import StaffSection from "./staff";
 import TaxesSection from "./taxes";
-import theme from "./theme";
 import { PermissionEnum } from "./types/globalTypes";
 
 const cookies = new Cookies();
@@ -104,11 +104,11 @@ const apolloClient = new ApolloClient({
 
 export const appMountPoint = "/dashboard/next/";
 
-render(
+const App: React.FC = () => (
   <FormProvider>
     <ApolloProvider client={apolloClient}>
       <BrowserRouter basename={appMountPoint}>
-        <MuiThemeProvider theme={theme}>
+        <ThemeProvider>
           <DateProvider>
             <LocaleProvider>
               <MessageManager>
@@ -214,9 +214,10 @@ render(
               </MessageManager>
             </LocaleProvider>
           </DateProvider>
-        </MuiThemeProvider>
+        </ThemeProvider>
       </BrowserRouter>
     </ApolloProvider>
-  </FormProvider>,
-  document.querySelector("#dashboard-app")
+  </FormProvider>
 );
+
+render(<App />, document.querySelector("#dashboard-app"));

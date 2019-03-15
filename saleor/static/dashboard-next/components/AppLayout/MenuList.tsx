@@ -32,7 +32,6 @@ const styles = (theme: Theme) =>
         color: theme.palette.primary.main
       },
       alignItems: "center",
-      color: "#616161",
       display: "block",
       marginTop: theme.spacing.unit * 2,
       paddingLeft: 0,
@@ -46,7 +45,7 @@ const styles = (theme: Theme) =>
         height: "100%",
         left: -32,
         position: "absolute",
-        width: 3
+        width: 4
       },
       position: "relative"
     },
