@@ -33,6 +33,16 @@ export interface CustomerAddressProps {
 const styles = createStyles({
   actions: {
     flexDirection: "row"
+  },
+  actionsContainer: {
+    display: "flex",
+    flexDirection: "column",
+    height: "100%",
+    justifyContent: "flex-end"
+  },
+  card: {
+    display: "flex",
+    flexDirection: "column"
   }
 });
 const CustomerAddress = withStyles(styles, { name: "CustomerAddress" })(
@@ -47,7 +57,7 @@ const CustomerAddress = withStyles(styles, { name: "CustomerAddress" })(
     onRemove,
     onSetAsDefault
   }: CustomerAddressProps & WithStyles<typeof styles>) => (
-    <Card>
+    <Card className={classes.card}>
       <CardTitle
         title={
           address ? (
@@ -93,24 +103,26 @@ const CustomerAddress = withStyles(styles, { name: "CustomerAddress" })(
       <CardContent>
         <AddressFormatter address={address} />
       </CardContent>
-      <CardActions className={classes.actions}>
-        <Button
-          color="secondary"
-          disabled={disabled}
-          variant="flat"
-          onClick={onEdit}
-        >
-          {i18n.t("Edit")}
-        </Button>
-        <Button
-          color="secondary"
-          disabled={disabled}
-          variant="flat"
-          onClick={onRemove}
-        >
-          {i18n.t("Delete")}
-        </Button>
-      </CardActions>
+      <div className={classes.actionsContainer}>
+        <CardActions className={classes.actions}>
+          <Button
+            color="secondary"
+            disabled={disabled}
+            variant="flat"
+            onClick={onEdit}
+          >
+            {i18n.t("Edit")}
+          </Button>
+          <Button
+            color="secondary"
+            disabled={disabled}
+            variant="flat"
+            onClick={onRemove}
+          >
+            {i18n.t("Delete")}
+          </Button>
+        </CardActions>
+      </div>
     </Card>
   )
 );

@@ -15,11 +15,12 @@ const styles = (theme: Theme) =>
       height: 48
     },
     hr: {
-      backgroundColor: "#eaeaea",
       border: "none",
-      height: 1,
+      borderTop: "1px solid #eaeaea",
+      height: 0,
       marginBottom: 0,
-      marginTop: 0
+      marginTop: 0,
+      width: "100%"
     },
     root: theme.mixins.gutters({
       alignItems: "center",
