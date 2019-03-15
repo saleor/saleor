@@ -910,6 +910,18 @@ exports[`Storyshots Components / ErrorPage default 1`] = `
 </div>
 `;
 
+exports[`Storyshots Customers / Address editing dialog default 1`] = `
+<div
+  style="padding:24px"
+/>
+`;
+
+exports[`Storyshots Customers / Address editing dialog edit 1`] = `
+<div
+  style="padding:24px"
+/>
+`;
+
 exports[`Storyshots Discounts / Select countries default 1`] = `
 <div
   style="padding:24px"
@@ -17044,6 +17056,499 @@ exports[`Storyshots Views / Configuration partial access 1`] = `
 </div>
 `;
 
+exports[`Storyshots Views / Customers / Address Book default 1`] = `
+<div
+  style="padding:24px"
+>
+  <div
+    class="Container-root-id"
+  >
+    <div
+      class="ExtendedPageHeader-root-id"
+    >
+      <h2
+        class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
+      >
+        Tom Cooper Address Book
+      </h2>
+      <div
+        class="ExtendedPageHeader-action-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Add address
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+    </div>
+    <div
+      class="CustomerAddressListPage-root-id"
+    >
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id CustomerAddress-card-id"
+      >
+        <div
+          class="CardTitle-root-id CardTitle-constantHeight-id"
+        >
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+          >
+            Address 1
+            <span
+              class="MuiTypography-root-id MuiTypography-caption-id"
+            >
+              Default Address
+            </span>
+          </span>
+          <div
+            class="CardTitle-toolbar-id"
+          >
+            <div>
+              <button
+                aria-haspopup="true"
+                aria-label="More"
+                class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiIconButton-label-id"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-id"
+                    focusable="false"
+                    role="presentation"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M0 0h24v24H0z"
+                      fill="none"
+                    />
+                    <path
+                      d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
+                    />
+                  </svg>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div
+          class="CardTitle-children-id"
+        />
+        <hr
+          class="CardTitle-hr-id"
+        />
+        <div
+          class="MuiCardContent-root-id"
+        >
+          <address
+            style="font-style:inherit"
+          >
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id"
+            >
+              Elizabeth Vaughn
+            </span>
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id"
+            >
+              419 Ruiz Orchard Apt. 199
+              <br />
+              0238 Cremin Freeway
+            </span>
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id"
+            >
+               52203 Port Danielshire
+            </span>
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id"
+            >
+              Szwecja
+            </span>
+          </address>
+        </div>
+        <div
+          class="CustomerAddress-actionsContainer-id"
+        >
+          <div
+            class="MuiCardActions-root-id CustomerAddress-actions-id"
+          >
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Edit
+              </span>
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Delete
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id CustomerAddress-card-id"
+      >
+        <div
+          class="CardTitle-root-id CardTitle-constantHeight-id"
+        >
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+          >
+            Address 2
+            <span
+              class="MuiTypography-root-id MuiTypography-caption-id"
+            />
+          </span>
+          <div
+            class="CardTitle-toolbar-id"
+          >
+            <div>
+              <button
+                aria-haspopup="true"
+                aria-label="More"
+                class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiIconButton-label-id"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-id"
+                    focusable="false"
+                    role="presentation"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M0 0h24v24H0z"
+                      fill="none"
+                    />
+                    <path
+                      d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
+                    />
+                  </svg>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div
+          class="CardTitle-children-id"
+        />
+        <hr
+          class="CardTitle-hr-id"
+        />
+        <div
+          class="MuiCardContent-root-id"
+        >
+          <address
+            style="font-style:inherit"
+          >
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id"
+            >
+              Timmy Macejkovic
+            </span>
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id"
+            >
+              0238 Cremin Freeway
+              <br />
+            </span>
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id"
+            >
+               15926 West Feliciamouth, Montana
+            </span>
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id"
+            >
+              Japan
+            </span>
+          </address>
+        </div>
+        <div
+          class="CustomerAddress-actionsContainer-id"
+        >
+          <div
+            class="MuiCardActions-root-id CustomerAddress-actions-id"
+          >
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Edit
+              </span>
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Delete
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Customers / Address Book loading 1`] = `
+<div
+  style="padding:24px"
+>
+  <div
+    class="Container-root-id"
+  >
+    <div
+      class="ExtendedPageHeader-root-id"
+    >
+      <h2
+        class="MuiTypography-root-id MuiTypography-title-id Component-title-id"
+      >
+        <span
+          class="Skeleton-skeleton-id"
+          style="width:10em"
+        >
+          ‌
+        </span>
+      </h2>
+      <div
+        class="ExtendedPageHeader-action-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Add address
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+    </div>
+    <div
+      class="CustomerAddressListPage-root-id"
+    >
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id CustomerAddress-card-id"
+      >
+        <div
+          class="CardTitle-root-id CardTitle-constantHeight-id"
+        >
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id CardTitle-title-id"
+          >
+            <span
+              class="Skeleton-skeleton-id"
+            >
+              ‌
+            </span>
+          </span>
+          <div
+            class="CardTitle-toolbar-id"
+          >
+            <div>
+              <button
+                aria-haspopup="true"
+                aria-label="More"
+                class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-colorSecondary-id MuiIconButton-disabled-id"
+                disabled=""
+                tabindex="-1"
+                type="button"
+              >
+                <span
+                  class="MuiIconButton-label-id"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-id"
+                    focusable="false"
+                    role="presentation"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M0 0h24v24H0z"
+                      fill="none"
+                    />
+                    <path
+                      d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
+                    />
+                  </svg>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div
+          class="CardTitle-children-id"
+        />
+        <hr
+          class="CardTitle-hr-id"
+        />
+        <div
+          class="MuiCardContent-root-id"
+        >
+          <span
+            class="Skeleton-skeleton-id"
+          >
+            ‌
+          </span>
+        </div>
+        <div
+          class="CustomerAddress-actionsContainer-id"
+        >
+          <div
+            class="MuiCardActions-root-id CustomerAddress-actions-id"
+          >
+            <button
+              class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id MuiCardActions-action-id"
+              disabled=""
+              tabindex="-1"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Edit
+              </span>
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id MuiCardActions-action-id"
+              disabled=""
+              tabindex="-1"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Delete
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Customers / Address Book no data 1`] = `
+<div
+  style="padding:24px"
+>
+  <div
+    class="Container-root-id"
+  >
+    <div
+      class="CustomerAddressListPage-empty-id"
+    >
+      <h1
+        class="MuiTypography-root-id MuiTypography-headline-id"
+      >
+        There is no address to show for this customer
+      </h1>
+      <p
+        class="MuiTypography-root-id MuiTypography-body1-id CustomerAddressListPage-description-id"
+      >
+        This customer doesn’t have any adresses added to his address book. You can add address using the button below.
+      </p>
+      <button
+        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id CustomerAddressListPage-addButton-id"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiButton-label-id"
+        >
+          Add address
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-id"
+            focusable="false"
+            role="presentation"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+            />
+            <path
+              d="M0 0h24v24H0z"
+              fill="none"
+            />
+          </svg>
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Views / Customers / Create customer default 1`] = `
 <div
   style="padding:24px"
@@ -17110,7 +17615,7 @@ exports[`Storyshots Views / Customers / Create customer default 1`] = `
                     <input
                       aria-invalid="false"
                       class="MuiInputBase-input-id MuiInput-input-id"
-                      name="firstName"
+                      name="customerFirstName"
                       type="text"
                       value=""
                     />
@@ -17131,7 +17636,7 @@ exports[`Storyshots Views / Customers / Create customer default 1`] = `
                     <input
                       aria-invalid="false"
                       class="MuiInputBase-input-id MuiInput-input-id"
-                      name="lastName"
+                      name="customerLastName"
                       type="text"
                       value=""
                     />
@@ -17615,53 +18120,43 @@ exports[`Storyshots Views / Customers / Create customer form errors 1`] = `
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
                     data-shrink="false"
                   >
                     First Name
                   </label>
                   <div
-                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
                   >
                     <input
-                      aria-invalid="true"
+                      aria-invalid="false"
                       class="MuiInputBase-input-id MuiInput-input-id"
-                      name="firstName"
+                      name="customerFirstName"
                       type="text"
                       value=""
                     />
                   </div>
-                  <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-error-id"
-                  >
-                    Generic form error
-                  </p>
                 </div>
                 <div
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
                     data-shrink="false"
                   >
                     Last Name
                   </label>
                   <div
-                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
                   >
                     <input
-                      aria-invalid="true"
+                      aria-invalid="false"
                       class="MuiInputBase-input-id MuiInput-input-id"
-                      name="lastName"
+                      name="customerLastName"
                       type="text"
                       value=""
                     />
                   </div>
-                  <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-error-id"
-                  >
-                    Generic form error
-                  </p>
                 </div>
                 <div
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
@@ -18213,7 +18708,7 @@ exports[`Storyshots Views / Customers / Create customer loading 1`] = `
                       aria-invalid="false"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id"
                       disabled=""
-                      name="firstName"
+                      name="customerFirstName"
                       type="text"
                       value=""
                     />
@@ -18235,7 +18730,7 @@ exports[`Storyshots Views / Customers / Create customer loading 1`] = `
                       aria-invalid="false"
                       class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id"
                       disabled=""
-                      name="lastName"
+                      name="customerLastName"
                       type="text"
                       value=""
                     />
@@ -19007,7 +19502,19 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
               </span>
               <div
                 class="CardTitle-toolbar-id"
-              />
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Manage
+                  </span>
+                </button>
+              </div>
             </div>
             <div
               class="CardTitle-children-id"
@@ -19456,7 +19963,19 @@ exports[`Storyshots Views / Customers / Customer details different addresses 1`]
               </span>
               <div
                 class="CardTitle-toolbar-id"
-              />
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Manage
+                  </span>
+                </button>
+              </div>
             </div>
             <div
               class="CardTitle-children-id"
@@ -19957,7 +20476,19 @@ exports[`Storyshots Views / Customers / Customer details form errors 1`] = `
               </span>
               <div
                 class="CardTitle-toolbar-id"
-              />
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Manage
+                  </span>
+                </button>
+              </div>
             </div>
             <div
               class="CardTitle-children-id"
@@ -20420,7 +20951,20 @@ exports[`Storyshots Views / Customers / Customer details loading 1`] = `
               </span>
               <div
                 class="CardTitle-toolbar-id"
-              />
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id"
+                  disabled=""
+                  tabindex="-1"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Manage
+                  </span>
+                </button>
+              </div>
             </div>
             <div
               class="CardTitle-children-id"
@@ -20837,7 +21381,19 @@ exports[`Storyshots Views / Customers / Customer details never logged 1`] = `
               </span>
               <div
                 class="CardTitle-toolbar-id"
-              />
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Manage
+                  </span>
+                </button>
+              </div>
             </div>
             <div
               class="CardTitle-children-id"
@@ -21280,7 +21836,19 @@ exports[`Storyshots Views / Customers / Customer details never placed order 1`] 
               </span>
               <div
                 class="CardTitle-toolbar-id"
-              />
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Manage
+                  </span>
+                </button>
+              </div>
             </div>
             <div
               class="CardTitle-children-id"
@@ -55175,9 +55743,6 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                   </div>
                 </div>
               </div>
-              <div
-                class="FormSpacer-spacer-id"
-              />
             </div>
           </div>
           <div
@@ -55862,9 +56427,6 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                   </div>
                 </div>
               </div>
-              <div
-                class="FormSpacer-spacer-id"
-              />
             </div>
           </div>
           <div
@@ -63703,9 +64265,6 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                 </div>
               </div>
               <div
-                class="FormSpacer-spacer-id"
-              />
-              <div
                 class="SingleAutocompleteSelectField-container-id"
               >
                 <div
@@ -63748,9 +64307,6 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                   </div>
                 </div>
               </div>
-              <div
-                class="FormSpacer-spacer-id"
-              />
             </div>
           </div>
           <div
