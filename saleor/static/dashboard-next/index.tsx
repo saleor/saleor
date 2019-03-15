@@ -1,4 +1,3 @@
-import CssBaseline from "@material-ui/core/CssBaseline";
 import { defaultDataIdFromObject, InMemoryCache } from "apollo-cache-inmemory";
 import { ApolloClient } from "apollo-client";
 import { ApolloLink } from "apollo-link";
@@ -18,6 +17,7 @@ import LoginLoading from "./auth/components/LoginLoading/LoginLoading";
 import SectionRoute from "./auth/components/SectionRoute";
 import { hasPermission } from "./auth/misc";
 import Login from "./auth/views/Login";
+import Baseline from "./Baseline";
 import CategorySection from "./categories";
 import CollectionSection from "./collections";
 import { AppProgressProvider } from "./components/AppProgress";
@@ -117,7 +117,7 @@ const App: React.FC = () => (
                     <WindowTitle title={i18n.t("Dashboard")} />
                     {/* FIXME: #3424 */}
                     {/* <ConfirmFormLeaveDialog /> */}
-                    <CssBaseline />
+                    <Baseline />
                     <AuthProvider>
                       {({
                         hasToken,
