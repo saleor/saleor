@@ -442,6 +442,9 @@ class AddressCreate(ModelMutation):
 
 
 class AddressUpdate(ModelMutation):
+    user = graphene.Field(
+        User, description='A user instance for which the address was edited.')
+
     class Arguments:
         id = graphene.ID(
             description='ID of the address to update', required=True)
@@ -460,6 +463,13 @@ class AddressUpdate(ModelMutation):
         if not can_edit_address(info.context.user, instance):
             raise PermissionDenied()
         return super().clean_input(info, instance, input, errors)
+
+    @classmethod
+    def mutate(cls, root, info, **data):
+        response = super().mutate(root, info, **data)
+        user = response.address.user_addresses.first()
+        response.user = user
+        return response
 
 
 class AddressDelete(ModelDeleteMutation):
