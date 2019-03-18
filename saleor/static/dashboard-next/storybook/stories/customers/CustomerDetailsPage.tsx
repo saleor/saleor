@@ -75,4 +75,22 @@ storiesOf("Views / Customers / Customer details", module)
         }
       }}
     />
+  ))
+  .add("no default billing address", () => (
+    <CustomerDetailsPage
+      {...props}
+      customer={{
+        ...customer,
+        defaultBillingAddress: null
+      }}
+    />
+  ))
+  .add("no default shipping address", () => (
+    <CustomerDetailsPage
+      {...props}
+      customer={{
+        ...customer,
+        defaultShippingAddress: null
+      }}
+    />
   ));
