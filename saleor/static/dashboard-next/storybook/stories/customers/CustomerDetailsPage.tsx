@@ -93,4 +93,14 @@ storiesOf("Views / Customers / Customer details", module)
         defaultShippingAddress: null
       }}
     />
+  ))
+  .add("no address at all", () => (
+    <CustomerDetailsPage
+      {...props}
+      customer={{
+        ...customer,
+        defaultBillingAddress: null,
+        defaultShippingAddress: null
+      }}
+    />
   ));

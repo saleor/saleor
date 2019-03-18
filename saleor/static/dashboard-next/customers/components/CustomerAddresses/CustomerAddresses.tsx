@@ -80,6 +80,13 @@ const CustomerAddresses = withStyles(styles, { name: "CustomerAddresses" })(
             </CardContent>
           )}
         </>
+      ) : maybe(() => customer.defaultBillingAddress) === null &&
+        maybe(() => customer.defaultShippingAddress) === null ? (
+        <CardContent>
+          <Typography>
+            {i18n.t("This customer has no addresses yet")}
+          </Typography>
+        </CardContent>
       ) : (
         <CardContent>
           <Typography className={classes.label}>{i18n.t("Address")}</Typography>
