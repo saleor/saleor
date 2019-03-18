@@ -13,6 +13,7 @@ export interface CardMenuItem {
 
 export interface CardMenuProps {
   className?: string;
+  disabled?: boolean;
   menuItems: CardMenuItem[];
 }
 export interface CardMenuState {
@@ -48,6 +49,7 @@ export class CardMenu extends React.Component<CardMenuProps, CardMenuState> {
           aria-owns={open ? "long-menu" : null}
           aria-haspopup="true"
           color="secondary"
+          disabled={this.props.disabled}
           onClick={this.handleClick}
         >
           <MoreVertIcon />
@@ -59,8 +61,8 @@ export class CardMenu extends React.Component<CardMenuProps, CardMenuState> {
           onClose={this.handleClose}
           PaperProps={{
             style: {
-              maxHeight: ITEM_HEIGHT * 4.5,
-              width: 200
+              maxHeight: ITEM_HEIGHT * 4.5
+              // width: 200
             }
           }}
         >
