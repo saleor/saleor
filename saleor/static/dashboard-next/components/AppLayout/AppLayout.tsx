@@ -12,6 +12,7 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
+import Switch from "@material-ui/core/Switch";
 import * as classNames from "classnames";
 import * as React from "react";
 import SVG from "react-inlinesvg";
@@ -61,6 +62,9 @@ const styles = (theme: Theme) =>
       flexDirection: "column",
       minHeight: `calc(100vh - ${appLoaderHeight}px)`
     },
+    darkThemeSwitch: {
+      marginRight: theme.spacing.unit * 2
+    },
     header: {
       display: "flex",
       height: 40,
@@ -103,6 +107,10 @@ const styles = (theme: Theme) =>
     spacer: {
       flex: 1
     },
+    userBar: {
+      alignItems: "center",
+      display: "flex"
+    },
     userChip: {
       backgroundColor: theme.palette.common.white,
       border: `1px solid ${theme.palette.grey[200]}`
@@ -140,7 +148,7 @@ const AppLayout = withStyles(styles, {
     }: AppLayoutProps &
       WithStyles<typeof styles> &
       RouteComponentProps<any>) => {
-      const { variant: themeVariant } = useTheme();
+      const { isDark, toggleTheme } = useTheme();
       return (
         <AppProgress>
           {({ value: isProgressVisible }) => (
@@ -188,7 +196,7 @@ const AppLayout = withStyles(styles, {
                                               <SVG
                                                 className={classes.logo}
                                                 src={
-                                                  themeVariant === "dark"
+                                                  isDark
                                                     ? saleorDarkLogo
                                                     : saleorLightLogo
                                                 }
@@ -213,110 +221,126 @@ const AppLayout = withStyles(styles, {
                                                   <div
                                                     className={classes.spacer}
                                                   />
-                                                  <Anchor>
-                                                    {anchor => (
-                                                      <Toggle>
-                                                        {(
-                                                          menuOpen,
-                                                          {
-                                                            disable: closeMenu,
-                                                            enable: openMenu
-                                                          }
-                                                        ) => {
-                                                          const handleLogout = () => {
-                                                            close();
-                                                            logout();
-                                                          };
-                                                          return (
-                                                            <div
-                                                              className={
-                                                                classes.userMenuContainer
-                                                              }
-                                                              ref={anchor}
-                                                            >
-                                                              <Chip
+                                                  <div
+                                                    className={classes.userBar}
+                                                  >
+                                                    <Switch
+                                                      color="primary"
+                                                      className={
+                                                        classes.darkThemeSwitch
+                                                      }
+                                                      checked={isDark}
+                                                      onClick={toggleTheme}
+                                                    />
+                                                    <Anchor>
+                                                      {anchor => (
+                                                        <Toggle>
+                                                          {(
+                                                            menuOpen,
+                                                            {
+                                                              disable: closeMenu,
+                                                              enable: openMenu
+                                                            }
+                                                          ) => {
+                                                            const handleLogout = () => {
+                                                              close();
+                                                              logout();
+                                                            };
+                                                            return (
+                                                              <div
                                                                 className={
-                                                                  classes.userChip
+                                                                  classes.userMenuContainer
                                                                 }
-                                                                label={
-                                                                  <>
-                                                                    {user.email}
-                                                                    <ArrowDropdown
-                                                                      className={classNames(
-                                                                        classes.arrow,
-                                                                        {
-                                                                          [classes.rotate]: menuOpen
-                                                                        }
-                                                                      )}
-                                                                    />
-                                                                  </>
-                                                                }
-                                                                onClick={
-                                                                  openMenu
-                                                                }
-                                                              />
-                                                              <Popper
-                                                                className={
-                                                                  classes.popover
-                                                                }
-                                                                open={menuOpen}
-                                                                anchorEl={
-                                                                  anchor.current
-                                                                }
-                                                                transition
-                                                                disablePortal
-                                                                placement="bottom-end"
+                                                                ref={anchor}
                                                               >
-                                                                {({
-                                                                  TransitionProps,
-                                                                  placement
-                                                                }) => (
-                                                                  <Grow
-                                                                    {...TransitionProps}
-                                                                    style={{
-                                                                      transformOrigin:
-                                                                        placement ===
-                                                                        "bottom"
-                                                                          ? "right top"
-                                                                          : "right bottom"
-                                                                    }}
-                                                                  >
-                                                                    <Paper>
-                                                                      <ClickAwayListener
-                                                                        onClickAway={
-                                                                          closeMenu
-                                                                        }
-                                                                        mouseEvent="onClick"
-                                                                      >
-                                                                        <Menu>
-                                                                          <MenuItem
-                                                                            className={
-                                                                              classes.userMenuItem
-                                                                            }
-                                                                            onClick={
-                                                                              handleLogout
-                                                                            }
-                                                                          >
-                                                                            {i18n.t(
-                                                                              "Log out",
-                                                                              {
-                                                                                context:
-                                                                                  "button"
+                                                                <Chip
+                                                                  className={
+                                                                    classes.userChip
+                                                                  }
+                                                                  label={
+                                                                    <>
+                                                                      {
+                                                                        user.email
+                                                                      }
+                                                                      <ArrowDropdown
+                                                                        className={classNames(
+                                                                          classes.arrow,
+                                                                          {
+                                                                            [classes.rotate]: menuOpen
+                                                                          }
+                                                                        )}
+                                                                      />
+                                                                    </>
+                                                                  }
+                                                                  onClick={
+                                                                    openMenu
+                                                                  }
+                                                                />
+                                                                <Popper
+                                                                  className={
+                                                                    classes.popover
+                                                                  }
+                                                                  open={
+                                                                    menuOpen
+                                                                  }
+                                                                  anchorEl={
+                                                                    anchor.current
+                                                                  }
+                                                                  transition
+                                                                  disablePortal
+                                                                  placement="bottom-end"
+                                                                >
+                                                                  {({
+                                                                    TransitionProps,
+                                                                    placement
+                                                                  }) => (
+                                                                    <Grow
+                                                                      {...TransitionProps}
+                                                                      style={{
+                                                                        transformOrigin:
+                                                                          placement ===
+                                                                          "bottom"
+                                                                            ? "right top"
+                                                                            : "right bottom"
+                                                                      }}
+                                                                    >
+                                                                      <Paper>
+                                                                        <ClickAwayListener
+                                                                          onClickAway={
+                                                                            closeMenu
+                                                                          }
+                                                                          mouseEvent="onClick"
+                                                                        >
+                                                                          <Menu>
+                                                                            <MenuItem
+                                                                              className={
+                                                                                classes.userMenuItem
                                                                               }
-                                                                            )}
-                                                                          </MenuItem>
-                                                                        </Menu>
-                                                                      </ClickAwayListener>
-                                                                    </Paper>
-                                                                  </Grow>
-                                                                )}
-                                                              </Popper>
-                                                            </div>
-                                                          );
-                                                        }}
-                                                      </Toggle>
-                                                    )}
-                                                  </Anchor>
+                                                                              onClick={
+                                                                                handleLogout
+                                                                              }
+                                                                            >
+                                                                              {i18n.t(
+                                                                                "Log out",
+                                                                                {
+                                                                                  context:
+                                                                                    "button"
+                                                                                }
+                                                                              )}
+                                                                            </MenuItem>
+                                                                          </Menu>
+                                                                        </ClickAwayListener>
+                                                                      </Paper>
+                                                                    </Grow>
+                                                                  )}
+                                                                </Popper>
+                                                              </div>
+                                                            );
+                                                          }}
+                                                        </Toggle>
+                                                      )}
+                                                    </Anchor>
+                                                  </div>
                                                 </div>
                                               </Container>
                                             </div>

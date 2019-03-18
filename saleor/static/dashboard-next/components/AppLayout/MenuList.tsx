@@ -45,7 +45,7 @@ const styles = (theme: Theme) =>
         height: "100%",
         left: -32,
         position: "absolute",
-        width: 4
+        width: 5
       },
       position: "relative"
     },
@@ -55,6 +55,7 @@ const styles = (theme: Theme) =>
       },
       cursor: "pointer",
       fontSize: "1rem",
+      fontWeight: 500,
       textTransform: "uppercase",
       transition: theme.transitions.duration.standard + "ms"
     },

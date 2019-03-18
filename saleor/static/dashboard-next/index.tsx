@@ -17,7 +17,6 @@ import LoginLoading from "./auth/components/LoginLoading/LoginLoading";
 import SectionRoute from "./auth/components/SectionRoute";
 import { hasPermission } from "./auth/misc";
 import Login from "./auth/views/Login";
-import Baseline from "./Baseline";
 import CategorySection from "./categories";
 import CollectionSection from "./collections";
 import { AppProgressProvider } from "./components/AppProgress";
@@ -33,7 +32,6 @@ import ConfigurationSection, { configurationMenu } from "./configuration";
 import { CustomerSection } from "./customers";
 import DiscountSection from "./discounts";
 import HomePage from "./home";
-import useTheme from "./hooks/useTheme";
 import i18n from "./i18n";
 import { NotFound } from "./NotFound";
 import OrdersSection from "./orders";
@@ -117,7 +115,6 @@ const App: React.FC = () => (
                     <WindowTitle title={i18n.t("Dashboard")} />
                     {/* FIXME: #3424 */}
                     {/* <ConfirmFormLeaveDialog /> */}
-                    <Baseline />
                     <AuthProvider>
                       {({
                         hasToken,

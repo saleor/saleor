@@ -10,7 +10,7 @@ import * as React from "react";
 const styles = (theme: Theme) =>
   createStyles({
     tabLabel: {
-      color: "#616161",
+      color: theme.typography.caption.color,
       fontSize: "0.875rem"
     },
     tabRoot: {

@@ -40,7 +40,7 @@ const styles = (theme: Theme) =>
       margin: `${theme.spacing.unit * 3}px 0`
     },
     hr: {
-      backgroundColor: "#eaeaea",
+      backgroundColor: theme.overrides.MuiCard.root.borderColor,
       border: "none",
       height: 1,
       margin: `0 -${theme.spacing.unit * 3}px ${theme.spacing.unit * 3}px`
