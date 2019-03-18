@@ -1144,7 +1144,7 @@ type Mutations {
   loggedUserUpdate(input: UserAddressInput!): LoggedUserUpdate
   staffCreate(input: StaffCreateInput!): StaffCreate
   staffDelete(id: ID!): StaffDelete
-  staffBulkDelete: StaffBulkDelete
+  staffBulkDelete(ids: [ID]!): StaffBulkDelete
   staffUpdate(id: ID!, input: StaffInput!): StaffUpdate
   addressCreate(input: AddressCreateInput!): AddressCreate
   addressDelete(id: ID!): AddressDelete
@@ -2053,7 +2053,7 @@ enum ShippingMethodTypeEnum {
 
 type ShippingPriceBulkDelete {
   errors: [Error!]
-  shippingMethod: ShippingMethod
+  count: Int!
 }
 
 type ShippingPriceCreate {
@@ -2101,7 +2101,7 @@ type ShippingZone implements Node {
 
 type ShippingZoneBulkDelete {
   errors: [Error!]
-  shippingZone: ShippingZone
+  count: Int!
 }
 
 type ShippingZoneCountableConnection {
