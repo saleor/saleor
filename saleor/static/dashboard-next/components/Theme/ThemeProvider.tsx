@@ -1,10 +1,8 @@
-import { Theme } from "@material-ui/core/styles";
 import MuiThemeProvider from "@material-ui/core/styles/MuiThemeProvider";
 import * as React from "react";
 
+import Baseline from "../../Baseline";
 import createTheme, { IThemeColors } from "../../theme";
-
-export type ThemeVariant = "dark" | "light";
 
 // TODO: fix secondary buttons lol
 const dark: IThemeColors = {
@@ -37,39 +35,35 @@ const light: IThemeColors = {
 };
 
 interface IThemeContext {
-  theme: Theme;
-  variant: ThemeVariant;
-  setTheme: (variant: ThemeVariant) => void;
+  isDark: boolean;
+  toggleTheme: () => void;
 }
 export const ThemeContext = React.createContext<IThemeContext>(undefined);
 
 interface ThemeProviderProps {
-  variant?: ThemeVariant;
+  isDefaultDark?: boolean;
 }
-const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, variant }) => {
-  const defaultTheme = createTheme(variant === "dark" ? dark : light);
-  const [themeInfo, setTheme] = React.useState({
-    muiTheme: defaultTheme,
-    variant
-  });
+const ThemeProvider: React.FC<ThemeProviderProps> = ({
+  children,
+  isDefaultDark
+}) => {
+  const [isDark, setDark] = React.useState(isDefaultDark);
 
   return (
     <ThemeContext.Provider
       value={{
-        setTheme: variant =>
-          setTheme({
-            muiTheme: createTheme(variant === "dark" ? dark : light),
-            variant
-          }),
-        theme: themeInfo.muiTheme,
-        variant
+        isDark,
+        toggleTheme: () => setDark(!isDark)
       }}
     >
-      <MuiThemeProvider theme={themeInfo.muiTheme}>{children}</MuiThemeProvider>
+      <MuiThemeProvider theme={createTheme(isDark ? dark : light)}>
+        <Baseline />
+        {children}
+      </MuiThemeProvider>
     </ThemeContext.Provider>
   );
 };
 ThemeProvider.defaultProps = {
-  variant: "dark"
+  isDefaultDark: false
 };
 export default ThemeProvider;

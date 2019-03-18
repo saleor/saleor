@@ -1,4 +1,5 @@
 import { createMuiTheme, Theme } from "@material-ui/core/styles";
+import { fade } from "@material-ui/core/styles/colorManipulator";
 
 const createShadow = (pv, pb, ps, uv, ub, us, av, ab, as) =>
   [
@@ -34,7 +35,7 @@ export default (colors: IThemeColors): Theme =>
       },
       MuiCard: {
         root: {
-          border: `1px solid ${colors.paperBorder}`,
+          borderColor: colors.paperBorder,
           borderRadius: 8,
           boxShadow: "none"
         }
@@ -124,6 +125,7 @@ export default (colors: IThemeColors): Theme =>
             paddingLeft: 24 + "px",
             textAlign: "left" as "left"
           },
+          borderBottomColor: colors.paperBorder,
           padding: "4px 24px 4px 0"
         }
       },
@@ -140,7 +142,7 @@ export default (colors: IThemeColors): Theme =>
         },
         hover: {
           "$root&:hover": {
-            backgroundColor: "rgba(90, 179, 120, .1)"
+            backgroundColor: fade(colors.primary, 0.2)
           }
         }
       }
