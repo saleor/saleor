@@ -35,7 +35,7 @@ class StaffForm(forms.ModelForm):
         self.user = kwargs.pop('user')
         super().__init__(*args, **kwargs)
 
-        # Non-superuser couldn't edit superuser's profile
+        # Non-superusers shouldn't be able to edit a superuser's profile
         if self.instance.is_superuser and not self.user.is_superuser:
             self.fields['email'].disabled = True
             self.fields['user_permissions'].disabled = True
