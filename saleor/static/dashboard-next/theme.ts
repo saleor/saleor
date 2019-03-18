@@ -17,6 +17,8 @@ export type IThemeColors = Record<
   background: Record<"default" | "paper", string>;
 } & {
   font: Record<"default" | "gray", string>;
+} & {
+  gray: Record<"default" | "disabled", string>;
 };
 
 export default (colors: IThemeColors): Theme =>
@@ -84,7 +86,7 @@ export default (colors: IThemeColors): Theme =>
           "$colorPrimary$checked + &": {
             backgroundColor: colors.primary
           },
-          backgroundColor: colors.error,
+          backgroundColor: colors.gray.default,
           borderRadius: 12,
           height: 24,
           marginTop: -12,
@@ -97,16 +99,17 @@ export default (colors: IThemeColors): Theme =>
         disabled: {
           "&$switchBase": {
             "& + $bar": {
-              backgroundColor: "#eeeeee"
+              backgroundColor: colors.gray.disabled
             }
           }
         },
         icon: {
-          backgroundColor: "#ffffff",
+          backgroundColor: colors.background.paper,
           boxShadow: "none",
           marginLeft: 4
         },
         iconChecked: {
+          backgroundColor: colors.background.paper,
           boxShadow: "none"
         }
       },
