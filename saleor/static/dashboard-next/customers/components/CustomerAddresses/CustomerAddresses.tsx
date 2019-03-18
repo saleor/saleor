@@ -52,31 +52,33 @@ const CustomerAddresses = withStyles(styles, { name: "CustomerAddresses" })(
           </Button>
         }
       />
-      {customer &&
-      customer.defaultBillingAddress &&
-      customer.defaultBillingAddress.id &&
-      customer.defaultShippingAddress &&
-      customer.defaultShippingAddress.id &&
-      customer.defaultBillingAddress.id !==
-        customer.defaultShippingAddress.id ? (
+      {maybe(() => customer.defaultBillingAddress.id) !==
+      maybe(() => customer.defaultShippingAddress.id) ? (
         <>
-          <CardContent>
-            <Typography className={classes.label}>
-              {i18n.t("Billing address")}
-            </Typography>
-            <AddressFormatter
-              address={maybe(() => customer.defaultBillingAddress)}
-            />
-          </CardContent>
-          <Hr />
-          <CardContent>
-            <Typography className={classes.label}>
-              {i18n.t("Shipping address")}
-            </Typography>
-            <AddressFormatter
-              address={maybe(() => customer.defaultShippingAddress)}
-            />
-          </CardContent>
+          {maybe(() => customer.defaultBillingAddress) !== null && (
+            <CardContent>
+              <Typography className={classes.label}>
+                {i18n.t("Billing address")}
+              </Typography>
+              <AddressFormatter
+                address={maybe(() => customer.defaultBillingAddress)}
+              />
+            </CardContent>
+          )}
+          {maybe(
+            () =>
+              customer.defaultBillingAddress && customer.defaultShippingAddress
+          ) && <Hr />}
+          {maybe(() => customer.defaultShippingAddress) && (
+            <CardContent>
+              <Typography className={classes.label}>
+                {i18n.t("Shipping address")}
+              </Typography>
+              <AddressFormatter
+                address={maybe(() => customer.defaultShippingAddress)}
+              />
+            </CardContent>
+          )}
         </>
       ) : (
         <CardContent>
