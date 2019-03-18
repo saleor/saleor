@@ -55,8 +55,8 @@ const CustomerAddressDialog = withStyles(styles, {})(
       cityArea: maybe(() => address.cityArea, ""),
       companyName: maybe(() => address.companyName, ""),
       country: {
-        label: maybe(() => address.country.country),
-        value: maybe(() => address.country.code)
+        label: maybe(() => address.country.country, ""),
+        value: maybe(() => address.country.code, "")
       },
       countryArea: maybe(() => address.countryArea, ""),
       firstName: maybe(() => address.firstName, ""),

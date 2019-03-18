@@ -175,8 +175,8 @@ const CustomerAddresses: React.FC<CustomerAddressesProps> = ({ id }) => {
                                     )}
                                     errors={maybe(
                                       () =>
-                                        updateCustomerAddressOpts.data
-                                          .addressUpdate.errors,
+                                        createCustomerAddressOpts.data
+                                          .addressCreate.errors,
                                       []
                                     )}
                                     open={!!match}
