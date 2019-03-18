@@ -57,10 +57,11 @@ header {
           width: 20px;
           height: 20px;
         }
-        & .close-icon:before, & .close-icon:after {
+        & .close-icon:before,
+        & .close-icon:after {
           position: absolute;
           left: 15px;
-          content: ' ';
+          content: " ";
           height: 20px;
           width: 2px;
           background-color: var(--mobile-background);
@@ -86,7 +87,7 @@ header {
     width: 100%;
     & .content {
       padding: calc(var(--spacer)) 3rem;
-      background-color: #0C0733;
+      background-color: #0c0733;
       color: #ffffff;
       display: flex;
       margin: auto 0;
@@ -117,7 +118,7 @@ header {
         order: 2;
         margin-right: 1rem;
         cursor: pointer;
-       text-decoration: underline;
+        text-decoration: underline;
         @media (max-width: 450px) {
           order: 3;
         }
@@ -128,13 +129,13 @@ header {
         order: 1;
         flex: 1;
         @media (max-width: 450px) {
-          margin: .5rem 0rem;
+          margin: 0.5rem 0rem;
           order: 2;
         }
-        @media (max-width: 768px){
+        @media (max-width: 768px) {
           font-size: 12px;
         }
-    }
+      }
     }
   }
 
@@ -167,7 +168,6 @@ header {
           width: 80px;
         }
       }
-      
     }
   }
   & .menu {
@@ -179,14 +179,16 @@ header {
       @media (max-width: 768px) {
         height: 0;
         visibility: hidden;
-        opacity: 0; 
+        opacity: 0;
         transition: opacity 0.5s;
       }
       & li {
         position: relative;
         top: 0;
         transition: top 0.5s;
-        padding: calc(var(--spacer) * 1.2) calc(var(--spacer) / 2) calc(var(--spacer) * 1.2) calc(var(--spacer) / 2);
+        padding: calc(var(--spacer) * 1.2) calc(var(--spacer) / 2)
+          calc(var(--spacer) * 1.2) calc(var(--spacer) / 2);
+        white-space: nowrap;
         & a {
           color: var(--body-color);
           text-transform: uppercase;
@@ -201,7 +203,8 @@ header {
           }
         }
         &.background {
-          padding: calc(var(--spacer) * 1.2) calc(var(--spacer) * 1.5) calc(var(--spacer) * 1.2) calc(var(--spacer) / 2);
+          padding: calc(var(--spacer) * 1.2) calc(var(--spacer) * 1.5)
+            calc(var(--spacer) * 1.2) calc(var(--spacer) / 2);
           & a {
             color: var(--body-color);
             transition: color 0.5s ease;
@@ -236,11 +239,11 @@ header {
             & a {
               color: var(--primaryColor);
               & .trangleContainer {
+                border-color: var(--primaryColor);
+                transform: rotate(180deg);
+                & .triangle {
                   border-color: var(--primaryColor);
-                  transform: rotate(180deg);
-                  & .triangle {
-                    border-color: var(--primaryColor);
-                  }
+                }
               }
             }
           }
@@ -254,9 +257,18 @@ header {
           top: 68px;
           right: 0;
           z-index: 9999;
+          &:before {
+            height: 10px;
+            width: 100%;
+            content: "";
+            display: block;
+            position: absolute;
+            top: -10px;
+            left: 0;
+          }
           & .item {
             overflow: hidden;
-            padding: calc(var(--spacer)/2) 0;
+            padding: calc(var(--spacer) / 2) 0;
             & a {
               padding: 0;
               overflow: hidden;
@@ -309,7 +321,8 @@ header {
           }
         }
         &.github-link {
-          padding: calc(var(--spacer) * 1.2) calc(var(--spacer)) calc(var(--spacer) * 1.2) calc(var(--spacer));
+          padding: calc(var(--spacer) * 1.2) calc(var(--spacer))
+            calc(var(--spacer) * 1.2) calc(var(--spacer));
           & svg {
             fill: var(--body-color);
             & path {
@@ -317,7 +330,7 @@ header {
             }
           }
           @media (max-width: 450px) {
-              & svg {
+            & svg {
               fill: var(--primaryColor);
               & path {
                 fill: var(--primaryColor);
@@ -342,7 +355,10 @@ header {
         }
       }
       &.menu-desktop {
-        & .count, & li:first-child { display: none; }
+        & .count,
+        & li:first-child {
+          display: none;
+        }
       }
       &.menu-mobile {
         width: calc(100% - calc(var(--spacer) * 4));
@@ -355,15 +371,24 @@ header {
         top: 0;
         z-index: 998;
         background: var(--mobile-background);
-        background-image: linear-gradient(-150deg, rgba(254,62,62, 0.3) 0%, rgba(125,185,232,0) 30%, rgba(125,185,232,0) 100%), url('../../images/background.svg');
-        padding: calc(var(--spacer) * 5) calc(var(--spacer) * 2) 0 calc(var(--spacer) * 2);
+        background-image: linear-gradient(
+            -150deg,
+            rgba(254, 62, 62, 0.3) 0%,
+            rgba(125, 185, 232, 0) 30%,
+            rgba(125, 185, 232, 0) 100%
+          ),
+          url("../../images/background.svg");
+        padding: calc(var(--spacer) * 5) calc(var(--spacer) * 2) 0
+          calc(var(--spacer) * 2);
         @media (max-width: 700px) {
-          padding: calc(var(--spacer) * 3) calc(var(--spacer) * 2) 0 calc(var(--spacer) * 2);
+          padding: calc(var(--spacer) * 3) calc(var(--spacer) * 2) 0
+            calc(var(--spacer) * 2);
         }
         @media (max-width: 570px) {
-          padding: calc(var(--spacer) * 4) calc(var(--spacer) * 2) 0 calc(var(--spacer) * 2);
+          padding: calc(var(--spacer) * 4) calc(var(--spacer) * 2) 0
+            calc(var(--spacer) * 2);
         }
-         @media (max-width: 450px) {
+        @media (max-width: 450px) {
           width: calc(100% - calc(var(--spacer) * 2));
           padding: calc(var(--spacer) * 5) var(--spacer) 0 var(--spacer);
         }
@@ -478,7 +503,7 @@ header {
               transform: skewX(-45deg);
             }
           }
-          & .count { 
+          & .count {
             display: inline;
             font-size: calc(var(--font-size-base) * 1.3);
             position: absolute;
@@ -518,7 +543,7 @@ header {
           @media (max-width: 320px) {
             grid-column: -8 / span 5;
           }
-          padding: 0;      
+          padding: 0;
           &.github-link {
             @media (max-width: 450px) {
               & .githubLink {
@@ -557,21 +582,39 @@ header {
               opacity: 1;
               right: 0;
               transform: rotate(0deg) skew(-45deg);
-              transition: .25s ease-in-out;
-              &:nth-child(1) { width: 90%; top: 0; }
-              &:nth-child(2) { width: 70%; top: 10px; }
-              &:nth-child(3) { width: 70%; top: 10px; }
-              &:nth-child(4) { width: 50%; top: 20px; }
+              transition: 0.25s ease-in-out;
+              &:nth-child(1) {
+                width: 90%;
+                top: 0;
+              }
+              &:nth-child(2) {
+                width: 70%;
+                top: 10px;
+              }
+              &:nth-child(3) {
+                width: 70%;
+                top: 10px;
+              }
+              &:nth-child(4) {
+                width: 50%;
+                top: 20px;
+              }
             }
             &.open {
               & span {
-                &:nth-child(1) { 
+                &:nth-child(1) {
                   top: 18px;
                   width: 0%;
                   left: 50%;
                 }
-                &:nth-child(2) { width: 90%; transform: rotate(45deg); }
-                &:nth-child(3) { width: 90%; transform: rotate(-45deg); }
+                &:nth-child(2) {
+                  width: 90%;
+                  transform: rotate(45deg);
+                }
+                &:nth-child(3) {
+                  width: 90%;
+                  transform: rotate(-45deg);
+                }
                 &:nth-child(4) {
                   top: 18px;
                   width: 0%;
