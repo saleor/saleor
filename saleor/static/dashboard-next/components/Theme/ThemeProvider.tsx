@@ -15,6 +15,10 @@ const dark: IThemeColors = {
     default: "#FCFCFC",
     gray: "#9E9D9D"
   },
+  gray: {
+    default: "#202124",
+    disabled: "rgba(32, 33, 36, 0.6)"
+  },
   paperBorder: "#252728",
   primary: "#13BEBB",
   secondary: "#13BEBB"
@@ -28,6 +32,10 @@ const light: IThemeColors = {
   font: {
     default: "#3D3D3D",
     gray: "#616161"
+  },
+  gray: {
+    default: "#C8C8C8",
+    disabled: "rgba(216, 216, 216, 0.3)"
   },
   paperBorder: "#EAEAEA",
   primary: "#13BEBB",
