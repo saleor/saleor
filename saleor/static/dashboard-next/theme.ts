@@ -19,6 +19,10 @@ export type IThemeColors = Record<
   font: Record<"default" | "gray", string>;
 } & {
   gray: Record<"default" | "disabled", string>;
+} & {
+  components: {
+    switch: Record<"default" | "checked", string>;
+  };
 };
 
 export default (colors: IThemeColors): Theme =>
@@ -50,7 +54,7 @@ export default (colors: IThemeColors): Theme =>
       MuiInput: {
         input: {
           "&:-webkit-autofill": {
-            boxShadow: "inset 0 0 0px 9999px #EFF8F2"
+            boxShadow: `inset 0 0 0px 9999px ${fade(colors.primary, 0.2)}`
           },
           "&::placeholder": {
             opacity: "initial !important" as "initial"
