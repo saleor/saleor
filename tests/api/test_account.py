@@ -1097,6 +1097,9 @@ ADDRESS_DELETE_MUTATION = """
             address {
                 city
             }
+            user {
+                id
+            }
         }
     }
 """

@@ -58,6 +58,7 @@ enum AddressTypeEnum {
 
 type AddressUpdate {
   errors: [Error!]
+  user: User
   address: Address
 }
 
