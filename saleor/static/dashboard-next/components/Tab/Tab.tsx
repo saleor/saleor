@@ -16,10 +16,10 @@ const styles = (theme: Theme) =>
         borderBottomColor: theme.palette.primary.main
       },
       "&:focus": {
-        color: "#5AB378"
+        color: theme.palette.primary.main
       },
       "&:hover": {
-        color: "#5AB378"
+        color: theme.palette.primary.main
       },
       borderBottom: "1px solid transparent",
       cursor: "pointer",
