@@ -2547,8 +2547,8 @@ type Weight {
 scalar WeightScalar
 
 enum WeightUnitsEnum {
-  kg
-  lb
-  oz
-  g
+  KG
+  LB
+  OZ
+  G
 }
