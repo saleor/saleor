@@ -506,6 +506,13 @@ class AddressDelete(ModelDeleteMutation):
         instance.id = db_id
 
         response = cls.success_response(instance)
+
+        # Refresh the user instance to clear the default addresses. If the
+        # deleted address was used as default, it would stay cached in the
+        # user instance and the invalid ID returned in the response migt cause
+        # an error.
+        user.refresh_from_db()
+
         response.user = user
         return response
 
