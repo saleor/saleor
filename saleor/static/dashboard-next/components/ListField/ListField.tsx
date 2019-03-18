@@ -6,6 +6,7 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
+import { fade } from "@material-ui/core/styles/colorManipulator";
 import TextField, { StandardTextFieldProps } from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import CloseIcon from "@material-ui/icons/Close";
@@ -20,7 +21,7 @@ interface ListFieldState {
 const styles = (theme: Theme) =>
   createStyles({
     chip: {
-      background: "rgba(90, 179, 120, .1)",
+      background: fade(theme.palette.primary.mainw, 0.2),
       borderRadius: 8,
       display: "inline-block",
       marginRight: theme.spacing.unit * 2,
