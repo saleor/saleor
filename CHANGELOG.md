@@ -11,6 +11,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Support is_default_shipping/billing_address for address API - #3787 by @jxltom
 - Add bulk delete mutations - #3838 by @michaljelonek
 - Fix product creating - #3837 by @dominik-zeglen
+- Fix schema after bulk mutations are added - #3843 by @jxltom
 
 
 ## 2.4.0
