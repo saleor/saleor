@@ -21,6 +21,8 @@ export type IThemeColors = Record<
   gray: Record<"default" | "disabled", string>;
 };
 
+const fontFamily = '"Inter", "roboto", "sans-serif"';
+
 export default (colors: IThemeColors): Theme =>
   createMuiTheme({
     overrides: {
@@ -126,6 +128,12 @@ export default (colors: IThemeColors): Theme =>
           boxShadow: "none"
         }
       },
+      MuiTable: {
+        root: {
+          fontFamily,
+          fontFeatureSettings: '"tnum"'
+        }
+      },
       MuiTableCell: {
         body: {
           fontSize: ".875rem",
@@ -212,7 +220,7 @@ export default (colors: IThemeColors): Theme =>
     ],
     typography: {
       allVariants: {
-        fontFamily: '"Inter", "roboto", "sans-serif"'
+        fontFamily
       },
       body1: {
         fontSize: "1rem"
