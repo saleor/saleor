@@ -18,13 +18,13 @@ const styles = (theme: Theme) =>
       "& > span:first-of-type": {
         backgroundColor: theme.palette.background.default
       },
+      "& svg": {
+        color: theme.palette.primary.main
+      },
       "&$disabled": {
         "& svg": {
           color: fade(theme.palette.primary.main, 0.2)
         }
-      },
-      "& svg": {
-        color: theme.palette.primary.main
       },
       "&:focus, &:hover": {
         "& > span:first-of-type": {
