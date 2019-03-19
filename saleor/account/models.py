@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser, BaseUserManager, PermissionsMixin)
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, Value
 from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.translation import pgettext_lazy
@@ -20,6 +20,23 @@ class PossiblePhoneNumberField(PhoneNumberField):
     default_validators = [validate_possible_number]
 
 
+class AddressQueryset(models.QuerySet):
+    def annotate_default(self, user):
+        # Set default shipping/billing address pk to None
+        # if default shipping/billing address doesn't exist
+        default_shipping_address_pk, default_billing_address_pk = None, None
+        if user.default_shipping_address:
+            default_shipping_address_pk = user.default_shipping_address.pk
+        if user.default_billing_address:
+            default_billing_address_pk = user.default_billing_address.pk
+
+        return user.addresses.annotate(
+            user_default_shipping_address_pk=Value(
+                default_shipping_address_pk, models.IntegerField()),
+            user_default_billing_address_pk=Value(
+                default_billing_address_pk, models.IntegerField()))
+
+
 class Address(models.Model):
     first_name = models.CharField(max_length=256, blank=True)
     last_name = models.CharField(max_length=256, blank=True)
@@ -33,6 +50,11 @@ class Address(models.Model):
     country_area = models.CharField(max_length=128, blank=True)
     phone = PossiblePhoneNumberField(blank=True, default='')
 
+    objects = AddressQueryset.as_manager()
+
+    class Meta:
+        ordering = ('pk', )
+
     @property
     def full_name(self):
         return '%s %s' % (self.first_name, self.last_name)
@@ -41,16 +63,6 @@ class Address(models.Model):
         if self.company_name:
             return '%s - %s' % (self.company_name, self.full_name)
         return self.full_name
-
-    def __repr__(self):
-        return (
-            'Address(first_name=%r, last_name=%r, company_name=%r, '
-            'street_address_1=%r, street_address_2=%r, city=%r, '
-            'postal_code=%r, country=%r, country_area=%r, phone=%r)' % (
-                self.first_name, self.last_name, self.company_name,
-                self.street_address_1, self.street_address_2, self.city,
-                self.postal_code, self.country, self.country_area,
-                self.phone))
 
     def __eq__(self, other):
         return self.as_data() == other.as_data()

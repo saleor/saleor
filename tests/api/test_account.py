@@ -90,8 +90,13 @@ def test_token_create_user_data(
     assert token_data['user']['permissions'][0]['code'] == 'MANAGE_ORDERS'
 
 
-def test_query_user(staff_api_client, customer_user, permission_manage_users):
+def test_query_user(
+        staff_api_client, customer_user, address, permission_manage_users):
     user = customer_user
+    user.default_shipping_address.country = 'US'
+    user.default_shipping_address.save()
+    user.addresses.add(address.get_copy())
+
     query = """
     query User($id: ID!) {
         user(id: $id) {
@@ -102,6 +107,8 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
             isActive
             addresses {
                 id
+                isDefaultShippingAddress
+                isDefaultBillingAddress
             }
             orders {
                 totalCount
@@ -122,6 +129,25 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
                 country {
                     code
                 }
+                isDefaultShippingAddress
+                isDefaultBillingAddress
+            }
+            defaultBillingAddress {
+                firstName
+                lastName
+                companyName
+                streetAddress1
+                streetAddress2
+                city
+                cityArea
+                postalCode
+                countryArea
+                phone
+                country {
+                    code
+                }
+                isDefaultShippingAddress
+                isDefaultBillingAddress
             }
         }
     }
@@ -137,8 +163,19 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
     assert data['lastName'] == user.last_name
     assert data['isStaff'] == user.is_staff
     assert data['isActive'] == user.is_active
-    assert len(data['addresses']) == user.addresses.count()
     assert data['orders']['totalCount'] == user.orders.count()
+
+    assert len(data['addresses']) == user.addresses.count()
+    for address in data['addresses']:
+        if address['isDefaultShippingAddress']:
+            address_id = graphene.Node.to_global_id(
+                'Address', user.default_shipping_address.id)
+            assert address['id'] == address_id
+        if address['isDefaultBillingAddress']:
+            address_id = graphene.Node.to_global_id(
+                'Address', user.default_billing_address.id)
+            assert address['id'] == address_id
+
     address = data['defaultShippingAddress']
     user_address = user.default_shipping_address
     assert address['firstName'] == user_address.first_name
@@ -152,6 +189,24 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
     assert address['country']['code'] == user_address.country.code
     assert address['countryArea'] == user_address.country_area
     assert address['phone'] == user_address.phone.as_e164
+    assert address['isDefaultShippingAddress'] is None
+    assert address['isDefaultBillingAddress'] is None
+
+    address = data['defaultBillingAddress']
+    user_address = user.default_billing_address
+    assert address['firstName'] == user_address.first_name
+    assert address['lastName'] == user_address.last_name
+    assert address['companyName'] == user_address.company_name
+    assert address['streetAddress1'] == user_address.street_address_1
+    assert address['streetAddress2'] == user_address.street_address_2
+    assert address['city'] == user_address.city
+    assert address['cityArea'] == user_address.city_area
+    assert address['postalCode'] == user_address.postal_code
+    assert address['country']['code'] == user_address.country.code
+    assert address['countryArea'] == user_address.country_area
+    assert address['phone'] == user_address.phone.as_e164
+    assert address['isDefaultShippingAddress'] is None
+    assert address['isDefaultBillingAddress'] is None
 
 
 USER_QUERY = """
@@ -809,7 +864,7 @@ def test_user_delete_errors(staff_user, admin_user):
     errors = []
     UserDelete.clean_instance(info, admin_user, errors)
     assert errors[0].field == 'id'
-    assert errors[0].message == 'Only superuser can delete his own account.'
+    assert errors[0].message == 'Cannot delete this account.'
 
 
 def test_staff_delete_errors(staff_user, customer_user, admin_user):
@@ -938,18 +993,21 @@ def test_create_address_mutation(
         staff_api_client, customer_user, permission_manage_users):
     query = """
     mutation CreateUserAddress($user: ID!, $city: String!, $country: String!) {
-        addressCreate(input: {userId: $user, city: $city, country: $country}) {
-         errors {
-            field
-            message
-         }
-         address {
-            id
-            city
-            country {
-                code
+        addressCreate(userId: $user, input: {city: $city, country: $country}) {
+            errors {
+                field
+                message
             }
-         }
+            address {
+                id
+                city
+                country {
+                    code
+                }
+            }
+            user {
+                id
+            }
         }
     }
     """
@@ -959,11 +1017,12 @@ def test_create_address_mutation(
         query, variables, permissions=[permission_manage_users])
     content = get_graphql_content(response)
     assert content['data']['addressCreate']['errors'] == []
-    address_response = content['data']['addressCreate']['address']
-    assert address_response['city'] == 'Dummy'
-    assert address_response['country']['code'] == 'PL'
+    data = content['data']['addressCreate']
+    assert data['address']['city'] == 'Dummy'
+    assert data['address']['country']['code'] == 'PL'
     address_obj = Address.objects.get(city='Dummy')
     assert address_obj.user_addresses.first() == customer_user
+    assert data['user']['id'] == user_id
 
 
 ADDRESS_UPDATE_MUTATION = """
@@ -971,6 +1030,9 @@ ADDRESS_UPDATE_MUTATION = """
         addressUpdate(id: $addressId, input: $address) {
             address {
                 city
+            }
+            user {
+                id
             }
         }
     }
@@ -1035,6 +1097,9 @@ ADDRESS_DELETE_MUTATION = """
             address {
                 city
             }
+            user {
+                id
+            }
         }
     }
 """
@@ -1050,6 +1115,8 @@ def test_address_delete_mutation(
     content = get_graphql_content(response)
     data = content['data']['addressDelete']
     assert data['address']['city'] == address_obj.city
+    assert data['user']['id'] == graphene.Node.to_global_id(
+        'User', customer_user.pk)
     with pytest.raises(address_obj._meta.model.DoesNotExist):
         address_obj.refresh_from_db()
 
@@ -1075,6 +1142,60 @@ def test_customer_delete_address_for_other(
     response = user_api_client.post_graphql(query, variables)
     assert_no_permission(response)
     address_obj.refresh_from_db()
+
+
+SET_DEFAULT_ADDRESS_MUTATION = """
+mutation($address_id: ID!, $user_id: ID!, $type: AddressTypeEnum!) {
+  addressSetDefault(addressId: $address_id, userId: $user_id, type: $type) {
+    errors {
+      field
+      message
+    }
+    user {
+      defaultBillingAddress {
+        id
+      }
+      defaultShippingAddress {
+        id
+      }
+    }
+  }
+}
+"""
+
+
+def test_set_default_address(
+        staff_api_client, address_other_country, customer_user,
+        permission_manage_users):
+    customer_user.default_billing_address = None
+    customer_user.default_shipping_address = None
+    customer_user.save()
+
+    # try to set an address that doesn't belong to that user
+    address = address_other_country
+
+    variables = {
+        'address_id': graphene.Node.to_global_id('Address', address.id),
+        'user_id': graphene.Node.to_global_id('User', customer_user.id),
+        'type': AddressType.SHIPPING.upper()}
+
+    response = staff_api_client.post_graphql(
+        SET_DEFAULT_ADDRESS_MUTATION, variables,
+        permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    data = content['data']['addressSetDefault']
+    assert data['errors'][0]['field'] == 'addressId'
+
+    # try to set a new billing address using one of user's addresses
+    address = customer_user.addresses.first()
+    address_id = graphene.Node.to_global_id('Address', address.id)
+
+    variables['address_id'] = address_id
+    response = staff_api_client.post_graphql(
+        SET_DEFAULT_ADDRESS_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content['data']['addressSetDefault']
+    assert data['user']['defaultShippingAddress']['id'] == address_id
 
 
 def test_address_validator(user_api_client):
@@ -1354,4 +1475,7 @@ def test_customer_change_default_address_invalid_address(
         'id': graphene.Node.to_global_id('Address', address_other_country.id),
         'type': AddressType.SHIPPING.upper()}
     response = user_api_client.post_graphql(query, variables)
-    assert_no_permission(response)
+    content = get_graphql_content(response)
+    assert (
+        content['data']['customerSetDefaultAddress']['errors'][0]['field'] ==
+        'id')
