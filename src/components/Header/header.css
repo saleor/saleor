@@ -46,8 +46,12 @@ header {
         padding: calc(var(--spacer) / 2) 0;
         background: var(--accentColor);
         & a {
+          display: block;
           color: var(--mobile-background);
           padding-left: calc(var(--spacer) / 2);
+          & span {
+            display: block;
+          }
         }
         & .close-icon {
           position: absolute;

@@ -109,9 +109,8 @@ class Header extends Component {
         {this.state.visibleNewsBar ? (
           <div className="news">
             <div className="content">
-              <a href="https://medium.com/p/1330f2151585" target="_blank">
-                Saleor 2.0 release is out.{" "}
-                <span className="text-underline">Check out what's new!</span>
+              <a href="http://bit.ly/ReleaseHomepage" target="_blank">
+              <span>February Release of Saleor:</span><span>Three New Dashboard 2.0 Sections</span>
               </a>
               <div className="close-icon" onClick={this.closeNewsBar} />
             </div>
