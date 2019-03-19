@@ -10,12 +10,6 @@ const dark: IThemeColors = {
     default: "#1D1E1F",
     paper: "#2E2F31"
   },
-  components: {
-    switch: {
-      checked: "rgba(62, 231, 205, 0.2)",
-      default: "#2E2F31"
-    }
-  },
   error: "#C22D74",
   font: {
     default: "#FCFCFC",
@@ -33,12 +27,6 @@ const light: IThemeColors = {
   background: {
     default: "#F1F6F6",
     paper: "#FFFFFF"
-  },
-  components: {
-    switch: {
-      checked: "#FFFFFF",
-      default: "#FFFFFF"
-    }
   },
   error: "#C22D74",
   font: {

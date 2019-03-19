@@ -19,16 +19,17 @@ export type IThemeColors = Record<
   font: Record<"default" | "gray", string>;
 } & {
   gray: Record<"default" | "disabled", string>;
-} & {
-  components: {
-    switch: Record<"default" | "checked", string>;
-  };
 };
 
 export default (colors: IThemeColors): Theme =>
   createMuiTheme({
     overrides: {
       MuiButton: {
+        contained: {
+          "&$disabled": {
+            backgroundColor: fade(colors.primary, 0.12)
+          }
+        },
         label: {
           fontWeight: 600
         },
