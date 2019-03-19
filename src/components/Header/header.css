@@ -49,9 +49,7 @@ header {
           display: block;
           color: var(--mobile-background);
           padding-left: calc(var(--spacer) / 2);
-          & span {
-            display: block;
-          }
+          margin-right: calc(var(--spacer) * 3);
         }
         & .close-icon {
           position: absolute;

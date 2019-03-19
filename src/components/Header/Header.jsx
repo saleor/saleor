@@ -110,7 +110,7 @@ class Header extends Component {
           <div className="news">
             <div className="content">
               <a href="http://bit.ly/ReleaseHomepage" target="_blank">
-              <span>February Release of Saleor:</span><span>Three New Dashboard 2.0 Sections</span>
+              February Release of Saleor: <span>Three New Dashboard 2.0 Sections</span>
               </a>
               <div className="close-icon" onClick={this.closeNewsBar} />
             </div>
