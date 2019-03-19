@@ -64,8 +64,7 @@ const styles = (theme: Theme) =>
     sectionDescription: {},
     sectionTitle: {
       fontSize: 20,
-      fontWeight: 600 as 600,
-      marginBottom: 4
+      fontWeight: 600 as 600
     }
   });
 
