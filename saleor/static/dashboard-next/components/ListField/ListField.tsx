@@ -21,7 +21,7 @@ interface ListFieldState {
 const styles = (theme: Theme) =>
   createStyles({
     chip: {
-      background: fade(theme.palette.primary.mainw, 0.2),
+      background: fade(theme.palette.primary.main, 0.2),
       borderRadius: 8,
       display: "inline-block",
       marginRight: theme.spacing.unit * 2,
