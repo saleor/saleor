@@ -26,14 +26,9 @@ export interface FormData {
 
 const styles = (theme: Theme) =>
   createStyles({
-    card: {
-      [theme.breakpoints.down("xs")]: {
-        boxShadow: "none" as "none",
-        padding: theme.spacing.unit * 4,
-        width: "100%"
-      },
-      padding: `${theme.spacing.unit * 10.5}px ${theme.spacing.unit * 17}px`,
-      width: "100%"
+    buttonContainer: {
+      display: "flex",
+      justifyContent: "space-between"
     },
     link: {
       color: theme.palette.primary.main,
@@ -41,14 +36,13 @@ const styles = (theme: Theme) =>
       textAlign: "center"
     },
     loginButton: {
-      width: "100%"
+      width: 140
     },
     logo: {
       "& svg": {
         display: "block",
         height: "38px",
-        margin: `0 auto ${theme.spacing.unit * 7}px`,
-        width: "100%"
+        marginBottom: theme.spacing.unit * 4
       }
     },
     panel: {
@@ -61,16 +55,17 @@ const styles = (theme: Theme) =>
       padding: theme.spacing.unit * 1.5
     },
     root: {
-      [theme.breakpoints.down("xs")]: {
-        background: "#fff",
-        boxShadow: "none"
-      },
-      alignItems: "center",
+      display: "grid",
+      gridTemplateColumns: "424px 1fr"
+    },
+    sidebar: {
+      background: theme.palette.background.paper,
       display: "flex",
+      flexDirection: "column",
       height: "100vh",
-      marginLeft: "auto",
-      marginRight: "auto",
-      maxWidth: theme.breakpoints.width("sm")
+      justifyContent: "center",
+      padding: theme.spacing.unit * 6,
+      width: "100%"
     }
   });
 
@@ -90,7 +85,7 @@ const LoginCard = withStyles(styles, { name: "LoginCard" })(
       >
         {({ change: handleChange, data, submit: handleSubmit }) => (
           <div className={classes.root}>
-            <Card className={classes.card}>
+            <div className={classes.sidebar}>
               <SVG className={classes.logo} src={saleorLogo} />
               {error && (
                 <div className={classes.panel}>
@@ -124,28 +119,32 @@ const LoginCard = withStyles(styles, { name: "LoginCard" })(
                 value={data.password}
               />
               <FormSpacer />
-              <ControlledCheckbox
-                checked={data.rememberMe}
-                label={i18n.t("Remember me")}
-                name="rememberMe"
-                onChange={handleChange}
-              />
-              <FormSpacer />
-              <Button
-                className={classes.loginButton}
-                color="secondary"
-                disabled={disableLoginButton}
-                variant="contained"
-                onClick={handleSubmit}
-                type="submit"
-              >
-                {i18n.t("Login")}
-              </Button>
+              <div className={classes.buttonContainer}>
+                <ControlledCheckbox
+                  checked={data.rememberMe}
+                  label={i18n.t("Remember me")}
+                  name="rememberMe"
+                  onChange={handleChange}
+                />
+                <FormSpacer />
+                <Button
+                  className={classes.loginButton}
+                  color="primary"
+                  disabled={disableLoginButton}
+                  variant="contained"
+                  onClick={handleSubmit}
+                  type="submit"
+                >
+                  {i18n.t("Login")}
+                </Button>
+              </div>
               {/* <FormSpacer />
                 <Typography className={classes.link}>
                   {i18n.t("Reset your password")}
                 </Typography> */}
-            </Card>
+            </div>
+            {/* TODO: Add parrot */}
+            <div>placeholder</div>
           </div>
         )}
       </Form>
