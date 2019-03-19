@@ -15,6 +15,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add address book view - #3826 by @dominik-zeglen
 - New translations:
   - Thai
+- Improve user and staff management in dashboard 1.0 - #3781 by @jxltom
 
 
 ## 2.4.0
