@@ -409,41 +409,168 @@ class CustomerPasswordReset(BaseMutation):
         send_user_password_reset_email(user, site)
 
 
-class AddressCreateInput(AddressInput):
-    user_id = graphene.ID(
-        description='ID of a user to create address for', required=True)
-
-
 class AddressCreate(ModelMutation):
+    user = graphene.Field(
+        User, description='A user instance for which the address was created.')
+
     class Arguments:
-        input = AddressCreateInput(
+        input = AddressInput(
             description='Fields required to create address', required=True)
+        user_id = graphene.ID(
+            description='ID of a user to create address for', required=True)
 
     class Meta:
         description = 'Creates user address'
         model = models.Address
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        user_id = input.pop('user_id')
-        user = cls.get_node_or_error(info, user_id, errors, 'user_id', User)
-        cleaned_input = super().clean_input(info, instance, input, errors)
-        cleaned_input['user'] = user
-        return cleaned_input
-
-    @classmethod
-    def save(cls, info, instance, cleaned_input):
-        super().save(info, instance, cleaned_input)
-        user = cleaned_input.get('user')
-        if user:
-            instance.user_addresses.add(user)
-            instance.save()
+    def mutate(cls, root, info, **data):
+        errors = []
+        user_id = data['user_id']
+        user = cls.get_node_or_error(info, user_id, errors, 'userId', User)
+        if not user:
+            return cls(errors=errors)
+        response = super().mutate(root, info, **data)
+        if not response.errors:
+            user.addresses.add(response.address)
+            response.user = user
+        return response
 
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('account.manage_users')
 
 
+class AddressUpdate(ModelMutation):
+    user = graphene.Field(
+        User, description='A user instance for which the address was edited.')
+
+    class Arguments:
+        id = graphene.ID(
+            description='ID of the address to update', required=True)
+        input = AddressInput(
+            description='Fields required to update address', required=True)
+
+    class Meta:
+        description = 'Updates an address'
+        model = models.Address
+        exclude = ['user_addresses']
+
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        # Method user_is_allowed cannot be used for permission check, because
+        # it doesn't have the address instance.
+        if not can_edit_address(info.context.user, instance):
+            raise PermissionDenied()
+        return super().clean_input(info, instance, input, errors)
+
+    @classmethod
+    def mutate(cls, root, info, **data):
+        response = super().mutate(root, info, **data)
+        user = response.address.user_addresses.first()
+        response.user = user
+        return response
+
+
+class AddressDelete(ModelDeleteMutation):
+    user = graphene.Field(
+        User, description='A user instance for which the address was deleted.')
+
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of the address to delete.')
+
+    class Meta:
+        description = 'Deletes an address'
+        model = models.Address
+
+    @classmethod
+    def clean_instance(cls, info, instance, errors):
+        # Method user_is_allowed cannot be used for permission check, because
+        # it doesn't have the address instance.
+        if not can_edit_address(info.context.user, instance):
+            raise PermissionDenied()
+        return super().clean_instance(info, instance, errors)
+
+    @classmethod
+    def mutate(cls, root, info, **data):
+        if not cls.user_is_allowed(info.context.user, data):
+            raise PermissionDenied()
+
+        errors = []
+        node_id = data.get('id')
+        instance = cls.get_node_or_error(info, node_id, errors, 'id', Address)
+        if instance:
+            cls.clean_instance(info, instance, errors)
+        if errors:
+            return cls(errors=errors)
+
+        db_id = instance.id
+
+        # Return the first user that the address is assigned to. There is M2M
+        # relation between users and addresses, but in most cases address is
+        # related to only one user.
+        user = instance.user_addresses.first()
+
+        instance.delete()
+        instance.id = db_id
+
+        response = cls.success_response(instance)
+
+        # Refresh the user instance to clear the default addresses. If the
+        # deleted address was used as default, it would stay cached in the
+        # user instance and the invalid ID returned in the response migt cause
+        # an error.
+        user.refresh_from_db()
+
+        response.user = user
+        return response
+
+
+class AddressSetDefault(BaseMutation):
+    user = graphene.Field(User, description='An updated user instance.')
+
+    class Arguments:
+        address_id = graphene.ID(
+            required=True, description='ID of the address.')
+        user_id = graphene.ID(
+            required=True, description='ID of the user to change the address for.')
+        type = AddressTypeEnum(
+            required=True, description='The type of address.')
+
+    class Meta:
+        description = 'Sets a default address for the given user.'
+
+    @classmethod
+    @permission_required('account.manage_users')
+    def mutate(cls, root, info, address_id, user_id, type):
+        errors = []
+        address = cls.get_node_or_error(info, address_id, errors, 'addressId', Address)
+        if not address:
+            return cls(errors=errors)
+
+        user = cls.get_node_or_error(info, user_id, errors, 'userId', User)
+        if not user:
+            return cls(errors=errors)
+
+        if address not in user.addresses.all():
+            cls.add_error(
+                errors, 'address_id',
+                'The address doesn\'t belong to that user.')
+            return cls(errors=errors)
+
+        if type == AddressTypeEnum.BILLING.value:
+            address_type = AddressType.BILLING
+        elif type == AddressTypeEnum.SHIPPING.value:
+            address_type = AddressType.SHIPPING
+        else:
+            raise ValueError('Unknown value of AddressTypeEnum: %s' % type)
+
+        utils.change_user_default_address(user, address, address_type)
+        return cls(errors=errors, user=user)
+
+
+# The same as AddressCreate, but for the currently authenticated user.
 class CustomerAddressCreate(ModelMutation):
     class Arguments:
         input = AddressInput(
@@ -479,45 +606,7 @@ class CustomerAddressCreate(ModelMutation):
         instance.user_addresses.add(user)
 
 
-class AddressUpdate(ModelMutation):
-    class Arguments:
-        id = graphene.ID(
-            description='ID of the address to update', required=True)
-        input = AddressInput(
-            description='Fields required to update address', required=True)
-
-    class Meta:
-        description = 'Updates an address'
-        model = models.Address
-        exclude = ['user_addresses']
-
-    @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        # Method user_is_allowed cannot be used for permission check, because
-        # it doesn't have the address instance.
-        if not can_edit_address(info.context.user, instance):
-            raise PermissionDenied()
-        return super().clean_input(info, instance, input, errors)
-
-
-class AddressDelete(ModelDeleteMutation):
-    class Arguments:
-        id = graphene.ID(
-            required=True, description='ID of the address to delete.')
-
-    class Meta:
-        description = 'Deletes an address'
-        model = models.Address
-
-    @classmethod
-    def clean_instance(cls, info, instance, errors):
-        # Method user_is_allowed cannot be used for permission check, because
-        # it doesn't have the address instance.
-        if not can_edit_address(info.context.user, instance):
-            raise PermissionDenied()
-        return super().clean_instance(info, instance, errors)
-
-
+# The same as SetDefaultAddress, but for the currenty authenticated user.
 class CustomerSetDefaultAddress(BaseMutation):
     user = graphene.Field(User, description='An updated user instance.')
 
@@ -528,7 +617,7 @@ class CustomerSetDefaultAddress(BaseMutation):
             required=True, description='The type of address.')
 
     class Meta:
-        description = 'Sets one of the customer\'s address as default'
+        description = 'Sets a default address for the authenticated user.'
 
     @classmethod
     @login_required
@@ -536,11 +625,13 @@ class CustomerSetDefaultAddress(BaseMutation):
         errors = []
         address = cls.get_node_or_error(info, id, errors, 'id', Address)
         if not address:
-            return CustomerSetDefaultAddress(errors=errors)
+            return cls(errors=errors)
 
         user = info.context.user
         if address not in user.addresses.all():
-            raise PermissionDenied()
+            cls.add_error(
+                errors, 'id', 'The address doesn\'t belong to that user.')
+            return cls(errors=errors)
 
         if type == AddressTypeEnum.BILLING.value:
             address_type = AddressType.BILLING
@@ -550,4 +641,4 @@ class CustomerSetDefaultAddress(BaseMutation):
             raise ValueError('Unknown value of AddressTypeEnum: %s' % type)
 
         utils.change_user_default_address(user, address, address_type)
-        return CustomerSetDefaultAddress(errors=errors, user=user)
+        return cls(errors=errors, user=user)
