@@ -7,6 +7,7 @@ from ..core.enums import ReportingPeriod
 from ..core.fields import PrefetchingConnectionField
 from ..core.types import TaxedMoney
 from ..descriptions import DESCRIPTIONS
+from .bulk_mutations.draft_orders import DraftOrderBulkDelete
 from .enums import OrderStatusFilter
 from .mutations.draft_orders import (
     DraftOrderComplete, DraftOrderCreate, DraftOrderDelete,
@@ -73,6 +74,7 @@ class OrderMutations(graphene.ObjectType):
     draft_order_complete = DraftOrderComplete.Field()
     draft_order_create = DraftOrderCreate.Field()
     draft_order_delete = DraftOrderDelete.Field()
+    draft_order_bulk_delete = DraftOrderBulkDelete.Field()
     draft_order_lines_create = DraftOrderLinesCreate.Field()
     draft_order_line_delete = DraftOrderLineDelete.Field()
     draft_order_line_update = DraftOrderLineUpdate.Field()

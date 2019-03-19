@@ -931,6 +931,7 @@ def test_update_product_without_variants_sku_duplication(
     assert data['errors'][0]['field'] == 'sku'
     assert data['errors'][0]['message'] == 'Product with this SKU already exists.'
 
+
 def test_delete_product(staff_api_client, product, permission_manage_products):
     query = """
         mutation DeleteProduct($id: ID!) {
