@@ -46,7 +46,10 @@ interface IThemeContext {
   isDark: boolean;
   toggleTheme: () => void;
 }
-export const ThemeContext = React.createContext<IThemeContext>(undefined);
+export const ThemeContext = React.createContext<IThemeContext>({
+  isDark: false,
+  toggleTheme: () => undefined
+});
 
 interface ThemeProviderProps {
   isDefaultDark?: boolean;
