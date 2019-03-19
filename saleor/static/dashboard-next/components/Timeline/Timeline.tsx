@@ -45,7 +45,7 @@ const styles = (theme: Theme) =>
       display: "flex"
     },
     root: {
-      borderColor: grey[300],
+      borderColor: theme.typography.caption.color,
       borderStyle: "solid",
       borderWidth: "0 0 0 2px",
       marginLeft: theme.spacing.unit * 5.5,

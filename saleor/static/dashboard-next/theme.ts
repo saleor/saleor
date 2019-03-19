@@ -52,6 +52,7 @@ export default (colors: IThemeColors): Theme =>
           flexDirection: "row-reverse" as "row-reverse"
         }
       },
+
       MuiInput: {
         input: {
           "&:-webkit-autofill": {
@@ -64,6 +65,13 @@ export default (colors: IThemeColors): Theme =>
         underline: {
           "&:after": {
             borderBottomColor: colors.primary
+          }
+        }
+      },
+      MuiInputBase: {
+        input: {
+          "&::placeholder": {
+            color: colors.font.gray
           }
         }
       },
