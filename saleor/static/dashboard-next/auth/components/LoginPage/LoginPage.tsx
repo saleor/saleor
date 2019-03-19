@@ -41,7 +41,7 @@ const styles = (theme: Theme) =>
     logo: {
       "& svg": {
         display: "block",
-        height: "38px",
+        height: 40,
         marginBottom: theme.spacing.unit * 4
       }
     },
