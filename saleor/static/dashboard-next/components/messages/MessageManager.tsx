@@ -32,7 +32,7 @@ export class MessageManager extends React.Component<{}, MessageManagerState> {
     this.processQueue();
   };
 
-  pushMessage = (message: Message) => {
+  pushMessage = (message: IMessage) => {
     this.queue.push({
       key: new Date().getTime(),
       ...message

@@ -22,26 +22,13 @@ type Address implements Node {
 
 type AddressCreate {
   errors: [Error!]
+  user: User
   address: Address
-}
-
-input AddressCreateInput {
-  firstName: String
-  lastName: String
-  companyName: String
-  streetAddress1: String
-  streetAddress2: String
-  city: String
-  cityArea: String
-  postalCode: String
-  country: String!
-  countryArea: String
-  phone: String
-  userId: ID!
 }
 
 type AddressDelete {
   errors: [Error!]
+  user: User
   address: Address
 }
 
@@ -59,6 +46,11 @@ input AddressInput {
   phone: String
 }
 
+type AddressSetDefault {
+  errors: [Error!]
+  user: User
+}
+
 enum AddressTypeEnum {
   BILLING
   SHIPPING
@@ -66,6 +58,7 @@ enum AddressTypeEnum {
 
 type AddressUpdate {
   errors: [Error!]
+  user: User
   address: Address
 }
 
@@ -1146,9 +1139,10 @@ type Mutations {
   staffDelete(id: ID!): StaffDelete
   staffBulkDelete(ids: [ID]!): StaffBulkDelete
   staffUpdate(id: ID!, input: StaffInput!): StaffUpdate
-  addressCreate(input: AddressCreateInput!): AddressCreate
+  addressCreate(input: AddressInput!, userId: ID!): AddressCreate
   addressDelete(id: ID!): AddressDelete
   addressUpdate(id: ID!, input: AddressInput!): AddressUpdate
+  addressSetDefault(addressId: ID!, type: AddressTypeEnum!, userId: ID!): AddressSetDefault
 }
 
 input NameTranslationInput {
