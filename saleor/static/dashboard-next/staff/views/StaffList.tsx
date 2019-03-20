@@ -60,6 +60,8 @@ export const StaffList: React.StatelessComponent<StaffListProps> = ({
                           variables: {
                             input: {
                               email: variables.email,
+                              firstName: variables.firstName,
+                              lastName: variables.lastName,
                               permissions: variables.fullAccess
                                 ? data.shop.permissions.map(perm => perm.code)
                                 : undefined,
