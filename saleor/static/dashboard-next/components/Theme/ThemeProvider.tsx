@@ -59,12 +59,16 @@ const ThemeProvider: React.FC<ThemeProviderProps> = ({
   isDefaultDark
 }) => {
   const [isDark, setDark] = React.useState(isDefaultDark);
+  const toggleTheme = () => {
+    setDark(!isDark);
+    localStorage.setItem("theme", (!isDark).toString());
+  };
 
   return (
     <ThemeContext.Provider
       value={{
         isDark,
-        toggleTheme: () => setDark(!isDark)
+        toggleTheme
       }}
     >
       <MuiThemeProvider theme={createTheme(isDark ? dark : light)}>
