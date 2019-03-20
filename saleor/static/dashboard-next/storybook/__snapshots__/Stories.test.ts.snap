@@ -68837,12 +68837,12 @@ exports[`Storyshots Views / Shipping / Shipping zones list default 1`] = `
                       role="button"
                       tabindex="0"
                     >
-                      kg
+                      KG
                     </div>
                     <input
                       name="unit"
                       type="hidden"
-                      value="kg"
+                      value="KG"
                     />
                     <svg
                       aria-hidden="true"
@@ -69147,12 +69147,12 @@ exports[`Storyshots Views / Shipping / Shipping zones list loading 1`] = `
                       class="MuiSelect-select-id MuiSelect-selectMenu-id MuiSelect-disabled-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id"
                       role="button"
                     >
-                      kg
+                      KG
                     </div>
                     <input
                       name="unit"
                       type="hidden"
-                      value="kg"
+                      value="KG"
                     />
                     <svg
                       aria-hidden="true"
@@ -69415,12 +69415,12 @@ exports[`Storyshots Views / Shipping / Shipping zones list no data 1`] = `
                       role="button"
                       tabindex="0"
                     >
-                      kg
+                      KG
                     </div>
                     <input
                       name="unit"
                       type="hidden"
-                      value="kg"
+                      value="KG"
                     />
                     <svg
                       aria-hidden="true"

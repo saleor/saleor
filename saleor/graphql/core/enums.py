@@ -1,6 +1,7 @@
 import graphene
 
-from ...core import TaxRateType as CoreTaxRateType, weight
+from ...core import TaxRateType as CoreTaxRateType
+from ...core.weight import WeightUnits
 from ...core.permissions import MODELS_PERMISSIONS
 from .utils import str_to_enum
 
@@ -21,4 +22,6 @@ PermissionEnum = graphene.Enum(
         for codename in MODELS_PERMISSIONS])
 
 
-WeightUnitsEnum = graphene.Enum.from_enum(weight.WeightUnitsEnum)
+WeightUnitsEnum = graphene.Enum(
+    'WeightUnitsEnum',
+    [(str_to_enum(unit[0]), unit[0]) for unit in WeightUnits.CHOICES])
