@@ -117,10 +117,10 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
           );
           return (
             <Toggle key={menuItem.label} initial={isActive}>
-              {(openedMenu, { enable: enableMenu }) => (
+              {(openedMenu, { toggle: toggleMenu }) => (
                 <>
                   <div
-                    onClick={enableMenu}
+                    onClick={toggleMenu}
                     className={classNames(classes.menuListItem, {
                       [classes.menuListItemActive]: isActive
                     })}
