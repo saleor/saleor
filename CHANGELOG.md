@@ -21,6 +21,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add draft orders query - #3809 by @michaljelonek
 - Restrict global orders query - #3861 by @pawelzar
 
+- Improve accessibility - #3856 by @dominik-zeglen                                                    │
+- Add light/dark theme - #3856 by @dominik-zeglen
 
 ## 2.4.0
 ### API
