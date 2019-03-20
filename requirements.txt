@@ -5,8 +5,8 @@ autopep8==1.4.4
 babel==2.6.0
 billiard==3.6.0.0
 bleach==2.1.4
-boto3==1.9.138
-botocore==1.12.138
+boto3==1.9.144
+botocore==1.12.144
 braintree==3.49.0
 cairocffi==1.0.2
 cairosvg==2.3.1
@@ -30,11 +30,11 @@ django-debug-toolbar==1.11
 django-elasticsearch-dsl==0.5.1
 django-filter==2.1.0
 django-graphql-jwt==0.2.1
-django-impersonate==1.4
+django-impersonate==1.4.1
 django-js-asset==1.2.2
 django-measurement==3.0.0
 django-mptt==0.10.0
-django-phonenumber-field==2.3.1
+django-phonenumber-field==2.4.0
 django-prices-openexchangerates==1.0.1
 django-prices-vatlayer==1.0.2
 django-prices==1.0.4
@@ -46,7 +46,7 @@ django-storages==1.7.1
 django-templated-email==2.3.0
 django-versatileimagefield==1.10
 django-webpack-loader==0.6.0
-django==2.2
+django==2.2.1
 docutils==0.14
 elasticsearch-dsl==6.0.1
 elasticsearch==6.3.1
@@ -74,7 +74,7 @@ maxminddb==1.4.1
 measurement==2.0.1
 mpmath==1.1.0
 oauthlib==3.0.1
-phonenumberslite==8.10.10
+phonenumberslite==8.10.11
 pillow==5.4.1
 prices==1.0.0
 promise==2.2.1
@@ -105,7 +105,7 @@ sympy==1.4
 text-unidecode==1.2
 tinycss2==1.0.2
 typing==3.6.6
-urllib3==1.24.2
+urllib3==1.24.3
 uwsgi==2.0.18 ; platform_system != 'Windows'
 vine==1.3.0
 weasyprint==47
