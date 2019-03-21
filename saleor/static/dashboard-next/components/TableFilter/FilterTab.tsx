@@ -16,6 +16,9 @@ const styles = (theme: Theme) =>
       }
     },
     tabLabel: {
+      "&:hover": {
+        color: theme.typography.body1.color
+      },
       color: theme.typography.caption.color,
       fontSize: "0.875rem"
     },
