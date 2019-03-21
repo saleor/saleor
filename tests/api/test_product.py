@@ -14,7 +14,7 @@ from saleor.graphql.product.enums import StockAvailability
 from saleor.graphql.product.types import resolve_attribute_list
 from saleor.product.models import (
     Attribute, AttributeValue, Category, Product, ProductImage, ProductType,
-    ProductVariant)
+    ProductVariant, DigitalContent)
 from saleor.product.tasks import update_variants_names
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image, create_pdf_file_with_image_ext
@@ -1204,7 +1204,6 @@ def test_product_image_create_mutation(
         }
     }
     """
-
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         ('saleor.graphql.product.mutations.products.'
@@ -1766,3 +1765,96 @@ def test_variant_margin_permissions(
     response = staff_api_client.post_graphql(query, variables, permissions)
     content = get_graphql_content(response)
     assert 'margin' in content['data']['productVariant']
+
+
+def test_fetch_all_digital_contents(
+        staff_api_client, variant, digital_content, permission_manage_products):
+
+    digital_content_num = DigitalContent.objects.count()
+    query = """
+    query {
+        digitalContents(first:1){
+            edges{
+                node{
+                    id
+                    file
+                }
+            }
+        }
+    }
+    """
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_products])
+    content = get_graphql_content(response)
+    assert len(content['data']['digitalContents']['edges']) == digital_content_num
+
+
+def test_fetch_single_digital_content(
+        staff_api_client, variant, digital_content, permission_manage_products):
+    query = """
+    query {
+        digitalContent(id:"%s"){
+            id
+        }
+    }
+    """ % graphene.Node.to_global_id('DigitalContent', digital_content.id)
+    print(query)
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_products])
+    content = get_graphql_content(response)
+
+    assert 'digitalContent' in content['data']
+    assert 'id' in content['data']['digitalContent']
+
+
+def test_product_variant_digital_content_upload_mutation(
+        monkeypatch, staff_api_client, variant, permission_manage_products):
+    query = """
+    mutation createDigitalContent($content: Upload!, $variant: ID!) {
+        productVariantDigitalUpload(input: {contentFile: $content, variant: $variant}) {
+            content {
+                id
+            }
+        }
+    }
+    """
+
+    image_file, image_name = create_image()
+    variables = {
+        'variant': graphene.Node.to_global_id('ProductVariant', variant.id),
+        'content': image_name}
+
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products])
+    get_graphql_content(response)
+    variant.refresh_from_db()
+    assert variant.digital_content.file
+
+
+def test_product_variant_digital_content_delete_mutation(
+        monkeypatch, staff_api_client, variant, permission_manage_products):
+    query = """
+    mutation deleteDigitalContent($variant: ID!){
+        productVariantDigitalDelete(input:{variant:$variant}){
+            variant{
+              id
+            }
+        }
+    }
+    """
+
+    image_file, image_name = create_image()
+    variant.digital_content = DigitalContent(file=image_file)
+    variant.digital_content.save()
+
+    assert hasattr(variant, 'digital_content')
+    variables = {
+        'variant': graphene.Node.to_global_id('ProductVariant', variant.id)
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    get_graphql_content(response)
+    variant.refresh_from_db()
+    assert not hasattr(variant, 'digital_content')

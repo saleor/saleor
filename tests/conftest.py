@@ -33,11 +33,14 @@ from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.models import Payment
 from saleor.product.models import (
     Attribute, AttributeTranslation, AttributeValue, Category, Collection,
-    Product, ProductImage, ProductTranslation, ProductType, ProductVariant)
+    Product, ProductImage, ProductTranslation, ProductType, ProductVariant,
+    DigitalContent
+)
 from saleor.shipping.models import (
     ShippingMethod, ShippingMethodType, ShippingZone)
 from saleor.site import AuthenticationBackends
 from saleor.site.models import AuthorizationKey, SiteSettings
+from tests.utils import create_image
 
 
 @pytest.fixture(autouse=True)
@@ -882,3 +885,11 @@ def payment_dummy(db, settings, order_with_lines):
         billing_country_code=order_with_lines.billing_address.country.code,
         billing_country_area=order_with_lines.billing_address.country_area,
         billing_email=order_with_lines.user_email)
+
+
+@pytest.fixture
+def digital_content(variant):
+    image_file, image_name = create_image()
+    d_content = DigitalContent.objects.create(
+        file=image_file, product_variant=variant)
+    return d_content
