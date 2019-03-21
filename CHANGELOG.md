@@ -18,6 +18,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Improve user and staff management in dashboard 1.0 - #3781 by @jxltom
 - Add missing language enum in GraphQL schema - #3854 by @jxltom
 - Fix layout in staff members details page - #3857 by @dominik-zeglen
+- Add draft orders query - #3809 by @michaljelonek
+
 
 ## 2.4.0
 ### API
