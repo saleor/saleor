@@ -1,4 +1,5 @@
 from decimal import Decimal
+from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField, JSONField
@@ -302,6 +303,38 @@ class ProductVariantTranslation(models.Model):
 
     def __str__(self):
         return self.name or str(self.product_variant)
+
+
+class DigitalContent(models.Model):
+    FILE = 'file'
+    TYPE_CHOICES = (
+        (FILE, pgettext_lazy('File as a digital product', "digital_product")),
+    )
+    content_type = models.CharField(
+        max_length=128, default=FILE, choices=TYPE_CHOICES)
+    product_variant = models.OneToOneField(
+        ProductVariant, related_name='digital_content',
+        on_delete=models.CASCADE)
+    file = models.FileField(upload_to='digital_contents', blank=True)
+    max_download = models.IntegerField(blank=True, null=True)
+    url_valid_days = models.IntegerField(blank=True, null=True)
+
+
+class DigitalContentUrl(models.Model):
+    token = models.CharField(max_length=36, unique=True)
+    content = models.ForeignKey(
+        DigitalContent, related_name='urls', on_delete=models.CASCADE)
+    valid_until = models.DateField(blank=True, null=True)
+    download_num = models.IntegerField(default=0)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        if not self.token:
+            self.token = str(uuid4()).replace('-', '')
+        super().save(force_insert, force_update, using, update_fields)
+
+    def get_url(self):
+        pass
 
 
 class Attribute(models.Model):
