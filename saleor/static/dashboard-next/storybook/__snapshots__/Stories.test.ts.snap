@@ -1308,7 +1308,7 @@ exports[`Storyshots Generics / Card menu default 1`] = `
     <button
       aria-haspopup="true"
       aria-label="More"
-      class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+      class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
       tabindex="0"
       type="button"
     >
@@ -4342,7 +4342,7 @@ exports[`Storyshots Generics / Timeline default 1`] = `
           Expansion panel 1
         </p>
         <p
-          class="MuiTypography-root-id MuiTypography-body1-id"
+          class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
         >
           <time
             class=""
@@ -4369,7 +4369,7 @@ exports[`Storyshots Generics / Timeline default 1`] = `
           Expansion panel 2
         </p>
         <p
-          class="MuiTypography-root-id MuiTypography-body1-id"
+          class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
         >
           <time
             class=""
@@ -4396,7 +4396,7 @@ exports[`Storyshots Generics / Timeline default 1`] = `
           Expansion panel 3
         </p>
         <p
-          class="MuiTypography-root-id MuiTypography-body1-id"
+          class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
         >
           <time
             class=""
@@ -4443,7 +4443,7 @@ exports[`Storyshots Generics / Timeline with expansion panels 1`] = `
               Expansion panel 1
             </p>
             <p
-              class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
+              class="MuiTypography-root-id MuiTypography-body1-id Component-dateExpander-id"
             >
               Expansion panel 1
             </p>
@@ -4524,7 +4524,7 @@ exports[`Storyshots Generics / Timeline with expansion panels 1`] = `
               Expansion panel 2
             </p>
             <p
-              class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
+              class="MuiTypography-root-id MuiTypography-body1-id Component-dateExpander-id"
             >
               Expansion panel 2
             </p>
@@ -4605,7 +4605,7 @@ exports[`Storyshots Generics / Timeline with expansion panels 1`] = `
               Expansion panel 3
             </p>
             <p
-              class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
+              class="MuiTypography-root-id MuiTypography-body1-id Component-dateExpander-id"
             >
               Expansion panel 3
             </p>
@@ -4697,7 +4697,7 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
               Expansion panel 1
             </p>
             <p
-              class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
+              class="MuiTypography-root-id MuiTypography-body1-id Component-dateExpander-id"
             >
               Expansion panel 1
             </p>
@@ -4759,23 +4759,30 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
     >
       <div
         class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineNote-avatar-id"
-        style="background:#f44336"
       >
-        <svg
-          aria-hidden="true"
-          class="MuiSvgIcon-root-id"
-          focusable="false"
-          role="presentation"
-          viewBox="0 0 24 24"
+        <span
+          class="isvg pending"
+        />
+      </div>
+      <div
+        class="TimelineNote-title-id"
+      >
+        <p
+          class="MuiTypography-root-id MuiTypography-body1-id"
         >
-          <path
-            d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-          />
-          <path
-            d="M0 0h24v24H0z"
-            fill="none"
-          />
-        </svg>
+          admin@example.com
+        </p>
+        <p
+          class="MuiTypography-root-id MuiTypography-body1-id TimelineNote-date-id"
+        >
+          <time
+            class=""
+            datetime="1525712282000"
+            title="May 7, 2018 12:58 PM"
+          >
+            3 months ago
+          </time>
+        </p>
       </div>
       <div
         class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id TimelineNote-card-id"
@@ -4783,31 +4790,8 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
         <div
           class="MuiCardContent-root-id TimelineNote-cardContent-id"
         >
-          <div
-            class="TimelineNote-title-id"
-          >
-            <p
-              class="MuiTypography-root-id MuiTypography-body1-id"
-            >
-              admin@example.com
-            </p>
-            <p
-              class="MuiTypography-root-id MuiTypography-body1-id"
-            >
-              <time
-                class=""
-                datetime="1525712282000"
-                title="May 7, 2018 12:58 PM"
-              >
-                3 months ago
-              </time>
-            </p>
-          </div>
-          <hr
-            class="Hr-root-id"
-          />
           <p
-            class="MuiTypography-root-id MuiTypography-body1-id TimelineNote-content-id"
+            class="MuiTypography-root-id MuiTypography-body1-id"
           >
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
             <br />
@@ -4821,23 +4805,30 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
     >
       <div
         class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineNote-avatar-id"
-        style="background:#03a9f4"
       >
-        <svg
-          aria-hidden="true"
-          class="MuiSvgIcon-root-id"
-          focusable="false"
-          role="presentation"
-          viewBox="0 0 24 24"
+        <span
+          class="isvg pending"
+        />
+      </div>
+      <div
+        class="TimelineNote-title-id"
+      >
+        <p
+          class="MuiTypography-root-id MuiTypography-body1-id"
         >
-          <path
-            d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-          />
-          <path
-            d="M0 0h24v24H0z"
-            fill="none"
-          />
-        </svg>
+          ceo@example.com
+        </p>
+        <p
+          class="MuiTypography-root-id MuiTypography-body1-id TimelineNote-date-id"
+        >
+          <time
+            class=""
+            datetime="1525712282000"
+            title="May 7, 2018 12:58 PM"
+          >
+            3 months ago
+          </time>
+        </p>
       </div>
       <div
         class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id TimelineNote-card-id"
@@ -4845,31 +4836,8 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
         <div
           class="MuiCardContent-root-id TimelineNote-cardContent-id"
         >
-          <div
-            class="TimelineNote-title-id"
-          >
-            <p
-              class="MuiTypography-root-id MuiTypography-body1-id"
-            >
-              ceo@example.com
-            </p>
-            <p
-              class="MuiTypography-root-id MuiTypography-body1-id"
-            >
-              <time
-                class=""
-                datetime="1525712282000"
-                title="May 7, 2018 12:58 PM"
-              >
-                3 months ago
-              </time>
-            </p>
-          </div>
-          <hr
-            class="Hr-root-id"
-          />
           <p
-            class="MuiTypography-root-id MuiTypography-body1-id TimelineNote-content-id"
+            class="MuiTypography-root-id MuiTypography-body1-id"
           >
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
             <br />
@@ -4902,7 +4870,7 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
               Expansion panel 3
             </p>
             <p
-              class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
+              class="MuiTypography-root-id MuiTypography-body1-id Component-dateExpander-id"
             >
               Expansion panel 3
             </p>
@@ -5639,18 +5607,14 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
   <div
     class="OrderHistory-root-id"
   >
-    <div
-      class="ExtendedPageHeader-root-id"
+    <p
+      class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id OrderHistory-header-id"
     >
-      <h1
-        class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
-      >
-        Order timeline
-      </h1>
-      <div
-        class="ExtendedPageHeader-action-id"
-      />
-    </div>
+      Order History
+    </p>
+    <hr
+      class="Hr-root-id"
+    />
     <div
       class="Timeline-root-id"
     >
@@ -5665,27 +5629,15 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
               class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
               style="background:#673ab7"
             >
-              <svg
-                aria-hidden="true"
-                class="MuiSvgIcon-root-id"
-                focusable="false"
-                role="presentation"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                />
-                <path
-                  d="M0 0h24v24H0z"
-                  fill="none"
-                />
-              </svg>
+              <span
+                class="isvg pending"
+              />
             </div>
             <div
-              class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
             >
               <div
-                class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id MuiInputBase-adornedEnd-id"
               >
                 <div
                   class="MuiPrivateTextarea-root-id"
@@ -5706,30 +5658,26 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
                   />
                   <textarea
                     aria-invalid="false"
-                    class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                    class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id MuiInputBase-inputAdornedEnd-id"
                     name="message"
                     placeholder="Leave your note here..."
                     rows="1"
                     style="height:19px"
                   />
                 </div>
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Send
+                  </span>
+                </button>
               </div>
             </div>
-          </div>
-          <div
-            class="MuiCardActions-root-id TimelineAddNote-cardActions-id"
-          >
-            <button
-              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id MuiCardActions-action-id"
-              tabindex="0"
-              type="button"
-            >
-              <span
-                class="MuiButton-label-id"
-              >
-                Add note
-              </span>
-            </button>
           </div>
         </div>
       </form>
@@ -5748,7 +5696,7 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
             Fulfilled 1 items
           </p>
           <p
-            class="MuiTypography-root-id MuiTypography-body1-id"
+            class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
           >
             <time
               class=""
@@ -17465,7 +17413,7 @@ exports[`Storyshots Views / Customers / Address Book default 1`] = `
               <button
                 aria-haspopup="true"
                 aria-label="More"
-                class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                 tabindex="0"
                 type="button"
               >
@@ -17580,7 +17528,7 @@ exports[`Storyshots Views / Customers / Address Book default 1`] = `
               <button
                 aria-haspopup="true"
                 aria-label="More"
-                class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                 tabindex="0"
                 type="button"
               >
@@ -17754,7 +17702,7 @@ exports[`Storyshots Views / Customers / Address Book loading 1`] = `
               <button
                 aria-haspopup="true"
                 aria-label="More"
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-colorSecondary-id MuiIconButton-disabled-id"
+                class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-colorSecondary-id MuiIconButton-disabled-id CardMenu-iconButton-id"
                 disabled=""
                 tabindex="-1"
                 type="button"
@@ -33953,18 +33901,14 @@ exports[`Storyshots Views / Orders / Order details cancelled 1`] = `
         <div
           class="OrderHistory-root-id"
         >
-          <div
-            class="ExtendedPageHeader-root-id"
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id OrderHistory-header-id"
           >
-            <h1
-              class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
-            >
-              Order timeline
-            </h1>
-            <div
-              class="ExtendedPageHeader-action-id"
-            />
-          </div>
+            Order History
+          </p>
+          <hr
+            class="Hr-root-id"
+          />
           <div
             class="Timeline-root-id"
           >
@@ -33979,27 +33923,15 @@ exports[`Storyshots Views / Orders / Order details cancelled 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                      />
-                      <path
-                        d="M0 0h24v24H0z"
-                        fill="none"
-                      />
-                    </svg>
+                    <span
+                      class="isvg pending"
+                    />
                   </div>
                   <div
-                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
                   >
                     <div
-                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id MuiInputBase-adornedEnd-id"
                     >
                       <div
                         class="MuiPrivateTextarea-root-id"
@@ -34020,30 +33952,26 @@ exports[`Storyshots Views / Orders / Order details cancelled 1`] = `
                         />
                         <textarea
                           aria-invalid="false"
-                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id MuiInputBase-inputAdornedEnd-id"
                           name="message"
                           placeholder="Leave your note here..."
                           rows="1"
                           style="height:19px"
                         />
                       </div>
+                      <button
+                        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label-id"
+                        >
+                          Send
+                        </span>
+                      </button>
                     </div>
                   </div>
-                </div>
-                <div
-                  class="MuiCardActions-root-id TimelineAddNote-cardActions-id"
-                >
-                  <button
-                    class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id MuiCardActions-action-id"
-                    tabindex="0"
-                    type="button"
-                  >
-                    <span
-                      class="MuiButton-label-id"
-                    >
-                      Add note
-                    </span>
-                  </button>
                 </div>
               </div>
             </form>
@@ -34062,7 +33990,7 @@ exports[`Storyshots Views / Orders / Order details cancelled 1`] = `
                   Fulfilled 1 items
                 </p>
                 <p
-                  class="MuiTypography-root-id MuiTypography-body1-id"
+                  class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
                 >
                   <time
                     class=""
@@ -34254,13 +34182,11 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
       <div
         class="ExtendedPageHeader-action-id"
       >
-        <div
-          class="OrderDetailsPage-menu-id"
-        >
+        <div>
           <button
             aria-haspopup="true"
             aria-label="More"
-            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
             tabindex="0"
             type="button"
           >
@@ -34454,7 +34380,7 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -34610,7 +34536,7 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -34926,18 +34852,14 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
         <div
           class="OrderHistory-root-id"
         >
-          <div
-            class="ExtendedPageHeader-root-id"
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id OrderHistory-header-id"
           >
-            <h1
-              class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
-            >
-              Order timeline
-            </h1>
-            <div
-              class="ExtendedPageHeader-action-id"
-            />
-          </div>
+            Order History
+          </p>
+          <hr
+            class="Hr-root-id"
+          />
           <div
             class="Timeline-root-id"
           >
@@ -34952,27 +34874,15 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                      />
-                      <path
-                        d="M0 0h24v24H0z"
-                        fill="none"
-                      />
-                    </svg>
+                    <span
+                      class="isvg pending"
+                    />
                   </div>
                   <div
-                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
                   >
                     <div
-                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id MuiInputBase-adornedEnd-id"
                     >
                       <div
                         class="MuiPrivateTextarea-root-id"
@@ -34993,30 +34903,26 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
                         />
                         <textarea
                           aria-invalid="false"
-                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id MuiInputBase-inputAdornedEnd-id"
                           name="message"
                           placeholder="Leave your note here..."
                           rows="1"
                           style="height:19px"
                         />
                       </div>
+                      <button
+                        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label-id"
+                        >
+                          Send
+                        </span>
+                      </button>
                     </div>
                   </div>
-                </div>
-                <div
-                  class="MuiCardActions-root-id TimelineAddNote-cardActions-id"
-                >
-                  <button
-                    class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id MuiCardActions-action-id"
-                    tabindex="0"
-                    type="button"
-                  >
-                    <span
-                      class="MuiButton-label-id"
-                    >
-                      Add note
-                    </span>
-                  </button>
                 </div>
               </div>
             </form>
@@ -35035,7 +34941,7 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
                   Fulfilled 1 items
                 </p>
                 <p
-                  class="MuiTypography-root-id MuiTypography-body1-id"
+                  class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
                 >
                   <time
                     class=""
@@ -35257,13 +35163,11 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
       <div
         class="ExtendedPageHeader-action-id"
       >
-        <div
-          class="OrderDetailsPage-menu-id"
-        >
+        <div>
           <button
             aria-haspopup="true"
             aria-label="More"
-            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
             tabindex="0"
             type="button"
           >
@@ -35457,7 +35361,7 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -35613,7 +35517,7 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -35929,18 +35833,14 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
         <div
           class="OrderHistory-root-id"
         >
-          <div
-            class="ExtendedPageHeader-root-id"
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id OrderHistory-header-id"
           >
-            <h1
-              class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
-            >
-              Order timeline
-            </h1>
-            <div
-              class="ExtendedPageHeader-action-id"
-            />
-          </div>
+            Order History
+          </p>
+          <hr
+            class="Hr-root-id"
+          />
           <div
             class="Timeline-root-id"
           >
@@ -35955,27 +35855,15 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                      />
-                      <path
-                        d="M0 0h24v24H0z"
-                        fill="none"
-                      />
-                    </svg>
+                    <span
+                      class="isvg pending"
+                    />
                   </div>
                   <div
-                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
                   >
                     <div
-                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id MuiInputBase-adornedEnd-id"
                     >
                       <div
                         class="MuiPrivateTextarea-root-id"
@@ -35996,30 +35884,26 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
                         />
                         <textarea
                           aria-invalid="false"
-                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id MuiInputBase-inputAdornedEnd-id"
                           name="message"
                           placeholder="Leave your note here..."
                           rows="1"
                           style="height:19px"
                         />
                       </div>
+                      <button
+                        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label-id"
+                        >
+                          Send
+                        </span>
+                      </button>
                     </div>
                   </div>
-                </div>
-                <div
-                  class="MuiCardActions-root-id TimelineAddNote-cardActions-id"
-                >
-                  <button
-                    class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id MuiCardActions-action-id"
-                    tabindex="0"
-                    type="button"
-                  >
-                    <span
-                      class="MuiButton-label-id"
-                    >
-                      Add note
-                    </span>
-                  </button>
                 </div>
               </div>
             </form>
@@ -36038,7 +35922,7 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
                   Fulfilled 1 items
                 </p>
                 <p
-                  class="MuiTypography-root-id MuiTypography-body1-id"
+                  class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
                 >
                   <time
                     class=""
@@ -36265,13 +36149,11 @@ exports[`Storyshots Views / Orders / Order details loading 1`] = `
       <div
         class="ExtendedPageHeader-action-id"
       >
-        <div
-          class="OrderDetailsPage-menu-id"
-        >
+        <div>
           <button
             aria-haspopup="true"
             aria-label="More"
-            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
             tabindex="0"
             type="button"
           >
@@ -36624,18 +36506,14 @@ exports[`Storyshots Views / Orders / Order details loading 1`] = `
         <div
           class="OrderHistory-root-id"
         >
-          <div
-            class="ExtendedPageHeader-root-id"
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id OrderHistory-header-id"
           >
-            <h1
-              class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
-            >
-              Order timeline
-            </h1>
-            <div
-              class="ExtendedPageHeader-action-id"
-            />
-          </div>
+            Order History
+          </p>
+          <hr
+            class="Hr-root-id"
+          />
           <span
             class="Skeleton-skeleton-id"
           >
@@ -36828,13 +36706,11 @@ exports[`Storyshots Views / Orders / Order details no customer note 1`] = `
       <div
         class="ExtendedPageHeader-action-id"
       >
-        <div
-          class="OrderDetailsPage-menu-id"
-        >
+        <div>
           <button
             aria-haspopup="true"
             aria-label="More"
-            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
             tabindex="0"
             type="button"
           >
@@ -37028,7 +36904,7 @@ exports[`Storyshots Views / Orders / Order details no customer note 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -37184,7 +37060,7 @@ exports[`Storyshots Views / Orders / Order details no customer note 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -37500,18 +37376,14 @@ exports[`Storyshots Views / Orders / Order details no customer note 1`] = `
         <div
           class="OrderHistory-root-id"
         >
-          <div
-            class="ExtendedPageHeader-root-id"
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id OrderHistory-header-id"
           >
-            <h1
-              class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
-            >
-              Order timeline
-            </h1>
-            <div
-              class="ExtendedPageHeader-action-id"
-            />
-          </div>
+            Order History
+          </p>
+          <hr
+            class="Hr-root-id"
+          />
           <div
             class="Timeline-root-id"
           >
@@ -37526,27 +37398,15 @@ exports[`Storyshots Views / Orders / Order details no customer note 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                      />
-                      <path
-                        d="M0 0h24v24H0z"
-                        fill="none"
-                      />
-                    </svg>
+                    <span
+                      class="isvg pending"
+                    />
                   </div>
                   <div
-                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
                   >
                     <div
-                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id MuiInputBase-adornedEnd-id"
                     >
                       <div
                         class="MuiPrivateTextarea-root-id"
@@ -37567,30 +37427,26 @@ exports[`Storyshots Views / Orders / Order details no customer note 1`] = `
                         />
                         <textarea
                           aria-invalid="false"
-                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id MuiInputBase-inputAdornedEnd-id"
                           name="message"
                           placeholder="Leave your note here..."
                           rows="1"
                           style="height:19px"
                         />
                       </div>
+                      <button
+                        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label-id"
+                        >
+                          Send
+                        </span>
+                      </button>
                     </div>
                   </div>
-                </div>
-                <div
-                  class="MuiCardActions-root-id TimelineAddNote-cardActions-id"
-                >
-                  <button
-                    class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id MuiCardActions-action-id"
-                    tabindex="0"
-                    type="button"
-                  >
-                    <span
-                      class="MuiButton-label-id"
-                    >
-                      Add note
-                    </span>
-                  </button>
                 </div>
               </div>
             </form>
@@ -37609,7 +37465,7 @@ exports[`Storyshots Views / Orders / Order details no customer note 1`] = `
                   Fulfilled 1 items
                 </p>
                 <p
-                  class="MuiTypography-root-id MuiTypography-body1-id"
+                  class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
                 >
                   <time
                     class=""
@@ -37831,13 +37687,11 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
       <div
         class="ExtendedPageHeader-action-id"
       >
-        <div
-          class="OrderDetailsPage-menu-id"
-        >
+        <div>
           <button
             aria-haspopup="true"
             aria-label="More"
-            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
             tabindex="0"
             type="button"
           >
@@ -38031,7 +37885,7 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -38187,7 +38041,7 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -38503,18 +38357,14 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
         <div
           class="OrderHistory-root-id"
         >
-          <div
-            class="ExtendedPageHeader-root-id"
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id OrderHistory-header-id"
           >
-            <h1
-              class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
-            >
-              Order timeline
-            </h1>
-            <div
-              class="ExtendedPageHeader-action-id"
-            />
-          </div>
+            Order History
+          </p>
+          <hr
+            class="Hr-root-id"
+          />
           <div
             class="Timeline-root-id"
           >
@@ -38529,27 +38379,15 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                      />
-                      <path
-                        d="M0 0h24v24H0z"
-                        fill="none"
-                      />
-                    </svg>
+                    <span
+                      class="isvg pending"
+                    />
                   </div>
                   <div
-                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
                   >
                     <div
-                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id MuiInputBase-adornedEnd-id"
                     >
                       <div
                         class="MuiPrivateTextarea-root-id"
@@ -38570,30 +38408,26 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
                         />
                         <textarea
                           aria-invalid="false"
-                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id MuiInputBase-inputAdornedEnd-id"
                           name="message"
                           placeholder="Leave your note here..."
                           rows="1"
                           style="height:19px"
                         />
                       </div>
+                      <button
+                        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label-id"
+                        >
+                          Send
+                        </span>
+                      </button>
                     </div>
                   </div>
-                </div>
-                <div
-                  class="MuiCardActions-root-id TimelineAddNote-cardActions-id"
-                >
-                  <button
-                    class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id MuiCardActions-action-id"
-                    tabindex="0"
-                    type="button"
-                  >
-                    <span
-                      class="MuiButton-label-id"
-                    >
-                      Add note
-                    </span>
-                  </button>
                 </div>
               </div>
             </form>
@@ -38612,7 +38446,7 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
                   Fulfilled 1 items
                 </p>
                 <p
-                  class="MuiTypography-root-id MuiTypography-body1-id"
+                  class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
                 >
                   <time
                     class=""
@@ -38834,13 +38668,11 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
       <div
         class="ExtendedPageHeader-action-id"
       >
-        <div
-          class="OrderDetailsPage-menu-id"
-        >
+        <div>
           <button
             aria-haspopup="true"
             aria-label="More"
-            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
             tabindex="0"
             type="button"
           >
@@ -39034,7 +38866,7 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -39190,7 +39022,7 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -39506,18 +39338,14 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
         <div
           class="OrderHistory-root-id"
         >
-          <div
-            class="ExtendedPageHeader-root-id"
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id OrderHistory-header-id"
           >
-            <h1
-              class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
-            >
-              Order timeline
-            </h1>
-            <div
-              class="ExtendedPageHeader-action-id"
-            />
-          </div>
+            Order History
+          </p>
+          <hr
+            class="Hr-root-id"
+          />
           <div
             class="Timeline-root-id"
           >
@@ -39532,27 +39360,15 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                      />
-                      <path
-                        d="M0 0h24v24H0z"
-                        fill="none"
-                      />
-                    </svg>
+                    <span
+                      class="isvg pending"
+                    />
                   </div>
                   <div
-                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
                   >
                     <div
-                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id MuiInputBase-adornedEnd-id"
                     >
                       <div
                         class="MuiPrivateTextarea-root-id"
@@ -39573,30 +39389,26 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
                         />
                         <textarea
                           aria-invalid="false"
-                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id MuiInputBase-inputAdornedEnd-id"
                           name="message"
                           placeholder="Leave your note here..."
                           rows="1"
                           style="height:19px"
                         />
                       </div>
+                      <button
+                        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label-id"
+                        >
+                          Send
+                        </span>
+                      </button>
                     </div>
                   </div>
-                </div>
-                <div
-                  class="MuiCardActions-root-id TimelineAddNote-cardActions-id"
-                >
-                  <button
-                    class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id MuiCardActions-action-id"
-                    tabindex="0"
-                    type="button"
-                  >
-                    <span
-                      class="MuiButton-label-id"
-                    >
-                      Add note
-                    </span>
-                  </button>
                 </div>
               </div>
             </form>
@@ -39615,7 +39427,7 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
                   Fulfilled 1 items
                 </p>
                 <p
-                  class="MuiTypography-root-id MuiTypography-body1-id"
+                  class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
                 >
                   <time
                     class=""
@@ -39837,13 +39649,11 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
       <div
         class="ExtendedPageHeader-action-id"
       >
-        <div
-          class="OrderDetailsPage-menu-id"
-        >
+        <div>
           <button
             aria-haspopup="true"
             aria-label="More"
-            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
             tabindex="0"
             type="button"
           >
@@ -40037,7 +39847,7 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -40193,7 +40003,7 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -40509,18 +40319,14 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
         <div
           class="OrderHistory-root-id"
         >
-          <div
-            class="ExtendedPageHeader-root-id"
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id OrderHistory-header-id"
           >
-            <h1
-              class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
-            >
-              Order timeline
-            </h1>
-            <div
-              class="ExtendedPageHeader-action-id"
-            />
-          </div>
+            Order History
+          </p>
+          <hr
+            class="Hr-root-id"
+          />
           <div
             class="Timeline-root-id"
           >
@@ -40535,27 +40341,15 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                      />
-                      <path
-                        d="M0 0h24v24H0z"
-                        fill="none"
-                      />
-                    </svg>
+                    <span
+                      class="isvg pending"
+                    />
                   </div>
                   <div
-                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
                   >
                     <div
-                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id MuiInputBase-adornedEnd-id"
                     >
                       <div
                         class="MuiPrivateTextarea-root-id"
@@ -40576,30 +40370,26 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
                         />
                         <textarea
                           aria-invalid="false"
-                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id MuiInputBase-inputAdornedEnd-id"
                           name="message"
                           placeholder="Leave your note here..."
                           rows="1"
                           style="height:19px"
                         />
                       </div>
+                      <button
+                        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label-id"
+                        >
+                          Send
+                        </span>
+                      </button>
                     </div>
                   </div>
-                </div>
-                <div
-                  class="MuiCardActions-root-id TimelineAddNote-cardActions-id"
-                >
-                  <button
-                    class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id MuiCardActions-action-id"
-                    tabindex="0"
-                    type="button"
-                  >
-                    <span
-                      class="MuiButton-label-id"
-                    >
-                      Add note
-                    </span>
-                  </button>
                 </div>
               </div>
             </form>
@@ -40618,7 +40408,7 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
                   Fulfilled 1 items
                 </p>
                 <p
-                  class="MuiTypography-root-id MuiTypography-body1-id"
+                  class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
                 >
                   <time
                     class=""
@@ -40840,13 +40630,11 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
       <div
         class="ExtendedPageHeader-action-id"
       >
-        <div
-          class="OrderDetailsPage-menu-id"
-        >
+        <div>
           <button
             aria-haspopup="true"
             aria-label="More"
-            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
             tabindex="0"
             type="button"
           >
@@ -41040,7 +40828,7 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -41196,7 +40984,7 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -41512,18 +41300,14 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
         <div
           class="OrderHistory-root-id"
         >
-          <div
-            class="ExtendedPageHeader-root-id"
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id OrderHistory-header-id"
           >
-            <h1
-              class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
-            >
-              Order timeline
-            </h1>
-            <div
-              class="ExtendedPageHeader-action-id"
-            />
-          </div>
+            Order History
+          </p>
+          <hr
+            class="Hr-root-id"
+          />
           <div
             class="Timeline-root-id"
           >
@@ -41538,27 +41322,15 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                      />
-                      <path
-                        d="M0 0h24v24H0z"
-                        fill="none"
-                      />
-                    </svg>
+                    <span
+                      class="isvg pending"
+                    />
                   </div>
                   <div
-                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
                   >
                     <div
-                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id MuiInputBase-adornedEnd-id"
                     >
                       <div
                         class="MuiPrivateTextarea-root-id"
@@ -41579,30 +41351,26 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
                         />
                         <textarea
                           aria-invalid="false"
-                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id MuiInputBase-inputAdornedEnd-id"
                           name="message"
                           placeholder="Leave your note here..."
                           rows="1"
                           style="height:19px"
                         />
                       </div>
+                      <button
+                        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label-id"
+                        >
+                          Send
+                        </span>
+                      </button>
                     </div>
                   </div>
-                </div>
-                <div
-                  class="MuiCardActions-root-id TimelineAddNote-cardActions-id"
-                >
-                  <button
-                    class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id MuiCardActions-action-id"
-                    tabindex="0"
-                    type="button"
-                  >
-                    <span
-                      class="MuiButton-label-id"
-                    >
-                      Add note
-                    </span>
-                  </button>
                 </div>
               </div>
             </form>
@@ -41621,7 +41389,7 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
                   Fulfilled 1 items
                 </p>
                 <p
-                  class="MuiTypography-root-id MuiTypography-body1-id"
+                  class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
                 >
                   <time
                     class=""
@@ -41843,13 +41611,11 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
       <div
         class="ExtendedPageHeader-action-id"
       >
-        <div
-          class="OrderDetailsPage-menu-id"
-        >
+        <div>
           <button
             aria-haspopup="true"
             aria-label="More"
-            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
             tabindex="0"
             type="button"
           >
@@ -42043,7 +41809,7 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -42199,7 +41965,7 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -42515,18 +42281,14 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
         <div
           class="OrderHistory-root-id"
         >
-          <div
-            class="ExtendedPageHeader-root-id"
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id OrderHistory-header-id"
           >
-            <h1
-              class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
-            >
-              Order timeline
-            </h1>
-            <div
-              class="ExtendedPageHeader-action-id"
-            />
-          </div>
+            Order History
+          </p>
+          <hr
+            class="Hr-root-id"
+          />
           <div
             class="Timeline-root-id"
           >
@@ -42541,27 +42303,15 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                      />
-                      <path
-                        d="M0 0h24v24H0z"
-                        fill="none"
-                      />
-                    </svg>
+                    <span
+                      class="isvg pending"
+                    />
                   </div>
                   <div
-                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
                   >
                     <div
-                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id MuiInputBase-adornedEnd-id"
                     >
                       <div
                         class="MuiPrivateTextarea-root-id"
@@ -42582,30 +42332,26 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
                         />
                         <textarea
                           aria-invalid="false"
-                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id MuiInputBase-inputAdornedEnd-id"
                           name="message"
                           placeholder="Leave your note here..."
                           rows="1"
                           style="height:19px"
                         />
                       </div>
+                      <button
+                        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label-id"
+                        >
+                          Send
+                        </span>
+                      </button>
                     </div>
                   </div>
-                </div>
-                <div
-                  class="MuiCardActions-root-id TimelineAddNote-cardActions-id"
-                >
-                  <button
-                    class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id MuiCardActions-action-id"
-                    tabindex="0"
-                    type="button"
-                  >
-                    <span
-                      class="MuiButton-label-id"
-                    >
-                      Add note
-                    </span>
-                  </button>
                 </div>
               </div>
             </form>
@@ -42624,7 +42370,7 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
                   Fulfilled 1 items
                 </p>
                 <p
-                  class="MuiTypography-root-id MuiTypography-body1-id"
+                  class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
                 >
                   <time
                     class=""
@@ -42846,13 +42592,11 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
       <div
         class="ExtendedPageHeader-action-id"
       >
-        <div
-          class="OrderDetailsPage-menu-id"
-        >
+        <div>
           <button
             aria-haspopup="true"
             aria-label="More"
-            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
             tabindex="0"
             type="button"
           >
@@ -43046,7 +42790,7 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -43202,7 +42946,7 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -43518,18 +43262,14 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
         <div
           class="OrderHistory-root-id"
         >
-          <div
-            class="ExtendedPageHeader-root-id"
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id OrderHistory-header-id"
           >
-            <h1
-              class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
-            >
-              Order timeline
-            </h1>
-            <div
-              class="ExtendedPageHeader-action-id"
-            />
-          </div>
+            Order History
+          </p>
+          <hr
+            class="Hr-root-id"
+          />
           <div
             class="Timeline-root-id"
           >
@@ -43544,27 +43284,15 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                      />
-                      <path
-                        d="M0 0h24v24H0z"
-                        fill="none"
-                      />
-                    </svg>
+                    <span
+                      class="isvg pending"
+                    />
                   </div>
                   <div
-                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
                   >
                     <div
-                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id MuiInputBase-adornedEnd-id"
                     >
                       <div
                         class="MuiPrivateTextarea-root-id"
@@ -43585,30 +43313,26 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
                         />
                         <textarea
                           aria-invalid="false"
-                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id MuiInputBase-inputAdornedEnd-id"
                           name="message"
                           placeholder="Leave your note here..."
                           rows="1"
                           style="height:19px"
                         />
                       </div>
+                      <button
+                        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label-id"
+                        >
+                          Send
+                        </span>
+                      </button>
                     </div>
                   </div>
-                </div>
-                <div
-                  class="MuiCardActions-root-id TimelineAddNote-cardActions-id"
-                >
-                  <button
-                    class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id MuiCardActions-action-id"
-                    tabindex="0"
-                    type="button"
-                  >
-                    <span
-                      class="MuiButton-label-id"
-                    >
-                      Add note
-                    </span>
-                  </button>
                 </div>
               </div>
             </form>
@@ -43627,7 +43351,7 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
                   Fulfilled 1 items
                 </p>
                 <p
-                  class="MuiTypography-root-id MuiTypography-body1-id"
+                  class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
                 >
                   <time
                     class=""
@@ -43849,13 +43573,11 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
       <div
         class="ExtendedPageHeader-action-id"
       >
-        <div
-          class="OrderDetailsPage-menu-id"
-        >
+        <div>
           <button
             aria-haspopup="true"
             aria-label="More"
-            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
             tabindex="0"
             type="button"
           >
@@ -44049,7 +43771,7 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -44205,7 +43927,7 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -44521,18 +44243,14 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
         <div
           class="OrderHistory-root-id"
         >
-          <div
-            class="ExtendedPageHeader-root-id"
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id OrderHistory-header-id"
           >
-            <h1
-              class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
-            >
-              Order timeline
-            </h1>
-            <div
-              class="ExtendedPageHeader-action-id"
-            />
-          </div>
+            Order History
+          </p>
+          <hr
+            class="Hr-root-id"
+          />
           <div
             class="Timeline-root-id"
           >
@@ -44547,27 +44265,15 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                      />
-                      <path
-                        d="M0 0h24v24H0z"
-                        fill="none"
-                      />
-                    </svg>
+                    <span
+                      class="isvg pending"
+                    />
                   </div>
                   <div
-                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
                   >
                     <div
-                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id MuiInputBase-adornedEnd-id"
                     >
                       <div
                         class="MuiPrivateTextarea-root-id"
@@ -44588,30 +44294,26 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
                         />
                         <textarea
                           aria-invalid="false"
-                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id MuiInputBase-inputAdornedEnd-id"
                           name="message"
                           placeholder="Leave your note here..."
                           rows="1"
                           style="height:19px"
                         />
                       </div>
+                      <button
+                        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label-id"
+                        >
+                          Send
+                        </span>
+                      </button>
                     </div>
                   </div>
-                </div>
-                <div
-                  class="MuiCardActions-root-id TimelineAddNote-cardActions-id"
-                >
-                  <button
-                    class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id MuiCardActions-action-id"
-                    tabindex="0"
-                    type="button"
-                  >
-                    <span
-                      class="MuiButton-label-id"
-                    >
-                      Add note
-                    </span>
-                  </button>
                 </div>
               </div>
             </form>
@@ -44630,7 +44332,7 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
                   Fulfilled 1 items
                 </p>
                 <p
-                  class="MuiTypography-root-id MuiTypography-body1-id"
+                  class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
                 >
                   <time
                     class=""
@@ -44852,13 +44554,11 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
       <div
         class="ExtendedPageHeader-action-id"
       >
-        <div
-          class="OrderDetailsPage-menu-id"
-        >
+        <div>
           <button
             aria-haspopup="true"
             aria-label="More"
-            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
             tabindex="0"
             type="button"
           >
@@ -45052,7 +44752,7 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -45208,7 +44908,7 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -45524,18 +45224,14 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
         <div
           class="OrderHistory-root-id"
         >
-          <div
-            class="ExtendedPageHeader-root-id"
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id OrderHistory-header-id"
           >
-            <h1
-              class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
-            >
-              Order timeline
-            </h1>
-            <div
-              class="ExtendedPageHeader-action-id"
-            />
-          </div>
+            Order History
+          </p>
+          <hr
+            class="Hr-root-id"
+          />
           <div
             class="Timeline-root-id"
           >
@@ -45550,27 +45246,15 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                      />
-                      <path
-                        d="M0 0h24v24H0z"
-                        fill="none"
-                      />
-                    </svg>
+                    <span
+                      class="isvg pending"
+                    />
                   </div>
                   <div
-                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
                   >
                     <div
-                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id MuiInputBase-adornedEnd-id"
                     >
                       <div
                         class="MuiPrivateTextarea-root-id"
@@ -45591,30 +45275,26 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
                         />
                         <textarea
                           aria-invalid="false"
-                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id MuiInputBase-inputAdornedEnd-id"
                           name="message"
                           placeholder="Leave your note here..."
                           rows="1"
                           style="height:19px"
                         />
                       </div>
+                      <button
+                        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label-id"
+                        >
+                          Send
+                        </span>
+                      </button>
                     </div>
                   </div>
-                </div>
-                <div
-                  class="MuiCardActions-root-id TimelineAddNote-cardActions-id"
-                >
-                  <button
-                    class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id MuiCardActions-action-id"
-                    tabindex="0"
-                    type="button"
-                  >
-                    <span
-                      class="MuiButton-label-id"
-                    >
-                      Add note
-                    </span>
-                  </button>
                 </div>
               </div>
             </form>
@@ -45633,7 +45313,7 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
                   Fulfilled 1 items
                 </p>
                 <p
-                  class="MuiTypography-root-id MuiTypography-body1-id"
+                  class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
                 >
                   <time
                     class=""
@@ -45855,13 +45535,11 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
       <div
         class="ExtendedPageHeader-action-id"
       >
-        <div
-          class="OrderDetailsPage-menu-id"
-        >
+        <div>
           <button
             aria-haspopup="true"
             aria-label="More"
-            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
             tabindex="0"
             type="button"
           >
@@ -46055,7 +45733,7 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -46211,7 +45889,7 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
                 <button
                   aria-haspopup="true"
                   aria-label="More"
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
                   tabindex="0"
                   type="button"
                 >
@@ -46527,18 +46205,14 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
         <div
           class="OrderHistory-root-id"
         >
-          <div
-            class="ExtendedPageHeader-root-id"
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id OrderHistory-header-id"
           >
-            <h1
-              class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
-            >
-              Order timeline
-            </h1>
-            <div
-              class="ExtendedPageHeader-action-id"
-            />
-          </div>
+            Order History
+          </p>
+          <hr
+            class="Hr-root-id"
+          />
           <div
             class="Timeline-root-id"
           >
@@ -46553,27 +46227,15 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                      />
-                      <path
-                        d="M0 0h24v24H0z"
-                        fill="none"
-                      />
-                    </svg>
+                    <span
+                      class="isvg pending"
+                    />
                   </div>
                   <div
-                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
                   >
                     <div
-                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id MuiInputBase-adornedEnd-id"
                     >
                       <div
                         class="MuiPrivateTextarea-root-id"
@@ -46594,30 +46256,26 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
                         />
                         <textarea
                           aria-invalid="false"
-                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id MuiInputBase-inputAdornedEnd-id"
                           name="message"
                           placeholder="Leave your note here..."
                           rows="1"
                           style="height:19px"
                         />
                       </div>
+                      <button
+                        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label-id"
+                        >
+                          Send
+                        </span>
+                      </button>
                     </div>
                   </div>
-                </div>
-                <div
-                  class="MuiCardActions-root-id TimelineAddNote-cardActions-id"
-                >
-                  <button
-                    class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id MuiCardActions-action-id"
-                    tabindex="0"
-                    type="button"
-                  >
-                    <span
-                      class="MuiButton-label-id"
-                    >
-                      Add note
-                    </span>
-                  </button>
                 </div>
               </div>
             </form>
@@ -46636,7 +46294,7 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
                   Fulfilled 1 items
                 </p>
                 <p
-                  class="MuiTypography-root-id MuiTypography-body1-id"
+                  class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
                 >
                   <time
                     class=""
@@ -46858,13 +46516,11 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
       <div
         class="ExtendedPageHeader-action-id"
       >
-        <div
-          class="OrderDraftPage-menu-id"
-        >
+        <div>
           <button
             aria-haspopup="true"
             aria-label="More"
-            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
             tabindex="0"
             type="button"
           >
@@ -47217,18 +46873,14 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
         <div
           class="OrderHistory-root-id"
         >
-          <div
-            class="ExtendedPageHeader-root-id"
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id OrderHistory-header-id"
           >
-            <h1
-              class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
-            >
-              Order timeline
-            </h1>
-            <div
-              class="ExtendedPageHeader-action-id"
-            />
-          </div>
+            Order History
+          </p>
+          <hr
+            class="Hr-root-id"
+          />
           <div
             class="Timeline-root-id"
           >
@@ -47243,27 +46895,15 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                      />
-                      <path
-                        d="M0 0h24v24H0z"
-                        fill="none"
-                      />
-                    </svg>
+                    <span
+                      class="isvg pending"
+                    />
                   </div>
                   <div
-                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
                   >
                     <div
-                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id MuiInputBase-adornedEnd-id"
                     >
                       <div
                         class="MuiPrivateTextarea-root-id"
@@ -47284,30 +46924,26 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
                         />
                         <textarea
                           aria-invalid="false"
-                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id MuiInputBase-inputAdornedEnd-id"
                           name="message"
                           placeholder="Leave your note here..."
                           rows="1"
                           style="height:19px"
                         />
                       </div>
+                      <button
+                        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label-id"
+                        >
+                          Send
+                        </span>
+                      </button>
                     </div>
                   </div>
-                </div>
-                <div
-                  class="MuiCardActions-root-id TimelineAddNote-cardActions-id"
-                >
-                  <button
-                    class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id MuiCardActions-action-id"
-                    tabindex="0"
-                    type="button"
-                  >
-                    <span
-                      class="MuiButton-label-id"
-                    >
-                      Add note
-                    </span>
-                  </button>
                 </div>
               </div>
             </form>
@@ -47480,13 +47116,11 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
       <div
         class="ExtendedPageHeader-action-id"
       >
-        <div
-          class="OrderDraftPage-menu-id"
-        >
+        <div>
           <button
             aria-haspopup="true"
             aria-label="More"
-            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
             tabindex="0"
             type="button"
           >
@@ -47718,18 +47352,14 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
         <div
           class="OrderHistory-root-id"
         >
-          <div
-            class="ExtendedPageHeader-root-id"
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id OrderHistory-header-id"
           >
-            <h1
-              class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
-            >
-              Order timeline
-            </h1>
-            <div
-              class="ExtendedPageHeader-action-id"
-            />
-          </div>
+            Order History
+          </p>
+          <hr
+            class="Hr-root-id"
+          />
           <span
             class="Skeleton-skeleton-id"
           >
@@ -47900,13 +47530,11 @@ exports[`Storyshots Views / Orders / Order draft without lines 1`] = `
       <div
         class="ExtendedPageHeader-action-id"
       >
-        <div
-          class="OrderDraftPage-menu-id"
-        >
+        <div>
           <button
             aria-haspopup="true"
             aria-label="More"
-            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+            class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id CardMenu-iconButton-id"
             tabindex="0"
             type="button"
           >
@@ -48007,18 +47635,14 @@ exports[`Storyshots Views / Orders / Order draft without lines 1`] = `
         <div
           class="OrderHistory-root-id"
         >
-          <div
-            class="ExtendedPageHeader-root-id"
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id OrderHistory-header-id"
           >
-            <h1
-              class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
-            >
-              Order timeline
-            </h1>
-            <div
-              class="ExtendedPageHeader-action-id"
-            />
-          </div>
+            Order History
+          </p>
+          <hr
+            class="Hr-root-id"
+          />
           <div
             class="Timeline-root-id"
           >
@@ -48033,27 +47657,15 @@ exports[`Storyshots Views / Orders / Order draft without lines 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                      />
-                      <path
-                        d="M0 0h24v24H0z"
-                        fill="none"
-                      />
-                    </svg>
+                    <span
+                      class="isvg pending"
+                    />
                   </div>
                   <div
-                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
                   >
                     <div
-                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id"
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-multiline-id MuiInput-multiline-id MuiInputBase-adornedEnd-id"
                     >
                       <div
                         class="MuiPrivateTextarea-root-id"
@@ -48074,30 +47686,26 @@ exports[`Storyshots Views / Orders / Order draft without lines 1`] = `
                         />
                         <textarea
                           aria-invalid="false"
-                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id"
+                          class="MuiPrivateTextarea-textarea-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputMultiline-id MuiInput-inputMultiline-id MuiInputBase-inputAdornedEnd-id"
                           name="message"
                           placeholder="Leave your note here..."
                           rows="1"
                           style="height:19px"
                         />
                       </div>
+                      <button
+                        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label-id"
+                        >
+                          Send
+                        </span>
+                      </button>
                     </div>
                   </div>
-                </div>
-                <div
-                  class="MuiCardActions-root-id TimelineAddNote-cardActions-id"
-                >
-                  <button
-                    class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id MuiCardActions-action-id"
-                    tabindex="0"
-                    type="button"
-                  >
-                    <span
-                      class="MuiButton-label-id"
-                    >
-                      Add note
-                    </span>
-                  </button>
                 </div>
               </div>
             </form>
