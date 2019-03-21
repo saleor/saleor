@@ -2,19 +2,18 @@ import * as React from "react";
 import { UserError } from "../../types";
 
 export interface FormProps<T extends {}> {
-  children: ((
-    props: {
-      data: T;
-      hasChanged: boolean;
-      errors: { [key: string]: string };
-      change(event: React.ChangeEvent<any>, cb?: () => void);
-      submit(event?: React.FormEvent<any>);
-    }
-  ) => React.ReactElement<any>);
+  children: (props: {
+    data: T;
+    hasChanged: boolean;
+    errors: { [key: string]: string };
+    change(event: React.ChangeEvent<any>, cb?: () => void);
+    submit(event?: React.FormEvent<any>);
+  }) => React.ReactElement<any>;
   errors?: UserError[];
   initial?: T;
   confirmLeave?: boolean;
   useForm?: boolean;
+  resetOnSubmit?: boolean;
   onSubmit?(data: T);
 }
 
@@ -114,14 +113,22 @@ class FormComponent<T extends {} = {}> extends React.Component<
     }
   };
 
-  handleSubmit = (event?: React.FormEvent<any>) => {
-    const { onSubmit } = this.props;
+  handleSubmit = (event?: React.FormEvent<any>, cb?: () => void) => {
+    const { resetOnSubmit, onSubmit } = this.props;
     if (event) {
       event.stopPropagation();
       event.preventDefault();
     }
     if (onSubmit !== undefined) {
       onSubmit(this.state.fields);
+    }
+    if (cb) {
+      cb();
+    }
+    if (resetOnSubmit) {
+      this.setState({
+        fields: this.state.initial
+      });
     }
   };
 
