@@ -18,6 +18,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Improve user and staff management in dashboard 1.0 - #3781 by @jxltom
 - Add missing language enum in GraphQL schema - #3854 by @jxltom
 - Fix layout in staff members details page - #3857 by @dominik-zeglen
+- Add draft orders query - #3809 by @michaljelonek
+
 
 ## 2.4.0
 ### API
@@ -81,21 +83,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - New translations:
   - Estonian
   - Indonesian
-- Add missing type definition for dashboard 2.0 - #3776 by @jxltom
-- Add mutations to manage addresses for authenticated customers - #3772 by @Kwaidan00, @maarcingebala
-- Only include cancelled fulfillments for staff in fulfillment API - #3778 by @jxltom
-- Fix incorrect cart badge location - #3786 by @jxltom
-- Add function to recalculate order's total weight - #3755 by @Kwaidan00, @maarcingebala
-- Unify behavior after creating checkout in API and Storefront 1.0; code formatting improvements - #3790 by @maarcingebala
-- Add pages section in Dashboard 2.0; introduce Draftail WYSIWYG editor - #3751 by @dominik-zeglen
-- Support partially charged and partially refunded payment status - #3735 by @jxltom
-- Add translations to GraphQL API - #3789 by @michaljelonek
-- Fix product create when no product type provided - #3804 by @michaljelonek
-- Add ordering to shipping method - #3806 by @michaljelonek
-- Add missing types for dashboard 2.0 after adding translations to API - #3802 by @jxltom
-- Add city choices and city area type to address validator API - #3788 by @jxltom
-- Support setting as default address directly when creating customer address - #3782 by @jxltom
-- Add draft orders query - #3809 by @michaljelonek
 
 
 ## 2.3.1
