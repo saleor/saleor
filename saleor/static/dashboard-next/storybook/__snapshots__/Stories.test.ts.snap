@@ -5878,111 +5878,126 @@ exports[`Storyshots Views / Authentication / Log in default 1`] = `
       class="LoginCard-root-id"
     >
       <div
-        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id LoginCard-card-id"
+        class="LoginCard-sidebar-id"
       >
         <span
-          class="isvg pending LoginCard-logo-id"
+          class="isvg pending LoginCard-sidebarArt-id"
         />
+      </div>
+      <div
+        class="LoginCard-mainPanel-id"
+      >
         <div
-          class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-        >
-          <label
-            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-            data-shrink="false"
-          >
-            Email
-          </label>
-          <div
-            class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
-          >
-            <input
-              aria-invalid="false"
-              autocomplete="username"
-              autofocus=""
-              class="MuiInputBase-input-id MuiInput-input-id"
-              name="email"
-              type="text"
-              value=""
-            />
-          </div>
-        </div>
-        <div
-          class="FormSpacer-spacer-id"
-        />
-        <div
-          class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-        >
-          <label
-            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-            data-shrink="false"
-          >
-            Password
-          </label>
-          <div
-            class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
-          >
-            <input
-              aria-invalid="false"
-              autocomplete="current-password"
-              class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id"
-              name="password"
-              type="password"
-              value=""
-            />
-          </div>
-        </div>
-        <div
-          class="FormSpacer-spacer-id"
-        />
-        <label
-          class="MuiFormControlLabel-root-id"
+          class="LoginCard-mainPanelContent-id"
         >
           <span
-            class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id"
+            class="isvg pending LoginCard-logo-id"
+          />
+          <div
+            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
           >
-            <span
-              class="MuiIconButton-label-id"
+            <label
+              class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+              data-shrink="false"
             >
-              <svg
-                aria-hidden="true"
-                class="MuiSvgIcon-root-id"
-                focusable="false"
-                role="presentation"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
-                />
-              </svg>
+              Email
+            </label>
+            <div
+              class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+            >
               <input
-                class="MuiPrivateSwitchBase-input-id"
-                data-indeterminate="false"
-                name="rememberMe"
-                type="checkbox"
+                aria-invalid="false"
+                autocomplete="username"
+                autofocus=""
+                class="MuiInputBase-input-id MuiInput-input-id"
+                name="email"
+                type="text"
+                value=""
               />
-            </span>
-          </span>
-          <span
-            class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+            </div>
+          </div>
+          <div
+            class="FormSpacer-spacer-id"
+          />
+          <div
+            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
           >
-            Remember me
-          </span>
-        </label>
-        <div
-          class="FormSpacer-spacer-id"
-        />
-        <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id LoginCard-loginButton-id"
-          disabled=""
-          tabindex="-1"
-          type="submit"
-        >
-          <span
-            class="MuiButton-label-id"
+            <label
+              class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+              data-shrink="false"
+            >
+              Password
+            </label>
+            <div
+              class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+            >
+              <input
+                aria-invalid="false"
+                autocomplete="current-password"
+                class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id"
+                name="password"
+                type="password"
+                value=""
+              />
+            </div>
+          </div>
+          <div
+            class="FormSpacer-spacer-id"
+          />
+          <div
+            class="LoginCard-buttonContainer-id"
           >
-            Login
-          </span>
-        </button>
+            <label
+              class="MuiFormControlLabel-root-id"
+            >
+              <span
+                class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id"
+              >
+                <span
+                  class="MuiIconButton-label-id"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-id"
+                    focusable="false"
+                    role="presentation"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                    />
+                  </svg>
+                  <input
+                    class="MuiPrivateSwitchBase-input-id"
+                    data-indeterminate="false"
+                    name="rememberMe"
+                    type="checkbox"
+                  />
+                </span>
+              </span>
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+              >
+                Remember me
+              </span>
+            </label>
+            <div
+              class="FormSpacer-spacer-id"
+            />
+            <button
+              class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedPrimary-id MuiButton-raised-id MuiButton-raisedPrimary-id MuiButton-disabled-id LoginCard-loginButton-id"
+              disabled=""
+              tabindex="-1"
+              type="submit"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Login
+              </span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </form>
@@ -5998,122 +6013,137 @@ exports[`Storyshots Views / Authentication / Log in error 1`] = `
       class="LoginCard-root-id"
     >
       <div
-        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id LoginCard-card-id"
+        class="LoginCard-sidebar-id"
       >
         <span
-          class="isvg pending LoginCard-logo-id"
+          class="isvg pending LoginCard-sidebarArt-id"
         />
+      </div>
+      <div
+        class="LoginCard-mainPanel-id"
+      >
         <div
-          class="LoginCard-panel-id"
+          class="LoginCard-mainPanelContent-id"
         >
           <span
-            class="MuiTypography-root-id MuiTypography-caption-id"
-          >
-            Sorry, your username and/or password are incorrect. 
-            <br />
-            Please try again.
-          </span>
-        </div>
-        <div
-          class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-        >
-          <label
-            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-            data-shrink="false"
-          >
-            Email
-          </label>
+            class="isvg pending LoginCard-logo-id"
+          />
           <div
-            class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
-          >
-            <input
-              aria-invalid="false"
-              autocomplete="username"
-              autofocus=""
-              class="MuiInputBase-input-id MuiInput-input-id"
-              name="email"
-              type="text"
-              value=""
-            />
-          </div>
-        </div>
-        <div
-          class="FormSpacer-spacer-id"
-        />
-        <div
-          class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-        >
-          <label
-            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-            data-shrink="false"
-          >
-            Password
-          </label>
-          <div
-            class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
-          >
-            <input
-              aria-invalid="false"
-              autocomplete="current-password"
-              class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id"
-              name="password"
-              type="password"
-              value=""
-            />
-          </div>
-        </div>
-        <div
-          class="FormSpacer-spacer-id"
-        />
-        <label
-          class="MuiFormControlLabel-root-id"
-        >
-          <span
-            class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id"
+            class="LoginCard-panel-id"
           >
             <span
-              class="MuiIconButton-label-id"
+              class="MuiTypography-root-id MuiTypography-caption-id"
             >
-              <svg
-                aria-hidden="true"
-                class="MuiSvgIcon-root-id"
-                focusable="false"
-                role="presentation"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
-                />
-              </svg>
-              <input
-                class="MuiPrivateSwitchBase-input-id"
-                data-indeterminate="false"
-                name="rememberMe"
-                type="checkbox"
-              />
+              Sorry, your username and/or password are incorrect. 
+              <br />
+              Please try again.
             </span>
-          </span>
-          <span
-            class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+          </div>
+          <div
+            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
           >
-            Remember me
-          </span>
-        </label>
-        <div
-          class="FormSpacer-spacer-id"
-        />
-        <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id LoginCard-loginButton-id"
-          disabled=""
-          tabindex="-1"
-          type="submit"
-        >
-          <span
-            class="MuiButton-label-id"
+            <label
+              class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+              data-shrink="false"
+            >
+              Email
+            </label>
+            <div
+              class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+            >
+              <input
+                aria-invalid="false"
+                autocomplete="username"
+                autofocus=""
+                class="MuiInputBase-input-id MuiInput-input-id"
+                name="email"
+                type="text"
+                value=""
+              />
+            </div>
+          </div>
+          <div
+            class="FormSpacer-spacer-id"
+          />
+          <div
+            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
           >
-            Login
-          </span>
-        </button>
+            <label
+              class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+              data-shrink="false"
+            >
+              Password
+            </label>
+            <div
+              class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+            >
+              <input
+                aria-invalid="false"
+                autocomplete="current-password"
+                class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id"
+                name="password"
+                type="password"
+                value=""
+              />
+            </div>
+          </div>
+          <div
+            class="FormSpacer-spacer-id"
+          />
+          <div
+            class="LoginCard-buttonContainer-id"
+          >
+            <label
+              class="MuiFormControlLabel-root-id"
+            >
+              <span
+                class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id"
+              >
+                <span
+                  class="MuiIconButton-label-id"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-id"
+                    focusable="false"
+                    role="presentation"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                    />
+                  </svg>
+                  <input
+                    class="MuiPrivateSwitchBase-input-id"
+                    data-indeterminate="false"
+                    name="rememberMe"
+                    type="checkbox"
+                  />
+                </span>
+              </span>
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+              >
+                Remember me
+              </span>
+            </label>
+            <div
+              class="FormSpacer-spacer-id"
+            />
+            <button
+              class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedPrimary-id MuiButton-raised-id MuiButton-raisedPrimary-id MuiButton-disabled-id LoginCard-loginButton-id"
+              disabled=""
+              tabindex="-1"
+              type="submit"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Login
+              </span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </form>
@@ -6129,111 +6159,126 @@ exports[`Storyshots Views / Authentication / Log in loading 1`] = `
       class="LoginCard-root-id"
     >
       <div
-        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id LoginCard-card-id"
+        class="LoginCard-sidebar-id"
       >
         <span
-          class="isvg pending LoginCard-logo-id"
+          class="isvg pending LoginCard-sidebarArt-id"
         />
+      </div>
+      <div
+        class="LoginCard-mainPanel-id"
+      >
         <div
-          class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-        >
-          <label
-            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-            data-shrink="false"
-          >
-            Email
-          </label>
-          <div
-            class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
-          >
-            <input
-              aria-invalid="false"
-              autocomplete="username"
-              autofocus=""
-              class="MuiInputBase-input-id MuiInput-input-id"
-              name="email"
-              type="text"
-              value=""
-            />
-          </div>
-        </div>
-        <div
-          class="FormSpacer-spacer-id"
-        />
-        <div
-          class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-        >
-          <label
-            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-            data-shrink="false"
-          >
-            Password
-          </label>
-          <div
-            class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
-          >
-            <input
-              aria-invalid="false"
-              autocomplete="current-password"
-              class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id"
-              name="password"
-              type="password"
-              value=""
-            />
-          </div>
-        </div>
-        <div
-          class="FormSpacer-spacer-id"
-        />
-        <label
-          class="MuiFormControlLabel-root-id"
+          class="LoginCard-mainPanelContent-id"
         >
           <span
-            class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id"
+            class="isvg pending LoginCard-logo-id"
+          />
+          <div
+            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
           >
-            <span
-              class="MuiIconButton-label-id"
+            <label
+              class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+              data-shrink="false"
             >
-              <svg
-                aria-hidden="true"
-                class="MuiSvgIcon-root-id"
-                focusable="false"
-                role="presentation"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
-                />
-              </svg>
+              Email
+            </label>
+            <div
+              class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+            >
               <input
-                class="MuiPrivateSwitchBase-input-id"
-                data-indeterminate="false"
-                name="rememberMe"
-                type="checkbox"
+                aria-invalid="false"
+                autocomplete="username"
+                autofocus=""
+                class="MuiInputBase-input-id MuiInput-input-id"
+                name="email"
+                type="text"
+                value=""
               />
-            </span>
-          </span>
-          <span
-            class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+            </div>
+          </div>
+          <div
+            class="FormSpacer-spacer-id"
+          />
+          <div
+            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
           >
-            Remember me
-          </span>
-        </label>
-        <div
-          class="FormSpacer-spacer-id"
-        />
-        <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id LoginCard-loginButton-id"
-          disabled=""
-          tabindex="-1"
-          type="submit"
-        >
-          <span
-            class="MuiButton-label-id"
+            <label
+              class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+              data-shrink="false"
+            >
+              Password
+            </label>
+            <div
+              class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+            >
+              <input
+                aria-invalid="false"
+                autocomplete="current-password"
+                class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id"
+                name="password"
+                type="password"
+                value=""
+              />
+            </div>
+          </div>
+          <div
+            class="FormSpacer-spacer-id"
+          />
+          <div
+            class="LoginCard-buttonContainer-id"
           >
-            Login
-          </span>
-        </button>
+            <label
+              class="MuiFormControlLabel-root-id"
+            >
+              <span
+                class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id"
+              >
+                <span
+                  class="MuiIconButton-label-id"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-id"
+                    focusable="false"
+                    role="presentation"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                    />
+                  </svg>
+                  <input
+                    class="MuiPrivateSwitchBase-input-id"
+                    data-indeterminate="false"
+                    name="rememberMe"
+                    type="checkbox"
+                  />
+                </span>
+              </span>
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+              >
+                Remember me
+              </span>
+            </label>
+            <div
+              class="FormSpacer-spacer-id"
+            />
+            <button
+              class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedPrimary-id MuiButton-raised-id MuiButton-raisedPrimary-id MuiButton-disabled-id LoginCard-loginButton-id"
+              disabled=""
+              tabindex="-1"
+              type="submit"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Login
+              </span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </form>
