@@ -4,10 +4,11 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
+import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import Form from "../../../components/Form";
-import PageHeader from "../../../components/PageHeader";
+import Hr from "../../../components/Hr";
 import Skeleton from "../../../components/Skeleton";
 import {
   Timeline,
@@ -110,7 +111,11 @@ const getEventMessage = (event: OrderDetails_order_events) => {
 
 const styles = (theme: Theme) =>
   createStyles({
-    root: { marginTop: theme.spacing.unit * 2 },
+    header: {
+      fontWeight: 500,
+      marginBottom: theme.spacing.unit
+    },
+    root: { marginTop: theme.spacing.unit * 4 },
     user: {
       marginBottom: theme.spacing.unit
     }
@@ -124,11 +129,10 @@ interface OrderHistoryProps extends WithStyles<typeof styles> {
 const OrderHistory = withStyles(styles, { name: "OrderHistory" })(
   ({ classes, history, onNoteAdd }: OrderHistoryProps) => (
     <div className={classes.root}>
-      <PageHeader
-        title={i18n.t("Order timeline", {
-          context: "section name"
-        })}
-      />
+      <Typography className={classes.header} color="textSecondary">
+        {i18n.t("Order History")}
+      </Typography>
+      <Hr />
       {history ? (
         <Timeline>
           <Form initial={{ message: "" }} onSubmit={onNoteAdd} resetOnSubmit>
