@@ -102,7 +102,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
         variables={{ id }}
         require={["order"]}
       >
-        {({ data, error, loading }) => {
+        {({ data, loading }) => {
           const order = maybe(() => data.order);
           const onModalClose = () => navigate(orderUrl(id), true);
           return (
