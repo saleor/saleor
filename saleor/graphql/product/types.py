@@ -147,6 +147,30 @@ class SelectedAttribute(graphene.ObjectType):
     class Meta:
         description = 'Represents a custom attribute.'
 
+class DigitalContentUrl(CountableDjangoObjectType):
+    class Meta:
+        model = models.DigitalContentUrl
+        exclude_fields = []
+        interfaces = (relay.Node,)
+
+
+class DigitalContent(CountableDjangoObjectType):
+    urls = gql_optimizer.field(
+        graphene.List(
+            lambda: DigitalContentUrl,
+            description='List of urls for the digital variant'),
+        model_field='urls')
+
+    class Meta:
+        model = models.DigitalContent
+        exclude_fields = []
+        interfaces = (relay.Node,)
+
+    def resolve_urls(self, info, **kwargs):
+        qs = self.urls.all()
+        return gql_optimizer.query(qs, info)
+
+
 
 class ProductOrder(graphene.InputObjectType):
     field = graphene.Argument(
@@ -194,6 +218,8 @@ class ProductVariant(CountableDjangoObjectType):
             'Returns translated Product Variant fields '
             'for the given language code.'),
         resolver=resolve_translation)
+    digital_content = graphene.Field(
+        DigitalContent, description='Digital content for the product variant')
 
     class Meta:
         description = dedent("""Represents a version of a product such as
@@ -201,6 +227,12 @@ class ProductVariant(CountableDjangoObjectType):
         exclude_fields = ['order_lines', 'variant_images', 'translations']
         interfaces = [relay.Node]
         model = models.ProductVariant
+
+    @permission_required('product.manage_products')
+    def resolve_digital_content(self, info):
+        if hasattr(self, 'digital_content'):
+            return self.digital_content
+        return None
 
     def resolve_stock_quantity(self, info):
         return self.quantity_available
@@ -526,7 +558,6 @@ class Collection(CountableDjangoObjectType):
             except cls._meta.model.DoesNotExist:
                 return None
         return None
-
 
 class Category(CountableDjangoObjectType):
     ancestors = PrefetchingConnectionField(

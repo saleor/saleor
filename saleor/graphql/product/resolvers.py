@@ -73,6 +73,9 @@ def resolve_collections(info, query):
     qs = qs.order_by('name')
     return gql_optimizer.query(qs, info)
 
+def resolve_digital_contents(info, query):
+    qs = models.DigitalContent.objects.all()
+    return gql_optimizer.query(qs, info)
 
 def resolve_products(
         info, attributes=None, categories=None, collections=None,
