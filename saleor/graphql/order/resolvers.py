@@ -30,11 +30,7 @@ def filter_orders(qs, info, created, status, query):
 
 
 def resolve_orders(info, created, status, query):
-    user = info.context.user
-    if user.has_perm('order.manage_orders'):
-        qs = models.Order.objects.confirmed()
-    else:
-        qs = user.orders.confirmed()
+    qs = models.Order.objects.confirmed()
     return filter_orders(qs, info, created, status, query)
 
 
