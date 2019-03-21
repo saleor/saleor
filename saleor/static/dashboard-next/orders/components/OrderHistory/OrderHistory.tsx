@@ -131,7 +131,7 @@ const OrderHistory = withStyles(styles, { name: "OrderHistory" })(
       />
       {history ? (
         <Timeline>
-          <Form initial={{ message: "" }} onSubmit={onNoteAdd}>
+          <Form initial={{ message: "" }} onSubmit={onNoteAdd} resetOnSubmit>
             {({ change, data, submit }) => (
               <TimelineAddNote
                 message={data.message}
