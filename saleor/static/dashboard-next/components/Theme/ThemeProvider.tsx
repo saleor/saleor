@@ -6,6 +6,7 @@ import createTheme, { IThemeColors } from "../../theme";
 
 // TODO: fix secondary buttons lol
 const dark: IThemeColors = {
+  autofill: "#5D5881",
   background: {
     default: "#1D1E1F",
     paper: "#2E2F31"
@@ -24,6 +25,7 @@ const dark: IThemeColors = {
   secondary: "#13BEBB"
 };
 const light: IThemeColors = {
+  autofill: "#f4f6c5",
   background: {
     default: "#F1F6F6",
     paper: "#FFFFFF"

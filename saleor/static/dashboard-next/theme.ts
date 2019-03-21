@@ -11,7 +11,7 @@ const createShadow = (pv, pb, ps, uv, ub, us, av, ab, as) =>
 export const ICONBUTTON_SIZE = 48;
 
 export type IThemeColors = Record<
-  "primary" | "secondary" | "error" | "paperBorder",
+  "primary" | "secondary" | "error" | "paperBorder" | "autofill",
   string
 > & {
   background: Record<"default" | "paper", string>;
@@ -58,7 +58,7 @@ export default (colors: IThemeColors): Theme =>
       MuiInput: {
         input: {
           "&:-webkit-autofill": {
-            boxShadow: `inset 0 0 0px 9999px ${fade(colors.primary, 0.2)}`
+            boxShadow: `inset 0 0 0px 9999px ${colors.autofill}`
           },
           "&::placeholder": {
             opacity: "initial !important" as "initial"
