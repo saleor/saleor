@@ -17,8 +17,8 @@ import * as React from "react";
 import SVG from "react-inlinesvg";
 import { RouteComponentProps, withRouter } from "react-router";
 
-import * as saleorLightLogo from "../../../images/logo-document.svg";
-import * as saleorDarkLogo from "../../../images/logo.svg";
+import * as saleorDarkLogo from "../../../images/logo-dark.svg";
+import * as saleorLightLogo from "../../../images/logo-light.svg";
 import {
   appLoaderHeight,
   drawerWidth

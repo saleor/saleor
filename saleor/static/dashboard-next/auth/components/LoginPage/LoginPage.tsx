@@ -11,10 +11,12 @@ import * as React from "react";
 import SVG from "react-inlinesvg";
 
 import * as backgroundArt from "../../../../images/login-background.svg";
-import * as saleorLogo from "../../../../images/logo-document.svg";
+import * as saleorDarkLogo from "../../../../images/logo-dark.svg";
+import * as saleorLightLogo from "../../../../images/logo-light.svg";
 import { ControlledCheckbox } from "../../../components/ControlledCheckbox";
 import Form from "../../../components/Form";
 import { FormSpacer } from "../../../components/FormSpacer";
+import useTheme from "../../../hooks/useTheme";
 import i18n from "../../../i18n";
 
 export interface FormData {
@@ -114,6 +116,8 @@ export interface LoginCardProps extends WithStyles<typeof styles> {
 
 const LoginCard = withStyles(styles, { name: "LoginCard" })(
   ({ classes, error, disableLoginButton, onSubmit }: LoginCardProps) => {
+    const { isDark } = useTheme();
+
     return (
       <Form
         initial={{ email: "", password: "", rememberMe: false }}
@@ -126,7 +130,10 @@ const LoginCard = withStyles(styles, { name: "LoginCard" })(
             </div>
             <div className={classes.mainPanel}>
               <div className={classes.mainPanelContent}>
-                <SVG className={classes.logo} src={saleorLogo} />
+                <SVG
+                  className={classes.logo}
+                  src={isDark ? saleorDarkLogo : saleorLightLogo}
+                />
                 {error && (
                   <div className={classes.panel}>
                     <Typography
