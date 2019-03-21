@@ -1,6 +1,5 @@
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
-import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
 import deepPurple from "@material-ui/core/colors/deepPurple";
 import {
@@ -10,28 +9,27 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
-import PersonIcon from "@material-ui/icons/Person";
-import * as classNames from "classnames";
 import * as React from "react";
+import SVG from "react-inlinesvg";
 
+import * as avatar1 from "../../../images/avatars/avatar1.svg";
 import i18n from "../../i18n";
 
 const styles = (theme: Theme) =>
   createStyles({
     avatar: {
+      "& span": {
+        height: "100%",
+        width: "100%"
+      },
       alignSelf: "flex-start",
       marginRight: theme.spacing.unit * 5.5
     },
-    cardActions: {
-      direction: "rtl",
-      display: "block",
-      maxHeight: 0,
-      overflow: "hidden",
-      padding: "0 20px",
-      transitionDuration: "200ms"
-    },
     cardActionsExpanded: {
       maxHeight: theme.spacing.unit * 6
+    },
+    input: {
+      marginTop: -theme.spacing.unit
     },
     noteRoot: {
       left: -theme.spacing.unit * 8.5 - 1,
@@ -40,16 +38,18 @@ const styles = (theme: Theme) =>
       width: `calc(100% + ${theme.spacing.unit * 8.5}px)`
     },
     noteTitle: {
+      "&:last-child": {
+        paddingBottom: 0
+      },
       alignItems: "center",
       background: theme.palette.background.default,
-      display: "flex",
-      paddingBottom: 0
+      display: "flex"
     },
     root: {
       borderColor: theme.overrides.MuiCard.root.borderColor,
       borderStyle: "solid",
       borderWidth: "0 0 0 2px",
-      marginLeft: theme.spacing.unit * 5.5,
+      marginLeft: 20,
       paddingLeft: theme.spacing.unit * 3
     }
   });
@@ -78,25 +78,27 @@ export const TimelineAddNote = withStyles(styles, { name: "TimelineAddNote" })(
           style={{ background: deepPurple[500] }}
           className={classes.avatar}
         >
-          <PersonIcon />
+          <SVG src={avatar1} />
         </Avatar>
         <TextField
+          className={classes.input}
           placeholder={i18n.t("Leave your note here...")}
           onChange={onChange}
           value={message}
           name="message"
           fullWidth
           multiline
+          InputProps={{
+            endAdornment: (
+              <Button color="primary" onClick={onSubmit}>
+                {i18n.t("Send", {
+                  context: "add order note"
+                })}
+              </Button>
+            )
+          }}
         />
       </CardContent>
-      <CardActions
-        className={classNames([
-          classes.cardActions,
-          { [classes.cardActionsExpanded]: message }
-        ])}
-      >
-        <Button onClick={onSubmit}>{i18n.t("Add note")}</Button>
-      </CardActions>
     </div>
   )
 );
