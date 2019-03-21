@@ -64,7 +64,7 @@ class OrderQueries(graphene.ObjectType):
     def resolve_order(self, info, id):
         return resolve_order(info, id)
 
-    @login_required
+    @permission_required('order.manage_orders')
     def resolve_orders(
             self, info, created=None, status=None, query=None, **kwargs):
         return resolve_orders(info, created, status, query)
