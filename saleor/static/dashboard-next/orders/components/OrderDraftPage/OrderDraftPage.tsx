@@ -8,7 +8,7 @@ import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import AppHeader from "../../../components/AppHeader";
-import { CardMenu } from "../../../components/CardMenu/CardMenu";
+import CardMenu from "../../../components/CardMenu";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import { Container } from "../../../components/Container";
 import { DateTime } from "../../../components/Date";
@@ -34,9 +34,6 @@ const styles = (theme: Theme) =>
     },
     header: {
       marginBottom: 0
-    },
-    menu: {
-      marginRight: -theme.spacing.unit
     }
   });
 

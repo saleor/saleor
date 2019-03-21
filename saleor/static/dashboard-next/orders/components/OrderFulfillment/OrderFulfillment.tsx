@@ -15,7 +15,7 @@ import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import { CardMenu } from "../../../components/CardMenu/CardMenu";
+import CardMenu from "../../../components/CardMenu";
 import CardTitle from "../../../components/CardTitle";
 import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";

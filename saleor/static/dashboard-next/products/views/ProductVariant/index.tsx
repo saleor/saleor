@@ -45,7 +45,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
             variables={{ id: variantId }}
             require={["productVariant"]}
           >
-            {({ data, loading, error }) => {
+            {({ data, loading }) => {
               const variant = data ? data.productVariant : undefined;
               const handleBack = () => navigate(productUrl(productId));
               const handleDelete = () => {
