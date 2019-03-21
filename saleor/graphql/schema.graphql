@@ -660,6 +660,39 @@ scalar DateTime
 
 scalar Decimal
 
+type DigitalContent implements Node {
+  id: ID!
+  contentType: DigitalContentContentType!
+  productVariant: ProductVariant!
+  file: String!
+  maxDownload: Int
+  urlValidDays: Int
+  urls: [DigitalContentUrl]
+}
+
+enum DigitalContentContentType {
+  FILE
+}
+
+type DigitalContentCountableConnection {
+  pageInfo: PageInfo!
+  edges: [DigitalContentCountableEdge!]!
+  totalCount: Int
+}
+
+type DigitalContentCountableEdge {
+  node: DigitalContent!
+  cursor: String!
+}
+
+type DigitalContentUrl implements Node {
+  id: ID!
+  token: String!
+  content: DigitalContent!
+  validUntil: Date
+  downloadNum: Int!
+}
+
 enum DiscountValueTypeEnum {
   FIXED
   PERCENTAGE
@@ -1058,6 +1091,8 @@ type Mutations {
   productTypeDelete(id: ID!): ProductTypeDelete
   productTypeBulkDelete(ids: [ID]!): ProductTypeBulkDelete
   productTypeUpdate(id: ID!, input: ProductTypeInput!): ProductTypeUpdate
+  productVariantDigitalUpload(input: ProductVariantDigitalUploadInput!): ProductVariantDigitalUpload
+  productVariantDigitalDelete(input: ProductVariantDigitalDeleteInput!): ProductVariantDigitalDelete
   productVariantCreate(input: ProductVariantCreateInput!): ProductVariantCreate
   productVariantDelete(id: ID!): ProductVariantDelete
   productVariantBulkDelete(ids: [ID]!): ProductVariantBulkDelete
@@ -1806,6 +1841,7 @@ type ProductVariant implements Node {
   quantityAllocated: Int!
   costPrice: Money
   weight: Weight
+  digitalContent: [DigitalContent]
   stockQuantity: Int!
   price: Money
   margin: Int
@@ -1851,6 +1887,26 @@ type ProductVariantDelete {
   productVariant: ProductVariant
 }
 
+type ProductVariantDigitalDelete {
+  errors: [Error!]
+  variant: ProductVariant
+}
+
+input ProductVariantDigitalDeleteInput {
+  variant: ID!
+}
+
+type ProductVariantDigitalUpload {
+  errors: [Error!]
+  variant: ProductVariant
+  content: DigitalContent
+}
+
+input ProductVariantDigitalUploadInput {
+  contentFile: Upload!
+  variant: ID!
+}
+
 input ProductVariantInput {
   attributes: [AttributeValueInput]
   costPrice: Decimal
@@ -1882,6 +1938,8 @@ type Query {
   shop: Shop
   shippingZone(id: ID!): ShippingZone
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
+  digitalContent(id: ID!): DigitalContent
+  digitalContents(query: String, level: Int, before: String, after: String, first: Int, last: Int): DigitalContentCountableConnection
   attributes(query: String, inCategory: ID, inCollection: ID, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
   categories(query: String, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   category(id: ID!): Category

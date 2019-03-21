@@ -17,7 +17,9 @@ from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal, WeightScalar
 from ...core.types import SeoInput, Upload
 from ...core.utils import clean_seo_fields
-from ..types import Category, Collection, Product, ProductImage, ProductVariant
+from ..types import (
+    Category, Collection, Product, ProductImage, ProductVariant,
+    DigitalContent)
 from ..utils import attributes_to_hstore, validate_image_file
 
 
@@ -846,3 +848,80 @@ class VariantImageUnassign(BaseMutation):
                     variant_image.delete()
         return VariantImageUnassign(
             product_variant=variant, image=image, errors=errors)
+
+
+class ProductVariantDigitalUploadInput(graphene.InputObjectType):
+    content_file = Upload(
+        required=True,
+        description='Represents an file in a multipart request.')
+    variant = graphene.ID(
+        required=True, description='ID of an variant.', name='variant')
+
+
+class ProductVariantDigitalUpload(BaseMutation):
+    variant = graphene.Field(ProductVariant)
+    content = graphene.Field(DigitalContent)
+
+    class Arguments:
+        input = ProductVariantDigitalUploadInput(
+            required=True,
+            description='Fields required to create a digital content.')
+
+    class Meta:
+        description = dedent('''Create new digital content. This mutation must 
+        be sent as a `multipart` request. More detailed specs of the upload 
+        format can be found here:
+        https://github.com/jaydenseric/graphql-multipart-request-spec''')
+
+    @classmethod
+    @permission_required('product.manage_products')
+    def mutate(cls, root, info, input):
+        errors = []
+        variant = cls.get_node_or_error(
+            info, input['variant'], errors, 'variant', only_type=ProductVariant)
+        content_data = info.context.FILES.get(input['content_file'])
+        if hasattr(variant, "digital_content"):
+            msg = "Variant %s already has digital content" % input['variant']
+            cls.add_error(errors, 'variant', msg)
+
+        digital_content = None
+        if not errors:
+            variant.digital_content = models.DigitalContent(file=content_data)
+            variant.digital_content.save()
+            digital_content = variant.digital_content
+        return ProductVariantDigitalUpload(
+            variant=variant, content=digital_content, errors=errors)
+
+
+class ProductVariantDigitalDeleteInput(graphene.InputObjectType):
+    variant = graphene.ID(
+        required=True, description='ID of an variant.', name='variant')
+
+
+class ProductVariantDigitalDelete(BaseMutation):
+    variant = graphene.Field(ProductVariant)
+
+    class Arguments:
+        input = ProductVariantDigitalDeleteInput(
+            required=True,
+            description='Fields required to create a digital content.')
+
+    class Meta:
+        description = dedent(
+            'Remove digital content assigned to given variant')
+
+    @classmethod
+    @permission_required('product.manage_products')
+    def mutate(cls, root, info, input):
+        errors = []
+        variant = cls.get_node_or_error(
+            info, input['variant'], errors, 'variant', only_type=ProductVariant)
+
+        if not hasattr(variant, "digital_content"):
+            msg = "Variant %s doesn't have any digital content" % input['variant']
+            cls.add_error(errors, 'variant', msg)
+
+        if not errors:
+            variant.digital_content.delete()
+
+        return ProductVariantDigitalDelete(variant=variant, errors=errors)
