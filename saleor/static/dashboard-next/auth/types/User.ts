@@ -18,6 +18,8 @@ export interface User {
   __typename: "User";
   id: string;
   email: string;
+  firstName: string;
+  lastName: string;
   isStaff: boolean;
   note: string | null;
   permissions: (User_permissions | null)[] | null;
