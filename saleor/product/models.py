@@ -308,7 +308,7 @@ class ProductVariantTranslation(models.Model):
 class DigitalContent(models.Model):
     FILE = 'file'
     TYPE_CHOICES = (
-        (FILE, pgettext_lazy('File as a digital product', "digital_product")),
+        (FILE, pgettext_lazy('File as a digital product', 'digital_product')),
     )
     content_type = models.CharField(
         max_length=128, default=FILE, choices=TYPE_CHOICES)

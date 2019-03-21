@@ -880,8 +880,8 @@ class ProductVariantDigitalUpload(BaseMutation):
         variant = cls.get_node_or_error(
             info, input['variant'], errors, 'variant', only_type=ProductVariant)
         content_data = info.context.FILES.get(input['content_file'])
-        if hasattr(variant, "digital_content"):
-            msg = "Variant %s already has digital content" % input['variant']
+        if hasattr(variant, 'digital_content'):
+            msg = 'Variant %s already has digital content' % input['variant']
             cls.add_error(errors, 'variant', msg)
 
         digital_content = None
@@ -917,8 +917,8 @@ class ProductVariantDigitalDelete(BaseMutation):
         variant = cls.get_node_or_error(
             info, input['variant'], errors, 'variant', only_type=ProductVariant)
 
-        if not hasattr(variant, "digital_content"):
-            msg = "Variant %s doesn't have any digital content" % input['variant']
+        if not hasattr(variant, 'digital_content'):
+            msg = 'Variant %s doesn\'t have any digital content' % input['variant']
             cls.add_error(errors, 'variant', msg)
 
         if not errors:
