@@ -41,10 +41,12 @@ const styles = (theme: Theme) =>
     },
     noteTitle: {
       alignItems: "center",
-      display: "flex"
+      background: theme.palette.background.default,
+      display: "flex",
+      paddingBottom: 0
     },
     root: {
-      borderColor: theme.typography.caption.color,
+      borderColor: theme.overrides.MuiCard.root.borderColor,
       borderStyle: "solid",
       borderWidth: "0 0 0 2px",
       marginLeft: theme.spacing.unit * 5.5,

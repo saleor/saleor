@@ -22,15 +22,12 @@ const styles = (theme: Theme) =>
     },
     dot: {
       backgroundColor: theme.palette.primary.main,
-      borderColor: grey[300],
       borderRadius: "100%",
-      borderStyle: "solid",
-      borderWidth: 2,
-      height: 16,
-      left: -33,
+      height: 8,
+      left: -29,
       position: "absolute",
-      top: 2,
-      width: 16
+      top: 6,
+      width: 8
     },
     noExpander: {
       alignItems: "center",
