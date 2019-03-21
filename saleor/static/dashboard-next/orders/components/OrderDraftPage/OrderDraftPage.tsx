@@ -93,7 +93,6 @@ const OrderDraftPage = withStyles(styles, { name: "OrderDraftPage" })(
         title={maybe(() => order.number) ? "#" + order.number : undefined}
       >
         <CardMenu
-          className={classes.menu}
           menuItems={[
             {
               label: i18n.t("Cancel order", { context: "button" }),
