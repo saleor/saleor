@@ -12,12 +12,7 @@ ORDER_SEARCH_FIELDS = (
     'id', 'discount_name', 'token', 'user_email', 'user__email')
 
 
-def resolve_orders(info, created, status, query):
-    user = info.context.user
-    if user.has_perm('order.manage_orders'):
-        qs = models.Order.objects.all()
-    else:
-        qs = user.orders.confirmed()
+def filter_orders(qs, info, created, status, query):
     qs = filter_by_query_param(qs, query, ORDER_SEARCH_FIELDS)
 
     # filter orders by status
@@ -32,6 +27,20 @@ def resolve_orders(info, created, status, query):
         qs = filter_by_period(qs, created, 'created')
 
     return gql_optimizer.query(qs, info)
+
+
+def resolve_orders(info, created, status, query):
+    user = info.context.user
+    if user.has_perm('order.manage_orders'):
+        qs = models.Order.objects.confirmed()
+    else:
+        qs = user.orders.confirmed()
+    return filter_orders(qs, info, created, status, query)
+
+
+def resolve_draft_orders(info, created, query):
+    qs = models.Order.objects.drafts()
+    return filter_orders(qs, info, created, None, query)
 
 
 def resolve_orders_total(info, period):
