@@ -95,7 +95,7 @@ const StaffPermissions = withStyles(styles, { name: "StaffPermissions" })(
                 <Skeleton />
               ) : (
                 permissions.map(perm => (
-                  <div>
+                  <div key={perm.code}>
                     <ControlledCheckbox
                       checked={
                         data.permissions.filter(
@@ -106,7 +106,6 @@ const StaffPermissions = withStyles(styles, { name: "StaffPermissions" })(
                       label={perm.name.replace(/\./, "")}
                       name={perm.code}
                       onChange={handlePermissionChange}
-                      key={perm.code}
                     />
                   </div>
                 ))
