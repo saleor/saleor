@@ -174,6 +174,23 @@ def test_order_query(
     assert expected_method.type.upper() == method['type']
 
 
+def test_order_query_customer(api_client):
+    query = """
+        query OrdersQuery {
+            orders(first: 1) {
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
+        }
+    """
+
+    response = api_client.post_graphql(query)
+    assert_no_permission(response)
+
+
 def test_order_query_draft_excluded(
         staff_api_client, permission_manage_orders, orders):
     query = """
