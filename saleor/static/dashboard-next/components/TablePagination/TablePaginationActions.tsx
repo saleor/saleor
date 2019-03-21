@@ -15,9 +15,6 @@ import useTheme from "../../hooks/useTheme";
 const styles = (theme: Theme) =>
   createStyles({
     dark: {
-      "& > span:first-of-type": {
-        backgroundColor: theme.palette.background.default
-      },
       "& svg": {
         color: theme.palette.primary.main
       },
@@ -35,8 +32,9 @@ const styles = (theme: Theme) =>
     disabled: {},
     iconButton: {
       "& > span:first-of-type": {
-        backgroundColor: fade(theme.palette.primary.main, 0.12),
-        borderRadius: "100%"
+        backgroundColor: theme.palette.background.default,
+        borderRadius: "100%",
+        transition: theme.transitions.duration.standard + "ms"
       },
       "&:focus, &:hover": {
         "& > span:first-of-type": {
