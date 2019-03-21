@@ -88,7 +88,9 @@ const styles = (theme: Theme) =>
       },
       display: "grid",
       gridTemplateColumns: "1fr",
-      overflow: "hidden"
+      height: "100vh",
+      overflow: "hidden",
+      width: "100vw"
     },
     sidebar: {
       [theme.breakpoints.up("lg")]: {
