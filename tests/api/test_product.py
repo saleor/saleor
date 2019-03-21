@@ -1798,7 +1798,6 @@ def test_fetch_single_digital_content(
         }
     }
     """ % graphene.Node.to_global_id('DigitalContent', digital_content.id)
-    print(query)
     response = staff_api_client.post_graphql(
         query, permissions=[permission_manage_products])
     content = get_graphql_content(response)
