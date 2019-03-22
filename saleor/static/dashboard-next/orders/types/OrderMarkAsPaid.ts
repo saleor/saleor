@@ -38,6 +38,7 @@ export interface OrderMarkAsPaid_orderMarkAsPaid_order_billingAddress {
 
 export interface OrderMarkAsPaid_orderMarkAsPaid_order_events_user {
   __typename: "User";
+  id: string;
   email: string;
 }
 
