@@ -14,9 +14,9 @@ import { appMountPoint } from "../..";
 import { User } from "../../auth/types/User";
 import { configurationMenu, configurationMenuUrl } from "../../configuration";
 import i18n from "../../i18n";
+import { orderDraftListUrl, orderListUrl } from "../../orders/urls";
 import Toggle from "../Toggle";
 import { IMenuItem } from "./menuStructure";
-import { orderDraftListUrl, orderListUrl } from "../../orders/urls";
 
 const styles = (theme: Theme) =>
   createStyles({
