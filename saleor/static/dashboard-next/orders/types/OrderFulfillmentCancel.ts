@@ -38,6 +38,7 @@ export interface OrderFulfillmentCancel_orderFulfillmentCancel_order_billingAddr
 
 export interface OrderFulfillmentCancel_orderFulfillmentCancel_order_events_user {
   __typename: "User";
+  id: string;
   email: string;
 }
 
