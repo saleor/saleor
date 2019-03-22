@@ -315,8 +315,8 @@ class DigitalContent(models.Model):
     product_variant = models.OneToOneField(
         ProductVariant, related_name='digital_content',
         on_delete=models.CASCADE)
-    file = models.FileField(upload_to='digital_contents', blank=True)
-    max_download = models.IntegerField(blank=True, null=True)
+    content_file = models.FileField(upload_to='digital_contents', blank=True)
+    max_downloads = models.IntegerField(blank=True, null=True)
     url_valid_days = models.IntegerField(blank=True, null=True)
 
 
