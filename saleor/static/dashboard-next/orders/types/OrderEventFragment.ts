@@ -10,6 +10,7 @@ import { OrderEventsEmails, OrderEvents } from "./../../types/globalTypes";
 
 export interface OrderEventFragment_user {
   __typename: "User";
+  id: string;
   email: string;
 }
 

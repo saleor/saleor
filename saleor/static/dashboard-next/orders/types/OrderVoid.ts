@@ -38,6 +38,7 @@ export interface OrderVoid_orderVoid_order_billingAddress {
 
 export interface OrderVoid_orderVoid_order_events_user {
   __typename: "User";
+  id: string;
   email: string;
 }
 

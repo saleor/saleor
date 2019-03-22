@@ -1,6 +1,12 @@
 import IconButton from "@material-ui/core/IconButton";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import * as React from "react";
 
@@ -16,41 +22,54 @@ export interface CardMenuProps {
   disabled?: boolean;
   menuItems: CardMenuItem[];
 }
-export interface CardMenuState {
-  anchorEl: HTMLElement | null;
-}
 
-export class CardMenu extends React.Component<CardMenuProps, CardMenuState> {
-  state = {
-    anchorEl: null
-  };
+const styles = (theme: Theme) =>
+  createStyles({
+    iconButton: {
+      background: theme.palette.background.paper,
+      borderRadius: "100%",
+      height: 32,
+      padding: 0,
+      width: 32
+    }
+  });
 
-  handleClick = (event: React.MouseEvent<any>) => {
-    this.setState({ anchorEl: event.currentTarget });
-  };
+const CardMenu = withStyles(styles, {
+  name: "CardMenu"
+})(
+  ({
+    className,
+    classes,
+    disabled,
+    menuItems
+  }: CardMenuProps & WithStyles<typeof styles>) => {
+    const [anchorEl, setAnchor] = React.useState<HTMLElement | null>(null);
 
-  handleClose = () => {
-    this.setState({ anchorEl: null });
-  };
+    const handleClick = (event: React.MouseEvent<any>) => {
+      setAnchor(event.currentTarget);
+    };
 
-  handleMenuClick = (menuItemIndex: number) => {
-    this.props.menuItems[menuItemIndex].onSelect();
-    this.handleClose();
-  };
+    const handleClose = () => {
+      setAnchor(null);
+    };
 
-  render() {
-    const { anchorEl } = this.state;
+    const handleMenuClick = (menuItemIndex: number) => {
+      menuItems[menuItemIndex].onSelect();
+      handleClose();
+    };
+
     const open = !!anchorEl;
 
     return (
-      <div className={this.props.className}>
+      <div className={className}>
         <IconButton
           aria-label="More"
           aria-owns={open ? "long-menu" : null}
           aria-haspopup="true"
+          className={classes.iconButton}
           color="secondary"
-          disabled={this.props.disabled}
-          onClick={this.handleClick}
+          disabled={disabled}
+          onClick={handleClick}
         >
           <MoreVertIcon />
         </IconButton>
@@ -58,7 +77,7 @@ export class CardMenu extends React.Component<CardMenuProps, CardMenuState> {
           id="long-menu"
           anchorEl={anchorEl}
           open={open}
-          onClose={this.handleClose}
+          onClose={handleClose}
           PaperProps={{
             style: {
               maxHeight: ITEM_HEIGHT * 4.5
@@ -66,9 +85,9 @@ export class CardMenu extends React.Component<CardMenuProps, CardMenuState> {
             }
           }}
         >
-          {this.props.menuItems.map((menuItem, menuItemIndex) => (
+          {menuItems.map((menuItem, menuItemIndex) => (
             <MenuItem
-              onClick={() => this.handleMenuClick(menuItemIndex)}
+              onClick={() => handleMenuClick(menuItemIndex)}
               key={menuItem.label}
             >
               {menuItem.label}
@@ -78,5 +97,6 @@ export class CardMenu extends React.Component<CardMenuProps, CardMenuState> {
       </div>
     );
   }
-}
+);
+CardMenu.displayName = "CardMenu";
 export default CardMenu;

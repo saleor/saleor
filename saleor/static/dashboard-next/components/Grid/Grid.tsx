@@ -23,7 +23,7 @@ const styles = (theme: Theme) =>
     },
     root: {
       display: "grid",
-      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridColumnGap: theme.spacing.unit * 3 + "px",
       gridRowGap: theme.spacing.unit * 3 + "px",
       [theme.breakpoints.down("sm")]: {
         gridRowGap: theme.spacing.unit + "px",

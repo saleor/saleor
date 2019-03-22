@@ -32,6 +32,7 @@ export interface OrderDetailsFragment_billingAddress {
 
 export interface OrderDetailsFragment_events_user {
   __typename: "User";
+  id: string;
   email: string;
 }
 

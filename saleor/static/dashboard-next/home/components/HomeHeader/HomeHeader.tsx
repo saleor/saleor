@@ -17,6 +17,9 @@ const styles = (theme: Theme) =>
     },
     pageHeader: {
       fontWeight: 600 as 600
+    },
+    subtitle: {
+      color: theme.typography.caption.color
     }
   });
 
@@ -35,7 +38,7 @@ const HomeOrdersCard = withStyles(styles, { name: "HomeOrdersCard" })(
             <Skeleton style={{ width: "10em" }} />
           )}
         </Typography>
-        <Typography>
+        <Typography className={classes.subtitle}>
           {userName ? (
             i18n.t("Here are some information we gathered about your store")
           ) : (
