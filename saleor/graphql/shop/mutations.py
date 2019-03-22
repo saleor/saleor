@@ -1,7 +1,7 @@
 import graphene
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.management import call_command
-from graphql_jwt.decorators import permission_required
 
 from ...site import models as site_models
 from ..core.enums import WeightUnitsEnum
@@ -48,8 +48,11 @@ class ShopSettingsUpdate(BaseMutation):
         description = 'Updates shop settings'
 
     @classmethod
-    @permission_required('site.manage_settings')
-    def mutate(cls, root, info, input):
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('site.manage_settings')
+
+    @classmethod
+    def perform_mutation(cls, root, info, input):
         errors = []
         instance = info.context.site.settings
         for field_name, desired_value in input.items():
@@ -58,10 +61,8 @@ class ShopSettingsUpdate(BaseMutation):
                 setattr(instance, field_name, desired_value)
         cls.clean_instance(instance, errors)
 
-        if errors:
-            return ShopSettingsUpdate(errors=errors)
         instance.save()
-        return ShopSettingsUpdate(shop=Shop(), errors=errors)
+        return ShopSettingsUpdate(shop=Shop())
 
 
 class ShopDomainUpdate(BaseMutation):
@@ -74,8 +75,11 @@ class ShopDomainUpdate(BaseMutation):
         description = 'Updates site domain of the shop'
 
     @classmethod
-    @permission_required('site.manage_settings')
-    def mutate(cls, root, info, input):
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('site.manage_settings')
+
+    @classmethod
+    def perform_mutation(cls, root, info, input):
         errors = []
         site = info.context.site
         domain = input.get('domain')
@@ -85,10 +89,8 @@ class ShopDomainUpdate(BaseMutation):
         if name is not None:
             site.name = name
         cls.clean_instance(site, errors)
-        if errors:
-            return ShopDomainUpdate(errors=errors)
         site.save()
-        return ShopDomainUpdate(shop=Shop(), errors=errors)
+        return ShopDomainUpdate(shop=Shop())
 
 
 class ShopFetchTaxRates(BaseMutation):
@@ -98,16 +100,19 @@ class ShopFetchTaxRates(BaseMutation):
         description = 'Fetch tax rates'
 
     @classmethod
-    @permission_required('site.manage_settings')
-    def mutate(cls, root, info):
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('site.manage_settings')
+
+    @classmethod
+    def perform_mutation(cls, root, info):
         errors = []
         if settings.VATLAYER_ACCESS_KEY:
             call_command('get_vat_rates')
         else:
-            cls.add_error(
-                errors, None, 'Could not fetch tax rates. '
-                'Make sure you have supplied a valid API Access Key.')
-        return ShopFetchTaxRates(shop=Shop(), errors=errors)
+            raise ValidationError(
+                'Could not fetch tax rates. Make sure you have supplied a '
+                'valid API Access Key.')
+        return ShopFetchTaxRates(shop=Shop())
 
 
 class HomepageCollectionUpdate(BaseMutation):
@@ -121,22 +126,19 @@ class HomepageCollectionUpdate(BaseMutation):
         description = 'Updates homepage collection of the shop'
 
     @classmethod
-    @permission_required('site.manage_settings')
-    def mutate(cls, root, info, collection=None):
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('site.manage_settings')
+
+    @classmethod
+    def perform_mutation(cls, root, info, collection=None):
         errors = []
-        new_collection = None
-        if collection:
-            new_collection = cls.get_node_or_error(
-                info, collection, errors, 'collection', Collection)
-        if errors:
-            return HomepageCollectionUpdate(errors=errors)
+        new_collection = cls.get_node_or_error(
+            info, collection, errors, 'collection', Collection)
         site_settings = info.context.site.settings
         site_settings.homepage_collection = new_collection
         cls.clean_instance(site_settings, errors)
-        if errors:
-            return HomepageCollectionUpdate(errors=errors)
         site_settings.save(update_fields=['homepage_collection'])
-        return HomepageCollectionUpdate(shop=Shop(), errors=errors)
+        return HomepageCollectionUpdate(shop=Shop())
 
 
 class AuthorizationKeyInput(graphene.InputObjectType):
@@ -162,21 +164,20 @@ class AuthorizationKeyAdd(BaseMutation):
             description='Fields required to create an authorization key.')
 
     @classmethod
-    @permission_required('site.manage_settings')
-    def mutate(cls, root, info, key_type, input):
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('site.manage_settings')
+
+    @classmethod
+    def perform_mutation(cls, root, info, key_type, input):
         errors = []
         if site_models.AuthorizationKey.objects.filter(name=key_type).exists():
-            cls.add_error(
-                errors, 'key_type', 'Authorization key already exists.')
-            return AuthorizationKeyAdd(errors=errors)
+            raise ValidationError({
+                'key_type': 'Authorization key already exists.'})
 
         site_settings = info.context.site.settings
         instance = site_models.AuthorizationKey(
             name=key_type, site_settings=site_settings, **input)
         cls.clean_instance(instance, errors)
-        if errors:
-            return AuthorizationKeyAdd(errors=errors)
-
         instance.save()
         return AuthorizationKeyAdd(authorization_key=instance, shop=Shop())
 
@@ -194,17 +195,18 @@ class AuthorizationKeyDelete(BaseMutation):
         description = 'Deletes an authorization key.'
 
     @classmethod
-    @permission_required('site.manage_settings')
-    def mutate(cls, root, info, key_type):
-        errors = []
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('site.manage_settings')
+
+    @classmethod
+    def perform_mutation(cls, root, info, key_type):
         try:
             site_settings = info.context.site.settings
             instance = site_models.AuthorizationKey.objects.get(
                 name=key_type, site_settings=site_settings)
         except site_models.AuthorizationKey.DoesNotExist:
-            cls.add_error(
-                errors, 'key_type', 'Couldn\'t resolve authorization key')
-            return AuthorizationKeyDelete(errors=errors)
+            raise ValidationError({
+                'key_type': 'Couldn\'t resolve authorization key'})
 
         instance.delete()
         return AuthorizationKeyDelete(authorization_key=instance, shop=Shop())

@@ -6,7 +6,7 @@ import pytest
 
 from saleor.checkout.models import Cart
 from saleor.checkout.utils import (
-    add_voucher_to_cart, is_fully_paid, ready_to_place_order)
+    add_voucher_to_cart, is_fully_paid, clean_checkout)
 from saleor.graphql.core.utils import str_to_enum
 from saleor.order.models import Order
 from tests.api.utils import get_graphql_content
@@ -1155,7 +1155,7 @@ def test_ready_to_place_order(
     payment.currency = total.gross.currency
     payment.checkout = checkout
     payment.save()
-    ready, error = ready_to_place_order(checkout, None, None)
+    ready, error = clean_checkout(checkout, None, None)
     assert ready
     assert not error
 
@@ -1164,7 +1164,7 @@ def test_ready_to_place_order_no_shipping_method(cart_with_item, address):
     checkout = cart_with_item
     checkout.shipping_address = address
     checkout.save()
-    ready, error = ready_to_place_order(checkout, None, None)
+    ready, error = clean_checkout(checkout, None, None)
     assert not ready
     assert error == 'Shipping method is not set'
 
@@ -1174,7 +1174,7 @@ def test_ready_to_place_order_no_shipping_address(
     checkout = cart_with_item
     checkout.shipping_method = shipping_method
     checkout.save()
-    ready, error = ready_to_place_order(checkout, None, None)
+    ready, error = clean_checkout(checkout, None, None)
     assert not ready
     assert error == 'Shipping address is not set'
 
@@ -1186,7 +1186,7 @@ def test_ready_to_place_order_invalid_shipping_method(
     shipping_method = shipping_zone_without_countries.shipping_methods.first()
     checkout.shipping_method = shipping_method
     checkout.save()
-    ready, error = ready_to_place_order(checkout, None, None)
+    ready, error = clean_checkout(checkout, None, None)
     assert not ready
     assert error == 'Shipping method is not valid for your shipping address'
 
@@ -1197,7 +1197,7 @@ def test_ready_to_place_order_no_billing_address(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.save()
-    ready, error = ready_to_place_order(checkout, None, None)
+    ready, error = clean_checkout(checkout, None, None)
     assert not ready
     assert error == 'Billing address is not set'
 
@@ -1209,7 +1209,7 @@ def test_ready_to_place_order_no_payment(
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
     checkout.save()
-    ready, error = ready_to_place_order(checkout, None, None)
+    ready, error = clean_checkout(checkout, None, None)
     assert not ready
     assert error == (
         'Provided payment methods can not '

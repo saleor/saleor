@@ -3,7 +3,8 @@ from textwrap import dedent
 
 import graphene
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ImproperlyConfigured, ValidationError
+from django.core.exceptions import (
+    ImproperlyConfigured, NON_FIELD_ERRORS, ValidationError)
 from django.db.models.fields.files import FileField
 from graphene.types.mutation import MutationOptions
 from graphene_django.registry import get_global_registry
@@ -37,6 +38,22 @@ def get_output_fields(model, return_field_name):
     return fields
 
 
+def validation_error_to_error_type(validation_error: ValidationError) -> list:
+    """Convert a ValidationError into a list of Error types."""
+    err_list = []
+    if hasattr(validation_error, 'error_dict'):
+        # convert field errors
+        for field, field_errors in validation_error.error_dict.items():
+            for err in field_errors:
+                field = None if field == NON_FIELD_ERRORS else snake_to_camel_case(field)
+                err_list.append(Error(field=field, message=err.message))
+    else:
+        # convert non-field errors
+        for err in validation_error.error_list:
+            err_list.append(Error(message=err.message))
+    return err_list
+
+
 class ModelMutationOptions(MutationOptions):
     exclude = None
     model = None
@@ -64,22 +81,6 @@ class BaseMutation(graphene.Mutation):
         cls._meta.fields.update(fields)
 
     @classmethod
-    def add_error(cls, errors, field, message):
-        """Add a mutation user error.
-
-        `errors` is the list of errors that happened during the execution of
-        the mutation. `field` is the name of an input field the error is
-        related to. `None` value is allowed and it indicates that the error
-        is general and is not related to any of the input fields. `message`
-        is the actual error message to be returned in the response.
-
-        As a result of this method, the `errors` list is updated with an Error
-        object to be returned as mutation result.
-        """
-        field = snake_to_camel_case(field)
-        errors.append(Error(field=field, message=message))
-
-    @classmethod
     def get_node_or_error(cls, info, global_id, errors, field, only_type=None):
         if not global_id:
             return None
@@ -89,11 +90,11 @@ class BaseMutation(graphene.Mutation):
             node = graphene.Node.get_node_from_global_id(
                 info, global_id, only_type)
         except (AssertionError, GraphQLError) as e:
-            cls.add_error(errors, field, str(e))
+            raise ValidationError({field: str(e)})
         else:
             if node is None:
-                message = "Couldn't resolve to a node: %s" % global_id
-                cls.add_error(errors, field, message)
+                raise ValidationError({
+                    field: "Couldn't resolve to a node: %s" % global_id})
         return node
 
     @classmethod
@@ -102,7 +103,9 @@ class BaseMutation(graphene.Mutation):
         try:
             instances = get_nodes(ids, only_type)
         except GraphQLError as e:
-            cls.add_error(field=field, message=str(e), errors=errors)
+            # FIXME: czy zawsze tutaj powinien lecieć ValidationError? moze
+            # tylko jak nie znaleziono danego IDka?
+            raise ValidationError({field: str(e)})
         return instances
 
     @classmethod
@@ -115,15 +118,18 @@ class BaseMutation(graphene.Mutation):
         """
         try:
             instance.full_clean()
-        except ValidationError as validation_errors:
-            message_dict = validation_errors.message_dict
-            for field in message_dict:
-                if hasattr(cls._meta,
-                           'exclude') and field in cls._meta.exclude:
-                    continue
-                for message in message_dict[field]:
-                    field = snake_to_camel_case(field)
-                    cls.add_error(errors, field, message)
+        except ValidationError as error:
+            if hasattr(cls._meta, 'exclude'):
+                # Ignore validation errors for fields that are specified as
+                # excluded.
+                new_error_dict = {}
+                for field, errors in error.error_dict.items():
+                    if field not in cls._meta.exclude:
+                        new_error_dict[field] = errors
+                error.error_dict = new_error_dict
+
+            if error.error_dict:
+                raise error
 
     @classmethod
     def construct_instance(cls, instance, cleaned_data):
@@ -153,6 +159,35 @@ class BaseMutation(graphene.Mutation):
                     data = f._get_default()
             f.save_form_data(instance, data)
         return instance
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        """Determine whether user has rights to perform this mutation.
+
+        Default implementation assumes that user is allowed to perform any
+        mutation. By overriding this method, you can restrict access to it.
+        `user` is the User instance associated with the request and `input` is
+        the input data provided as mutation arguments.
+        """
+        return True
+
+    @classmethod
+    def mutate(cls, root, info, **data):
+        if not cls.user_is_allowed(info.context.user, data):
+            raise PermissionDenied()
+
+        try:
+            response = cls.perform_mutation(root, info, **data)
+            if response.errors is None:
+                response.errors = []
+            return response
+        except ValidationError as e:
+            errors = validation_error_to_error_type(e)
+            return cls(errors=errors)
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        pass
 
 
 class ModelMutation(BaseMutation):
@@ -259,17 +294,6 @@ class ModelMutation(BaseMutation):
                 f.save_form_data(instance, cleaned_data[f.name])
 
     @classmethod
-    def user_is_allowed(cls, user, input):
-        """Determine whether user has rights to perform this mutation.
-
-        Default implementation assumes that user is allowed to perform any
-        mutation. By overriding this method, you can restrict access to it.
-        `user` is the User instance associated with the request and `input` is
-        the input data provided as mutation arguments.
-        """
-        return True
-
-    @classmethod
     def success_response(cls, instance):
         """Return a success response."""
         return cls(**{cls._meta.return_field_name: instance, 'errors': []})
@@ -279,7 +303,18 @@ class ModelMutation(BaseMutation):
         instance.save()
 
     @classmethod
-    def mutate(cls, root, info, **data):
+    def get_instance(cls, info, errors, **data):
+        object_id = data.get('id')
+        if object_id:
+            model_type = registry.get_type_for_model(cls._meta.model)
+            instance = cls.get_node_or_error(
+                info, object_id, errors, 'id', model_type)
+        else:
+            instance = cls._meta.model()
+        return instance
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
         """Perform model mutation.
 
         Depending on the input data, `mutate` either creates a new instance or
@@ -287,30 +322,14 @@ class ModelMutation(BaseMutation):
         that this is an "update" mutation. Otherwise, a new instance is
         created based on the model associated with this mutation.
         """
-        if not cls.user_is_allowed(info.context.user, data):
-            raise PermissionDenied()
+        errors = []  # Initialize the errors list.
+        instance = cls.get_instance(info, errors, **data)
 
-        id = data.get('id')
-        input = data.get('input')
+        input_data = data.get('input')  # FIXME: pass data to clean_input
 
-        # Initialize the errors list.
-        errors = []
-
-        # Initialize model instance based on presence of `id` attribute.
-        if id:
-            model_type = registry.get_type_for_model(cls._meta.model)
-            instance = cls.get_node_or_error(
-                info, id, errors, 'id', model_type)
-        else:
-            instance = cls._meta.model()
-        if errors:
-            return cls(errors=errors)
-
-        cleaned_input = cls.clean_input(info, instance, input, errors)
-        instance = cls.construct_instance(instance, cleaned_input)
-        cls.clean_instance(instance, errors)
-        if errors:
-            return cls(errors=errors)
+        cleaned_input = cls.clean_input(info, instance, input_data, errors)
+        instance = cls.construct_instance(instance, cleaned_input)  # FIXME: maybe rename to `populate_instance`
+        cls.clean_instance(instance, errors)  # FIXME: maybe rename to `pre_save_instance` ?
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
         return cls.success_response(instance)
@@ -329,7 +348,7 @@ class ModelDeleteMutation(ModelMutation):
         """
 
     @classmethod
-    def mutate(cls, root, info, **data):
+    def perform_mutation(cls, root, info, **data):
         """Perform a mutation that deletes a model instance."""
         if not cls.user_is_allowed(info.context.user, data):
             raise PermissionDenied()

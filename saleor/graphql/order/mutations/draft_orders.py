@@ -1,8 +1,8 @@
 from textwrap import dedent
 
 import graphene
+from django.core.exceptions import ValidationError
 from graphene.types import InputObjectType
-from graphql_jwt.decorators import permission_required
 
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
@@ -91,14 +91,12 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 'billing_address'] = user.default_billing_address
 
         if shipping_address:
-            shipping_address, errors = cls.validate_address(
-                shipping_address, errors, 'shipping_address',
-                instance=instance.shipping_address)
+            shipping_address = cls.validate_address(
+                shipping_address, instance=instance.shipping_address)
             cleaned_input['shipping_address'] = shipping_address
         if billing_address:
-            billing_address, errors = cls.validate_address(
-                billing_address, errors, 'billing_address',
-                instance=instance.billing_address)
+            billing_address = cls.validate_address(
+                billing_address, instance=instance.billing_address)
             cleaned_input['billing_address'] = billing_address
         return cleaned_input
 
@@ -177,8 +175,11 @@ class DraftOrderComplete(BaseMutation):
                 order.user = None
 
     @classmethod
-    @permission_required('order.manage_orders')
-    def mutate(cls, root, info, id):
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('order.manage_orders')
+
+    @classmethod
+    def perform_mutation(cls, root, info, id):
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
         if order:
@@ -232,15 +233,15 @@ class DraftOrderLinesCreate(BaseMutation):
         description = 'Create order lines for a draft order.'
 
     @classmethod
-    @permission_required('order.manage_orders')
-    def mutate(cls, root, info, id, input):
-        errors = []
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('order.manage_orders')
+
+    @classmethod
+    def perform_mutation(cls, root, info, id, input):
+        errors = {}
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
-        if not order:
-            return DraftOrderLinesCreate(errors=errors)
         if order.status != OrderStatus.DRAFT:
-            cls.add_error(
-                errors, 'order_id', 'Only draft orders can be edited.')
+            raise ValidationError({'id': 'Only draft orders can be edited.'})
 
         lines = []
         for input_line in input:
@@ -254,9 +255,8 @@ class DraftOrderLinesCreate(BaseMutation):
                         order, variant, quantity, allow_overselling=True)
                     lines.append(line)
             else:
-                cls.add_error(
-                    errors, 'quantity',
-                    'Ensure this value is greater than or equal to 1.')
+                ValidationError({
+                    'quantity': 'Ensure this value is greater than or equal to 1.'}).update_error_dict(errors)
 
         recalculate_order(order)
         return DraftOrderLinesCreate(
@@ -276,24 +276,21 @@ class DraftOrderLineDelete(BaseMutation):
         description = 'Deletes an order line from a draft order.'
 
     @classmethod
-    @permission_required('order.manage_orders')
-    def mutate(cls, root, info, id):
-        errors = []
-        line = cls.get_node_or_error(info, id, errors, 'id', OrderLine)
-        if not line:
-            return DraftOrderLineDelete(errors=errors)
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('order.manage_orders')
 
+    @classmethod
+    def perform_mutation(cls, root, info, id):
+        line = cls.get_node_or_error(info, id, [], 'id', OrderLine)
         order = line.order
         if order.status != OrderStatus.DRAFT:
-            cls.add_error(
-                errors, 'id', 'Only draft orders can be edited.')
-        if not errors:
-            db_id = line.id
-            delete_order_line(line)
-            line.id = db_id
-            recalculate_order(order)
-        return DraftOrderLineDelete(
-            errors=errors, order=order, order_line=line)
+            raise ValidationError({'id': 'Only draft orders can be edited.'})
+
+        db_id = line.id
+        delete_order_line(line)
+        line.id = db_id
+        recalculate_order(order)
+        return DraftOrderLineDelete(order=order, order_line=line)
 
 
 class DraftOrderLineUpdate(ModelMutation):
@@ -318,15 +315,13 @@ class DraftOrderLineUpdate(ModelMutation):
     def clean_input(cls, info, instance, input, errors):
         cleaned_input = super().clean_input(info, instance, input, errors)
         if instance.order.status != OrderStatus.DRAFT:
-            cls.add_error(
-                errors, 'id', 'Only draft orders can be edited.')
+            raise ValidationError({'id': 'Only draft orders can be edited.'})
 
         quantity = input['quantity']
         if quantity <= 0:
-            cls.add_error(
-                errors, 'quantity',
-                'Ensure this value is greater than or equal to 1.')
-
+            raise ValidationError({
+                'quantity':
+                'Ensure this value is greater than or equal to 1.'})
         return cleaned_input
 
     @classmethod
