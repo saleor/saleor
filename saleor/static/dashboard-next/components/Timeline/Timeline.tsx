@@ -9,8 +9,8 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
+import PersonIcon from "@material-ui/icons/Person";
 import * as React from "react";
-import SVG from "react-inlinesvg";
 
 import * as avatar1 from "../../../images/avatars/avatar1.svg";
 import i18n from "../../i18n";
@@ -78,7 +78,7 @@ export const TimelineAddNote = withStyles(styles, { name: "TimelineAddNote" })(
           style={{ background: deepPurple[500] }}
           className={classes.avatar}
         >
-          <SVG src={avatar1} />
+          <PersonIcon src={avatar1} />
         </Avatar>
         <TextField
           className={classes.input}
