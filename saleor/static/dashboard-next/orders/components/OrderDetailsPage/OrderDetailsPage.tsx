@@ -30,7 +30,7 @@ const styles = (theme: Theme) =>
   createStyles({
     date: {
       marginBottom: theme.spacing.unit * 3,
-      marginLeft: theme.spacing.unit * 7
+      marginTop: -theme.spacing.unit * 2
     },
     header: {
       marginBottom: 0
