@@ -1,4 +1,3 @@
-import { stringify as stringifyQs } from "qs";
 import * as React from "react";
 
 import Messages from "../../components/messages";
@@ -6,8 +5,7 @@ import Navigator from "../../components/Navigator";
 import { createPaginationState, Paginator } from "../../components/Paginator";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
-import OrderListPage from "../components/OrderListPage/OrderListPage";
-import { getTabName } from "../misc";
+import OrderDraftListPage from "../components/OrderDraftListPage";
 import { TypedOrderDraftCreateMutation } from "../mutations";
 import { TypedOrderDraftListQuery } from "../queries";
 import { OrderDraftCreate } from "../types/OrderDraftCreate";
@@ -38,15 +36,6 @@ export const OrderDraftList: React.StatelessComponent<OrderDraftListProps> = ({
             navigate(orderUrl(data.draftOrderCreate.order.id));
           };
 
-          const changeFilters = (newParams: OrderDraftListQueryParams) =>
-            navigate(
-              "?" +
-                stringifyQs({
-                  ...params,
-                  ...newParams
-                })
-            );
-
           return (
             <TypedOrderDraftCreateMutation
               onCompleted={handleCreateOrderCreateSuccess}
@@ -56,7 +45,6 @@ export const OrderDraftList: React.StatelessComponent<OrderDraftListProps> = ({
                   PAGINATE_BY,
                   params
                 );
-                const currentTab = getTabName(params);
 
                 return (
                   <TypedOrderDraftListQuery
@@ -70,9 +58,7 @@ export const OrderDraftList: React.StatelessComponent<OrderDraftListProps> = ({
                         queryString={params}
                       >
                         {({ loadNextPage, loadPreviousPage, pageInfo }) => (
-                          <OrderListPage
-                            filtersList={[]}
-                            currentTab={currentTab}
+                          <OrderDraftListPage
                             disabled={loading}
                             orders={maybe(() =>
                               data.draftOrders.edges.map(edge => edge.node)
@@ -82,7 +68,6 @@ export const OrderDraftList: React.StatelessComponent<OrderDraftListProps> = ({
                             onNextPage={loadNextPage}
                             onPreviousPage={loadPreviousPage}
                             onRowClick={id => () => navigate(orderUrl(id))}
-                            onCustomFilter={() => undefined}
                           />
                         )}
                       </Paginator>
