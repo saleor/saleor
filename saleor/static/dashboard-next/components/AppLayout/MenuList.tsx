@@ -16,6 +16,7 @@ import { configurationMenu, configurationMenuUrl } from "../../configuration";
 import i18n from "../../i18n";
 import Toggle from "../Toggle";
 import { IMenuItem } from "./menuStructure";
+import { orderDraftListUrl, orderListUrl } from "../../orders/urls";
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -99,30 +100,34 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
   }: MenuListProps & WithStyles<typeof styles>) => (
     <div className={className}>
       {menuItems.map(menuItem => {
+        const isActive = (menuItem: IMenuItem) =>
+          location === orderDraftListUrl() && menuItem.url === orderListUrl()
+            ? false
+            : !!matchPath(location, {
+                exact: menuItem.url === "/",
+                path: menuItem.url
+              });
+
         if (
           menuItem.permission &&
           !user.permissions.map(perm => perm.code).includes(menuItem.permission)
         ) {
           return null;
         }
+
         if (!menuItem.url) {
-          const isActive = menuItem.children.reduce(
-            (acc, child) =>
-              acc ||
-              !!matchPath(location, {
-                exact: child.url === "/",
-                path: child.url
-              }),
+          const isAnyChildActive = menuItem.children.reduce(
+            (acc, child) => acc || isActive(child),
             false
           );
           return (
-            <Toggle key={menuItem.label} initial={isActive}>
+            <Toggle key={menuItem.label} initial={isAnyChildActive}>
               {(openedMenu, { toggle: toggleMenu }) => (
                 <>
                   <div
                     onClick={toggleMenu}
                     className={classNames(classes.menuListItem, {
-                      [classes.menuListItemActive]: isActive
+                      [classes.menuListItemActive]: isAnyChildActive
                     })}
                   >
                     <Typography
@@ -148,15 +153,11 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
             </Toggle>
           );
         }
-        const isActive = !!matchPath(location, {
-          exact: menuItem.url === "/",
-          path: menuItem.url
-        });
 
         return (
           <a
             className={classNames(classes.menuListItem, {
-              [classes.menuListItemActive]: isActive
+              [classes.menuListItemActive]: isActive(menuItem)
             })}
             href={urlJoin(appMountPoint, menuItem.url)}
             onClick={event => onMenuItemClick(menuItem.url, event)}
