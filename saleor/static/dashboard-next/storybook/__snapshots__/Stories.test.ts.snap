@@ -4759,30 +4759,23 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
     >
       <div
         class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineNote-avatar-id"
+        style="background:#f44336"
       >
-        <span
-          class="isvg pending"
-        />
-      </div>
-      <div
-        class="TimelineNote-title-id"
-      >
-        <p
-          class="MuiTypography-root-id MuiTypography-body1-id"
+        <svg
+          aria-hidden="true"
+          class="MuiSvgIcon-root-id"
+          focusable="false"
+          role="presentation"
+          viewBox="0 0 24 24"
         >
-          admin@example.com
-        </p>
-        <p
-          class="MuiTypography-root-id MuiTypography-body1-id TimelineNote-date-id"
-        >
-          <time
-            class=""
-            datetime="1525712282000"
-            title="May 7, 2018 12:58 PM"
-          >
-            3 months ago
-          </time>
-        </p>
+          <path
+            d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+          />
+          <path
+            d="M0 0h24v24H0z"
+            fill="none"
+          />
+        </svg>
       </div>
       <div
         class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id TimelineNote-card-id"
@@ -4790,8 +4783,31 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
         <div
           class="MuiCardContent-root-id TimelineNote-cardContent-id"
         >
+          <div
+            class="TimelineNote-title-id"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id"
+            >
+              admin@example.com
+            </p>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id"
+            >
+              <time
+                class=""
+                datetime="1525712282000"
+                title="May 7, 2018 12:58 PM"
+              >
+                3 months ago
+              </time>
+            </p>
+          </div>
+          <hr
+            class="Hr-root-id"
+          />
           <p
-            class="MuiTypography-root-id MuiTypography-body1-id"
+            class="MuiTypography-root-id MuiTypography-body1-id TimelineNote-content-id"
           >
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
             <br />
@@ -4805,30 +4821,23 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
     >
       <div
         class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineNote-avatar-id"
+        style="background:#03a9f4"
       >
-        <span
-          class="isvg pending"
-        />
-      </div>
-      <div
-        class="TimelineNote-title-id"
-      >
-        <p
-          class="MuiTypography-root-id MuiTypography-body1-id"
+        <svg
+          aria-hidden="true"
+          class="MuiSvgIcon-root-id"
+          focusable="false"
+          role="presentation"
+          viewBox="0 0 24 24"
         >
-          ceo@example.com
-        </p>
-        <p
-          class="MuiTypography-root-id MuiTypography-body1-id TimelineNote-date-id"
-        >
-          <time
-            class=""
-            datetime="1525712282000"
-            title="May 7, 2018 12:58 PM"
-          >
-            3 months ago
-          </time>
-        </p>
+          <path
+            d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+          />
+          <path
+            d="M0 0h24v24H0z"
+            fill="none"
+          />
+        </svg>
       </div>
       <div
         class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id TimelineNote-card-id"
@@ -4836,8 +4845,31 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
         <div
           class="MuiCardContent-root-id TimelineNote-cardContent-id"
         >
+          <div
+            class="TimelineNote-title-id"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id"
+            >
+              ceo@example.com
+            </p>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id"
+            >
+              <time
+                class=""
+                datetime="1525712282000"
+                title="May 7, 2018 12:58 PM"
+              >
+                3 months ago
+              </time>
+            </p>
+          </div>
+          <hr
+            class="Hr-root-id"
+          />
           <p
-            class="MuiTypography-root-id MuiTypography-body1-id"
+            class="MuiTypography-root-id MuiTypography-body1-id TimelineNote-content-id"
           >
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
             <br />
@@ -5629,9 +5661,21 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
               class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
               style="background:#673ab7"
             >
-              <span
-                class="isvg pending"
-              />
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
             </div>
             <div
               class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
@@ -35082,9 +35126,21 @@ exports[`Storyshots Views / Orders / Order details cancelled 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <span
-                      class="isvg pending"
-                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                   <div
                     class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
@@ -36033,9 +36089,21 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <span
-                      class="isvg pending"
-                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                   <div
                     class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
@@ -37014,9 +37082,21 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <span
-                      class="isvg pending"
-                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                   <div
                     class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
@@ -38557,9 +38637,21 @@ exports[`Storyshots Views / Orders / Order details no customer note 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <span
-                      class="isvg pending"
-                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                   <div
                     class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
@@ -39538,9 +39630,21 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <span
-                      class="isvg pending"
-                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                   <div
                     class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
@@ -40519,9 +40623,21 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <span
-                      class="isvg pending"
-                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                   <div
                     class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
@@ -41500,9 +41616,21 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <span
-                      class="isvg pending"
-                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                   <div
                     class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
@@ -42481,9 +42609,21 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <span
-                      class="isvg pending"
-                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                   <div
                     class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
@@ -43462,9 +43602,21 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <span
-                      class="isvg pending"
-                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                   <div
                     class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
@@ -44443,9 +44595,21 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <span
-                      class="isvg pending"
-                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                   <div
                     class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
@@ -45424,9 +45588,21 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <span
-                      class="isvg pending"
-                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                   <div
                     class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
@@ -46405,9 +46581,21 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <span
-                      class="isvg pending"
-                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                   <div
                     class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
@@ -47386,9 +47574,21 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <span
-                      class="isvg pending"
-                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                   <div
                     class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
@@ -48054,9 +48254,21 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <span
-                      class="isvg pending"
-                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                   <div
                     class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
@@ -48816,9 +49028,21 @@ exports[`Storyshots Views / Orders / Order draft without lines 1`] = `
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id TimelineAddNote-avatar-id"
                     style="background:#673ab7"
                   >
-                    <span
-                      class="isvg pending"
-                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
                   </div>
                   <div
                     class="MuiFormControl-root-id MuiFormControl-fullWidth-id TimelineAddNote-input-id"
