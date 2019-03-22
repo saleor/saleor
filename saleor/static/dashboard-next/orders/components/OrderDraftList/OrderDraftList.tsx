@@ -10,7 +10,6 @@ import * as React from "react";
 import { DateTime } from "../../../components/Date";
 import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
-import StatusLabel from "../../../components/StatusLabel";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
 import {
