@@ -1777,7 +1777,7 @@ def test_fetch_all_digital_contents(
             edges{
                 node{
                     id
-                    file
+                    contentFile
                 }
             }
         }
@@ -1832,7 +1832,8 @@ def test_product_variant_digital_content_upload_mutation(
 
 
 def test_product_variant_digital_content_delete_mutation(
-        monkeypatch, staff_api_client, variant, permission_manage_products):
+        monkeypatch, staff_api_client, variant, digital_content,
+        permission_manage_products):
     query = """
     mutation deleteDigitalContent($variant: ID!){
         productVariantDigitalDelete(id:$variant){
@@ -1843,8 +1844,7 @@ def test_product_variant_digital_content_delete_mutation(
     }
     """
 
-    image_file, image_name = create_image()
-    variant.digital_content = DigitalContent(content_file=image_file)
+    variant.digital_content = digital_content
     variant.digital_content.save()
 
     assert hasattr(variant, 'digital_content')
@@ -1860,7 +1860,8 @@ def test_product_variant_digital_content_delete_mutation(
 
 
 def test_product_variant_digital_content_update_mutation(
-    monkeypatch, staff_api_client, variant, permission_manage_products):
+        monkeypatch, staff_api_client, variant, digital_content,
+        permission_manage_products):
     url_valid_days = 3
     maxDownloads = 5
     query = """
@@ -1877,8 +1878,7 @@ def test_product_variant_digital_content_update_mutation(
         }
     }
     """ % (url_valid_days, maxDownloads)
-    image_file, image_name = create_image()
-    variant.digital_content = DigitalContent(content_file=image_file)
+    variant.digital_content = digital_content
     variant.digital_content.save()
 
     variables = {
