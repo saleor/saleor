@@ -78,7 +78,7 @@ export const TimelineAddNote = withStyles(styles, { name: "TimelineAddNote" })(
           style={{ background: deepPurple[500] }}
           className={classes.avatar}
         >
-          <PersonIcon src={avatar1} />
+          <PersonIcon />
         </Avatar>
         <TextField
           className={classes.input}
