@@ -849,13 +849,20 @@ class VariantImageUnassign(BaseMutation):
         return VariantImageUnassign(
             product_variant=variant, image=image, errors=errors)
 
+class ProductVariantDigitalInput(graphene.InputObjectType):
+    max_downloads = graphene.Int(
+        description='[Optional] Maximal number of downloading for one url',
+        required=False, name='max_downloads')
+    url_valid_days = graphene.Int(
+        description='[Optional] Number of days which each url will be active',
+        required=False, name='url_valid_days'
+    )
 
-class ProductVariantDigitalUploadInput(graphene.InputObjectType):
+
+class ProductVariantDigitalUploadInput(ProductVariantDigitalInput):
     content_file = Upload(
         required=True,
         description='Represents an file in a multipart request.')
-    variant = graphene.ID(
-        required=True, description='ID of an variant.', name='variant')
 
 
 class ProductVariantDigitalUpload(BaseMutation):
@@ -863,6 +870,9 @@ class ProductVariantDigitalUpload(BaseMutation):
     content = graphene.Field(DigitalContent)
 
     class Arguments:
+        id = graphene.ID(
+            description='ID of a product variant to upload digital content.',
+            required=True)
         input = ProductVariantDigitalUploadInput(
             required=True,
             description='Fields required to create a digital content.')
@@ -875,36 +885,42 @@ class ProductVariantDigitalUpload(BaseMutation):
 
     @classmethod
     @permission_required('product.manage_products')
-    def mutate(cls, root, info, input):
+    def mutate(cls, root, info, id, input):
         errors = []
         variant = cls.get_node_or_error(
-            info, input['variant'], errors, 'variant', only_type=ProductVariant)
+            info, id, errors, 'id', only_type=ProductVariant)
         content_data = info.context.FILES.get(input['content_file'])
         if hasattr(variant, 'digital_content'):
-            msg = 'Variant %s already has digital content' % input['variant']
-            cls.add_error(errors, 'variant', msg)
+            msg = 'Variant %s already has digital content' % id
+            cls.add_error(errors, 'id', msg)
 
         digital_content = None
         if not errors:
-            variant.digital_content = models.DigitalContent(file=content_data)
+            digital_content = models.DigitalContent(
+                content_file=content_data
+            )
+            max_downloads = input.get('max_downloads')
+            if max_downloads:
+                digital_content.max_downloads = max_downloads
+
+            url_valid_days = input.get('url_valid_days')
+            if url_valid_days:
+                digital_content.url_valid_days = url_valid_days
+
+            variant.digital_content = digital_content
             variant.digital_content.save()
-            digital_content = variant.digital_content
         return ProductVariantDigitalUpload(
-            variant=variant, content=digital_content, errors=errors)
+            content=digital_content, errors=errors)
 
-
-class ProductVariantDigitalDeleteInput(graphene.InputObjectType):
-    variant = graphene.ID(
-        required=True, description='ID of an variant.', name='variant')
 
 
 class ProductVariantDigitalDelete(BaseMutation):
     variant = graphene.Field(ProductVariant)
 
     class Arguments:
-        input = ProductVariantDigitalDeleteInput(
-            required=True,
-            description='Fields required to create a digital content.')
+        id = graphene.ID(
+            description='ID of a product variant with digital content to remove.',
+            required=True)
 
     class Meta:
         description = dedent(
@@ -912,16 +928,66 @@ class ProductVariantDigitalDelete(BaseMutation):
 
     @classmethod
     @permission_required('product.manage_products')
-    def mutate(cls, root, info, input):
+    def mutate(cls, root, info, id):
         errors = []
         variant = cls.get_node_or_error(
-            info, input['variant'], errors, 'variant', only_type=ProductVariant)
+            info, id, errors, 'id', only_type=ProductVariant)
 
         if not hasattr(variant, 'digital_content'):
-            msg = 'Variant %s doesn\'t have any digital content' % input['variant']
+            msg = 'Variant %s doesn\'t have any digital content' % id
             cls.add_error(errors, 'variant', msg)
 
         if not errors:
             variant.digital_content.delete()
 
         return ProductVariantDigitalDelete(variant=variant, errors=errors)
+
+
+class ProductVariantDigitalUpdate(BaseMutation):
+    variant = graphene.Field(ProductVariant)
+    content = graphene.Field(DigitalContent)
+
+    class Arguments:
+        id =graphene.ID(
+            description='ID of a product variant with digital content to update.',
+            required=True)
+        input = ProductVariantDigitalInput(
+            required=True,
+            description='Fields required to update a digital content.')
+
+    class Meta:
+        description = dedent('Update digital content')
+
+
+    @classmethod
+    @permission_required('product.manage_products')
+    def mutate(cls, root, info, id, input):
+        errors = []
+        variant = cls.get_node_or_error(
+            info, id, errors, 'id', only_type=ProductVariant)
+
+        if not hasattr(variant, 'digital_content'):
+            msg = 'Variant %s doesn\'t have any digital content' % id
+            cls.add_error(errors, 'variant', msg)
+
+        max_downloads = input.get('max_downloads')
+        url_valid_days = input.get('url_valid_days')
+        if not max_downloads and not url_valid_days:
+            msg = 'Not found any fields for update'
+            cls.add_error(errors, 'variant', msg)
+
+        digital_content = None
+        if not errors:
+            digital_content = variant.digital_content
+
+            if max_downloads:
+                digital_content.max_downloads = max_downloads
+
+            if url_valid_days:
+                digital_content.url_valid_days = url_valid_days
+
+            variant.digital_content = digital_content
+            variant.digital_content.save()
+
+        return ProductVariantDigitalUpdate(
+            content=digital_content, variant=variant, errors=errors)

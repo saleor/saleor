@@ -26,7 +26,7 @@ from .mutations.products import (
     ProductTypeCreate, ProductTypeDelete, ProductTypeUpdate, ProductUpdate,
     ProductVariantCreate, ProductVariantDelete, ProductVariantUpdate,
     VariantImageAssign, VariantImageUnassign, ProductVariantDigitalUpload,
-    ProductVariantDigitalDelete)
+    ProductVariantDigitalDelete, ProductVariantDigitalUpdate)
 from .resolvers import (
     resolve_attributes, resolve_categories, resolve_collections,
     resolve_product_types, resolve_product_variants, resolve_products,
@@ -207,6 +207,7 @@ class ProductMutations(graphene.ObjectType):
 
     product_variant_digital_upload = ProductVariantDigitalUpload.Field()
     product_variant_digital_delete = ProductVariantDigitalDelete.Field()
+    product_variant_digital_update = ProductVariantDigitalUpdate.Field()
 
     product_variant_create = ProductVariantCreate.Field()
     product_variant_delete = ProductVariantDelete.Field()

@@ -664,8 +664,8 @@ type DigitalContent implements Node {
   id: ID!
   contentType: DigitalContentContentType!
   productVariant: ProductVariant!
-  file: String!
-  maxDownload: Int
+  contentFile: String!
+  maxDownloads: Int
   urlValidDays: Int
   urls: [DigitalContentUrl]
 }
@@ -1091,8 +1091,9 @@ type Mutations {
   productTypeDelete(id: ID!): ProductTypeDelete
   productTypeBulkDelete(ids: [ID]!): ProductTypeBulkDelete
   productTypeUpdate(id: ID!, input: ProductTypeInput!): ProductTypeUpdate
-  productVariantDigitalUpload(input: ProductVariantDigitalUploadInput!): ProductVariantDigitalUpload
-  productVariantDigitalDelete(input: ProductVariantDigitalDeleteInput!): ProductVariantDigitalDelete
+  productVariantDigitalUpload(id: ID!, input: ProductVariantDigitalUploadInput!): ProductVariantDigitalUpload
+  productVariantDigitalDelete(id: ID!): ProductVariantDigitalDelete
+  productVariantDigitalUpdate(id: ID!, input: ProductVariantDigitalInput!): ProductVariantDigitalUpdate
   productVariantCreate(input: ProductVariantCreateInput!): ProductVariantCreate
   productVariantDelete(id: ID!): ProductVariantDelete
   productVariantBulkDelete(ids: [ID]!): ProductVariantBulkDelete
@@ -1841,7 +1842,7 @@ type ProductVariant implements Node {
   quantityAllocated: Int!
   costPrice: Money
   weight: Weight
-  digitalContent: [DigitalContent]
+  digitalContent: DigitalContent
   stockQuantity: Int!
   price: Money
   margin: Int
@@ -1892,8 +1893,15 @@ type ProductVariantDigitalDelete {
   variant: ProductVariant
 }
 
-input ProductVariantDigitalDeleteInput {
-  variant: ID!
+input ProductVariantDigitalInput {
+  max_downloads: Int
+  url_valid_days: Int
+}
+
+type ProductVariantDigitalUpdate {
+  errors: [Error!]
+  variant: ProductVariant
+  content: DigitalContent
 }
 
 type ProductVariantDigitalUpload {
@@ -1903,8 +1911,9 @@ type ProductVariantDigitalUpload {
 }
 
 input ProductVariantDigitalUploadInput {
+  max_downloads: Int
+  url_valid_days: Int
   contentFile: Upload!
-  variant: ID!
 }
 
 input ProductVariantInput {
