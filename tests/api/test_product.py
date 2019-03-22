@@ -1810,8 +1810,8 @@ def test_product_variant_digital_content_upload_mutation(
         monkeypatch, staff_api_client, variant, permission_manage_products):
     query = """
     mutation createDigitalContent($content: Upload!, $variant: ID!) {
-        productVariantDigitalUpload(input: {contentFile: $content, variant: $variant}) {
-            content {
+        productVariantDigitalUpload(id: $variant, input: {contentFile: $content}) {
+            variant {
                 id
             }
         }
@@ -1828,14 +1828,14 @@ def test_product_variant_digital_content_upload_mutation(
         body, permissions=[permission_manage_products])
     get_graphql_content(response)
     variant.refresh_from_db()
-    assert variant.digital_content.file
+    assert variant.digital_content.content_file
 
 
 def test_product_variant_digital_content_delete_mutation(
         monkeypatch, staff_api_client, variant, permission_manage_products):
     query = """
     mutation deleteDigitalContent($variant: ID!){
-        productVariantDigitalDelete(input:{variant:$variant}){
+        productVariantDigitalDelete(id:$variant){
             variant{
               id
             }
@@ -1844,7 +1844,7 @@ def test_product_variant_digital_content_delete_mutation(
     """
 
     image_file, image_name = create_image()
-    variant.digital_content = DigitalContent(file=image_file)
+    variant.digital_content = DigitalContent(content_file=image_file)
     variant.digital_content.save()
 
     assert hasattr(variant, 'digital_content')
@@ -1857,3 +1857,35 @@ def test_product_variant_digital_content_delete_mutation(
     get_graphql_content(response)
     variant.refresh_from_db()
     assert not hasattr(variant, 'digital_content')
+
+
+def test_product_variant_digital_content_update_mutation(
+    monkeypatch, staff_api_client, variant, permission_manage_products):
+    url_valid_days = 3
+    maxDownloads = 5
+    query = """
+    mutation productVariantDigitalUpdate($variant: ID!){
+        productVariantDigitalUpdate(id:$variant, input:{url_valid_days: %s, max_downloads: %s}){
+            variant{
+                id
+            }
+            content{
+                contentFile
+                maxDownloads
+                urlValidDays
+            }
+        }
+    }
+    """ % (url_valid_days, maxDownloads)
+    image_file, image_name = create_image()
+    variant.digital_content = DigitalContent(content_file=image_file)
+    variant.digital_content.save()
+
+    variables = {
+        'variant': graphene.Node.to_global_id('ProductVariant', variant.id)
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    get_graphql_content(response)
+    variant.refresh_from_db()
