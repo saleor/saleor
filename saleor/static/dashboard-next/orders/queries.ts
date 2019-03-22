@@ -2,6 +2,10 @@ import gql from "graphql-tag";
 
 import { TypedQuery } from "../queries";
 import { OrderDetails, OrderDetailsVariables } from "./types/OrderDetails";
+import {
+  OrderDraftList,
+  OrderDraftListVariables
+} from "./types/OrderDraftList";
 import { OrderList, OrderListVariables } from "./types/OrderList";
 import {
   OrderVariantSearch,
@@ -20,6 +24,7 @@ export const fragmentOrderEvent = gql`
     quantity
     type
     user {
+      id
       email
     }
   }
@@ -204,6 +209,51 @@ export const orderListQuery = gql`
 export const TypedOrderListQuery = TypedQuery<OrderList, OrderListVariables>(
   orderListQuery
 );
+
+export const orderDraftListQuery = gql`
+  ${fragmentAddress}
+  query OrderDraftList(
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
+  ) {
+    draftOrders(before: $before, after: $after, first: $first, last: $last) {
+      edges {
+        node {
+          __typename
+          billingAddress {
+            ...AddressFragment
+          }
+          created
+          id
+          number
+          paymentStatus
+          status
+          total {
+            __typename
+            gross {
+              __typename
+              amount
+              currency
+            }
+          }
+          userEmail
+        }
+      }
+      pageInfo {
+        hasPreviousPage
+        hasNextPage
+        startCursor
+        endCursor
+      }
+    }
+  }
+`;
+export const TypedOrderDraftListQuery = TypedQuery<
+  OrderDraftList,
+  OrderDraftListVariables
+>(orderDraftListQuery);
 
 export const orderDetailsQuery = gql`
   ${fragmentOrderDetails}

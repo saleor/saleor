@@ -38,6 +38,7 @@ export interface OrderDraftCancel_draftOrderDelete_order_billingAddress {
 
 export interface OrderDraftCancel_draftOrderDelete_order_events_user {
   __typename: "User";
+  id: string;
   email: string;
 }
 

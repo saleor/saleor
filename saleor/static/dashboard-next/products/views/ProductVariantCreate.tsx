@@ -1,6 +1,5 @@
 import * as React from "react";
 
-import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import Shop from "../../components/Shop";
@@ -60,14 +59,6 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                       onCompleted={handleCreateSuccess}
                     >
                       {(variantCreate, variantCreateResult) => {
-                        if (variantCreateResult.error) {
-                          return (
-                            <ErrorMessageCard
-                              message={i18n.t("Something went wrong")}
-                            />
-                          );
-                        }
-
                         const handleBack = () =>
                           navigate(productUrl(productId));
                         const handleSubmit = (formData: FormData) =>

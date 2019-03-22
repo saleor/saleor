@@ -811,7 +811,8 @@ export const order = (placeholder: string): OrderDetails_order => ({
       type: OrderEvents.FULFILLMENT_FULFILLED_ITEMS,
       user: {
         __typename: "User",
-        email: "admin@example.com"
+        email: "admin@example.com",
+        id: "QWRkcmVzczoxNQ=="
       }
     }
   ],
