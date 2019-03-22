@@ -1,7 +1,7 @@
 from textwrap import dedent
 
 import graphene
-from graphql_jwt.decorators import permission_required
+from django.core.exceptions import ValidationError
 
 from ...menu import models
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -60,14 +60,15 @@ class MenuCreate(ModelMutation):
     def clean_input(cls, info, instance, input, errors):
         cleaned_input = super().clean_input(info, instance, input, errors)
         items = []
+        errors = {}
         for item in cleaned_input.get('items', []):
             category = item.get('category')
             collection = item.get('collection')
             page = item.get('page')
             url = item.get('url')
             if len([i for i in [category, collection, page, url] if i]) > 1:
-                cls.add_error(
-                    errors, 'items', 'More than one item provided.')
+                ValidationError({
+                    'items': 'More than one item provided.'}).update_error_dict(errors)
             else:
                 if category:
                     category = cls.get_node_or_error(
@@ -83,8 +84,13 @@ class MenuCreate(ModelMutation):
                         info, page, errors, 'items', only_type=Page)
                     item['page'] = page
                 elif not url:
-                    cls.add_error(errors, 'items', 'No menu item provided.')
+                    ValidationError({
+                        'items': 'No menu item provided.'}).update_error_dict(errors)
                 items.append(item)
+
+        if errors:
+            raise ValidationError(errors)
+
         cleaned_input['items'] = items
         return cleaned_input
 
@@ -151,9 +157,7 @@ class MenuItemCreate(ModelMutation):
             cleaned_input.get('url'), cleaned_input.get('category')]
         items = [item for item in items if item is not None]
         if len(items) > 1:
-            cls.add_error(
-                errors=errors,
-                field='items', message='More than one item provided.')
+            raise ValidationError({'items': 'More than one item provided.'})
         return cleaned_input
 
 
@@ -203,8 +207,7 @@ class AssignNavigation(BaseMutation):
     menu = graphene.Field(Menu, description='Assigned navigation menu.')
 
     class Arguments:
-        menu = graphene.ID(
-            description='ID of the menu.')
+        menu = graphene.ID(description='ID of the menu.')  # FIXME: required=True?
         navigation_type = NavigationType(
             description='Type of the navigation bar to assign the menu to.',
             required=True)
@@ -212,22 +215,26 @@ class AssignNavigation(BaseMutation):
     class Meta:
         description = 'Assigns storefront\'s navigation menus.'
 
+    def user_is_allowed(cls, instance, input):
+        return instance.has_perms([
+            'menu.manage_menus', 'site.manage_settings'])
+
     @classmethod
-    @permission_required(['menu.manage_menus', 'site.manage_settings'])
-    def mutate(cls, root, info, navigation_type, menu=None):
+    def perform_mutation(cls, root, info, navigation_type, menu=None):
         errors = []
         site_settings = info.context.site.settings
         if menu is not None:
             menu = cls.get_node_or_error(
                 info, menu, errors=errors, field='menu')
-        if not errors:
-            if navigation_type == NavigationType.MAIN:
-                site_settings.top_menu = menu
-                site_settings.save(update_fields=['top_menu'])
-            elif navigation_type == NavigationType.SECONDARY:
-                site_settings.bottom_menu = menu
-                site_settings.save(update_fields=['bottom_menu'])
-            else:
-                raise AssertionError(
-                    'Unknown navigation type: %s' % navigation_type)
+
+        if navigation_type == NavigationType.MAIN:
+            site_settings.top_menu = menu
+            site_settings.save(update_fields=['top_menu'])
+        elif navigation_type == NavigationType.SECONDARY:
+            site_settings.bottom_menu = menu
+            site_settings.save(update_fields=['bottom_menu'])
+        else:
+            raise AssertionError(
+                'Unknown navigation type: %s' % navigation_type)
+
         return AssignNavigation(menu=menu, errors=errors)

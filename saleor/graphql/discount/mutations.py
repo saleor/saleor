@@ -1,5 +1,4 @@
 import graphene
-from graphql_jwt.decorators import permission_required
 
 from ...discount import models
 from ...discount.utils import generate_voucher_code
@@ -166,8 +165,11 @@ class VoucherAddCatalogues(VoucherBaseCatalogueMutation):
         description = 'Adds products, categories, collections to a voucher.'
 
     @classmethod
-    @permission_required('discount.manage_discounts')
-    def mutate(cls, root, info, id, input):
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('discount.manage_discounts')
+
+    @classmethod
+    def perform_mutation(cls, root, info, id, input):
         errors = []
         voucher = cls.get_node_or_error(
             info, id, errors, 'voucherId', only_type=Voucher)
@@ -182,8 +184,11 @@ class VoucherRemoveCatalogues(VoucherBaseCatalogueMutation):
             'Removes products, categories, collections from a voucher.')
 
     @classmethod
-    @permission_required('discount.manage_discounts')
-    def mutate(cls, root, info, id, input):
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('discount.manage_discounts')
+
+    @classmethod
+    def perform_mutation(cls, root, info, id, input):
         errors = []
         voucher = cls.get_node_or_error(
             info, id, errors, 'voucherId', only_type=Voucher)
@@ -275,8 +280,11 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
         description = 'Adds products, categories, collections to a voucher.'
 
     @classmethod
-    @permission_required('discount.manage_discounts')
-    def mutate(cls, root, info, id, input):
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('discount.manage_discounts')
+
+    @classmethod
+    def perform_mutation(cls, root, info, id, input):
         errors = []
         sale = cls.get_node_or_error(
             info, id, errors, 'saleId', only_type=Sale)
@@ -290,8 +298,11 @@ class SaleRemoveCatalogues(SaleBaseCatalogueMutation):
         description = 'Removes products, categories, collections from a sale.'
 
     @classmethod
-    @permission_required('discount.manage_discounts')
-    def mutate(cls, root, info, id, input):
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('discount.manage_discounts')
+
+    @classmethod
+    def perform_mutation(cls, root, info, id, input):
         errors = []
         sale = cls.get_node_or_error(
             info, id, errors, 'saleId', only_type=Sale)
