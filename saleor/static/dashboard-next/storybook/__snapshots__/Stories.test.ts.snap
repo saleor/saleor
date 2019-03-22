@@ -33399,6 +33399,1165 @@ exports[`Storyshots Views / Not found error page default 1`] = `
 </div>
 `;
 
+exports[`Storyshots Views / Orders / Draft order list default 1`] = `
+<div
+  style="padding:24px"
+>
+  <div
+    class="Container-root-id"
+  >
+    <div
+      class="ExtendedPageHeader-root-id"
+    >
+      <h1
+        class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
+      >
+        Draft Orders
+      </h1>
+      <div
+        class="ExtendedPageHeader-action-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Create order 
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+    </div>
+    <div
+      class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+    >
+      <table
+        class="MuiTable-root-id"
+      >
+        <thead
+          class="MuiTableHead-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-head-id"
+          >
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+              scope="col"
+            >
+              No. of Order
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+              scope="col"
+            >
+              Date
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+              scope="col"
+            >
+              Customer
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+              scope="col"
+            >
+              Total
+            </th>
+          </tr>
+        </thead>
+        <tfoot
+          class="MuiTableFooter-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-footer-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
+              colspan="6"
+            >
+              <div
+                class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
+              >
+                <div
+                  class="TablePagination-spacer-id"
+                />
+                <div
+                  class="TablePaginationActions-root-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id TablePaginationActions-iconButton-id TablePaginationActions-disabled-id"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M14 7l-5 5 5 5V7z"
+                        />
+                        <path
+                          d="M24 0v24H0V0h24z"
+                          fill="none"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                  <button
+                    class="MuiButtonBase-root-id MuiIconButton-root-id TablePaginationActions-iconButton-id"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M10 17l5-5-5-5v10z"
+                        />
+                        <path
+                          d="M0 24V0h24v24H0z"
+                          fill="none"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
+        <tbody
+          class="MuiTableBody-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderDraftList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #20
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                class=""
+                datetime="1536658650376"
+                title="Sep 11, 2018 5:37 AM"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Laura Stone 1 2
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+            >
+              $305.17
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderDraftList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #19
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                class=""
+                datetime="1536658650124"
+                title="Sep 11, 2018 5:37 AM"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Elizabeth Vaughn
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+            >
+              $1,215.89
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderDraftList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #18
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                class=""
+                datetime="1536658650019"
+                title="Sep 11, 2018 5:37 AM"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              david.lawson@example.com
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+            >
+              $321.71
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderDraftList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #17
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                class=""
+                datetime="1536658649864"
+                title="Sep 11, 2018 5:37 AM"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Aaron Randall
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+            >
+              $271.95
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderDraftList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #16
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                class=""
+                datetime="1536658649610"
+                title="Sep 11, 2018 5:37 AM"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Laura Jensen
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+            >
+              $335.84
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderDraftList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #15
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                class=""
+                datetime="1536658649336"
+                title="Sep 11, 2018 5:37 AM"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Jenna Villa
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+            >
+              $1,042.15
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderDraftList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #14
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                class=""
+                datetime="1536658649103"
+                title="Sep 11, 2018 5:37 AM"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Wesley Davis
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+            >
+              $213.69
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderDraftList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #13
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                class=""
+                datetime="1536658648921"
+                title="Sep 11, 2018 5:37 AM"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Anthony Gonzalez
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+            >
+              $367.03
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderDraftList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #12
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                class=""
+                datetime="1536658648750"
+                title="Sep 11, 2018 5:37 AM"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Denise Freeman
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+            >
+              $298.76
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderDraftList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #11
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                class=""
+                datetime="1536658648598"
+                title="Sep 11, 2018 5:37 AM"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              James Ball
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+            >
+              $663.69
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderDraftList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #10
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                class=""
+                datetime="1536658648409"
+                title="Sep 11, 2018 5:37 AM"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Michael Martinez
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+            >
+              $280.41
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderDraftList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #9
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                class=""
+                datetime="1536658648185"
+                title="Sep 11, 2018 5:37 AM"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Melissa Simon
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+            >
+              $234.93
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderDraftList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #8
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                class=""
+                datetime="1536658647953"
+                title="Sep 11, 2018 5:37 AM"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Justin Mccoy
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+            >
+              $485.19
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderDraftList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #7
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                class=""
+                datetime="1536658647828"
+                title="Sep 11, 2018 5:37 AM"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Anthony Gonzalez
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+            >
+              $223.54
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderDraftList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #6
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                class=""
+                datetime="1536658647636"
+                title="Sep 11, 2018 5:37 AM"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Bradley Ford
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+            >
+              $237.55
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderDraftList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #5
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                class=""
+                datetime="1536658647420"
+                title="Sep 11, 2018 5:37 AM"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              David Lawson
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+            >
+              $453.55
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderDraftList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #4
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                class=""
+                datetime="1536658647230"
+                title="Sep 11, 2018 5:37 AM"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Lauren Watson
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+            >
+              $812.67
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderDraftList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #3
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                class=""
+                datetime="1536658646972"
+                title="Sep 11, 2018 5:37 AM"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Mark Lee
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+            >
+              $481.41
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderDraftList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #2
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                class=""
+                datetime="1536658646751"
+                title="Sep 11, 2018 5:37 AM"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Kara Murphy
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+            >
+              $569.19
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderDraftList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #1
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <time
+                class=""
+                datetime="1536658646314"
+                title="Sep 11, 2018 5:37 AM"
+              >
+                in a month
+              </time>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Curtis Bailey
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+            >
+              $557.00
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Orders / Draft order list loading 1`] = `
+<div
+  style="padding:24px"
+>
+  <div
+    class="Container-root-id"
+  >
+    <div
+      class="ExtendedPageHeader-root-id"
+    >
+      <h1
+        class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
+      >
+        Draft Orders
+      </h1>
+      <div
+        class="ExtendedPageHeader-action-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          disabled=""
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Create order 
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+    </div>
+    <div
+      class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+    >
+      <table
+        class="MuiTable-root-id"
+      >
+        <thead
+          class="MuiTableHead-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-head-id"
+          >
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+              scope="col"
+            >
+              No. of Order
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+              scope="col"
+            >
+              Date
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+              scope="col"
+            >
+              Customer
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+              scope="col"
+            >
+              Total
+            </th>
+          </tr>
+        </thead>
+        <tfoot
+          class="MuiTableFooter-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-footer-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
+              colspan="6"
+            >
+              <div
+                class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
+              >
+                <div
+                  class="TablePagination-spacer-id"
+                />
+                <div
+                  class="TablePaginationActions-root-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id TablePaginationActions-iconButton-id TablePaginationActions-disabled-id"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M14 7l-5 5 5 5V7z"
+                        />
+                        <path
+                          d="M24 0v24H0V0h24z"
+                          fill="none"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                  <button
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id TablePaginationActions-iconButton-id TablePaginationActions-disabled-id"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M10 17l5-5-5-5v10z"
+                        />
+                        <path
+                          d="M0 24V0h24v24H0z"
+                          fill="none"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
+        <tbody
+          class="MuiTableBody-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Orders / Draft order list when no data 1`] = `
+<div
+  style="padding:24px"
+>
+  <div
+    class="Container-root-id"
+  >
+    <div
+      class="ExtendedPageHeader-root-id"
+    >
+      <h1
+        class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
+      >
+        Draft Orders
+      </h1>
+      <div
+        class="ExtendedPageHeader-action-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Create order 
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+    </div>
+    <div
+      class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+    >
+      <table
+        class="MuiTable-root-id"
+      >
+        <thead
+          class="MuiTableHead-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-head-id"
+          >
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+              scope="col"
+            >
+              No. of Order
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+              scope="col"
+            >
+              Date
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
+              scope="col"
+            >
+              Customer
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id OrderDraftList-textRight-id"
+              scope="col"
+            >
+              Total
+            </th>
+          </tr>
+        </thead>
+        <tfoot
+          class="MuiTableFooter-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-footer-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
+              colspan="6"
+            >
+              <div
+                class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
+              >
+                <div
+                  class="TablePagination-spacer-id"
+                />
+                <div
+                  class="TablePaginationActions-root-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id TablePaginationActions-iconButton-id TablePaginationActions-disabled-id"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M14 7l-5 5 5 5V7z"
+                        />
+                        <path
+                          d="M24 0v24H0V0h24z"
+                          fill="none"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                  <button
+                    class="MuiButtonBase-root-id MuiIconButton-root-id TablePaginationActions-iconButton-id"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M10 17l5-5-5-5v10z"
+                        />
+                        <path
+                          d="M0 24V0h24v24H0z"
+                          fill="none"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
+        <tbody
+          class="MuiTableBody-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+              colspan="4"
+            >
+              No orders found
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Views / Orders / Order details cancelled 1`] = `
 <div
   style="padding:24px"
