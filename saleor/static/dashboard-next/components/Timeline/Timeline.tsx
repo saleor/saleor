@@ -12,7 +12,6 @@ import TextField from "@material-ui/core/TextField";
 import PersonIcon from "@material-ui/icons/Person";
 import * as React from "react";
 
-import * as avatar1 from "../../../images/avatars/avatar1.svg";
 import i18n from "../../i18n";
 
 const styles = (theme: Theme) =>
