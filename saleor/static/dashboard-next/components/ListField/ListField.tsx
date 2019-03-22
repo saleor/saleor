@@ -25,6 +25,7 @@ const styles = (theme: Theme) =>
       borderRadius: 8,
       display: "inline-block",
       marginRight: theme.spacing.unit * 2,
+      marginTop: theme.spacing.unit,
       padding: "4px 8px"
     },
     chipContainer: {
