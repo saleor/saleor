@@ -20,6 +20,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix layout in staff members details page - #3857 by @dominik-zeglen
 - Add draft orders query - #3809 by @michaljelonek
 - Restrict global orders query - #3861 by @pawelzar
+- Copy addresses in checkoutCreate and draftOrderCreate mutations - #3866 by @pawelzar
 
 
 ## 2.4.0
