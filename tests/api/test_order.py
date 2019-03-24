@@ -374,7 +374,9 @@ def test_draft_order_create(
 
     order = Order.objects.first()
     assert order.user == customer_user
-    assert order.billing_address == customer_user.default_billing_address
+    # billing address should be copied
+    assert order.billing_address.pk != customer_user.default_billing_address.pk
+    assert order.billing_address.as_data() == customer_user.default_billing_address.as_data()
     assert order.shipping_method == shipping_method
     assert order.shipping_address.first_name == graphql_address_data['firstName']
 

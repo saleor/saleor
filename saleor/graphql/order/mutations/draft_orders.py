@@ -111,11 +111,11 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         shipping_address = cleaned_input.get('shipping_address')
         if shipping_address:
             shipping_address.save()
-            instance.shipping_address = shipping_address
+            instance.shipping_address = shipping_address.get_copy()
         billing_address = cleaned_input.get('billing_address')
         if billing_address:
             billing_address.save()
-            instance.billing_address = billing_address
+            instance.billing_address = billing_address.get_copy()
         super().save(info, instance, cleaned_input)
         instance.save(update_fields=['billing_address', 'shipping_address'])
         variants = cleaned_input.get('variants')
