@@ -1,3 +1,4 @@
+import datetime
 from decimal import Decimal
 from uuid import uuid4
 
@@ -8,6 +9,7 @@ from django.db import models
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
+from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
@@ -18,6 +20,8 @@ from mptt.models import MPTTModel
 from prices import TaxedMoneyRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
+
+from saleor.core.utils import build_absolute_uri
 
 from ..core import TaxRateType
 from ..core.exceptions import InsufficientStock
@@ -319,22 +323,41 @@ class DigitalContent(models.Model):
     max_downloads = models.IntegerField(blank=True, null=True)
     url_valid_days = models.IntegerField(blank=True, null=True)
 
+    def create_new_url(self):
+        return self.urls.create()
+
 
 class DigitalContentUrl(models.Model):
-    token = models.CharField(max_length=36, unique=True)
+    token = models.UUIDField(editable=False, unique=True)
     content = models.ForeignKey(
         DigitalContent, related_name='urls', on_delete=models.CASCADE)
-    valid_until = models.DateField(blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
     download_num = models.IntegerField(default=0)
 
     def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
+                 update_fields=None):
         if not self.token:
             self.token = str(uuid4()).replace('-', '')
         super().save(force_insert, force_update, using, update_fields)
 
-    def get_url(self):
-        pass
+    def get_absolute_url(self) -> str:
+        url = reverse('product:digital-product', kwargs={'token': str(self.token)})
+        return build_absolute_uri(url)
+
+    def ready_to_share(self) -> bool:
+        url_valid_days = self.content.url_valid_days
+        if url_valid_days is not None:
+            valid_days = datetime.timedelta(days=url_valid_days)
+            valid_until = self.created + valid_days
+            if now() > valid_until:
+                return False
+
+        max_downloads = self.content.max_downloads
+        if max_downloads is not None and max_downloads <= self.download_num:
+            return False
+
+        return True
+
 
 
 class Attribute(models.Model):
