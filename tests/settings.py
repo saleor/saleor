@@ -30,3 +30,5 @@ CHECKOUT_PAYMENT_GATEWAYS = {
     RAZORPAY: 'Razorpay',
     STRIPE: 'Stripe'
 }
+
+COUNTRIES_ONLY = None
