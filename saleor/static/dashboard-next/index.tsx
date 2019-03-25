@@ -42,6 +42,7 @@ import ShippingSection from "./shipping";
 import SiteSettingsSection from "./siteSettings";
 import StaffSection from "./staff";
 import TaxesSection from "./taxes";
+import TranslationsSection from "./translations";
 import { PermissionEnum } from "./types/globalTypes";
 
 const cookies = new Cookies();
@@ -194,6 +195,13 @@ const App: React.FC = () => {
                                 permissions={[PermissionEnum.MANAGE_SHIPPING]}
                                 path="/shipping"
                                 component={ShippingSection}
+                              />
+                              <SectionRoute
+                                permissions={[
+                                  PermissionEnum.MANAGE_TRANSLATIONS
+                                ]}
+                                path="/translations"
+                                component={TranslationsSection}
                               />
                               {configurationMenu.filter(menuItem =>
                                 hasPermission(menuItem.permission, user)
