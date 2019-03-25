@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.utils.translation import pgettext_lazy
 from django_countries.fields import Country, CountryField
 from phonenumber_field.modelfields import PhoneNumber, PhoneNumberField
+from versatileimagefield.fields import VersatileImageField
 
 from .validators import validate_possible_number
 
@@ -135,6 +136,8 @@ class User(PermissionsMixin, AbstractBaseUser):
     default_billing_address = models.ForeignKey(
         Address, related_name='+', null=True, blank=True,
         on_delete=models.SET_NULL)
+    avatar = VersatileImageField(
+        upload_to='user-avatars', blank=True, null=True)
 
     USERNAME_FIELD = 'email'
 
