@@ -1,5 +1,5 @@
-import Button from "@material-ui/core/Button";
-import AddIcon from "@material-ui/icons/Add";
+// import Button from "@material-ui/core/Button";
+// import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
 import Container from "../../../components/Container";
@@ -10,19 +10,19 @@ import TranslationsLanguageList from "../TranslationsLanguageList";
 
 export interface TranslationsLanguageListPageProps {
   languages: ShopInfo_shop_languages[];
-  onAdd: () => void;
+  //   onAdd: () => void;
   onRowClick: (code: string) => void;
 }
 
 const TranslationsLanguageListPage: React.StatelessComponent<
   TranslationsLanguageListPageProps
-> = ({ languages, onAdd, onRowClick }) => (
+> = ({ languages, onRowClick }) => (
   <Container>
-    <PageHeader>
-      <Button color="primary" variant="contained" onClick={onAdd}>
+    <PageHeader title={i18n.t("Languages")}>
+      {/* <Button color="primary" variant="contained" onClick={onAdd}>
         {i18n.t("Add Language")}
         <AddIcon />
-      </Button>
+      </Button> */}
     </PageHeader>
     <TranslationsLanguageList languages={languages} onRowClick={onRowClick} />
   </Container>

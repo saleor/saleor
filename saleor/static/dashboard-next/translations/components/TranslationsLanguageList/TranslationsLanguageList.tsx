@@ -51,11 +51,9 @@ const TranslationsLanguageList = withStyles(styles, {
                 className={!!language ? classes.link : undefined}
                 hover={!!language}
                 key={language ? language.code : "skeleton"}
+                onClick={() => onRowClick(language.code)}
               >
-                <TableCell
-                  className={classes.capitalize}
-                  onClick={() => onRowClick(language.code)}
-                >
+                <TableCell className={classes.capitalize}>
                   {maybe<React.ReactNode>(
                     () => language.language,
                     <Skeleton />
