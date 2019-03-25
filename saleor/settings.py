@@ -86,6 +86,7 @@ LANGUAGES = [
     ('ru', _('Russian')),
     ('sk', _('Slovak')),
     ('sr', _('Serbian')),
+    ('sw', _('Swahili')),
     ('sv', _('Swedish')),
     ('th', _('Thai')),
     ('tr', _('Turkish')),

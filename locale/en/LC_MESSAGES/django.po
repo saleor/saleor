@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-03-18 07:39-0500\n"
+"POT-Creation-Date: 2019-03-25 09:50-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -213,17 +213,17 @@ msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr ""
 
-#: saleor/account/models.py:154
+#: saleor/account/models.py:147
 msgctxt "Permission description"
 msgid "Manage customers."
 msgstr ""
 
-#: saleor/account/models.py:157
+#: saleor/account/models.py:150
 msgctxt "Permission description"
 msgid "Manage staff."
 msgstr ""
 
-#: saleor/account/models.py:160
+#: saleor/account/models.py:153
 msgctxt "Permission description"
 msgid "Impersonate customers."
 msgstr ""
@@ -579,22 +579,22 @@ msgctxt "Impersonation message"
 msgid "You are now logged as {}"
 msgstr ""
 
-#: saleor/core/weight.py:33
+#: saleor/core/weight.py:32
 msgctxt "Kilogram weight unit symbol"
 msgid "kg"
 msgstr ""
 
-#: saleor/core/weight.py:34
+#: saleor/core/weight.py:33
 msgctxt "Pound weight unit symbol"
 msgid "lb"
 msgstr ""
 
-#: saleor/core/weight.py:35
+#: saleor/core/weight.py:34
 msgctxt "Ounce weight unit symbol"
 msgid "oz"
 msgstr ""
 
-#: saleor/core/weight.py:36
+#: saleor/core/weight.py:35
 msgctxt "Gram weight unit symbol"
 msgid "g"
 msgstr ""
@@ -1241,31 +1241,35 @@ msgid "Swedish"
 msgstr ""
 
 #: saleor/settings.py:90
-msgid "Turkish"
+msgid "Thai"
 msgstr ""
 
 #: saleor/settings.py:91
-msgid "Ukrainian"
+msgid "Turkish"
 msgstr ""
 
 #: saleor/settings.py:92
-msgid "Vietnamese"
+msgid "Ukrainian"
 msgstr ""
 
 #: saleor/settings.py:93
-msgid "Simplified Chinese"
+msgid "Vietnamese"
 msgstr ""
 
 #: saleor/settings.py:94
+msgid "Simplified Chinese"
+msgstr ""
+
+#: saleor/settings.py:95
 msgid "Traditional Chinese"
 msgstr ""
 
-#: saleor/settings.py:330
+#: saleor/settings.py:331
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr ""
 
-#: saleor/settings.py:567
+#: saleor/settings.py:568
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr ""
