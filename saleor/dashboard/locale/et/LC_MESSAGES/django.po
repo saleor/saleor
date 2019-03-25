@@ -4,18 +4,19 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 # 
 # Translators:
-# Master Keits <keijo@magmatech.ee>, 2019
-# Henri Tamvere <henri.tamvere@magmatech.ee>, 2019
+# Keijo Laas <keijo@magmatech.ee>, 2019
 # Carmel Vaher <carmelvaher@gmail.com>, 2019
+# Henri Tamvere <henri.tamvere@magmatech.ee>, 2019
+# Chris Laas <chrislaaas@gmail.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-18 05:51-0600\n"
+"POT-Creation-Date: 2019-03-18 07:39-0500\n"
 "PO-Revision-Date: 2017-02-09 15:43+0000\n"
-"Last-Translator: Carmel Vaher <carmelvaher@gmail.com>, 2019\n"
+"Last-Translator: Chris Laas <chrislaaas@gmail.com>, 2019\n"
 "Language-Team: Estonian (https://www.transifex.com/mirumee/teams/34782/et/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -54,14 +55,14 @@ msgstr[1] "Leitud %(counter)dsobivat kategooriat"
 #: saleor/dashboard/category/forms.py:25
 #: saleor/dashboard/collection/forms.py:24
 #: saleor/dashboard/discount/forms.py:94 saleor/dashboard/product/forms.py:96
-#: saleor/dashboard/product/forms.py:249 saleor/dashboard/product/forms.py:457
+#: saleor/dashboard/product/forms.py:250 saleor/dashboard/product/forms.py:458
 #: saleor/dashboard/sites/forms.py:52
 msgctxt "Item name"
 msgid "Name"
 msgstr "Nimi"
 
 #: saleor/dashboard/category/forms.py:26 saleor/dashboard/product/forms.py:235
-#: saleor/dashboard/product/forms.py:406 saleor/dashboard/sites/forms.py:29
+#: saleor/dashboard/product/forms.py:407 saleor/dashboard/sites/forms.py:29
 msgctxt "Description"
 msgid "Description"
 msgstr "Kirjeldus"
@@ -125,7 +126,7 @@ msgstr "On avaldatud"
 #: saleor/dashboard/customer/filters.py:38
 #: saleor/dashboard/discount/filters.py:58
 #: saleor/dashboard/discount/filters.py:94
-#: saleor/dashboard/order/filters.py:44 saleor/dashboard/order/filters.py:50
+#: saleor/dashboard/order/filters.py:44 saleor/dashboard/order/filters.py:51
 #: saleor/dashboard/product/filters.py:45 saleor/dashboard/taxes/filters.py:25
 msgctxt "Filter empty choice label"
 msgid "All"
@@ -659,8 +660,8 @@ msgstr "Sorteeri"
 msgctxt "Number of matching records in the dashboard menus list"
 msgid "Found %(counter)d matching menu"
 msgid_plural "Found %(counter)d matching menus"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Leitud %(counter)d sobiv menüü"
+msgstr[1] "Leitud %(counter)d sobivat menüüd"
 
 #: saleor/dashboard/menu/filters.py:39
 msgctxt "Menu item list filter label"
@@ -670,7 +671,7 @@ msgstr "Nimi"
 #: saleor/dashboard/menu/filters.py:42
 msgctxt "Menu item list filter label"
 msgid "Points to"
-msgstr ""
+msgstr "Suunab"
 
 #: saleor/dashboard/menu/filters.py:45
 msgctxt "Menu item list sorting filter label"
@@ -682,8 +683,8 @@ msgstr "Sorteeri"
 msgctxt "Number of matching records in the dashboard menu items list"
 msgid "Found %(counter)d matching menu item"
 msgid_plural "Found %(counter)d matching menu items"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Leitud %(counter)d sobiv menüü artikkel"
+msgstr[1] "Leitud %(counter)dsobivat menüü artiklit"
 
 #: saleor/dashboard/menu/forms.py:27
 msgctxt "Menu name"
@@ -708,7 +709,7 @@ msgstr "URL"
 #: saleor/dashboard/menu/forms.py:70
 msgctxt "Menu item form error"
 msgid "Maximum nesting level for menu items equals to 2."
-msgstr ""
+msgstr "Maksimaalne menüü artiklite paigutustase on 2"
 
 #: saleor/dashboard/menu/forms.py:78
 msgctxt "Menu item form error"
@@ -737,7 +738,7 @@ msgstr "%(menu_item_name)s(Ei ole avaldatud)"
 #: saleor/dashboard/menu/views.py:36
 msgctxt "Dashboard message"
 msgid "Updated storefront menus"
-msgstr ""
+msgstr "Uuendatud poe menüüd"
 
 #: saleor/dashboard/menu/views.py:53
 #, python-format
@@ -823,7 +824,7 @@ msgstr "Kasutaja nimi või meil"
 #: saleor/dashboard/order/filters.py:38
 msgctxt "Order list filter label"
 msgid "Placed on"
-msgstr ""
+msgstr "Esitatud"
 
 #: saleor/dashboard/order/filters.py:42
 msgctxt "Order list filter label"
@@ -835,23 +836,23 @@ msgctxt "Order list filter label"
 msgid "Payment status"
 msgstr "Makse staatus"
 
-#: saleor/dashboard/order/filters.py:53
+#: saleor/dashboard/order/filters.py:54
 msgctxt "Order list filter label"
 msgid "Total"
 msgstr "Kokku"
 
-#: saleor/dashboard/order/filters.py:56
+#: saleor/dashboard/order/filters.py:57
 msgctxt "Order list filter label"
 msgid "Sort by"
 msgstr "Sorteeri"
 
-#: saleor/dashboard/order/filters.py:76
+#: saleor/dashboard/order/filters.py:88
 #, python-format
 msgctxt "Number of matching records in the dashboard orders list"
 msgid "Found %(counter)d matching order"
 msgid_plural "Found %(counter)d matching orders"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Leitud %(counter)d sobiv tellimus"
+msgstr[1] "Leitud %(counter)d sobivat tellimust"
 
 #: saleor/dashboard/order/forms.py:39
 msgctxt "Send email to customer about order created by staff users"
@@ -872,6 +873,7 @@ msgstr "Kohaletoimetamisviis ei sobi valitud postiaadressiga"
 msgctxt "Update an order with user default addresses"
 msgid "Set billing and shipping address in order to customer defaults"
 msgstr ""
+"Määra arve ja tarne aadress tellimuses kliendi vaikimisi määratud säteteks"
 
 #: saleor/dashboard/order/forms.py:103
 msgctxt "Order form: editing customer details - selecting a customer"
@@ -909,28 +911,33 @@ msgctxt "Order note"
 msgid "Note"
 msgstr "Märge"
 
-#: saleor/dashboard/order/forms.py:257
+#: saleor/dashboard/order/forms.py:258
 msgctxt "Payment management form (capture, refund, void)"
 msgid "Amount"
 msgstr "Kogus"
 
-#: saleor/dashboard/order/forms.py:272 saleor/dashboard/order/forms.py:328
+#: saleor/dashboard/order/forms.py:264
+msgctxt "Payment form error"
+msgid "This payment action can not be performed."
+msgstr "Seda maksevõimalust ei saa kasutada"
+
+#: saleor/dashboard/order/forms.py:273
 #, python-format
 msgctxt "Payment form error"
 msgid "Payment gateway error: %s"
-msgstr ""
+msgstr "Makseportaali viga: %s"
 
-#: saleor/dashboard/order/forms.py:288
+#: saleor/dashboard/order/forms.py:289
 msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be captured"
-msgstr ""
+msgstr "Ainult lubatud maksetel on võimalik laekuda"
 
-#: saleor/dashboard/order/forms.py:298
+#: saleor/dashboard/order/forms.py:303
 msgctxt "Payment form error"
 msgid "Only confirmed payments can be refunded"
 msgstr "Ainult kinnitatud makseid on võimalik tagastada"
 
-#: saleor/dashboard/order/forms.py:306
+#: saleor/dashboard/order/forms.py:313
 msgctxt "Payment form error"
 msgid "Manual payments can not be refunded"
 msgstr "Käsitsi tehtud makseid ei ole võimalik tagastada"
@@ -940,103 +947,103 @@ msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be voided"
 msgstr "Ainult lubatud makseid on võimalik tühistada"
 
-#: saleor/dashboard/order/forms.py:375
+#: saleor/dashboard/order/forms.py:381
 msgctxt "Integer number"
 msgid "Quantity"
 msgstr "Kogus"
 
-#: saleor/dashboard/order/forms.py:394
+#: saleor/dashboard/order/forms.py:400
 #, python-format
 msgctxt "Change quantity form error"
 msgid "Only %(remaining)d remaining in stock."
 msgid_plural "Only %(remaining)d remaining in stock."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Ainult %(remaining)d laos alles"
+msgstr[1] "Ainult %(remaining)d laos alles"
 
-#: saleor/dashboard/order/forms.py:426
+#: saleor/dashboard/order/forms.py:432
 #, python-format
 msgctxt "Cancel order form action"
 msgid "Restock %(quantity)d item"
 msgid_plural "Restock %(quantity)d items"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Taasta %(quantity)d toode"
+msgstr[1] "Taasta %(quantity)d toodet"
 
-#: saleor/dashboard/order/forms.py:436
+#: saleor/dashboard/order/forms.py:442
 msgctxt "Cancel order form error"
 msgid "This order can't be canceled"
 msgstr "Tellimust ei ole võimalik tühistada"
 
-#: saleor/dashboard/order/forms.py:456
+#: saleor/dashboard/order/forms.py:462
 #, python-format
 msgctxt "Cancel fulfillment form action"
 msgid "Restock %(quantity)d item"
 msgid_plural "Restock %(quantity)d items"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Taasta %(quantity)d toode"
+msgstr[1] "Taasta %(quantity)d toodet"
 
-#: saleor/dashboard/order/forms.py:466
+#: saleor/dashboard/order/forms.py:472
 msgctxt "Cancel fulfillment form error"
 msgid "This fulfillment can't be canceled"
-msgstr ""
+msgstr "Saadetist ei ole võimalik tühistada"
 
-#: saleor/dashboard/order/forms.py:479
+#: saleor/dashboard/order/forms.py:485
 msgctxt "Send mail to customer"
 msgid "Send notification email to customer"
 msgstr "Saada kliendile teade e-postiga"
 
-#: saleor/dashboard/order/forms.py:486
+#: saleor/dashboard/order/forms.py:492
 msgctxt "Fulfillment record"
 msgid "Tracking number"
 msgstr "Jälgimisnumber"
 
-#: saleor/dashboard/order/forms.py:507
+#: saleor/dashboard/order/forms.py:513
 msgctxt "Remove voucher form error"
 msgid "This order has no voucher"
 msgstr "Sellel tellimusel ei ole vautšerit"
 
-#: saleor/dashboard/order/forms.py:520
+#: saleor/dashboard/order/forms.py:526
 msgctxt "Payment status field value"
 msgid "All"
 msgstr "Kõik"
 
-#: saleor/dashboard/order/forms.py:537
+#: saleor/dashboard/order/forms.py:543
 msgctxt "Order form: subform to add variant to order form: variant field"
 msgid "Variant"
 msgstr "Variant"
 
-#: saleor/dashboard/order/forms.py:540
+#: saleor/dashboard/order/forms.py:546
 msgctxt "Add variant to order form label"
 msgid "Quantity"
 msgstr "Kogus"
 
-#: saleor/dashboard/order/forms.py:561
+#: saleor/dashboard/order/forms.py:567
 #, python-format
 msgctxt "Add item form error"
 msgid "Could not add item. Only %(remaining)d remaining in stock."
 msgstr "Toodet ei saanud lisada. Laos on järgi ainult %(remaining)d."
 
-#: saleor/dashboard/order/forms.py:584
+#: saleor/dashboard/order/forms.py:590
 msgctxt "Order form: address subform - phone number input field"
 msgid "Phone number"
 msgstr "Telefoninumber"
 
-#: saleor/dashboard/order/forms.py:593
+#: saleor/dashboard/order/forms.py:599
 msgctxt "Send mail to customer"
 msgid "Send shipment details to your customer now"
 msgstr "Saada tarneandmed kliendile"
 
-#: saleor/dashboard/order/forms.py:601
+#: saleor/dashboard/order/forms.py:607
 msgctxt "Order tracking number"
 msgid "Tracking number"
 msgstr "Jälgimisnumber"
 
-#: saleor/dashboard/order/forms.py:631
+#: saleor/dashboard/order/forms.py:644
 #, python-format
 msgctxt "Fulfill order line form error"
 msgid "%(quantity)d item remaining to fulfill."
 msgid_plural "%(quantity)d items remaining to fulfill."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(quantity)d asi ootab täitmist"
+msgstr[1] "%(quantity)d asja ootavad täitmist"
 
 #: saleor/dashboard/order/views.py:64
 msgctxt "Dashboard message related to an order"
@@ -1062,7 +1069,7 @@ msgstr "Märkus lisatud"
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Captured %(amount)s"
-msgstr ""
+msgstr "Laekunud %(amount)s"
 
 #: saleor/dashboard/order/views.py:198
 #, python-format
@@ -1082,12 +1089,13 @@ msgid ""
 "Changed quantity for variant %(variant)s from %(old_quantity)s to "
 "%(new_quantity)s"
 msgstr ""
+"Variant %(variant)s kogus %(old_quantity)s muudetud %(new_quantity)s'ks"
 
 #: saleor/dashboard/order/views.py:274
 #, python-format
 msgctxt "Dashboard message related to an order line"
 msgid "Canceled item %s"
-msgstr ""
+msgstr "%s tühistatud"
 
 #: saleor/dashboard/order/views.py:306
 #, python-format
@@ -1173,25 +1181,25 @@ msgstr "Tellimus on märgitud makstuna käsitsi"
 msgctxt "Dashboard message related to an order"
 msgid "Fulfilled %(quantity_fulfilled)d item"
 msgid_plural "Fulfilled %(quantity_fulfilled)d items"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Täidetud %(quantity_fulfilled)d tellimus"
+msgstr[1] "Täidetud %(quantity_fulfilled)d tellimust"
 
 #: saleor/dashboard/order/views.py:629
 msgctxt "Dashboard message related to an order"
 msgid "No items fulfilled"
-msgstr ""
+msgstr "Pole ühtegi täidetud tellimust"
 
 #: saleor/dashboard/order/views.py:651
 #, python-format
 msgctxt "Dashboard message"
 msgid "Fulfillment #%(fulfillment)s canceled"
-msgstr ""
+msgstr "Saadetis #%(fulfillment)s tühistatud"
 
 #: saleor/dashboard/order/views.py:697
 #, python-format
 msgctxt "Dashboard message"
 msgid "Fulfillment #%(fulfillment)s tracking number updated"
-msgstr ""
+msgstr "Saadetise #%(fulfillment)s jälgimisnumber uuendatud"
 
 #: saleor/dashboard/page/filters.py:8
 msgctxt "Page list sorting option"
@@ -1223,38 +1231,38 @@ msgstr "Sorteeri"
 msgctxt "Number of matching records in the dashboard page list"
 msgid "Found %(counter)d matching page"
 msgid_plural "Found %(counter)d matching pages"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Leitud  %(counter)d sobiv leht"
+msgstr[1] "Leitud %(counter)d sobivat lehte"
 
 #: saleor/dashboard/page/forms.py:12
 msgctxt "Page form: page content field"
 msgid "Content"
 msgstr "Sisu"
 
-#: saleor/dashboard/page/forms.py:21
+#: saleor/dashboard/page/forms.py:22
 msgctxt "Page form: title field"
 msgid "Title"
 msgstr "Pealkiri"
 
-#: saleor/dashboard/page/forms.py:22
+#: saleor/dashboard/page/forms.py:23
 msgctxt "Page form: slug field"
 msgid "Slug"
-msgstr ""
+msgstr "Lühinimetus"
 
-#: saleor/dashboard/page/forms.py:24
+#: saleor/dashboard/page/forms.py:25
 msgctxt "Page form: available on which date field"
 msgid "Available on"
 msgstr "Saadaval"
 
-#: saleor/dashboard/page/forms.py:26
+#: saleor/dashboard/page/forms.py:27
 msgctxt "Page form: publication status indicator"
 msgid "Is published"
 msgstr "On avaldatud"
 
-#: saleor/dashboard/page/forms.py:30
+#: saleor/dashboard/page/forms.py:31
 msgctxt "Form field help text"
 msgid "Slug is being used to create page URL"
-msgstr ""
+msgstr "Lühinimetust kasutatakse lehe URL loomiseks"
 
 #: saleor/dashboard/page/views.py:48
 msgctxt "Dashboard message"
@@ -1332,8 +1340,8 @@ msgstr "Sorteeri"
 msgctxt "Number of matching records in the dashboard products list"
 msgid "Found %(counter)d matching product"
 msgid_plural "Found %(counter)d matching products"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Leitud %(counter)d sobiv toode"
+msgstr[1] "Leitud %(counter)d sobivat toodet"
 
 #: saleor/dashboard/product/filters.py:67
 msgctxt "Attribute list filter label"
@@ -1350,8 +1358,8 @@ msgstr "Sorteeri"
 msgctxt "Number of matching records in the dashboard attributes list"
 msgid "Found %(counter)d matching attribute"
 msgid_plural "Found %(counter)d matching attributes"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Leitud %(counter)d sobiv tunnus"
+msgstr[1] "Leitud %(counter)d sobivat tunnust"
 
 #: saleor/dashboard/product/filters.py:89
 msgctxt "Product type list filter label"
@@ -1378,8 +1386,8 @@ msgstr "Variandi omadused"
 msgctxt "Number of matching records in the dashboard product types list"
 msgid "Found %(counter)d matching product type"
 msgid_plural "Found %(counter)d matching product types"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Leitud %(counter)d sobiv toote tüüp"
+msgstr[1] "Leitud %(counter)d sobivat toote tüüpi"
 
 #: saleor/dashboard/product/forms.py:39
 msgctxt "Help text in rich-text editor field"
@@ -1428,7 +1436,7 @@ msgstr "Luba variandid"
 #: saleor/dashboard/product/forms.py:102
 msgctxt "Shipping toggle"
 msgid "Require shipping"
-msgstr ""
+msgstr "Vajab kohaletoimetamist"
 
 #: saleor/dashboard/product/forms.py:137
 msgctxt "Product type form error"
@@ -1469,43 +1477,43 @@ msgstr ""
 "Kaalu kasutatakse saatmise hinna arvutamiseks, kui tühi, on see võrdne "
 "TooteTüüpi vaikimisi väärtusega"
 
-#: saleor/dashboard/product/forms.py:250
+#: saleor/dashboard/product/forms.py:251
 #: saleor/dashboard/shipping/forms.py:123
 msgctxt "Currency amount"
 msgid "Price"
 msgstr "Hind"
 
-#: saleor/dashboard/product/forms.py:252
+#: saleor/dashboard/product/forms.py:253
 msgctxt "Availability date"
 msgid "Publish product on"
 msgstr "Avalda toode"
 
-#: saleor/dashboard/product/forms.py:254
+#: saleor/dashboard/product/forms.py:255
 msgctxt "Product published toggle"
 msgid "Published"
 msgstr "Avaldatud"
 
-#: saleor/dashboard/product/forms.py:256
+#: saleor/dashboard/product/forms.py:257
 msgctxt "Charge taxes on product"
 msgid "Charge taxes on this product"
 msgstr "Muuda makse sellel tootel"
 
-#: saleor/dashboard/product/forms.py:276
+#: saleor/dashboard/product/forms.py:277
 msgctxt "Currency gross amount"
 msgid "Gross price"
 msgstr "Brutohind"
 
-#: saleor/dashboard/product/forms.py:279
+#: saleor/dashboard/product/forms.py:280
 msgctxt "Currency net amount"
 msgid "Net price"
 msgstr "Netohind"
 
-#: saleor/dashboard/product/forms.py:307
+#: saleor/dashboard/product/forms.py:308
 msgctxt "ProductVariant weight"
 msgid "Weight"
 msgstr "Kaal"
 
-#: saleor/dashboard/product/forms.py:310
+#: saleor/dashboard/product/forms.py:311
 msgctxt "ProductVariant weight help text"
 msgid ""
 "Weight will be used to calculate shipping price. If empty, weight from "
@@ -1514,191 +1522,191 @@ msgstr ""
 "Kaalu kasutatakse saatmise tasu arvutamiseks. Tühjaks jäetuna kasutatakse "
 "Toote või TooteTüübi kaalu."
 
-#: saleor/dashboard/product/forms.py:319
+#: saleor/dashboard/product/forms.py:320
 msgctxt "SKU"
 msgid "SKU"
-msgstr ""
-
-#: saleor/dashboard/product/forms.py:321
-msgctxt "Override price"
-msgid "Selling price override"
-msgstr "Müügihinna tühistamine"
+msgstr "Tootekood"
 
 #: saleor/dashboard/product/forms.py:322
+msgctxt "Override price"
+msgid "Selling price override"
+msgstr "Müügihinna ülekirjutamine"
+
+#: saleor/dashboard/product/forms.py:323
 msgctxt "Integer number"
 msgid "Number in stock"
 msgstr "Arv laos"
 
-#: saleor/dashboard/product/forms.py:323
+#: saleor/dashboard/product/forms.py:324
 msgctxt "Currency amount"
 msgid "Cost price"
 msgstr "Sisseostuhind"
 
-#: saleor/dashboard/product/forms.py:325
+#: saleor/dashboard/product/forms.py:326
 msgctxt "Track inventory field"
 msgid "Track inventory"
 msgstr "Varu jälgimine"
 
-#: saleor/dashboard/product/forms.py:329
+#: saleor/dashboard/product/forms.py:330
 msgctxt "product variant handle stock field help text"
 msgid "Automatically track this product's inventory"
 msgstr "Jälgi automaatselt selle toote varusid"
 
-#: saleor/dashboard/product/forms.py:344
+#: saleor/dashboard/product/forms.py:345
 msgctxt "Override price"
 msgid "Selling gross price override"
-msgstr ""
+msgstr "Müügi brutohinna ülekirjutamine"
 
-#: saleor/dashboard/product/forms.py:346
+#: saleor/dashboard/product/forms.py:347
 msgctxt "Currency amount"
 msgid "Cost gross price"
-msgstr ""
+msgstr "Kulu brutohind"
 
-#: saleor/dashboard/product/forms.py:349
+#: saleor/dashboard/product/forms.py:350
 msgctxt "Override price"
 msgid "Selling net price override"
-msgstr ""
+msgstr "Müügi netohinna ülekirjutamine"
 
-#: saleor/dashboard/product/forms.py:351
+#: saleor/dashboard/product/forms.py:352
 msgctxt "Currency amount"
 msgid "Cost net price"
-msgstr ""
+msgstr "Kulu netohind"
 
-#: saleor/dashboard/product/forms.py:404 saleor/dashboard/product/forms.py:509
+#: saleor/dashboard/product/forms.py:405 saleor/dashboard/product/forms.py:510
 msgctxt "Product image"
 msgid "Image"
-msgstr ""
+msgstr "Pilt"
 
-#: saleor/dashboard/product/forms.py:445
+#: saleor/dashboard/product/forms.py:446
 msgctxt "Product display name"
 msgid "Display name"
-msgstr ""
+msgstr "Kuvatav nimi"
 
-#: saleor/dashboard/product/forms.py:447
+#: saleor/dashboard/product/forms.py:448
 msgctxt "Product internal name"
 msgid "Internal name"
-msgstr ""
+msgstr "Sisenimi"
 
 #: saleor/dashboard/product/views.py:128
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added product %s"
-msgstr ""
+msgstr "Lisatud toode %s"
 
 #: saleor/dashboard/product/views.py:159
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated product %s"
-msgstr ""
+msgstr "Uuendatud toode %s"
 
 #: saleor/dashboard/product/views.py:174
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed product %s"
-msgstr ""
+msgstr "Eemaldatud toode %s"
 
 #: saleor/dashboard/product/views.py:193
 #, python-format
 msgctxt "Dashboard message"
 msgid "%(count)d product has been updated"
 msgid_plural "%(count)d products have been updated"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d toode uuendatud"
+msgstr[1] "%(count)d toodet uuendatud"
 
 #: saleor/dashboard/product/views.py:247
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added product type %s"
-msgstr ""
+msgstr "Lisatud toote tüüp %s"
 
 #: saleor/dashboard/product/views.py:265
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated product type %s"
-msgstr ""
+msgstr "Uuendatud toote tüüp %s"
 
 #: saleor/dashboard/product/views.py:282
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed product type %s"
-msgstr ""
+msgstr "Eemaldatud toote tüüp %s"
 
 #: saleor/dashboard/product/views.py:330 saleor/dashboard/product/views.py:351
 #, python-format
 msgctxt "Dashboard message"
 msgid "Saved variant %s"
-msgstr ""
+msgstr "Variant %s salvestatud"
 
 #: saleor/dashboard/product/views.py:371
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed variant %s"
-msgstr ""
+msgstr "Variant %s eemaldatud"
 
 #: saleor/dashboard/product/views.py:452
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added image %s"
-msgstr ""
+msgstr "Lisatud pilt %s"
 
 #: saleor/dashboard/product/views.py:473
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated image %s"
-msgstr ""
+msgstr "Uuendatud pilt %s"
 
 #: saleor/dashboard/product/views.py:491
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed image %s"
-msgstr ""
+msgstr "Eemaldatud pilt %s"
 
 #: saleor/dashboard/product/views.py:574
 msgctxt "Dashboard message"
 msgid "Added attribute"
-msgstr ""
+msgstr "Omadus lisatud"
 
 #: saleor/dashboard/product/views.py:591
 msgctxt "Dashboard message"
 msgid "Updated attribute"
-msgstr ""
+msgstr "Omadus uuendatud"
 
 #: saleor/dashboard/product/views.py:608
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed attribute %s"
-msgstr ""
+msgstr "Omadus %s eemaldatud"
 
 #: saleor/dashboard/product/views.py:627
 msgctxt "Dashboard message"
 msgid "Added attribute's value"
-msgstr ""
+msgstr "Omaduse väärtus lisatud"
 
 #: saleor/dashboard/product/views.py:646
 msgctxt "Dashboard message"
 msgid "Updated attribute's value"
-msgstr ""
+msgstr "Omaduse väärtus uuendatud"
 
 #: saleor/dashboard/product/views.py:664
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed attribute's value %s"
-msgstr ""
+msgstr "Omaduse väärtus %s eemaldatud"
 
 #: saleor/dashboard/seo/fields.py:9
 msgctxt "Form field help text"
 msgid "If empty, the preview shows what will be autogenerated."
-msgstr ""
+msgstr "Kui tühi, näitab eelvaade, mis lisatakse automaatselt."
 
 #: saleor/dashboard/seo/fields.py:30
 msgctxt "A SEO friendly title"
 msgid "SEO Friendly Title"
-msgstr ""
+msgstr "Otsingumootoritele sobiv pealkiri"
 
 #: saleor/dashboard/seo/fields.py:50
 msgctxt "A SEO friendly description"
 msgid "SEO Friendly Description"
-msgstr ""
+msgstr "Otsingumootoritele sobiv kirjeldus"
 
 #: saleor/dashboard/shipping/filters.py:10
 msgctxt "Group list sorting option"
@@ -1708,17 +1716,17 @@ msgstr "nimi"
 #: saleor/dashboard/shipping/filters.py:16
 msgctxt "Shipping zones list filter label"
 msgid "Shipping zone name"
-msgstr ""
+msgstr "Kohaletoimetamise tsooni nimi"
 
 #: saleor/dashboard/shipping/filters.py:20
 msgctxt "Shipping zones list filter label"
 msgid "Price range"
-msgstr ""
+msgstr "Hinna vahemik"
 
 #: saleor/dashboard/shipping/filters.py:23
 msgctxt "Shipping zones filter label"
 msgid "Country"
-msgstr ""
+msgstr "Riik"
 
 #: saleor/dashboard/shipping/filters.py:27
 msgctxt "Product list sorting filter label"
@@ -1730,13 +1738,13 @@ msgstr "Sorteeri"
 msgctxt "Number of matching records in the dashboard shipping zones list"
 msgid "Found %(counter)d matching shipping zone"
 msgid_plural "Found %(counter)d matching shipping zones"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Leitud %(counter)d sobiv tarneala"
+msgstr[1] "Leitud %(counter)d sobivat tarneala"
 
 #: saleor/dashboard/shipping/forms.py:35
 msgctxt "Label of the default weight unit picker"
 msgid "Default weight unit"
-msgstr ""
+msgstr "Vaikimisi kaal"
 
 #: saleor/dashboard/shipping/forms.py:39
 msgctxt "Default weight unit help text"
@@ -1744,31 +1752,33 @@ msgid ""
 "Default unit for weights entered from the dashboard.All weights will be "
 "recalculated to the new unit."
 msgstr ""
+"Vaikimisi ühik, töölaualt sisestatud kaaludele. Kõik kaalud arvutatakse "
+"ümber uuele ühikule."
 
 #: saleor/dashboard/shipping/forms.py:49
 msgctxt "Shippment Zone field name"
 msgid "Shipping zone name"
-msgstr ""
+msgstr "Kohaletoimetamise piirkonna nimi"
 
 #: saleor/dashboard/shipping/forms.py:51
 msgctxt "Shipping Zone field name"
 msgid "Rest of World"
-msgstr ""
+msgstr "Ülejäänud maailm"
 
 #: saleor/dashboard/shipping/forms.py:53
 msgctxt "List of countries to pick from"
 msgid "Countries"
-msgstr ""
+msgstr "Riigid"
 
 #: saleor/dashboard/shipping/forms.py:57
 msgctxt "Countries field help text"
 msgid "Each country might be included in only one shipping zone."
-msgstr ""
+msgstr "Iga riik võib kuuluda ainult ühte kohaletoimetamise piirkonda."
 
 #: saleor/dashboard/shipping/forms.py:60
 msgctxt "Help text for ShippingZone name"
 msgid "Name is for internal use only, it won't be displayed to your customers"
-msgstr ""
+msgstr "Nimi on ainult sisemiseks kasutuseks, seda ei kuvata klientidele."
 
 #: saleor/dashboard/shipping/forms.py:64
 msgctxt "Help text for ShippingZone name"
@@ -1776,11 +1786,13 @@ msgid ""
 "If selected, this zone will include any countries that are not already "
 "listed in your other shipping zones."
 msgstr ""
+"Kui valitud, hõlmab see piirkond kõik ülejäänud riigid, mis ei ole loetletud"
+" sinu teistes kohaletoimetamise piirkondades."
 
 #: saleor/dashboard/shipping/forms.py:89
 msgctxt "ShippingZone  with \"default\" option selected already exists"
 msgid "Default ShippingZone already exists."
-msgstr ""
+msgstr "Vaikimisi KohaletoimetamisePiirkond on juba olemas."
 
 #: saleor/dashboard/shipping/forms.py:102
 #, python-format
@@ -1788,11 +1800,13 @@ msgctxt "Shipping zone containing duplicated countries form error"
 msgid ""
 "Countries already exists in another shipping zone: %(list_of_countries)s"
 msgstr ""
+"Riigid kuuluvad juba teise kohaletoimetamise piirkonda: "
+"%(list_of_countries)s"
 
 #: saleor/dashboard/shipping/forms.py:111
 msgctxt "ShippingZone field error"
 msgid "This field is required."
-msgstr ""
+msgstr "Selle välja täitmine on kohustuslik."
 
 #: saleor/dashboard/shipping/forms.py:122
 msgctxt "Shipping Method name"
@@ -1802,107 +1816,109 @@ msgstr "Nimi"
 #: saleor/dashboard/shipping/forms.py:127
 msgctxt "Shipping method name help text"
 msgid "Customers will see this at the checkout."
-msgstr ""
+msgstr "Klientidele on see nähtav kassas."
 
 #: saleor/dashboard/shipping/forms.py:135
 msgctxt "Minimum order price to use this shipping method"
 msgid "Minimum order price"
-msgstr ""
+msgstr "Minimaalne tellimuse hind"
 
 #: saleor/dashboard/shipping/forms.py:138
 msgctxt "Maximum order price to use this order"
 msgid "Maximum order price"
-msgstr ""
+msgstr "Maksimaalne tellimuse hind"
 
 #: saleor/dashboard/shipping/forms.py:148
 msgctxt "Placeholder for maximum order price set to unlimited"
 msgid "No limit"
-msgstr ""
+msgstr "Piiramatu"
 
 #: saleor/dashboard/shipping/forms.py:161
 #: saleor/dashboard/shipping/forms.py:198
 msgctxt "Price shipping method form error"
 msgid "Maximum order price should be larger than the minimum order price."
 msgstr ""
+"Maksimaalne tellimuse hind peab olema suurema minimaalsest tellimuse "
+"hinnast."
 
 #: saleor/dashboard/shipping/forms.py:170
 msgctxt "Minimum order weight to use this shipping method"
 msgid "Minimum order weight"
-msgstr ""
+msgstr "Minimaalne tellimuse kaal"
 
 #: saleor/dashboard/shipping/forms.py:174
 msgctxt "Maximum order weight to use this shipping method"
 msgid "Maximum order weight"
-msgstr ""
+msgstr "Maksimaalne tellimuse kaal"
 
 #: saleor/dashboard/shipping/forms.py:185
 msgctxt "Placeholder for maximum order weight set to unlimited"
 msgid "No limit"
-msgstr ""
+msgstr "Piiramata"
 
 #: saleor/dashboard/shipping/views.py:28
 msgctxt "Dashboard message"
 msgid "Updated default weight unit"
-msgstr ""
+msgstr "Uuendatud vaikimisi kaal"
 
 #: saleor/dashboard/shipping/views.py:49
 msgctxt "Dashboard message"
 msgid "Added shipping zone"
-msgstr ""
+msgstr "Lisatud kohaletoimetamise piirkond"
 
 #: saleor/dashboard/shipping/views.py:63
 msgctxt "Dashboard message"
 msgid "Updated shipping zone"
-msgstr ""
+msgstr "Uuendatud kohaletoimetamise piirkond"
 
 #: saleor/dashboard/shipping/views.py:91
 #, python-format
 msgctxt "Dashboard message"
 msgid "%(shipping_zone_name)s successfully removed"
-msgstr ""
+msgstr "%(shipping_zone_name)s eemaldatud edukalt"
 
 #: saleor/dashboard/shipping/views.py:112
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added shipping method for %(zone_name)s shipping zone"
-msgstr ""
+msgstr "Lisatud meetod %(zone_name)s kohaletoimetamise piirkonnale"
 
 #: saleor/dashboard/shipping/views.py:136
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated %(method_name)s shipping method"
-msgstr ""
+msgstr "Uuendatud %(method_name)s kohaletoimetamise meetodit"
 
 #: saleor/dashboard/shipping/views.py:157
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed %(shipping_method_name)s shipping method"
-msgstr ""
+msgstr "Eemaldatud %(shipping_method_name)s kohaletoimetamise meetod"
 
 #: saleor/dashboard/sites/forms.py:14
 msgctxt "Domain name (FQDN)"
 msgid "Domain name"
-msgstr ""
+msgstr "Domeeni nimi"
 
 #: saleor/dashboard/sites/forms.py:16
 msgctxt "Display name"
 msgid "Display name"
-msgstr ""
+msgstr "Kuvatav nimi"
 
 #: saleor/dashboard/sites/forms.py:27
 msgctxt "Header text"
 msgid "Header text"
-msgstr ""
+msgstr "Päise tekst"
 
 #: saleor/dashboard/sites/forms.py:32
 msgctxt "Inventory tracking by default settings toggle label"
 msgid "Enable inventory tracking for newly created products"
-msgstr ""
+msgstr "Luba uute loodud toodete varude jälgimine"
 
 #: saleor/dashboard/sites/forms.py:34
 msgctxt "Default weight unit"
 msgid "Default weight unit"
-msgstr ""
+msgstr "Vaikimisi kaal"
 
 #: saleor/dashboard/sites/forms.py:38
 msgctxt "handle stock by default settings field help text"
@@ -1910,11 +1926,12 @@ msgid ""
 "This will set the default value of stock handling on product and variant "
 "creation"
 msgstr ""
+"See seab vaikimisi väärtuse varude käsitlemiseks toote ja variandi loomisel"
 
 #: saleor/dashboard/sites/forms.py:48
 msgctxt "Key for chosen authorization method"
 msgid "Key"
-msgstr ""
+msgstr "Võti"
 
 #: saleor/dashboard/sites/forms.py:50
 msgctxt "Password"
@@ -1924,30 +1941,30 @@ msgstr "Parool"
 #: saleor/dashboard/sites/views.py:35
 msgctxt "Dashboard message"
 msgid "Updated site settings"
-msgstr ""
+msgstr "Lehekülje seaded uuendatud"
 
 #: saleor/dashboard/sites/views.py:64
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added authorization key %s"
-msgstr ""
+msgstr "Lisatud volitusvõti %s"
 
 #: saleor/dashboard/sites/views.py:80
 #, python-format
 msgctxt "dashboard message"
 msgid "Updated authorization key %s"
-msgstr ""
+msgstr "Uuendatud volitusvõti %s"
 
 #: saleor/dashboard/sites/views.py:98
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed site authorization key %s"
-msgstr ""
+msgstr "Eemaldatud lehekülje volitusvõti %s"
 
 #: saleor/dashboard/staff/filters.py:29
 msgctxt "Group list filter label"
 msgid "Permissions"
-msgstr ""
+msgstr "Õigused"
 
 #: saleor/dashboard/staff/filters.py:33
 msgctxt "Staff list filter label"
@@ -1959,13 +1976,13 @@ msgstr "Sorteeri"
 msgctxt "Number of matching records in the dashboard staff members list"
 msgid "Found %(counter)d matching staff member"
 msgid_plural "Found %(counter)d matching staff members"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Leitud %(counter)d sobiv töötaja"
+msgstr[1] "Leitud %(counter)d sobivat töötajat"
 
 #: saleor/dashboard/staff/forms.py:15
 msgctxt "Label above the permissions choicefield"
 msgid "Permissions"
-msgstr ""
+msgstr "Õigused"
 
 #: saleor/dashboard/staff/forms.py:27
 msgctxt "Email"
@@ -1981,29 +1998,29 @@ msgstr "Kasutaja on aktiivne"
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated staff member %s"
-msgstr ""
+msgstr "Uuendatud töötaja %s"
 
 #: saleor/dashboard/staff/views.py:63
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added staff member %s"
-msgstr ""
+msgstr "Lisatud töötaja %s"
 
 #: saleor/dashboard/staff/views.py:82
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed staff member %s"
-msgstr ""
+msgstr "Eemaldatud töötaja %s"
 
 #: saleor/dashboard/taxes/filters.py:11
 msgctxt "Product list sorting option"
 msgid "country_code"
-msgstr ""
+msgstr "riigi_kood"
 
 #: saleor/dashboard/taxes/filters.py:24
 msgctxt "Taxes list filter label"
 msgid "Country name"
-msgstr ""
+msgstr "Riigi nimi"
 
 #: saleor/dashboard/taxes/filters.py:28
 msgctxt "Taxes list sorting form"
@@ -2015,33 +2032,33 @@ msgstr "Sorteeri"
 msgctxt "Number of matching records in the dashboard taxes list"
 msgid "Found %(counter)d matching country"
 msgid_plural "Found %(counter)d matching countries"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Leitud %(counter)d sobiv riik"
+msgstr[1] "Leitud %(counter)d sobivat riiki"
 
 #: saleor/dashboard/taxes/forms.py:16
 msgctxt "Include taxes in prices"
 msgid "All products prices are entered with tax included"
-msgstr ""
+msgstr "Kõik toote hinnad sisestatakse koos maksudega"
 
 #: saleor/dashboard/taxes/forms.py:19
 msgctxt "Display gross prices"
 msgid "Show gross prices to customers in the storefront"
-msgstr ""
+msgstr "Näita brutohindu poes olevatele klientidele"
 
 #: saleor/dashboard/taxes/forms.py:22
 msgctxt "Charge taxes on shipping rates"
 msgid "Charge taxes on shipping rates"
-msgstr ""
+msgstr "Maksusta tarnehinnad"
 
 #: saleor/dashboard/taxes/views.py:57
 msgctxt "Dashboard message"
 msgid "Updated taxes settings"
-msgstr ""
+msgstr "Maksude seaded uuendatud"
 
 #: saleor/dashboard/taxes/views.py:71
 msgctxt "Dashboard message"
 msgid "Tax rates updated successfully"
-msgstr ""
+msgstr "Maksumäärad edukalt uuendatud"
 
 #: saleor/dashboard/taxes/views.py:77
 msgctxt "Dashboard message"
@@ -2049,20 +2066,22 @@ msgid ""
 "Could not fetch tax rates. Make sure you have supplied a valid API Access "
 "Key.<br/>Check the server logs for more information about this error."
 msgstr ""
+"Maksumäärad ei olnud kättesaadavad. Veenduge, et olete sisestanud korrektse "
+"API-võtme. <br/>Selle vea lisateabe saamiseks vaadake serveri logisid."
 
 #: saleor/dashboard/templatetags/chips.py:66
 msgctxt "Possible values of boolean filter"
 msgid "yes,no,all"
-msgstr ""
+msgstr "jah, ei, kõik"
 
 #: saleor/dashboard/templatetags/chips.py:79
 #, python-format
 msgctxt "Label of first value in range filter"
 msgid "From %(value)s"
-msgstr ""
+msgstr "Alates %(value)s"
 
 #: saleor/dashboard/templatetags/chips.py:80
 #, python-format
 msgctxt "Label of second value in range filter"
 msgid "To %(value)s"
-msgstr ""
+msgstr "Kuni %(value)s"
