@@ -24,6 +24,8 @@ export interface TokenAuth_tokenCreate_user {
   __typename: "User";
   id: string;
   email: string;
+  firstName: string;
+  lastName: string;
   isStaff: boolean;
   note: string | null;
   permissions: (TokenAuth_tokenCreate_user_permissions | null)[] | null;

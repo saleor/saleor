@@ -24,8 +24,8 @@ const styles = (theme: Theme) =>
           display: "block"
         }
       },
-      background: "#ffffff",
-      border: "1px solid #eaeaea",
+      background: theme.palette.background.paper,
+      border: `1px solid ${theme.overrides.MuiCard.root.borderColor}`,
       borderRadius: theme.spacing.unit,
       height: 148,
       overflow: "hidden",

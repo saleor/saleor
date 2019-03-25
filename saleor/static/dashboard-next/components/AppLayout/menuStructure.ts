@@ -3,7 +3,7 @@ import { collectionListUrl } from "../../collections/urls";
 import { customerListUrl } from "../../customers/urls";
 import { saleListUrl, voucherListUrl } from "../../discounts/urls";
 import i18n from "../../i18n";
-import { orderListUrl } from "../../orders/urls";
+import { orderDraftListUrl, orderListUrl } from "../../orders/urls";
 import { productListUrl } from "../../products/urls";
 import { PermissionEnum } from "../../types/globalTypes";
 
@@ -45,9 +45,22 @@ const menuStructure: IMenuItem[] = [
   },
   {
     ariaLabel: "orders",
+    children: [
+      {
+        ariaLabel: "orders",
+        label: i18n.t("All Orders", { context: "Menu label" }),
+        permission: PermissionEnum.MANAGE_ORDERS,
+        url: orderListUrl()
+      },
+      {
+        ariaLabel: "order drafts",
+        label: i18n.t("Draft Orders", { context: "Menu label" }),
+        permission: PermissionEnum.MANAGE_ORDERS,
+        url: orderDraftListUrl()
+      }
+    ],
     label: i18n.t("Orders", { context: "Menu label" }),
-    permission: PermissionEnum.MANAGE_ORDERS,
-    url: orderListUrl()
+    permission: PermissionEnum.MANAGE_ORDERS
   },
   {
     ariaLabel: "customers",
