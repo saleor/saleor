@@ -3,15 +3,25 @@ import * as urlJoin from "url-join";
 
 import { OrderListQueryParams } from "./views/OrderList";
 
-const orderSectionUrl = "/orders/";
+const orderSectionUrl = "/orders";
 
 export const orderListPath = orderSectionUrl;
 export const orderListUrl = (params?: OrderListQueryParams): string => {
-  const orderList = orderSectionUrl;
+  const orderList = orderListPath;
   if (params === undefined) {
     return orderList;
   } else {
     return urlJoin(orderList, "?" + stringifyQs(params));
+  }
+};
+
+export const orderDraftListPath = urlJoin(orderSectionUrl, "drafts");
+export const orderDraftListUrl = (params?: OrderListQueryParams): string => {
+  const orderDraftList = orderDraftListPath;
+  if (params === undefined) {
+    return orderDraftList;
+  } else {
+    return urlJoin(orderDraftList, "?" + stringifyQs(params));
   }
 };
 

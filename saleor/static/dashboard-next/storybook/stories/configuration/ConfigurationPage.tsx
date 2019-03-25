@@ -12,8 +12,10 @@ import Decorator from "../../Decorator";
 const user = {
   __typename: staffMember.__typename,
   email: staffMember.email,
+  firstName: "Adam Evan",
   id: staffMember.id,
   isStaff: true,
+  lastName: "Newton",
   note: null,
   permissions: staffMember.permissions
 };

@@ -36,9 +36,6 @@ const styles = (theme: Theme) =>
     },
     tableRow: {
       cursor: "pointer"
-    },
-    textCenter: {
-      textAlign: "center"
     }
   });
 
@@ -90,9 +87,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
           <TableRow>
             <TableCell />
             <TableCell>{i18n.t("Name", { context: "table header" })}</TableCell>
-            <TableCell className={classes.textCenter}>
-              {i18n.t("Type", { context: "table header" })}
-            </TableCell>
+            <TableCell>{i18n.t("Type", { context: "table header" })}</TableCell>
             <TableCell>
               {i18n.t("Published", { context: "table header" })}
             </TableCell>
@@ -126,7 +121,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
                 <TableCell>
                   {maybe<React.ReactNode>(() => product.name, <Skeleton />)}
                 </TableCell>
-                <TableCell className={classes.textCenter}>
+                <TableCell>
                   {maybe<React.ReactNode>(
                     () => product.productType.name,
                     <Skeleton />

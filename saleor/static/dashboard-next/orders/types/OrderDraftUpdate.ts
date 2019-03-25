@@ -38,6 +38,7 @@ export interface OrderDraftUpdate_draftOrderUpdate_order_billingAddress {
 
 export interface OrderDraftUpdate_draftOrderUpdate_order_events_user {
   __typename: "User";
+  id: string;
   email: string;
 }
 

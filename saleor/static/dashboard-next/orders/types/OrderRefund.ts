@@ -38,6 +38,7 @@ export interface OrderRefund_orderRefund_order_billingAddress {
 
 export interface OrderRefund_orderRefund_order_events_user {
   __typename: "User";
+  id: string;
   email: string;
 }
 

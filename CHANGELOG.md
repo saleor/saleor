@@ -20,6 +20,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix layout in staff members details page - #3857 by @dominik-zeglen
 - Add draft orders query - #3809 by @michaljelonek
 - Restrict global orders query - #3861 by @pawelzar
+- Improve accessibility - #3856 by @dominik-zeglen
+- Add light/dark theme - #3856 by @dominik-zeglen
+- Fix bug where logo-document is not renamed to logo-light - #3867 by @jxltom
 - Copy addresses in checkoutCreate and draftOrderCreate mutations - #3866 by @pawelzar
 
 
