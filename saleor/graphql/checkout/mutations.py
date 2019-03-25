@@ -168,10 +168,10 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         billing_address = cleaned_input.get('billing_address')
         if shipping_address:
             shipping_address.save()
-            instance.shipping_address = shipping_address
+            instance.shipping_address = shipping_address.get_copy()
         if billing_address:
             billing_address.save()
-            instance.billing_address = billing_address
+            instance.billing_address = billing_address.get_copy()
 
         instance.save()
 
