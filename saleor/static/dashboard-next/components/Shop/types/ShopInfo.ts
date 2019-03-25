@@ -26,6 +26,12 @@ export interface ShopInfo_shop_domain {
   url: string;
 }
 
+export interface ShopInfo_shop_languages {
+  __typename: "LanguageDisplay";
+  code: string;
+  language: string;
+}
+
 export interface ShopInfo_shop {
   __typename: "Shop";
   countries: (ShopInfo_shop_countries | null)[];
@@ -34,6 +40,7 @@ export interface ShopInfo_shop {
   defaultWeightUnit: WeightUnitsEnum | null;
   displayGrossPrices: boolean;
   domain: ShopInfo_shop_domain;
+  languages: (ShopInfo_shop_languages | null)[];
   includeTaxesInPrices: boolean;
   name: string;
   trackInventoryByDefault: boolean | null;
