@@ -165,7 +165,7 @@ def test_send_set_password_customer_email(customer_user, site_settings):
     site = site_settings.site
     uid = urlsafe_base64_encode(force_bytes(customer_user.pk)).decode()
     token = default_token_generator.make_token(customer_user)
-    logo_url = build_absolute_uri(static('images/logo-document.svg'))
+    logo_url = build_absolute_uri(static('images/logo-light.svg'))
     password_set_url = build_absolute_uri(
         reverse(
             'account:reset-password-confirm',

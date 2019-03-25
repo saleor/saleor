@@ -260,8 +260,8 @@ def test_build_absolute_uri(site_settings, settings):
     assert build_absolute_uri(location=url) == url
 
     # Case when static url is resolved to relative url
-    logo_url = build_absolute_uri(static('images/logo-document.svg'))
+    logo_url = build_absolute_uri(static('images/logo-light.svg'))
     protocol = 'https' if settings.ENABLE_SSL else 'http'
     current_url = '%s://%s' % (protocol, site_settings.site.domain)
-    logo_location = urljoin(current_url, static('images/logo-document.svg'))
+    logo_location = urljoin(current_url, static('images/logo-light.svg'))
     assert logo_url == logo_location

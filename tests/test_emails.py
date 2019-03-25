@@ -11,7 +11,7 @@ from saleor.core.utils import build_absolute_uri
 
 def test_get_email_base_context(site_settings):
     site = site_settings.site
-    logo_url = build_absolute_uri(static('images/logo-document.svg'))
+    logo_url = build_absolute_uri(static('images/logo-light.svg'))
     proper_context = {
         'domain': site.domain,
         'logo_url': logo_url,
