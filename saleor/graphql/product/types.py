@@ -18,7 +18,7 @@ from ...product.utils.costs import (
 from ..core.connection import CountableDjangoObjectType
 from ..core.enums import ReportingPeriod, TaxRateType
 from ..core.fields import PrefetchingConnectionField
-from ..core.types import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+from ..core.types import Image, Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 from ..translations.enums import LanguageCodeEnum
 from ..translations.resolvers import resolve_translation
 from ..translations.types import (
@@ -65,15 +65,6 @@ def resolve_attribute_value_type(attribute_value):
     if '://' in attribute_value:
         return AttributeValueType.URL
     return AttributeValueType.STRING
-
-
-def resolve_background_image(background_image, alt, size, info):
-    if size:
-        url = get_thumbnail(background_image, size, method='thumbnail')
-    else:
-        url = background_image.url
-    url = info.context.build_absolute_uri(url)
-    return Image(url, alt)
 
 
 class AttributeValue(CountableDjangoObjectType):
@@ -269,16 +260,6 @@ class ProductAvailability(graphene.ObjectType):
 
     class Meta:
         description = 'Represents availability of a product in the storefront.'
-
-
-class Image(graphene.ObjectType):
-    url = graphene.String(
-        required=True,
-        description='The URL of the image.')
-    alt = graphene.String(description='Alt text for an image.')
-
-    class Meta:
-        description = 'Represents an image.'
 
 
 class Product(CountableDjangoObjectType):
@@ -502,10 +483,14 @@ class Collection(CountableDjangoObjectType):
         model = models.Collection
 
     def resolve_background_image(self, info, size=None, **kwargs):
-        if not self.background_image:
-            return None
-        return resolve_background_image(
-            self.background_image, self.background_image_alt, size, info)
+        if self.background_image:
+            return Image.get_adjusted(
+                image=self.background_image,
+                alt=self.background_image_alt,
+                size=size,
+                rendition_key_set='background_images',
+                info=info,
+            )
 
     def resolve_products(self, info, **kwargs):
         if hasattr(self, 'prefetched_products'):
@@ -568,10 +553,14 @@ class Category(CountableDjangoObjectType):
         return gql_optimizer.query(qs, info)
 
     def resolve_background_image(self, info, size=None, **kwargs):
-        if not self.background_image:
-            return None
-        return resolve_background_image(
-            self.background_image, self.background_image_alt, size, info)
+        if self.background_image:
+            return Image.get_adjusted(
+                image=self.background_image,
+                alt=self.background_image_alt,
+                size=size,
+                rendition_key_set='background_images',
+                info=info,
+            )
 
     def resolve_children(self, info, **kwargs):
         qs = self.children.all()

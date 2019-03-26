@@ -1,11 +1,12 @@
 import json
 import re
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import graphene
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
+from django.core.files import File
 from django.shortcuts import reverse
 
 from saleor.account.models import Address, User
@@ -97,6 +98,11 @@ def test_query_user(
     user.default_shipping_address.save()
     user.addresses.add(address.get_copy())
 
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = 'image.jpg'
+    user.avatar = avatar_mock
+    user.save()
+
     query = """
     query User($id: ID!) {
         user(id: $id) {
@@ -148,6 +154,9 @@ def test_query_user(
                 }
                 isDefaultShippingAddress
                 isDefaultBillingAddress
+            }
+            avatar {
+                url
             }
         }
     }
@@ -207,6 +216,8 @@ def test_query_user(
     assert address['phone'] == user_address.phone.as_e164
     assert address['isDefaultShippingAddress'] is None
     assert address['isDefaultBillingAddress'] is None
+
+    assert data['avatar']['url'] == 'http://testserver/media/user-avatars/image.jpg'
 
 
 USER_QUERY = """
