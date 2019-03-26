@@ -1145,6 +1145,8 @@ type Mutations {
   addressDelete(id: ID!): AddressDelete
   addressUpdate(id: ID!, input: AddressInput!): AddressUpdate
   addressSetDefault(addressId: ID!, type: AddressTypeEnum!, userId: ID!): AddressSetDefault
+  userImageUpdate(image: Upload!): UserImageUpdate
+  userImageDelete: UserImageDelete
 }
 
 input NameTranslationInput {
@@ -2404,6 +2406,16 @@ input UserCreateInput {
   isActive: Boolean
   note: String
   sendPasswordEmail: Boolean
+}
+
+type UserImageDelete {
+  errors: [Error!]
+  user: User
+}
+
+type UserImageUpdate {
+  errors: [Error!]
+  user: User
 }
 
 type VAT {

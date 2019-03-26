@@ -16,8 +16,12 @@ from saleor.graphql.account.mutations import (
 from saleor.graphql.core.enums import PermissionEnum
 from saleor.order.models import FulfillmentStatus
 from tests.api.utils import get_graphql_content
-
-from .utils import assert_no_permission, convert_dict_keys_to_camel_case
+from tests.utils import create_image
+from .utils import (
+    assert_no_permission,
+    convert_dict_keys_to_camel_case,
+    get_multipart_request_body,
+)
 
 
 def test_create_token_mutation(admin_client, staff_user):
@@ -1490,3 +1494,116 @@ def test_customer_change_default_address_invalid_address(
     assert (
         content['data']['customerSetDefaultAddress']['errors'][0]['field'] ==
         'id')
+
+
+USER_IMAGE_UPDATE_MUTATION = """
+    mutation userImageUpdate($image: Upload!) {
+        userImageUpdate(image: $image) {
+            user {
+                avatar {
+                    url
+                }
+            }
+        }
+    }
+"""
+
+
+def test_user_image_update_mutation_permission(api_client):
+    """ Should raise error if user is not staff. """
+
+    query = USER_IMAGE_UPDATE_MUTATION
+
+    image_file, image_name = create_image('avatar')
+    variables = {'image': image_name}
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+    response = api_client.post_multipart(body)
+
+    assert_no_permission(response)
+
+def test_user_image_update_mutation(monkeypatch, staff_api_client):
+    query = USER_IMAGE_UPDATE_MUTATION
+
+    user = staff_api_client.user
+
+    mock_create_thumbnails = Mock(return_value=None)
+    monkeypatch.setattr(
+        ('saleor.graphql.account.mutations.'
+         'create_user_avatar_thumbnails.delay'),
+        mock_create_thumbnails)
+
+    image_file, image_name = create_image('avatar')
+    variables = {'image': image_name}
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+
+    user.refresh_from_db()
+
+    assert user.avatar
+    assert content['data']['userImageUpdate']['user']['avatar']['url'] == (
+        'http://testserver/media/user-avatars/avatar.jpg'
+    )
+
+    # The image creation should have triggered a warm-up
+    mock_create_thumbnails.assert_called_once_with(user_id=user.pk)
+
+
+def test_user_image_update_mutation_image_exists(staff_api_client):
+    query = USER_IMAGE_UPDATE_MUTATION
+
+    user = staff_api_client.user
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = 'image.jpg'
+    user.avatar = avatar_mock
+    user.save()
+
+    image_file, image_name = create_image('new_image')
+    variables = {'image': image_name}
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+
+    user.refresh_from_db()
+
+    assert user.avatar != avatar_mock
+    assert content['data']['userImageUpdate']['user']['avatar']['url'] == (
+        'http://testserver/media/user-avatars/new_image.jpg'
+    )
+
+
+USER_IMAGE_DELETE_MUTATION = """
+    mutation userImageDelete {
+        userImageDelete {
+            user {
+                avatar {
+                    url
+                }
+            }
+        }
+    }
+"""
+
+
+def test_user_image_delete_mutation_permission(api_client):
+    """ Should raise error if user is not staff. """
+
+    query = USER_IMAGE_DELETE_MUTATION
+
+    response = api_client.post_graphql(query)
+
+    assert_no_permission(response)
+
+
+def test_user_image_delete_mutation(staff_api_client):
+    query = USER_IMAGE_DELETE_MUTATION
+
+    user = staff_api_client.user
+
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+
+    user.refresh_from_db()
+
+    assert not user.avatar
+    assert not content['data']['userImageDelete']['user']['avatar']

@@ -1,15 +1,19 @@
+from textwrap import dedent
+
 import graphene
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from graphql_jwt.decorators import login_required, permission_required
+from graphql_jwt.decorators import login_required, permission_required, staff_member_required
 from graphql_jwt.exceptions import PermissionDenied
 
 from ...account import emails, models, utils
+from ...account.thumbnails import create_user_avatar_thumbnails
 from ...checkout import AddressType
 from ...core.permissions import MODELS_PERMISSIONS, get_permissions
+from ...core.utils import create_thumbnails
 from ...dashboard.emails import (
     send_set_password_customer_email, send_set_password_staff_email)
 from ...dashboard.staff.utils import remove_staff_member
@@ -18,7 +22,8 @@ from ..account.i18n import I18nMixin
 from ..account.types import Address, AddressInput, User
 from ..core.enums import PermissionEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.types import Error
+from ..core.types import Error, Upload
+from ..core.utils import validate_image_file
 from .utils import CustomerDeleteMixin, StaffDeleteMixin, UserDeleteMixin
 
 BILLING_ADDRESS_FIELD = 'default_billing_address'
@@ -642,3 +647,58 @@ class CustomerSetDefaultAddress(BaseMutation):
 
         utils.change_user_default_address(user, address, address_type)
         return cls(errors=errors, user=user)
+
+
+class UserImageUpdate(BaseMutation):
+    user = graphene.Field(User, description='An updated user instance.')
+
+    class Arguments:
+        image = Upload(
+            required=True,
+            description='Represents an image file in a multipart request.',
+        )
+
+    class Meta:
+        description = dedent(
+            '''
+            Create a user image. This mutation must be
+            sent as a `multipart` request. More detailed specs of the upload
+            format can be found here:
+            https://github.com/jaydenseric/graphql-multipart-request-spec
+            '''
+        )
+
+    @classmethod
+    @staff_member_required
+    def mutate(cls, root, info, image):
+        user = info.context.user
+        errors = []
+        image_data = info.context.FILES.get(image)
+        validate_image_file(cls, image_data, 'image', errors)
+
+        if not errors:
+            if user.avatar:
+                user.avatar.delete_sized_images()
+                user.avatar.delete()
+            user.avatar = image_data
+            user.save()
+            create_user_avatar_thumbnails.delay(user_id=user.pk)
+
+        return UserImageUpdate(user=user, errors=errors)
+
+
+class UserImageDelete(BaseMutation):
+    user = graphene.Field(User, description='An updated user instance.')
+
+    class Meta:
+        description = 'Deletes a user image.'
+
+    @classmethod
+    @staff_member_required
+    def mutate(cls, root, info):
+        user = info.context.user
+        errors = []
+        user.avatar.delete_sized_images()
+        user.avatar.delete()
+
+        return UserImageDelete(user=user, errors=errors)
