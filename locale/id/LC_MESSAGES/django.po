@@ -5,15 +5,17 @@
 # 
 # Translators:
 # Ramdhan Hidayat <ramdhan.h@gmail.com>, 2019
+# Kholis Respati Agum Gumelar <gumelaragum@protonmail.com>, 2019
+# Chetabahana <admin@chetabahana.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-25 10:45-0600\n"
+"POT-Creation-Date: 2019-03-18 07:39-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Ramdhan Hidayat <ramdhan.h@gmail.com>, 2019\n"
+"Last-Translator: Chetabahana <admin@chetabahana.com>, 2019\n"
 "Language-Team: Indonesian (https://www.transifex.com/mirumee/teams/34782/id/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -44,72 +46,72 @@ msgstr "Email ini sudah terdaftar."
 #: saleor/account/forms.py:135
 msgctxt "Customer form: Given name field"
 msgid "Given name"
-msgstr "Nama pemberian"
+msgstr "Nama Depan"
 
 #: saleor/account/forms.py:137
 msgctxt "Customer form: Family name field"
 msgid "Family name"
-msgstr "Nama keluarga"
+msgstr "Nama Belakang"
 
 #: saleor/account/i18n.py:18
 msgctxt "Address field"
 msgid "Area"
-msgstr ""
+msgstr "Area"
 
 #: saleor/account/i18n.py:19
 msgctxt "Address field"
 msgid "County"
-msgstr ""
+msgstr "Negara"
 
 #: saleor/account/i18n.py:20
 msgctxt "Address field"
 msgid "Department"
-msgstr ""
+msgstr "Bagian"
 
 #: saleor/account/i18n.py:21
 msgctxt "Address field"
 msgid "District"
-msgstr ""
+msgstr "Distrik"
 
 #: saleor/account/i18n.py:22
 msgctxt "Address field"
 msgid "Do/si"
-msgstr ""
+msgstr "Do/si"
 
 #: saleor/account/i18n.py:23
 msgctxt "Address field"
 msgid "Eircode"
-msgstr ""
+msgstr "Eircode"
 
 #: saleor/account/i18n.py:24
 msgctxt "Address field"
 msgid "Emirate"
-msgstr ""
+msgstr "Orang Emirat"
 
 #: saleor/account/i18n.py:25
 msgctxt "Address field"
 msgid "Island"
-msgstr ""
+msgstr "Pulau"
 
 #: saleor/account/i18n.py:26
 msgctxt "Address field"
 msgid "Neighborhood"
-msgstr ""
+msgstr "Lingkungan"
 
 #: saleor/account/i18n.py:27
 msgctxt "Address field"
 msgid "Oblast"
-msgstr ""
+msgstr "Oblast"
 
 #: saleor/account/i18n.py:28
 msgctxt "Address field"
 msgid "Parish"
-msgstr ""
+msgstr "Paroki"
 
 #: saleor/account/i18n.py:29
 msgctxt "Address field"
 msgid "PIN"
-msgstr ""
+msgstr "PIN"
 
 #: saleor/account/i18n.py:30
 msgctxt "Address field"
@@ -119,7 +121,7 @@ msgstr "Kode pos"
 #: saleor/account/i18n.py:31
 msgctxt "Address field"
 msgid "Prefecture"
-msgstr ""
+msgstr "Prefektur"
 
 #: saleor/account/i18n.py:32
 msgctxt "Address field"
@@ -129,27 +131,27 @@ msgstr "Provinsi"
 #: saleor/account/i18n.py:33
 msgctxt "Address field"
 msgid "State"
-msgstr ""
+msgstr "Provinsi"
 
 #: saleor/account/i18n.py:34
 msgctxt "Address field"
 msgid "Suburb"
-msgstr ""
+msgstr "Daerah pinggiran"
 
 #: saleor/account/i18n.py:35
 msgctxt "Address field"
 msgid "Townland"
-msgstr ""
+msgstr "Kota"
 
 #: saleor/account/i18n.py:36
 msgctxt "Address field"
 msgid "Village/township"
-msgstr ""
+msgstr "Desa/kota"
 
 #: saleor/account/i18n.py:37
 msgctxt "Address field"
 msgid "ZIP code"
-msgstr ""
+msgstr "Kode Pos"
 
 #: saleor/account/i18n.py:63 saleor/account/i18n.py:109
 msgctxt "Country"
@@ -159,12 +161,12 @@ msgstr "Negara"
 #: saleor/account/i18n.py:94
 msgctxt "Personal name"
 msgid "Given name"
-msgstr "Nama pemberian"
+msgstr "Nama Depan"
 
 #: saleor/account/i18n.py:96
 msgctxt "Personal name"
 msgid "Family name"
-msgstr "Nama keluarga"
+msgstr "Nama Belakang"
 
 #: saleor/account/i18n.py:98
 msgctxt "Company or organization"
@@ -184,7 +186,7 @@ msgstr "Kota"
 #: saleor/account/i18n.py:105
 msgctxt "City area"
 msgid "District"
-msgstr ""
+msgstr "Distrik"
 
 #: saleor/account/i18n.py:107
 msgctxt "Postal code"
@@ -194,7 +196,7 @@ msgstr "Kode pos"
 #: saleor/account/i18n.py:111
 msgctxt "Country area"
 msgid "State or province"
-msgstr ""
+msgstr "Provinsi"
 
 #: saleor/account/i18n.py:113
 msgctxt "Phone number"
@@ -204,38 +206,38 @@ msgstr "Nomor telepon"
 #: saleor/account/i18n.py:116
 msgctxt "Address"
 msgid "Street address, P.O. box, company name"
-msgstr ""
+msgstr "Alamat jalan, P.O. box, nama perusahaan"
 
 #: saleor/account/i18n.py:118
 msgctxt "Address"
 msgid "Apartment, suite, unit, building, floor, etc"
-msgstr ""
+msgstr "Apartemen, suite, unit, gedung, lantai, dll"
 
 #: saleor/account/i18n.py:170
 msgctxt "Address form"
 msgid "This value is invalid for selected country"
-msgstr ""
+msgstr "Keterangan ini tidak valid untuk negara yang dipilih"
 
-#: saleor/account/models.py:135
+#: saleor/account/models.py:154
 msgctxt "Permission description"
 msgid "Manage customers."
-msgstr ""
+msgstr "Kelola pelanggan."
 
-#: saleor/account/models.py:138
+#: saleor/account/models.py:157
 msgctxt "Permission description"
 msgid "Manage staff."
-msgstr ""
+msgstr "Kelola staf."
 
-#: saleor/account/models.py:141
+#: saleor/account/models.py:160
 msgctxt "Permission description"
 msgid "Impersonate customers."
-msgstr ""
+msgstr "Pelanggan tiruan."
 
 #: saleor/account/templatetags/i18n_address_tags.py:12
 #, python-format
 msgctxt "Address data"
 msgid "%(first_name)s %(last_name)s"
-msgstr ""
+msgstr "%(first_name)s %(last_name)s"
 
 #: saleor/account/templatetags/i18n_address_tags.py:16
 #, python-format
@@ -244,6 +246,8 @@ msgid ""
 "%(street_address_1)s\n"
 "%(street_address_2)s"
 msgstr ""
+"%(street_address_1)s\n"
+"%(street_address_2)s"
 
 #: saleor/account/validators.py:11
 msgid "The phone number entered is not valid."
@@ -255,7 +259,7 @@ msgstr "Kamu sudah keluar."
 
 #: saleor/account/views.py:45
 msgid "User has been created"
-msgstr "Pengguna sudah dibuat"
+msgstr "Akun sudah dibuat"
 
 #: saleor/account/views.py:97
 msgctxt "Storefront message"
@@ -280,7 +284,7 @@ msgstr "Sukses menghapus alamat"
 #: saleor/account/views.py:148
 msgctxt "Storefront message, when user requested his account removed"
 msgid "Please check your inbox for a confirmation e-mail."
-msgstr ""
+msgstr "Silakan periksa kotak masuk Anda untuk konfirmasi email."
 
 #: saleor/account/views.py:163
 msgctxt "Account deleted"
@@ -288,43 +292,45 @@ msgid ""
 "Your account was deleted successfully. In case of any trouble or questions "
 "feel free to contact us."
 msgstr ""
+"Akun Anda berhasil dihapus. Jika ada masalah atau pertanyaan, jangan ragu "
+"untuk menghubungi kami."
 
 #: saleor/checkout/__init__.py:15
 msgctxt "Type of address used to fulfill order"
 msgid "Billing"
-msgstr ""
+msgstr "Penagihan"
 
 #: saleor/checkout/__init__.py:19
 msgctxt "Type of address used to fulfill order"
 msgid "Shipping"
-msgstr ""
+msgstr "Pengiriman"
 
 #: saleor/checkout/forms.py:39
 msgctxt "Add to cart form field label"
 msgid "Quantity"
-msgstr ""
+msgstr "Jumlah"
 
 #: saleor/checkout/forms.py:43
 msgctxt "Add to cart form error"
 msgid "Sorry. This product is currently not available."
-msgstr ""
+msgstr "Maaf. Produk ini tidak tersedia saat ini."
 
 #: saleor/checkout/forms.py:46
 msgctxt "Add to cart form error"
 msgid "Sorry. This product is currently out of stock."
-msgstr ""
+msgstr "Maaf. Produk ini saat ini kehabisan stok."
 
 #: saleor/checkout/forms.py:48
 msgctxt "Add to cart form error"
 msgid "Oops. We could not find that product."
-msgstr ""
+msgstr "Ups. Kami tidak dapat menemukan produk itu."
 
 #: saleor/checkout/forms.py:51
 #, python-format
 msgctxt "Add to cart form error"
 msgid "Only %d remaining in stock."
 msgid_plural "Only %d remaining in stock."
-msgstr[0] ""
+msgstr[0] "Hanya %d tersisa dalam stok."
 
 #: saleor/checkout/forms.py:162
 msgctxt "Country form field label"
@@ -339,7 +345,7 @@ msgstr "Email"
 #: saleor/checkout/forms.py:213
 msgctxt "Shipping addresses form choice"
 msgid "Enter a new address"
-msgstr ""
+msgstr "Masukkan alamat baru"
 
 #: saleor/checkout/forms.py:216
 msgctxt "Shipping addresses form field label"
@@ -349,12 +355,12 @@ msgstr "Alamat"
 #: saleor/checkout/forms.py:233
 msgctxt "Billing addresses form choice"
 msgid "Enter a new address"
-msgstr ""
+msgstr "Masukkan alamat baru"
 
 #: saleor/checkout/forms.py:235
 msgctxt "Billing addresses form choice"
 msgid "Same as shipping"
-msgstr ""
+msgstr "Sama dengan pengiriman"
 
 #: saleor/checkout/forms.py:238
 msgctxt "Billing addresses form field label"
@@ -369,12 +375,12 @@ msgstr "Metode pengiriman"
 #: saleor/checkout/forms.py:309
 msgctxt "Voucher form error"
 msgid "Discount code incorrect or expired"
-msgstr ""
+msgstr "Kode diskon salah atau kadaluwarsa"
 
 #: saleor/checkout/forms.py:320
 msgctxt "Checkout discount form label for voucher field"
 msgid "Gift card or discount code"
-msgstr ""
+msgstr "Kartu hadiah atau kode diskon"
 
 #: saleor/checkout/utils.py:134
 msgctxt "Cart warning message"
@@ -382,223 +388,225 @@ msgid ""
 "Sorry. We don't have that many items in stock. Quantity was set to maximum "
 "available for now."
 msgstr ""
+"Maaf. Kami tidak memiliki banyak persediaan. Jumlah item ditetapkan ke "
+"maksimum yang tersedia untuk saat ini."
 
-#: saleor/checkout/utils.py:628
+#: saleor/checkout/utils.py:630
 msgctxt "Voucher not applicable"
 msgid "Your order does not require shipping."
-msgstr ""
+msgstr "Pesanan Anda tidak membutuhkan pengiriman."
 
-#: saleor/checkout/utils.py:634
+#: saleor/checkout/utils.py:636
 msgctxt "Voucher not applicable"
 msgid "Please select a shipping method first."
-msgstr ""
+msgstr "Silakan pilih metode pengiriman terlebih dahulu."
 
-#: saleor/checkout/utils.py:642
+#: saleor/checkout/utils.py:644
 msgctxt "Voucher not applicable"
 msgid "This offer is not valid in your country."
-msgstr ""
+msgstr "Penawaran ini tidak berlaku di negara Anda."
 
-#: saleor/checkout/utils.py:664
+#: saleor/checkout/utils.py:666
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for selected items."
-msgstr ""
+msgstr "Penawaran ini hanya berlaku untuk item yang dipilih."
 
-#: saleor/checkout/utils.py:791
+#: saleor/checkout/utils.py:793
 msgctxt "Voucher not applicable"
 msgid "Voucher expired in meantime. Order placement aborted."
-msgstr ""
+msgstr "Masa berlaku Voucher sudah habis. Pesanan dibatalkan."
 
-#: saleor/checkout/utils.py:904
+#: saleor/checkout/utils.py:898
 msgctxt "order placement_error"
 msgid "Shipping method is not set"
-msgstr ""
+msgstr "Metode pengiriman belum dipilih"
 
-#: saleor/checkout/utils.py:907
+#: saleor/checkout/utils.py:901
 msgctxt "order placement error"
 msgid "Shipping address is not set"
-msgstr ""
+msgstr "Alamat pengiriman belum diisi"
 
-#: saleor/checkout/utils.py:911
+#: saleor/checkout/utils.py:905
 msgctxt "order placement error"
 msgid "Shipping method is not valid for your shipping address"
-msgstr ""
+msgstr "Metode pengiriman tidak valid untuk alamat pengiriman Anda"
 
-#: saleor/checkout/utils.py:914
-msgctxt "order placement error"
-msgid "Checkout is not fully paid"
+#: saleor/checkout/utils.py:908
+msgctxt "order placement_error"
+msgid "Billing address is not set"
 msgstr ""
 
 #: saleor/checkout/views/discount.py:62
 msgctxt "Checkout warning"
 msgid "This voucher has expired. Please review your checkout."
-msgstr ""
+msgstr "Voucher ini telah kedaluwarsa. Harap periksa kembali."
 
-#: saleor/checkout/views/summary.py:34
+#: saleor/checkout/views/summary.py:37
 msgctxt "Checkout warning"
 msgid "Please review your checkout."
-msgstr ""
+msgstr "Harap periksa pembayaran Anda."
 
 #: saleor/core/__init__.py:54
 msgctxt "VAT rate type"
 msgid "accommodation"
-msgstr ""
+msgstr "Akomodasi"
 
 #: saleor/core/__init__.py:56
 msgctxt "VAT rate type"
 msgid "admission to cultural events"
-msgstr ""
+msgstr "masuk ke acara-acara kebudayaan"
 
 #: saleor/core/__init__.py:58
 msgctxt "VAT rate type"
 msgid "admission to entertainment events"
-msgstr ""
+msgstr "masuk kategori acara hiburan"
 
 #: saleor/core/__init__.py:60
 msgctxt "VAT rate type"
 msgid "admission to sporting events"
-msgstr ""
+msgstr "masuk ke acara-acara kebugaran"
 
 #: saleor/core/__init__.py:61
 msgctxt "VAT rate type"
 msgid "advertising"
-msgstr ""
+msgstr "periklanan"
 
 #: saleor/core/__init__.py:63
 msgctxt "VAT rate type"
 msgid "agricultural supplies"
-msgstr ""
+msgstr "pasokan pertanian"
 
 #: saleor/core/__init__.py:64
 msgctxt "VAT rate type"
 msgid "baby foodstuffs"
-msgstr ""
+msgstr "bahan makanan bayi"
 
 #: saleor/core/__init__.py:65
 msgctxt "VAT rate type"
 msgid "bikes"
-msgstr ""
+msgstr "sepeda"
 
 #: saleor/core/__init__.py:66
 msgctxt "VAT rate type"
 msgid "books"
-msgstr ""
+msgstr "buku"
 
 #: saleor/core/__init__.py:68
 msgctxt "VAT rate type"
 msgid "childrens clothing"
-msgstr ""
+msgstr "pakaian anak anak"
 
 #: saleor/core/__init__.py:69
 msgctxt "VAT rate type"
 msgid "domestic fuel"
-msgstr ""
+msgstr "bahan bakar domestik"
 
 #: saleor/core/__init__.py:71
 msgctxt "VAT rate type"
 msgid "domestic services"
-msgstr ""
+msgstr "layanan domestik"
 
 #: saleor/core/__init__.py:72
 msgctxt "VAT rate type"
 msgid "e-books"
-msgstr ""
+msgstr "e-book"
 
 #: saleor/core/__init__.py:73
 msgctxt "VAT rate type"
 msgid "foodstuffs"
-msgstr ""
+msgstr "bahan makanan"
 
 #: saleor/core/__init__.py:74
 msgctxt "VAT rate type"
 msgid "hotels"
-msgstr ""
+msgstr "hotel"
 
 #: saleor/core/__init__.py:75
 msgctxt "VAT rate type"
 msgid "medical"
-msgstr ""
+msgstr "medis"
 
 #: saleor/core/__init__.py:76
 msgctxt "VAT rate type"
 msgid "newspapers"
-msgstr ""
+msgstr "koran"
 
 #: saleor/core/__init__.py:78
 msgctxt "VAT rate type"
 msgid "passenger transport"
-msgstr ""
+msgstr "transportasi penumpang"
 
 #: saleor/core/__init__.py:80
 msgctxt "VAT rate type"
 msgid "pharmaceuticals"
-msgstr ""
+msgstr "obat-obatan"
 
 #: saleor/core/__init__.py:82
 msgctxt "VAT rate type"
 msgid "property renovations"
-msgstr ""
+msgstr "renovasi properti"
 
 #: saleor/core/__init__.py:83
 msgctxt "VAT rate type"
 msgid "restaurants"
-msgstr ""
+msgstr "restoran"
 
 #: saleor/core/__init__.py:84
 msgctxt "VAT rate type"
 msgid "social housing"
-msgstr ""
+msgstr "pemukiman sosial"
 
 #: saleor/core/__init__.py:85
 msgctxt "VAT rate type"
 msgid "standard"
-msgstr ""
+msgstr "standar"
 
 #: saleor/core/__init__.py:86
 msgctxt "VAT rate type"
 msgid "water"
-msgstr ""
+msgstr "air bersih"
 
 #: saleor/core/__init__.py:87
 msgctxt "VAT rate type"
 msgid "wine"
-msgstr ""
+msgstr "minuman anggur"
 
 #: saleor/core/filters.py:27
 #, python-format
 msgctxt "Number of matching records in the dashboard list"
 msgid "Found %(counter)d matching record"
 msgid_plural "Found %(counter)d matching records"
-msgstr[0] ""
+msgstr[0] "Ditemukan%(counter)drekaman yang cocok "
 
 #: saleor/core/i18n.py:5
 msgctxt "Country choice"
 msgid "Any Country"
-msgstr ""
+msgstr "Negara mana pun"
 
 #: saleor/core/views.py:40
 msgctxt "Impersonation message"
 msgid "You are now logged as {}"
-msgstr ""
+msgstr "Anda login sebagai {}"
 
 #: saleor/core/weight.py:33
 msgctxt "Kilogram weight unit symbol"
 msgid "kg"
-msgstr ""
+msgstr "kg"
 
 #: saleor/core/weight.py:34
 msgctxt "Pound weight unit symbol"
 msgid "lb"
-msgstr ""
+msgstr "lb"
 
 #: saleor/core/weight.py:35
 msgctxt "Ounce weight unit symbol"
 msgid "oz"
-msgstr ""
+msgstr "ons"
 
 #: saleor/core/weight.py:36
 msgctxt "Gram weight unit symbol"
 msgid "g"
-msgstr ""
+msgstr "gr"
 
 #: saleor/discount/__init__.py:12
 msgctxt "Discount type"
@@ -608,256 +616,256 @@ msgstr "%"
 #: saleor/discount/__init__.py:23
 msgctxt "Voucher: discount for"
 msgid "All products"
-msgstr ""
+msgstr "Semua produk"
 
 #: saleor/discount/__init__.py:24
 msgctxt "Voucher: discount for"
 msgid "Specific products"
-msgstr ""
+msgstr "Produk spesifik"
 
 #: saleor/discount/__init__.py:26
 msgctxt "Voucher: discount for"
 msgid "Specific collections of products"
-msgstr ""
+msgstr "Koleksi produk tertentu"
 
 #: saleor/discount/__init__.py:28
 msgctxt "Voucher: discount for"
 msgid "Specific categories of products"
-msgstr ""
+msgstr "Kategori produk tertentu"
 
 #: saleor/discount/__init__.py:29
 msgctxt "Voucher: discount for"
 msgid "Shipping"
-msgstr ""
+msgstr "Pengiriman"
 
 #: saleor/discount/models.py:77
 msgctxt "Voucher type"
 msgid "Free shipping"
-msgstr ""
+msgstr "Gratis ongkos kirim"
 
 #: saleor/discount/models.py:80
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off shipping"
-msgstr ""
+msgstr "%(discount)s ongkos kirim"
 
 #: saleor/discount/models.py:86
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(product_num)d products"
-msgstr ""
+msgstr "%(discount)s dari%(product_num)d produk"
 
 #: saleor/discount/models.py:94
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(collections_num)d collections"
-msgstr ""
+msgstr "%(discount)s dari %(collections_num)d koleksi"
 
 #: saleor/discount/models.py:102
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(categories_num)d categories"
-msgstr ""
+msgstr "%(discount)sdari %(categories_num)d kategori"
 
 #: saleor/discount/models.py:106
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off"
-msgstr ""
+msgstr "%(discount)s"
 
 #: saleor/discount/models.py:136
 #, python-format
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for orders over %(amount)s."
-msgstr ""
+msgstr "Hanya berlaku untuk pesanan lebih dari%(amount)s."
 
-#: saleor/discount/models.py:179
+#: saleor/discount/models.py:180
 msgctxt "Permission description"
 msgid "Manage sales and vouchers."
-msgstr ""
+msgstr "Kelola penjualan dan voucher."
 
 #: saleor/discount/utils.py:49
 msgctxt "Voucher not applicable"
 msgid "Discount not applicable for this product"
-msgstr ""
+msgstr "Diskon tidak berlaku untuk produk ini"
 
-#: saleor/graphql/order/mutations/fulfillments.py:79
+#: saleor/graphql/order/mutations/fulfillments.py:78
 #, python-format
 msgctxt "Fulfill order line mutation error"
 msgid "Only %(quantity)d item remaining to fulfill."
 msgid_plural "Only %(quantity)d items remaining to fulfill."
-msgstr[0] ""
+msgstr[0] "Tinggal %(quantity)dbarang yang tersisa."
 
-#: saleor/graphql/order/mutations/fulfillments.py:212
+#: saleor/graphql/order/mutations/fulfillments.py:216
 msgctxt "Cancel fulfillment mutation error"
 msgid "This fulfillment can't be canceled"
-msgstr ""
+msgstr "Pesanan ini tidak dapat dibatalkan"
 
 #: saleor/menu/models.py:21
 msgctxt "Permission description"
 msgid "Manage navigation."
-msgstr ""
+msgstr "Kelola menu."
 
 #: saleor/menu/models.py:69
 msgctxt "Link object type description"
 msgid "URL: "
-msgstr ""
+msgstr "URL: "
 
 #: saleor/menu/models.py:74
 msgctxt "Link object type description"
 msgid "Category: "
-msgstr ""
+msgstr "Kategori: "
 
 #: saleor/menu/models.py:77
 msgctxt "Link object type description"
 msgid "Collection: "
-msgstr ""
+msgstr "Koleksi: "
 
 #: saleor/menu/models.py:80
 msgctxt "Link object type description"
 msgid "Page: "
-msgstr ""
+msgstr "Halaman.: "
 
 #: saleor/order/__init__.py:20
 msgctxt ""
 "Status for a fully editable, not confirmed order created by staff users"
 msgid "Draft"
-msgstr ""
+msgstr "Draf"
 
 #: saleor/order/__init__.py:23
 msgctxt "Status for an order with no items marked as fulfilled"
 msgid "Unfulfilled"
-msgstr ""
+msgstr "Tidak terpenuhi"
 
 #: saleor/order/__init__.py:26
 msgctxt "Status for an order with some items marked as fulfilled"
 msgid "Partially fulfilled"
-msgstr ""
+msgstr "Sebagian terpenuhi"
 
 #: saleor/order/__init__.py:29
 msgctxt "Status for an order with all items marked as fulfilled"
 msgid "Fulfilled"
-msgstr ""
+msgstr "Terpenuhi"
 
 #: saleor/order/__init__.py:32
 msgctxt "Status for a permanently canceled order"
 msgid "Canceled"
-msgstr ""
+msgstr "Dibatalkan"
 
 #: saleor/order/__init__.py:42
 msgctxt "Status for a group of products in an order marked as fulfilled"
 msgid "Fulfilled"
-msgstr ""
+msgstr "Terpenuhi"
 
 #: saleor/order/__init__.py:46
 msgctxt ""
 "Status for a fulfilled group of products in an order marked as canceled"
 msgid "Canceled"
-msgstr ""
+msgstr "Dibatalkan"
 
 #: saleor/order/__init__.py:83
 msgctxt "Email type"
 msgid "Payment confirmation"
-msgstr ""
+msgstr "Konfirmasi pembayaran"
 
 #: saleor/order/__init__.py:85
 msgctxt "Email type"
 msgid "Shipping confirmation"
-msgstr ""
+msgstr "Konfirmasi pengiriman"
 
 #: saleor/order/__init__.py:87
 msgctxt "Email type"
 msgid "Fulfillment confirmation"
-msgstr ""
+msgstr "Konfirmasi pesanan terpenuhi"
 
 #: saleor/order/__init__.py:89
 msgctxt "Email type"
 msgid "Order confirmation"
-msgstr ""
+msgstr "Konfirmasi pesanan"
 
 #: saleor/order/__init__.py:115
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Order created from draft order by %(user_name)s"
-msgstr ""
+msgstr "Pesanan dibuat dari draf pesanan oleh %(user_name)s"
 
 #: saleor/order/__init__.py:120
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Payment was voided by %(user_name)s"
-msgstr ""
+msgstr "Pembayaran dibatalkan oleh%(user_name)s"
 
 #: saleor/order/__init__.py:126
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Successfully refunded: %(amount)s"
-msgstr ""
+msgstr "Berhasil dikembalikan: %(amount)s"
 
 #: saleor/order/__init__.py:132
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Successfully captured: %(amount)s"
-msgstr ""
+msgstr "Berhasil direkam: %(amount)s"
 
 #: saleor/order/__init__.py:137
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Order manually marked as paid by %(user_name)s"
-msgstr ""
+msgstr "Pesanan ditandai secara manual oleh %(user_name)s"
 
 #: saleor/order/__init__.py:142
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Order was canceled by %(user_name)s"
-msgstr ""
+msgstr "Pesanan dibatalkan oleh %(user_name)s"
 
 #: saleor/order/__init__.py:147
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "We restocked %(quantity)d item"
 msgid_plural "We restocked %(quantity)d items"
-msgstr[0] ""
+msgstr[0] "Kami isi lagi stok %(quantity)d item"
 
 #: saleor/order/__init__.py:153
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "%(user_name)s added note: %(note)s"
-msgstr ""
+msgstr "%(user_name)s catatan ditambahkan: %(note)s"
 
 #: saleor/order/__init__.py:159
 #, python-format
 msgctxt "Dashboard message"
 msgid "Fulfillment #%(fulfillment)s canceled by %(user_name)s"
-msgstr ""
+msgstr "Pesanan #%(fulfillment)s dibatalkan oleh %(user_name)s"
 
 #: saleor/order/__init__.py:165
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Fulfilled %(quantity_fulfilled)d item"
 msgid_plural "Fulfilled %(quantity_fulfilled)d items"
-msgstr[0] ""
+msgstr[0] "Selesai %(quantity_fulfilled)d item"
 
 #: saleor/order/__init__.py:172
 msgctxt "Dashboard message related to an order"
 msgid "Order was placed"
-msgstr ""
+msgstr "Pesanan telah dicatat"
 
 #: saleor/order/__init__.py:176
 msgctxt "Dashboard message related to an order"
 msgid "Order was fully paid"
-msgstr ""
+msgstr "Pesanan sudah dibayar penuh"
 
 #: saleor/order/__init__.py:180
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "%(email_type)s email was sent to the customer (%(email)s)"
-msgstr ""
+msgstr "%(email_type)s email dikirim ke pelanggan (%(email)s)"
 
 #: saleor/order/__init__.py:187
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Order details were updated by %(user_name)s"
-msgstr ""
+msgstr "Detail pesanan diperbarui oleh %(user_name)s"
 
 #: saleor/order/__init__.py:192
 #, python-format
@@ -866,39 +874,41 @@ msgid ""
 "Fulfillment #%(fulfillment)s tracking was updated to %(tracking_number)s by "
 "%(user_name)s"
 msgstr ""
+"Pelacakan #%(fulfillment)s telah diperbarui ke %(tracking_number)s oleh "
+"%(user_name)s"
 
 #: saleor/order/__init__.py:200
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "%(quantity)d line item oversold on this order."
 msgid_plural "%(quantity)d line items oversold on this order."
-msgstr[0] ""
+msgstr[0] "%(quantity)d jenis item terjual pada pesanan ini."
 
 #: saleor/order/forms.py:16
 msgctxt "Payments form label"
 msgid "Payment Method"
-msgstr ""
+msgstr "Metode Pembayaran"
 
 #: saleor/order/forms.py:36
 msgctxt "Payment delete form error"
 msgid "Payment does not exist"
-msgstr ""
+msgstr "Pembayaran tidak ditemukan"
 
 #: saleor/order/forms.py:41
 msgctxt "Payment delete form error"
 msgid "Payment cannot be cancelled."
-msgstr ""
+msgstr "Pembayaran tidak dapat dibatalkan."
 
-#: saleor/order/models.py:134
+#: saleor/order/models.py:135
 msgctxt "Permission description"
 msgid "Manage orders."
-msgstr ""
+msgstr "Kelola pesanan."
 
-#: saleor/order/models.py:339
+#: saleor/order/models.py:344
 #, python-format
 msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
-msgstr ""
+msgstr "Selesai #%s"
 
 #: saleor/order/views.py:196
 msgctxt "Connect order with user warning message"
@@ -906,163 +916,182 @@ msgid ""
 "We couldn't assign the order to your account as the email addresses don't "
 "match"
 msgstr ""
+"Kami tidak dapat menetapkan pesanan ke akun Anda karena alamat email tidak "
+"cocok"
 
 #: saleor/order/views.py:203
 msgctxt "storefront message"
 msgid "The order is now assigned to your account"
-msgstr ""
+msgstr "Pesanan sudah ditetapkan ke akun Anda"
 
 #: saleor/page/models.py:33
 msgctxt "Permission description"
 msgid "Manage pages."
-msgstr ""
+msgstr "Kelola halaman."
 
 #: saleor/payment/__init__.py:24
 msgctxt "Custom payment choice type"
 msgid "Manual"
-msgstr ""
-
-#: saleor/payment/__init__.py:68
-msgctxt "transaction kind"
-msgid "Authorization"
-msgstr ""
-
-#: saleor/payment/__init__.py:69
-msgctxt "transaction kind"
-msgid "Charge"
-msgstr ""
-
-#: saleor/payment/__init__.py:70
-msgctxt "transaction kind"
-msgid "Refund"
-msgstr ""
-
-#: saleor/payment/__init__.py:71
-msgctxt "transaction kind"
-msgid "Capture"
-msgstr ""
+msgstr "Manual"
 
 #: saleor/payment/__init__.py:72
 msgctxt "transaction kind"
+msgid "Authorization"
+msgstr "Otorisasi"
+
+#: saleor/payment/__init__.py:73
+msgctxt "transaction kind"
+msgid "Charge"
+msgstr "Biaya"
+
+#: saleor/payment/__init__.py:74
+msgctxt "transaction kind"
+msgid "Refund"
+msgstr "Pengembalian dana"
+
+#: saleor/payment/__init__.py:75
+msgctxt "transaction kind"
+msgid "Capture"
+msgstr "Rekaman"
+
+#: saleor/payment/__init__.py:76
+msgctxt "transaction kind"
 msgid "Void"
-msgstr ""
+msgstr "Kosong"
 
-#: saleor/payment/__init__.py:91
-msgctxt "payment status"
-msgid "Charged"
-msgstr ""
-
-#: saleor/payment/__init__.py:92
+#: saleor/payment/__init__.py:99
 msgctxt "payment status"
 msgid "Not charged"
+msgstr "Tidak dikenakan biaya"
+
+#: saleor/payment/__init__.py:101
+msgctxt "payment status"
+msgid "Partially charged"
 msgstr ""
 
-#: saleor/payment/__init__.py:93
+#: saleor/payment/__init__.py:102
+msgctxt "payment status"
+msgid "Fully charged"
+msgstr ""
+
+#: saleor/payment/__init__.py:104
+msgctxt "payment status"
+msgid "Partially refunded"
+msgstr ""
+
+#: saleor/payment/__init__.py:105
 msgctxt "payment status"
 msgid "Fully refunded"
-msgstr ""
+msgstr "Pengembalian dana sepenuhnya"
 
 #: saleor/payment/gateways/braintree/__init__.py:68
 #: saleor/payment/gateways/braintree/forms.py:35
 msgctxt "payment error"
 msgid "Unable to process transaction. Please try again in a moment"
-msgstr ""
+msgstr "Tidak dapat memproses transaksi. Silakan coba lagi sebentar lagi"
 
 #: saleor/payment/gateways/dummy/forms.py:9
 msgctxt "Payment status form field"
 msgid "Payment status"
 msgstr "Status pembayaran"
 
+#: saleor/payment/gateways/dummy/forms.py:23
+msgid ""
+"Setting charge status to {} directly is not supported. Please use the "
+"dashboard to refund partially."
+msgstr ""
+
 #: saleor/payment/gateways/razorpay/errors.py:5
 msgctxt "Razorpay payment error"
 msgid "Order was not charged."
-msgstr ""
+msgstr "Pesanan tidak dikenakan biaya."
 
 #: saleor/payment/gateways/razorpay/errors.py:7
 msgctxt "Razorpay payment error"
 msgid "The payment data was invalid."
-msgstr ""
+msgstr "Data pembayaran tidak valid."
 
 #: saleor/payment/gateways/razorpay/errors.py:9
 msgctxt "Razorpay payment error"
 msgid "The order couldn't be proceeded."
-msgstr ""
+msgstr "Pesanan tidak dapat diproses."
 
 #: saleor/payment/gateways/razorpay/errors.py:11
 #, python-format
 msgctxt "Razorpay payment error"
 msgid "The %(currency)s currency is not supported."
-msgstr ""
+msgstr "Mata uang  %(currency)s tidak didukung."
 
 #: saleor/payment/gateways/razorpay/forms.py:14
 msgctxt "Rozorpay payment gateway primary button"
 msgid "Pay now with Razorpay"
-msgstr ""
+msgstr "Bayar sekarang dengan Razorpay"
 
 #: saleor/payment/gateways/razorpay/forms.py:16
 msgctxt "Rozorpay payment gateway secondary title"
 msgid "Total payment"
-msgstr ""
+msgstr "Total pembayaran"
 
 #: saleor/payment/gateways/stripe/errors.py:4
 msgctxt "Stripe payment error"
 msgid "Order was not authorized."
-msgstr ""
+msgstr "Pesanan tidak diotorisasi."
 
 #: saleor/payment/gateways/stripe/errors.py:6
 msgctxt "Stripe payment error"
 msgid "Order was not charged."
-msgstr ""
+msgstr "Pesanan tidak dikenakan biaya."
 
 #: saleor/payment/gateways/stripe/forms.py:11
 msgctxt "Stripe payment gateway description"
 msgid "Total payment"
-msgstr ""
+msgstr "Total pembayaran"
 
 #: saleor/payment/utils.py:236
 msgctxt "Mark order as paid validation error"
 msgid "Orders with payments can not be manually marked as paid."
 msgstr ""
+"Pembayaran pesanan tidak dapat secara manual ditandai sebagai berbayar."
 
 #: saleor/product/__init__.py:15
 msgctxt "Product status"
 msgid "not published"
-msgstr ""
+msgstr "tidak diterbitkan"
 
 #: saleor/product/__init__.py:17
 msgctxt "Product status"
 msgid "variants missing"
-msgstr ""
+msgstr "tidak ada variasi"
 
 #: saleor/product/__init__.py:19
 msgctxt "Product status"
 msgid "out of stock"
-msgstr ""
+msgstr "stok habis"
 
 #: saleor/product/__init__.py:21
 msgctxt "Product status"
 msgid "stock running low"
-msgstr ""
+msgstr "stok hampir habis"
 
 #: saleor/product/__init__.py:23
 msgctxt "Product status"
 msgid "not yet available"
-msgstr ""
+msgstr "belum tersedia"
 
 #: saleor/product/__init__.py:25
 msgctxt "Product status"
 msgid "ready for purchase"
-msgstr ""
+msgstr "siap untuk dibeli"
 
 #: saleor/product/__init__.py:37
 msgctxt "Variant status"
 msgid "available"
-msgstr ""
+msgstr "tersedia"
 
 #: saleor/product/__init__.py:39
 msgctxt "Variant status"
 msgid "out of stock"
-msgstr ""
+msgstr "stok habis"
 
 #: saleor/product/filters.py:12
 msgctxt "Product list sorting option"
@@ -1077,7 +1106,7 @@ msgstr "harga"
 #: saleor/product/filters.py:15
 msgctxt "Product list sorting option"
 msgid "last updated"
-msgstr ""
+msgstr "terakhir diperbarui"
 
 #: saleor/product/filters.py:20
 msgctxt "Product list sorting form"
@@ -1093,219 +1122,228 @@ msgstr "Harga"
 #, python-format
 msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
-msgstr ""
+msgstr "%(variant_label)s - %(price)s"
 
 #: saleor/product/models.py:129
 msgctxt "Permission description"
 msgid "Manage products."
-msgstr ""
+msgstr "Kelola produk."
 
 #: saleor/search/forms.py:9
 msgctxt "Search form label"
 msgid "Query"
-msgstr ""
+msgstr "Pencarian"
 
 #: saleor/settings.py:61
 msgid "Arabic"
-msgstr ""
+msgstr "orang Arab"
 
 #: saleor/settings.py:62
 msgid "Azerbaijani"
-msgstr ""
+msgstr "orang Azerbaijan"
 
 #: saleor/settings.py:63
 msgid "Bulgarian"
-msgstr ""
+msgstr "orang Bulgaria"
 
 #: saleor/settings.py:64
 msgid "Bengali"
-msgstr ""
+msgstr "orang Benggala"
 
 #: saleor/settings.py:65
 msgid "Catalan"
-msgstr ""
+msgstr "orang Catalan"
 
 #: saleor/settings.py:66
 msgid "Czech"
-msgstr ""
+msgstr "orang Ceko"
 
 #: saleor/settings.py:67
 msgid "Danish"
-msgstr ""
+msgstr "orang Denmark"
 
 #: saleor/settings.py:68
 msgid "German"
-msgstr ""
+msgstr "orang Jerman"
 
 #: saleor/settings.py:69
 msgid "English"
-msgstr ""
+msgstr "orang Inggris"
 
 #: saleor/settings.py:70
 msgid "Spanish"
-msgstr ""
+msgstr "orang Spanyol"
 
 #: saleor/settings.py:71
-msgid "Persian"
-msgstr ""
+msgid "Estonian"
+msgstr "orang Estonia"
 
 #: saleor/settings.py:72
-msgid "French"
-msgstr ""
+msgid "Persian"
+msgstr "orang Persia"
 
 #: saleor/settings.py:73
-msgid "Hindi"
-msgstr ""
+msgid "French"
+msgstr "orang Perancis"
 
 #: saleor/settings.py:74
-msgid "Hungarian"
-msgstr ""
+msgid "Hindi"
+msgstr "orang India"
 
 #: saleor/settings.py:75
-msgid "Indonesian"
-msgstr ""
+msgid "Hungarian"
+msgstr "orang Hongaria"
 
 #: saleor/settings.py:76
-msgid "Italian"
-msgstr ""
+msgid "Indonesian"
+msgstr "orang Indonesia"
 
 #: saleor/settings.py:77
-msgid "Japanese"
-msgstr ""
+msgid "Italian"
+msgstr "orang Italia"
 
 #: saleor/settings.py:78
-msgid "Korean"
-msgstr ""
+msgid "Japanese"
+msgstr "orang Jepang"
 
 #: saleor/settings.py:79
-msgid "Mongolian"
-msgstr ""
+msgid "Korean"
+msgstr "orang Korea"
 
 #: saleor/settings.py:80
-msgid "Norwegian"
-msgstr ""
+msgid "Mongolian"
+msgstr "orang Mongolia"
 
 #: saleor/settings.py:81
-msgid "Dutch"
-msgstr ""
+msgid "Norwegian"
+msgstr "orang Norwegia"
 
 #: saleor/settings.py:82
-msgid "Polish"
-msgstr ""
+msgid "Dutch"
+msgstr "orang Belanda"
 
 #: saleor/settings.py:83
-msgid "Brazilian Portuguese"
-msgstr ""
+msgid "Polish"
+msgstr "orang Polandia"
 
 #: saleor/settings.py:84
-msgid "Romanian"
-msgstr ""
+msgid "Brazilian Portuguese"
+msgstr "orang Portugis Brazil"
 
 #: saleor/settings.py:85
-msgid "Russian"
-msgstr ""
+msgid "Romanian"
+msgstr "orang Rumania"
 
 #: saleor/settings.py:86
-msgid "Slovak"
-msgstr ""
+msgid "Russian"
+msgstr "orang Rusia"
 
 #: saleor/settings.py:87
-msgid "Serbian"
-msgstr ""
+msgid "Slovak"
+msgstr "orang Slovakia"
 
 #: saleor/settings.py:88
-msgid "Swedish"
-msgstr ""
+msgid "Serbian"
+msgstr "orang Serbia"
 
 #: saleor/settings.py:89
-msgid "Turkish"
-msgstr ""
+msgid "Swedish"
+msgstr "orang Swedia"
 
 #: saleor/settings.py:90
-msgid "Ukrainian"
-msgstr ""
+msgid "Turkish"
+msgstr "orang Turki"
 
 #: saleor/settings.py:91
-msgid "Vietnamese"
-msgstr ""
+msgid "Ukrainian"
+msgstr "orang Ukraina"
 
 #: saleor/settings.py:92
-msgid "Simplified Chinese"
-msgstr ""
+msgid "Vietnamese"
+msgstr "orang Vietnam"
 
 #: saleor/settings.py:93
-msgid "Traditional Chinese"
-msgstr ""
+msgid "Simplified Chinese"
+msgstr "Cina disederhanakan"
 
-#: saleor/settings.py:329
+#: saleor/settings.py:94
+msgid "Traditional Chinese"
+msgstr "Cina tradisional"
+
+#: saleor/settings.py:330
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
-msgstr ""
+msgstr "Uni Eropa"
 
-#: saleor/settings.py:566
+#: saleor/settings.py:567
 msgctxt "Payment method name"
 msgid "Dummy gateway"
-msgstr ""
+msgstr "Gerbang boneka"
 
 #: saleor/shipping/__init__.py:10
 msgctxt "Type of shipping"
 msgid "Price based shipping"
-msgstr ""
+msgstr "Harga dasar pengiriman"
 
 #: saleor/shipping/__init__.py:12
 msgctxt "Type of shipping"
 msgid "Weight based shipping"
-msgstr ""
+msgstr " Berat dasar pengiriman"
 
 #: saleor/shipping/models.py:38
 #, python-format
 msgctxt "Number of countries shipping zone apply to"
 msgid "%(num_of_countries)d countries"
-msgstr ""
+msgstr "%(num_of_countries)dnegara"
 
 #: saleor/shipping/models.py:53
 msgctxt "Permission description"
 msgid "Manage shipping."
-msgstr ""
+msgstr "Kelola pengiriman."
 
 #: saleor/shipping/utils.py:53
 #, python-format
 msgctxt "Applies to orders more expensive than the min value"
 msgid "%(min_price)s and up"
-msgstr ""
+msgstr "%(min_price)s dan ke atas"
 
 #: saleor/shipping/utils.py:56
 #, python-format
 msgctxt "Applies to order valued within this price range"
 msgid "%(min_price)s to %(max_price)s"
-msgstr ""
+msgstr "%(min_price)s s/d %(max_price)s"
 
 #: saleor/shipping/utils.py:72
 #, python-format
 msgctxt "Applies to orders heavier than the threshold"
 msgid "%(min_weight)s and up"
-msgstr ""
+msgstr "%(min_weight)s dan ke atas"
 
 #: saleor/shipping/utils.py:75
 #, python-format
 msgctxt "Applies to orders of total weight within this range"
 msgid "%(min_weight)s to %(max_weight)s"
-msgstr ""
+msgstr "%(min_weight)s s/d %(max_weight)s"
 
 #: saleor/site/models.py:40
 msgctxt "Permission description"
 msgid "Manage settings."
+msgstr "Kelola pengaturan."
+
+#: saleor/site/models.py:42
+msgctxt "Permission description"
+msgid "Manage translations."
 msgstr ""
 
 #: templates/404.html:6
 msgctxt "Eror page not found"
 msgid "Page not found"
-msgstr ""
+msgstr "Halaman tidak ditemukan"
 
 #: templates/_language_picker_modal.html:8
 msgctxt "Change language modal title"
 msgid "Select language"
-msgstr ""
+msgstr "Pilih bahasa"
 
 #: templates/_language_picker_modal.html:24
 msgctxt "Close modal action button"
@@ -1315,47 +1353,47 @@ msgstr "Tutup"
 #: templates/_language_picker_modal.html:25
 msgctxt "Change language action button"
 msgid "Change"
-msgstr ""
+msgstr "Ubah"
 
 #: templates/account/account_delete_prompt.html:8
 msgctxt "Account deletetion confirmation page title"
 msgid "Are you sure?"
-msgstr ""
+msgstr "Apakah kamu yakin?"
 
 #: templates/account/account_delete_prompt.html:16
 msgctxt "Message displayed to the user requesting for his account deletetion"
 msgid "Sorry to see you go!"
-msgstr ""
+msgstr "Sedih melihat kamu pergi!"
 
 #: templates/account/account_delete_prompt.html:22
 msgctxt "Message displayed to the user requesting for his account deletetion"
 msgid "Are you sure you want to delete your account?"
-msgstr ""
+msgstr "Apakah Anda yakin ingin menghapus akun Anda?"
 
 #: templates/account/account_delete_prompt.html:27
 msgctxt "Confirm account deletion button"
 msgid "Delete account"
-msgstr ""
+msgstr "Hapus akun"
 
 #: templates/account/address_delete.html:6
 msgctxt "Remove address form action"
 msgid "Remove Address"
-msgstr ""
+msgstr "Hapus Alamat"
 
 #: templates/account/address_delete.html:9
 msgctxt "Remove address form action"
 msgid "Cancel"
-msgstr ""
+msgstr "Batal"
 
 #: templates/account/address_edit.html:7
 msgctxt "Edit address page title"
 msgid "Edit address"
-msgstr ""
+msgstr "Edit alamat"
 
 #: templates/account/address_edit.html:9
 msgctxt "New address page title"
 msgid "New address"
-msgstr ""
+msgstr "Alamat baru"
 
 #: templates/account/address_edit.html:16 templates/account/details.html:16
 #: templates/account/password_change.html:7 templates/checkout/index.html:11
@@ -1364,42 +1402,42 @@ msgstr ""
 #: templates/product/details.html:45
 msgctxt "Main navigation item"
 msgid "Home"
-msgstr ""
+msgstr "Rumah"
 
 #: templates/account/address_edit.html:21
 msgctxt "Edit/new address breadcrumb"
 msgid "Your profile"
-msgstr ""
+msgstr "Profil kamu"
 
 #: templates/account/address_edit.html:27
 msgctxt "Edit address breadcrumb"
 msgid "Edit address"
-msgstr ""
+msgstr "Edit alamat"
 
 #: templates/account/address_edit.html:33
 msgctxt "New address breadcrumb"
 msgid "New address"
-msgstr ""
+msgstr "Alamat baru"
 
 #: templates/account/address_edit.html:47
 msgctxt "Edit address title"
 msgid "Edit address"
-msgstr ""
+msgstr "Edit alamat"
 
 #: templates/account/address_edit.html:49
 msgctxt "New address title"
 msgid "New address"
-msgstr ""
+msgstr "Alamat baru"
 
 #: templates/account/address_edit.html:57
 msgctxt "Edit/new address primary action"
 msgid "Save changes"
-msgstr ""
+msgstr "Simpan perubahan"
 
 #: templates/account/details.html:10
 msgctxt "User profile page title"
 msgid "Your profile"
-msgstr ""
+msgstr "Profil kamu"
 
 #: templates/account/details.html:19 templates/account/password_change.html:8
 #: templates/base.html:84 templates/base.html:226
@@ -1407,46 +1445,46 @@ msgstr ""
 #: templates/order/payment/details.html:17
 msgctxt "Main navigation item"
 msgid "Your account"
-msgstr ""
+msgstr "Akun Anda"
 
 #: templates/account/details.html:26
 msgid "My account"
-msgstr ""
+msgstr "Akun saya"
 
 #: templates/account/details.html:30
 msgctxt "User profile tab"
 msgid "Recent Orders"
-msgstr ""
+msgstr "Pesanan Terbaru"
 
 #: templates/account/details.html:36
 msgctxt "User profile tab"
 msgid "Change password"
-msgstr ""
+msgstr "Ganti kata sandi"
 
 #: templates/account/details.html:42
 msgctxt "User profile tab"
 msgid "Contact details"
-msgstr ""
+msgstr "Rincian kontak"
 
 #: templates/account/details.html:47
 msgctxt "User profile tab"
 msgid "Settings"
-msgstr ""
+msgstr "Pengaturan"
 
 #: templates/account/details.html:59
 msgctxt "Recent orders column title"
 msgid "Order"
-msgstr ""
+msgstr "Pesanan"
 
 #: templates/account/details.html:62
 msgctxt "Recent orders column title"
 msgid "Date"
-msgstr ""
+msgstr "Tanggal"
 
 #: templates/account/details.html:65
 msgctxt "Recent orders column title"
 msgid "Summary"
-msgstr ""
+msgstr "Ringkasan"
 
 #: templates/account/details.html:68
 msgctxt "Recent orders column title"
@@ -1461,42 +1499,44 @@ msgstr "Status pembelian"
 #: templates/account/details.html:96
 msgctxt "Recent orders link text"
 msgid "Details"
-msgstr ""
+msgstr "Detail"
 
 #: templates/account/details.html:111
 msgctxt "No recent orders text"
 msgid "There are not any completed orders yet."
-msgstr ""
+msgstr "Belum ada pesanan yang selesai."
 
 #: templates/account/details.html:122
 msgctxt "User profile action"
 msgid "Change password"
-msgstr ""
+msgstr "Ganti kata sandi"
 
 #: templates/account/details.html:129
 msgctxt "User profile settings"
 msgid "Personal Data"
-msgstr ""
+msgstr "Data pribadi"
 
 #: templates/account/details.html:136
 msgctxt "User profile action"
 msgid "Update"
-msgstr ""
+msgstr "Perbaruan"
 
 #: templates/account/details.html:141
 msgctxt "List of adresses in contact details"
 msgid "Addresses"
-msgstr ""
+msgstr "Alamat"
 
 #: templates/account/details.html:152
 msgctxt "User address action"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/account/details.html:168
 msgctxt "No addresses text"
 msgid "You will see new addresses here after first successful checkout."
 msgstr ""
+"Anda akan melihat alamat baru di sini setelah pembayaran pertama yang "
+"berhasil."
 
 #: templates/account/details.html:179
 msgctxt "Message informing about the process of account removal"
@@ -1505,21 +1545,24 @@ msgid ""
 "                  If you'd like to remove your account, please click on the button below and a confirmation email will be sent to you.\n"
 "                "
 msgstr ""
+"\n"
+"                  Jika Anda ingin menghapus akun Anda, silakan klik tombol di bawah ini dan email konfirmasi akan dikirimkan kepada Anda.\n"
+"                "
 
 #: templates/account/details.html:184
 msgctxt "Remove account form action"
 msgid "Remove Account"
-msgstr ""
+msgstr "Hapus Akun"
 
 #: templates/account/login.html:5
 msgctxt "Login page title"
 msgid "Log in"
-msgstr ""
+msgstr "Masuk"
 
 #: templates/account/login.html:16
 msgctxt "Login form secondary title"
 msgid "Don't have an account yet?"
-msgstr ""
+msgstr "Belum punya akun?"
 
 #: templates/account/login.html:21
 msgctxt "Login form secondary action"
@@ -1529,56 +1572,56 @@ msgstr "Daftar"
 #: templates/account/login.html:26
 msgctxt "Login form title"
 msgid "Log in"
-msgstr ""
+msgstr "Masuk"
 
 #: templates/account/partials/already_logged_in.html:5
 #, python-format
 msgctxt "Already logged in warning message"
 msgid "You are already logged in as %(user)s."
-msgstr ""
+msgstr "Anda sudah masuk sebagai %(user)s."
 
 #: templates/account/partials/login_form.html:16
 msgctxt "Login form primary action"
 msgid "Log in"
-msgstr ""
+msgstr "Masuk"
 
 #: templates/account/partials/login_form.html:19
 msgctxt "Login form secondary link"
 msgid "Forgot password?"
-msgstr ""
+msgstr "Lupa kata sandi?"
 
 #: templates/account/partials/login_form.html:29
 msgid "Facebook"
-msgstr ""
+msgstr "Facebook"
 
 #: templates/account/partials/login_form.html:37
 msgid "Google"
-msgstr ""
+msgstr "Google"
 
 #: templates/account/password_change.html:9
 msgctxt "Password change breadcrumb"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/account/password_change.html:22
 msgctxt "Password change form legend"
 msgid "Change Password"
-msgstr ""
+msgstr "Ganti Kata Sandi"
 
 #: templates/account/password_change.html:28
 msgctxt "Password change form primary action"
 msgid "Save new password"
-msgstr ""
+msgstr "Simpan kata sandi baru"
 
 #: templates/account/password_reset.html:6
 msgctxt "Password reset page title"
 msgid "Password reset"
-msgstr ""
+msgstr "Reset kata sandi"
 
 #: templates/account/password_reset.html:17
 msgctxt "Password reset form title"
 msgid "Forgot your password?"
-msgstr ""
+msgstr "Lupa kata sandi Anda?"
 
 #: templates/account/password_reset.html:19
 msgctxt "Password reset form help text"
@@ -1586,21 +1629,23 @@ msgid ""
 "Please let us know the email you have used to register or purchase at our "
 "store."
 msgstr ""
+"Beri tahu kami email yang Anda gunakan untuk mendaftar atau membeli di toko "
+"kami."
 
 #: templates/account/password_reset.html:30
 msgctxt "Password reset primary action"
 msgid "Continue"
-msgstr ""
+msgstr "Terus"
 
 #: templates/account/password_reset_done.html:6
 msgctxt "Password reset done page title"
 msgid "Password Reset"
-msgstr ""
+msgstr "Reset Kata Sandi"
 
 #: templates/account/password_reset_done.html:10
 msgctxt "Password reset done title"
 msgid "Password Reset"
-msgstr ""
+msgstr "Reset Kata Sandi"
 
 #: templates/account/password_reset_done.html:14
 msgctxt "Password reset done text"
@@ -1608,15 +1653,17 @@ msgid ""
 "We have sent you an e-mail. Please contact us if you do not receive it "
 "within a few minutes."
 msgstr ""
+"Kami telah mengirimi Anda email. Silakan hubungi kami jika Anda tidak "
+"menerimanya dalam beberapa menit."
 
 #: templates/account/password_reset_from_key.html:6
 msgctxt "Password reset from key page title"
 msgid "Change Password"
-msgstr ""
+msgstr "Ganti Kata Sandi"
 
 #: templates/account/password_reset_from_key.html:11
 msgid "Bad Token"
-msgstr ""
+msgstr "Bad Token"
 
 #: templates/account/password_reset_from_key.html:13
 #, python-format
@@ -1626,26 +1673,29 @@ msgid ""
 "used.<br> Please request a <a href=\"%(passwd_reset_url)s\">new password "
 "reset</a>."
 msgstr ""
+"Tautan atur ulang kata sandi anda sudah tidak berlaku, kemungkinan karena "
+"sudah digunakan.<br>Silahkan melakukan <a "
+"href=\"%(passwd_reset_url)s\">permintaan reset kata sandi</a>."
 
 #: templates/account/password_reset_from_key.html:24
 msgctxt "Password reset from key form title"
 msgid "Password Reset"
-msgstr ""
+msgstr "Reset Kata Sandi"
 
 #: templates/account/password_reset_from_key.html:25
 msgctxt "Password reset from key form title"
 msgid "Now you can set new password for you account."
-msgstr ""
+msgstr "Silahkan masukan password baru untuk akun anda."
 
 #: templates/account/password_reset_from_key.html:32
 msgctxt "Password reset from key form primary action"
 msgid "Continue"
-msgstr ""
+msgstr "Terus"
 
 #: templates/account/password_reset_from_key.html:39
 msgctxt "Password reset link expired from key form title"
 msgid "Password Reset Link Expired"
-msgstr ""
+msgstr "Tautan atur ulang kata sandi kadaluwarsa"
 
 #: templates/account/password_reset_from_key.html:40
 msgctxt "Password reset from key form title"
@@ -1653,71 +1703,75 @@ msgid ""
 "Sorry but this link is no longer valid. If you forget your password, please "
 "use link below."
 msgstr ""
+"Maaf tetapi tautan ini tidak lagi valid. Jika Anda lupa kata sandi Anda, "
+"silakan gunakan tautan di bawah ini."
 
 #: templates/account/password_reset_from_key.html:42
 msgctxt "Reset my password link"
 msgid "Reset my password"
-msgstr ""
+msgstr "Atur ulang kata sandi"
 
 #: templates/account/password_reset_from_key_done.html:4
 msgctxt "Password reset from key done page title"
 msgid "Password Changed"
-msgstr ""
+msgstr "Kata Sandi Berubah"
 
 #: templates/account/password_reset_from_key_done.html:7
 msgctxt "Password reset from key done title"
 msgid "Password Changed"
-msgstr ""
+msgstr "Kata Sandi Berubah"
 
 #: templates/account/password_reset_from_key_done.html:9
 msgid "Your password is now changed."
-msgstr ""
+msgstr "Kata sandi anda diganti."
 
 #: templates/account/password_reset_from_key_done.html:10
 #, python-format
 msgctxt "Password reset from key done text"
 msgid "You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
 msgstr ""
+"Sekarang anda dapat <a href=\"%(login_url)s\">masuk</a>dengan kata sandi "
+"baru"
 
 #: templates/account/signup.html:6
 msgctxt "Signup page title"
 msgid "Sign Up"
-msgstr ""
+msgstr "Daftar"
 
 #: templates/account/signup.html:17
 msgctxt "Signup form secondary title"
 msgid "Already have an account?"
-msgstr ""
+msgstr "Sudah punya akun?"
 
 #: templates/account/signup.html:21
 msgctxt "Signup form secondary action"
 msgid "Log in"
-msgstr ""
+msgstr "Masuk"
 
 #: templates/account/signup.html:28
 msgctxt "Signup form title"
 msgid "Create an account"
-msgstr ""
+msgstr "Buat Akun"
 
 #: templates/account/signup.html:36
 msgctxt "Signup form primary action"
 msgid "Create an account"
-msgstr ""
+msgstr "Buat Akun"
 
 #: templates/base.html:78 templates/base.html:215
 msgctxt "Main navigation item"
 msgid "Dashboard"
-msgstr ""
+msgstr "Dashboard"
 
 #: templates/base.html:89 templates/base.html:232
 msgctxt "Main navigation item"
 msgid "Stop impersonating"
-msgstr ""
+msgstr "Berhenti menyamar"
 
 #: templates/base.html:95 templates/base.html:238
 msgctxt "Main navigation item"
 msgid "Log out"
-msgstr ""
+msgstr "Keluar"
 
 #: templates/base.html:101 templates/base.html:244
 msgctxt "Main navigation item"
@@ -1727,70 +1781,70 @@ msgstr "Daftar"
 #: templates/base.html:105 templates/base.html:249
 msgctxt "Main navigation item"
 msgid "Log in"
-msgstr ""
+msgstr "Masuk"
 
 #: templates/base.html:136
 msgid "Search for product"
-msgstr ""
+msgstr "Cari Produk"
 
 #: templates/base.html:139
 msgid "Search"
-msgstr ""
+msgstr "Cari"
 
 #: templates/base.html:148 templates/base.html:208
 msgctxt "Main navigation item"
 msgid "Your Cart"
-msgstr ""
+msgstr "Keranjang"
 
 #: templates/base.html:202
 msgid "Account"
-msgstr ""
+msgstr "Akun"
 
 #: templates/base.html:220
 msgctxt "Main navigation item"
 msgid "Style guide"
-msgstr ""
+msgstr "Panduan Styling"
 
 #: templates/cart_dropdown.html:39 templates/checkout/_subtotal_table.html:8
 #: templates/dashboard/order/detail.html:342
 msgctxt "Order subtotal"
 msgid "Subtotal"
-msgstr ""
+msgstr "Subtotal"
 
 #: templates/cart_dropdown.html:40
 msgctxt "Cart dropdown text"
 msgid "Shipment and taxes calculated at checkout"
-msgstr ""
+msgstr "Biaya pengiriman dan pajak dihitung saat checkout"
 
 #: templates/cart_dropdown.html:54
 msgctxt "Cart dropdown secondary action"
 msgid "Go to cart"
-msgstr ""
+msgstr "Ke keranjang"
 
 #: templates/cart_dropdown.html:57
 msgctxt "Cart dropdown primary action"
 msgid "Checkout"
-msgstr ""
+msgstr "Checkout"
 
 #: templates/cart_dropdown.html:62 templates/checkout/index.html:91
 msgctxt "Empty cart message"
 msgid "There are no products in your shopping cart."
-msgstr ""
+msgstr "Tidak ad produk di keranjang anda"
 
 #: templates/cart_dropdown.html:67 templates/checkout/index.html:92
 msgctxt "Empty cart link"
 msgid "Check out our sales"
-msgstr ""
+msgstr "Lihat penjualan kami"
 
 #: templates/category/index.html:7
 msgctxt "Category breadcrumbs home"
 msgid "Home"
-msgstr ""
+msgstr "Rumah"
 
 #: templates/checkout/_subtotal_table.html:32
 msgctxt "Cart shipping cost form"
 msgid "Shipping cost for:"
-msgstr ""
+msgstr "Biaya pengiriman untuk: "
 
 #: templates/checkout/_subtotal_table.html:57
 msgctxt "Order subtotal"
@@ -1800,52 +1854,52 @@ msgstr "Total"
 #: templates/checkout/_subtotal_table.html:58
 msgctxt "Cart summary text"
 msgid "Shipment and taxes calculated at checkout"
-msgstr ""
+msgstr "Biaya pengiriman dan pajak dihitung saat checkout"
 
 #: templates/checkout/details.html:7
 msgctxt "Checkout page title"
 msgid "Checkout"
-msgstr ""
+msgstr "Checkout"
 
 #: templates/checkout/details.html:12
 msgctxt "Checkout top message"
 msgid "Easy and secure!"
-msgstr ""
+msgstr "Mudah dan aman!"
 
 #: templates/checkout/details.html:20
 msgctxt "Checkout title"
 msgid "Checkout"
-msgstr ""
+msgstr "Checkout"
 
 #: templates/checkout/details.html:35
 msgctxt "Order review title"
 msgid "Order review"
-msgstr ""
+msgstr "Ulasan pesanan"
 
 #: templates/checkout/details.html:51
 msgctxt "Order review section"
 msgid "Subtotal"
-msgstr ""
+msgstr "Subtotal"
 
 #: templates/checkout/details.html:61
 msgctxt "Order review section"
 msgid "Shipment"
-msgstr ""
+msgstr "Pengiriman"
 
 #: templates/checkout/details.html:77
 msgctxt "Order review section title"
 msgid "Taxes (included)"
-msgstr ""
+msgstr "Panjak (termasuk)"
 
 #: templates/checkout/details.html:79
 msgctxt "Order review section title"
 msgid "Taxes"
-msgstr ""
+msgstr "Pajak"
 
 #: templates/checkout/details.html:89
 msgctxt "Order review section title"
 msgid "Promo code"
-msgstr ""
+msgstr "Kode Promo"
 
 #: templates/checkout/details.html:95
 msgctxt "Order review section title"
@@ -1855,27 +1909,27 @@ msgstr "Total"
 #: templates/checkout/index.html:7
 msgctxt "Cart page title"
 msgid "Your cart"
-msgstr ""
+msgstr "Keranjang"
 
 #: templates/checkout/index.html:12
 msgctxt "Cart breadcrumb"
 msgid "Cart"
-msgstr ""
+msgstr "Keranjang"
 
 #: templates/checkout/index.html:22
 msgctxt "Cart message"
 msgid "Product has been removed from cart"
-msgstr ""
+msgstr "Produk berhasil dihapus dari keranjang"
 
 #: templates/checkout/index.html:30
 msgctxt "Cart table header"
 msgid "Product"
-msgstr ""
+msgstr "Produk"
 
 #: templates/checkout/index.html:33
 msgctxt "Cart table header"
 msgid "Quantity"
-msgstr ""
+msgstr "Jumlah"
 
 #: templates/checkout/index.html:36
 msgctxt "Cart table header"
@@ -1885,62 +1939,62 @@ msgstr "Harga"
 #: templates/checkout/index.html:81
 msgctxt "Cart primary action"
 msgid "Checkout"
-msgstr ""
+msgstr "Checkout"
 
 #: templates/checkout/index.html:84
 msgctxt "cart page: secondary action, empty the cart"
 msgid "Clear cart"
-msgstr ""
+msgstr "Bersihkan keranjang"
 
 #: templates/checkout/login.html:6
 msgctxt "Checkout login page title"
 msgid "Login"
-msgstr ""
+msgstr "Masuk"
 
 #: templates/checkout/login.html:12
 msgctxt "Checkout login page title"
 msgid "New customer?"
-msgstr ""
+msgstr "Pelanggan baru?"
 
 #: templates/checkout/login.html:18
 msgctxt "Checkout login page new users action"
 msgid "Continue"
-msgstr ""
+msgstr "Terus"
 
 #: templates/checkout/login.html:21
 msgctxt "Checkout login page new users message"
 msgid "Registration is not required!"
-msgstr ""
+msgstr "Pendaftaran tidak dibutuhkan!"
 
 #: templates/checkout/login.html:26
 msgctxt "Checkout login form title"
 msgid "Existing customer? Log in."
-msgstr ""
+msgstr "Pelanggan? Masuk."
 
 #: templates/checkout/payment.html:9
 msgctxt "Checkout payment title"
 msgid "Payment"
-msgstr ""
+msgstr "Pembayaran"
 
 #: templates/checkout/payment.html:13
 msgctxt "Checkout payment primary action"
 msgid "Place order"
-msgstr ""
+msgstr "Tempatkan pesanan"
 
 #: templates/checkout/shipping_address.html:8
 #: templates/checkout/shipping_method.html:7
 msgctxt "Checkout shipping address title"
 msgid "Shipping address"
-msgstr ""
+msgstr "Alamat pengiriman"
 
 #: templates/checkout/shipping_address.html:21
 msgctxt "Checkout shipping address primary action"
 msgid "Continue"
-msgstr ""
+msgstr "Terus"
 
 #: templates/checkout/shipping_method.html:15
 msgid "Select other address"
-msgstr ""
+msgstr "Pilih alamat lain"
 
 #: templates/checkout/shipping_method.html:23
 msgctxt "Checkout shipping method form title"
@@ -1950,7 +2004,7 @@ msgstr "Metode pengiriman"
 #: templates/checkout/shipping_method.html:40
 msgctxt "Checkout shipping method primary action"
 msgid "Continue"
-msgstr ""
+msgstr "Terus"
 
 #: templates/checkout/shipping_method.html:45
 msgctxt ""
@@ -1962,71 +2016,76 @@ msgid ""
 "        Please enter an alternative shipping address or contact us, if you think that's a mistake.\n"
 "      "
 msgstr ""
+"\n"
+"        Sayangnya kami tidak mengirim ke negara pilihan Anda.\n"
+"        <br>\n"
+"        Silakan masukkan alamat pengiriman alternatif atau hubungi kami, jika Anda pikir itu kesalahan.\n"
+"      "
 
 #: templates/checkout/snippets/addresses_form.html:4
 msgctxt "Checkout addresses form label"
 msgid "Same as shipping"
-msgstr ""
+msgstr "Sama dengan pengiriman"
 
 #: templates/checkout/snippets/addresses_form.html:11
 msgctxt "Checkout addresses form label"
 msgid "Enter a new address"
-msgstr ""
+msgstr "Masukkan alamat baru"
 
 #: templates/checkout/snippets/voucher_form.html:14
 msgctxt "Checkout voucher form action"
 msgid "Remove"
-msgstr ""
+msgstr "Hapus"
 
 #: templates/checkout/snippets/voucher_form.html:15
 msgctxt "Checkout voucher form action"
 msgid "(Remove)"
-msgstr ""
+msgstr "(Hapus)"
 
 #: templates/checkout/snippets/voucher_form.html:25
 msgctxt "Checkout voucher form action"
 msgid "Use"
-msgstr ""
+msgstr "Pakai"
 
 #: templates/checkout/summary.html:9
 msgctxt "Checkout summary title"
 msgid "Billing address"
-msgstr ""
+msgstr "Alamat tagihan"
 
 #: templates/checkout/summary.html:11
 msgctxt "Checkout shipping method"
 msgid "Change shipping method"
-msgstr ""
+msgstr "Ubah metode pengiriman"
 
 #: templates/checkout/summary.html:12
 msgctxt "Checkout summary note title"
 msgid "Add a note to your order"
-msgstr ""
+msgstr "Tambahkan catatan ke pesanan Anda"
 
 #: templates/checkout/summary.html:16
 msgctxt "Checkout summary primary action"
 msgid "Order & Pay"
-msgstr ""
+msgstr "Pesan & Bayar"
 
 #: templates/checkout/summary_without_shipping.html:8
 msgctxt "Checkout summary without shipping title"
 msgid "Billing address"
-msgstr ""
+msgstr "Alamat tagihan"
 
 #: templates/checkout/summary_without_shipping.html:15
 msgctxt "Checkout summary without shipping note title"
 msgid "Add a note to your order"
-msgstr ""
+msgstr "Tambahkan catatan ke pesanan Anda"
 
 #: templates/checkout/summary_without_shipping.html:19
 msgctxt "Checkout summary without shipping action"
 msgid "Place order"
-msgstr ""
+msgstr "Tempatkan pesanan"
 
 #: templates/collection/index.html:7
 msgctxt "Site breadcrumbs home"
 msgid "Home"
-msgstr ""
+msgstr "Rumah"
 
 #: templates/collection/index.html:16
 #, python-format
@@ -2035,6 +2094,8 @@ msgid ""
 "<strong>Warning!</strong> You are previewing a collection that will become "
 "visible on <strong>%(date)s</strong>."
 msgstr ""
+"<strong>Peringatan!</strong> Anda melihat pratinjau koleksi yang akan muncul"
+" di<strong>%(date)s</strong>."
 
 #: templates/collection/index.html:21
 msgctxt "Unavailable collection detail text"
@@ -2044,42 +2105,46 @@ msgid ""
 "          You are previewing a collection that is not published.\n"
 "        "
 msgstr ""
+"\n"
+"          <strong>Peringatan!</strong>\n"
+"          Anda mempratinjau koleksi yang tidak dipublikasikan..\n"
+"        "
 
 #: templates/dashboard/base.html:11
 #, python-format
 msgctxt "Dashboard default page title"
 msgid "Dashboard - %(site_name)s"
-msgstr ""
+msgstr "Dasbor - %(site_name)s"
 
 #: templates/dashboard/base.html:42
 msgctxt "Dashboard top navigation action"
 msgid "Visit storefront"
-msgstr ""
+msgstr "Kunjungi etalase"
 
 #: templates/dashboard/base.html:47
 msgctxt "Dashboard top navigation action"
 msgid "Style guide"
-msgstr ""
+msgstr "Panduan Styling"
 
 #: templates/dashboard/base.html:52
 msgctxt "Dashboard top navigation action"
 msgid "Log out"
-msgstr ""
+msgstr "Keluar"
 
 #: templates/dashboard/base.html:81
 msgctxt "Dashboard search"
 msgid "Search"
-msgstr ""
+msgstr "Cari"
 
 #: templates/dashboard/base.html:96 templates/dashboard/base.html:248
 msgctxt "Dashboard homepage"
 msgid "Home"
-msgstr ""
+msgstr "Rumah"
 
 #: templates/dashboard/base.html:102
 msgctxt "Dashboard catalogue"
 msgid "Catalogue"
-msgstr ""
+msgstr "Katalog"
 
 #: templates/dashboard/base.html:107 templates/dashboard/product/form.html:28
 #: templates/dashboard/product/list.html:10
@@ -2109,12 +2174,12 @@ msgstr "Koleksi"
 #: templates/dashboard/base.html:126
 msgctxt "Dashboard discounts list"
 msgid "Discounts"
-msgstr ""
+msgstr "Diskon"
 
 #: templates/dashboard/base.html:131
 msgctxt "Dashboard sales (discounts) list"
 msgid "Sales"
-msgstr ""
+msgstr "Penjualan"
 
 #: templates/dashboard/base.html:136
 #: templates/dashboard/discount/voucher/form.html:12
@@ -2123,12 +2188,12 @@ msgstr ""
 #: templates/dashboard/discount/voucher/list.html:19
 msgctxt "Dashboard vouchers list"
 msgid "Vouchers"
-msgstr ""
+msgstr "Voucher"
 
 #: templates/dashboard/base.html:145
 msgctxt "Dashboard sales. `Sales' is noun of to sell"
 msgid "Sales"
-msgstr ""
+msgstr "Penjualan"
 
 #: templates/dashboard/base.html:151
 #: templates/dashboard/order/address_form.html:7
@@ -2141,7 +2206,7 @@ msgstr ""
 #: templates/dashboard/order/list.html:29
 msgctxt "Dashboard orders list"
 msgid "Orders"
-msgstr ""
+msgstr "Pesanan"
 
 #: templates/dashboard/base.html:158
 #: templates/dashboard/customer/detail.html:9
@@ -2151,22 +2216,22 @@ msgstr ""
 #: templates/dashboard/customer/list.html:26
 msgctxt "Dashboard customers list"
 msgid "Customers"
-msgstr ""
+msgstr "Pelanggan"
 
 #: templates/dashboard/base.html:168
 msgctxt "Management section"
 msgid "Staff management"
-msgstr ""
+msgstr "Kelola staf"
 
 #: templates/dashboard/base.html:173
 msgctxt "Dashboard staff members list"
 msgid "Staff members"
-msgstr ""
+msgstr "Anggota staf"
 
 #: templates/dashboard/base.html:182
 msgctxt "Dashboard configuration"
 msgid "Configuration"
-msgstr ""
+msgstr "Konfigurasi"
 
 #: templates/dashboard/base.html:188
 #: templates/dashboard/product/product_type/form.html:28
@@ -2174,7 +2239,7 @@ msgstr ""
 #: templates/dashboard/product/product_type/list.html:28
 msgctxt "Dashboard product types list"
 msgid "Product types"
-msgstr ""
+msgstr "Type produk"
 
 #: templates/dashboard/base.html:193
 #: templates/dashboard/product/attribute/form.html:29
@@ -2183,12 +2248,12 @@ msgstr ""
 #: templates/dashboard/product/attribute/values/form.html:29
 msgctxt "Dashboard attributes list"
 msgid "Attributes"
-msgstr ""
+msgstr "Atribut"
 
 #: templates/dashboard/base.html:200
 msgctxt "Dashboard shipping zones list"
 msgid "Shipping"
-msgstr ""
+msgstr "pengiriman"
 
 #: templates/dashboard/base.html:207 templates/dashboard/menu/detail.html:23
 #: templates/dashboard/menu/form.html:12 templates/dashboard/menu/form.html:31
@@ -2198,28 +2263,28 @@ msgstr ""
 #: templates/dashboard/menu/list.html:32
 msgctxt "Dashboard menus list"
 msgid "Navigation"
-msgstr ""
+msgstr "Navigasi"
 
 #: templates/dashboard/base.html:214 templates/dashboard/sites/form.html:11
 #: templates/dashboard/taxes/form.html:12
 msgctxt "Dashboard site settings"
 msgid "Site settings"
-msgstr ""
+msgstr "Pengaturan situs"
 
 #: templates/dashboard/base.html:220
 msgctxt "Dashboard taxes"
 msgid "Taxes"
-msgstr ""
+msgstr "Pajak"
 
 #: templates/dashboard/base.html:226
 msgctxt "Dashboard static pages"
 msgid "Pages"
-msgstr ""
+msgstr "Halaman"
 
 #: templates/dashboard/base.html:234
 msgctxt "Dashboard software version"
 msgid "Void:"
-msgstr ""
+msgstr "Kosong:"
 
 #: templates/dashboard/base_modal.html:33
 #: templates/dashboard/category/form.html:114
@@ -2231,7 +2296,7 @@ msgstr ""
 #: templates/dashboard/menu/form.html:60
 #: templates/dashboard/menu/item/form.html:82
 #: templates/dashboard/order/address_form.html:61
-#: templates/dashboard/order/fulfillment.html:133
+#: templates/dashboard/order/fulfillment.html:136
 #: templates/dashboard/product/attribute/form.html:77
 #: templates/dashboard/product/attribute/form.html:84
 #: templates/dashboard/product/attribute/values/form.html:78
@@ -2250,7 +2315,7 @@ msgstr ""
 #: templates/dashboard/taxes/form.html:100
 msgctxt "Dashboard cancel action"
 msgid "Cancel"
-msgstr ""
+msgstr "Batal"
 
 #: templates/dashboard/category/detail.html:8
 #: templates/dashboard/category/list.html:9
@@ -2266,17 +2331,17 @@ msgstr "Deskripsi"
 #: templates/dashboard/category/detail.html:94
 msgctxt "Category detail view action"
 msgid "Edit category"
-msgstr ""
+msgstr "Edit kategori"
 
 #: templates/dashboard/category/detail.html:97
 msgctxt "Category detail view action"
 msgid "Remove category"
-msgstr ""
+msgstr "Hapus kategori"
 
 #: templates/dashboard/category/detail.html:104
 msgctxt "Title of the subcategories list"
 msgid "Subcategories"
-msgstr ""
+msgstr "Sub Kategori"
 
 #: templates/dashboard/category/detail.html:109
 #: templates/dashboard/includes/_menu_items.html:14
@@ -2285,7 +2350,7 @@ msgstr ""
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:13
 #: templates/dashboard/sites/detail.html:79
 msgid "Add"
-msgstr ""
+msgstr "Tambah"
 
 #: templates/dashboard/category/detail.html:116
 #: templates/dashboard/category/list.html:49
@@ -2302,43 +2367,43 @@ msgstr "Deskripsi"
 #: templates/dashboard/category/detail.html:140
 msgctxt "Category edit action"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/category/detail.html:143
 msgctxt "Category list action link"
 msgid "Remove"
-msgstr ""
+msgstr "Hapus"
 
 #: templates/dashboard/category/detail.html:149
 msgctxt "Empty list of categories"
 msgid "No subcategories"
-msgstr ""
+msgstr "Tidak ada sub kategori"
 
 #: templates/dashboard/category/form.html:9
 msgctxt "Category form page title"
 msgid "Edit category"
-msgstr ""
+msgstr "Edit kategori"
 
 #: templates/dashboard/category/form.html:11
 msgctxt "Category detail page title"
 msgid "Add new category"
-msgstr ""
+msgstr "Tambah kategori baru"
 
 #: templates/dashboard/category/form.html:24
 msgctxt "Category form page title"
 msgid "Add new category"
-msgstr ""
+msgstr "Tambah kategori baru"
 
 #: templates/dashboard/category/form.html:55
 msgctxt "Category form page title"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/category/form.html:61
 #: templates/dashboard/category/form.html:77
 msgctxt "Category detail breadcrumbs"
 msgid "Add new category"
-msgstr ""
+msgstr "Tambah kategori baru"
 
 #: templates/dashboard/category/form.html:123
 #: templates/dashboard/customer/form.html:62
@@ -2354,7 +2419,7 @@ msgstr ""
 #: templates/dashboard/taxes/form.html:103
 msgctxt "Dashboard update action"
 msgid "Update"
-msgstr ""
+msgstr "Perbaruan"
 
 #: templates/dashboard/category/form.html:127
 #: templates/dashboard/discount/sale/form.html:123
@@ -2372,35 +2437,35 @@ msgstr ""
 #: templates/dashboard/sites/authorization_keys/form.html:79
 msgctxt "Dashboard create action"
 msgid "Create"
-msgstr ""
+msgstr "Buat"
 
 #: templates/dashboard/category/list.html:22
 msgctxt "Category list add button text"
 msgid "Add category"
-msgstr ""
+msgstr "Tambah kategori"
 
 #: templates/dashboard/category/list.html:83
 msgctxt "Empty category list message"
 msgid "No categories found."
-msgstr ""
+msgstr "Kategori tidak ditemukan"
 
 #: templates/dashboard/category/modal/confirm_delete.html:13
 #, python-format
 msgctxt "Remove category modal title"
 msgid "Remove category %(category)s"
-msgstr ""
+msgstr "Hapus kategori %(category)s"
 
 #: templates/dashboard/category/modal/confirm_delete.html:20
 #, python-format
 msgctxt "Remove category modal title"
 msgid ""
 "Are you sure you want to remove category <strong>%(category)s</strong>?"
-msgstr ""
+msgstr "Anda yakin ingin menghapus kategori <strong>%(category)s</strong>?"
 
 #: templates/dashboard/category/modal/confirm_delete.html:25
 msgctxt "Delete category form text about descendant categories"
 msgid "The following child categories will be removed:"
-msgstr ""
+msgstr "Cabang kategori berikut akan dihapus:"
 
 #: templates/dashboard/category/modal/confirm_delete.html:38
 #, python-format
@@ -2431,11 +2496,11 @@ msgstr[0] "Ada %(counter)s produk dalam kategori ini yang akan dibuang."
 #: templates/dashboard/staff/modal/confirm_delete.html:24
 msgctxt "Dashboard delete action"
 msgid "Remove"
-msgstr ""
+msgstr "Hapus"
 
 #: templates/dashboard/category/zero_page.html:5
 msgid "No categories found."
-msgstr ""
+msgstr "Kategori tidak ditemukan"
 
 #: templates/dashboard/category/zero_page.html:8
 #, python-format
@@ -2445,25 +2510,29 @@ msgid ""
 "    You can create categories by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
 "  "
 msgstr ""
+"\n"
+"    Kategori digunakan untuk mengatur produk menjadi grup yang ditampilkan dalam navigasi di etalase.<br>\n"
+"    Anda dapat membuat kategori dengan menggunakan tombol <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span>.\n"
+"  "
 
 #: templates/dashboard/collection/confirm_delete.html:12
 #, python-format
 msgctxt "Modal remove collection text"
 msgid "Remove collection %(collection)s"
-msgstr ""
+msgstr "Hapus koleksi %(collection)s"
 
 #: templates/dashboard/collection/confirm_delete.html:19
 #, python-format
 msgctxt "Modal remove collection text"
 msgid ""
 "Are you sure you want to remove collection <strong>%(collection)s</strong>?"
-msgstr ""
+msgstr "Anda yakin ingin menghapus koleksi <strong>%(collection)s</strong>?"
 
 #: templates/dashboard/collection/detail.html:8
 #: templates/dashboard/collection/detail.html:14
 #: templates/dashboard/collection/detail.html:20
 msgid "Add new collection"
-msgstr ""
+msgstr "Tambah koleksi baru"
 
 #: templates/dashboard/collection/detail.html:8
 #: templates/dashboard/collection/detail.html:18
@@ -2474,7 +2543,7 @@ msgstr "Koleksi"
 #: templates/dashboard/collection/detail.html:32
 msgctxt "Collection action"
 msgid "Remove collection"
-msgstr ""
+msgstr "Hapus koleksi"
 
 #: templates/dashboard/collection/detail.html:37
 msgctxt "Collection action"
@@ -2484,22 +2553,22 @@ msgstr ""
 #: templates/dashboard/collection/detail.html:66
 msgctxt "Collection form card title: availability sub form"
 msgid "Availability"
-msgstr ""
+msgstr "Ketersediaan"
 
 #: templates/dashboard/collection/detail.html:77
 msgctxt "Collection secondary action"
 msgid "Cancel"
-msgstr ""
+msgstr "Batal"
 
 #: templates/dashboard/collection/detail.html:80
 msgctxt "Collection detail action"
 msgid "Update"
-msgstr ""
+msgstr "Perbaruan"
 
 #: templates/dashboard/collection/detail.html:84
 msgctxt "Collection detail action"
 msgid "Create"
-msgstr ""
+msgstr "Buat"
 
 #: templates/dashboard/collection/detail.html:106
 msgctxt "Collection field"
@@ -2509,12 +2578,12 @@ msgstr "Diterbitkan"
 #: templates/dashboard/collection/detail.html:108
 msgctxt "Collection field"
 msgid "Draft"
-msgstr ""
+msgstr "Draf"
 
 #: templates/dashboard/collection/detail.html:116
 msgctxt "Collection field"
 msgid "Can't unpublish homepage collection"
-msgstr ""
+msgstr "Tidak dapat membatalkan publikasi koleksi beranda"
 
 #: templates/dashboard/collection/list.html:10
 msgctxt "Collections list page title "
@@ -2524,7 +2593,7 @@ msgstr "Koleksi"
 #: templates/dashboard/collection/list.html:25
 msgctxt "Collections list add button text"
 msgid "Add collection"
-msgstr ""
+msgstr "Tambah koleksi"
 
 #: templates/dashboard/collection/list.html:40
 msgctxt "Collections list table header name"
@@ -2534,34 +2603,34 @@ msgstr "Nama"
 #: templates/dashboard/collection/list.html:43
 msgctxt "Voucher table header"
 msgid "Number of products"
-msgstr ""
+msgstr "Jumlah produk"
 
 #: templates/dashboard/collection/list.html:46
 msgctxt "Collections list table header"
 msgid "Visibility"
-msgstr ""
+msgstr "Visibilitas"
 
 #: templates/dashboard/collection/list.html:58
 msgid "Products in collection:"
-msgstr ""
+msgstr "Produk dalam koleksi:"
 
 #: templates/dashboard/collection/list.html:79
 msgctxt "Empty collection list message"
 msgid "No collections found."
-msgstr ""
+msgstr "Tidak ada koleksi yang ditemukan."
 
 #: templates/dashboard/collection/list.html:92
 msgid "Homepage collection"
-msgstr ""
+msgstr "Koleksi beranda"
 
 #: templates/dashboard/collection/list.html:102
 msgctxt "Homepage collection save"
 msgid "Save"
-msgstr ""
+msgstr "Simpan"
 
 #: templates/dashboard/collection/zero_page.html:5
 msgid "No collections found."
-msgstr ""
+msgstr "Tidak ada koleksi yang ditemukan."
 
 #: templates/dashboard/collection/zero_page.html:8
 #, python-format
@@ -2575,7 +2644,7 @@ msgstr ""
 #: templates/dashboard/customer/detail.html:56
 msgctxt "Customer field"
 msgid "Date joined"
-msgstr ""
+msgstr "Tanggal bergabung"
 
 #: templates/dashboard/customer/detail.html:68
 msgctxt "Customer field"
@@ -2585,12 +2654,12 @@ msgstr "Catatan"
 #: templates/dashboard/customer/detail.html:79
 msgctxt "Customer action"
 msgid "Edit customer"
-msgstr ""
+msgstr "Edit pelanggan"
 
 #: templates/dashboard/customer/detail.html:82
 msgctxt "Customer action"
 msgid "Remove customer"
-msgstr ""
+msgstr "Hapus pelanggan"
 
 #: templates/dashboard/customer/detail.html:86
 msgctxt "Customer impersonate action"
@@ -2600,17 +2669,17 @@ msgstr ""
 #: templates/dashboard/customer/detail.html:95
 msgctxt "Customer recent orders table title"
 msgid "Recent orders"
-msgstr ""
+msgstr "Pesanan terbaru"
 
 #: templates/dashboard/customer/detail.html:104
 msgctxt "Customer orders table header"
 msgid "Number"
-msgstr ""
+msgstr "Nomor"
 
 #: templates/dashboard/customer/detail.html:107
 msgctxt "Customer orders table header"
 msgid "Placed on"
-msgstr ""
+msgstr "Ditempatkan di"
 
 #: templates/dashboard/customer/detail.html:110
 msgctxt "Customer orders table header"
@@ -2625,47 +2694,47 @@ msgstr "Total"
 #: templates/dashboard/customer/detail.html:140
 msgctxt "Empty customer orders table message"
 msgid "No orders found."
-msgstr ""
+msgstr "Tidak ditemukan pesanan"
 
 #: templates/dashboard/customer/detail.html:149
 msgctxt "Customer notes card title"
 msgid "Customer notes"
-msgstr ""
+msgstr "Catatan pelanggan"
 
 #: templates/dashboard/customer/detail.html:162
 msgctxt "Customer without notes message"
 msgid "There are no notes associated with this customer"
-msgstr ""
+msgstr "Tidak ada catatan yang terkait dengan pelanggan ini"
 
 #: templates/dashboard/customer/detail.html:168
 msgctxt "Customer notes card action"
 msgid "Add note"
-msgstr ""
+msgstr "Tambah catatan"
 
 #: templates/dashboard/customer/detail.html:181
 msgctxt "Customer default shipping address card title"
 msgid "Default shipping address"
-msgstr ""
+msgstr "Alamat pengiriman utama"
 
 #: templates/dashboard/customer/detail.html:188
 msgctxt "Customer without default shipping address message"
 msgid "No default shipping address."
-msgstr ""
+msgstr "Tidak ada alamat pengiriman utama"
 
 #: templates/dashboard/customer/detail.html:201
 msgctxt "Customer default billing address card title"
 msgid "Default billing address"
-msgstr ""
+msgstr "Alamat penagihan utama"
 
 #: templates/dashboard/customer/detail.html:209
 msgctxt "Customer without default billing address message"
 msgid "No default billing address."
-msgstr ""
+msgstr "Tidak ada alamat penagihan utama."
 
 #: templates/dashboard/customer/form.html:10
 msgctxt "Dashboard add customer"
 msgid "Add new customer"
-msgstr ""
+msgstr "Tambah pelanggan baru"
 
 #: templates/dashboard/customer/form.html:12
 #: templates/dashboard/search/results.html:89
@@ -2676,23 +2745,23 @@ msgstr "Pelanggan"
 #: templates/dashboard/customer/form.html:36
 msgctxt "Dashboard add customer action"
 msgid "Add customer"
-msgstr ""
+msgstr "Tambah pelanggan"
 
 #: templates/dashboard/customer/form.html:47
 msgctxt "Customer details header"
 msgid "Customer details"
-msgstr ""
+msgstr "Detil pelanggan"
 
 #: templates/dashboard/customer/form.html:69
 #: templates/dashboard/staff/detail.html:79
 msgctxt "Dashboard add action"
 msgid "Add"
-msgstr ""
+msgstr "Tambah"
 
 #: templates/dashboard/customer/list.html:17
 msgctxt "Customer list add button text"
 msgid "Add customer"
-msgstr ""
+msgstr "Tambah pelanggan"
 
 #: templates/dashboard/customer/list.html:40
 msgctxt "Customers table header"
@@ -2712,19 +2781,19 @@ msgstr "Lokasi"
 #: templates/dashboard/customer/list.html:86
 msgctxt "Empty customers table message"
 msgid "No customers found."
-msgstr ""
+msgstr "Belum ditemukan pelanggan "
 
 #: templates/dashboard/customer/modal/add_note.html:11
 #: templates/dashboard/order/modal/add_note.html:11
 msgctxt "Modal add note title"
 msgid "Add note"
-msgstr ""
+msgstr "Tambah catatan"
 
 #: templates/dashboard/customer/modal/add_note.html:19
 #: templates/dashboard/order/modal/add_note.html:19
 msgctxt "Modal add note primary action"
 msgid "Save note"
-msgstr ""
+msgstr "Simpan catatan"
 
 #: templates/dashboard/customer/modal/confirm_delete.html:12
 #, python-format
@@ -2760,7 +2829,7 @@ msgstr ""
 
 #: templates/dashboard/customer/zero_page.html:5
 msgid "No customers found."
-msgstr ""
+msgstr "Tidak ditemukan pelanggan "
 
 #: templates/dashboard/customer/zero_page.html:8
 msgid ""
@@ -2779,7 +2848,7 @@ msgstr ""
 #: templates/dashboard/discount/sale/list.html:18
 msgctxt "Dashboard sales (discounts) list."
 msgid "Sales"
-msgstr ""
+msgstr "Penjualan"
 
 #: templates/dashboard/discount/sale/form.html:32
 msgctxt "Sale (discount) action"
@@ -2793,7 +2862,7 @@ msgstr ""
 
 #: templates/dashboard/discount/sale/list.html:9
 msgid "Sales"
-msgstr ""
+msgstr "Penjualan"
 
 #: templates/dashboard/discount/sale/list.html:27
 msgctxt "Sale (discount) list add button text"
@@ -2902,7 +2971,7 @@ msgstr ""
 #: templates/dashboard/discount/voucher/list.html:105
 msgctxt "Empty vouchers table message"
 msgid "No vouchers found"
-msgstr ""
+msgstr "Tidak ada voucher"
 
 #: templates/dashboard/discount/voucher/modal/confirm_delete.html:12
 #, python-format
@@ -2914,11 +2983,11 @@ msgstr ""
 #, python-format
 msgctxt "Remove voucher text"
 msgid "Are you sure you want to remove voucher <strong>%(voucher)s</strong>?"
-msgstr ""
+msgstr "Anda yakin ingin menghapus voucher <strong>%(voucher)s</strong>?"
 
 #: templates/dashboard/discount/voucher/zero_page.html:5
 msgid "No vouchers found."
-msgstr ""
+msgstr "Tidak ada voucher."
 
 #: templates/dashboard/discount/voucher/zero_page.html:8
 #, python-format
@@ -3001,12 +3070,12 @@ msgstr "Tidak diterbitkan"
 #: templates/dashboard/includes/_menu_items.html:56
 msgctxt "Menu item edit action"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/includes/_menu_items.html:59
 msgctxt "Menu item list action link"
 msgid "Remove"
-msgstr ""
+msgstr "Hapus"
 
 #: templates/dashboard/includes/_menu_items.html:65
 msgctxt "Empty list of menu items"
@@ -3048,7 +3117,7 @@ msgstr ""
 #: templates/dashboard/index.html:28 templates/dashboard/order/list.html:44
 msgctxt "Orders table header"
 msgid "Placed on"
-msgstr ""
+msgstr "Ditempatkan di"
 
 #: templates/dashboard/index.html:31 templates/dashboard/order/list.html:47
 msgctxt "Orders table header"
@@ -3089,12 +3158,12 @@ msgstr ""
 #: templates/dashboard/index.html:92
 msgctxt "Preauthorized payments table header"
 msgid "Order"
-msgstr ""
+msgstr "Pesanan"
 
 #: templates/dashboard/index.html:95
 msgctxt "Preauthorized payments table header"
 msgid "Date"
-msgstr ""
+msgstr "Tanggal"
 
 #: templates/dashboard/index.html:98
 msgctxt "Preauthorized payments table header"
@@ -3138,7 +3207,7 @@ msgstr ""
 #: templates/dashboard/menu/detail.html:7 templates/dashboard/menu/list.html:9
 msgctxt "Menu list page title"
 msgid "Navigation"
-msgstr ""
+msgstr "Navigasi"
 
 #: templates/dashboard/menu/detail.html:50
 msgctxt "Menu detail view action"
@@ -3204,7 +3273,7 @@ msgstr ""
 #: templates/dashboard/menu/item/form.html:56
 msgctxt "Menu form page title"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/menu/item/form.html:62
 msgctxt "Menu form page title"
@@ -3262,7 +3331,7 @@ msgstr ""
 #: templates/dashboard/sites/authorization_keys/form.html:75
 msgctxt "Dashboard update action"
 msgid "Save"
-msgstr ""
+msgstr "Simpan"
 
 #: templates/dashboard/menu/modal/confirm_delete.html:12
 #, python-format
@@ -3297,19 +3366,19 @@ msgstr ""
 #: templates/dashboard/order/address_form.html:7
 msgctxt ""
 msgid "Edit address"
-msgstr ""
+msgstr "Edit alamat"
 
 #: templates/dashboard/order/address_form.html:39
 #: templates/dashboard/order/detail.html:217
 msgctxt ""
 msgid "Shipping address"
-msgstr ""
+msgstr "Alamat pengiriman"
 
 #: templates/dashboard/order/address_form.html:41
 #: templates/dashboard/order/detail.html:233
 msgctxt ""
 msgid "Billing address"
-msgstr ""
+msgstr "Alamat tagihan"
 
 #: templates/dashboard/order/detail.html:32
 msgctxt "Order detail action"
@@ -3329,16 +3398,16 @@ msgstr ""
 #: templates/dashboard/order/detail.html:79
 msgctxt "Order detail tab"
 msgid "Details"
-msgstr ""
+msgstr "Detail"
 
 #: templates/dashboard/order/detail.html:87
-#: templates/dashboard/order/detail.html:571
+#: templates/dashboard/order/detail.html:575
 msgctxt "Order detail tab"
 msgid "Payments"
 msgstr ""
 
 #: templates/dashboard/order/detail.html:95
-#: templates/dashboard/order/detail.html:621
+#: templates/dashboard/order/detail.html:625
 msgctxt "Order detail tab"
 msgid "History"
 msgstr ""
@@ -3376,17 +3445,17 @@ msgstr ""
 #: templates/dashboard/order/detail.html:163
 msgctxt "Order summary card action"
 msgid "Capture"
-msgstr ""
+msgstr "Rekaman"
 
 #: templates/dashboard/order/detail.html:168
 msgctxt "Order summary card action"
 msgid "Refund"
-msgstr ""
+msgstr "Pengembalian dana"
 
 #: templates/dashboard/order/detail.html:173
 msgctxt "Order summary card action"
 msgid "Void"
-msgstr ""
+msgstr "Kosong"
 
 #: templates/dashboard/order/detail.html:178
 msgctxt "Order detail action"
@@ -3410,7 +3479,7 @@ msgstr ""
 #: templates/dashboard/product/product_image/list.html:127
 msgctxt "Dashboard edit action"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/order/detail.html:227
 msgctxt "Missing shipping address message"
@@ -3442,10 +3511,10 @@ msgstr ""
 #: templates/dashboard/order/detail.html:270
 msgctxt "Order placed on date"
 msgid "Placed on"
-msgstr ""
+msgstr "Ditempatkan di"
 
 #: templates/dashboard/order/detail.html:280
-#: templates/dashboard/order/detail.html:473
+#: templates/dashboard/order/detail.html:477
 #: templates/dashboard/order/pdf/packing_slip.html:58
 msgctxt "Order table header"
 msgid "Item"
@@ -3457,11 +3526,11 @@ msgid "Price"
 msgstr "Harga"
 
 #: templates/dashboard/order/detail.html:286
-#: templates/dashboard/order/detail.html:476
+#: templates/dashboard/order/detail.html:480
 #: templates/dashboard/order/pdf/packing_slip.html:64
 msgctxt "Order table header"
 msgid "Quantity"
-msgstr ""
+msgstr "Jumlah"
 
 #: templates/dashboard/order/detail.html:289
 msgctxt "Order table header"
@@ -3487,206 +3556,206 @@ msgctxt "Order table row action"
 msgid "Remove line"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:347
+#: templates/dashboard/order/detail.html:348
 msgctxt "Order totals action"
 msgid "Edit shipping"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:349
-#: templates/dashboard/order/detail.html:358
+#: templates/dashboard/order/detail.html:350
+#: templates/dashboard/order/detail.html:359
 #, python-format
 msgctxt "Order totals header"
 msgid "Shipping (%(shipping_name)s)"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:353
-#: templates/dashboard/order/detail.html:362
+#: templates/dashboard/order/detail.html:354
+#: templates/dashboard/order/detail.html:363
 msgctxt "Order totals header"
 msgid "Shipping"
-msgstr ""
-
-#: templates/dashboard/order/detail.html:368
-msgctxt "Order total taxes"
-msgid "Taxes (included)"
-msgstr ""
+msgstr "pengiriman"
 
 #: templates/dashboard/order/detail.html:370
 msgctxt "Order total taxes"
-msgid "Taxes"
-msgstr ""
+msgid "Taxes (included)"
+msgstr "Panjak (termasuk)"
 
-#: templates/dashboard/order/detail.html:378
-#: templates/dashboard/order/detail.html:402
+#: templates/dashboard/order/detail.html:372
+msgctxt "Order total taxes"
+msgid "Taxes"
+msgstr "Pajak"
+
+#: templates/dashboard/order/detail.html:380
+#: templates/dashboard/order/detail.html:404
 #, python-format
 msgctxt "Order totals header"
 msgid "Discount (%(voucher)s)"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:382
-#: templates/dashboard/order/detail.html:406
+#: templates/dashboard/order/detail.html:384
+#: templates/dashboard/order/detail.html:408
 msgctxt "Order totals header"
 msgid "Discount"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:389
+#: templates/dashboard/order/detail.html:391
 msgctxt "Order totals action"
 msgid "Edit voucher"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:390
+#: templates/dashboard/order/detail.html:392
 msgctxt "Order detail action"
 msgid "Edit voucher"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:395
+#: templates/dashboard/order/detail.html:397
 msgctxt "Order totals action"
 msgid "Edit discount"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:396
+#: templates/dashboard/order/detail.html:398
 msgctxt "Order detail action"
 msgid "Edit discount"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:411
+#: templates/dashboard/order/detail.html:413
 msgctxt "Order totals header"
 msgid "Grand total"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:432
+#: templates/dashboard/order/detail.html:436
 msgctxt "Order summary card action title"
 msgid "Fulfill order"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:433
+#: templates/dashboard/order/detail.html:437
 msgctxt "Order summary card action"
 msgid "Fulfill"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:437
+#: templates/dashboard/order/detail.html:441
 msgctxt "Order summary card action title"
 msgid "Add product to order"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:438
+#: templates/dashboard/order/detail.html:442
 msgctxt "Order summary card action"
 msgid "Add product"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:443
+#: templates/dashboard/order/detail.html:447
 msgctxt "Order summary card action title"
 msgid "Create order"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:444
+#: templates/dashboard/order/detail.html:448
 msgctxt "Order summary card action"
 msgid "Create order"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:450
+#: templates/dashboard/order/detail.html:454
 msgctxt "Order detail action"
 msgid "Invoice"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:453
+#: templates/dashboard/order/detail.html:457
 msgctxt "Order detail action"
 msgid "View on site"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:462
+#: templates/dashboard/order/detail.html:466
 #, python-format
 msgctxt "Fulfillment table title"
 msgid "Fulfillment #%(fulfillment)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:494
+#: templates/dashboard/order/detail.html:498
 #, python-format
 msgctxt "Fulfillment table text"
 msgid "Tracking number: %(tracking)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:506
+#: templates/dashboard/order/detail.html:510
 msgctxt "Fulfillment summary card action title"
 msgid "Cancel fulfillment"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:507
+#: templates/dashboard/order/detail.html:511
 msgctxt "Fulfillment summary card action"
 msgid "Cancel"
-msgstr ""
+msgstr "Batal"
 
-#: templates/dashboard/order/detail.html:510
+#: templates/dashboard/order/detail.html:514
 msgctxt "Fulfillment summary card action title"
 msgid "Edit tracking number"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:512
+#: templates/dashboard/order/detail.html:516
 msgctxt "Fulfillment summary card action"
 msgid "Edit tracking"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:514
+#: templates/dashboard/order/detail.html:518
 msgctxt "Fulfillment summary card action"
 msgid "Add tracking"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:519
+#: templates/dashboard/order/detail.html:523
 msgctxt "Order detail action"
 msgid "Packing Slips"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:529
+#: templates/dashboard/order/detail.html:533
 msgctxt "Customer order note card title"
 msgid "Customer note"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:535
+#: templates/dashboard/order/detail.html:539
 msgctxt "No customer order note card message"
 msgid "There is no note from the customer associated with this order."
 msgstr ""
 
-#: templates/dashboard/order/detail.html:544
+#: templates/dashboard/order/detail.html:548
 msgctxt "Order notes card title"
 msgid "Order notes"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:557
+#: templates/dashboard/order/detail.html:561
 msgctxt "Empty order notes card message"
 msgid "There are no notes associated with this order."
 msgstr ""
 
-#: templates/dashboard/order/detail.html:563
+#: templates/dashboard/order/detail.html:567
 msgctxt "Order notes card action"
 msgid "Add note"
-msgstr ""
+msgstr "Tambah catatan"
 
-#: templates/dashboard/order/detail.html:578
+#: templates/dashboard/order/detail.html:582
 msgctxt "Payment history table header"
 msgid "Transaction ID"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:581
+#: templates/dashboard/order/detail.html:585
 msgctxt "Payment history table header"
 msgid "Date"
-msgstr ""
+msgstr "Tanggal"
 
-#: templates/dashboard/order/detail.html:584
+#: templates/dashboard/order/detail.html:588
 msgctxt "Payment history table header"
 msgid "Payment status"
 msgstr "Status pembayaran"
 
-#: templates/dashboard/order/detail.html:587
+#: templates/dashboard/order/detail.html:591
 msgctxt "Payment history table header"
 msgid "Amount"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:595
+#: templates/dashboard/order/detail.html:599
 #, python-format
 msgctxt "Payment item column data"
 msgid "#%(payment_id)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:616
+#: templates/dashboard/order/detail.html:620
 msgctxt "Empty payment history table message"
 msgid "No payments made for this order."
 msgstr ""
@@ -3712,7 +3781,7 @@ msgstr ""
 #: templates/dashboard/order/modal/cancel_line.html:34
 msgctxt "Modal remove order line table header"
 msgid "Quantity"
-msgstr ""
+msgstr "Jumlah"
 
 #: templates/dashboard/order/fulfillment.html:105
 #, python-format
@@ -3720,7 +3789,7 @@ msgctxt "Fulfill order table quantity unfulfilled"
 msgid "of %(quantity_unfulfilled)s"
 msgstr ""
 
-#: templates/dashboard/order/fulfillment.html:136
+#: templates/dashboard/order/fulfillment.html:139
 msgctxt "Dashboard update action"
 msgid "Fulfill"
 msgstr ""
@@ -3733,7 +3802,7 @@ msgstr ""
 #: templates/dashboard/order/list.html:98
 msgctxt "Empty order list message"
 msgid "No orders found."
-msgstr ""
+msgstr "Tidak ditemukan pesanan"
 
 #: templates/dashboard/order/modal/add_variant_to_order.html:11
 #, python-format
@@ -3744,7 +3813,7 @@ msgstr ""
 #: templates/dashboard/order/modal/add_variant_to_order.html:22
 msgctxt "Modal order add variant primary action"
 msgid "Add"
-msgstr ""
+msgstr "Tambah"
 
 #: templates/dashboard/order/modal/cancel_fulfillment.html:11
 #, python-format
@@ -3842,7 +3911,7 @@ msgstr ""
 #: templates/dashboard/order/modal/capture.html:35
 msgctxt "Modal capture payment primary action"
 msgid "Capture"
-msgstr ""
+msgstr "Rekaman"
 
 #: templates/dashboard/order/modal/change_quantity.html:11
 msgctxt "Modal change quantity title"
@@ -3865,7 +3934,7 @@ msgstr ""
 #: templates/dashboard/order/modal/create_order.html:26
 msgctxt "Modal create order primary action"
 msgid "Create"
-msgstr ""
+msgstr "Buat"
 
 #: templates/dashboard/order/modal/edit_customer.html:11
 msgctxt "Modal edit customer title"
@@ -3887,7 +3956,7 @@ msgstr ""
 #: templates/dashboard/order/modal/edit_customer.html:40
 msgctxt "Modal edit customer primary action"
 msgid "Update"
-msgstr ""
+msgstr "Perbaruan"
 
 #: templates/dashboard/order/modal/edit_discount.html:11
 msgctxt "Modal edit discount title"
@@ -3897,7 +3966,7 @@ msgstr ""
 #: templates/dashboard/order/modal/edit_discount.html:21
 msgctxt "Modal edit discount primary action"
 msgid "Update"
-msgstr ""
+msgstr "Perbaruan"
 
 #: templates/dashboard/order/modal/edit_shipping.html:11
 msgctxt "Modal edit shipping title"
@@ -3912,7 +3981,7 @@ msgstr ""
 #: templates/dashboard/order/modal/edit_shipping.html:29
 msgctxt "Modal edit shipping primary action"
 msgid "Update"
-msgstr ""
+msgstr "Perbaruan"
 
 #: templates/dashboard/order/modal/edit_voucher.html:11
 msgctxt "Modal edit voucher title"
@@ -3927,7 +3996,7 @@ msgstr ""
 #: templates/dashboard/order/modal/edit_voucher.html:29
 msgctxt "Modal edit voucher primary action"
 msgid "Update"
-msgstr ""
+msgstr "Perbaruan"
 
 #: templates/dashboard/order/modal/fulfillment_tracking.html:12
 msgctxt "Modal change fulfillment tracking title"
@@ -3942,12 +4011,12 @@ msgstr ""
 #: templates/dashboard/order/modal/fulfillment_tracking.html:27
 msgctxt "Modal change fulfillment tracking primary action"
 msgid "Update"
-msgstr ""
+msgstr "Perbaruan"
 
 #: templates/dashboard/order/modal/fulfillment_tracking.html:29
 msgctxt "Modal change fulfillment tracking primary action"
 msgid "Save"
-msgstr ""
+msgstr "Simpan"
 
 #: templates/dashboard/order/modal/mark_as_paid.html:12
 msgctxt "Modal mark order as paid title"
@@ -4002,7 +4071,7 @@ msgstr ""
 #: templates/dashboard/order/modal/refund.html:36
 msgctxt "Modal refund payment primary action"
 msgid "Refund"
-msgstr ""
+msgstr "Pengembalian dana"
 
 #: templates/dashboard/order/modal/remove_order.html:13
 msgctxt "Modal remove order title"
@@ -4038,7 +4107,7 @@ msgstr ""
 #: templates/dashboard/order/modal/void.html:22
 msgctxt "Modal void payment primary action"
 msgid "Void"
-msgstr ""
+msgstr "Kosong"
 
 #: templates/dashboard/order/pdf/base_pdf.html:18
 msgctxt "Order PDF footer page counter"
@@ -4065,12 +4134,12 @@ msgstr ""
 #: templates/dashboard/order/pdf/invoice.html:21
 msgctxt "Invoice shipping address"
 msgid "Shipping address"
-msgstr ""
+msgstr "Alamat pengiriman"
 
 #: templates/dashboard/order/pdf/invoice.html:26
 msgctxt "Invoice billing address"
 msgid "Billing address"
-msgstr ""
+msgstr "Alamat tagihan"
 
 #: templates/dashboard/order/pdf/invoice.html:47
 msgctxt "Invoice ordered items header"
@@ -4100,7 +4169,7 @@ msgstr "Harga gross"
 #: templates/dashboard/order/pdf/invoice.html:67
 msgctxt "Shipment order table header"
 msgid "Quantity"
-msgstr ""
+msgstr "Jumlah"
 
 #: templates/dashboard/order/pdf/invoice.html:70
 msgctxt "Shipment order table header"
@@ -4119,12 +4188,12 @@ msgstr ""
 #: templates/dashboard/order/pdf/invoice.html:107
 msgctxt "Order subtotal net price"
 msgid "Subtotal"
-msgstr ""
+msgstr "Subtotal"
 
 #: templates/dashboard/order/pdf/invoice.html:115
 msgctxt "Order total shipping price header"
 msgid "Shipping"
-msgstr ""
+msgstr "pengiriman"
 
 #: templates/dashboard/order/pdf/invoice.html:123
 msgctxt "Order total taxes header"
@@ -4165,12 +4234,12 @@ msgstr ""
 #: templates/dashboard/order/pdf/packing_slip.html:34
 msgctxt "Packing slip shipping address"
 msgid "Shipping address"
-msgstr ""
+msgstr "Alamat pengiriman"
 
 #: templates/dashboard/order/pdf/packing_slip.html:43
 msgctxt "Packing slip billing address"
 msgid "Billing address"
-msgstr ""
+msgstr "Alamat tagihan"
 
 #: templates/dashboard/order/pdf/packing_slip.html:52
 msgctxt "Order invoice"
@@ -4184,7 +4253,7 @@ msgstr "SKU"
 
 #: templates/dashboard/order/zero_page.html:5
 msgid "No orders found."
-msgstr ""
+msgstr "Tidak ditemukan pesanan"
 
 #: templates/dashboard/order/zero_page.html:8
 msgid ""
@@ -4196,12 +4265,12 @@ msgstr ""
 #: templates/dashboard/page/detail.html:8 templates/dashboard/page/list.html:8
 msgctxt "Pages list page title"
 msgid "Pages"
-msgstr ""
+msgstr "Halaman"
 
 #: templates/dashboard/page/detail.html:17
 msgctxt "Pages form breadcrumbs"
 msgid "Pages"
-msgstr ""
+msgstr "Halaman"
 
 #: templates/dashboard/page/detail.html:43
 msgctxt "Page URL"
@@ -4226,7 +4295,7 @@ msgstr ""
 #: templates/dashboard/page/form.html:8
 msgctxt "Page form page title"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/page/form.html:10
 msgctxt "Page form page title"
@@ -4236,7 +4305,7 @@ msgstr ""
 #: templates/dashboard/page/form.html:26
 msgctxt "Dashboard pages list"
 msgid "Pages"
-msgstr ""
+msgstr "Halaman"
 
 #: templates/dashboard/page/form.html:41
 msgctxt "Page form breadcrumbs"
@@ -4246,19 +4315,19 @@ msgstr ""
 #: templates/dashboard/page/form.html:48
 msgctxt "Page form breadcrumbs"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/page/form.html:82 templates/dashboard/page/form.html:85
 msgid "Cancel"
-msgstr ""
+msgstr "Batal"
 
 #: templates/dashboard/page/form.html:83
 msgid "Save"
-msgstr ""
+msgstr "Simpan"
 
 #: templates/dashboard/page/form.html:86
 msgid "Create"
-msgstr ""
+msgstr "Buat"
 
 #: templates/dashboard/page/list.html:17
 msgctxt "Page list add button text"
@@ -4267,7 +4336,7 @@ msgstr ""
 
 #: templates/dashboard/page/list.html:25
 msgid "Pages"
-msgstr ""
+msgstr "Halaman"
 
 #: templates/dashboard/page/list.html:40
 msgctxt "Static pages table header name"
@@ -4282,7 +4351,7 @@ msgstr "URL"
 #: templates/dashboard/page/list.html:46
 msgctxt "Pages table header"
 msgid "Visibility"
-msgstr ""
+msgstr "Visibilitas"
 
 #: templates/dashboard/page/list.html:76
 msgctxt "Empty pages list message"
@@ -4317,7 +4386,7 @@ msgstr ""
 #: templates/dashboard/product/attribute/detail.html:18
 msgctxt "Attribute detail breadcrumbs"
 msgid "Attributes"
-msgstr ""
+msgstr "Atribut"
 
 #: templates/dashboard/product/attribute/detail.html:46
 msgid "Product type"
@@ -4345,12 +4414,12 @@ msgstr ""
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:39
 msgctxt "Attribute value edit action"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/product/attribute/detail.html:95
 msgctxt "Attribute value edit action"
 msgid "Remove"
-msgstr ""
+msgstr "Hapus"
 
 #: templates/dashboard/product/attribute/detail.html:101
 msgctxt "Empty list of attribute values"
@@ -4361,7 +4430,7 @@ msgstr ""
 #: templates/dashboard/product/attribute/values/form.html:8
 msgctxt "Dashboard attributes list"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/product/attribute/form.html:10
 #: templates/dashboard/product/attribute/values/form.html:10
@@ -4373,7 +4442,7 @@ msgstr ""
 #: templates/dashboard/product/attribute/values/form.html:47
 msgctxt "Attribute detail breadcrumbs"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/product/attribute/form.html:51
 #: templates/dashboard/product/attribute/values/form.html:53
@@ -4465,7 +4534,7 @@ msgstr "Diterbitkan"
 #: templates/dashboard/product/detail.html:56
 msgctxt "Product field"
 msgid "Draft"
-msgstr ""
+msgstr "Draf"
 
 #: templates/dashboard/product/detail.html:77
 msgctxt "Product action"
@@ -4512,7 +4581,7 @@ msgstr ""
 
 #: templates/dashboard/product/detail.html:132
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/product/detail.html:136
 msgctxt "Dashboard product details page"
@@ -4609,7 +4678,7 @@ msgstr ""
 #: templates/dashboard/product/form.html:8
 msgctxt "Dashboard products list"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/product/form.html:10
 msgctxt "Product form page title"
@@ -4624,18 +4693,18 @@ msgstr ""
 #: templates/dashboard/product/form.html:50
 msgctxt "Product form breadcrumbs"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/product/form.html:111
 #: templates/dashboard/product/product_type/form.html:103
 #: templates/dashboard/product/product_variant/form.html:85
 msgid "Shipping"
-msgstr ""
+msgstr "pengiriman"
 
 #: templates/dashboard/product/form.html:115
 #: templates/dashboard/product/product_variant/form.html:76
 msgid "Attributes"
-msgstr ""
+msgstr "Atribut"
 
 #: templates/dashboard/product/form.html:118
 #, python-format
@@ -4686,7 +4755,7 @@ msgstr "Tipe produk"
 #: templates/dashboard/product/modal/select_type.html:19
 msgctxt "Dashboard add action"
 msgid "Create"
-msgstr ""
+msgstr "Buat"
 
 #: templates/dashboard/product/product_image/form.html:8
 msgctxt "Image form text"
@@ -4706,7 +4775,7 @@ msgstr "Gambar"
 #: templates/dashboard/product/product_image/form.html:43
 msgctxt "Image form text"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/product/product_image/form.html:49
 msgctxt "Image form breadcrumbs"
@@ -4733,7 +4802,7 @@ msgstr ""
 #: templates/dashboard/product/product_image/list.html:131
 msgctxt "Dashboard remove action"
 msgid "Remove"
-msgstr ""
+msgstr "Hapus"
 
 #: templates/dashboard/product/product_image/list.html:101
 msgctxt "Image gallery upload box text"
@@ -4781,7 +4850,7 @@ msgstr ""
 
 #: templates/dashboard/product/product_type/form.html:95
 msgid "Taxes"
-msgstr ""
+msgstr "Pajak"
 
 #: templates/dashboard/product/product_type/form.html:132
 msgctxt "Product type help text"
@@ -4885,7 +4954,7 @@ msgstr ""
 #: templates/dashboard/product/product_variant/form.html:8
 msgctxt "Variant form page title"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/product/product_variant/form.html:10
 msgctxt "Variant form page title"
@@ -4895,7 +4964,7 @@ msgstr ""
 #: templates/dashboard/product/product_variant/form.html:47
 msgctxt "Variant form breadcrumbs"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/product/product_variant/form.html:53
 msgctxt "Variant form breadcrumbs"
@@ -4940,7 +5009,7 @@ msgstr ""
 #: templates/dashboard/product/product_variant/modal/select_images.html:24
 msgctxt "Dashboard modal action"
 msgid "Save"
-msgstr ""
+msgstr "Simpan"
 
 #: templates/dashboard/product/zero_page.html:5
 msgid "No products found."
@@ -4980,7 +5049,7 @@ msgstr "Daftar produk"
 #: templates/dashboard/search/results.html:47
 msgctxt "Search results list orders"
 msgid "Orders"
-msgstr ""
+msgstr "Pesanan"
 
 #: templates/dashboard/search/results.html:54
 #, python-format
@@ -5043,17 +5112,17 @@ msgstr ""
 #: templates/dashboard/shipping/detail.html:54
 msgctxt "Title of the shipping methods list"
 msgid "Price based shipping"
-msgstr ""
+msgstr "Harga dasar pengiriman"
 
 #: templates/dashboard/shipping/detail.html:55
 msgctxt "Title of the shipping methods list"
 msgid "Weight based shipping"
-msgstr ""
+msgstr " Berat dasar pengiriman"
 
 #: templates/dashboard/shipping/form.html:9
 msgctxt "Dashboard shipping zones"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/shipping/form.html:11
 #: templates/dashboard/shipping/form.html:24
@@ -5069,7 +5138,7 @@ msgstr ""
 #: templates/dashboard/shipping/form.html:48
 msgctxt "Shipping zone form page title"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/shipping/form.html:54
 msgctxt "Shipping zone form breadcrumbs"
@@ -5132,7 +5201,7 @@ msgstr "Harga"
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:42
 msgctxt "Attribute value remove action"
 msgid "Remove"
-msgstr ""
+msgstr "Hapus"
 
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:48
 msgctxt "Empty list of shipping methods prices"
@@ -5142,7 +5211,7 @@ msgstr ""
 #: templates/dashboard/shipping/methods/form.html:8
 msgctxt "Dashboard shipping method edit page"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/shipping/methods/form.html:10
 msgctxt "Shipping method edit page title"
@@ -5216,7 +5285,7 @@ msgstr ""
 #: templates/dashboard/sites/authorization_keys/form.html:8
 msgctxt "Dashboard authorization key list"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/sites/authorization_keys/form.html:10
 msgctxt "Add new authorization key page title"
@@ -5226,12 +5295,12 @@ msgstr ""
 #: templates/dashboard/sites/authorization_keys/form.html:29
 msgctxt "Dashboard site setting detail"
 msgid "Site settings"
-msgstr ""
+msgstr "Pengaturan situs"
 
 #: templates/dashboard/sites/authorization_keys/form.html:40
 msgctxt "Authorization key breadcrumbs"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/sites/authorization_keys/form.html:46
 msgctxt "Authorization key breadcrumbs"
@@ -5281,12 +5350,12 @@ msgstr ""
 #: templates/dashboard/sites/detail.html:101
 msgctxt "Authorization key edit action"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/sites/detail.html:104
 msgctxt "Authorization key remove action"
 msgid "Remove"
-msgstr ""
+msgstr "Hapus"
 
 #: templates/dashboard/sites/detail.html:110
 msgctxt "Empty list of authorization keys"
@@ -5302,12 +5371,12 @@ msgstr ""
 #: templates/dashboard/sites/form.html:22
 msgctxt "Dashboard attributes list"
 msgid "Site settings"
-msgstr ""
+msgstr "Pengaturan situs"
 
 #: templates/dashboard/sites/form.html:27
 msgctxt "Dashboard site settings"
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
 #: templates/dashboard/sites/modal/confirm_delete.html:12
 #, python-format
@@ -5410,7 +5479,7 @@ msgstr ""
 #: templates/dashboard/taxes/details.html:18
 msgctxt "Tax details breadcrumbs"
 msgid "Taxes"
-msgstr ""
+msgstr "Pajak"
 
 #: templates/dashboard/taxes/details.html:40
 #, python-format
@@ -5447,7 +5516,7 @@ msgstr ""
 #: templates/dashboard/taxes/list.html:15
 msgctxt "Dashboard taxes list"
 msgid "Taxes"
-msgstr ""
+msgstr "Pajak"
 
 #: templates/dashboard/taxes/form.html:28
 msgctxt "Dashboard configure taxes settings"
@@ -5457,11 +5526,11 @@ msgstr ""
 #: templates/dashboard/taxes/form.html:42
 msgctxt "Dashboard site taxes settings form title"
 msgid "Taxes"
-msgstr ""
+msgstr "Pajak"
 
 #: templates/dashboard/taxes/form.html:46
 msgid "Dashboard"
-msgstr ""
+msgstr "Dashboard"
 
 #: templates/dashboard/taxes/form.html:54
 msgctxt "Dashboard site taxes settings form help text"
@@ -5533,7 +5602,7 @@ msgstr ""
 #: templates/dashboard/taxes/list.html:75
 msgctxt "Taxes site settings title"
 msgid "Configuration"
-msgstr ""
+msgstr "Konfigurasi"
 
 #: templates/dashboard/taxes/list.html:80
 msgctxt "Site settings field"
@@ -5668,24 +5737,24 @@ msgstr ""
 #: templates/order/_ordered_items_table.html:15
 msgctxt "Order details address title"
 msgid "Shipping address"
-msgstr ""
+msgstr "Alamat pengiriman"
 
 #: templates/order/_ordered_items_table.html:25
 msgctxt "Order details address title"
 msgid "Billing address"
-msgstr ""
+msgstr "Alamat tagihan"
 
 #: templates/order/_ordered_items_table.html:38
 #: templates/order/_ordered_items_table.html:183
 msgctxt "Order details column title"
 msgid "Product"
-msgstr ""
+msgstr "Produk"
 
 #: templates/order/_ordered_items_table.html:43
 #: templates/order/_ordered_items_table.html:188
 msgctxt "Order details column title"
 msgid "Quantity"
-msgstr ""
+msgstr "Jumlah"
 
 #: templates/order/_ordered_items_table.html:48
 msgctxt "Order details column title"
@@ -5695,22 +5764,22 @@ msgstr "Harga"
 #: templates/order/_ordered_items_table.html:95
 msgctxt "Order details subtotal row text"
 msgid "Subtotal"
-msgstr ""
+msgstr "Subtotal"
 
 #: templates/order/_ordered_items_table.html:112
 msgctxt "Order details shipment row text"
 msgid "Shipping"
-msgstr ""
+msgstr "pengiriman"
 
 #: templates/order/_ordered_items_table.html:144
 msgctxt "Order details taxes text"
 msgid "Taxes (included)"
-msgstr ""
+msgstr "Panjak (termasuk)"
 
 #: templates/order/_ordered_items_table.html:146
 msgctxt "Order details taxes text"
 msgid "Taxes"
-msgstr ""
+msgstr "Pajak"
 
 #: templates/order/_ordered_items_table.html:160
 msgctxt "Order details total text"
@@ -5777,7 +5846,7 @@ msgstr ""
 #: templates/order/checkout_success_anonymous.html:47
 msgctxt "Checkout primary action"
 msgid "Create an account"
-msgstr ""
+msgstr "Buat Akun"
 
 #: templates/order/details.html:8
 #, python-format
@@ -5815,7 +5884,7 @@ msgstr ""
 #: templates/order/details.html:73
 msgctxt "Order note title"
 msgid "Add a note to your order"
-msgstr ""
+msgstr "Tambahkan catatan ke pesanan Anda"
 
 #: templates/order/details.html:75
 msgctxt "Customer panel - order details: add note submit button"
@@ -5886,7 +5955,7 @@ msgid "You've authorized transaction. Order is in processing"
 msgstr ""
 
 #: templates/order/payment/braintree.html:29
-#: templates/order/payment/dummy.html:30
+#: templates/order/payment/dummy.html:37
 msgctxt "Payment form primary action"
 msgid "Make payment"
 msgstr ""
@@ -5894,24 +5963,24 @@ msgstr ""
 #: templates/order/payment/details.html:4
 msgctxt "Payment form page title"
 msgid "Payment"
-msgstr ""
+msgstr "Pembayaran"
 
 #: templates/order/payment/details.html:28
 msgctxt "Payment form breadcrumb"
 msgid "Payment"
-msgstr ""
+msgstr "Pembayaran"
 
 #: templates/order/payment/details.html:39
 msgctxt "Payment form title"
 msgid "Payment"
-msgstr ""
+msgstr "Pembayaran"
 
 #: templates/order/payment/details.html:44
 msgctxt "Header of the order summary table"
 msgid "Order details"
 msgstr ""
 
-#: templates/order/payment/dummy.html:25
+#: templates/order/payment/dummy.html:32
 #: templates/order/payment/stripe.html:11
 msgctxt "Payment form (Stripe) secondary action"
 msgid "Change payment"
@@ -6145,7 +6214,7 @@ msgstr ""
 #, python-format
 msgctxt "Fulfillment confirmation email text"
 msgid "You can track your shipment with %(tracking_number)s code."
-msgstr ""
+msgstr "Anda dapat melacak dengan resi berikut : %(tracking_number)s"
 
 #: templates/templated_email/order/confirm_order.email:6
 msgctxt "Order confirmation e-mail subject"
@@ -6169,22 +6238,22 @@ msgstr ""
 #: templates/templated_email/order/confirm_order.email:18
 msgctxt "Order confirmation e-mail table header"
 msgid "Subtotal"
-msgstr ""
+msgstr "Subtotal"
 
 #: templates/templated_email/order/confirm_order.email:19
 msgctxt "Order confirmation e-mail table header"
 msgid "Shipping"
-msgstr ""
+msgstr "pengiriman"
 
 #: templates/templated_email/order/confirm_order.email:20
 msgctxt "Order confirmation e-mail table header"
 msgid "Taxes (included)"
-msgstr ""
+msgstr "Panjak (termasuk)"
 
 #: templates/templated_email/order/confirm_order.email:20
 msgctxt "Order confirmation e-mail table header"
 msgid "Taxes"
-msgstr ""
+msgstr "Pajak"
 
 #: templates/templated_email/order/confirm_order.email:21
 msgctxt "Order confirmation e-mail table header"
@@ -6200,13 +6269,13 @@ msgstr "Total"
 #: templates/templated_email/source/confirm_order.mjml:29
 msgctxt "Order confirmation e-mail billing address"
 msgid "Billing address"
-msgstr ""
+msgstr "Alamat tagihan"
 
 #: templates/templated_email/order/confirm_order.email:27
 #: templates/templated_email/source/confirm_order.mjml:30
 msgctxt "Order confirmation e-mail shipping address"
 msgid "Shipping address"
-msgstr ""
+msgstr "Alamat pengiriman"
 
 #: templates/templated_email/order/confirm_order.email:28
 #: templates/templated_email/source/confirm_order.mjml:42
@@ -6310,22 +6379,22 @@ msgstr ""
 #: templates/templated_email/source/partials/_order_lines.mjml:11
 msgctxt "E-mail order lines summary table"
 msgid "Subtotal"
-msgstr ""
+msgstr "Subtotal"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:19
 msgctxt "E-mail order lines summary table"
 msgid "Shipping"
-msgstr ""
+msgstr "pengiriman"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:28
 msgctxt "E-mail order lines summary table"
 msgid "Taxes (included)"
-msgstr ""
+msgstr "Panjak (termasuk)"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:30
 msgctxt "E-mail order lines summary table"
 msgid "Taxes"
-msgstr ""
+msgstr "Pajak"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:40
 msgctxt "E-mail order lines summary table"
@@ -6345,7 +6414,7 @@ msgstr ""
 #: templates/templated_email/source/partials/_order_lines.mjml:59
 msgctxt "Quantity ordered of a product"
 msgid "Quantity"
-msgstr ""
+msgstr "Jumlah"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:60
 msgctxt "Unit price of a product"
@@ -6355,7 +6424,7 @@ msgstr ""
 #: templates/templated_email/source/partials/_order_lines.mjml:61
 msgctxt "Ordered item subtotal (unit price * quantity)"
 msgid "Subtotal"
-msgstr ""
+msgstr "Subtotal"
 
 #: templates/templated_email/source/password_reset.mjml:16
 #, python-format
@@ -6384,6 +6453,9 @@ msgid ""
 "customer account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
+"Anda menerima e-mail ini karena ada harus menetapkan kata sandi untuk "
+"pelanggan anda di %(domain)s. <br/>Silahkan klik link dibawah ini untuk "
+"menetapkan password."
 
 #: templates/templated_email/source/set_password.mjml:16
 #, python-format
@@ -6393,6 +6465,9 @@ msgid ""
 " member account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
+"Anda menerima e-mail ini karena ada harus menetapkan kata sandi untuk "
+"pegawai anda di %(domain)s. <br/> Silahkan klik link dibawah ini untuk "
+"menetapkan password."
 
 #: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"
@@ -6400,9 +6475,11 @@ msgid ""
 "Your shipping status has been updated. Below is the list of ordered products"
 " that have been updated with new tracking number."
 msgstr ""
+"Status pengiriman diperbarui. Berikut adalah produk yang telah diperbarui "
+"dengan nomer resi baru."
 
 #: templates/templated_email/source/update_fulfillment.mjml:20
 #, python-format
 msgctxt "Fulfillment update email text"
 msgid "You can track your shipment with %(tracking_number)s code."
-msgstr ""
+msgstr "Anda dapat melacak dengan resi berikut : %(tracking_number)s"
