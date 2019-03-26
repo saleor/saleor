@@ -230,12 +230,15 @@ class Shop(graphene.ObjectType):
         return resolve_translation(
             info.context.site.settings, info, language_code)
 
+    @permission_required('site.manage_settings')
     def resolve_automatic_fulfillment_digital_products(self, info):
         return info.context.site.settings.automatic_fulfillment_digital_products
 
+    @permission_required('site.manage_settings')
     def resolve_default_digital_max_downloads(self, info):
         return info.context.site.settings.default_digital_max_downloads
 
+    @permission_required('site.manage_settings')
     def resolve_default_digital_url_valid_days(self, info):
         return info.context.site.settings.default_digital_url_valid_days
 
