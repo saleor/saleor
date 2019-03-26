@@ -9,7 +9,7 @@ from .mutations import (
     CustomerAddressCreate, CustomerCreate, CustomerDelete,
     CustomerPasswordReset, CustomerRegister, CustomerSetDefaultAddress,
     CustomerUpdate, LoggedUserUpdate, PasswordReset, SetPassword, StaffCreate,
-    StaffDelete, StaffUpdate)
+    StaffDelete, StaffUpdate, UserImageDelete, UserImageUpdate)
 from .resolvers import (
     resolve_address_validator, resolve_customers, resolve_staff_users)
 from .types import AddressValidationData, AddressValidationInput, User
@@ -75,3 +75,6 @@ class AccountMutations(graphene.ObjectType):
     address_delete = AddressDelete.Field()
     address_update = AddressUpdate.Field()
     address_set_default = AddressSetDefault.Field()
+
+    user_image_update = UserImageUpdate.Field()
+    user_image_delete = UserImageDelete.Field()
