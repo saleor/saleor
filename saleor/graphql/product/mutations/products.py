@@ -11,6 +11,8 @@ from ....product.tasks import update_variants_names
 from ....product.thumbnails import (
     create_category_background_image_thumbnails,
     create_collection_background_image_thumbnails, create_product_thumbnails)
+from ....product.utils import (
+    get_default_digital_max_downloads, get_default_digital_url_valid_days)
 from ....product.utils.attributes import get_name_from_attributes
 from ...core.enums import TaxRateType
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -18,8 +20,8 @@ from ...core.scalars import Decimal, WeightScalar
 from ...core.types import SeoInput, Upload
 from ...core.utils import clean_seo_fields
 from ..types import (
-    Category, Collection, Product, ProductImage, ProductVariant,
-    DigitalContent)
+    Category, Collection, DigitalContent, Product, ProductImage,
+    ProductVariant)
 from ..utils import attributes_to_hstore, validate_image_file
 
 
@@ -899,11 +901,13 @@ class ProductVariantDigitalUpload(BaseMutation):
             digital_content = models.DigitalContent(
                 content_file=content_data
             )
-            max_downloads = input.get('max_downloads')
+            default_max_download = get_default_digital_max_downloads()
+            max_downloads = input.get('max_downloads', default_max_download)
             if max_downloads:
                 digital_content.max_downloads = max_downloads
 
-            url_valid_days = input.get('url_valid_days')
+            default_url_valid_days = get_default_digital_url_valid_days()
+            url_valid_days = input.get('url_valid_days', default_url_valid_days)
             if url_valid_days:
                 digital_content.url_valid_days = url_valid_days
 
@@ -911,7 +915,6 @@ class ProductVariantDigitalUpload(BaseMutation):
             variant.digital_content.save()
         return ProductVariantDigitalUpload(
             content=digital_content, errors=errors)
-
 
 
 class ProductVariantDigitalDelete(BaseMutation):
