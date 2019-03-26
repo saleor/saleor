@@ -3,6 +3,7 @@ from textwrap import dedent
 import graphene
 
 from ....product.templatetags.product_images import get_thumbnail
+from ...translations.enums import LanguageCodeEnum
 from ..enums import PermissionEnum
 from .money import VAT
 
@@ -25,7 +26,7 @@ class Error(graphene.ObjectType):
 
 
 class LanguageDisplay(graphene.ObjectType):
-    code = graphene.String(description='Language code.', required=True)
+    code = LanguageCodeEnum(description='Language code.', required=True)
     language = graphene.String(description='Language.', required=True)
 
 
