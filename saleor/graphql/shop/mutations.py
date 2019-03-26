@@ -24,6 +24,10 @@ class ShopSettingsInput(graphene.InputObjectType):
     default_weight_unit = WeightUnitsEnum(description='Default weight unit')
     automatic_fulfillment_digital_products = graphene.Boolean(
         description='Enable automatic fulfillment for all digital products')
+    default_digital_max_downloads = graphene.Int(
+        description='Default number of max downloads per digital content url')
+    default_digital_url_valid_days = graphene.Int(
+        description='Default number of days which digital content url will be valid')
 
 
 class SiteDomainInput(graphene.InputObjectType):
