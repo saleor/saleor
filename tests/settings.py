@@ -32,3 +32,5 @@ CHECKOUT_PAYMENT_GATEWAYS = {
 }
 
 COUNTRIES_ONLY = None
+
+MEDIA_ROOT = os.path.join(MEDIA_ROOT, 'test')
