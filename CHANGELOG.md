@@ -14,6 +14,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix schema after bulk mutations are added - #3843 by @jxltom
 - Add address book view - #3826 by @dominik-zeglen
 - New translations:
+  - Swahili
   - Thai
 - Improve user and staff management in dashboard 1.0 - #3781 by @jxltom
 - Add missing language enum in GraphQL schema - #3854 by @jxltom

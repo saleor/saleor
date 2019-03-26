@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-25 10:45-0600\n"
+"POT-Creation-Date: 2019-03-18 07:39-0500\n"
 "PO-Revision-Date: 2017-02-09 15:43+0000\n"
 "Last-Translator: Ramazan Acar <acarist@gmail.com>, 2019\n"
 "Language-Team: Turkish (https://www.transifex.com/mirumee/teams/34782/tr/)\n"
@@ -911,28 +911,33 @@ msgctxt "Order note"
 msgid "Note"
 msgstr "Not"
 
-#: saleor/dashboard/order/forms.py:257
+#: saleor/dashboard/order/forms.py:258
 msgctxt "Payment management form (capture, refund, void)"
 msgid "Amount"
 msgstr "Tutar"
 
-#: saleor/dashboard/order/forms.py:272 saleor/dashboard/order/forms.py:328
+#: saleor/dashboard/order/forms.py:264
+msgctxt "Payment form error"
+msgid "This payment action can not be performed."
+msgstr ""
+
+#: saleor/dashboard/order/forms.py:273
 #, python-format
 msgctxt "Payment form error"
 msgid "Payment gateway error: %s"
 msgstr "Ödeme sistemi hatası : %s"
 
-#: saleor/dashboard/order/forms.py:288
+#: saleor/dashboard/order/forms.py:289
 msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be captured"
 msgstr "Sadece önyetkili ödemeler yakalanabilir"
 
-#: saleor/dashboard/order/forms.py:298
+#: saleor/dashboard/order/forms.py:303
 msgctxt "Payment form error"
 msgid "Only confirmed payments can be refunded"
 msgstr "Sadece onaylanmış ödemeler iade olabilir"
 
-#: saleor/dashboard/order/forms.py:306
+#: saleor/dashboard/order/forms.py:313
 msgctxt "Payment form error"
 msgid "Manual payments can not be refunded"
 msgstr "Havale/EFT ödemeleri iade olamaz"
@@ -942,12 +947,12 @@ msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be voided"
 msgstr "Sadece tekrarlanan ödemeler iptal olabilir"
 
-#: saleor/dashboard/order/forms.py:375
+#: saleor/dashboard/order/forms.py:381
 msgctxt "Integer number"
 msgid "Quantity"
 msgstr "Adet"
 
-#: saleor/dashboard/order/forms.py:394
+#: saleor/dashboard/order/forms.py:400
 #, python-format
 msgctxt "Change quantity form error"
 msgid "Only %(remaining)d remaining in stock."
@@ -955,7 +960,7 @@ msgid_plural "Only %(remaining)d remaining in stock."
 msgstr[0] "Stokta sadece %(remaining)d adet kaldı."
 msgstr[1] "Stokta sadece %(remaining)d adet kaldı."
 
-#: saleor/dashboard/order/forms.py:426
+#: saleor/dashboard/order/forms.py:432
 #, python-format
 msgctxt "Cancel order form action"
 msgid "Restock %(quantity)d item"
@@ -963,12 +968,12 @@ msgid_plural "Restock %(quantity)d items"
 msgstr[0] "Stoğu %(quantity)d ürünle doldur"
 msgstr[1] "Stoğu %(quantity)d ürünle doldur"
 
-#: saleor/dashboard/order/forms.py:436
+#: saleor/dashboard/order/forms.py:442
 msgctxt "Cancel order form error"
 msgid "This order can't be canceled"
 msgstr "Bu sipariş iptal olamaz"
 
-#: saleor/dashboard/order/forms.py:456
+#: saleor/dashboard/order/forms.py:462
 #, python-format
 msgctxt "Cancel fulfillment form action"
 msgid "Restock %(quantity)d item"
@@ -976,63 +981,63 @@ msgid_plural "Restock %(quantity)d items"
 msgstr[0] "Stoğu %(quantity)d ürünle doldur"
 msgstr[1] "Stoğu %(quantity)d ürünle doldur"
 
-#: saleor/dashboard/order/forms.py:466
+#: saleor/dashboard/order/forms.py:472
 msgctxt "Cancel fulfillment form error"
 msgid "This fulfillment can't be canceled"
 msgstr "Tamamlanmış sipariş iptal olamaz"
 
-#: saleor/dashboard/order/forms.py:479
+#: saleor/dashboard/order/forms.py:485
 msgctxt "Send mail to customer"
 msgid "Send notification email to customer"
 msgstr "Müşteriye bildirim maili gönder"
 
-#: saleor/dashboard/order/forms.py:486
+#: saleor/dashboard/order/forms.py:492
 msgctxt "Fulfillment record"
 msgid "Tracking number"
 msgstr "Takip numarası"
 
-#: saleor/dashboard/order/forms.py:507
+#: saleor/dashboard/order/forms.py:513
 msgctxt "Remove voucher form error"
 msgid "This order has no voucher"
 msgstr "Bu siparişe ait kupon yok"
 
-#: saleor/dashboard/order/forms.py:520
+#: saleor/dashboard/order/forms.py:526
 msgctxt "Payment status field value"
 msgid "All"
 msgstr "Hepsi"
 
-#: saleor/dashboard/order/forms.py:537
+#: saleor/dashboard/order/forms.py:543
 msgctxt "Order form: subform to add variant to order form: variant field"
 msgid "Variant"
 msgstr "Varyant"
 
-#: saleor/dashboard/order/forms.py:540
+#: saleor/dashboard/order/forms.py:546
 msgctxt "Add variant to order form label"
 msgid "Quantity"
 msgstr "Adet"
 
-#: saleor/dashboard/order/forms.py:561
+#: saleor/dashboard/order/forms.py:567
 #, python-format
 msgctxt "Add item form error"
 msgid "Could not add item. Only %(remaining)d remaining in stock."
 msgstr "Ürün eklenemedi. Stokta sadece %(remaining)d adet kaldı."
 
-#: saleor/dashboard/order/forms.py:584
+#: saleor/dashboard/order/forms.py:590
 msgctxt "Order form: address subform - phone number input field"
 msgid "Phone number"
 msgstr "Telefon numarası"
 
-#: saleor/dashboard/order/forms.py:593
+#: saleor/dashboard/order/forms.py:599
 msgctxt "Send mail to customer"
 msgid "Send shipment details to your customer now"
 msgstr "Müşterinize, şimdi kargo detayını gönderin"
 
-#: saleor/dashboard/order/forms.py:601
+#: saleor/dashboard/order/forms.py:607
 msgctxt "Order tracking number"
 msgid "Tracking number"
 msgstr "Takip numarası"
 
-#: saleor/dashboard/order/forms.py:631
+#: saleor/dashboard/order/forms.py:644
 #, python-format
 msgctxt "Fulfill order line form error"
 msgid "%(quantity)d item remaining to fulfill."
