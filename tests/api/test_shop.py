@@ -247,7 +247,8 @@ def test_query_charge_taxes_on_shipping(api_client, site_settings):
     assert data['chargeTaxesOnShipping'] == charge_taxes_on_shipping
 
 
-def test_query_digital_content_settings(api_client, site_settings):
+def test_query_digital_content_settings(
+        staff_api_client, site_settings, permission_manage_settings):
     query = """
     query {
         shop {
@@ -264,7 +265,8 @@ def test_query_digital_content_settings(api_client, site_settings):
     site_settings.default_digital_url_valid_days = url_valid_days
     site_settings.save()
 
-    response = api_client.post_graphql(query)
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_settings])
     content = get_graphql_content(response)
     data = content['data']['shop']
     automatic_fulfillment = site_settings.automatic_fulfillment_digital_products
