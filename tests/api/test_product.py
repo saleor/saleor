@@ -1863,10 +1863,10 @@ def test_product_variant_digital_content_update_mutation(
         monkeypatch, staff_api_client, variant, digital_content,
         permission_manage_products):
     url_valid_days = 3
-    maxDownloads = 5
+    max_downloads = 5
     query = """
-    mutation productVariantDigitalUpdate($variant: ID!){
-        productVariantDigitalUpdate(id:$variant, input:{url_valid_days: %s, max_downloads: %s}){
+    mutation productVariantDigitalUpdate($variant: ID!, $input:ProductVariantDigitalInput!){
+        productVariantDigitalUpdate(id:$variant, input: $input){
             variant{
                 id
             }
@@ -1874,18 +1874,31 @@ def test_product_variant_digital_content_update_mutation(
                 contentFile
                 maxDownloads
                 urlValidDays
+                automaticFulfillment
             }
         }
     }
-    """ % (url_valid_days, maxDownloads)
+    """
+
+    digital_content.automatic_fulfillment = False
     variant.digital_content = digital_content
     variant.digital_content.save()
 
     variables = {
-        'variant': graphene.Node.to_global_id('ProductVariant', variant.id)
+        'variant': graphene.Node.to_global_id('ProductVariant', variant.id),
+        'input': {
+            'max_downloads': max_downloads,
+            'url_valid_days': url_valid_days,
+            'automatic_fulfillment': True
+        }
     }
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     get_graphql_content(response)
     variant.refresh_from_db()
+    digital_content = variant.digital_content
+    assert digital_content.max_downloads == max_downloads
+    assert digital_content.url_valid_days == url_valid_days
+    assert digital_content.automatic_fulfillment
+

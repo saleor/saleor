@@ -314,6 +314,7 @@ class DigitalContent(models.Model):
     TYPE_CHOICES = (
         (FILE, pgettext_lazy('File as a digital product', 'digital_product')),
     )
+    automatic_fulfillment = models.BooleanField(default=False)
     content_type = models.CharField(
         max_length=128, default=FILE, choices=TYPE_CHOICES)
     product_variant = models.OneToOneField(
@@ -323,7 +324,7 @@ class DigitalContent(models.Model):
     max_downloads = models.IntegerField(blank=True, null=True)
     url_valid_days = models.IntegerField(blank=True, null=True)
 
-    def create_new_url(self):
+    def create_new_url(self) -> 'DigitalContentUrl':
         return self.urls.create()
 
 
