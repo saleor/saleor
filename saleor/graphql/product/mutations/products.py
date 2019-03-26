@@ -12,7 +12,8 @@ from ....product.thumbnails import (
     create_category_background_image_thumbnails,
     create_collection_background_image_thumbnails, create_product_thumbnails)
 from ....product.utils import (
-    get_default_digital_max_downloads, get_default_digital_url_valid_days)
+    get_default_digital_max_downloads, get_default_digital_url_valid_days,
+    get_default_automatic_fulfillment)
 from ....product.utils.attributes import get_name_from_attributes
 from ...core.enums import TaxRateType
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -859,6 +860,10 @@ class ProductVariantDigitalInput(graphene.InputObjectType):
         description='[Optional] Number of days which each url will be active',
         required=False, name='url_valid_days'
     )
+    automatic_fulfillment = graphene.Boolean(
+        description='Overwrite default automatic_fulfillment setting for variant',
+        required=False, name='automatic_fulfillment'
+    )
 
 
 class ProductVariantDigitalUploadInput(ProductVariantDigitalInput):
@@ -910,6 +915,12 @@ class ProductVariantDigitalUpload(BaseMutation):
             url_valid_days = input.get('url_valid_days', default_url_valid_days)
             if url_valid_days:
                 digital_content.url_valid_days = url_valid_days
+
+            default_automatic_fulfillment = get_default_automatic_fulfillment()
+            automatic_fulfillment = input.get(
+                'automatic_fulfillment', default_automatic_fulfillment)
+            if automatic_fulfillment:
+                digital_content.automatic_fulfillment = automatic_fulfillment
 
             variant.digital_content = digital_content
             variant.digital_content.save()
@@ -975,7 +986,8 @@ class ProductVariantDigitalUpdate(BaseMutation):
 
         max_downloads = input.get('max_downloads')
         url_valid_days = input.get('url_valid_days')
-        if not max_downloads and not url_valid_days:
+        automatic_fulfillment = input.get('automatic_fulfillment')
+        if not any([max_downloads, url_valid_days, automatic_fulfillment]):
             msg = 'Not found any fields for update'
             cls.add_error(errors, 'variant', msg)
 
@@ -988,6 +1000,9 @@ class ProductVariantDigitalUpdate(BaseMutation):
 
             if url_valid_days:
                 digital_content.url_valid_days = url_valid_days
+
+            if automatic_fulfillment:
+                digital_content.automatic_fulfillment = automatic_fulfillment
 
             variant.digital_content = digital_content
             variant.digital_content.save()
