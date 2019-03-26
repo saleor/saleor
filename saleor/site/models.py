@@ -32,6 +32,7 @@ class SiteSettings(models.Model):
         max_length=10, choices=WeightUnits.CHOICES,
         default=WeightUnits.KILOGRAM)
 
+    automatic_fulfillment_digital_products = models.BooleanField(default=False)
     translated = TranslationProxy()
 
     class Meta:

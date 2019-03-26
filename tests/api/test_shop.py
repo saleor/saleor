@@ -247,6 +247,53 @@ def test_query_charge_taxes_on_shipping(api_client, site_settings):
     assert data['chargeTaxesOnShipping'] == charge_taxes_on_shipping
 
 
+def test_query_automatic_fulfillment_digital_products(api_client, site_settings):
+    query = """
+    query {
+        shop {
+            automaticFulfillmentDigitalProducts
+        }
+    }"""
+    response = api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    data = content['data']['shop']
+    automatic_fulfillment = site_settings.automatic_fulfillment_digital_products
+    assert data['automaticFulfillmentDigitalProducts'] == automatic_fulfillment
+
+
+def test_shop_settings_automatic_fulfillment_digital_product_mutation(
+        staff_api_client, site_settings, permission_manage_settings):
+    query = """
+        mutation updateSettings($input: ShopSettingsInput!) {
+            shopSettingsUpdate(input: $input) {
+                shop {
+                    automaticFulfillmentDigitalProducts
+                }
+                errors {
+                    field,
+                    message
+                }
+            }
+        }
+    """
+
+    variables = {
+        'input': {
+            'automaticFulfillmentDigitalProducts':True,
+            }
+    }
+
+    assert not site_settings.automatic_fulfillment_digital_products
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings])
+    content = get_graphql_content(response)
+
+    data = content['data']['shopSettingsUpdate']['shop']
+    assert data['automaticFulfillmentDigitalProducts']
+    site_settings.refresh_from_db()
+    assert site_settings.automatic_fulfillment_digital_products
+
+
 def test_shop_settings_mutation(
         staff_api_client, site_settings, permission_manage_settings):
     query = """
