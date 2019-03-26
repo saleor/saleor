@@ -1,7 +1,9 @@
 from io import BytesIO
+from shutil import rmtree
 from unittest.mock import MagicMock, Mock
 
 import pytest
+from django.conf import settings as django_settings
 from django.contrib.auth.models import Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
@@ -38,6 +40,18 @@ from saleor.shipping.models import (
     ShippingMethod, ShippingMethodType, ShippingZone)
 from saleor.site import AuthenticationBackends
 from saleor.site.models import AuthorizationKey, SiteSettings
+
+
+def pytest_configure(config):
+    """ Remove test files which may have stayed after running tests before. """
+
+    rmtree(django_settings.MEDIA_ROOT, ignore_errors=True)
+
+
+def pytest_unconfigure(config):
+    """ Remove test files after running all tests. """
+
+    rmtree(django_settings.MEDIA_ROOT, ignore_errors=True)
 
 
 @pytest.fixture(autouse=True)
