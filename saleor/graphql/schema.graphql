@@ -662,6 +662,7 @@ scalar Decimal
 
 type DigitalContent implements Node {
   id: ID!
+  automaticFulfillment: Boolean!
   contentType: DigitalContentContentType!
   productVariant: ProductVariant!
   contentFile: String!
@@ -2226,6 +2227,8 @@ type Shop {
   defaultWeightUnit: WeightUnitsEnum
   translation(languageCode: LanguageCodeEnum!): ShopTranslation
   automaticFulfillmentDigitalProducts: Boolean
+  defaultDigitalMaxDownloads: Int
+  defaultDigitalUrlValidDays: Int
 }
 
 type ShopDomainUpdate {
@@ -2247,6 +2250,8 @@ input ShopSettingsInput {
   trackInventoryByDefault: Boolean
   defaultWeightUnit: WeightUnitsEnum
   automaticFulfillmentDigitalProducts: Boolean
+  defaultDigitalMaxDownloads: Int
+  defaultDigitalUrlValidDays: Int
 }
 
 type ShopSettingsTranslate {
