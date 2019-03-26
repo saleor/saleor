@@ -687,9 +687,9 @@ type DigitalContentCountableEdge {
 
 type DigitalContentUrl implements Node {
   id: ID!
-  token: String!
+  token: UUID!
   content: DigitalContent!
-  validUntil: Date
+  created: DateTime!
   downloadNum: Int!
 }
 
@@ -2225,6 +2225,7 @@ type Shop {
   trackInventoryByDefault: Boolean
   defaultWeightUnit: WeightUnitsEnum
   translation(languageCode: LanguageCodeEnum!): ShopTranslation
+  automaticFulfillmentDigitalProducts: Boolean
 }
 
 type ShopDomainUpdate {
@@ -2245,6 +2246,7 @@ input ShopSettingsInput {
   chargeTaxesOnShipping: Boolean
   trackInventoryByDefault: Boolean
   defaultWeightUnit: WeightUnitsEnum
+  automaticFulfillmentDigitalProducts: Boolean
 }
 
 type ShopSettingsTranslate {

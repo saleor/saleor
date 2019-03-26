@@ -116,6 +116,8 @@ class Shop(graphene.ObjectType):
             required=True),
         description=(
             'Returns translated Shop fields for the given language code.'))
+    automatic_fulfillment_digital_products = graphene.Boolean(
+        description='Enable automatic fulfillment for all digital products')
 
     class Meta:
         description = dedent('''
@@ -222,6 +224,9 @@ class Shop(graphene.ObjectType):
     def resolve_translation(self, info, language_code):
         return resolve_translation(
             info.context.site.settings, info, language_code)
+
+    def resolve_automatic_fulfillment_digital_products(self, info):
+        return info.context.site.settings.automatic_fulfillment_digital_products
 
 
 def get_node_optimized(qs, lookup, info):
