@@ -10,7 +10,7 @@ from ...core.permissions import get_permissions
 from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
-from ..core.types import CountryDisplay, PermissionDisplay
+from ..core.types import Image, CountryDisplay, PermissionDisplay
 from ..utils import format_permissions_for_display
 
 
@@ -96,6 +96,8 @@ class User(CountableDjangoObjectType):
         model_field='orders')
     permissions = graphene.List(
         PermissionDisplay, description='List of user\'s permissions.')
+    avatar = graphene.Field(
+        Image, size=graphene.Int(description='Size of the avatar'))
 
     class Meta:
         exclude_fields = [
@@ -127,6 +129,16 @@ class User(CountableDjangoObjectType):
         if viewer.has_perm('order.manage_orders'):
             return self.orders.all()
         return self.orders.confirmed()
+
+    def resolve_avatar(self, info, size=None, **kwargs):
+        if self.avatar:
+            return Image.get_adjusted(
+                image=self.avatar,
+                alt=None,
+                size=size,
+                rendition_key_set='user_avatars',
+                info=info,
+            )
 
 
 class AddressValidationInput(graphene.InputObjectType):

@@ -2373,6 +2373,7 @@ type User implements Node {
   dateJoined: DateTime!
   defaultShippingAddress: Address
   defaultBillingAddress: Address
+  avatar(size: Int): Image
   orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
   checkout: Checkout
   permissions: [PermissionDisplay]
