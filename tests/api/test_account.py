@@ -774,6 +774,9 @@ def test_staff_create(
                 permissions {
                     code
                 }
+                avatar {
+                    url
+                }
             }
         }
     }
@@ -793,6 +796,10 @@ def test_staff_create(
     assert data['user']['email'] == email
     assert data['user']['isStaff']
     assert data['user']['isActive']
+    assert re.match(
+        r'http://testserver/media/user-avatars/avatar\d+\.png',
+        data['user']['avatar']['url']
+    )
     permissions = data['user']['permissions']
     assert permissions[0]['code'] == 'MANAGE_PRODUCTS'
 
