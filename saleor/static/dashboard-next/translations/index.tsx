@@ -1,10 +1,35 @@
+import { parse as parseQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
-import { languageListPath } from "./urls";
+import { languageEntitiesPath, languageListPath } from "./urls";
+import TranslationsEntitiesComponent, {
+  TranslationsEntitiesListQueryParams
+} from "./views/TranslationsEntities";
 import TranslationsLanguageList from "./views/TranslationsLanguageList";
+
+type TranslationsEntitiesRouteProps = RouteComponentProps<{
+  languageCode: string;
+}>;
+const TranslationsEntities: React.FC<TranslationsEntitiesRouteProps> = ({
+  location,
+  match
+}) => {
+  const qs = parseQs(location.search.substr(1));
+  const params: TranslationsEntitiesListQueryParams = {
+    after: qs.after,
+    before: qs.before,
+    tab: qs.tab
+  };
+  return (
+    <TranslationsEntitiesComponent
+      language={match.params.languageCode}
+      params={params}
+    />
+  );
+};
 
 const TranslationsRouter: React.FC = () => (
   <>
@@ -14,6 +39,11 @@ const TranslationsRouter: React.FC = () => (
         exact
         path={languageListPath}
         component={TranslationsLanguageList}
+      />
+      <Route
+        exact
+        path={languageEntitiesPath(":languageCode")}
+        component={TranslationsEntities}
       />
     </Switch>
   </>
