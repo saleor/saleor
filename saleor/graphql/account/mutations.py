@@ -1,9 +1,12 @@
+import os
+import random
 from textwrap import dedent
 
 import graphene
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.files import File
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from graphql_jwt.decorators import login_required, permission_required, staff_member_required
@@ -255,8 +258,17 @@ class StaffCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
+    def get_avatar(cls):
+        avatars_dir = 'saleor/static/images/avatars/'
+        avatar_name = random.choice(os.listdir(avatars_dir))
+        avatar_path = os.path.join(avatars_dir, avatar_name)
+        return File(open(avatar_path, 'rb'), name=avatar_name)
+
+    @classmethod
     def save(cls, info, user, cleaned_input):
+        user.avatar = cls.get_avatar()
         user.save()
+        create_user_avatar_thumbnails(user_id=user.pk)
         if cleaned_input.get('send_password_email'):
             send_set_password_staff_email.delay(user.pk)
 
