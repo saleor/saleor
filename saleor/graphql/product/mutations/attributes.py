@@ -35,8 +35,9 @@ class AttributeUpdateInput(graphene.InputObjectType):
 
 
 class AttributeMixin:
+
     @classmethod
-    def check_unique_values(cls, values_input, attribute, errors):
+    def check_unique_values(cls, values_input, attribute):
         # Check values uniqueness in case of creating new attribute.
         existing_values = attribute.values.values_list('slug', flat=True)
         for value_data in values_input:
@@ -74,10 +75,9 @@ class AttributeMixin:
                     if field == 'attribute':
                         continue
                     for msg in validation_errors.message_dict[field]:
-                        # FIXME :HANDLE this
-                        raise ValidationError({cls.ATTRIBUTE_VALUES_FIELD: msg})
-        cls.check_unique_values(values_input, attribute, errors)
-        return errors
+                        raise ValidationError({
+                            cls.ATTRIBUTE_VALUES_FIELD: msg})
+        cls.check_unique_values(values_input, attribute)
 
     @classmethod
     def clean_attribute(

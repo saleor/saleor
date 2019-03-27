@@ -215,6 +215,7 @@ class AssignNavigation(BaseMutation):
     class Meta:
         description = 'Assigns storefront\'s navigation menus.'
 
+    @classmethod
     def user_is_allowed(cls, instance, input):
         return instance.has_perms([
             'menu.manage_menus', 'site.manage_settings'])
