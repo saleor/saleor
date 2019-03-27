@@ -21,13 +21,12 @@ from saleor.checkout import utils
 from saleor.checkout.models import Cart
 from saleor.checkout.utils import add_variant_to_cart
 from saleor.dashboard.menu.utils import update_menu
-from saleor.dashboard.order.utils import fulfill_order_line
 from saleor.discount import VoucherType
 from saleor.discount.models import Sale, Voucher, VoucherTranslation
 from saleor.menu.models import Menu, MenuItem
 from saleor.order import OrderEvents, OrderStatus
 from saleor.order.models import FulfillmentStatus, Order, OrderEvent
-from saleor.order.utils import recalculate_order
+from saleor.order.utils import recalculate_order, fulfill_order_line
 from saleor.page.models import Page
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.models import Payment

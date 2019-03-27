@@ -16,7 +16,7 @@ from saleor.order.models import Order
 from saleor.order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order,
     change_order_line_quantity, delete_order_line, recalculate_order,
-    recalculate_order_weight, restock_fulfillment_lines, restock_order_lines,
+    fulfill_order_line, restock_fulfillment_lines, restock_order_lines,
     update_order_prices, update_order_status)
 from saleor.payment import ChargeStatus
 from saleor.payment.models import Payment
@@ -577,3 +577,45 @@ def test_get_order_weight_non_existing_product(order_with_lines, product):
     new_weight = order.get_total_weight()
 
     assert old_weight == new_weight
+
+
+
+def test_fulfill_order_line(order_with_lines):
+    order = order_with_lines
+    line = order.lines.first()
+    quantity_fulfilled_before = line.quantity_fulfilled
+    variant = line.variant
+    stock_quantity_after = variant.quantity - line.quantity
+
+    fulfill_order_line(line, line.quantity)
+
+    variant.refresh_from_db()
+    assert variant.quantity == stock_quantity_after
+    assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity
+
+
+def test_fulfill_order_line_with_variant_deleted(order_with_lines):
+    line = order_with_lines.lines.first()
+    line.variant.delete()
+
+    line.refresh_from_db()
+
+    fulfill_order_line(line, line.quantity)
+
+
+def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
+    order = order_with_lines
+    line = order.lines.first()
+    quantity_fulfilled_before = line.quantity_fulfilled
+    variant = line.variant
+    variant.track_inventory = False
+    variant.save()
+
+    # stock should not change
+    stock_quantity_after = variant.quantity
+
+    fulfill_order_line(line, line.quantity)
+
+    variant.refresh_from_db()
+    assert variant.quantity == stock_quantity_after
+    assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity
