@@ -9,7 +9,6 @@ from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.sites.models import Site
-from django.core.files import File
 from django_countries.fields import Country
 from faker import Factory
 from faker.providers import BaseProvider
@@ -40,6 +39,7 @@ from ...product.thumbnails import (
     create_collection_background_image_thumbnails, create_product_thumbnails)
 from ...shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
 from ...shipping.utils import get_taxed_shipping_price
+from ..utils import get_image
 
 fake = Factory.create()
 
@@ -692,8 +692,3 @@ def get_product_list_images_dir(placeholder_dir):
     product_list_images_dir = os.path.join(
         placeholder_dir, PRODUCTS_LIST_DIR)
     return product_list_images_dir
-
-
-def get_image(image_dir, image_name):
-    img_path = os.path.join(image_dir, image_name)
-    return File(open(img_path, 'rb'), name=image_name)
