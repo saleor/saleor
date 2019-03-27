@@ -16,7 +16,16 @@ from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import OrderLine
 from ..payment import ChargeStatus
 from ..payment.utils import gateway_refund, gateway_void
-from ..product.utils import allocate_stock, deallocate_stock, increase_stock
+from ..product.utils import (
+    allocate_stock, deallocate_stock, increase_stock, decrease_stock)
+
+
+def fulfill_order_line(order_line, quantity):
+    """Fulfill order line with given quantity."""
+    if order_line.variant and order_line.variant.track_inventory:
+        decrease_stock(order_line.variant, quantity)
+    order_line.quantity_fulfilled += quantity
+    order_line.save(update_fields=['quantity_fulfilled'])
 
 
 def check_order_status(func):

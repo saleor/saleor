@@ -4,10 +4,10 @@ import graphene
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from graphql_jwt.decorators import permission_required
 
-from ....dashboard.order.utils import fulfill_order_line
 from ....order import OrderEvents, OrderEventsEmails, models
 from ....order.emails import send_fulfillment_confirmation
-from ....order.utils import cancel_fulfillment, update_order_status
+from ....order.utils import (
+    cancel_fulfillment, update_order_status, fulfill_order_line)
 from ...core.mutations import BaseMutation
 from ...order.types import Fulfillment, Order
 from ..types import OrderLine
