@@ -13,8 +13,8 @@ import TranslationsEntitiesListPage, {
 } from "../components/TranslationsEntitiesListPage";
 import {
   TypedCategoryTranslations,
-  TypedProductTranslations,
-  TypedCollectionTranslations
+  TypedCollectionTranslations,
+  TypedProductTranslations
 } from "../queries";
 import {
   languageEntityUrl,
