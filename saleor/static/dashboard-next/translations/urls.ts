@@ -9,4 +9,18 @@ export const languageEntitiesPath = (code: string) =>
   urlJoin(translationsSection, code);
 export const languageEntitiesUrl = languageEntitiesPath;
 
-// export const language
+export enum TranslatableEntities {
+  categories = "categories",
+  products = "products"
+}
+
+export const languageEntityPath = (
+  code: string,
+  entity: TranslatableEntities,
+  id: string
+) => urlJoin(languageEntitiesPath(code), entity.toString(), id);
+export const languageEntityUrl = (
+  code: string,
+  entity: TranslatableEntities,
+  id: string
+) => languageEntityPath(code, entity, encodeURIComponent(id));

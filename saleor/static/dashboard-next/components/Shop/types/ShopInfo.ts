@@ -2,7 +2,7 @@
 /* eslint-disable */
 // This file was automatically generated and should not be edited.
 
-import { WeightUnitsEnum } from "./../../../types/globalTypes";
+import { WeightUnitsEnum, LanguageCodeEnum } from "./../../../types/globalTypes";
 
 // ====================================================
 // GraphQL query operation: ShopInfo
@@ -28,7 +28,7 @@ export interface ShopInfo_shop_domain {
 
 export interface ShopInfo_shop_languages {
   __typename: "LanguageDisplay";
-  code: string;
+  code: LanguageCodeEnum;
   language: string;
 }
 

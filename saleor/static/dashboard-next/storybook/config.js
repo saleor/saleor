@@ -131,6 +131,7 @@ function loadStories() {
   require("./stories/taxes/CountryTaxesPage");
 
   // Translations
+  require("./stories/translations/TranslationsEntitiesListPage");
   require("./stories/translations/TranslationsLanguageListPage");
 }
 
