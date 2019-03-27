@@ -13,7 +13,8 @@ import TranslationsEntitiesListPage, {
 } from "../components/TranslationsEntitiesListPage";
 import {
   TypedCategoryTranslations,
-  TypedProductTranslations
+  TypedProductTranslations,
+  TypedCollectionTranslations
 } from "../queries";
 import {
   languageEntityUrl,
@@ -56,6 +57,13 @@ const TranslationsEntities: React.FC<TranslationsEntitiesProps> = ({
         "?" +
           stringifyQs({
             tab: TranslatableEntities.categories
+          })
+      ),
+    onCollectionsTabClick: () =>
+      navigate(
+        "?" +
+          stringifyQs({
+            tab: TranslatableEntities.collections
           })
       ),
     onProductsTabClick: () =>
@@ -182,6 +190,57 @@ const TranslationsEntities: React.FC<TranslationsEntitiesProps> = ({
             );
           }}
         </TypedProductTranslations>
+      ) : params.tab === "collections" ? (
+        <TypedCollectionTranslations
+          variables={{ language: language as any, ...paginationState }}
+        >
+          {({ data, loading }) => {
+            const { loadNextPage, loadPreviousPage, pageInfo } = paginate(
+              maybe(() => data.collections.pageInfo),
+              paginationState,
+              params
+            );
+
+            return (
+              <TranslationsEntitiesList
+                disabled={loading}
+                entities={maybe(() =>
+                  data.collections.edges
+                    .map(edge => edge.node)
+                    .map(node => ({
+                      completion: {
+                        current: node.translation
+                          ? [
+                              node.translation.descriptionJson,
+                              node.translation.name,
+                              node.translation.seoDescription,
+                              node.translation.seoTitle
+                            ].reduce(
+                              (acc, field) => acc + (field !== null ? 1 : 0)
+                            )
+                          : 0,
+                        max: 4
+                      },
+                      id: node.id,
+                      name: node.name
+                    }))
+                )}
+                onRowClick={id =>
+                  navigate(
+                    languageEntityUrl(
+                      language,
+                      TranslatableEntities.collections,
+                      id
+                    )
+                  )
+                }
+                onNextPage={loadNextPage}
+                onPreviousPage={loadPreviousPage}
+                pageInfo={pageInfo}
+              />
+            );
+          }}
+        </TypedCollectionTranslations>
       ) : null}
     </TranslationsEntitiesListPage>
   );

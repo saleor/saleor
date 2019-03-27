@@ -11,7 +11,8 @@ export const languageEntitiesUrl = languageEntitiesPath;
 
 export enum TranslatableEntities {
   categories = "categories",
-  products = "products"
+  products = "products",
+  collections = "collections"
 }
 
 export const languageEntityPath = (

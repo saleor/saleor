@@ -7,6 +7,7 @@ import PageHeader from "../../../components/PageHeader";
 import { ShopInfo_shop_languages } from "../../../components/Shop/types/ShopInfo";
 import FilterTabs, { FilterTab } from "../../../components/TableFilter";
 import i18n from "../../../i18n";
+import { maybe } from "../../../misc";
 import { TranslatableEntities } from "../../urls";
 
 export interface TranslationsEntitiesListPageProps {
@@ -19,6 +20,7 @@ export interface TranslationsEntitiesListPageProps {
 export interface TranslationsEntitiesFilters {
   current: TranslationsEntitiesListFilterTab;
   onCategoriesTabClick: () => void;
+  onCollectionsTabClick: () => void;
   onProductsTabClick: () => void;
 }
 
@@ -32,19 +34,24 @@ const TranslationsEntitiesListPage: React.StatelessComponent<
     <PageHeader
       title={i18n.t("Translations to {{ language }}", {
         context: "object translation page header",
-        language: language.language
+        language: maybe(() => language.language, "...")
       })}
     />
     <Card>
       <FilterTabs
         currentTab={([
           "categories",
+          "collections",
           "products"
         ] as TranslationsEntitiesListFilterTab[]).indexOf(filters.current)}
       >
         <FilterTab
           label={i18n.t("Categories")}
           onClick={filters.onCategoriesTabClick}
+        />
+        <FilterTab
+          label={i18n.t("Collections")}
+          onClick={filters.onCollectionsTabClick}
         />
         <FilterTab
           label={i18n.t("Products")}
