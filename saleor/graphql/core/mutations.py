@@ -43,10 +43,10 @@ def validation_error_to_error_type(validation_error: ValidationError) -> list:
     err_list = []
     if hasattr(validation_error, 'error_dict'):
         # convert field errors
-        for field, field_errors in validation_error.error_dict.items():
+        for field, field_errors in validation_error.message_dict.items():
             for err in field_errors:
                 field = None if field == NON_FIELD_ERRORS else snake_to_camel_case(field)
-                err_list.append(Error(field=field, message=err.message))
+                err_list.append(Error(field=field, message=err))
     else:
         # convert non-field errors
         for err in validation_error.error_list:
@@ -402,6 +402,18 @@ class BaseBulkMutation(BaseMutation):
         """
         return True
 
+    @classmethod
+    def mutate(cls, root, info, **data):
+        if not cls.user_is_allowed(info.context.user, data):
+            raise PermissionDenied()
+
+        count, errors = cls.perform_mutation(root, info, **data)
+        if errors:
+            errors = validation_error_to_error_type(errors)
+            return cls(errors=errors, count=count)
+        else:
+            return cls(count=count)
+
 
 class ModelBulkDeleteMutation(BaseBulkMutation):
     class Meta:
@@ -416,24 +428,34 @@ class ModelBulkDeleteMutation(BaseBulkMutation):
         """
 
     @classmethod
-    def mutate(cls, root, info, ids):
+    def perform_mutation(cls, root, info, ids):
         """Perform a mutation that deletes a list of model instances."""
-        if not cls.user_is_allowed(info.context.user, ids):
-            raise PermissionDenied()
-
-        count, errors = 0, []
+        count, errors = 0, {}
         model_type = registry.get_type_for_model(cls._meta.model)
         instances = cls.get_nodes_or_error(ids, errors, 'id', model_type)
-        for instance in instances:
+        for instance, node_id in zip(instances, ids):
             instance_errors = []
-            cls.clean_instance(info, instance, instance_errors)
+
+            # catch individual validation errors to raise them later as
+            # a single error
+            try:
+                cls.clean_instance(info, instance, [])
+            except ValidationError as e:
+                msg = '. '.join(e.messages)
+                instance_errors.append(msg)
 
             if not instance_errors:
                 instance.delete()
                 count += 1
-            errors.extend(instance_errors)
+            else:
+                instance_errors_msg = '. '.join(instance_errors)
+                ValidationError({
+                    node_id: instance_errors_msg}).update_error_dict(errors)
 
-        return cls(count=count, errors=errors)
+        if errors:
+            errors = ValidationError(errors)
+
+        return count, errors
 
 
 class CreateToken(ObtainJSONWebToken):

@@ -28,10 +28,12 @@ from ..shipping.types import ShippingMethod
 from .types import Checkout, CheckoutLine
 
 
-# FIXME Add tests for this function
 def clean_shipping_method(
         checkout, method, errors, discounts, taxes, country_code=None,
         remove=True):
+    # FIXME Add tests for this function
+    if not method:
+        return errors
     if not checkout.is_shipping_required():
         raise ValidationError('This checkout does not requires shipping.')
 
@@ -173,7 +175,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 add_variant_to_cart(instance, variant, quantity)
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, root, info, input):
         errors = []
         user = info.context.user
 

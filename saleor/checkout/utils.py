@@ -893,24 +893,19 @@ def is_fully_paid(cart: Cart, taxes, discounts):
 
 def clean_checkout(cart: Cart, taxes, discounts):
     """Check if checkout can be completed."""
-    errors = {}
-
     if cart.is_shipping_required():
         if not cart.shipping_method:
-            errors.append('Shipping method is not set')
+            raise ValidationError('Shipping method is not set')
         if not cart.shipping_address:
-            errors.append('Shipping address is not set')
+            raise ValidationError('Shipping address is not set')
         if not is_valid_shipping_method(cart, taxes, discounts):
-            errors.append(
+            raise ValidationError(
                 'Shipping method is not valid for your shipping address')
 
     if not cart.billing_address:
-        errors.append('Billing address is not set')
+        raise ValidationError('Billing address is not set')
 
     if not is_fully_paid(cart, taxes, discounts):
-        errors.append(
+        raise ValidationError(
             'Provided payment methods can not cover the checkout\'s total '
             'amount')
-
-    if errors:
-        raise ValidationError(errors)

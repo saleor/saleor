@@ -18,12 +18,10 @@ class Mutation(BaseMutation):
         description = 'Base mutation'
 
     @classmethod
-    def mutate(cls, root, info, product_id):
+    def perform_mutation(cls, root, info, product_id):
         errors = []
         product = cls.get_node_or_error(
             info, product_id, errors, 'product_id', product_types.Product)
-        if errors:
-            return Mutation(errors=errors)
         return Mutation(name=product.name)
 
 

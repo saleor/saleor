@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 import graphene
 import pytest
+from django.core.exceptions import ValidationError
 
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.graphql.core.enums import ReportingPeriod
@@ -1121,24 +1122,30 @@ def test_order_mark_as_paid(
     assert event_order_paid.user == staff_user
 
 
+ORDER_VOID = """
+    mutation voidOrder($id: ID!) {
+        orderVoid(id: $id) {
+            order {
+                paymentStatus
+                paymentStatusDisplay
+            }
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
 def test_order_void(
         staff_api_client, permission_manage_orders, payment_txn_preauth,
         staff_user):
     order = payment_txn_preauth.order
-    query = """
-            mutation voidOrder($id: ID!) {
-                orderVoid(id: $id) {
-                    order {
-                        paymentStatus
-                        paymentStatusDisplay
-                    }
-                }
-            }
-        """
     order_id = graphene.Node.to_global_id('Order', order.id)
     variables = {'id': order_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        ORDER_VOID, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
     data = content['data']['orderVoid']['order']
     assert data['paymentStatus'] == PaymentChargeStatusEnum.NOT_CHARGED.name
@@ -1148,6 +1155,20 @@ def test_order_void(
     event_payment_voided = order.events.last()
     assert event_payment_voided.type == OrderEvents.PAYMENT_VOIDED.value
     assert event_payment_voided.user == staff_user
+
+
+def test_order_void_payment_error(staff_api_client, permission_manage_orders, payment_txn_preauth):
+    msg = 'error has happened'
+    order = payment_txn_preauth.order
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    variables = {'id': order_id}
+    with patch('saleor.graphql.order.mutations.orders.gateway_void', side_effect=ValueError(msg)):
+        response = staff_api_client.post_graphql(
+            ORDER_VOID, variables, permissions=[permission_manage_orders])
+        content = get_graphql_content(response)
+        errors = content['data']['orderVoid']['errors']
+        assert errors[0]['field'] == 'payment'
+        assert errors[0]['message'] == msg
 
 
 def test_order_refund(
@@ -1189,45 +1210,45 @@ def test_order_refund(
 def test_clean_order_void_payment():
     payment = MagicMock(spec=Payment)
     payment.is_active = False
-    errors = clean_void_payment(payment, [])
-    assert errors[0].field == 'payment'
-    assert errors[0].message == 'Only pre-authorized payments can be voided'
+    with pytest.raises(ValidationError) as e:
+        clean_void_payment(payment)
 
-    payment.is_active = True
-    error_msg = 'error has happened.'
-    with patch('saleor.graphql.order.mutations.orders.gateway_void',
-               side_effect=ValueError(error_msg)):
-        errors = clean_void_payment(payment, [])
-    assert errors[0].field == 'payment'
-    assert errors[0].message == error_msg
+    msg = 'Only pre-authorized payments can be voided'
+    assert e.value.error_dict['payment'][0].message == msg
 
 
 def test_clean_order_refund_payment():
     payment = MagicMock(spec=Payment)
     payment.gateway = CustomPaymentChoices.MANUAL
     amount = Mock(spec='string')
-    errors = clean_refund_payment(payment, amount, [])
-    assert errors[0].field == 'payment'
-    assert errors[0].message == 'Manual payments can not be refunded.'
+    with pytest.raises(ValidationError) as e:
+        clean_refund_payment(payment, amount)
+
+    msg = 'Manual payments can not be refunded.'
+    assert e.value.error_dict['payment'][0].message == msg
 
 
 def test_clean_order_capture():
     amount = Mock(spec='string')
-    errors = clean_order_capture(None, amount, [])
-    assert errors[0].field == 'payment'
-    assert errors[0].message == (
-        'There\'s no payment associated with the order.')
+    with pytest.raises(ValidationError) as e:
+        clean_order_capture(None, amount)
+
+    msg = 'There\'s no payment associated with the order.'
+    assert e.value.error_dict['payment'][0].message == msg
 
 
 def test_clean_order_cancel(order):
-    assert clean_order_cancel(order, []) == []
+    # Shouldn't raise any errors
+    clean_order_cancel(order)
 
     order.status = OrderStatus.DRAFT
     order.save()
 
-    errors = clean_order_cancel(order, [])
-    assert errors[0].field == 'order'
-    assert errors[0].message == 'This order can\'t be canceled.'
+    with pytest.raises(ValidationError) as e:
+        clean_order_cancel(order)
+
+    msg = 'This order can\'t be canceled.'
+    assert e.value.error_dict['order'][0].message == msg
 
 
 ORDER_UPDATE_SHIPPING_QUERY = """

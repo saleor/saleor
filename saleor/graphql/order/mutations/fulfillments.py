@@ -68,7 +68,6 @@ class FulfillmentCreate(BaseMutation):
 
     @classmethod
     def clean_lines(cls, order_lines, quantities, errors):
-        errors = {}
         for order_line, quantity in zip(order_lines, quantities):
             if quantity > order_line.quantity_unfulfilled:
                 msg = npgettext_lazy(
@@ -78,12 +77,7 @@ class FulfillmentCreate(BaseMutation):
                     number='quantity') % {
                         'quantity': order_line.quantity_unfulfilled,
                         'order_line': order_line}
-                ValidationError({
-                    'order_line_id': msg}).update_error_dict(errors)
-                ValidationError(msg).update_error_dict(errors)
-        if errors:
-            raise ValidationError(errors)
-        return errors
+                raise ValidationError({'order_line_id': msg})
 
     @classmethod
     def clean_input(cls, input, errors):
@@ -207,7 +201,7 @@ class FulfillmentCancel(BaseMutation):
         return user.has_perm('order.manage_orders')
 
     @classmethod
-    def perform_mutatation(cls, root, info, id, input):
+    def perform_mutation(cls, root, info, id, input):
         restock = input.get('restock')
         fulfillment = cls.get_node_or_error(info, id, [], 'id', Fulfillment)
 

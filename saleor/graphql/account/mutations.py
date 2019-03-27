@@ -269,10 +269,7 @@ class StaffUpdate(StaffCreate):
         model = models.User
 
     @classmethod
-    def clean_is_active(cls, is_active, instance, user, errors):
-        if is_active is None:
-            return errors
-
+    def clean_is_active(cls, is_active, instance, user):
         if not is_active:
             if user == instance:
                 raise ValidationError({
@@ -280,14 +277,13 @@ class StaffUpdate(StaffCreate):
             elif instance.is_superuser:
                 raise ValidationError({
                     'is_active': 'Cannot deactivate superuser\'s account.'})
-        return errors
 
     @classmethod
     def clean_input(cls, info, instance, input, errors):
         cleaned_input = super().clean_input(info, instance, input, errors)
-        cls.clean_is_active(
-            cleaned_input.get('is_active'), instance, info.context.user,
-            errors)
+        is_active = cleaned_input.get('is_active')
+        if is_active is not None:
+            cls.clean_is_active(is_active, instance, info.context.user)
         return cleaned_input
 
 
@@ -376,6 +372,7 @@ class PasswordReset(BaseMutation):
                 'email': 'User with this email doesn\'t exist'})
         site = info.context.site
         send_user_password_reset_email(user, site)
+        return PasswordReset()
 
 
 class CustomerPasswordResetInput(graphene.InputObjectType):
@@ -536,6 +533,7 @@ class AddressSetDefault(BaseMutation):
     class Meta:
         description = 'Sets a default address for the given user.'
 
+    @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('account.manage_users')
 

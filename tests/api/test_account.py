@@ -6,6 +6,7 @@ import graphene
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
+from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.shortcuts import reverse
 
@@ -742,14 +743,14 @@ def test_customer_delete(
 
 def test_customer_delete_errors(customer_user, admin_user, staff_user):
     info = Mock(context=Mock(user=admin_user))
-    errors = []
-    CustomerDelete.clean_instance(info, staff_user, errors)
-    assert errors[0].field == 'id'
-    assert errors[0].message == 'Cannot delete a staff account.'
+    with pytest.raises(ValidationError) as e:
+        CustomerDelete.clean_instance(info, staff_user, [])
 
-    errors = []
-    CustomerDelete.clean_instance(info, customer_user, errors)
-    assert errors == []
+    msg = 'Cannot delete a staff account.'
+    assert e.value.error_dict['id'][0].message == msg
+
+    # shuold not raise any errors
+    CustomerDelete.clean_instance(info, customer_user, [])
 
 
 @patch('saleor.dashboard.emails.send_set_password_staff_email.delay')
@@ -876,49 +877,47 @@ def test_staff_delete(staff_api_client, permission_manage_staff):
 
 def test_user_delete_errors(staff_user, admin_user):
     info = Mock(context=Mock(user=staff_user))
-    errors = []
-    UserDelete.clean_instance(info, staff_user, errors)
-    assert errors[0].field == 'id'
-    assert errors[0].message == 'You cannot delete your own account.'
+    with pytest.raises(ValidationError) as e:
+        UserDelete.clean_instance(info, staff_user, [])
+
+    msg = 'You cannot delete your own account.'
+    assert e.value.error_dict['id'][0].message == msg
 
     info = Mock(context=Mock(user=staff_user))
-    errors = []
-    UserDelete.clean_instance(info, admin_user, errors)
-    assert errors[0].field == 'id'
-    assert errors[0].message == 'Cannot delete this account.'
+    with pytest.raises(ValidationError) as e:
+        UserDelete.clean_instance(info, admin_user, [])
+
+    msg = 'Cannot delete this account.'
+    assert e.value.error_dict['id'][0].message == msg
 
 
 def test_staff_delete_errors(staff_user, customer_user, admin_user):
     info = Mock(context=Mock(user=staff_user))
-    errors = []
-    StaffDelete.clean_instance(info, customer_user, errors)
-    assert errors[0].field == 'id'
-    assert errors[0].message == 'Cannot delete a non-staff user.'
+    with pytest.raises(ValidationError) as e:
+        StaffDelete.clean_instance(info, customer_user, [])
+    msg = 'Cannot delete a non-staff user.'
+    assert e.value.error_dict['id'][0].message == msg
 
+    # shuold not raise any errors
     info = Mock(context=Mock(user=admin_user))
-    errors = []
-    StaffDelete.clean_instance(info, staff_user, errors)
-    assert not errors
+    StaffDelete.clean_instance(info, staff_user, [])
 
 
 def test_staff_update_errors(staff_user, customer_user, admin_user):
-    errors = []
-    StaffUpdate.clean_is_active(None, customer_user, staff_user, errors)
-    assert not errors
+    StaffUpdate.clean_is_active(None, customer_user, staff_user)
 
-    errors = []
-    StaffUpdate.clean_is_active(False, staff_user, staff_user, errors)
-    assert errors[0].field == 'isActive'
-    assert errors[0].message == 'Cannot deactivate your own account.'
+    with pytest.raises(ValidationError) as e:
+        StaffUpdate.clean_is_active(False, staff_user, staff_user)
+    msg = 'Cannot deactivate your own account.'
+    assert e.value.error_dict['is_active'][0].message == msg
 
-    errors = []
-    StaffUpdate.clean_is_active(False, admin_user, staff_user, errors)
-    assert errors[0].field == 'isActive'
-    assert errors[0].message == 'Cannot deactivate superuser\'s account.'
+    with pytest.raises(ValidationError) as e:
+        StaffUpdate.clean_is_active(False, admin_user, staff_user)
+    msg = 'Cannot deactivate superuser\'s account.'
+    assert e.value.error_dict['is_active'][0].message == msg
 
-    errors = []
-    StaffUpdate.clean_is_active(False, customer_user, staff_user, errors)
-    assert not errors
+    # shuold not raise any errors
+    StaffUpdate.clean_is_active(False, customer_user, staff_user)
 
 
 def test_set_password(user_api_client, customer_user):
@@ -976,7 +975,7 @@ def test_password_reset_email(
         query, variables, permissions=[permission_manage_users])
     content = get_graphql_content(response)
     data = content['data']['passwordReset']
-    assert data is None
+    assert data == {'errors': []}
     assert send_password_reset_mock.call_count == 1
     args, kwargs = send_password_reset_mock.call_args
     call_context = args[0]

@@ -215,11 +215,10 @@ class DraftOrderComplete(BaseMutation):
 
 
 class DraftOrderLinesCreate(BaseMutation):
-    order = graphene.Field(
-        graphene.NonNull(Order), description='A related draft order.')
+    order = graphene.Field(Order, description='A related draft order.')
     order_lines = graphene.List(
         graphene.NonNull(OrderLine),
-        description='List of newly added order lines.', required=True)
+        description='List of newly added order lines.')
 
     class Arguments:
         id = graphene.ID(
@@ -238,8 +237,7 @@ class DraftOrderLinesCreate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, id, input):
-        errors = {}
-        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        order = cls.get_node_or_error(info, id, [], 'id', Order)
         if order.status != OrderStatus.DRAFT:
             raise ValidationError({'id': 'Only draft orders can be edited.'})
 
@@ -247,7 +245,7 @@ class DraftOrderLinesCreate(BaseMutation):
         for input_line in input:
             variant_id = input_line['variant_id']
             variant = cls.get_node_or_error(
-                info, variant_id, errors, 'variant_id', ProductVariant)
+                info, variant_id, [], 'variant_id', ProductVariant)
             quantity = input_line['quantity']
             if quantity > 0:
                 if variant:
@@ -255,12 +253,12 @@ class DraftOrderLinesCreate(BaseMutation):
                         order, variant, quantity, allow_overselling=True)
                     lines.append(line)
             else:
-                ValidationError({
-                    'quantity': 'Ensure this value is greater than or equal to 1.'}).update_error_dict(errors)
+                raise ValidationError({
+                    'quantity':
+                    'Ensure this value is greater than or equal to 1.'})
 
         recalculate_order(order)
-        return DraftOrderLinesCreate(
-            order=order, order_lines=lines, errors=errors)
+        return DraftOrderLinesCreate(order=order, order_lines=lines)
 
 
 class DraftOrderLineDelete(BaseMutation):
