@@ -97,7 +97,7 @@ class User(CountableDjangoObjectType):
     permissions = graphene.List(
         PermissionDisplay, description='List of user\'s permissions.')
     avatar = graphene.Field(
-        Image, size=graphene.Int(description='Size of the avatar'))
+        Image, size=graphene.Int(description='Size of the avatar.'))
 
     class Meta:
         exclude_fields = [
