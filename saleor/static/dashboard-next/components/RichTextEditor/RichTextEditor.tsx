@@ -36,6 +36,7 @@ export interface RichTextEditorProps {
   helperText: string;
   label: string;
   name: string;
+  scroll?: boolean;
   initial?: RawDraftContentState;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
@@ -72,10 +73,7 @@ const styles = (theme: Theme) =>
       "& .DraftEditor": {
         "&-editorContainer": {
           "& .public-DraftEditor-content": {
-            lineHeight: 1.62,
-            maxHeight: 300,
-            minHeight: 100,
-            overflowY: "scroll"
+            lineHeight: 1.62
           },
           "& a": {
             color: theme.palette.secondary.light
@@ -210,6 +208,15 @@ const styles = (theme: Theme) =>
           }
         }
       }
+    },
+    scroll: {
+      "& .DraftEditor": {
+        "&-editorContainer": {
+          "& .public-DraftEditor-content": {
+            lineHeight: 1.62
+          }
+        }
+      }
     }
   });
 const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
@@ -220,12 +227,14 @@ const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
     initial,
     label,
     name,
+    scroll,
     onChange
   }: RichTextEditorProps & WithStyles<typeof styles>) => (
     <div
       className={classNames({
         [classes.error]: error,
-        [classes.root]: true
+        [classes.root]: true,
+        [classes.scroll]: scroll
       })}
     >
       <Typography className={classes.label} variant="caption" color="primary">
@@ -286,4 +295,7 @@ const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
   )
 );
 RichTextEditor.displayName = "RichTextEditor";
+RichTextEditor.defaultProps = {
+  scroll: true
+};
 export default RichTextEditor;

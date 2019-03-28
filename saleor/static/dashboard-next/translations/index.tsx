@@ -4,11 +4,20 @@ import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
-import { languageEntitiesPath, languageListPath } from "./urls";
+import { LanguageCodeEnum } from "../types/globalTypes";
+import {
+  languageEntitiesPath,
+  languageEntityPath,
+  languageListPath,
+  TranslatableEntities
+} from "./urls";
 import TranslationsEntitiesComponent, {
   TranslationsEntitiesListQueryParams
 } from "./views/TranslationsEntities";
 import TranslationsLanguageList from "./views/TranslationsLanguageList";
+import TranslationsProductsComponent, {
+  TranslationsProductsQueryParams
+} from "./views/TranslationsProducts";
 
 type TranslationsEntitiesRouteProps = RouteComponentProps<{
   languageCode: string;
@@ -30,6 +39,26 @@ const TranslationsEntities: React.FC<TranslationsEntitiesRouteProps> = ({
     />
   );
 };
+type TranslationsProductsRouteProps = RouteComponentProps<{
+  id: string;
+  languageCode: string;
+}>;
+const TranslationsProducts: React.FC<TranslationsProductsRouteProps> = ({
+  location,
+  match
+}) => {
+  const qs = parseQs(location.search.substr(1));
+  const params: TranslationsProductsQueryParams = {
+    activeField: qs.activeField
+  };
+  return (
+    <TranslationsProductsComponent
+      id={decodeURIComponent(match.params.id)}
+      languageCode={LanguageCodeEnum[match.params.languageCode]}
+      params={params}
+    />
+  );
+};
 
 const TranslationsRouter: React.FC = () => (
   <>
@@ -44,6 +73,15 @@ const TranslationsRouter: React.FC = () => (
         exact
         path={languageEntitiesPath(":languageCode")}
         component={TranslationsEntities}
+      />
+      <Route
+        exact
+        path={languageEntityPath(
+          ":languageCode",
+          TranslatableEntities.products,
+          ":id"
+        )}
+        component={TranslationsProducts}
       />
     </Switch>
   </>

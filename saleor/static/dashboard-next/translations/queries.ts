@@ -10,6 +10,10 @@ import {
   CollectionTranslationsVariables
 } from "./types/CollectionTranslations";
 import {
+  ProductTranslationDetails,
+  ProductTranslationDetailsVariables
+} from "./types/ProductTranslationDetails";
+import {
   ProductTranslations,
   ProductTranslationsVariables
 } from "./types/ProductTranslations";
@@ -50,10 +54,14 @@ export const productTranslationFragment = gql`
   fragment ProductTranslationFragment on Product {
     id
     name
+    descriptionJson
+    seoDescription
+    seoTitle
     translation(languageCode: $language) {
       id
       descriptionJson
       language {
+        code
         language
       }
       name
@@ -143,3 +151,16 @@ export const TypedProductTranslations = TypedQuery<
   ProductTranslations,
   ProductTranslationsVariables
 >(productTranslations);
+
+const productTranslationDetails = gql`
+  ${productTranslationFragment}
+  query ProductTranslationDetails($id: ID!, $language: LanguageCodeEnum!) {
+    product(id: $id) {
+      ...ProductTranslationFragment
+    }
+  }
+`;
+export const TypedProductTranslationDetails = TypedQuery<
+  ProductTranslationDetails,
+  ProductTranslationDetailsVariables
+>(productTranslationDetails);

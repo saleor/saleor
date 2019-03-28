@@ -10,6 +10,7 @@ import { LanguageCodeEnum } from "./../../types/globalTypes";
 
 export interface ProductTranslations_products_edges_node_translation_language {
   __typename: "LanguageDisplay";
+  code: LanguageCodeEnum;
   language: string;
 }
 
@@ -27,6 +28,9 @@ export interface ProductTranslations_products_edges_node {
   __typename: "Product";
   id: string;
   name: string;
+  descriptionJson: any;
+  seoDescription: string | null;
+  seoTitle: string | null;
   translation: ProductTranslations_products_edges_node_translation | null;
 }
 

@@ -133,6 +133,7 @@ function loadStories() {
   // Translations
   require("./stories/translations/TranslationsEntitiesListPage");
   require("./stories/translations/TranslationsLanguageListPage");
+  require("./stories/translations/TranslationsProductsPage");
 }
 
 configure(loadStories, module);
