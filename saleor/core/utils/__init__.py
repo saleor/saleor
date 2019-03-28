@@ -10,7 +10,6 @@ from django import forms
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core import serializers
-from django.core.files import File
 from django.core.paginator import InvalidPage, Paginator
 from django.http import Http404
 from django.utils.encoding import iri_to_uri, smart_text
@@ -24,6 +23,7 @@ from prices import MoneyRange
 from versatileimagefield.image_warmer import VersatileImageFieldWarmer
 
 from ...account.models import User
+from ...account.utils import get_random_avatar
 from ...core.i18n import COUNTRY_CODE_CHOICES
 
 georeader = geolite2.reader()
@@ -136,20 +136,17 @@ def serialize_decimal(obj):
     return JSONEncoder().default(obj)
 
 
-def create_superuser(credentials, avatars_dir):
+def create_superuser(credentials):
     user, created = User.objects.get_or_create(
         email=credentials['email'], defaults={
             'is_active': True, 'is_staff': True, 'is_superuser': True})
     if created:
-        avatar = get_image(avatars_dir, 'avatar1.png')
-        user.avatar = avatar
+        user.avatar = get_random_avatar()
         user.set_password(credentials['password'])
         user.save()
         create_thumbnails(
-            pk=user.pk,
-            model=User,
-            size_set='user_avatars',
-            image_attr='avatar',
+            pk=user.pk, model=User,
+            size_set='user_avatars', image_attr='avatar',
         )
         msg = 'Superuser - %(email)s/%(password)s' % credentials
     else:
@@ -182,8 +179,3 @@ def get_country_name_by_code(country_code):
         (name for code, name in COUNTRY_CODE_CHOICES if code == country_code),
         country_code)
     return country_name
-
-
-def get_image(image_dir, image_name):
-    img_path = os.path.join(image_dir, image_name)
-    return File(open(img_path, 'rb'), name=image_name)

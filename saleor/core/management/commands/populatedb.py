@@ -16,7 +16,6 @@ from ...utils.random_data import (
 class Command(BaseCommand):
     help = 'Populate database with test objects'
     placeholders_dir = 'saleor/static/placeholders/'
-    avatars_dir = 'saleor/static/images/avatars/'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -99,7 +98,7 @@ class Command(BaseCommand):
 
         if options['createsuperuser']:
             credentials = {'email': 'admin@example.com', 'password': 'admin'}
-            msg = create_superuser(credentials, self.avatars_dir)
+            msg = create_superuser(credentials)
             self.stdout.write(msg)
             add_address_to_admin(credentials['email'])
         if not options['withoutsearch']:
