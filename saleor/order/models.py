@@ -327,6 +327,13 @@ class OrderLine(models.Model):
     def quantity_unfulfilled(self):
         return self.quantity - self.quantity_fulfilled
 
+    @property
+    def is_digital(self) -> bool:
+        """Return true if product variant has assigned digital content and
+        shipping is not required"""
+        has_digital = hasattr(self.variant, 'digital_content')
+        return not self.is_shipping_required and has_digital
+
 
 class Fulfillment(models.Model):
     fulfillment_order = models.PositiveIntegerField(editable=False)

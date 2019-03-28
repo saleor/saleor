@@ -1,4 +1,3 @@
-import datetime
 from decimal import Decimal
 from uuid import uuid4
 
@@ -9,7 +8,6 @@ from django.db import models
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
-from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
@@ -314,6 +312,7 @@ class DigitalContent(models.Model):
     TYPE_CHOICES = (
         (FILE, pgettext_lazy('File as a digital product', 'digital_product')),
     )
+    use_default_settings = models.BooleanField(default=True)
     automatic_fulfillment = models.BooleanField(default=False)
     content_type = models.CharField(
         max_length=128, default=FILE, choices=TYPE_CHOICES)
@@ -334,6 +333,9 @@ class DigitalContentUrl(models.Model):
         DigitalContent, related_name='urls', on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     download_num = models.IntegerField(default=0)
+    line = models.ForeignKey(
+        'order.OrderLine', related_name='digital_content_urls', blank=True,
+        null=True, on_delete=models.CASCADE)
 
     def save(self, force_insert=False, force_update=False, using=None,
                  update_fields=None):
@@ -342,23 +344,9 @@ class DigitalContentUrl(models.Model):
         super().save(force_insert, force_update, using, update_fields)
 
     def get_absolute_url(self) -> str:
-        url = reverse('product:digital-product', kwargs={'token': str(self.token)})
+        url = reverse(
+            'product:digital-product', kwargs={'token': str(self.token)})
         return build_absolute_uri(url)
-
-    def ready_to_share(self) -> bool:
-        url_valid_days = self.content.url_valid_days
-        if url_valid_days is not None:
-            valid_days = datetime.timedelta(days=url_valid_days)
-            valid_until = self.created + valid_days
-            if now() > valid_until:
-                return False
-
-        max_downloads = self.content.max_downloads
-        if max_downloads is not None and max_downloads <= self.download_num:
-            return False
-
-        return True
-
 
 
 class Attribute(models.Model):

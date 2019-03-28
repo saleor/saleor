@@ -163,7 +163,10 @@ class DigitalContent(CountableDjangoObjectType):
 
     class Meta:
         model = models.DigitalContent
-        exclude_fields = []
+        only_fields = [
+            'urls', 'content_file', 'use_default_settings',
+            'automatic_fulfillment', 'product_variant', 'max_downloads',
+            'url_valid_days', ]
         interfaces = (relay.Node,)
 
     def resolve_urls(self, info, **kwargs):

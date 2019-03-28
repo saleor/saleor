@@ -1,5 +1,5 @@
 from decimal import Decimal
-
+from unittest.mock import patch
 import pytest
 from django.urls import reverse
 from django_countries.fields import Country
@@ -12,15 +12,16 @@ from saleor.core.utils.taxes import (
     DEFAULT_TAX_RATE_NAME, get_tax_rate_by_name, get_taxes_for_country)
 from saleor.core.weight import zero_weight
 from saleor.order import FulfillmentStatus, OrderStatus, models
-from saleor.order.models import Order
+from saleor.order.models import Order, Fulfillment
 from saleor.order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order,
     change_order_line_quantity, delete_order_line, recalculate_order,
     fulfill_order_line, restock_fulfillment_lines, restock_order_lines,
-    update_order_prices, update_order_status)
+    update_order_prices, update_order_status, fulfill_digital_lines)
 from saleor.payment import ChargeStatus
 from saleor.payment.models import Payment
-from tests.utils import get_redirect_location
+from saleor.product.models import DigitalContent
+from tests.utils import get_redirect_location, create_image
 
 
 def test_total_setter():
@@ -578,6 +579,33 @@ def test_get_order_weight_non_existing_product(order_with_lines, product):
 
     assert old_weight == new_weight
 
+
+@patch('saleor.order.utils.get_default_automatic_fulfillment')
+def test_fulfill_digital_lines(mock_automatic_fulfillment, order_with_lines):
+    mock_automatic_fulfillment.return_value = True
+    line = order_with_lines.lines.all()[0]
+
+    image_file, image_name = create_image()
+    variant = line.variant
+    digital_content = DigitalContent.objects.create(
+        content_file=image_file, product_variant=variant,
+        use_default_settings=True)
+
+    line.variant.digital_content = digital_content
+    line.is_shipping_required = False
+    line.quantity = 2
+    line.save()
+
+    order_with_lines.refresh_from_db()
+    fulfill_digital_lines(order_with_lines)
+    line.refresh_from_db()
+    fulfillment = Fulfillment.objects.get(order=order_with_lines)
+    fulfillment_lines = fulfillment.lines.all()
+
+    assert fulfillment_lines.count() == 1
+    assert fulfillment_lines[0].quantity == 2
+    assert line.digital_content_urls.count() == 2
+    assert line.quantity_fulfilled == 2
 
 
 def test_fulfill_order_line(order_with_lines):
