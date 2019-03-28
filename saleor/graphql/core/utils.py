@@ -18,6 +18,7 @@ def str_to_enum(name):
     """Create an enum value from a string."""
     return name.replace(' ', '_').replace('-', '_').upper()
 
+
 def validate_image_file(mutation_cls, file, field_name, errors):
     """Validate if the file is an image."""
     if not file.content_type.startswith('image/'):
