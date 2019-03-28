@@ -5,31 +5,40 @@
 import { LanguageCodeEnum } from "./../../types/globalTypes";
 
 // ====================================================
-// GraphQL fragment: ProductTranslationFragment
+// GraphQL query operation: ProductTranslationDetails
 // ====================================================
 
-export interface ProductTranslationFragment_translation_language {
+export interface ProductTranslationDetails_product_translation_language {
   __typename: "LanguageDisplay";
   code: LanguageCodeEnum;
   language: string;
 }
 
-export interface ProductTranslationFragment_translation {
+export interface ProductTranslationDetails_product_translation {
   __typename: "ProductTranslation";
   id: string;
   descriptionJson: any;
-  language: ProductTranslationFragment_translation_language;
+  language: ProductTranslationDetails_product_translation_language;
   name: string;
   seoDescription: string | null;
   seoTitle: string | null;
 }
 
-export interface ProductTranslationFragment {
+export interface ProductTranslationDetails_product {
   __typename: "Product";
   id: string;
   name: string;
   descriptionJson: any;
   seoDescription: string | null;
   seoTitle: string | null;
-  translation: ProductTranslationFragment_translation | null;
+  translation: ProductTranslationDetails_product_translation | null;
+}
+
+export interface ProductTranslationDetails {
+  product: ProductTranslationDetails_product | null;
+}
+
+export interface ProductTranslationDetailsVariables {
+  id: string;
+  language: LanguageCodeEnum;
 }
