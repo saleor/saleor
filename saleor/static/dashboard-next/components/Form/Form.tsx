@@ -7,6 +7,7 @@ export interface FormProps<T extends {}> {
     hasChanged: boolean;
     errors: { [key: string]: string };
     change(event: React.ChangeEvent<any>, cb?: () => void);
+    reset();
     submit(event?: React.FormEvent<any>);
   }) => React.ReactElement<any>;
   errors?: UserError[];
@@ -151,6 +152,10 @@ class FormComponent<T extends {} = {}> extends React.Component<
           )
         : {},
       hasChanged: this.hasChanged(),
+      reset: () =>
+        this.setState({
+          fields: this.state.initial
+        }),
       submit: this.handleSubmit
     });
 
