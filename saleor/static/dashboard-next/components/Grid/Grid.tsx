@@ -10,6 +10,7 @@ import * as React from "react";
 export type GridVariant = "default" | "inverted" | "uniform";
 export interface GridProps extends WithStyles<typeof styles> {
   children: React.ReactNodeArray | React.ReactNode;
+  className?: string;
   variant?: GridVariant;
 }
 
@@ -36,10 +37,9 @@ const styles = (theme: Theme) =>
   });
 
 export const Grid = withStyles(styles, { name: "Grid" })(
-  ({ children, classes, variant }: GridProps) => (
+  ({ className, children, classes, variant }: GridProps) => (
     <div
-      className={classNames({
-        [classes.root]: true,
+      className={classNames(className, classes.root, {
         [classes.default]: variant === "default",
         [classes.inverted]: variant === "inverted",
         [classes.uniform]: variant === "uniform"
