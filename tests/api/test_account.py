@@ -1503,9 +1503,9 @@ def test_customer_change_default_address_invalid_address(
         'id')
 
 
-USER_IMAGE_UPDATE_MUTATION = """
-    mutation userImageUpdate($image: Upload!) {
-        userImageUpdate(image: $image) {
+USER_AVATAR_UPDATE_MUTATION = """
+    mutation userAvatarUpdate($image: Upload!) {
+        userAvatarUpdate(image: $image) {
             user {
                 avatar {
                     url
@@ -1516,10 +1516,10 @@ USER_IMAGE_UPDATE_MUTATION = """
 """
 
 
-def test_user_image_update_mutation_permission(api_client):
+def test_user_avatar_update_mutation_permission(api_client):
     """ Should raise error if user is not staff. """
 
-    query = USER_IMAGE_UPDATE_MUTATION
+    query = USER_AVATAR_UPDATE_MUTATION
 
     image_file, image_name = create_image('avatar')
     variables = {'image': image_name}
@@ -1528,8 +1528,8 @@ def test_user_image_update_mutation_permission(api_client):
 
     assert_no_permission(response)
 
-def test_user_image_update_mutation(monkeypatch, staff_api_client):
-    query = USER_IMAGE_UPDATE_MUTATION
+def test_user_avatar_update_mutation(monkeypatch, staff_api_client):
+    query = USER_AVATAR_UPDATE_MUTATION
 
     user = staff_api_client.user
 
@@ -1548,7 +1548,7 @@ def test_user_image_update_mutation(monkeypatch, staff_api_client):
     user.refresh_from_db()
 
     assert user.avatar
-    assert content['data']['userImageUpdate']['user']['avatar']['url'] == (
+    assert content['data']['userAvatarUpdate']['user']['avatar']['url'] == (
         'http://testserver/media/user-avatars/avatar.jpg'
     )
 
@@ -1556,8 +1556,8 @@ def test_user_image_update_mutation(monkeypatch, staff_api_client):
     mock_create_thumbnails.assert_called_once_with(user_id=user.pk)
 
 
-def test_user_image_update_mutation_image_exists(staff_api_client):
-    query = USER_IMAGE_UPDATE_MUTATION
+def test_user_avatar_update_mutation_image_exists(staff_api_client):
+    query = USER_AVATAR_UPDATE_MUTATION
 
     user = staff_api_client.user
     avatar_mock = MagicMock(spec=File)
@@ -1574,14 +1574,14 @@ def test_user_image_update_mutation_image_exists(staff_api_client):
     user.refresh_from_db()
 
     assert user.avatar != avatar_mock
-    assert content['data']['userImageUpdate']['user']['avatar']['url'] == (
+    assert content['data']['userAvatarUpdate']['user']['avatar']['url'] == (
         'http://testserver/media/user-avatars/new_image.jpg'
     )
 
 
-USER_IMAGE_DELETE_MUTATION = """
-    mutation userImageDelete {
-        userImageDelete {
+USER_AVATAR_DELETE_MUTATION = """
+    mutation userAvatarDelete {
+        userAvatarDelete {
             user {
                 avatar {
                     url
@@ -1592,18 +1592,18 @@ USER_IMAGE_DELETE_MUTATION = """
 """
 
 
-def test_user_image_delete_mutation_permission(api_client):
+def test_user_avatar_delete_mutation_permission(api_client):
     """ Should raise error if user is not staff. """
 
-    query = USER_IMAGE_DELETE_MUTATION
+    query = USER_AVATAR_DELETE_MUTATION
 
     response = api_client.post_graphql(query)
 
     assert_no_permission(response)
 
 
-def test_user_image_delete_mutation(staff_api_client):
-    query = USER_IMAGE_DELETE_MUTATION
+def test_user_avatar_delete_mutation(staff_api_client):
+    query = USER_AVATAR_DELETE_MUTATION
 
     user = staff_api_client.user
 
@@ -1613,4 +1613,4 @@ def test_user_image_delete_mutation(staff_api_client):
     user.refresh_from_db()
 
     assert not user.avatar
-    assert not content['data']['userImageDelete']['user']['avatar']
+    assert not content['data']['userAvatarDelete']['user']['avatar']

@@ -1145,8 +1145,8 @@ type Mutations {
   addressDelete(id: ID!): AddressDelete
   addressUpdate(id: ID!, input: AddressInput!): AddressUpdate
   addressSetDefault(addressId: ID!, type: AddressTypeEnum!, userId: ID!): AddressSetDefault
-  userImageUpdate(image: Upload!): UserImageUpdate
-  userImageDelete: UserImageDelete
+  userAvatarUpdate(image: Upload!): UserAvatarUpdate
+  userAvatarDelete: UserAvatarDelete
 }
 
 input NameTranslationInput {
@@ -2386,6 +2386,16 @@ input UserAddressInput {
   defaultShippingAddress: AddressInput
 }
 
+type UserAvatarDelete {
+  errors: [Error!]
+  user: User
+}
+
+type UserAvatarUpdate {
+  errors: [Error!]
+  user: User
+}
+
 type UserCountableConnection {
   pageInfo: PageInfo!
   edges: [UserCountableEdge!]!
@@ -2406,16 +2416,6 @@ input UserCreateInput {
   isActive: Boolean
   note: String
   sendPasswordEmail: Boolean
-}
-
-type UserImageDelete {
-  errors: [Error!]
-  user: User
-}
-
-type UserImageUpdate {
-  errors: [Error!]
-  user: User
 }
 
 type VAT {

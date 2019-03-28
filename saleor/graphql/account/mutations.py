@@ -9,14 +9,14 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.files import File
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from graphql_jwt.decorators import login_required, permission_required, staff_member_required
+from graphql_jwt.decorators import (
+    login_required, permission_required, staff_member_required)
 from graphql_jwt.exceptions import PermissionDenied
 
 from ...account import emails, models, utils
 from ...account.thumbnails import create_user_avatar_thumbnails
 from ...checkout import AddressType
 from ...core.permissions import MODELS_PERMISSIONS, get_permissions
-from ...core.utils import create_thumbnails
 from ...dashboard.emails import (
     send_set_password_customer_email, send_set_password_staff_email)
 from ...dashboard.staff.utils import remove_staff_member
@@ -661,7 +661,7 @@ class CustomerSetDefaultAddress(BaseMutation):
         return cls(errors=errors, user=user)
 
 
-class UserImageUpdate(BaseMutation):
+class UserAvatarUpdate(BaseMutation):
     user = graphene.Field(User, description='An updated user instance.')
 
     class Arguments:
@@ -673,9 +673,9 @@ class UserImageUpdate(BaseMutation):
     class Meta:
         description = dedent(
             '''
-            Create a user image. This mutation must be
-            sent as a `multipart` request. More detailed specs of the upload
-            format can be found here:
+            Create a user avatar. Only for staff members. This mutation must
+            be sent as a `multipart` request. More detailed specs of the
+            upload format can be found here:
             https://github.com/jaydenseric/graphql-multipart-request-spec
             '''
         )
@@ -696,14 +696,14 @@ class UserImageUpdate(BaseMutation):
             user.save()
             create_user_avatar_thumbnails.delay(user_id=user.pk)
 
-        return UserImageUpdate(user=user, errors=errors)
+        return UserAvatarUpdate(user=user, errors=errors)
 
 
-class UserImageDelete(BaseMutation):
+class UserAvatarDelete(BaseMutation):
     user = graphene.Field(User, description='An updated user instance.')
 
     class Meta:
-        description = 'Deletes a user image.'
+        description = 'Deletes a user avatar. Only for staff members.'
 
     @classmethod
     @staff_member_required
@@ -713,4 +713,4 @@ class UserImageDelete(BaseMutation):
         user.avatar.delete_sized_images()
         user.avatar.delete()
 
-        return UserImageDelete(user=user, errors=errors)
+        return UserAvatarDelete(user=user, errors=errors)
