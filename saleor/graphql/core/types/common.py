@@ -65,7 +65,6 @@ class Image(graphene.ObjectType):
     @staticmethod
     def get_adjusted(image, alt, size, rendition_key_set, info):
         """Return Image adjusted with given size."""
-
         if size:
             url = get_thumbnail(
                 image_file=image,
@@ -75,7 +74,5 @@ class Image(graphene.ObjectType):
             )
         else:
             url = image.url
-
         url = info.context.build_absolute_uri(url)
-
         return Image(url, alt)

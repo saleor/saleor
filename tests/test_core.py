@@ -64,20 +64,17 @@ def test_get_currency_for_country(country, expected_currency, monkeypatch):
     assert currency == expected_currency
 
 
-def test_create_superuser(db, client, monkeypatch, image):
-    monkeypatch.setattr(
-        'saleor.core.utils.get_image',
-        Mock(return_value=image)
-    )
+def test_create_superuser(db, client):
     credentials = {'email': 'admin@example.com', 'password': 'admin'}
     # Test admin creation
     assert User.objects.all().count() == 0
-    create_superuser(credentials, '')
+    create_superuser(credentials)
     assert User.objects.all().count() == 1
     admin = User.objects.all().first()
     assert admin.is_superuser
+    assert admin.avatar
     # Test duplicating
-    create_superuser(credentials, '')
+    create_superuser(credentials)
     assert User.objects.all().count() == 1
     # Test logging in
     response = client.post(reverse('account:login'),
