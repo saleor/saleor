@@ -1806,11 +1806,12 @@ def test_fetch_single_digital_content(
     assert 'id' in content['data']['digitalContent']
 
 
-def test_product_variant_digital_content_upload_mutation(
+def test_product_variant_digital_content_upload_mutation_custom_settings(
         monkeypatch, staff_api_client, variant, permission_manage_products):
     query = """
-    mutation createDigitalContent($content: Upload!, $variant: ID!) {
-        productVariantDigitalUpload(id: $variant, input: {contentFile: $content}) {
+    mutation createDigitalContent($variant: ID!, 
+        $input: ProductVariantDigitalUploadInput!) {
+        productVariantDigitalUpload(id: $variant, input: $input) {
             variant {
                 id
             }
@@ -1819,9 +1820,19 @@ def test_product_variant_digital_content_upload_mutation(
     """
 
     image_file, image_name = create_image()
+    url_valid_days = 3
+    max_downloads = 5
+
     variables = {
         'variant': graphene.Node.to_global_id('ProductVariant', variant.id),
-        'content': image_name}
+        'input': {
+            'useDefaultSettings': False,
+            'maxDownloads': max_downloads,
+            'urlValidDays': url_valid_days,
+            'automaticFulfillment': True,
+            'contentFile': image_name
+        }
+    }
 
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = staff_api_client.post_multipart(
@@ -1829,6 +1840,42 @@ def test_product_variant_digital_content_upload_mutation(
     get_graphql_content(response)
     variant.refresh_from_db()
     assert variant.digital_content.content_file
+    assert variant.digital_content.max_downloads == max_downloads
+    assert variant.digital_content.url_valid_days == url_valid_days
+    assert variant.digital_content.automatic_fulfillment == True
+    assert variant.digital_content.use_default_settings == False
+
+
+def test_product_variant_digital_content_upload_mutation_default_settings(
+        monkeypatch, staff_api_client, variant, permission_manage_products):
+    query = """
+    mutation createDigitalContent($variant: ID!, 
+        $input: ProductVariantDigitalUploadInput!) {
+        productVariantDigitalUpload(id: $variant, input: $input) {
+            variant {
+                id
+            }
+        }
+    }
+    """
+
+    image_file, image_name = create_image()
+
+    variables = {
+        'variant': graphene.Node.to_global_id('ProductVariant', variant.id),
+        'input': {
+            'useDefaultSettings': True,
+            'contentFile': image_name
+        }
+    }
+
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products])
+    get_graphql_content(response)
+    variant.refresh_from_db()
+    assert variant.digital_content.content_file
+    assert variant.digital_content.use_default_settings
 
 
 def test_product_variant_digital_content_delete_mutation(
@@ -1865,7 +1912,7 @@ def test_product_variant_digital_content_update_mutation(
     url_valid_days = 3
     max_downloads = 5
     query = """
-    mutation productVariantDigitalUpdate($variant: ID!, $input:ProductVariantDigitalInput!){
+    mutation productVariantDigitalUpdate($variant: ID!, $input: ProductVariantDigitalInput!){
         productVariantDigitalUpdate(id:$variant, input: $input){
             variant{
                 id
@@ -1887,9 +1934,10 @@ def test_product_variant_digital_content_update_mutation(
     variables = {
         'variant': graphene.Node.to_global_id('ProductVariant', variant.id),
         'input': {
-            'max_downloads': max_downloads,
-            'url_valid_days': url_valid_days,
-            'automatic_fulfillment': True
+            'maxDownloads': max_downloads,
+            'urlValidDays': url_valid_days,
+            'automaticFulfillment': True,
+            'useDefaultSettings': False,
         }
     }
 

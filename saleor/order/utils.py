@@ -13,11 +13,38 @@ from ..core.weight import zero_weight
 from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..discount.models import NotApplicable
 from ..order import FulfillmentStatus, OrderStatus
-from ..order.models import OrderLine
+from ..order.models import OrderLine, Fulfillment, FulfillmentLine, Order
 from ..payment import ChargeStatus
 from ..payment.utils import gateway_refund, gateway_void
 from ..product.utils import (
     allocate_stock, deallocate_stock, increase_stock, decrease_stock)
+from ..product.utils.digital_products import get_default_automatic_fulfillment
+
+
+def order_line_needs_automatic_fulfillment(line: OrderLine) -> bool:
+    """Check if given line is digital and should be automatically fulfilled"""
+    default_automatic_fulfillment = get_default_automatic_fulfillment()
+    content = line.variant.digital_content
+    if default_automatic_fulfillment and content.use_default_settings:
+        return True
+
+    if content.automatic_fulfillment:
+        return True
+    return False
+
+
+def order_needs_automatic_fullfilment(order: Order) -> bool:
+    """Check if order has digital products which should be automatically
+    fulfilled"""
+
+    digital_lines = [line for line in order if line.is_digital]
+    if not digital_lines:
+        return False
+
+    for line in digital_lines:
+        if order_line_needs_automatic_fulfillment(line):
+            return True
+    return False
 
 
 def fulfill_order_line(order_line, quantity):
@@ -26,6 +53,30 @@ def fulfill_order_line(order_line, quantity):
         decrease_stock(order_line.variant, quantity)
     order_line.quantity_fulfilled += quantity
     order_line.save(update_fields=['quantity_fulfilled'])
+
+
+def fulfill_digital_lines(order: Order):
+    """Fulfill all digital lines which have enabled automatic fulfillment
+    setting"""
+    order = Order.objects.get(id=order.id)
+    digital_lines = order.lines.filter(
+        is_shipping_required=False, variant__digital_content__isnull=False)
+    digital_lines = digital_lines.prefetch_related('variant__digital_content')
+
+    if not digital_lines:
+        return
+    fulfilment, _ = Fulfillment.objects.get_or_create(order=order)
+    for line in digital_lines:
+        if not order_line_needs_automatic_fulfillment(line):
+            continue
+        digital_content = line.variant.digital_content
+        for _ in range(line.quantity):
+            digital_content.urls.create(line=line)
+        quantity = line.quantity
+        FulfillmentLine.objects.create(
+            fulfillment=fulfilment, order_line=line,
+            quantity=quantity)
+        fulfill_order_line(order_line=line, quantity=quantity)
 
 
 def check_order_status(func):

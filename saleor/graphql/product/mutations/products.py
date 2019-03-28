@@ -11,9 +11,6 @@ from ....product.tasks import update_variants_names
 from ....product.thumbnails import (
     create_category_background_image_thumbnails,
     create_collection_background_image_thumbnails, create_product_thumbnails)
-from ....product.utils import (
-    get_default_digital_max_downloads, get_default_digital_url_valid_days,
-    get_default_automatic_fulfillment)
 from ....product.utils.attributes import get_name_from_attributes
 from ...core.enums import TaxRateType
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -852,18 +849,21 @@ class VariantImageUnassign(BaseMutation):
         return VariantImageUnassign(
             product_variant=variant, image=image, errors=errors)
 
+
 class ProductVariantDigitalInput(graphene.InputObjectType):
+    use_default_settings = graphene.Boolean(
+        description='Use default digital content settings for this product',
+        required=True)
     max_downloads = graphene.Int(
         description='[Optional] Maximal number of downloading for one url',
-        required=False, name='max_downloads')
+        required=False)
     url_valid_days = graphene.Int(
         description='[Optional] Number of days which each url will be active',
-        required=False, name='url_valid_days'
-    )
+        required=False)
     automatic_fulfillment = graphene.Boolean(
-        description='Overwrite default automatic_fulfillment setting for variant',
-        required=False, name='automatic_fulfillment'
-    )
+        description=(
+            'Overwrite default automatic_fulfillment setting for variant'),
+        required=False)
 
 
 class ProductVariantDigitalUploadInput(ProductVariantDigitalInput):
@@ -890,37 +890,52 @@ class ProductVariantDigitalUpload(BaseMutation):
         format can be found here:
         https://github.com/jaydenseric/graphql-multipart-request-spec''')
 
+
+    @classmethod
+    @permission_required('product.manage_products')
+    def clean_input(cls, info, input, instance, errors):
+        if hasattr(instance, 'digital_content'):
+            msg = 'Variant %s already has digital content' % id
+            cls.add_error(errors, 'id', msg)
+
+        use_default_settings = input.get('use_default_settings')
+        if use_default_settings:
+            return input
+
+        required_fields = [
+            'max_downloads', 'url_valid_days', 'automatic_fulfillment']
+
+        if not all(field in input for field in required_fields):
+            msg = ('Use default settings is disabled. Provide all '
+                   'configuration fields')
+            missing_field = set(required_fields).difference(set(input))
+            for field in missing_field:
+                cls.add_error(errors, field, msg)
+
+        return input
+
     @classmethod
     @permission_required('product.manage_products')
     def mutate(cls, root, info, id, input):
         errors = []
         variant = cls.get_node_or_error(
             info, id, errors, 'id', only_type=ProductVariant)
-        content_data = info.context.FILES.get(input['content_file'])
-        if hasattr(variant, 'digital_content'):
-            msg = 'Variant %s already has digital content' % id
-            cls.add_error(errors, 'id', msg)
 
+        input = cls.clean_input(info, input, variant, errors)
         digital_content = None
+
         if not errors:
+            content_data = info.context.FILES.get(input['content_file'])
             digital_content = models.DigitalContent(
                 content_file=content_data
             )
-            default_max_download = get_default_digital_max_downloads()
-            max_downloads = input.get('max_downloads', default_max_download)
-            if max_downloads:
-                digital_content.max_downloads = max_downloads
+            digital_content.use_default_settings = input.get(
+                'use_default_settings', False)
 
-            default_url_valid_days = get_default_digital_url_valid_days()
-            url_valid_days = input.get('url_valid_days', default_url_valid_days)
-            if url_valid_days:
-                digital_content.url_valid_days = url_valid_days
-
-            default_automatic_fulfillment = get_default_automatic_fulfillment()
-            automatic_fulfillment = input.get(
-                'automatic_fulfillment', default_automatic_fulfillment)
-            if automatic_fulfillment:
-                digital_content.automatic_fulfillment = automatic_fulfillment
+            digital_content.max_downloads = input.get('max_downloads')
+            digital_content.url_valid_days = input.get('url_valid_days')
+            digital_content.automatic_fulfillment = input.get(
+                'automatic_fulfillment', False)
 
             variant.digital_content = digital_content
             variant.digital_content.save()
@@ -973,6 +988,30 @@ class ProductVariantDigitalUpdate(BaseMutation):
         description = dedent('Update digital content')
 
 
+
+    @classmethod
+    @permission_required('product.manage_products')
+    def clean_input(cls, info, input, instance, errors):
+        if not hasattr(instance, 'digital_content'):
+            msg = 'Variant %s doesn\'t have a digital content' % id
+            cls.add_error(errors, 'id', msg)
+
+        use_default_settings = input.get('use_default_settings')
+        if use_default_settings:
+            return {'use_default_settings': use_default_settings}
+
+        required_fields = [
+            'max_downloads', 'url_valid_days', 'automatic_fulfillment']
+
+        if not all(field in input for field in required_fields):
+            msg = ('Use default settings is disabled. Provide all '
+                   'configuration fields')
+            missing_field = set(required_fields).difference(set(input))
+            for field in missing_field:
+                cls.add_error(errors, field, msg)
+
+        return input
+
     @classmethod
     @permission_required('product.manage_products')
     def mutate(cls, root, info, id, input):
@@ -984,25 +1023,19 @@ class ProductVariantDigitalUpdate(BaseMutation):
             msg = 'Variant %s doesn\'t have any digital content' % id
             cls.add_error(errors, 'variant', msg)
 
-        max_downloads = input.get('max_downloads')
-        url_valid_days = input.get('url_valid_days')
-        automatic_fulfillment = input.get('automatic_fulfillment')
-        if not any([max_downloads, url_valid_days, automatic_fulfillment]):
-            msg = 'Not found any fields for update'
-            cls.add_error(errors, 'variant', msg)
+        input = cls.clean_input(info, input, variant, errors)
 
         digital_content = None
         if not errors:
             digital_content = variant.digital_content
 
-            if max_downloads:
-                digital_content.max_downloads = max_downloads
+            digital_content.use_default_settings = input.get(
+                'use_default_settings', False)
 
-            if url_valid_days:
-                digital_content.url_valid_days = url_valid_days
-
-            if automatic_fulfillment:
-                digital_content.automatic_fulfillment = automatic_fulfillment
+            digital_content.max_downloads = input.get('max_downloads')
+            digital_content.url_valid_days = input.get('url_valid_days')
+            digital_content.automatic_fulfillment = input.get(
+                'automatic_fulfillment', False)
 
             variant.digital_content = digital_content
             variant.digital_content.save()

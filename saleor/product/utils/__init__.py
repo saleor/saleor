@@ -1,7 +1,6 @@
 from urllib.parse import urlencode
 
 from django.conf import settings
-from django.contrib.sites.models import Site
 from django.db.models import F
 
 from ...checkout.utils import (
@@ -11,21 +10,6 @@ from ...core.utils.filters import get_now_sorted_by
 from ...core.utils.taxes import ZERO_TAXED_MONEY, TaxedMoney
 from ..forms import ProductForm
 from .availability import products_with_availability
-
-
-def get_default_automatic_fulfillment() -> bool:
-    site = Site.objects.get_current()
-    return site.settings.automatic_fulfillment_digital_products
-
-
-def get_default_digital_max_downloads() -> int:
-    site = Site.objects.get_current()
-    return site.settings.default_digital_max_downloads
-
-
-def get_default_digital_url_valid_days() -> int:
-    site = Site.objects.get_current()
-    return site.settings.default_digital_url_valid_days
 
 
 def products_visible_to_user(user):

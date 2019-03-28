@@ -724,6 +724,7 @@ def test_digital_product_view(client, digital_content):
 
 
 def test_digital_product_view_url_downloaded_max_times(client, digital_content):
+    digital_content.use_default_settings = False
     digital_content.max_downloads = 1
     digital_content.save()
     digital_content_url = DigitalContentUrl.objects.create(
@@ -741,6 +742,7 @@ def test_digital_product_view_url_downloaded_max_times(client, digital_content):
 
 
 def test_digital_product_view_url_expired(client, digital_content):
+    digital_content.use_default_settings = False
     digital_content.url_valid_days = 10
     digital_content.save()
 

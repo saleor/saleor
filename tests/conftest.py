@@ -890,5 +890,6 @@ def payment_dummy(db, settings, order_with_lines):
 def digital_content(variant):
     image_file, image_name = create_image()
     d_content = DigitalContent.objects.create(
-        content_file=image_file, product_variant=variant)
+        content_file=image_file, product_variant=variant,
+        use_default_settings=True)
     return d_content

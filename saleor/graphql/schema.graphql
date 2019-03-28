@@ -661,18 +661,14 @@ scalar DateTime
 scalar Decimal
 
 type DigitalContent implements Node {
-  id: ID!
+  useDefaultSettings: Boolean!
   automaticFulfillment: Boolean!
-  contentType: DigitalContentContentType!
   productVariant: ProductVariant!
   contentFile: String!
   maxDownloads: Int
   urlValidDays: Int
   urls: [DigitalContentUrl]
-}
-
-enum DigitalContentContentType {
-  FILE
+  id: ID!
 }
 
 type DigitalContentCountableConnection {
@@ -692,6 +688,18 @@ type DigitalContentUrl implements Node {
   content: DigitalContent!
   created: DateTime!
   downloadNum: Int!
+  line: OrderLine
+}
+
+type DigitalContentUrlCountableConnection {
+  pageInfo: PageInfo!
+  edges: [DigitalContentUrlCountableEdge!]!
+  totalCount: Int
+}
+
+type DigitalContentUrlCountableEdge {
+  node: DigitalContentUrl!
+  cursor: String!
 }
 
 enum DiscountValueTypeEnum {
@@ -1354,6 +1362,7 @@ type OrderLine implements Node {
   quantityFulfilled: Int!
   unitPrice: TaxedMoney
   taxRate: Float!
+  digitalContentUrls(before: String, after: String, first: Int, last: Int): DigitalContentUrlCountableConnection
   thumbnailUrl(size: Int): String @deprecated(reason: "thumbnailUrl is deprecated, use thumbnail instead")
   thumbnail(size: Int): Image
 }
@@ -1895,8 +1904,10 @@ type ProductVariantDigitalDelete {
 }
 
 input ProductVariantDigitalInput {
-  max_downloads: Int
-  url_valid_days: Int
+  useDefaultSettings: Boolean!
+  maxDownloads: Int
+  urlValidDays: Int
+  automaticFulfillment: Boolean
 }
 
 type ProductVariantDigitalUpdate {
@@ -1912,8 +1923,10 @@ type ProductVariantDigitalUpload {
 }
 
 input ProductVariantDigitalUploadInput {
-  max_downloads: Int
-  url_valid_days: Int
+  useDefaultSettings: Boolean!
+  maxDownloads: Int
+  urlValidDays: Int
+  automaticFulfillment: Boolean
   contentFile: Upload!
 }
 

@@ -15,6 +15,7 @@ from ..core import analytics
 from ..order import OrderEvents, OrderEventsEmails
 from ..order.emails import send_payment_confirmation
 from ..order.models import Order
+from ..order import utils as order_utils
 from . import (
     ChargeStatus, CustomPaymentChoices, GatewayError, OperationType,
     PaymentError, TransactionKind, get_payment_gateway)
@@ -76,6 +77,10 @@ def handle_fully_paid_order(order):
             parameters={
                 'email': order.get_user_current_email(),
                 'email_type': OrderEventsEmails.PAYMENT.value})
+
+        if order_utils.order_needs_automatic_fullfilment(order):
+            order_utils.fulfill_digital_lines(order)
+            # send_email
     try:
         analytics.report_order(order.tracking_client_id, order)
     except Exception:

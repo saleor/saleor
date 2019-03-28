@@ -20,6 +20,7 @@ from .utils import (
     products_with_details)
 from .utils.attributes import get_product_attributes_data
 from .utils.availability import get_availability
+from .utils.digital_products import digital_content_url_is_valid
 from .utils.variants_picker import get_variant_picker_data
 
 
@@ -87,9 +88,12 @@ def product_details(request, slug, product_id, form=None):
     return TemplateResponse(request, 'product/details.html', ctx)
 
 
-def digital_product(request, token: str) -> Union[FileResponse, HttpResponseNotFound]:
+def digital_product(
+        request, token: str) -> Union[FileResponse, HttpResponseNotFound]:
+    """Returns direct download link to content if given token is still valid"""
+
     content_url = get_object_or_404(DigitalContentUrl, token=token)
-    if not content_url.ready_to_share():
+    if not digital_content_url_is_valid(content_url):
         return HttpResponseNotFound("Url is not valid anymore")
     digital_content = content_url.content
     content_file = digital_content.content_file
