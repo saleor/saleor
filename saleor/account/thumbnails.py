@@ -5,7 +5,7 @@ from .models import User
 
 @shared_task
 def create_user_avatar_thumbnails(user_id):
-    """ Creates thumbnails for user avatar."""
+    """Creates thumbnails for user avatar."""
     create_thumbnails(
         pk=user_id,
         model=User,
