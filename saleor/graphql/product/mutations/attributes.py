@@ -188,7 +188,6 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
         for value in remove_values:
             if value.attribute != instance:
                 msg = 'Value %s does not belong to this attribute.' % value
-                # FIXME: HANDLE THIS
                 raise ValidationError({'remove_values': msg})
         return remove_values
 

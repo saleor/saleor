@@ -103,8 +103,6 @@ class BaseMutation(graphene.Mutation):
         try:
             instances = get_nodes(ids, only_type)
         except GraphQLError as e:
-            # FIXME: czy zawsze tutaj powinien lecieć ValidationError? moze
-            # tylko jak nie znaleziono danego IDka?
             raise ValidationError({field: str(e)})
         return instances
 
@@ -325,11 +323,11 @@ class ModelMutation(BaseMutation):
         errors = []  # Initialize the errors list.
         instance = cls.get_instance(info, errors, **data)
 
-        input_data = data.get('input')  # FIXME: pass data to clean_input
+        input_data = data.get('input')
 
         cleaned_input = cls.clean_input(info, instance, input_data, errors)
-        instance = cls.construct_instance(instance, cleaned_input)  # FIXME: maybe rename to `populate_instance`
-        cls.clean_instance(instance, errors)  # FIXME: maybe rename to `pre_save_instance` ?
+        instance = cls.construct_instance(instance, cleaned_input)
+        cls.clean_instance(instance, errors)
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
         return cls.success_response(instance)
