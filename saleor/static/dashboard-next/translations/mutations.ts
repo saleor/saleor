@@ -1,7 +1,14 @@
 import gql from "graphql-tag";
 
 import { TypedMutation } from "../mutations";
-import { productTranslationFragment } from "./queries";
+import {
+  categoryTranslationFragment,
+  productTranslationFragment
+} from "./queries";
+import {
+  UpdateCategoryTranslations,
+  UpdateCategoryTranslationsVariables
+} from "./types/UpdateCategoryTranslations";
 import {
   UpdateProductTranslations,
   UpdateProductTranslationsVariables
@@ -29,3 +36,26 @@ export const TypedUpdateProductTranslations = TypedMutation<
   UpdateProductTranslations,
   UpdateProductTranslationsVariables
 >(updateProductTranslations);
+
+const updateCategoryTranslations = gql`
+  ${categoryTranslationFragment}
+  mutation UpdateCategoryTranslations(
+    $id: ID!
+    $input: TranslationInput!
+    $language: LanguageCodeEnum!
+  ) {
+    categoryTranslate(id: $id, input: $input, languageCode: $language) {
+      errors {
+        field
+        message
+      }
+      category {
+        ...CategoryTranslationFragment
+      }
+    }
+  }
+`;
+export const TypedUpdateCategoryTranslations = TypedMutation<
+  UpdateCategoryTranslations,
+  UpdateCategoryTranslationsVariables
+>(updateCategoryTranslations);

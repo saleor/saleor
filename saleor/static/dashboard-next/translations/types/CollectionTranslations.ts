@@ -27,6 +27,9 @@ export interface CollectionTranslations_collections_edges_node {
   __typename: "Collection";
   id: string;
   name: string;
+  descriptionJson: any;
+  seoDescription: string | null;
+  seoTitle: string | null;
   translation: CollectionTranslations_collections_edges_node_translation | null;
 }
 
