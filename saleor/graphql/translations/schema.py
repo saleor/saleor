@@ -2,7 +2,7 @@ import graphene
 
 from ..core.connection import CountableConnection
 from ..discount import types as discount_types
-from ..discount.resolvers import resolve_vouchers
+from ..discount.resolvers import resolve_sales, resolve_vouchers
 from ..menu import types as menu_types
 from ..menu.resolvers import resolve_menu_items
 from ..page import types as page_types
@@ -26,6 +26,7 @@ class TranslatableItem(graphene.Union):
             product_types.ProductVariant,
             page_types.Page,
             shipping_types.ShippingMethod,
+            discount_types.Sale,
             discount_types.Voucher,
             menu_types.MenuItem)
 
@@ -36,16 +37,17 @@ class TranslatableItemConnection(CountableConnection):
 
 
 class TranslatableKinds(graphene.Enum):
-    PRODUCT = 'Product'
-    COLLECTION = 'Collection'
-    CATEGORY = 'Category'
-    PAGE = 'Page'
-    SHIPPING_METHOD = 'Shipping Method'
-    VOUCHER = 'Voucher'
     ATTRIBUTE = 'Attribute'
     ATTRIBUTE_VALUE = 'Attribute Value'
-    VARIANT = 'Variant'
+    CATEGORY = 'Category'
+    COLLECTION = 'Collection'
     MENU_ITEM = 'Menu Item'
+    PAGE = 'Page'
+    PRODUCT = 'Product'
+    SALE = 'Sale'
+    SHIPPING_METHOD = 'Shipping Method'
+    VARIANT = 'Variant'
+    VOUCHER = 'Voucher'
 
 
 class TranslationQueries(graphene.ObjectType):
@@ -77,3 +79,5 @@ class TranslationQueries(graphene.ObjectType):
             return resolve_product_variants(info)
         elif kind == TranslatableKinds.MENU_ITEM:
             return resolve_menu_items(info, query=None)
+        elif kind == TranslatableKinds.SALE:
+            return resolve_sales(info, query=None)
