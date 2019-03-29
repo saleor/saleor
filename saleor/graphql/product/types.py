@@ -233,9 +233,7 @@ class ProductVariant(CountableDjangoObjectType):
 
     @permission_required('product.manage_products')
     def resolve_digital_content(self, info):
-        if hasattr(self, 'digital_content'):
-            return self.digital_content
-        return None
+        return getattr(self, 'digital_content', None)
 
     def resolve_stock_quantity(self, info):
         return self.quantity_available
