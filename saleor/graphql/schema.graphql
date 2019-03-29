@@ -682,6 +682,38 @@ type DigitalContentCountableEdge {
   cursor: String!
 }
 
+type DigitalContentCreate {
+  errors: [Error!]
+  variant: ProductVariant
+  content: DigitalContent
+}
+
+type DigitalContentDelete {
+  errors: [Error!]
+  variant: ProductVariant
+}
+
+input DigitalContentInput {
+  useDefaultSettings: Boolean!
+  maxDownloads: Int
+  urlValidDays: Int
+  automaticFulfillment: Boolean
+}
+
+type DigitalContentUpdate {
+  errors: [Error!]
+  variant: ProductVariant
+  content: DigitalContent
+}
+
+input DigitalContentUploadInput {
+  useDefaultSettings: Boolean!
+  maxDownloads: Int
+  urlValidDays: Int
+  automaticFulfillment: Boolean
+  contentFile: Upload!
+}
+
 type DigitalContentUrl implements Node {
   id: ID!
   token: UUID!
@@ -1100,9 +1132,9 @@ type Mutations {
   productTypeDelete(id: ID!): ProductTypeDelete
   productTypeBulkDelete(ids: [ID]!): ProductTypeBulkDelete
   productTypeUpdate(id: ID!, input: ProductTypeInput!): ProductTypeUpdate
-  productVariantDigitalUpload(id: ID!, input: ProductVariantDigitalUploadInput!): ProductVariantDigitalUpload
-  productVariantDigitalDelete(id: ID!): ProductVariantDigitalDelete
-  productVariantDigitalUpdate(id: ID!, input: ProductVariantDigitalInput!): ProductVariantDigitalUpdate
+  digitalContentUpload(id: ID!, input: DigitalContentUploadInput!): DigitalContentCreate
+  digitalContentDelete(id: ID!): DigitalContentDelete
+  digitalContentUpdate(id: ID!, input: DigitalContentInput!): DigitalContentUpdate
   productVariantCreate(input: ProductVariantCreateInput!): ProductVariantCreate
   productVariantDelete(id: ID!): ProductVariantDelete
   productVariantBulkDelete(ids: [ID]!): ProductVariantBulkDelete
@@ -1896,38 +1928,6 @@ input ProductVariantCreateInput {
 type ProductVariantDelete {
   errors: [Error!]
   productVariant: ProductVariant
-}
-
-type ProductVariantDigitalDelete {
-  errors: [Error!]
-  variant: ProductVariant
-}
-
-input ProductVariantDigitalInput {
-  useDefaultSettings: Boolean!
-  maxDownloads: Int
-  urlValidDays: Int
-  automaticFulfillment: Boolean
-}
-
-type ProductVariantDigitalUpdate {
-  errors: [Error!]
-  variant: ProductVariant
-  content: DigitalContent
-}
-
-type ProductVariantDigitalUpload {
-  errors: [Error!]
-  variant: ProductVariant
-  content: DigitalContent
-}
-
-input ProductVariantDigitalUploadInput {
-  useDefaultSettings: Boolean!
-  maxDownloads: Int
-  urlValidDays: Int
-  automaticFulfillment: Boolean
-  contentFile: Upload!
 }
 
 input ProductVariantInput {

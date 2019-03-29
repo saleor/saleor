@@ -25,8 +25,9 @@ from .mutations.products import (
     ProductImageDelete, ProductImageReorder, ProductImageUpdate,
     ProductTypeCreate, ProductTypeDelete, ProductTypeUpdate, ProductUpdate,
     ProductVariantCreate, ProductVariantDelete, ProductVariantUpdate,
-    VariantImageAssign, VariantImageUnassign, ProductVariantDigitalUpload,
-    ProductVariantDigitalDelete, ProductVariantDigitalUpdate)
+    VariantImageAssign, VariantImageUnassign)
+from .mutations.digital_contents import (
+    DigitalContentCreate, DigitalContentDelete, DigitalContentUpdate)
 from .resolvers import (
     resolve_attributes, resolve_categories, resolve_collections,
     resolve_product_types, resolve_product_variants, resolve_products,
@@ -130,11 +131,11 @@ class ProductQueries(graphene.ObjectType):
     def resolve_collections(self, info, query=None, **kwargs):
         return resolve_collections(info, query)
 
-    @permission_required(['product.manage_products',])
+    @permission_required('product.manage_products')
     def resolve_digital_content(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, DigitalContent)
 
-    @permission_required(['product.manage_products', ])
+    @permission_required('product.manage_products')
     def resolve_digital_contents(self, info, query=None, **kwargs):
         return resolve_digital_contents(info, query)
 
@@ -205,9 +206,9 @@ class ProductMutations(graphene.ObjectType):
     product_type_bulk_delete = ProductTypeBulkDelete.Field()
     product_type_update = ProductTypeUpdate.Field()
 
-    product_variant_digital_upload = ProductVariantDigitalUpload.Field()
-    product_variant_digital_delete = ProductVariantDigitalDelete.Field()
-    product_variant_digital_update = ProductVariantDigitalUpdate.Field()
+    digital_content_create = DigitalContentCreate.Field()
+    digital_content_delete = DigitalContentDelete.Field()
+    digital_content_update = DigitalContentUpdate.Field()
 
     product_variant_create = ProductVariantCreate.Field()
     product_variant_delete = ProductVariantDelete.Field()
