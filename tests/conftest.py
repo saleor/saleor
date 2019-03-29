@@ -221,6 +221,7 @@ def shipping_zone_without_countries(db):  # pylint: disable=W0613
         shipping_zone=shipping_zone)
     return shipping_zone
 
+
 @pytest.fixture
 def shipping_method(shipping_zone):
     return ShippingMethod.objects.create(

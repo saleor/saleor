@@ -1,13 +1,18 @@
+from textwrap import dedent
+
 import graphene
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from graphql_jwt.decorators import login_required, permission_required
+from graphql_jwt.decorators import (
+    login_required, permission_required, staff_member_required)
 from graphql_jwt.exceptions import PermissionDenied
 
 from ...account import emails, models, utils
+from ...account.thumbnails import create_user_avatar_thumbnails
+from ...account.utils import get_random_avatar
 from ...checkout import AddressType
 from ...core.permissions import MODELS_PERMISSIONS, get_permissions
 from ...dashboard.emails import (
@@ -18,7 +23,8 @@ from ..account.i18n import I18nMixin
 from ..account.types import Address, AddressInput, User
 from ..core.enums import PermissionEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.types import Error
+from ..core.types import Error, Upload
+from ..core.utils import validate_image_file
 from .utils import CustomerDeleteMixin, StaffDeleteMixin, UserDeleteMixin
 
 BILLING_ADDRESS_FIELD = 'default_billing_address'
@@ -251,7 +257,9 @@ class StaffCreate(ModelMutation):
 
     @classmethod
     def save(cls, info, user, cleaned_input):
+        user.avatar = get_random_avatar()
         user.save()
+        create_user_avatar_thumbnails.delay(user_id=user.pk)
         if cleaned_input.get('send_password_email'):
             send_set_password_staff_email.delay(user.pk)
 
@@ -642,3 +650,58 @@ class CustomerSetDefaultAddress(BaseMutation):
 
         utils.change_user_default_address(user, address, address_type)
         return cls(errors=errors, user=user)
+
+
+class UserAvatarUpdate(BaseMutation):
+    user = graphene.Field(User, description='An updated user instance.')
+
+    class Arguments:
+        image = Upload(
+            required=True,
+            description='Represents an image file in a multipart request.',
+        )
+
+    class Meta:
+        description = dedent(
+            '''
+            Create a user avatar. Only for staff members. This mutation must
+            be sent as a `multipart` request. More detailed specs of the
+            upload format can be found here:
+            https://github.com/jaydenseric/graphql-multipart-request-spec
+            '''
+        )
+
+    @classmethod
+    @staff_member_required
+    def mutate(cls, root, info, image):
+        user = info.context.user
+        errors = []
+        image_data = info.context.FILES.get(image)
+        validate_image_file(cls, image_data, 'image', errors)
+
+        if not errors:
+            if user.avatar:
+                user.avatar.delete_sized_images()
+                user.avatar.delete()
+            user.avatar = image_data
+            user.save()
+            create_user_avatar_thumbnails.delay(user_id=user.pk)
+
+        return UserAvatarUpdate(user=user, errors=errors)
+
+
+class UserAvatarDelete(BaseMutation):
+    user = graphene.Field(User, description='An updated user instance.')
+
+    class Meta:
+        description = 'Deletes a user avatar. Only for staff members.'
+
+    @classmethod
+    @staff_member_required
+    def mutate(cls, root, info):
+        user = info.context.user
+        errors = []
+        user.avatar.delete_sized_images()
+        user.avatar.delete()
+
+        return UserAvatarDelete(user=user, errors=errors)

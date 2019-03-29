@@ -1145,6 +1145,8 @@ type Mutations {
   addressDelete(id: ID!): AddressDelete
   addressUpdate(id: ID!, input: AddressInput!): AddressUpdate
   addressSetDefault(addressId: ID!, type: AddressTypeEnum!, userId: ID!): AddressSetDefault
+  userAvatarUpdate(image: Upload!): UserAvatarUpdate
+  userAvatarDelete: UserAvatarDelete
 }
 
 input NameTranslationInput {
@@ -2373,6 +2375,7 @@ type User implements Node {
   dateJoined: DateTime!
   defaultShippingAddress: Address
   defaultBillingAddress: Address
+  avatar(size: Int): Image
   orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
   checkout: Checkout
   permissions: [PermissionDisplay]
@@ -2381,6 +2384,16 @@ type User implements Node {
 input UserAddressInput {
   defaultBillingAddress: AddressInput
   defaultShippingAddress: AddressInput
+}
+
+type UserAvatarDelete {
+  errors: [Error!]
+  user: User
+}
+
+type UserAvatarUpdate {
+  errors: [Error!]
+  user: User
 }
 
 type UserCountableConnection {
