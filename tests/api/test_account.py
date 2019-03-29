@@ -96,8 +96,7 @@ def test_token_create_user_data(
 
 
 def test_query_user(
-        staff_api_client, customer_user, address, permission_manage_users,
-        media_root):
+        staff_api_client, customer_user, address, permission_manage_users):
     user = customer_user
     user.default_shipping_address.country = 'US'
     user.default_shipping_address.save()
@@ -178,6 +177,7 @@ def test_query_user(
     assert data['isStaff'] == user.is_staff
     assert data['isActive'] == user.is_active
     assert data['orders']['totalCount'] == user.orders.count()
+    assert data['avatar']['url']
 
     assert len(data['addresses']) == user.addresses.count()
     for address in data['addresses']:
@@ -221,8 +221,6 @@ def test_query_user(
     assert address['phone'] == user_address.phone.as_e164
     assert address['isDefaultShippingAddress'] is None
     assert address['isDefaultBillingAddress'] is None
-
-    assert data['avatar']['url'] == 'http://testserver/media/user-avatars/image.jpg'
 
 
 USER_QUERY = """
@@ -756,8 +754,7 @@ def test_customer_delete_errors(customer_user, admin_user, staff_user):
 
 @patch('saleor.dashboard.emails.send_set_password_staff_email.delay')
 def test_staff_create(
-        send_set_password_staff_email_mock, staff_api_client,
-        permission_manage_staff, media_root):
+        send_set_password_staff_email_mock, staff_api_client, permission_manage_staff):
     query = """
     mutation CreateStaff(
             $email: String, $permissions: [PermissionEnum],
@@ -799,7 +796,7 @@ def test_staff_create(
     assert data['user']['isStaff']
     assert data['user']['isActive']
     assert re.match(
-        r'http://testserver/media/user-avatars/avatar\d+\.png',
+        r'http://testserver/media/user-avatars/avatar\d+.*',
         data['user']['avatar']['url']
     )
     permissions = data['user']['permissions']
@@ -1530,8 +1527,7 @@ def test_user_avatar_update_mutation_permission(api_client):
 
     assert_no_permission(response)
 
-def test_user_avatar_update_mutation(
-        monkeypatch, staff_api_client, media_root):
+def test_user_avatar_update_mutation(monkeypatch, staff_api_client):
     query = USER_AVATAR_UPDATE_MUTATION
 
     user = staff_api_client.user
@@ -1548,19 +1544,19 @@ def test_user_avatar_update_mutation(
     response = staff_api_client.post_multipart(body)
     content = get_graphql_content(response)
 
+    data = content['data']['userAvatarUpdate']
     user.refresh_from_db()
 
     assert user.avatar
-    assert content['data']['userAvatarUpdate']['user']['avatar']['url'] == (
-        'http://testserver/media/user-avatars/avatar.jpg'
+    assert data['user']['avatar']['url'].startswith(
+        'http://testserver/media/user-avatars/avatar'
     )
 
     # The image creation should have triggered a warm-up
     mock_create_thumbnails.assert_called_once_with(user_id=user.pk)
 
 
-def test_user_avatar_update_mutation_image_exists(
-        staff_api_client, media_root):
+def test_user_avatar_update_mutation_image_exists(staff_api_client):
     query = USER_AVATAR_UPDATE_MUTATION
 
     user = staff_api_client.user
@@ -1575,11 +1571,12 @@ def test_user_avatar_update_mutation_image_exists(
     response = staff_api_client.post_multipart(body)
     content = get_graphql_content(response)
 
+    data = content['data']['userAvatarUpdate']
     user.refresh_from_db()
 
     assert user.avatar != avatar_mock
-    assert content['data']['userAvatarUpdate']['user']['avatar']['url'] == (
-        'http://testserver/media/user-avatars/new_image.jpg'
+    assert data['user']['avatar']['url'].startswith(
+        'http://testserver/media/user-avatars/new_image'
     )
 
 
