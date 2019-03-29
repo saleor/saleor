@@ -67,8 +67,7 @@ class MenuCreate(ModelMutation):
             page = item.get('page')
             url = item.get('url')
             if len([i for i in [category, collection, page, url] if i]) > 1:
-                ValidationError({
-                    'items': 'More than one item provided.'}).update_error_dict(errors)
+                raise ValidationError({'items': 'More than one item provided.'})
             else:
                 if category:
                     category = cls.get_node_or_error(
@@ -84,8 +83,7 @@ class MenuCreate(ModelMutation):
                         info, page, errors, 'items', only_type=Page)
                     item['page'] = page
                 elif not url:
-                    ValidationError({
-                        'items': 'No menu item provided.'}).update_error_dict(errors)
+                    raise ValidationError({'items': 'No menu item provided.'})
                 items.append(item)
 
         if errors:
@@ -207,7 +205,7 @@ class AssignNavigation(BaseMutation):
     menu = graphene.Field(Menu, description='Assigned navigation menu.')
 
     class Arguments:
-        menu = graphene.ID(description='ID of the menu.')  # FIXME: required=True?
+        menu = graphene.ID(description='ID of the menu.')
         navigation_type = NavigationType(
             description='Type of the navigation bar to assign the menu to.',
             required=True)

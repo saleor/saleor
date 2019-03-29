@@ -612,21 +612,6 @@ def test_checkout_customer_detach(
     assert cart.user is None
 
 
-def test_checkout_customer_detach_without_customer(
-        user_api_client, cart_with_item):
-    cart = cart_with_item
-
-    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
-    variables = {
-        'checkoutId': checkout_id, }
-    response = user_api_client.post_graphql(
-        MUTATION_CHECKOUT_CUSTOMER_DETACH, variables)
-    content = get_graphql_content(response)
-    data = content['data']['checkoutCustomerDetach']
-    assert data['errors'][0][
-        'message'] == 'There\'s no customer assigned to this Checkout.'
-
-
 MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
     mutation checkoutShippingAddressUpdate(
             $checkoutId: ID!, $shippingAddress: AddressInput!) {
