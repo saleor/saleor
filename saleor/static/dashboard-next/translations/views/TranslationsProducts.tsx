@@ -35,14 +35,15 @@ const TranslationsProducts: React.FC<TranslationsProductsProps> = ({
       "?" +
         stringifyQs({
           activeField: field
-        })
+        }),
+      true
     );
   const onUpdate = (data: UpdateProductTranslations) => {
     if (data.productTranslate.errors.length === 0) {
       notify({
         text: i18n.t("Translation Saved")
       });
-      navigate("?");
+      navigate("?", true);
     }
   };
 
