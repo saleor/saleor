@@ -96,7 +96,8 @@ def test_token_create_user_data(
 
 
 def test_query_user(
-        staff_api_client, customer_user, address, permission_manage_users):
+        staff_api_client, customer_user, address, permission_manage_users,
+        media_root):
     user = customer_user
     user.default_shipping_address.country = 'US'
     user.default_shipping_address.save()
@@ -755,7 +756,8 @@ def test_customer_delete_errors(customer_user, admin_user, staff_user):
 
 @patch('saleor.dashboard.emails.send_set_password_staff_email.delay')
 def test_staff_create(
-        send_set_password_staff_email_mock, staff_api_client, permission_manage_staff):
+        send_set_password_staff_email_mock, staff_api_client,
+        permission_manage_staff, media_root):
     query = """
     mutation CreateStaff(
             $email: String, $permissions: [PermissionEnum],
@@ -1528,7 +1530,8 @@ def test_user_avatar_update_mutation_permission(api_client):
 
     assert_no_permission(response)
 
-def test_user_avatar_update_mutation(monkeypatch, staff_api_client):
+def test_user_avatar_update_mutation(
+        monkeypatch, staff_api_client, media_root):
     query = USER_AVATAR_UPDATE_MUTATION
 
     user = staff_api_client.user
@@ -1556,7 +1559,8 @@ def test_user_avatar_update_mutation(monkeypatch, staff_api_client):
     mock_create_thumbnails.assert_called_once_with(user_id=user.pk)
 
 
-def test_user_avatar_update_mutation_image_exists(staff_api_client):
+def test_user_avatar_update_mutation_image_exists(
+        staff_api_client, media_root):
     query = USER_AVATAR_UPDATE_MUTATION
 
     user = staff_api_client.user
