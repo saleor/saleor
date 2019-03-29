@@ -20,6 +20,7 @@ from saleor.account.models import Address, User
 from saleor.checkout import utils
 from saleor.checkout.models import Cart
 from saleor.checkout.utils import add_variant_to_cart
+from saleor.core.utils.taxes import DEFAULT_TAX_RATE_NAME
 from saleor.dashboard.menu.utils import update_menu
 from saleor.dashboard.order.utils import fulfill_order_line
 from saleor.discount import VoucherType
@@ -314,7 +315,8 @@ def permission_manage_orders():
 @pytest.fixture
 def product_type(color_attribute, size_attribute):
     product_type = ProductType.objects.create(
-        name='Default Type', has_variants=True, is_shipping_required=True)
+        name='Default Type', has_variants=True, is_shipping_required=True,
+        tax_rate=DEFAULT_TAX_RATE_NAME)
     product_type.product_attributes.add(color_attribute)
     product_type.variant_attributes.add(size_attribute)
     return product_type
@@ -335,7 +337,8 @@ def product(product_type, category):
 
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
-        product_type=product_type, attributes=attributes, category=category)
+        product_type=product_type, attributes=attributes, category=category,
+        tax_rate=DEFAULT_TAX_RATE_NAME)
 
     variant_attr = product_type.variant_attributes.first()
     variant_attr_value = variant_attr.values.first()
