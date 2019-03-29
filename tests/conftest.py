@@ -41,15 +41,6 @@ from saleor.site import AuthenticationBackends
 from saleor.site.models import AuthorizationKey, SiteSettings
 
 
-@pytest.fixture
-def media_root(tmpdir, settings):
-    """
-    Create temporary dir for test media to avoid file name conflicts and
-    keep the original MEDIA_ROOT clean.
-    """
-    settings.MEDIA_ROOT = tmpdir.mkdir("media")
-
-
 @pytest.fixture(autouse=True)
 def site_settings(db, settings):
     """Create a site and matching site settings.
