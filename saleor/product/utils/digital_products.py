@@ -4,27 +4,24 @@ import datetime
 from ..models import DigitalContentUrl
 
 
-def get_default_automatic_fulfillment() -> bool:
+def get_default_digital_content_settings():
     site = Site.objects.get_current()
-    return site.settings.automatic_fulfillment_digital_products
-
-
-def get_default_digital_max_downloads() -> int:
-    site = Site.objects.get_current()
-    return site.settings.default_digital_max_downloads
-
-
-def get_default_digital_url_valid_days() -> int:
-    site = Site.objects.get_current()
-    return site.settings.default_digital_url_valid_days
+    settings = site.settings
+    return {
+        'automatic_fulfillment': (
+            settings.automatic_fulfillment_digital_products),
+        'max_downloads': settings.default_digital_max_downloads,
+        'url_valid_days': settings.default_digital_url_valid_days
+    }
 
 
 def digital_content_url_is_valid(content_url: DigitalContentUrl) -> bool:
     """ Check if digital url is still valid for customer. It takes default
     settings or digital product's settings to check if url is still valid"""
     if content_url.content.use_default_settings:
-        url_valid_days = get_default_digital_url_valid_days()
-        max_downloads = get_default_digital_max_downloads()
+        digital_content_settings = get_default_digital_content_settings()
+        url_valid_days = digital_content_settings['url_valid_days']
+        max_downloads = digital_content_settings['max_downloads']
     else:
         url_valid_days = content_url.content.url_valid_days
         max_downloads = content_url.content.max_downloads
