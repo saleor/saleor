@@ -451,6 +451,14 @@ export interface StaffInput {
   permissions?: (PermissionEnum | null)[] | null;
 }
 
+export interface TranslationInput {
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  name?: string | null;
+  description?: string | null;
+  descriptionJson?: any | null;
+}
+
 export interface UserCreateInput {
   defaultBillingAddress?: AddressInput | null;
   defaultShippingAddress?: AddressInput | null;

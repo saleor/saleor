@@ -1,16 +1,12 @@
-import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
 import CardSpacer from "../../../components/CardSpacer";
 import Container from "../../../components/Container";
-import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
-import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { ProductTranslationFragment } from "../../types/ProductTranslationFragment";
 import TranslationFields from "../TranslationFields";
-import TranslationFieldsSave from "../TranslationFields/TranslationFieldsSave";
 
 export interface TranslationsProductsPageProps {
   activeField: string;
@@ -21,7 +17,7 @@ export interface TranslationsProductsPageProps {
   onSubmit: (field: string, data: string) => void;
 }
 
-const fieldNames = {
+export const fieldNames = {
   descriptionJson: "description",
   name: "name",
   seoDescription: "seoDescription",
