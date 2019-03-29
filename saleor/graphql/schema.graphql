@@ -815,42 +815,10 @@ type Image {
 scalar JSONString
 
 enum LanguageCodeEnum {
-  AR
-  AZ
-  BG
-  BN
-  CA
-  CS
-  DA
   DE
   EN
   ES
-  ET
-  FA
-  FR
-  HI
-  HU
-  ID
-  IT
-  JA
-  KO
-  MN
-  NB
-  NL
   PL
-  PT_BR
-  RO
-  RU
-  SK
-  SR
-  SW
-  SV
-  TH
-  TR
-  UK
-  VI
-  ZH_HANS
-  ZH_HANT
 }
 
 type LanguageDisplay {
