@@ -25,5 +25,8 @@ export interface CollectionTranslationFragment {
   __typename: "Collection";
   id: string;
   name: string;
+  descriptionJson: any;
+  seoDescription: string | null;
+  seoTitle: string | null;
   translation: CollectionTranslationFragment_translation | null;
 }

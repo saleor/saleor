@@ -25,5 +25,8 @@ export interface CategoryTranslationFragment {
   __typename: "Category";
   id: string;
   name: string;
+  descriptionJson: any;
+  seoDescription: string | null;
+  seoTitle: string | null;
   translation: CategoryTranslationFragment_translation | null;
 }

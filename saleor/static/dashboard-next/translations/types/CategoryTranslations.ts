@@ -27,6 +27,9 @@ export interface CategoryTranslations_categories_edges_node {
   __typename: "Category";
   id: string;
   name: string;
+  descriptionJson: any;
+  seoDescription: string | null;
+  seoTitle: string | null;
   translation: CategoryTranslations_categories_edges_node_translation | null;
 }
 

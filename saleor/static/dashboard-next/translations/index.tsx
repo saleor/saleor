@@ -11,6 +11,9 @@ import {
   languageListPath,
   TranslatableEntities
 } from "./urls";
+import TranslationsCategoriesComponent, {
+  TranslationsCategoriesQueryParams
+} from "./views/TranslationsCategories";
 import TranslationsEntitiesComponent, {
   TranslationsEntitiesListQueryParams
 } from "./views/TranslationsEntities";
@@ -39,11 +42,27 @@ const TranslationsEntities: React.FC<TranslationsEntitiesRouteProps> = ({
     />
   );
 };
-type TranslationsProductsRouteProps = RouteComponentProps<{
+type TranslationsEntityRouteProps = RouteComponentProps<{
   id: string;
   languageCode: string;
 }>;
-const TranslationsProducts: React.FC<TranslationsProductsRouteProps> = ({
+const TranslationsCategories: React.FC<TranslationsEntityRouteProps> = ({
+  location,
+  match
+}) => {
+  const qs = parseQs(location.search.substr(1));
+  const params: TranslationsCategoriesQueryParams = {
+    activeField: qs.activeField
+  };
+  return (
+    <TranslationsCategoriesComponent
+      id={decodeURIComponent(match.params.id)}
+      languageCode={LanguageCodeEnum[match.params.languageCode]}
+      params={params}
+    />
+  );
+};
+const TranslationsProducts: React.FC<TranslationsEntityRouteProps> = ({
   location,
   match
 }) => {
@@ -82,6 +101,15 @@ const TranslationsRouter: React.FC = () => (
           ":id"
         )}
         component={TranslationsProducts}
+      />
+      <Route
+        exact
+        path={languageEntityPath(
+          ":languageCode",
+          TranslatableEntities.categories,
+          ":id"
+        )}
+        component={TranslationsCategories}
       />
     </Switch>
   </>

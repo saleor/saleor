@@ -2,6 +2,10 @@ import gql from "graphql-tag";
 
 import { pageInfoFragment, TypedQuery } from "../queries";
 import {
+  CategoryTranslationDetails,
+  CategoryTranslationDetailsVariables
+} from "./types/CategoryTranslationDetails";
+import {
   CategoryTranslations,
   CategoryTranslationsVariables
 } from "./types/CategoryTranslations";
@@ -22,6 +26,9 @@ export const categoryTranslationFragment = gql`
   fragment CategoryTranslationFragment on Category {
     id
     name
+    descriptionJson
+    seoDescription
+    seoTitle
     translation(languageCode: $language) {
       id
       descriptionJson
@@ -38,6 +45,9 @@ export const collectionTranslationFragment = gql`
   fragment CollectionTranslationFragment on Collection {
     id
     name
+    descriptionJson
+    seoDescription
+    seoTitle
     translation(languageCode: $language) {
       id
       descriptionJson
@@ -164,3 +174,16 @@ export const TypedProductTranslationDetails = TypedQuery<
   ProductTranslationDetails,
   ProductTranslationDetailsVariables
 >(productTranslationDetails);
+
+const categoryTranslationDetails = gql`
+  ${categoryTranslationFragment}
+  query CategoryTranslationDetails($id: ID!, $language: LanguageCodeEnum!) {
+    category(id: $id) {
+      ...CategoryTranslationFragment
+    }
+  }
+`;
+export const TypedCategoryTranslationDetails = TypedQuery<
+  CategoryTranslationDetails,
+  CategoryTranslationDetailsVariables
+>(categoryTranslationDetails);
