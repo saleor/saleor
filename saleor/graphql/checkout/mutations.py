@@ -62,10 +62,7 @@ def clean_shipping_method(
 
 
 def check_lines_quantity(variants, quantities):
-    """Check if stock is sufficient for each line in the list of dicts.
-    Return list of errors.
-    """
-    errors = {}
+    """Check if stock is sufficient for each line in the list of dicts."""
     for variant, quantity in zip(variants, quantities):
         try:
             variant.check_quantity(quantity)
@@ -75,10 +72,7 @@ def check_lines_quantity(variants, quantities):
                 + '%(item_name)s. Only %(remaining)d remaining in stock.' % {
                     'remaining': e.item.quantity_available,
                     'item_name': e.item.display_product()})
-            ValidationError({'quantity': message}).update_error_dict(errors)
-
-    if errors:
-        raise ValidationError(errors)
+            raise ValidationError({'quantity': message})
 
 
 class CheckoutLineInput(graphene.InputObjectType):
@@ -331,12 +325,6 @@ class CheckoutCustomerDetach(BaseMutation):
         errors = []
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
-
-        # FIXME: is this error actually useful? IN this case mutation could just do nothing
-        if not checkout.user:
-            raise ValidationError(
-                'There\'s no customer assigned to this Checkout.')
-
         checkout.user = None
         checkout.save(update_fields=['user'])
         return CheckoutCustomerDetach(checkout=checkout)
