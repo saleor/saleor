@@ -86,6 +86,13 @@ class VoucherTranslation(BaseTranslationType):
         exclude_fields = ['voucher', 'language_code']
 
 
+class SaleTranslation(BaseTranslationType):
+    class Meta:
+        model = discount_models.SaleTranslation
+        interfaces = [graphene.relay.Node]
+        exclude_fields = ['sale', 'language_code']
+
+
 class ShopTranslation(BaseTranslationType):
     class Meta:
         model = site_models.SiteSettingsTranslation

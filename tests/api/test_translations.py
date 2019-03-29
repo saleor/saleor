@@ -131,6 +131,33 @@ def test_voucher_translation(
     assert data['voucher']['translation']['language']['code'] == 'PL'
 
 
+def test_sale_translation(
+        staff_api_client, sale, permission_manage_discounts):
+    sale.translations.create(language_code='pl', name='Wyprz')
+
+    query = """
+    query saleById($saleId: ID!) {
+        sale(id: $saleId) {
+            translation(languageCode: PL) {
+                name
+                language {
+                    code
+                }
+            }
+        }
+    }
+    """
+
+    sale_id = graphene.Node.to_global_id('Sale', sale.id)
+    response = staff_api_client.post_graphql(
+        query, {'saleId': sale_id},
+        permissions=[permission_manage_discounts])
+    data = get_graphql_content(response)['data']
+
+    assert data['sale']['translation']['name'] == 'Wyprz'
+    assert data['sale']['translation']['language']['code'] == 'PL'
+
+
 def test_page_translation(user_api_client, page):
     page.translations.create(language_code='pl', title='Strona')
 
@@ -855,6 +882,35 @@ def test_voucher_update_translation(
     assert data['voucher']['translation']['language']['code'] == 'PL'
 
 
+def test_sale_create_translation(
+        staff_api_client, sale, permission_manage_translations):
+    query = """
+    mutation saleTranslate($saleId: ID!) {
+        saleTranslate(
+                id: $saleId, languageCode: PL,
+                input: {name: "Wyprz PL"}) {
+            sale {
+                translation(languageCode: PL) {
+                    name
+                    language {
+                        code
+                    }
+                }
+            }
+        }
+    }
+    """
+
+    sale_id = graphene.Node.to_global_id('Sale', sale.id)
+    response = staff_api_client.post_graphql(
+        query, {'saleId': sale_id},
+        permissions=[permission_manage_translations])
+    data = get_graphql_content(response)['data']['saleTranslate']
+
+    assert data['sale']['translation']['name'] == 'Wyprz PL'
+    assert data['sale']['translation']['language']['code'] == 'PL'
+
+
 def test_page_create_translation(
         staff_api_client, page, permission_manage_translations):
     query = """
@@ -1195,12 +1251,13 @@ def test_shop_update_translation(
     (TranslatableKinds.PAGE, 'Page'),
     (TranslatableKinds.SHIPPING_METHOD, 'ShippingMethod'),
     (TranslatableKinds.VOUCHER, 'Voucher'),
+    (TranslatableKinds.SALE, 'Sale'),
     (TranslatableKinds.ATTRIBUTE, 'Attribute'),
     (TranslatableKinds.ATTRIBUTE_VALUE, 'AttributeValue'),
     (TranslatableKinds.VARIANT, 'ProductVariant'),
     (TranslatableKinds.MENU_ITEM, 'MenuItem')])
 def test_translations_query(
-        user_api_client, product, collection, voucher, shipping_method,
+        user_api_client, product, collection, voucher, sale, shipping_method,
         page, menu_item, kind, expected_typename):
     query = """
     query TranslationsQuery($kind: TranslatableKinds!) {
