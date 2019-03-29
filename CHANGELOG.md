@@ -25,6 +25,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add light/dark theme - #3856 by @dominik-zeglen
 - Fix bug where logo-document is not renamed to logo-light - #3867 by @jxltom
 - Copy addresses in checkoutCreate and draftOrderCreate mutations - #3866 by @pawelzar
+- Fix default product tax rate in Dashboard 1.0 - #3880 by @pawelzar
 - Introduce avatars for staff accounts - #3878 by @pawelzar
 
 
