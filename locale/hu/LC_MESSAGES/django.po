@@ -7,13 +7,14 @@
 # Marci Wéber <webermarton@gmail.com>, 2018
 # Lehner Viktor <lehnerviktor@gmail.com>, 2019
 # Horváth Miklós <hmiki@blackpantheros.eu>, 2019
+# Mező Sándor <ifsmez@gmail.com>, 2019
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-03-04 10:43-0600\n"
-"PO-Revision-Date: 2019-03-28 21:33+0100\n"
+"PO-Revision-Date: 2019-03-29 13:03+0100\n"
 "Last-Translator: Horváth Miklós <hmiki@blackpantheros.eu>\n"
 "Language-Team: Hungarian (https://www.transifex.com/mirumee/teams/34782/hu/)\n"
 "MIME-Version: 1.0\n"
@@ -21,7 +22,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: hu\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.2\n"
+"X-Generator: Poedit 2.2.1\n"
 
 #: saleor/account/forms.py:69
 msgctxt "Form field"
@@ -81,7 +82,7 @@ msgstr ""
 #: saleor/account/i18n.py:23
 msgctxt "Address field"
 msgid "Eircode"
-msgstr ""
+msgstr "Eircode"
 
 #: saleor/account/i18n.py:24
 msgctxt "Address field"
@@ -301,7 +302,7 @@ msgstr "Számlázás"
 #: saleor/checkout/__init__.py:19
 msgctxt "Type of address used to fulfill order"
 msgid "Shipping"
-msgstr "Szállításra"
+msgstr "Szállítás"
 
 #: saleor/checkout/forms.py:39
 msgctxt "Add to cart form field label"
@@ -636,7 +637,7 @@ msgstr "Termékek különleges kategóriái"
 #: saleor/discount/__init__.py:29
 msgctxt "Voucher: discount for"
 msgid "Shipping"
-msgstr "Szállításra"
+msgstr "Szállítás"
 
 #: saleor/discount/models.py:77
 msgctxt "Voucher type"
@@ -682,12 +683,12 @@ msgstr ""
 #: saleor/discount/models.py:179
 msgctxt "Permission description"
 msgid "Manage sales and vouchers."
-msgstr ""
+msgstr "Kedvezmények és kuponok."
 
 #: saleor/discount/utils.py:49
 msgctxt "Voucher not applicable"
 msgid "Discount not applicable for this product"
-msgstr "Ez a termék nem akciós"
+msgstr "Az akció nem érvényes erre a termékre."
 
 #: saleor/graphql/order/mutations/fulfillments.py:78
 #, python-format
@@ -725,7 +726,7 @@ msgstr ""
 #: saleor/menu/models.py:80
 msgctxt "Link object type description"
 msgid "Page: "
-msgstr ""
+msgstr "Oldal"
 
 #: saleor/order/__init__.py:20
 msgctxt "Status for a fully editable, not confirmed order created by staff users"
@@ -765,12 +766,12 @@ msgstr ""
 #: saleor/order/__init__.py:83
 msgctxt "Email type"
 msgid "Payment confirmation"
-msgstr ""
+msgstr "Fizetési hitelesítés"
 
 #: saleor/order/__init__.py:85
 msgctxt "Email type"
 msgid "Shipping confirmation"
-msgstr ""
+msgstr "Szállítási hitelesítés"
 
 #: saleor/order/__init__.py:87
 msgctxt "Email type"
@@ -780,7 +781,7 @@ msgstr ""
 #: saleor/order/__init__.py:89
 msgctxt "Email type"
 msgid "Order confirmation"
-msgstr ""
+msgstr "Rendelés hitelesítése"
 
 #: saleor/order/__init__.py:115
 #, python-format
@@ -854,7 +855,7 @@ msgstr "Rendelés leadva"
 #: saleor/order/__init__.py:176
 msgctxt "Dashboard message related to an order"
 msgid "Order was fully paid"
-msgstr ""
+msgstr "Rendelés teljesen fizetve"
 
 #: saleor/order/__init__.py:180
 #, python-format
@@ -886,22 +887,22 @@ msgstr[1] ""
 #: saleor/order/forms.py:16
 msgctxt "Payments form label"
 msgid "Payment Method"
-msgstr ""
+msgstr "Fizetési mód"
 
 #: saleor/order/forms.py:36
 msgctxt "Payment delete form error"
 msgid "Payment does not exist"
-msgstr ""
+msgstr "A kifizetés nem létezik"
 
 #: saleor/order/forms.py:41
 msgctxt "Payment delete form error"
 msgid "Payment cannot be cancelled."
-msgstr ""
+msgstr "A kifizetés nem visszavonható"
 
 #: saleor/order/models.py:134
 msgctxt "Permission description"
 msgid "Manage orders."
-msgstr ""
+msgstr "Rendelések kezelése."
 
 #: saleor/order/models.py:335
 #, python-format
@@ -913,16 +914,18 @@ msgstr ""
 msgctxt "Connect order with user warning message"
 msgid "We couldn't assign the order to your account as the email addresses don't match"
 msgstr ""
+"Nem tudjuk hozzáadni a rendelést a felhasználói fiókodhoz, mert az email címek nem "
+"egyeznek."
 
 #: saleor/order/views.py:203
 msgctxt "storefront message"
 msgid "The order is now assigned to your account"
-msgstr ""
+msgstr "A rendelés fel lett véve a fiókodhoz."
 
 #: saleor/page/models.py:33
 msgctxt "Permission description"
 msgid "Manage pages."
-msgstr ""
+msgstr "Oldalak kezelése."
 
 #: saleor/payment/__init__.py:24
 msgctxt "Custom payment choice type"
@@ -1049,7 +1052,7 @@ msgstr "nincs raktáron"
 #: saleor/product/__init__.py:21
 msgctxt "Product status"
 msgid "stock running low"
-msgstr ""
+msgstr "alacsony raktárkészlet"
 
 #: saleor/product/__init__.py:23
 msgctxt "Product status"
@@ -1105,7 +1108,7 @@ msgstr ""
 #: saleor/product/models.py:129
 msgctxt "Permission description"
 msgid "Manage products."
-msgstr ""
+msgstr "Termékek kezelése."
 
 #: saleor/search/forms.py:9
 msgctxt "Search form label"
@@ -1251,7 +1254,7 @@ msgstr ""
 #: saleor/settings.py:330
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
-msgstr ""
+msgstr "Euróapai Unió"
 
 #: saleor/settings.py:567
 msgctxt "Payment method name"
@@ -1261,12 +1264,12 @@ msgstr ""
 #: saleor/shipping/__init__.py:10
 msgctxt "Type of shipping"
 msgid "Price based shipping"
-msgstr ""
+msgstr "Ár alapú szállítás"
 
 #: saleor/shipping/__init__.py:12
 msgctxt "Type of shipping"
 msgid "Weight based shipping"
-msgstr ""
+msgstr "Súly alapú szállítás"
 
 #: saleor/shipping/models.py:38
 #, python-format
@@ -1306,17 +1309,17 @@ msgstr ""
 #: saleor/site/models.py:40
 msgctxt "Permission description"
 msgid "Manage settings."
-msgstr ""
+msgstr "Beállítások kezelése"
 
 #: templates/404.html:6
 msgctxt "Eror page not found"
 msgid "Page not found"
-msgstr ""
+msgstr "Az oldal nem található."
 
 #: templates/_language_picker_modal.html:8
 msgctxt "Change language modal title"
 msgid "Select language"
-msgstr ""
+msgstr "Nyelv választás"
 
 #: templates/_language_picker_modal.html:24
 msgctxt "Close modal action button"
@@ -1361,12 +1364,12 @@ msgstr "Mégse"
 #: templates/account/address_edit.html:7
 msgctxt "Edit address page title"
 msgid "Edit address"
-msgstr ""
+msgstr "Cím szerkesztése"
 
 #: templates/account/address_edit.html:9
 msgctxt "New address page title"
 msgid "New address"
-msgstr ""
+msgstr "Új cím"
 
 #: templates/account/address_edit.html:16 templates/account/details.html:16
 #: templates/account/password_change.html:7 templates/checkout/index.html:11
@@ -1380,27 +1383,27 @@ msgstr "Főoldal"
 #: templates/account/address_edit.html:21
 msgctxt "Edit/new address breadcrumb"
 msgid "Your profile"
-msgstr ""
+msgstr "Profilod"
 
 #: templates/account/address_edit.html:27
 msgctxt "Edit address breadcrumb"
 msgid "Edit address"
-msgstr ""
+msgstr "Cím szerkesztése"
 
 #: templates/account/address_edit.html:33
 msgctxt "New address breadcrumb"
 msgid "New address"
-msgstr ""
+msgstr "Új cím"
 
 #: templates/account/address_edit.html:47
 msgctxt "Edit address title"
 msgid "Edit address"
-msgstr ""
+msgstr "Cím szerkesztése"
 
 #: templates/account/address_edit.html:49
 msgctxt "New address title"
 msgid "New address"
-msgstr ""
+msgstr "Új cím"
 
 #: templates/account/address_edit.html:57
 msgctxt "Edit/new address primary action"
@@ -1410,7 +1413,7 @@ msgstr ""
 #: templates/account/details.html:10
 msgctxt "User profile page title"
 msgid "Your profile"
-msgstr ""
+msgstr "Profilod"
 
 #: templates/account/details.html:19 templates/account/password_change.html:8
 #: templates/base.html:84 templates/base.html:226 templates/order/details.html:23
@@ -1441,7 +1444,7 @@ msgstr ""
 #: templates/account/details.html:47
 msgctxt "User profile tab"
 msgid "Settings"
-msgstr ""
+msgstr "Beállítások"
 
 #: templates/account/details.html:59
 msgctxt "Recent orders column title"
@@ -1466,7 +1469,7 @@ msgstr ""
 #: templates/account/details.html:71
 msgctxt "Recent orders column title"
 msgid "Order status"
-msgstr ""
+msgstr "Rendelés állapota"
 
 #: templates/account/details.html:96
 msgctxt "Recent orders link text"
@@ -1546,7 +1549,7 @@ msgstr "Bejelentkezés"
 #, python-format
 msgctxt "Already logged in warning message"
 msgid "You are already logged in as %(user)s."
-msgstr ""
+msgstr "Bejelentkezve, mint%(user)s."
 
 #: templates/account/partials/login_form.html:16
 msgctxt "Login form primary action"
@@ -1574,27 +1577,27 @@ msgstr "Szerkesztés"
 #: templates/account/password_change.html:22
 msgctxt "Password change form legend"
 msgid "Change Password"
-msgstr ""
+msgstr "Jelszó változtatása"
 
 #: templates/account/password_change.html:28
 msgctxt "Password change form primary action"
 msgid "Save new password"
-msgstr ""
+msgstr "Új jelszó mentése"
 
 #: templates/account/password_reset.html:6
 msgctxt "Password reset page title"
 msgid "Password reset"
-msgstr ""
+msgstr "Jelszó visszaállítása"
 
 #: templates/account/password_reset.html:17
 msgctxt "Password reset form title"
 msgid "Forgot your password?"
-msgstr ""
+msgstr "Elfelejtett jelszó?"
 
 #: templates/account/password_reset.html:19
 msgctxt "Password reset form help text"
 msgid "Please let us know the email you have used to register or purchase at our store."
-msgstr ""
+msgstr "Add meg az email címedet amivel regisztráltál vagy vásároltál a webáruházban."
 
 #: templates/account/password_reset.html:30
 msgctxt "Password reset primary action"
@@ -1604,12 +1607,12 @@ msgstr "Tovább"
 #: templates/account/password_reset_done.html:6
 msgctxt "Password reset done page title"
 msgid "Password Reset"
-msgstr ""
+msgstr "Jelszó visszállítása"
 
 #: templates/account/password_reset_done.html:10
 msgctxt "Password reset done title"
 msgid "Password Reset"
-msgstr ""
+msgstr "Jelszó visszaállítása"
 
 #: templates/account/password_reset_done.html:14
 msgctxt "Password reset done text"
@@ -1617,11 +1620,12 @@ msgid ""
 "We have sent you an e-mail. Please contact us if you do not receive it within a few "
 "minutes."
 msgstr ""
+"Küldtünk egy emailt. Vedd fel velünk a kapcsolatot, ha nem érkezik meg pár percen belül."
 
 #: templates/account/password_reset_from_key.html:6
 msgctxt "Password reset from key page title"
 msgid "Change Password"
-msgstr ""
+msgstr "Jelszó változtatása"
 
 #: templates/account/password_reset_from_key.html:11
 msgid "Bad Token"
@@ -1638,7 +1642,7 @@ msgstr ""
 #: templates/account/password_reset_from_key.html:24
 msgctxt "Password reset from key form title"
 msgid "Password Reset"
-msgstr ""
+msgstr "Jelszó visszállítása"
 
 #: templates/account/password_reset_from_key.html:25
 msgctxt "Password reset from key form title"
@@ -1670,16 +1674,16 @@ msgstr ""
 #: templates/account/password_reset_from_key_done.html:4
 msgctxt "Password reset from key done page title"
 msgid "Password Changed"
-msgstr ""
+msgstr "Jelszó megváltozott"
 
 #: templates/account/password_reset_from_key_done.html:7
 msgctxt "Password reset from key done title"
 msgid "Password Changed"
-msgstr ""
+msgstr "Jelszó megváltozott"
 
 #: templates/account/password_reset_from_key_done.html:9
 msgid "Your password is now changed."
-msgstr ""
+msgstr "A jelszavad megváltozott"
 
 #: templates/account/password_reset_from_key_done.html:10
 #, python-format
@@ -1690,12 +1694,12 @@ msgstr ""
 #: templates/account/signup.html:6
 msgctxt "Signup page title"
 msgid "Sign Up"
-msgstr ""
+msgstr "Regisztráció"
 
 #: templates/account/signup.html:17
 msgctxt "Signup form secondary title"
 msgid "Already have an account?"
-msgstr ""
+msgstr "Már van felhasználód?"
 
 #: templates/account/signup.html:21
 msgctxt "Signup form secondary action"
@@ -1743,7 +1747,7 @@ msgstr "Keresés"
 
 #: templates/base.html:139
 msgid "Search"
-msgstr ""
+msgstr "Keresés"
 
 #: templates/base.html:148 templates/base.html:208
 msgctxt "Main navigation item"
@@ -1763,7 +1767,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:342
 msgctxt "Order subtotal"
 msgid "Subtotal"
-msgstr ""
+msgstr "Részösszeg"
 
 #: templates/cart_dropdown.html:40
 msgctxt "Cart dropdown text"
@@ -1783,7 +1787,7 @@ msgstr "Fizetés"
 #: templates/cart_dropdown.html:62 templates/checkout/index.html:91
 msgctxt "Empty cart message"
 msgid "There are no products in your shopping cart."
-msgstr ""
+msgstr "Nincs termék a kosaradban."
 
 #: templates/cart_dropdown.html:67 templates/checkout/index.html:92
 msgctxt "Empty cart link"
@@ -1798,7 +1802,7 @@ msgstr "Főoldal"
 #: templates/checkout/_subtotal_table.html:32
 msgctxt "Cart shipping cost form"
 msgid "Shipping cost for:"
-msgstr ""
+msgstr "Szállítási díja:"
 
 #: templates/checkout/_subtotal_table.html:57
 msgctxt "Order subtotal"
@@ -1818,7 +1822,7 @@ msgstr "Fizetés"
 #: templates/checkout/details.html:12
 msgctxt "Checkout top message"
 msgid "Easy and secure!"
-msgstr ""
+msgstr "Egyszerű és biztonságos!"
 
 #: templates/checkout/details.html:20
 msgctxt "Checkout title"
@@ -1833,12 +1837,12 @@ msgstr ""
 #: templates/checkout/details.html:51
 msgctxt "Order review section"
 msgid "Subtotal"
-msgstr ""
+msgstr "Részösszeg"
 
 #: templates/checkout/details.html:61
 msgctxt "Order review section"
 msgid "Shipment"
-msgstr ""
+msgstr "Szállítás"
 
 #: templates/checkout/details.html:77
 msgctxt "Order review section title"
@@ -1848,12 +1852,12 @@ msgstr ""
 #: templates/checkout/details.html:79
 msgctxt "Order review section title"
 msgid "Taxes"
-msgstr ""
+msgstr "Adók"
 
 #: templates/checkout/details.html:89
 msgctxt "Order review section title"
 msgid "Promo code"
-msgstr ""
+msgstr "Promóciós kód"
 
 #: templates/checkout/details.html:95
 msgctxt "Order review section title"
@@ -1873,7 +1877,7 @@ msgstr "Kosár"
 #: templates/checkout/index.html:22
 msgctxt "Cart message"
 msgid "Product has been removed from cart"
-msgstr ""
+msgstr "A termék eltávolítva a kosárból."
 
 #: templates/checkout/index.html:30
 msgctxt "Cart table header"
@@ -1898,17 +1902,17 @@ msgstr "Fizetés"
 #: templates/checkout/index.html:84
 msgctxt "cart page: secondary action, empty the cart"
 msgid "Clear cart"
-msgstr ""
+msgstr "Kosár ürítése"
 
 #: templates/checkout/login.html:6
 msgctxt "Checkout login page title"
 msgid "Login"
-msgstr ""
+msgstr "Bejelentkezés"
 
 #: templates/checkout/login.html:12
 msgctxt "Checkout login page title"
 msgid "New customer?"
-msgstr ""
+msgstr "Új vásárló?"
 
 #: templates/checkout/login.html:18
 msgctxt "Checkout login page new users action"
@@ -1918,12 +1922,12 @@ msgstr "Tovább"
 #: templates/checkout/login.html:21
 msgctxt "Checkout login page new users message"
 msgid "Registration is not required!"
-msgstr ""
+msgstr "Regisztráció nem szükséges!"
 
 #: templates/checkout/login.html:26
 msgctxt "Checkout login form title"
 msgid "Existing customer? Log in."
-msgstr ""
+msgstr "Már regisztrált? Bejelentkezés."
 
 #: templates/checkout/payment.html:9
 msgctxt "Checkout payment title"
@@ -1938,7 +1942,7 @@ msgstr ""
 #: templates/checkout/shipping_address.html:8 templates/checkout/shipping_method.html:7
 msgctxt "Checkout shipping address title"
 msgid "Shipping address"
-msgstr ""
+msgstr "Szállítási cím"
 
 #: templates/checkout/shipping_address.html:21
 msgctxt "Checkout shipping address primary action"
@@ -1983,7 +1987,7 @@ msgstr "Add meg az új címet"
 #: templates/checkout/snippets/voucher_form.html:14
 msgctxt "Checkout voucher form action"
 msgid "Remove"
-msgstr ""
+msgstr "Eltáviolítás"
 
 #: templates/checkout/snippets/voucher_form.html:15
 msgctxt "Checkout voucher form action"
@@ -2008,7 +2012,7 @@ msgstr ""
 #: templates/checkout/summary.html:12
 msgctxt "Checkout summary note title"
 msgid "Add a note to your order"
-msgstr ""
+msgstr "Jegyzet hozzáadása a rendeléshez."
 
 #: templates/checkout/summary.html:16
 msgctxt "Checkout summary primary action"
@@ -2023,7 +2027,7 @@ msgstr "Számlázási cím"
 #: templates/checkout/summary_without_shipping.html:15
 msgctxt "Checkout summary without shipping note title"
 msgid "Add a note to your order"
-msgstr ""
+msgstr "Jegyzet hozzáadása a rendeléshez."
 
 #: templates/checkout/summary_without_shipping.html:19
 msgctxt "Checkout summary without shipping action"
@@ -2076,7 +2080,7 @@ msgstr "kijelentkezés"
 #: templates/dashboard/base.html:81
 msgctxt "Dashboard search"
 msgid "Search"
-msgstr ""
+msgstr "Keresés"
 
 #: templates/dashboard/base.html:96 templates/dashboard/base.html:248
 msgctxt "Dashboard homepage"
@@ -2086,7 +2090,7 @@ msgstr "Főoldal"
 #: templates/dashboard/base.html:102
 msgctxt "Dashboard catalogue"
 msgid "Catalogue"
-msgstr ""
+msgstr "Katalógus"
 
 #: templates/dashboard/base.html:107 templates/dashboard/product/form.html:28
 #: templates/dashboard/product/list.html:10 templates/dashboard/product/list.html:36
@@ -2095,14 +2099,14 @@ msgstr ""
 #: templates/dashboard/product/product_variant/form.html:26
 msgctxt "Dashboard products list"
 msgid "Products"
-msgstr ""
+msgstr "Termékek"
 
 #: templates/dashboard/base.html:112 templates/dashboard/category/detail.html:33
 #: templates/dashboard/category/detail.html:39 templates/dashboard/category/form.html:13
 #: templates/dashboard/category/form.html:32 templates/dashboard/category/list.html:32
 msgctxt "Dashboard categories list"
 msgid "Categories"
-msgstr ""
+msgstr "Kategóriák"
 
 #: templates/dashboard/base.html:117
 msgctxt "Dashboard side navigation link"
@@ -2112,12 +2116,12 @@ msgstr ""
 #: templates/dashboard/base.html:126
 msgctxt "Dashboard discounts list"
 msgid "Discounts"
-msgstr ""
+msgstr "Kedvezmények"
 
 #: templates/dashboard/base.html:131
 msgctxt "Dashboard sales (discounts) list"
 msgid "Sales"
-msgstr ""
+msgstr "Értékesítések"
 
 #: templates/dashboard/base.html:136 templates/dashboard/discount/voucher/form.html:12
 #: templates/dashboard/discount/voucher/form.html:43
@@ -2130,7 +2134,7 @@ msgstr ""
 #: templates/dashboard/base.html:145
 msgctxt "Dashboard sales. `Sales' is noun of to sell"
 msgid "Sales"
-msgstr ""
+msgstr "Értékesítések"
 
 #: templates/dashboard/base.html:151 templates/dashboard/order/address_form.html:7
 #: templates/dashboard/order/address_form.html:23 templates/dashboard/order/detail.html:12
@@ -2146,7 +2150,7 @@ msgstr "Rendelések"
 #: templates/dashboard/customer/list.html:8 templates/dashboard/customer/list.html:26
 msgctxt "Dashboard customers list"
 msgid "Customers"
-msgstr ""
+msgstr "Vásárlók"
 
 #: templates/dashboard/base.html:168
 msgctxt "Management section"
@@ -2161,14 +2165,14 @@ msgstr ""
 #: templates/dashboard/base.html:182
 msgctxt "Dashboard configuration"
 msgid "Configuration"
-msgstr ""
+msgstr "Konfiguráció"
 
 #: templates/dashboard/base.html:188 templates/dashboard/product/product_type/form.html:28
 #: templates/dashboard/product/product_type/list.html:8
 #: templates/dashboard/product/product_type/list.html:28
 msgctxt "Dashboard product types list"
 msgid "Product types"
-msgstr ""
+msgstr "Termék típusok"
 
 #: templates/dashboard/base.html:193 templates/dashboard/product/attribute/form.html:29
 #: templates/dashboard/product/attribute/list.html:8
@@ -2176,12 +2180,12 @@ msgstr ""
 #: templates/dashboard/product/attribute/values/form.html:29
 msgctxt "Dashboard attributes list"
 msgid "Attributes"
-msgstr ""
+msgstr "Jellemzők"
 
 #: templates/dashboard/base.html:200
 msgctxt "Dashboard shipping zones list"
 msgid "Shipping"
-msgstr "Szállításra"
+msgstr "Szállítás"
 
 #: templates/dashboard/base.html:207 templates/dashboard/menu/detail.html:23
 #: templates/dashboard/menu/form.html:12 templates/dashboard/menu/form.html:31
@@ -2189,28 +2193,28 @@ msgstr "Szállításra"
 #: templates/dashboard/menu/item/form.html:31 templates/dashboard/menu/list.html:32
 msgctxt "Dashboard menus list"
 msgid "Navigation"
-msgstr ""
+msgstr "Navigáció"
 
 #: templates/dashboard/base.html:214 templates/dashboard/sites/form.html:11
 #: templates/dashboard/taxes/form.html:12
 msgctxt "Dashboard site settings"
 msgid "Site settings"
-msgstr ""
+msgstr "Oldal beállítások"
 
 #: templates/dashboard/base.html:220
 msgctxt "Dashboard taxes"
 msgid "Taxes"
-msgstr ""
+msgstr "Adók"
 
 #: templates/dashboard/base.html:226
 msgctxt "Dashboard static pages"
 msgid "Pages"
-msgstr ""
+msgstr "Oldalak"
 
 #: templates/dashboard/base.html:234
 msgctxt "Dashboard software version"
 msgid "Void:"
-msgstr ""
+msgstr "Vezió:"
 
 #: templates/dashboard/base_modal.html:33 templates/dashboard/category/form.html:114
 #: templates/dashboard/category/form.html:118 templates/dashboard/customer/form.html:59
@@ -2238,27 +2242,27 @@ msgstr "Mégse"
 #: templates/dashboard/category/detail.html:8 templates/dashboard/category/list.html:9
 msgctxt "Category list page title"
 msgid "Categories"
-msgstr ""
+msgstr "Kategóriák"
 
 #: templates/dashboard/category/detail.html:83
 msgctxt "Category field"
 msgid "Description"
-msgstr ""
+msgstr "Leírás"
 
 #: templates/dashboard/category/detail.html:94
 msgctxt "Category detail view action"
 msgid "Edit category"
-msgstr ""
+msgstr "Kategória szerkesztése"
 
 #: templates/dashboard/category/detail.html:97
 msgctxt "Category detail view action"
 msgid "Remove category"
-msgstr ""
+msgstr "Kategória eltávolítása"
 
 #: templates/dashboard/category/detail.html:104
 msgctxt "Title of the subcategories list"
 msgid "Subcategories"
-msgstr ""
+msgstr "Alkategóriák"
 
 #: templates/dashboard/category/detail.html:109
 #: templates/dashboard/includes/_menu_items.html:14
@@ -2277,47 +2281,47 @@ msgstr "Név"
 #: templates/dashboard/category/detail.html:119 templates/dashboard/category/list.html:52
 msgctxt "Category list table header description"
 msgid "Description"
-msgstr ""
+msgstr "Leírás"
 
 #: templates/dashboard/category/detail.html:140
 msgctxt "Category edit action"
 msgid "Edit"
-msgstr ""
+msgstr "Szerkesztés"
 
 #: templates/dashboard/category/detail.html:143
 msgctxt "Category list action link"
 msgid "Remove"
-msgstr ""
+msgstr "Eltávolítás"
 
 #: templates/dashboard/category/detail.html:149
 msgctxt "Empty list of categories"
 msgid "No subcategories"
-msgstr ""
+msgstr "Nincsennek alkategóriák"
 
 #: templates/dashboard/category/form.html:9
 msgctxt "Category form page title"
 msgid "Edit category"
-msgstr ""
+msgstr "Kategória szerkesztése"
 
 #: templates/dashboard/category/form.html:11
 msgctxt "Category detail page title"
 msgid "Add new category"
-msgstr ""
+msgstr "Új kategória hozzáadása"
 
 #: templates/dashboard/category/form.html:24
 msgctxt "Category form page title"
 msgid "Add new category"
-msgstr ""
+msgstr "Új kategória hozzáadása"
 
 #: templates/dashboard/category/form.html:55
 msgctxt "Category form page title"
 msgid "Edit"
-msgstr ""
+msgstr "Szerkesztés"
 
 #: templates/dashboard/category/form.html:61 templates/dashboard/category/form.html:77
 msgctxt "Category detail breadcrumbs"
 msgid "Add new category"
-msgstr ""
+msgstr "Új kategória hozzáadása"
 
 #: templates/dashboard/category/form.html:123 templates/dashboard/customer/form.html:62
 #: templates/dashboard/discount/sale/form.html:119
@@ -2346,29 +2350,29 @@ msgstr "Frissít"
 #: templates/dashboard/sites/authorization_keys/form.html:79
 msgctxt "Dashboard create action"
 msgid "Create"
-msgstr ""
+msgstr "Létrehozás"
 
 #: templates/dashboard/category/list.html:22
 msgctxt "Category list add button text"
 msgid "Add category"
-msgstr ""
+msgstr "Kategória Hozzáadása"
 
 #: templates/dashboard/category/list.html:83
 msgctxt "Empty category list message"
 msgid "No categories found."
-msgstr ""
+msgstr "Nem található kategória"
 
 #: templates/dashboard/category/modal/confirm_delete.html:13
 #, python-format
 msgctxt "Remove category modal title"
 msgid "Remove category %(category)s"
-msgstr ""
+msgstr "%(category)s kategória eltávolítása"
 
 #: templates/dashboard/category/modal/confirm_delete.html:20
 #, python-format
 msgctxt "Remove category modal title"
 msgid "Are you sure you want to remove category <strong>%(category)s</strong>?"
-msgstr ""
+msgstr "Biztos el akarja távolítani a következő kategóriát: <strong>%(category)s</strong>?"
 
 #: templates/dashboard/category/modal/confirm_delete.html:25
 msgctxt "Delete category form text about descendant categories"
@@ -2404,11 +2408,11 @@ msgstr[1] ""
 #: templates/dashboard/staff/modal/confirm_delete.html:24
 msgctxt "Dashboard delete action"
 msgid "Remove"
-msgstr ""
+msgstr "Eltáviolítás"
 
 #: templates/dashboard/category/zero_page.html:5
 msgid "No categories found."
-msgstr ""
+msgstr "Kategória nem található."
 
 #: templates/dashboard/category/zero_page.html:8
 #, python-format
@@ -2420,6 +2424,12 @@ msgid ""
 "src=\"%(img_path)s\" /></span> button.\n"
 "  "
 msgstr ""
+"\n"
+"   A kategóriák azok, amelyek csoportokba rendezve megjelennek a weboldal navigációs "
+"sávján<br>\n"
+"    Létrehozhatsz kategóriát a <span class=\"btn-fab-presentation\"><svg data-src="
+"\"%(img_path)s\" /></span> gombbal.\n"
+"  "
 
 #: templates/dashboard/collection/confirm_delete.html:12
 #, python-format
@@ -2472,7 +2482,7 @@ msgstr "Frissít"
 #: templates/dashboard/collection/detail.html:84
 msgctxt "Collection detail action"
 msgid "Create"
-msgstr ""
+msgstr "Létrehozás"
 
 #: templates/dashboard/collection/detail.html:106
 msgctxt "Collection field"
@@ -2507,7 +2517,7 @@ msgstr "Név"
 #: templates/dashboard/collection/list.html:43
 msgctxt "Voucher table header"
 msgid "Number of products"
-msgstr ""
+msgstr "Termékek száma"
 
 #: templates/dashboard/collection/list.html:46
 msgctxt "Collections list table header"
@@ -2530,7 +2540,7 @@ msgstr ""
 #: templates/dashboard/collection/list.html:102
 msgctxt "Homepage collection save"
 msgid "Save"
-msgstr ""
+msgstr "Mentés"
 
 #: templates/dashboard/collection/zero_page.html:5
 msgid "No collections found."
@@ -2589,7 +2599,7 @@ msgstr ""
 #: templates/dashboard/customer/detail.html:110
 msgctxt "Customer orders table header"
 msgid "Order status"
-msgstr ""
+msgstr "Rendelés állapota"
 
 #: templates/dashboard/customer/detail.html:113
 msgctxt "Customer orders table header"
@@ -2599,62 +2609,62 @@ msgstr "Összesen"
 #: templates/dashboard/customer/detail.html:140
 msgctxt "Empty customer orders table message"
 msgid "No orders found."
-msgstr ""
+msgstr "Nem található rendelés."
 
 #: templates/dashboard/customer/detail.html:149
 msgctxt "Customer notes card title"
 msgid "Customer notes"
-msgstr ""
+msgstr "Vásárlói jegyzetek"
 
 #: templates/dashboard/customer/detail.html:162
 msgctxt "Customer without notes message"
 msgid "There are no notes associated with this customer"
-msgstr ""
+msgstr "Nincs vásárlóhoz tartozó jegyzet."
 
 #: templates/dashboard/customer/detail.html:168
 msgctxt "Customer notes card action"
 msgid "Add note"
-msgstr ""
+msgstr "Jegyzet hozzáadása"
 
 #: templates/dashboard/customer/detail.html:181
 msgctxt "Customer default shipping address card title"
 msgid "Default shipping address"
-msgstr ""
+msgstr "Alapértelmezett szállítási cím"
 
 #: templates/dashboard/customer/detail.html:188
 msgctxt "Customer without default shipping address message"
 msgid "No default shipping address."
-msgstr ""
+msgstr "Nem található alapértelmezett szállítási cím"
 
 #: templates/dashboard/customer/detail.html:201
 msgctxt "Customer default billing address card title"
 msgid "Default billing address"
-msgstr ""
+msgstr "Alapértelmezett számlázási cím"
 
 #: templates/dashboard/customer/detail.html:209
 msgctxt "Customer without default billing address message"
 msgid "No default billing address."
-msgstr ""
+msgstr "Nem található alapértelmezett számlázási cím."
 
 #: templates/dashboard/customer/form.html:10
 msgctxt "Dashboard add customer"
 msgid "Add new customer"
-msgstr ""
+msgstr "Új vásárló hozzáadása"
 
 #: templates/dashboard/customer/form.html:12 templates/dashboard/search/results.html:89
 msgctxt "Dashboard customer"
 msgid "Customer"
-msgstr ""
+msgstr "Vásárló"
 
 #: templates/dashboard/customer/form.html:36
 msgctxt "Dashboard add customer action"
 msgid "Add customer"
-msgstr ""
+msgstr "Vásárló hozzáadása"
 
 #: templates/dashboard/customer/form.html:47
 msgctxt "Customer details header"
 msgid "Customer details"
-msgstr ""
+msgstr "Vásárló részletei"
 
 #: templates/dashboard/customer/form.html:69 templates/dashboard/staff/detail.html:79
 msgctxt "Dashboard add action"
@@ -2664,7 +2674,7 @@ msgstr "Hozzáad"
 #: templates/dashboard/customer/list.html:17
 msgctxt "Customer list add button text"
 msgid "Add customer"
-msgstr ""
+msgstr "Vásárló hozzáadása"
 
 #: templates/dashboard/customer/list.html:40
 msgctxt "Customers table header"
@@ -2679,30 +2689,30 @@ msgstr "Email"
 #: templates/dashboard/customer/list.html:46
 msgctxt "Customers table header"
 msgid "Location"
-msgstr ""
+msgstr "Hely"
 
 #: templates/dashboard/customer/list.html:86
 msgctxt "Empty customers table message"
 msgid "No customers found."
-msgstr ""
+msgstr "Nemtalálható vásárló."
 
 #: templates/dashboard/customer/modal/add_note.html:11
 #: templates/dashboard/order/modal/add_note.html:11
 msgctxt "Modal add note title"
 msgid "Add note"
-msgstr ""
+msgstr "Jegyzet hozzáadása."
 
 #: templates/dashboard/customer/modal/add_note.html:19
 #: templates/dashboard/order/modal/add_note.html:19
 msgctxt "Modal add note primary action"
 msgid "Save note"
-msgstr ""
+msgstr "Jegyzet mentése."
 
 #: templates/dashboard/customer/modal/confirm_delete.html:12
 #, python-format
 msgctxt "Header of modal used for removing customer's account "
 msgid "Remove customer %(customer)s"
-msgstr ""
+msgstr "A következő vásárló eltávolítása : %(customer)s"
 
 #: templates/dashboard/customer/modal/confirm_delete.html:19
 #, python-format
@@ -2731,7 +2741,7 @@ msgstr ""
 
 #: templates/dashboard/customer/zero_page.html:5
 msgid "No customers found."
-msgstr ""
+msgstr "Nem található vásárló."
 
 #: templates/dashboard/customer/zero_page.html:8
 msgid ""
@@ -2743,33 +2753,33 @@ msgstr ""
 #: templates/dashboard/discount/sale/form.html:10
 msgctxt "Sale (discount) page title"
 msgid "Add new sale"
-msgstr ""
+msgstr "Új kedvezmény hozzáadása"
 
 #: templates/dashboard/discount/sale/form.html:12
 #: templates/dashboard/discount/sale/form.html:43
 #: templates/dashboard/discount/sale/list.html:18
 msgctxt "Dashboard sales (discounts) list."
 msgid "Sales"
-msgstr ""
+msgstr "Kedvezmények"
 
 #: templates/dashboard/discount/sale/form.html:32
 msgctxt "Sale (discount) action"
 msgid "Remove sale"
-msgstr ""
+msgstr "Kedvezmény eltávolítása"
 
 #: templates/dashboard/discount/sale/form.html:56
 msgctxt "Sale (discount) breadcrumbs"
 msgid "Add new sale"
-msgstr ""
+msgstr "Új kedvezmény hozzáadása"
 
 #: templates/dashboard/discount/sale/list.html:9
 msgid "Sales"
-msgstr ""
+msgstr "Kedvezmények"
 
 #: templates/dashboard/discount/sale/list.html:27
 msgctxt "Sale (discount) list add button text"
 msgid "Add sale"
-msgstr ""
+msgstr "Kedvezmény hozzáadása"
 
 #: templates/dashboard/discount/sale/list.html:42
 msgctxt "Sale (discount) table header"
@@ -2779,37 +2789,37 @@ msgstr "Név"
 #: templates/dashboard/discount/sale/list.html:45
 msgctxt "Sale (discount) table header"
 msgid "Start date"
-msgstr ""
+msgstr "Kezdő dátum"
 
 #: templates/dashboard/discount/sale/list.html:48
 msgctxt "Sale (discount) table header"
 msgid "End date"
-msgstr ""
+msgstr "Befejezési dátum"
 
 #: templates/dashboard/discount/sale/list.html:51
 msgctxt "Sale (discount) table header"
 msgid "Discount"
-msgstr ""
+msgstr "Kedvezmény"
 
 #: templates/dashboard/discount/sale/list.html:84
 msgctxt "Empty sales table message"
 msgid "No sales found"
-msgstr ""
+msgstr "Nem található kedvezmény."
 
 #: templates/dashboard/discount/sale/modal/confirm_delete.html:12
 msgctxt "Remove sale (discount) text"
 msgid "Remove sale"
-msgstr ""
+msgstr "Kedvezmény eltávolítása"
 
 #: templates/dashboard/discount/sale/modal/confirm_delete.html:17
 #, python-format
 msgctxt "Remove sale (discount) text"
 msgid "Are you sure you want to remove <strong>%(sale)s</strong>?"
-msgstr ""
+msgstr "Biztosan eltávolítja a <strong>%(sale)s</strong>?"
 
 #: templates/dashboard/discount/sale/zero_page.html:5
 msgid "No sales found."
-msgstr ""
+msgstr "Nem található kedvezmény."
 
 #: templates/dashboard/discount/sale/zero_page.html:8
 #, python-format
@@ -2820,6 +2830,11 @@ msgid ""
 "\"%(img_path)s\" /></span> button.\n"
 "  "
 msgstr ""
+"\n"
+"    A kedvezmények arra használtak, hogy egy terméket vagy egy egész kategóriát akciózzon "
+"le .<br>\n"
+"    Létrehozhat kedvezményt a <span class=\"btn-fab-presentation\"><svg data-src="
+"\"%(img_path)s\" /></span>gombbal."
 
 #: templates/dashboard/discount/voucher/form.html:10
 msgctxt "Voucher page title"
@@ -2849,17 +2864,17 @@ msgstr "Név"
 #: templates/dashboard/discount/voucher/list.html:46
 msgctxt "Voucher table header"
 msgid "Discount"
-msgstr ""
+msgstr "Kedvezmény"
 
 #: templates/dashboard/discount/voucher/list.html:49
 msgctxt "Voucher table header"
 msgid "Start date"
-msgstr ""
+msgstr "Kezdő dátum"
 
 #: templates/dashboard/discount/voucher/list.html:52
 msgctxt "Voucher table header"
 msgid "End date"
-msgstr ""
+msgstr "Befejezési dátum"
 
 #: templates/dashboard/discount/voucher/list.html:55
 msgctxt "Voucher table header"
@@ -2925,7 +2940,7 @@ msgstr ""
 #: templates/dashboard/includes/_filters.html:10
 msgctxt "Dashboard card title"
 msgid "Filters"
-msgstr ""
+msgstr "Szűrők"
 
 #: templates/dashboard/includes/_filters.html:43
 msgctxt "Category page filters"
@@ -2980,12 +2995,12 @@ msgstr "Szerkesztés"
 #: templates/dashboard/includes/_menu_items.html:59
 msgctxt "Menu item list action link"
 msgid "Remove"
-msgstr ""
+msgstr "Eltáviolítás"
 
 #: templates/dashboard/includes/_menu_items.html:65
 msgctxt "Empty list of menu items"
 msgid "No menu items"
-msgstr ""
+msgstr "Nincsennek menü elemek"
 
 #: templates/dashboard/includes/_page_availability.html:5
 msgctxt "Page availability status"
@@ -3027,7 +3042,7 @@ msgstr ""
 #: templates/dashboard/index.html:31 templates/dashboard/order/list.html:47
 msgctxt "Orders table header"
 msgid "Customer"
-msgstr ""
+msgstr "Vásárló"
 
 #: templates/dashboard/index.html:34 templates/dashboard/order/list.html:50
 msgctxt "Orders table header"
@@ -3037,7 +3052,7 @@ msgstr ""
 #: templates/dashboard/index.html:37 templates/dashboard/order/list.html:53
 msgctxt "Orders table header"
 msgid "Order status"
-msgstr ""
+msgstr "Rendelés állapota"
 
 #: templates/dashboard/index.html:40 templates/dashboard/order/list.html:56
 msgctxt "Orders table header"
@@ -3048,7 +3063,7 @@ msgstr "Összesen"
 #: templates/dashboard/order/list.html:69
 msgctxt "Anonymous user account value"
 msgid "Guest"
-msgstr ""
+msgstr "Vendég"
 
 #: templates/dashboard/index.html:74
 msgctxt "Empty order table message"
@@ -3073,7 +3088,7 @@ msgstr ""
 #: templates/dashboard/index.html:98
 msgctxt "Preauthorized payments table header"
 msgid "Customer"
-msgstr ""
+msgstr "Vásárló"
 
 #: templates/dashboard/index.html:101
 msgctxt "Preauthorized payments table header"
@@ -3082,7 +3097,7 @@ msgstr "Mennyiség"
 
 #: templates/dashboard/index.html:116
 msgid "Guest"
-msgstr ""
+msgstr "Vendég"
 
 #: templates/dashboard/index.html:130
 msgctxt "Empty Preauthorized payments table message"
@@ -3097,7 +3112,7 @@ msgstr ""
 #: templates/dashboard/index.html:148
 msgctxt "Low stock product list"
 msgid "Product name"
-msgstr ""
+msgstr "Termék név"
 
 #: templates/dashboard/index.html:151
 msgctxt "Low stock product list"
@@ -3112,7 +3127,7 @@ msgstr ""
 #: templates/dashboard/menu/detail.html:7 templates/dashboard/menu/list.html:9
 msgctxt "Menu list page title"
 msgid "Navigation"
-msgstr ""
+msgstr "Navigáció"
 
 #: templates/dashboard/menu/detail.html:50
 msgctxt "Menu detail view action"
@@ -3132,12 +3147,12 @@ msgstr ""
 #: templates/dashboard/menu/form.html:10 templates/dashboard/menu/form.html:23
 msgctxt "Menu form page title"
 msgid "Add new menu"
-msgstr ""
+msgstr "Új menü hozzáadása"
 
 #: templates/dashboard/menu/form.html:41
 msgctxt "Menu detail breadcrumbs"
 msgid "Add new menu"
-msgstr ""
+msgstr "Új menü hozzáadása"
 
 #: templates/dashboard/menu/item/detail.html:7
 msgctxt "Menu item list page title"
@@ -3212,7 +3227,7 @@ msgstr ""
 #: templates/dashboard/menu/list.html:47
 msgctxt "Menu list table header Menu name"
 msgid "Menu name"
-msgstr ""
+msgstr "Menü név"
 
 #: templates/dashboard/menu/list.html:71
 msgctxt "Empty menu list message"
@@ -3233,7 +3248,7 @@ msgstr ""
 #: templates/dashboard/sites/authorization_keys/form.html:75
 msgctxt "Dashboard update action"
 msgid "Save"
-msgstr ""
+msgstr "Mentés"
 
 #: templates/dashboard/menu/modal/confirm_delete.html:12
 #, python-format
@@ -3269,12 +3284,12 @@ msgstr ""
 #: templates/dashboard/order/address_form.html:7
 msgctxt ""
 msgid "Edit address"
-msgstr ""
+msgstr "Cím szerkesztése"
 
 #: templates/dashboard/order/address_form.html:39 templates/dashboard/order/detail.html:217
 msgctxt ""
 msgid "Shipping address"
-msgstr ""
+msgstr "Szállítási cím"
 
 #: templates/dashboard/order/address_form.html:41 templates/dashboard/order/detail.html:233
 msgctxt ""
@@ -3364,7 +3379,7 @@ msgstr "Megjelölve fizetettként"
 #: templates/dashboard/order/detail.html:190
 msgctxt "Order details summary header"
 msgid "Customer"
-msgstr ""
+msgstr "Vásárló"
 
 #: templates/dashboard/order/detail.html:194
 msgctxt "Order customer details action title"
@@ -3463,7 +3478,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:353 templates/dashboard/order/detail.html:362
 msgctxt "Order totals header"
 msgid "Shipping"
-msgstr "Szállításra"
+msgstr "Szállítás"
 
 #: templates/dashboard/order/detail.html:368
 msgctxt "Order total taxes"
@@ -3473,7 +3488,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:370
 msgctxt "Order total taxes"
 msgid "Taxes"
-msgstr ""
+msgstr "Adók"
 
 #: templates/dashboard/order/detail.html:378 templates/dashboard/order/detail.html:402
 #, python-format
@@ -3484,7 +3499,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:382 templates/dashboard/order/detail.html:406
 msgctxt "Order totals header"
 msgid "Discount"
-msgstr ""
+msgstr "Kedvezmény"
 
 #: templates/dashboard/order/detail.html:389
 msgctxt "Order totals action"
@@ -3616,7 +3631,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:563
 msgctxt "Order notes card action"
 msgid "Add note"
-msgstr ""
+msgstr "Jegyzet hozzáadása"
 
 #: templates/dashboard/order/detail.html:578
 msgctxt "Payment history table header"
@@ -3691,7 +3706,7 @@ msgstr ""
 #: templates/dashboard/order/list.html:98
 msgctxt "Empty order list message"
 msgid "No orders found."
-msgstr ""
+msgstr "Nem található rendelés."
 
 #: templates/dashboard/order/modal/add_variant_to_order.html:11
 #, python-format
@@ -3823,7 +3838,7 @@ msgstr ""
 #: templates/dashboard/order/modal/create_order.html:26
 msgctxt "Modal create order primary action"
 msgid "Create"
-msgstr ""
+msgstr "Létrehozás"
 
 #: templates/dashboard/order/modal/edit_customer.html:11
 msgctxt "Modal edit customer title"
@@ -3905,7 +3920,7 @@ msgstr "Frissít"
 #: templates/dashboard/order/modal/fulfillment_tracking.html:29
 msgctxt "Modal change fulfillment tracking primary action"
 msgid "Save"
-msgstr ""
+msgstr "Mentés"
 
 #: templates/dashboard/order/modal/mark_as_paid.html:12
 msgctxt "Modal mark order as paid title"
@@ -4023,7 +4038,7 @@ msgstr ""
 #: templates/dashboard/order/pdf/invoice.html:21
 msgctxt "Invoice shipping address"
 msgid "Shipping address"
-msgstr ""
+msgstr "Szállítási cím"
 
 #: templates/dashboard/order/pdf/invoice.html:26
 msgctxt "Invoice billing address"
@@ -4077,12 +4092,12 @@ msgstr ""
 #: templates/dashboard/order/pdf/invoice.html:107
 msgctxt "Order subtotal net price"
 msgid "Subtotal"
-msgstr ""
+msgstr "Részösszeg"
 
 #: templates/dashboard/order/pdf/invoice.html:115
 msgctxt "Order total shipping price header"
 msgid "Shipping"
-msgstr ""
+msgstr "Szállítás"
 
 #: templates/dashboard/order/pdf/invoice.html:123
 msgctxt "Order total taxes header"
@@ -4092,7 +4107,7 @@ msgstr ""
 #: templates/dashboard/order/pdf/invoice.html:132
 msgctxt "Order voucher header"
 msgid "Discount"
-msgstr ""
+msgstr "Kedvezmény"
 
 #: templates/dashboard/order/pdf/invoice.html:143
 msgctxt "Order total price header"
@@ -4123,7 +4138,7 @@ msgstr ""
 #: templates/dashboard/order/pdf/packing_slip.html:34
 msgctxt "Packing slip shipping address"
 msgid "Shipping address"
-msgstr ""
+msgstr "Szállítási cím"
 
 #: templates/dashboard/order/pdf/packing_slip.html:43
 msgctxt "Packing slip billing address"
@@ -4142,7 +4157,7 @@ msgstr ""
 
 #: templates/dashboard/order/zero_page.html:5
 msgid "No orders found."
-msgstr ""
+msgstr "Nem található rendelés."
 
 #: templates/dashboard/order/zero_page.html:8
 msgid ""
@@ -4154,12 +4169,12 @@ msgstr ""
 #: templates/dashboard/page/detail.html:8 templates/dashboard/page/list.html:8
 msgctxt "Pages list page title"
 msgid "Pages"
-msgstr ""
+msgstr "Oldalak"
 
 #: templates/dashboard/page/detail.html:17
 msgctxt "Pages form breadcrumbs"
 msgid "Pages"
-msgstr ""
+msgstr "Oldalak"
 
 #: templates/dashboard/page/detail.html:43
 msgctxt "Page URL"
@@ -4194,7 +4209,7 @@ msgstr "Új oldal hozzáadása"
 #: templates/dashboard/page/form.html:26
 msgctxt "Dashboard pages list"
 msgid "Pages"
-msgstr ""
+msgstr "Oldalak"
 
 #: templates/dashboard/page/form.html:41
 msgctxt "Page form breadcrumbs"
@@ -4212,11 +4227,11 @@ msgstr "Mégse"
 
 #: templates/dashboard/page/form.html:83
 msgid "Save"
-msgstr ""
+msgstr "Mentés"
 
 #: templates/dashboard/page/form.html:86
 msgid "Create"
-msgstr ""
+msgstr "Létrehozás"
 
 #: templates/dashboard/page/list.html:17
 msgctxt "Page list add button text"
@@ -4225,7 +4240,7 @@ msgstr ""
 
 #: templates/dashboard/page/list.html:25
 msgid "Pages"
-msgstr ""
+msgstr "Oldalak"
 
 #: templates/dashboard/page/list.html:40
 msgctxt "Static pages table header name"
@@ -4245,13 +4260,13 @@ msgstr "Láthatóság"
 #: templates/dashboard/page/list.html:76
 msgctxt "Empty pages list message"
 msgid "No pages found."
-msgstr ""
+msgstr "Nem találhatók oldalak."
 
 #: templates/dashboard/page/modal_delete.html:12
 #, python-format
 msgctxt "Modal remove page text"
 msgid "Remove page %(page)s"
-msgstr ""
+msgstr "%(page)s oldal eltávolítása"
 
 #: templates/dashboard/page/modal_delete.html:19
 #, python-format
@@ -4261,7 +4276,7 @@ msgstr ""
 
 #: templates/dashboard/page/zero_page.html:5
 msgid "No pages found."
-msgstr ""
+msgstr "Nem találhatók oldalak."
 
 #: templates/dashboard/page/zero_page.html:8
 #, python-format
@@ -4277,11 +4292,11 @@ msgstr ""
 #: templates/dashboard/product/attribute/detail.html:18
 msgctxt "Attribute detail breadcrumbs"
 msgid "Attributes"
-msgstr ""
+msgstr "Jellemzők"
 
 #: templates/dashboard/product/attribute/detail.html:46
 msgid "Product type"
-msgstr ""
+msgstr "Termék típus"
 
 #: templates/dashboard/product/attribute/detail.html:53
 msgctxt "Attribute detail action"
@@ -4310,7 +4325,7 @@ msgstr "Szerkesztés"
 #: templates/dashboard/product/attribute/detail.html:95
 msgctxt "Attribute value edit action"
 msgid "Remove"
-msgstr ""
+msgstr "Eltáviolítás"
 
 #: templates/dashboard/product/attribute/detail.html:101
 msgctxt "Empty list of attribute values"
@@ -4354,7 +4369,7 @@ msgstr "Név"
 #: templates/dashboard/product/attribute/list.html:44
 msgctxt "Name of product type related to the attribute"
 msgid "Product type"
-msgstr ""
+msgstr "Termék típus"
 
 #: templates/dashboard/product/attribute/list.html:46
 msgctxt "Dashboard attributes list table header values"
@@ -4415,7 +4430,7 @@ msgstr ""
 #: templates/dashboard/product/product_variant/detail.html:20
 msgctxt "Product form breadcrumbs"
 msgid "Products"
-msgstr ""
+msgstr "Termékek"
 
 #: templates/dashboard/product/detail.html:54
 msgctxt "Product field"
@@ -4483,7 +4498,7 @@ msgstr ""
 #: templates/dashboard/product/product_variant/detail.html:77
 msgctxt "Product pricing card header"
 msgid "Pricing"
-msgstr ""
+msgstr "Árazás"
 
 #: templates/dashboard/product/detail.html:156
 #, python-format
@@ -4560,11 +4575,11 @@ msgstr ""
 #: templates/dashboard/product/product_image/list.html:7
 #: templates/dashboard/product/product_image/list.html:41
 msgid "Images"
-msgstr ""
+msgstr "Képek"
 
 #: templates/dashboard/product/detail.html:271
 msgid "Edit images"
-msgstr ""
+msgstr "Képek szerkesztése"
 
 #: templates/dashboard/product/form.html:8
 msgctxt "Dashboard products list"
@@ -4574,12 +4589,12 @@ msgstr "Szerkesztés"
 #: templates/dashboard/product/form.html:10
 msgctxt "Product form page title"
 msgid "Add new product"
-msgstr ""
+msgstr "Új termék hozzáadása"
 
 #: templates/dashboard/product/form.html:43
 msgctxt "Product form breadcrumbs"
 msgid "Add new product"
-msgstr ""
+msgstr "Új termék hozzáadása"
 
 #: templates/dashboard/product/form.html:50
 msgctxt "Product form breadcrumbs"
@@ -4590,12 +4605,12 @@ msgstr "Szerkesztés"
 #: templates/dashboard/product/product_type/form.html:103
 #: templates/dashboard/product/product_variant/form.html:85
 msgid "Shipping"
-msgstr "Szállításra"
+msgstr "Szállítás"
 
 #: templates/dashboard/product/form.html:115
 #: templates/dashboard/product/product_variant/form.html:76
 msgid "Attributes"
-msgstr ""
+msgstr "Jellemzők"
 
 #: templates/dashboard/product/form.html:118
 #, python-format
@@ -4604,6 +4619,9 @@ msgid ""
 "                    Product Type: %(product_type_name)s\n"
 "                  "
 msgstr ""
+"\n"
+"                    Termék típus: %(product_type_name)s\n"
+"                  "
 
 #: templates/dashboard/product/list.html:21 templates/dashboard/product/list.html:25
 msgctxt "Product list add button text"
@@ -4623,44 +4641,44 @@ msgstr "Ár"
 #: templates/dashboard/product/list.html:101
 msgctxt "Empty product list message"
 msgid "No products found."
-msgstr ""
+msgstr "Nem található termék"
 
 #: templates/dashboard/product/modal/confirm_delete.html:12
 #, python-format
 msgctxt "Modal remove product text"
 msgid "Remove product %(product)s"
-msgstr ""
+msgstr "Termék eltávolítása %(product)s"
 
 #: templates/dashboard/product/modal/confirm_delete.html:19
 #, python-format
 msgctxt "Modal remove product text"
 msgid "Are you sure you want to remove product <strong>%(product)s</strong>?"
-msgstr ""
+msgstr "Biztos el akarja távolítani a következő terméket: <strong>%(product)s</strong>?"
 
 #: templates/dashboard/product/modal/select_type.html:11
 msgctxt "Modal select product types title"
 msgid "Product type"
-msgstr ""
+msgstr "Termék típus"
 
 #: templates/dashboard/product/modal/select_type.html:19
 msgctxt "Dashboard add action"
 msgid "Create"
-msgstr ""
+msgstr "Létrehozás"
 
 #: templates/dashboard/product/product_image/form.html:8
 msgctxt "Image form text"
 msgid "Edit - Image"
-msgstr ""
+msgstr "Szerkesztés - Kép"
 
 #: templates/dashboard/product/product_image/form.html:10
 msgctxt "Image form text"
 msgid "Add image"
-msgstr ""
+msgstr "Kép hozzáadása"
 
 #: templates/dashboard/product/product_image/form.html:38
 msgctxt "Image form text"
 msgid "Image"
-msgstr ""
+msgstr "Kép"
 
 #: templates/dashboard/product/product_image/form.html:43
 msgctxt "Image form text"
@@ -4670,7 +4688,7 @@ msgstr "Szerkesztés"
 #: templates/dashboard/product/product_image/form.html:49
 msgctxt "Image form breadcrumbs"
 msgid "Add image"
-msgstr ""
+msgstr "Kép hozzáadása"
 
 #: templates/dashboard/product/product_image/form.html:52
 #, python-format
@@ -4681,38 +4699,38 @@ msgstr ""
 #: templates/dashboard/product/product_image/list.html:19
 msgctxt "Add image button text"
 msgid "Add image"
-msgstr ""
+msgstr "Kép hozzáadása"
 
 #: templates/dashboard/product/product_image/list.html:73
 msgctxt "Image card text"
 msgid "No description"
-msgstr ""
+msgstr "Nincs leírás"
 
 #: templates/dashboard/product/product_image/list.html:87
 #: templates/dashboard/product/product_image/list.html:131
 msgctxt "Dashboard remove action"
 msgid "Remove"
-msgstr ""
+msgstr "Eltáviolítás"
 
 #: templates/dashboard/product/product_image/list.html:101
 msgctxt "Image gallery upload box text"
 msgid "Drop images here to upload"
-msgstr ""
+msgstr "Húzza ide a képeket a feltöltéshez"
 
 #: templates/dashboard/product/product_image/list.html:120
 msgctxt "Empty image gallery message"
 msgid "No description"
-msgstr ""
+msgstr "Nincs leírás"
 
 #: templates/dashboard/product/product_image/modal/confirm_delete.html:12
 msgctxt "Modal remove image text"
 msgid "Remove product image"
-msgstr ""
+msgstr "Termék kép eltávolítása"
 
 #: templates/dashboard/product/product_image/modal/confirm_delete.html:20
 msgctxt "Modal remove image text"
 msgid "Are you sure you want to remove product image?"
-msgstr ""
+msgstr "Biztos abban hogy eltávolítja a termék képét?"
 
 #: templates/dashboard/product/product_image/versatile_image.html:7
 msgid "Primary Point of Interest"
@@ -4721,26 +4739,26 @@ msgstr ""
 #: templates/dashboard/product/product_image/versatile_image.html:10
 msgctxt "Image form text"
 msgid "Pick the most relevant part of the image using the red circle."
-msgstr ""
+msgstr "Válassza ki a kép legrelevánsabb részéét a piros kör használatával."
 
 #: templates/dashboard/product/product_type/form.html:10
 msgctxt "Product type page title"
 msgid "Add new product type"
-msgstr ""
+msgstr "Új terméktípus hozzáadása"
 
 #: templates/dashboard/product/product_type/form.html:41
 msgctxt "Product type breadcrumbs"
 msgid "Add new product type"
-msgstr ""
+msgstr "Új terméktípus hozzáadása"
 
 #: templates/dashboard/product/product_type/form.html:57
 msgctxt "Product type action"
 msgid "Remove product type"
-msgstr ""
+msgstr "Termék típus eltávolítása"
 
 #: templates/dashboard/product/product_type/form.html:95
 msgid "Taxes"
-msgstr ""
+msgstr "Adók"
 
 #: templates/dashboard/product/product_type/form.html:132
 msgctxt "Product type help text"
@@ -4834,7 +4852,7 @@ msgstr ""
 
 #: templates/dashboard/product/product_variant/detail.html:183
 msgid "No images"
-msgstr ""
+msgstr "Nincs kép"
 
 #: templates/dashboard/product/product_variant/detail.html:190
 msgctxt "Dashboard action"
@@ -4900,11 +4918,11 @@ msgstr ""
 #: templates/dashboard/product/product_variant/modal/select_images.html:24
 msgctxt "Dashboard modal action"
 msgid "Save"
-msgstr ""
+msgstr "Mentés"
 
 #: templates/dashboard/product/zero_page.html:5
 msgid "No products found."
-msgstr ""
+msgstr "Nem található termék."
 
 #: templates/dashboard/product/zero_page.html:10
 #, python-format
@@ -4927,22 +4945,22 @@ msgstr ""
 #: templates/dashboard/search/results.html:9 templates/search/results.html:6
 msgctxt "Search page title"
 msgid "Search results"
-msgstr ""
+msgstr "Keresési eredméynyek"
 
 #: templates/dashboard/search/results.html:14
 msgctxt "Dashboard search"
 msgid "Search results"
-msgstr ""
+msgstr "Keresési eredméynyek"
 
 #: templates/dashboard/search/results.html:25
 msgctxt "Search results list products"
 msgid "Products"
-msgstr ""
+msgstr "Termékek"
 
 #: templates/dashboard/search/results.html:47
 msgctxt "Search results list orders"
 msgid "Orders"
-msgstr ""
+msgstr "Rendelések"
 
 #: templates/dashboard/search/results.html:54
 #, python-format
@@ -4982,7 +5000,7 @@ msgstr ""
 #: templates/dashboard/shipping/detail.html:19
 msgctxt "Shipping zone form breadcrumbs"
 msgid "Shipping zones"
-msgstr ""
+msgstr "Szállítási zónák"
 
 #: templates/dashboard/shipping/detail.html:39
 #, python-format
@@ -5005,12 +5023,12 @@ msgstr ""
 #: templates/dashboard/shipping/detail.html:54
 msgctxt "Title of the shipping methods list"
 msgid "Price based shipping"
-msgstr ""
+msgstr "Ár alapú szállítás"
 
 #: templates/dashboard/shipping/detail.html:55
 msgctxt "Title of the shipping methods list"
 msgid "Weight based shipping"
-msgstr ""
+msgstr "Súly alapú szállítás"
 
 #: templates/dashboard/shipping/form.html:9
 msgctxt "Dashboard shipping zones"
@@ -5025,7 +5043,7 @@ msgstr ""
 #: templates/dashboard/shipping/form.html:32
 msgctxt "Dashboard shipping zone"
 msgid "Shipping zones"
-msgstr ""
+msgstr "Szállítási zónák"
 
 #: templates/dashboard/shipping/form.html:48
 msgctxt "Shipping zone form page title"
@@ -5040,7 +5058,7 @@ msgstr ""
 #: templates/dashboard/shipping/list.html:10 templates/dashboard/shipping/list.html:20
 msgctxt "Dashboard shipping zones list"
 msgid "Shipping zones"
-msgstr ""
+msgstr "Szállítási zónák"
 
 #: templates/dashboard/shipping/list.html:27
 msgctxt "Shipping zone list add button text"
@@ -5060,7 +5078,7 @@ msgstr ""
 #: templates/dashboard/shipping/list.html:49
 msgctxt "Shipping zones table header, list of countries within of shipping zone"
 msgid "Countries"
-msgstr ""
+msgstr "Országok"
 
 #: templates/dashboard/shipping/list.html:83
 msgctxt "Empty shipping list message"
@@ -5089,12 +5107,12 @@ msgstr "Ár"
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:42
 msgctxt "Attribute value remove action"
 msgid "Remove"
-msgstr ""
+msgstr "Eltávolítás"
 
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:48
 msgctxt "Empty list of shipping methods prices"
 msgid "No shipping methods"
-msgstr ""
+msgstr "Nincs szállítási mód."
 
 #: templates/dashboard/shipping/methods/form.html:8
 msgctxt "Dashboard shipping method edit page"
@@ -5104,22 +5122,22 @@ msgstr "Szerkesztés"
 #: templates/dashboard/shipping/methods/form.html:10
 msgctxt "Shipping method edit page title"
 msgid "Add new shipping method"
-msgstr ""
+msgstr "Új szállítási mód hozzáadása"
 
 #: templates/dashboard/shipping/methods/form.html:31
 msgctxt "Dashboard attributes list"
 msgid "Shipping zones"
-msgstr ""
+msgstr "Szállítási zónák"
 
 #: templates/dashboard/shipping/methods/form.html:49
 msgctxt "Shipping method breadcrumbs"
 msgid "Edit shipping method"
-msgstr ""
+msgstr "Szállítási mód szerkesztése"
 
 #: templates/dashboard/shipping/methods/form.html:55
 msgctxt "Shipping method breadcrumbs"
 msgid "Add shipping method"
-msgstr ""
+msgstr "Szállítási mód hozzáadása"
 
 #: templates/dashboard/shipping/methods/form.html:72
 msgctxt "Shipping method form title"
@@ -5133,6 +5151,8 @@ msgid ""
 "\n"
 "Remove shipping zone %(shipping_zone)s\n"
 msgstr ""
+"\n"
+"Szállítási zóna eltávolítása %(shipping_zone)s\n"
 
 #: templates/dashboard/shipping/modal/confirm_delete.html:20
 #, python-format
@@ -5142,12 +5162,16 @@ msgid ""
 "      Are you sure you want to remove shipping zone <strong>%(shipping_zone)s</strong>?\n"
 "    "
 msgstr ""
+"\n"
+"     Biztos ki akarja törölni a következő szállítási zónát: <strong>%(shipping_zone)s</"
+"strong>?\n"
+"    "
 
 #: templates/dashboard/shipping/modal/method_confirm_delete.html:12
 #, python-format
 msgctxt "Modal remove shipping method title"
 msgid "Remove shipping method %(shipping_method)s"
-msgstr ""
+msgstr "Szállítási mód eltávolítása %(shipping_method)s"
 
 #: templates/dashboard/shipping/modal/method_confirm_delete.html:19
 #, python-format
@@ -5155,6 +5179,8 @@ msgctxt "Modal remove shipping method shipping method text"
 msgid ""
 "Are you sure you want to remove shipping method <strong>%(shipping_method)s</strong>?"
 msgstr ""
+"Biztosan ki akarja törölni a következő szállítási módot: <strong>%(shipping_method)s</"
+"strong>?"
 
 #: templates/dashboard/shipping/zero_page.html:5
 msgid "No shipping zones found."
@@ -5173,7 +5199,7 @@ msgstr ""
 #: templates/dashboard/sites/authorization_keys/form.html:8
 msgctxt "Dashboard authorization key list"
 msgid "Edit"
-msgstr ""
+msgstr "Szerkesztés"
 
 #: templates/dashboard/sites/authorization_keys/form.html:10
 msgctxt "Add new authorization key page title"
@@ -5183,12 +5209,12 @@ msgstr ""
 #: templates/dashboard/sites/authorization_keys/form.html:29
 msgctxt "Dashboard site setting detail"
 msgid "Site settings"
-msgstr ""
+msgstr "Oldalbeállítások"
 
 #: templates/dashboard/sites/authorization_keys/form.html:40
 msgctxt "Authorization key breadcrumbs"
 msgid "Edit"
-msgstr ""
+msgstr "Szerkesztés"
 
 #: templates/dashboard/sites/authorization_keys/form.html:46
 msgctxt "Authorization key breadcrumbs"
@@ -5213,12 +5239,12 @@ msgstr ""
 #: templates/dashboard/sites/detail.html:55
 msgctxt "Site settings field"
 msgid "Description"
-msgstr ""
+msgstr "Leírás"
 
 #: templates/dashboard/sites/detail.html:65
 msgctxt "Site settings action"
 msgid "Edit site settings"
-msgstr ""
+msgstr "Oldal beállítások szerkesztése"
 
 #: templates/dashboard/sites/detail.html:74
 msgctxt "Title of the authorization keys list"
@@ -5238,12 +5264,12 @@ msgstr ""
 #: templates/dashboard/sites/detail.html:101
 msgctxt "Authorization key edit action"
 msgid "Edit"
-msgstr ""
+msgstr "Szerkesztés"
 
 #: templates/dashboard/sites/detail.html:104
 msgctxt "Authorization key remove action"
 msgid "Remove"
-msgstr ""
+msgstr "Eltávolítás"
 
 #: templates/dashboard/sites/detail.html:110
 msgctxt "Empty list of authorization keys"
@@ -5253,17 +5279,17 @@ msgstr ""
 #: templates/dashboard/sites/form.html:9 templates/dashboard/taxes/form.html:10
 msgctxt "Site settings page title"
 msgid "Add new site settings"
-msgstr ""
+msgstr "Új oldalbeállítás hozzáadása"
 
 #: templates/dashboard/sites/form.html:22
 msgctxt "Dashboard attributes list"
 msgid "Site settings"
-msgstr ""
+msgstr "Oldalbeállítások"
 
 #: templates/dashboard/sites/form.html:27
 msgctxt "Dashboard site settings"
 msgid "Edit"
-msgstr ""
+msgstr "Szerkesztés"
 
 #: templates/dashboard/sites/modal/confirm_delete.html:12
 #, python-format
@@ -5285,37 +5311,37 @@ msgstr ""
 #: templates/dashboard/staff/detail.html:12
 msgctxt "Dashboard staff"
 msgid "Staff"
-msgstr ""
+msgstr "Személyzet"
 
 #: templates/dashboard/staff/detail.html:28
 msgctxt "Dashboard staff list"
 msgid "Staff"
-msgstr ""
+msgstr "Személyzet"
 
 #: templates/dashboard/staff/detail.html:36
 msgctxt "Dashboard add staff member action"
 msgid "Add staff member"
-msgstr ""
+msgstr "Személyzeti tag hozzáadása"
 
 #: templates/dashboard/staff/detail.html:48
 msgctxt "Staff member form action"
 msgid "Remove staff member"
-msgstr ""
+msgstr "Személyzeti tag eltávolítása"
 
 #: templates/dashboard/staff/detail.html:62
 msgctxt "Staff member details header"
 msgid "Staff member details"
-msgstr ""
+msgstr "Személyzeti tag reészletek"
 
 #: templates/dashboard/staff/list.html:8 templates/dashboard/staff/list.html:28
 msgctxt "Dashboard staff members list"
 msgid "Staff"
-msgstr ""
+msgstr "Személyzet"
 
 #: templates/dashboard/staff/list.html:18
 msgctxt "Staff members list add button text"
 msgid "Add staff member"
-msgstr ""
+msgstr "Személyzeti tag hozzáadása"
 
 #: templates/dashboard/staff/list.html:42
 msgctxt "Staff members table header"
@@ -5325,32 +5351,32 @@ msgstr "Név"
 #: templates/dashboard/staff/list.html:45
 msgctxt "Staff members table header"
 msgid "Email"
-msgstr ""
+msgstr "Email"
 
 #: templates/dashboard/staff/list.html:48
 msgctxt "Staff members table header"
 msgid "Location"
-msgstr ""
+msgstr "Hely"
 
 #: templates/dashboard/staff/list.html:88
 msgctxt "Empty staff table message"
 msgid "No staff members found."
-msgstr ""
+msgstr "Nemtalálható személyzeti tag."
 
 #: templates/dashboard/staff/modal/confirm_delete.html:12
 #, python-format
 msgctxt "Modal remove group text"
 msgid "Remove staff member <strong>%(staff)s</strong>"
-msgstr ""
+msgstr "Személyzeti tag eltávolítása <strong>%(staff)s</strong>"
 
 #: templates/dashboard/staff/modal/confirm_delete.html:19
 msgctxt "Modal remove group text"
 msgid "Are you sure you want to remove staff member?"
-msgstr ""
+msgstr "Biztosan eltávolítja a személyzeti tagot?"
 
 #: templates/dashboard/staff/zero_page.html:5
 msgid "No staff members found."
-msgstr ""
+msgstr "Nemtalálható személyzeti tag."
 
 #: templates/dashboard/staff/zero_page.html:8
 #, python-format
@@ -5366,7 +5392,7 @@ msgstr ""
 #: templates/dashboard/taxes/details.html:18
 msgctxt "Tax details breadcrumbs"
 msgid "Taxes"
-msgstr ""
+msgstr "Adók"
 
 #: templates/dashboard/taxes/details.html:40
 #, python-format
@@ -5382,7 +5408,7 @@ msgstr "Név"
 #: templates/dashboard/taxes/details.html:53
 msgctxt "Country tax rates list header"
 msgid "Value"
-msgstr ""
+msgstr "Érték"
 
 #: templates/dashboard/taxes/details.html:62
 #, python-format
@@ -5392,6 +5418,9 @@ msgid ""
 "                      %(tax_rate)s %%\n"
 "                    "
 msgstr ""
+"\n"
+"                      %(tax_rate)s %%\n"
+"                    "
 
 #: templates/dashboard/taxes/details.html:69
 msgctxt "Empty country tax rates list"
@@ -5402,7 +5431,7 @@ msgstr ""
 #: templates/dashboard/taxes/list.html:15
 msgctxt "Dashboard taxes list"
 msgid "Taxes"
-msgstr ""
+msgstr "Adók"
 
 #: templates/dashboard/taxes/form.html:28
 msgctxt "Dashboard configure taxes settings"
@@ -5412,7 +5441,7 @@ msgstr ""
 #: templates/dashboard/taxes/form.html:42
 msgctxt "Dashboard site taxes settings form title"
 msgid "Taxes"
-msgstr ""
+msgstr "Adók"
 
 #: templates/dashboard/taxes/form.html:46
 msgid "Dashboard"
@@ -5490,7 +5519,7 @@ msgstr ""
 #: templates/dashboard/taxes/list.html:75
 msgctxt "Taxes site settings title"
 msgid "Configuration"
-msgstr ""
+msgstr "Konfiguráció"
 
 #: templates/dashboard/taxes/list.html:80
 msgctxt "Site settings field"
@@ -5498,14 +5527,15 @@ msgid "All products prices are entered with tax included"
 msgstr ""
 
 #: templates/dashboard/taxes/list.html:84
+#, fuzzy
 msgctxt "Include taxes in prices setting description"
 msgid "Yes"
-msgstr ""
+msgstr "Igen"
 
 #: templates/dashboard/taxes/list.html:86
 msgctxt "Include taxes in prices setting description"
 msgid "No"
-msgstr ""
+msgstr "Nem"
 
 #: templates/dashboard/taxes/list.html:94
 msgctxt "Site settings field"
@@ -5513,9 +5543,10 @@ msgid "Show gross prices to customers in the storefront"
 msgstr ""
 
 #: templates/dashboard/taxes/list.html:98
+#, fuzzy
 msgctxt "Show customers gross prices setting description"
 msgid "Yes"
-msgstr ""
+msgstr "Igen"
 
 #: templates/dashboard/taxes/list.html:100
 msgctxt "Show customers gross prices setting description"
@@ -5530,12 +5561,12 @@ msgstr ""
 #: templates/dashboard/taxes/list.html:112
 msgctxt "Charge taxes on shipping rates setting description"
 msgid "Yes"
-msgstr ""
+msgstr "Igen"
 
 #: templates/dashboard/taxes/list.html:114
 msgctxt "Charge taxes on shipping rates setting description"
 msgid "No"
-msgstr ""
+msgstr "Nem"
 
 #: templates/dashboard/taxes/list.html:122
 msgctxt "Site settings configure taxes action"
@@ -5579,7 +5610,7 @@ msgstr ""
 #: templates/home.html:29
 msgctxt "Homepage title"
 msgid "Size & Colours"
-msgstr ""
+msgstr "Méretek és Színek"
 
 #: templates/home.html:41
 msgctxt "Homepage title"
@@ -5618,7 +5649,7 @@ msgstr ""
 #: templates/order/_ordered_items_table.html:15
 msgctxt "Order details address title"
 msgid "Shipping address"
-msgstr ""
+msgstr "Szállítási cím"
 
 #: templates/order/_ordered_items_table.html:25
 msgctxt "Order details address title"
@@ -5645,12 +5676,12 @@ msgstr "Ár"
 #: templates/order/_ordered_items_table.html:95
 msgctxt "Order details subtotal row text"
 msgid "Subtotal"
-msgstr ""
+msgstr "Részösszeg"
 
 #: templates/order/_ordered_items_table.html:112
 msgctxt "Order details shipment row text"
 msgid "Shipping"
-msgstr "Szállításra"
+msgstr "Szállítás"
 
 #: templates/order/_ordered_items_table.html:144
 msgctxt "Order details taxes text"
@@ -5660,7 +5691,7 @@ msgstr ""
 #: templates/order/_ordered_items_table.html:146
 msgctxt "Order details taxes text"
 msgid "Taxes"
-msgstr ""
+msgstr "Adók"
 
 #: templates/order/_ordered_items_table.html:160
 msgctxt "Order details total text"
@@ -5681,7 +5712,7 @@ msgstr ""
 #: templates/order/checkout_success.html:8 templates/order/checkout_success_anonymous.html:8
 msgctxt "Checkout success page title"
 msgid "Thank you"
-msgstr ""
+msgstr "Köszönjük vásárlását!"
 
 #: templates/order/checkout_success.html:16
 #: templates/order/checkout_success_anonymous.html:16
@@ -5764,7 +5795,7 @@ msgstr ""
 #: templates/order/details.html:73
 msgctxt "Order note title"
 msgid "Add a note to your order"
-msgstr ""
+msgstr "Jegyzet hozzáadása a rendeléshez."
 
 #: templates/order/details.html:75
 msgctxt "Customer panel - order details: add note submit button"
@@ -5903,7 +5934,7 @@ msgstr "Szűrők törlése"
 #: templates/product/_filters.html:59
 msgctxt "Apply filters button"
 msgid "Update results"
-msgstr ""
+msgstr "Eredmények frissítése"
 
 #. Translators: Layout may break if character length is different than four.
 #: templates/product/_items.html:30
@@ -5923,11 +5954,13 @@ msgid ""
 "<strong>Warning!</strong> You are previewing a product that will become visible on "
 "<strong>%(date)s</strong>."
 msgstr ""
+"<Strong>Figyelmeztetés!</strong> Olyan terméket tekint meg amely a következő dátumon lesz "
+"látható: <strong>%(date)s</strong>."
 
 #: templates/product/details.html:124
 msgctxt "Product details link text"
 msgid "Edit in dashboard"
-msgstr ""
+msgstr "dashboard szerkesztése"
 
 #: templates/product/details.html:150
 #, python-format
@@ -5954,7 +5987,7 @@ msgstr ""
 #: templates/product/details.html:194
 msgctxt "Product details title"
 msgid "Description"
-msgstr ""
+msgstr "Leírás"
 
 #: templates/product/product_list_base.html:83
 msgctxt "Filter heading title"
@@ -5996,12 +6029,12 @@ msgstr ""
 
 #: templates/search/results.html:32
 msgid "Search:"
-msgstr ""
+msgstr "Keresés:"
 
 #: templates/templated_email/account/account_delete.email:4
 msgctxt "Account delete reset e-mail subject"
 msgid "Delete your account"
-msgstr ""
+msgstr "Felhasználói fiók törlése"
 
 #: templates/templated_email/account/account_delete.email:9
 #, python-format
@@ -6014,11 +6047,17 @@ msgid ""
 "\n"
 "Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
+"\n"
+"Azért kapta ezt az emailt, mert ön vagy valaki más a felhasználója törlését kérte a "
+"következő oldalon %(domain)s.\n"
+"Kattintson ide a felhasználói fiók törléséhez.\n"
+"\n"
+"Kérjük vegye félelembe ez az akció végleges és vissza nem fordítható.\n"
 
 #: templates/templated_email/account/password_reset.email:4
 msgctxt "Password reset e-mail subject"
 msgid "Password reset e-mail"
-msgstr ""
+msgstr "Jelszóvisszaállító e-mail"
 
 #: templates/templated_email/account/password_reset.email:9
 #, python-format
@@ -6119,12 +6158,12 @@ msgstr ""
 #: templates/templated_email/order/confirm_order.email:18
 msgctxt "Order confirmation e-mail table header"
 msgid "Subtotal"
-msgstr ""
+msgstr "Részösszeg"
 
 #: templates/templated_email/order/confirm_order.email:19
 msgctxt "Order confirmation e-mail table header"
 msgid "Shipping"
-msgstr "Szállításra"
+msgstr "Szállítás"
 
 #: templates/templated_email/order/confirm_order.email:20
 msgctxt "Order confirmation e-mail table header"
@@ -6134,7 +6173,7 @@ msgstr ""
 #: templates/templated_email/order/confirm_order.email:20
 msgctxt "Order confirmation e-mail table header"
 msgid "Taxes"
-msgstr ""
+msgstr "Adók"
 
 #: templates/templated_email/order/confirm_order.email:21
 msgctxt "Order confirmation e-mail table header"
@@ -6156,7 +6195,7 @@ msgstr "Számlázási cím"
 #: templates/templated_email/source/confirm_order.mjml:30
 msgctxt "Order confirmation e-mail shipping address"
 msgid "Shipping address"
-msgstr ""
+msgstr "Szállítási cím"
 
 #: templates/templated_email/order/confirm_order.email:28
 #: templates/templated_email/source/confirm_order.mjml:42
@@ -6258,12 +6297,12 @@ msgstr ""
 #: templates/templated_email/source/partials/_order_lines.mjml:11
 msgctxt "E-mail order lines summary table"
 msgid "Subtotal"
-msgstr ""
+msgstr "Részösszeg"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:19
 msgctxt "E-mail order lines summary table"
 msgid "Shipping"
-msgstr "Szállításra"
+msgstr "Szállítás"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:28
 msgctxt "E-mail order lines summary table"
@@ -6273,12 +6312,12 @@ msgstr ""
 #: templates/templated_email/source/partials/_order_lines.mjml:30
 msgctxt "E-mail order lines summary table"
 msgid "Taxes"
-msgstr ""
+msgstr "Adók"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:40
 msgctxt "E-mail order lines summary table"
 msgid "Discount"
-msgstr ""
+msgstr "Kedvezmény"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:49
 msgctxt "E-mail order lines summary table"
@@ -6303,7 +6342,7 @@ msgstr ""
 #: templates/templated_email/source/partials/_order_lines.mjml:61
 msgctxt "Ordered item subtotal (unit price * quantity)"
 msgid "Subtotal"
-msgstr ""
+msgstr "Részösszeg"
 
 #: templates/templated_email/source/password_reset.mjml:16
 #, python-format
