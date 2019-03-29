@@ -593,7 +593,6 @@ def test_fulfill_digital_lines(mock_automatic_fulfillment, order_with_lines):
 
     line.variant.digital_content = digital_content
     line.is_shipping_required = False
-    line.quantity = 2
     line.save()
 
     order_with_lines.refresh_from_db()
@@ -603,9 +602,7 @@ def test_fulfill_digital_lines(mock_automatic_fulfillment, order_with_lines):
     fulfillment_lines = fulfillment.lines.all()
 
     assert fulfillment_lines.count() == 1
-    assert fulfillment_lines[0].quantity == 2
-    assert line.digital_content_urls.count() == 2
-    assert line.quantity_fulfilled == 2
+    assert line.digital_content_url
 
 
 def test_fulfill_order_line(order_with_lines):

@@ -80,6 +80,7 @@ class ProductType(models.Model):
     name = models.CharField(max_length=128)
     has_variants = models.BooleanField(default=True)
     is_shipping_required = models.BooleanField(default=True)
+    is_digital = models.BooleanField(default=False)
     tax_rate = models.CharField(
         max_length=128, default=DEFAULT_TAX_RATE_NAME,
         choices=TaxRateType.CHOICES)
@@ -262,6 +263,10 @@ class ProductVariant(models.Model):
     def is_shipping_required(self):
         return self.product.product_type.is_shipping_required
 
+    def is_digital(self):
+        is_digital = self.product.product_type.is_digital
+        return not self.is_shipping_required() and is_digital
+
     def is_in_stock(self):
         return self.quantity_available > 0
 
@@ -333,8 +338,8 @@ class DigitalContentUrl(models.Model):
         DigitalContent, related_name='urls', on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     download_num = models.IntegerField(default=0)
-    line = models.ForeignKey(
-        'order.OrderLine', related_name='digital_content_urls', blank=True,
+    line = models.OneToOneField(
+        'order.OrderLine', related_name='digital_content_url', blank=True,
         null=True, on_delete=models.CASCADE)
 
     def save(self, force_insert=False, force_update=False, using=None,
