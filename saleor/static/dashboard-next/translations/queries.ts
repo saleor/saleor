@@ -10,6 +10,10 @@ import {
   CategoryTranslationsVariables
 } from "./types/CategoryTranslations";
 import {
+  CollectionTranslationDetails,
+  CollectionTranslationDetailsVariables
+} from "./types/CollectionTranslationDetails";
+import {
   CollectionTranslations,
   CollectionTranslationsVariables
 } from "./types/CollectionTranslations";
@@ -187,3 +191,16 @@ export const TypedCategoryTranslationDetails = TypedQuery<
   CategoryTranslationDetails,
   CategoryTranslationDetailsVariables
 >(categoryTranslationDetails);
+
+const collectionTranslationDetails = gql`
+  ${collectionTranslationFragment}
+  query CollectionTranslationDetails($id: ID!, $language: LanguageCodeEnum!) {
+    collection(id: $id) {
+      ...CollectionTranslationFragment
+    }
+  }
+`;
+export const TypedCollectionTranslationDetails = TypedQuery<
+  CollectionTranslationDetails,
+  CollectionTranslationDetailsVariables
+>(collectionTranslationDetails);
