@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import CardSpacer from "../../../components/CardSpacer";
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
@@ -13,6 +14,7 @@ export interface TranslationsProductsPageProps {
   disabled: boolean;
   languageCode: string;
   product: ProductTranslationFragment;
+  saveButtonState: ConfirmButtonTransitionState;
   onEdit: (field: string) => void;
   onSubmit: (field: string, data: string) => void;
 }
@@ -26,7 +28,15 @@ export const fieldNames = {
 
 const TranslationsProductsPage: React.StatelessComponent<
   TranslationsProductsPageProps
-> = ({ activeField, disabled, languageCode, product, onEdit, onSubmit }) => (
+> = ({
+  activeField,
+  disabled,
+  languageCode,
+  product,
+  saveButtonState,
+  onEdit,
+  onSubmit
+}) => (
   <Container>
     <PageHeader
       title={i18n.t(
@@ -63,6 +73,7 @@ const TranslationsProductsPage: React.StatelessComponent<
           value: maybe(() => product.descriptionJson)
         }
       ]}
+      saveButtonState={saveButtonState}
       onEdit={onEdit}
       onSubmit={onSubmit}
     />
@@ -92,6 +103,7 @@ const TranslationsProductsPage: React.StatelessComponent<
           value: maybe(() => product.seoDescription)
         }
       ]}
+      saveButtonState={saveButtonState}
       onEdit={onEdit}
       onSubmit={onSubmit}
     />

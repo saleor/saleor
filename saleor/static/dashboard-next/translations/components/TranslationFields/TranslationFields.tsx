@@ -14,6 +14,7 @@ import classNames from "classnames";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton";
 import Grid from "../../../components/Grid";
 import Hr from "../../../components/Hr";
 import Skeleton from "../../../components/Skeleton";
@@ -36,6 +37,7 @@ export interface TranslationFieldsProps {
   title: string;
   fields: TranslationField[];
   initialState: boolean;
+  saveButtonState: ConfirmButtonTransitionState;
   onEdit: (field: string) => void;
   onSubmit: (field: string, data: string) => void;
 }
@@ -108,6 +110,7 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
     fields,
     initialState,
     title,
+    saveButtonState,
     onEdit,
     onSubmit
   }: TranslationFieldsProps & WithStyles<typeof styles>) => {
@@ -156,6 +159,7 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
                           disabled={disabled}
                           edit={false}
                           initial={field.value}
+                          saveButtonState="default"
                           onSubmit={undefined}
                         />
                       ) : field.type === "long" ? (
@@ -163,6 +167,7 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
                           disabled={disabled}
                           edit={false}
                           initial={field.value}
+                          saveButtonState="default"
                           onSubmit={undefined}
                         />
                       ) : (
@@ -170,6 +175,7 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
                           disabled={disabled}
                           edit={false}
                           initial={field.value}
+                          saveButtonState="default"
                           onSubmit={undefined}
                         />
                       )
@@ -184,6 +190,7 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
                           disabled={disabled}
                           edit={activeField === field.name}
                           initial={field.translation}
+                          saveButtonState={saveButtonState}
                           onSubmit={data => onSubmit(field.name, data)}
                         />
                       ) : field.type === "long" ? (
@@ -191,6 +198,7 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
                           disabled={disabled}
                           edit={activeField === field.name}
                           initial={field.translation}
+                          saveButtonState={saveButtonState}
                           onSubmit={data => onSubmit(field.name, data)}
                         />
                       ) : (
@@ -198,6 +206,7 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
                           disabled={disabled}
                           edit={activeField === field.name}
                           initial={field.translation}
+                          saveButtonState={saveButtonState}
                           onSubmit={data => onSubmit(field.name, data)}
                         />
                       )

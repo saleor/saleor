@@ -7,15 +7,22 @@ import {
 } from "@material-ui/core/styles";
 import * as React from "react";
 
+import ConfirmButton, {
+  ConfirmButtonTransitionState
+} from "../../../components/ConfirmButton";
 import i18n from "../../../i18n";
 
 interface TranslationFieldsSaveProps {
+  saveButtonState: ConfirmButtonTransitionState;
   onDiscard: () => void;
   onSave: () => void;
 }
 
 const styles = (theme: Theme) =>
   createStyles({
+    confirmButton: {
+      marginLeft: theme.spacing.unit
+    },
     root: {
       display: "flex",
       flexDirection: "row-reverse",
@@ -28,14 +35,19 @@ const TranslationFieldsSave = withStyles(styles, {
 })(
   ({
     classes,
+    saveButtonState,
     onDiscard,
     onSave
   }: TranslationFieldsSaveProps & WithStyles<typeof styles>) => (
     <div className={classes.root}>
-      <Button color="primary" onClick={onSave}>
+      <ConfirmButton
+        className={classes.confirmButton}
+        transitionState={saveButtonState}
+        onClick={onSave}
+      >
         {i18n.t("Save")}
-      </Button>
-      <Button onClick={onDiscard}>{i18n.t("Discard")}</Button>
+      </ConfirmButton>
+      <Button onClick={onDiscard}>{i18n.t("Discard Changes")}</Button>
     </div>
   )
 );

@@ -3,7 +3,8 @@ import * as React from "react";
 
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
-import { maybe } from "../../misc";
+import i18n from "../../i18n";
+import { getMutationState, maybe } from "../../misc";
 import { LanguageCodeEnum, TranslationInput } from "../../types/globalTypes";
 import TranslationsProductsPage, {
   fieldNames
@@ -11,7 +12,6 @@ import TranslationsProductsPage, {
 import { TypedUpdateProductTranslations } from "../mutations";
 import { TypedProductTranslationDetails } from "../queries";
 import { UpdateProductTranslations } from "../types/UpdateProductTranslations";
-import i18n from "../../i18n";
 
 export interface TranslationsProductsQueryParams {
   activeField: string;
@@ -70,6 +70,16 @@ const TranslationsProducts: React.FC<TranslationsProductsProps> = ({
                 }
               });
             };
+
+            const saveButtonState = getMutationState(
+              updateTranslationsOpts.called,
+              updateTranslationsOpts.loading,
+              maybe(
+                () => updateTranslationsOpts.data.productTranslate.errors,
+                []
+              )
+            );
+
             return (
               <TranslationsProductsPage
                 activeField={params.activeField}
@@ -77,6 +87,7 @@ const TranslationsProducts: React.FC<TranslationsProductsProps> = ({
                   productTranslations.loading || updateTranslationsOpts.loading
                 }
                 languageCode={languageCode}
+                saveButtonState={saveButtonState}
                 onEdit={onEdit}
                 onSubmit={handleSubmit}
                 product={maybe(() => productTranslations.data.product)}

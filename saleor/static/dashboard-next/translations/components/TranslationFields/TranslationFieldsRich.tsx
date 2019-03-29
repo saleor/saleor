@@ -1,6 +1,7 @@
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton";
 import DraftRenderer from "../../../components/DraftRenderer";
 import Form from "../../../components/Form";
 import RichTextEditor from "../../../components/RichTextEditor";
@@ -11,6 +12,7 @@ interface TranslationFieldsRichProps {
   disabled: boolean;
   edit: boolean;
   initial: string;
+  saveButtonState: ConfirmButtonTransitionState;
   onSubmit: (data: string) => void;
 }
 
@@ -18,6 +20,7 @@ const TranslationFieldsRich: React.FC<TranslationFieldsRichProps> = ({
   disabled,
   edit,
   initial,
+  saveButtonState,
   onSubmit
 }) =>
   edit ? (
@@ -37,7 +40,11 @@ const TranslationFieldsRich: React.FC<TranslationFieldsRichProps> = ({
             name="translation"
             onChange={change}
           />
-          <TranslationFieldsSave onDiscard={reset} onSave={submit} />
+          <TranslationFieldsSave
+            saveButtonState={saveButtonState}
+            onDiscard={reset}
+            onSave={submit}
+          />
         </div>
       )}
     </Form>
