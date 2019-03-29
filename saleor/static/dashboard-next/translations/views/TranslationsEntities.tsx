@@ -114,7 +114,8 @@ const TranslationsEntities: React.FC<TranslationsEntitiesProps> = ({
                               node.translation.seoDescription,
                               node.translation.seoTitle
                             ].reduce(
-                              (acc, field) => acc + (field !== null ? 1 : 0)
+                              (acc, field) => acc + (field !== null ? 1 : 0),
+                              0
                             )
                           : 0,
                         max: 4
@@ -165,7 +166,8 @@ const TranslationsEntities: React.FC<TranslationsEntitiesProps> = ({
                               node.translation.seoDescription,
                               node.translation.seoTitle
                             ].reduce(
-                              (acc, field) => acc + (field !== null ? 1 : 0)
+                              (acc, field) => acc + (field !== null ? 1 : 0),
+                              0
                             )
                           : 0,
                         max: 4
@@ -216,7 +218,8 @@ const TranslationsEntities: React.FC<TranslationsEntitiesProps> = ({
                               node.translation.seoDescription,
                               node.translation.seoTitle
                             ].reduce(
-                              (acc, field) => acc + (field !== null ? 1 : 0)
+                              (acc, field) => acc + (field !== null ? 1 : 0),
+                              0
                             )
                           : 0,
                         max: 4
