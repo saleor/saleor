@@ -18,12 +18,15 @@ from ..payment import ChargeStatus
 from ..payment.utils import gateway_refund, gateway_void
 from ..product.utils import (
     allocate_stock, deallocate_stock, increase_stock, decrease_stock)
-from ..product.utils.digital_products import get_default_automatic_fulfillment
+from ..product.utils.digital_products import (
+    get_default_digital_content_settings)
 
 
 def order_line_needs_automatic_fulfillment(line: OrderLine) -> bool:
     """Check if given line is digital and should be automatically fulfilled"""
-    default_automatic_fulfillment = get_default_automatic_fulfillment()
+    digital_content_settings = get_default_digital_content_settings()
+    default_automatic_fulfillment = (
+        digital_content_settings['automatic_fulfillment'])
     content = line.variant.digital_content
     if default_automatic_fulfillment and content.use_default_settings:
         return True

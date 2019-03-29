@@ -580,9 +580,9 @@ def test_get_order_weight_non_existing_product(order_with_lines, product):
     assert old_weight == new_weight
 
 
-@patch('saleor.order.utils.get_default_automatic_fulfillment')
-def test_fulfill_digital_lines(mock_automatic_fulfillment, order_with_lines):
-    mock_automatic_fulfillment.return_value = True
+@patch('saleor.order.utils.get_default_digital_content_settings')
+def test_fulfill_digital_lines(mock_digital_settings, order_with_lines):
+    mock_digital_settings.return_value = {'automatic_fulfillment': True}
     line = order_with_lines.lines.all()[0]
 
     image_file, image_name = create_image()
