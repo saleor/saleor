@@ -70,8 +70,7 @@ def fulfill_digital_lines(order: Order):
         if not order_line_needs_automatic_fulfillment(line):
             continue
         digital_content = line.variant.digital_content
-        for _ in range(line.quantity):
-            digital_content.urls.create(line=line)
+        digital_content.urls.create(line=line)
         quantity = line.quantity
         FulfillmentLine.objects.create(
             fulfillment=fulfilment, order_line=line,

@@ -574,6 +574,9 @@ class ProductTypeInput(graphene.InputObjectType):
     is_shipping_required = graphene.Boolean(
         description=dedent("""Determines if shipping is required for products
         of this variant."""))
+    is_digital = graphene.Boolean(
+        description=dedent("Determines if products are digital."),
+        required=False)
     weight = WeightScalar(description='Weight of the ProductType items.')
     tax_rate = TaxRateType(description='A type of goods.')
 

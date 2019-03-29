@@ -329,10 +329,11 @@ class OrderLine(models.Model):
 
     @property
     def is_digital(self) -> bool:
-        """Return true if product variant has assigned digital content and
-        shipping is not required"""
+        """Return true if product variant is a digital type and has assigned
+        digital content"""
+        is_digital = self.variant.is_digital()
         has_digital = hasattr(self.variant, 'digital_content')
-        return not self.is_shipping_required and has_digital
+        return is_digital and has_digital
 
 
 class Fulfillment(models.Model):
