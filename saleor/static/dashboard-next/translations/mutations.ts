@@ -3,12 +3,17 @@ import gql from "graphql-tag";
 import { TypedMutation } from "../mutations";
 import {
   categoryTranslationFragment,
+  collectionTranslationFragment,
   productTranslationFragment
 } from "./queries";
 import {
   UpdateCategoryTranslations,
   UpdateCategoryTranslationsVariables
 } from "./types/UpdateCategoryTranslations";
+import {
+  UpdateCollectionTranslations,
+  UpdateCollectionTranslationsVariables
+} from "./types/UpdateCollectionTranslations";
 import {
   UpdateProductTranslations,
   UpdateProductTranslationsVariables
@@ -59,3 +64,26 @@ export const TypedUpdateCategoryTranslations = TypedMutation<
   UpdateCategoryTranslations,
   UpdateCategoryTranslationsVariables
 >(updateCategoryTranslations);
+
+const updateCollectionTranslations = gql`
+  ${collectionTranslationFragment}
+  mutation UpdateCollectionTranslations(
+    $id: ID!
+    $input: TranslationInput!
+    $language: LanguageCodeEnum!
+  ) {
+    collectionTranslate(id: $id, input: $input, languageCode: $language) {
+      errors {
+        field
+        message
+      }
+      collection {
+        ...CollectionTranslationFragment
+      }
+    }
+  }
+`;
+export const TypedUpdateCollectionTranslations = TypedMutation<
+  UpdateCollectionTranslations,
+  UpdateCollectionTranslationsVariables
+>(updateCollectionTranslations);

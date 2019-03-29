@@ -14,6 +14,9 @@ import {
 import TranslationsCategoriesComponent, {
   TranslationsCategoriesQueryParams
 } from "./views/TranslationsCategories";
+import TranslationsCollectionsComponent, {
+  TranslationsCollectionsQueryParams
+} from "./views/TranslationsCollections";
 import TranslationsEntitiesComponent, {
   TranslationsEntitiesListQueryParams
 } from "./views/TranslationsEntities";
@@ -56,6 +59,22 @@ const TranslationsCategories: React.FC<TranslationsEntityRouteProps> = ({
   };
   return (
     <TranslationsCategoriesComponent
+      id={decodeURIComponent(match.params.id)}
+      languageCode={LanguageCodeEnum[match.params.languageCode]}
+      params={params}
+    />
+  );
+};
+const TranslationsCollections: React.FC<TranslationsEntityRouteProps> = ({
+  location,
+  match
+}) => {
+  const qs = parseQs(location.search.substr(1));
+  const params: TranslationsCollectionsQueryParams = {
+    activeField: qs.activeField
+  };
+  return (
+    <TranslationsCollectionsComponent
       id={decodeURIComponent(match.params.id)}
       languageCode={LanguageCodeEnum[match.params.languageCode]}
       params={params}
@@ -110,6 +129,15 @@ const TranslationsRouter: React.FC = () => (
           ":id"
         )}
         component={TranslationsCategories}
+      />
+      <Route
+        exact
+        path={languageEntityPath(
+          ":languageCode",
+          TranslatableEntities.collections,
+          ":id"
+        )}
+        component={TranslationsCollections}
       />
     </Switch>
   </>
