@@ -72,6 +72,7 @@ def test_create_superuser(db, client):
     assert User.objects.all().count() == 1
     admin = User.objects.all().first()
     assert admin.is_superuser
+    assert admin.avatar
     # Test duplicating
     create_superuser(credentials)
     assert User.objects.all().count() == 1
