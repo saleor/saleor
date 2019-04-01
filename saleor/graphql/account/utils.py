@@ -6,7 +6,7 @@ class UserDeleteMixin:
         abstract = True
 
     @classmethod
-    def clean_instance(cls, info, instance, errors):
+    def clean_instance(cls, info, instance):
         user = info.context.user
         if instance == user:
             raise ValidationError({
@@ -20,8 +20,8 @@ class CustomerDeleteMixin(UserDeleteMixin):
         abstract = True
 
     @classmethod
-    def clean_instance(cls, info, instance, errors):
-        super().clean_instance(info, instance, errors)
+    def clean_instance(cls, info, instance):
+        super().clean_instance(info, instance)
         if instance.is_staff:
             raise ValidationError({'id': 'Cannot delete a staff account.'})
 
@@ -31,7 +31,7 @@ class StaffDeleteMixin(UserDeleteMixin):
         abstract = True
 
     @classmethod
-    def clean_instance(cls, info, instance, errors):
-        super().clean_instance(info, instance, errors)
+    def clean_instance(cls, info, instance):
+        super().clean_instance(info, instance)
         if not instance.is_staff:
             raise ValidationError({'id': 'Cannot delete a non-staff user.'})

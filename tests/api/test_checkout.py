@@ -1059,7 +1059,8 @@ def test_checkout_shipping_method_update(
     checkout.refresh_from_db()
     assert checkout.shipping_method == shipping_method
     mock_clean_shipping.assert_called_once_with(
-        checkout, shipping_method, [], ANY, ANY, remove=False)
+        checkout=checkout, method=shipping_method, discounts=ANY, taxes=ANY,
+        remove=False)
 
 
 def test_query_checkout_line(cart_with_item, user_api_client):

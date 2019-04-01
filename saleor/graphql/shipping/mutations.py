@@ -44,8 +44,8 @@ class ShippingZoneInput(graphene.InputObjectType):
 
 class ShippingZoneMixin:
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_input(cls, info, instance, input):
+        cleaned_input = super().clean_input(info, instance, input)
         default = cleaned_input.get('default')
         if default:
             if default_shipping_zone_exists(instance.pk):
@@ -112,8 +112,8 @@ class ShippingZoneDelete(ModelDeleteMutation):
 
 class ShippingPriceMixin:
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_input(cls, info, instance, input):
+        cleaned_input = super().clean_input(info, instance, input)
         type = cleaned_input.get('type')
         if type:
             if type == ShippingMethodTypeEnum.PRICE.value:
@@ -209,10 +209,8 @@ class ShippingPriceDelete(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, id):
-        errors = []
         shipping_method = cls.get_node_or_error(
-            info, id, errors, 'id', only_type=ShippingMethod)
-
+            info, id, only_type=ShippingMethod)
         shipping_method_id = shipping_method.id
         shipping_zone = shipping_method.shipping_zone
         shipping_method.delete()

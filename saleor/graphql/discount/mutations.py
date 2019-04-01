@@ -29,39 +29,38 @@ class BaseDiscountCatalogueMutation(BaseMutation):
         abstract = True
 
     @classmethod
-    def add_catalogues_to_node(cls, node, input, errors):
+    def add_catalogues_to_node(cls, node, input):
         products = input.get('products', [])
         if products:
             products = cls.get_nodes_or_error(
-                products, errors, 'products', only_type=Product)
+                products, 'products', Product)
             node.products.add(*products)
         categories = input.get('categories', [])
         if categories:
             categories = cls.get_nodes_or_error(
-                categories, errors, 'categories', only_type=Category)
+                categories, 'categories', Category)
             node.categories.add(*categories)
         collections = input.get('collections', [])
         if collections:
             collections = cls.get_nodes_or_error(
-                collections, errors, 'collections', only_type=Collection)
+                collections, 'collections', Collection)
             node.collections.add(*collections)
 
     @classmethod
-    def remove_catalogues_from_node(cls, node, input, errors):
+    def remove_catalogues_from_node(cls, node, input):
         products = input.get('products', [])
         if products:
-            products = cls.get_nodes_or_error(
-                products, errors, 'products', only_type=Product)
+            products = cls.get_nodes_or_error(products, 'products', Product)
             node.products.remove(*products)
         categories = input.get('categories', [])
         if categories:
             categories = cls.get_nodes_or_error(
-                categories, errors, 'categories', only_type=Category)
+                categories, 'categories', Category)
             node.categories.remove(*categories)
         collections = input.get('collections', [])
         if collections:
             collections = cls.get_nodes_or_error(
-                collections, errors, 'collections', only_type=Collection)
+                collections, 'collections', Collection)
             node.collections.remove(*collections)
 
 
@@ -110,11 +109,11 @@ class VoucherCreate(ModelMutation):
         return user.has_perm('discount.manage_discounts')
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
+    def clean_input(cls, info, instance, input):
         code = input.get('code', None)
         if code == '':
             input['code'] = generate_voucher_code()
-        cleaned_input = super().clean_input(info, instance, input, errors)
+        cleaned_input = super().clean_input(info, instance, input)
         return cleaned_input
 
 
@@ -170,12 +169,10 @@ class VoucherAddCatalogues(VoucherBaseCatalogueMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, id, input):
-        errors = []
         voucher = cls.get_node_or_error(
-            info, id, errors, 'voucherId', only_type=Voucher)
-
-        cls.add_catalogues_to_node(voucher, input, errors)
-        return VoucherAddCatalogues(voucher=voucher, errors=errors)
+            info, id, only_type=Voucher, field='voucher_id')
+        cls.add_catalogues_to_node(voucher, input)
+        return VoucherAddCatalogues(voucher=voucher)
 
 
 class VoucherRemoveCatalogues(VoucherBaseCatalogueMutation):
@@ -189,12 +186,10 @@ class VoucherRemoveCatalogues(VoucherBaseCatalogueMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, id, input):
-        errors = []
         voucher = cls.get_node_or_error(
-            info, id, errors, 'voucherId', only_type=Voucher)
-
-        cls.remove_catalogues_from_node(voucher, input, errors)
-        return VoucherRemoveCatalogues(voucher=voucher, errors=errors)
+            info, id, only_type=Voucher, field='voucher_id')
+        cls.remove_catalogues_from_node(voucher, input)
+        return VoucherRemoveCatalogues(voucher=voucher)
 
 
 class SaleInput(graphene.InputObjectType):
@@ -285,12 +280,9 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, id, input):
-        errors = []
-        sale = cls.get_node_or_error(
-            info, id, errors, 'saleId', only_type=Sale)
-
-        cls.add_catalogues_to_node(sale, input, errors)
-        return SaleAddCatalogues(sale=sale, errors=errors)
+        sale = cls.get_node_or_error(info, id, only_type=Sale, field='sale_id')
+        cls.add_catalogues_to_node(sale, input)
+        return SaleAddCatalogues(sale=sale)
 
 
 class SaleRemoveCatalogues(SaleBaseCatalogueMutation):
@@ -303,9 +295,7 @@ class SaleRemoveCatalogues(SaleBaseCatalogueMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, id, input):
-        errors = []
         sale = cls.get_node_or_error(
-            info, id, errors, 'saleId', only_type=Sale)
-
-        cls.remove_catalogues_from_node(sale, input, errors)
-        return SaleRemoveCatalogues(sale=sale, errors=errors)
+            info, id, only_type=Sale, field='sale_id')
+        cls.remove_catalogues_from_node(sale, input)
+        return SaleRemoveCatalogues(sale=sale)

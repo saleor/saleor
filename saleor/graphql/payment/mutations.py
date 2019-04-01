@@ -55,9 +55,8 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
     @classmethod
     def perform_mutation(cls, root, info, checkout_id, input):
-        errors = []
         checkout = cls.get_node_or_error(
-            info, checkout_id, errors, 'checkout_id', only_type=Checkout)
+            info, checkout_id, field='checkout_id', only_type=Checkout)
 
         billing_address = checkout.billing_address
         if 'billing_address' in input:
@@ -109,10 +108,8 @@ class PaymentCapture(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, payment_id, amount=None):
-        errors = []
         payment = cls.get_node_or_error(
-            info, payment_id, errors, 'payment_id', only_type=Payment)
-
+            info, payment_id, field='payment_id', only_type=Payment)
         try:
             gateway_capture(payment, amount)
         except PaymentError as e:
@@ -131,10 +128,8 @@ class PaymentRefund(PaymentCapture):
 
     @classmethod
     def perform_mutation(cls, root, info, payment_id, amount=None):
-        errors = []
         payment = cls.get_node_or_error(
-            info, payment_id, errors, 'payment_id', only_type=Payment)
-
+            info, payment_id, field='payment_id', only_type=Payment)
         try:
             gateway_refund(payment, amount=amount)
         except PaymentError as e:
@@ -157,10 +152,8 @@ class PaymentVoid(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, payment_id, amount=None):
-        errors = []
         payment = cls.get_node_or_error(
-            info, payment_id, errors, 'payment_id', only_type=Payment)
-
+            info, payment_id, field='payment_id', only_type=Payment)
         try:
             gateway_void(payment)
         except PaymentError as e:

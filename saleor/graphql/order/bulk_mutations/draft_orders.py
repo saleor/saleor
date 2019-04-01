@@ -17,7 +17,7 @@ class DraftOrderBulkDelete(ModelBulkDeleteMutation):
         model = models.Order
 
     @classmethod
-    def clean_instance(cls, info, instance, errors):
+    def clean_instance(cls, info, instance):
         if instance.status != OrderStatus.DRAFT:
             raise ValidationError({'id': 'Cannot delete non-draft orders.'})
 

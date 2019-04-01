@@ -744,13 +744,13 @@ def test_customer_delete(
 def test_customer_delete_errors(customer_user, admin_user, staff_user):
     info = Mock(context=Mock(user=admin_user))
     with pytest.raises(ValidationError) as e:
-        CustomerDelete.clean_instance(info, staff_user, [])
+        CustomerDelete.clean_instance(info, staff_user)
 
     msg = 'Cannot delete a staff account.'
     assert e.value.error_dict['id'][0].message == msg
 
     # shuold not raise any errors
-    CustomerDelete.clean_instance(info, customer_user, [])
+    CustomerDelete.clean_instance(info, customer_user)
 
 
 @patch('saleor.dashboard.emails.send_set_password_staff_email.delay')
@@ -878,14 +878,14 @@ def test_staff_delete(staff_api_client, permission_manage_staff):
 def test_user_delete_errors(staff_user, admin_user):
     info = Mock(context=Mock(user=staff_user))
     with pytest.raises(ValidationError) as e:
-        UserDelete.clean_instance(info, staff_user, [])
+        UserDelete.clean_instance(info, staff_user)
 
     msg = 'You cannot delete your own account.'
     assert e.value.error_dict['id'][0].message == msg
 
     info = Mock(context=Mock(user=staff_user))
     with pytest.raises(ValidationError) as e:
-        UserDelete.clean_instance(info, admin_user, [])
+        UserDelete.clean_instance(info, admin_user)
 
     msg = 'Cannot delete this account.'
     assert e.value.error_dict['id'][0].message == msg
@@ -894,13 +894,13 @@ def test_user_delete_errors(staff_user, admin_user):
 def test_staff_delete_errors(staff_user, customer_user, admin_user):
     info = Mock(context=Mock(user=staff_user))
     with pytest.raises(ValidationError) as e:
-        StaffDelete.clean_instance(info, customer_user, [])
+        StaffDelete.clean_instance(info, customer_user)
     msg = 'Cannot delete a non-staff user.'
     assert e.value.error_dict['id'][0].message == msg
 
     # shuold not raise any errors
     info = Mock(context=Mock(user=admin_user))
-    StaffDelete.clean_instance(info, staff_user, [])
+    StaffDelete.clean_instance(info, staff_user)
 
 
 def test_staff_update_errors(staff_user, customer_user, admin_user):
