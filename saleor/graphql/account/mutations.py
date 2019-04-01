@@ -661,7 +661,7 @@ class UserAvatarUpdate(BaseMutation):
         user.save()
         create_user_avatar_thumbnails.delay(user_id=user.pk)
 
-        return UserAvatarUpdate(user=user, errors=errors)
+        return UserAvatarUpdate(user=user)
 
 
 class UserAvatarDelete(BaseMutation):
@@ -674,7 +674,6 @@ class UserAvatarDelete(BaseMutation):
     @staff_member_required
     def perform_mutation(cls, root, info):
         user = info.context.user
-        errors = []
         user.avatar.delete_sized_images()
         user.avatar.delete()
         return UserAvatarDelete(user=user)
