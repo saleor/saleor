@@ -7,11 +7,11 @@ from django.core.exceptions import ValidationError
 
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.graphql.core.enums import ReportingPeriod
-from saleor.graphql.order.enums import OrderEventsEmailsEnum, OrderStatusFilter
+from saleor.graphql.order.enums import OrderEventsEmailsEnum
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel, clean_order_capture, clean_refund_payment,
     clean_void_payment)
-from saleor.graphql.order.utils import can_finalize_draft_order
+from saleor.graphql.order.utils import validate_draft_order
 from saleor.graphql.payment.types import PaymentChargeStatusEnum
 from saleor.order import OrderEvents, OrderEventsEmails, OrderStatus
 from saleor.order.models import Order, OrderEvent
@@ -459,8 +459,8 @@ def test_can_finalize_order_no_order_lines(
 
 
 def test_can_finalize_draft_order(order_with_lines):
-    errors = can_finalize_draft_order(order_with_lines, [])
-    assert not errors
+    # should not raise any errors
+    validate_draft_order(order_with_lines)
 
 
 def test_can_finalize_draft_order_wrong_shipping(order_with_lines):
@@ -469,14 +469,17 @@ def test_can_finalize_draft_order_wrong_shipping(order_with_lines):
     shipping_zone.countries = ['DE']
     shipping_zone.save()
     assert order.shipping_address.country.code not in shipping_zone.countries
-    errors = can_finalize_draft_order(order, [])
+    with pytest.raises(ValidationError) as e:
+        validate_draft_order(order)
     msg = 'Shipping method is not valid for chosen shipping address'
-    assert errors[0].message == msg
+    assert e.value.error_dict['shipping'][0].message == msg
 
 
 def test_can_finalize_draft_order_no_order_lines(order):
-    errors = can_finalize_draft_order(order, [])
-    assert errors[0].message == 'Could not create order without any products.'
+    with pytest.raises(ValidationError) as e:
+        validate_draft_order(order)
+    msg = 'Could not create order without any products.'
+    assert e.value.error_dict['lines'][0].message == msg
 
 
 def test_can_finalize_draft_order_non_existing_variant(order_with_lines):
@@ -487,10 +490,10 @@ def test_can_finalize_draft_order_non_existing_variant(order_with_lines):
     line.refresh_from_db()
     assert line.variant is None
 
-    errors = can_finalize_draft_order(order, [])
-    assert (
-        errors[0].message ==
-        'Could not create orders with non-existing products.')
+    with pytest.raises(ValidationError) as e:
+        validate_draft_order(order)
+    msg = 'Could not create orders with non-existing products.'
+    assert e.value.error_dict['lines'][0].message == msg
 
 
 def test_draft_order_complete(
@@ -1212,7 +1215,6 @@ def test_clean_order_void_payment():
     payment.is_active = False
     with pytest.raises(ValidationError) as e:
         clean_void_payment(payment)
-
     msg = 'Only pre-authorized payments can be voided'
     assert e.value.error_dict['payment'][0].message == msg
 
@@ -1223,7 +1225,6 @@ def test_clean_order_refund_payment():
     amount = Mock(spec='string')
     with pytest.raises(ValidationError) as e:
         clean_refund_payment(payment, amount)
-
     msg = 'Manual payments can not be refunded.'
     assert e.value.error_dict['payment'][0].message == msg
 
@@ -1232,7 +1233,6 @@ def test_clean_order_capture():
     amount = Mock(spec='string')
     with pytest.raises(ValidationError) as e:
         clean_order_capture(None, amount)
-
     msg = 'There\'s no payment associated with the order.'
     assert e.value.error_dict['payment'][0].message == msg
 
@@ -1246,7 +1246,6 @@ def test_clean_order_cancel(order):
 
     with pytest.raises(ValidationError) as e:
         clean_order_cancel(order)
-
     msg = 'This order can\'t be canceled.'
     assert e.value.error_dict['order'][0].message == msg
 
@@ -1423,8 +1422,6 @@ def test_order_by_token_query(api_client, order):
     }
     """
     order_id = graphene.Node.to_global_id('Order', order.id)
-
     response = api_client.post_graphql(query, {'token': order.token})
     content = get_graphql_content(response)
-
     assert content['data']['orderByToken']['id'] == order_id

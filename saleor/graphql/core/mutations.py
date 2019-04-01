@@ -81,24 +81,24 @@ class BaseMutation(graphene.Mutation):
         cls._meta.fields.update(fields)
 
     @classmethod
-    def get_node_or_error(cls, info, global_id, errors, field, only_type=None):
-        if not global_id:
+    def get_node_or_error(cls, info, node_id, field='id', only_type=None):
+        if not node_id:
             return None
 
         node = None
         try:
             node = graphene.Node.get_node_from_global_id(
-                info, global_id, only_type)
+                info, node_id, only_type)
         except (AssertionError, GraphQLError) as e:
             raise ValidationError({field: str(e)})
         else:
             if node is None:
                 raise ValidationError({
-                    field: "Couldn't resolve to a node: %s" % global_id})
+                    field: "Couldn't resolve to a node: %s" % node_id})
         return node
 
     @classmethod
-    def get_nodes_or_error(cls, ids, errors, field, only_type=None):
+    def get_nodes_or_error(cls, ids, field, only_type=None):
         instances = None
         try:
             instances = get_nodes(ids, only_type)
@@ -107,12 +107,11 @@ class BaseMutation(graphene.Mutation):
         return instances
 
     @classmethod
-    def clean_instance(cls, instance, errors):
+    def clean_instance(cls, instance):
         """Clean the instance that was created using the input data.
 
-        Once a instance is created, this method runs `full_clean()` to perform
-        model fields' validation. Returns errors ready to be returned by
-        the GraphQL response (if any occurred).
+        Once an instance is created, this method runs `full_clean()` to perform
+        model validation.
         """
         try:
             instance.full_clean()
@@ -223,14 +222,13 @@ class ModelMutation(BaseMutation):
             arguments=arguments, fields=fields)
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
+    def clean_input(cls, info, instance, input):
         """Clean input data received from mutation arguments.
 
         Fields containing IDs or lists of IDs are automatically resolved into
         model instances. `instance` argument is the model instance the mutation
         is operating on (before setting the input data). `input` is raw input
-        data the mutation receives. `errors` is a list of errors that occurred
-        during mutation's execution.
+        data the mutation receives.
 
         Override this method to provide custom transformations of incoming
         data.
@@ -262,14 +260,12 @@ class ModelMutation(BaseMutation):
                 # handle list of IDs field
                 if value is not None and is_list_of_ids(field):
                     instances = cls.get_nodes_or_error(
-                        value, errors=errors,
-                        field=field_name) if value else []
+                        value, field_name) if value else []
                     cleaned_input[field_name] = instances
 
                 # handle ID field
                 elif value is not None and is_id_field(field):
-                    instance = cls.get_node_or_error(
-                        info, value, errors=errors, field=field_name)
+                    instance = cls.get_node_or_error(info, value, field_name)
                     cleaned_input[field_name] = instance
 
                 # handle uploaded files
@@ -301,12 +297,12 @@ class ModelMutation(BaseMutation):
         instance.save()
 
     @classmethod
-    def get_instance(cls, info, errors, **data):
+    def get_instance(cls, info, **data):
         object_id = data.get('id')
         if object_id:
             model_type = registry.get_type_for_model(cls._meta.model)
             instance = cls.get_node_or_error(
-                info, object_id, errors, 'id', model_type)
+                info, object_id, only_type=model_type)
         else:
             instance = cls._meta.model()
         return instance
@@ -320,14 +316,11 @@ class ModelMutation(BaseMutation):
         that this is an "update" mutation. Otherwise, a new instance is
         created based on the model associated with this mutation.
         """
-        errors = []  # Initialize the errors list.
-        instance = cls.get_instance(info, errors, **data)
-
+        instance = cls.get_instance(info, **data)
         input_data = data.get('input')
-
-        cleaned_input = cls.clean_input(info, instance, input_data, errors)
+        cleaned_input = cls.clean_input(info, instance, input_data)
         instance = cls.construct_instance(instance, cleaned_input)
-        cls.clean_instance(instance, errors)
+        cls.clean_instance(instance)
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
         return cls.success_response(instance)
@@ -338,7 +331,7 @@ class ModelDeleteMutation(ModelMutation):
         abstract = True
 
     @classmethod
-    def clean_instance(cls, info, instance, errors):
+    def clean_instance(cls, info, instance):
         """Perform additional logic before deleting the model instance.
 
         Override this method to raise custom validation error and abort
@@ -351,17 +344,12 @@ class ModelDeleteMutation(ModelMutation):
         if not cls.user_is_allowed(info.context.user, data):
             raise PermissionDenied()
 
-        errors = []
         node_id = data.get('id')
         model_type = registry.get_type_for_model(cls._meta.model)
-        instance = cls.get_node_or_error(
-            info, node_id, errors, 'id', model_type)
+        instance = cls.get_node_or_error(info, node_id, only_type=model_type)
 
         if instance:
-            cls.clean_instance(info, instance, errors)
-
-        if errors:
-            return cls(errors=errors)
+            cls.clean_instance(info, instance)
 
         db_id = instance.id
         instance.delete()
@@ -418,7 +406,7 @@ class ModelBulkDeleteMutation(BaseBulkMutation):
         abstract = True
 
     @classmethod
-    def clean_instance(cls, info, instance, errors):
+    def clean_instance(cls, info, instance):
         """Perform additional logic before deleting the model instance.
 
         Override this method to raise custom validation error and abort
@@ -430,14 +418,14 @@ class ModelBulkDeleteMutation(BaseBulkMutation):
         """Perform a mutation that deletes a list of model instances."""
         count, errors = 0, {}
         model_type = registry.get_type_for_model(cls._meta.model)
-        instances = cls.get_nodes_or_error(ids, errors, 'id', model_type)
+        instances = cls.get_nodes_or_error(ids, 'id', model_type)
         for instance, node_id in zip(instances, ids):
             instance_errors = []
 
             # catch individual validation errors to raise them later as
             # a single error
             try:
-                cls.clean_instance(info, instance, [])
+                cls.clean_instance(info, instance)
             except ValidationError as e:
                 msg = '. '.join(e.messages)
                 instance_errors.append(msg)

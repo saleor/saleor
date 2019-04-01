@@ -56,7 +56,7 @@ class AttributeMixin:
                 'Provided values are not unique.'})
 
     @classmethod
-    def clean_values(cls, cleaned_input, attribute, errors):
+    def clean_values(cls, cleaned_input, attribute):
         """Clean attribute values.
 
         Transforms AttributeValueCreateInput into AttributeValue instances.
@@ -81,7 +81,7 @@ class AttributeMixin:
 
     @classmethod
     def clean_attribute(
-            cls, instance, cleaned_input, errors, product_type=None):
+            cls, instance, cleaned_input, product_type=None):
         if 'name' in cleaned_input:
             slug = slugify(cleaned_input['name'])
         elif instance.pk:
@@ -141,17 +141,15 @@ class AttributeCreate(AttributeMixin, ModelMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, id, type, input):
-        errors = []
-        product_type = cls.get_node_or_error(
-            info, id, errors, 'id', ProductType)
+        product_type = cls.get_node_or_error(info, id, only_type=ProductType)
         instance = models.Attribute()
 
-        cleaned_input = cls.clean_input(info, instance, input, errors)
+        cleaned_input = cls.clean_input(info, instance, input)
         cls.clean_attribute(
-            instance, cleaned_input, errors, product_type=product_type)
-        cls.clean_values(cleaned_input, instance, errors)
+            instance, cleaned_input, product_type=product_type)
+        cls.clean_values(cleaned_input, instance)
         instance = cls.construct_instance(instance, cleaned_input)
-        cls.clean_instance(instance, errors)
+        cls.clean_instance(instance)
 
         instance.save()
         if type == AttributeTypeEnum.VARIANT.name:
@@ -180,7 +178,7 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
         model = models.Attribute
 
     @classmethod
-    def clean_remove_values(cls, cleaned_input, instance, errors):
+    def clean_remove_values(cls, cleaned_input, instance):
         """Check if AttributeValues to be removed are assigned to given
         Attribute.
         """
@@ -203,17 +201,16 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, id, input):
-        errors = []
-        instance = cls.get_node_or_error(info, id, errors, 'id', Attribute)
+        instance = cls.get_node_or_error(info, id, only_type=Attribute)
 
-        cleaned_input = cls.clean_input(info, instance, input, errors)
+        cleaned_input = cls.clean_input(info, instance, input)
         product_type = instance.product_type
         cls.clean_attribute(
-            instance, cleaned_input, errors, product_type=product_type)
-        cls.clean_values(cleaned_input, instance, errors)
-        cls.clean_remove_values(cleaned_input, instance, errors)
+            instance, cleaned_input, product_type=product_type)
+        cls.clean_values(cleaned_input, instance)
+        cls.clean_remove_values(cleaned_input, instance)
         instance = cls.construct_instance(instance, cleaned_input)
-        cls.clean_instance(instance, errors)
+        cls.clean_instance(instance)
 
         instance.save()
         cls._save_m2m(info, instance, cleaned_input)
@@ -261,8 +258,8 @@ class AttributeValueCreate(ModelMutation):
         model = models.AttributeValue
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_input(cls, info, instance, input):
+        cleaned_input = super().clean_input(info, instance, input)
         cleaned_input['slug'] = slugify(cleaned_input['name'])
         return cleaned_input
 
@@ -272,14 +269,13 @@ class AttributeValueCreate(ModelMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, attribute_id, input):
-        errors = []
         attribute = cls.get_node_or_error(
-            info, attribute_id, errors, 'id', Attribute)
+            info, attribute_id, only_type=Attribute)
 
         instance = models.AttributeValue(attribute=attribute)
-        cleaned_input = cls.clean_input(info, instance, input, errors)
+        cleaned_input = cls.clean_input(info, instance, input)
         instance = cls.construct_instance(instance, cleaned_input)
-        cls.clean_instance(instance, errors)
+        cls.clean_instance(instance)
 
         instance.save()
         cls._save_m2m(info, instance, cleaned_input)
@@ -307,8 +303,8 @@ class AttributeValueUpdate(ModelMutation):
         return user.has_perm('product.manage_products')
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_input(cls, info, instance, input):
+        cleaned_input = super().clean_input(info, instance, input)
         if 'name' in cleaned_input:
             cleaned_input['slug'] = slugify(cleaned_input['name'])
         return cleaned_input

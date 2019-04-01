@@ -67,7 +67,7 @@ class FulfillmentCreate(BaseMutation):
         description = 'Creates a new fulfillment for an order.'
 
     @classmethod
-    def clean_lines(cls, order_lines, quantities, errors):
+    def clean_lines(cls, order_lines, quantities):
         for order_line, quantity in zip(order_lines, quantities):
             if quantity > order_line.quantity_unfulfilled:
                 msg = npgettext_lazy(
@@ -80,14 +80,14 @@ class FulfillmentCreate(BaseMutation):
                 raise ValidationError({'order_line_id': msg})
 
     @classmethod
-    def clean_input(cls, input, errors):
+    def clean_input(cls, input):
         lines = input['lines']
         quantities = [line['quantity'] for line in lines]
         lines_ids = [line['order_line_id'] for line in lines]
         order_lines = cls.get_nodes_or_error(
-            lines_ids, errors, 'lines', OrderLine)
+            lines_ids, field='lines', only_type=OrderLine)
 
-        cls.clean_lines(order_lines, quantities, errors)
+        cls.clean_lines(order_lines, quantities)
 
         if sum(quantities) <= 0:
             raise ValidationError({
@@ -129,12 +129,12 @@ class FulfillmentCreate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, order, input):
-        errors = []
-        order = cls.get_node_or_error(info, order, errors, 'order', Order)
+        order = cls.get_node_or_error(
+            info, order, field='order', only_type=Order)
         fulfillment = models.Fulfillment(
             tracking_number=input.pop('tracking_number', None) or '',
             order=order)
-        cleaned_input = cls.clean_input(input, errors)
+        cleaned_input = cls.clean_input(input)
         fulfillment = cls.save(
             info.context.user, fulfillment, order, cleaned_input)
         return FulfillmentCreate(
@@ -163,9 +163,7 @@ class FulfillmentUpdateTracking(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, id, input):
-        errors = []
-        fulfillment = cls.get_node_or_error(
-            info, id, errors, 'id', Fulfillment)
+        fulfillment = cls.get_node_or_error(info, id, only_type=Fulfillment)
         tracking_number = input.get('tracking_number') or ''
         fulfillment.tracking_number = tracking_number
         fulfillment.save()
@@ -203,7 +201,7 @@ class FulfillmentCancel(BaseMutation):
     @classmethod
     def perform_mutation(cls, root, info, id, input):
         restock = input.get('restock')
-        fulfillment = cls.get_node_or_error(info, id, [], 'id', Fulfillment)
+        fulfillment = cls.get_node_or_error(info, id, only_type=Fulfillment)
 
         if not fulfillment.can_edit():
             err_msg = pgettext_lazy(

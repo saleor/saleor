@@ -29,11 +29,11 @@ from .types import Checkout, CheckoutLine
 
 
 def clean_shipping_method(
-        checkout, method, errors, discounts, taxes, country_code=None,
-        remove=True):
+        checkout, method, discounts, taxes, country_code=None, remove=True):
     # FIXME Add tests for this function
     if not method:
-        return errors
+        return
+
     if not checkout.is_shipping_required():
         raise ValidationError('This checkout does not requires shipping.')
 
@@ -57,8 +57,6 @@ def clean_shipping_method(
     if remove:
         checkout.shipping_method = None
         checkout.save(update_fields=['shipping_method'])
-
-    return errors
 
 
 def check_lines_quantity(variants, quantities):
@@ -108,15 +106,14 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return_field_name = 'checkout'
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_input(cls, info, instance, input):
+        cleaned_input = super().clean_input(info, instance, input)
         user = info.context.user
         lines = input.pop('lines', None)
         if lines:
             variant_ids = [line.get('variant_id') for line in lines]
             variants = cls.get_nodes_or_error(
-                ids=variant_ids, errors=errors, field='variant_id',
-                only_type=ProductVariant)
+                variant_ids, 'variant_id', ProductVariant)
             quantities = [line.get('quantity') for line in lines]
 
             check_lines_quantity(variants, quantities)
@@ -170,7 +167,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def perform_mutation(cls, root, info, input):
-        errors = []
         user = info.context.user
 
         # `perform_mutation` is overriden to properly get or create a checkout
@@ -180,16 +176,16 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             # If user has an active checkout, return it without any
             # modifications.
             if not created:
-                return CheckoutCreate(checkout=checkout, errors=errors)
+                return CheckoutCreate(checkout=checkout)
         else:
             checkout = models.Cart()
 
-        cleaned_input = cls.clean_input(info, checkout, input, errors)
+        cleaned_input = cls.clean_input(info, checkout, input)
         checkout = cls.construct_instance(checkout, cleaned_input)
-        cls.clean_instance(checkout, errors)
+        cls.clean_instance(checkout)
         cls.save(info, checkout, cleaned_input)
         cls._save_m2m(info, checkout, cleaned_input)
-        return CheckoutCreate(checkout=checkout, errors=errors)
+        return CheckoutCreate(checkout=checkout)
 
 
 class CheckoutLinesAdd(BaseMutation):
@@ -210,16 +206,14 @@ class CheckoutLinesAdd(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, checkout_id, lines, replace=False):
-        errors = []
         checkout = cls.get_node_or_error(
-            info, checkout_id, errors, 'checkout_id', only_type=Checkout)
+            info, checkout_id, only_type=Checkout, field='checkout_id')
 
         variants, quantities = None, None
 
         variant_ids = [line.get('variant_id') for line in lines]
         variants = cls.get_nodes_or_error(
-            ids=variant_ids, errors=errors, field='variant_id',
-            only_type=ProductVariant)
+            variant_ids, 'variant_id', ProductVariant)
         quantities = [line.get('quantity') for line in lines]
 
         check_lines_quantity(variants, quantities)
@@ -227,7 +221,7 @@ class CheckoutLinesAdd(BaseMutation):
         # FIXME test if below function is called
         clean_shipping_method(
             checkout=checkout, method=checkout.shipping_method,
-            errors=errors, discounts=info.context.discounts,
+            discounts=info.context.discounts,
             taxes=get_taxes_for_address(checkout.shipping_address))
 
         if variants and quantities:
@@ -238,7 +232,7 @@ class CheckoutLinesAdd(BaseMutation):
         recalculate_cart_discount(
             checkout, info.context.discounts, info.context.taxes)
 
-        return CheckoutLinesAdd(checkout=checkout, errors=errors)
+        return CheckoutLinesAdd(checkout=checkout)
 
 
 class CheckoutLinesUpdate(CheckoutLinesAdd):
@@ -266,25 +260,24 @@ class CheckoutLineDelete(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, checkout_id, line_id):
-        errors = []
         checkout = cls.get_node_or_error(
-            info, checkout_id, errors, 'checkout_id', only_type=Checkout)
+            info, checkout_id, only_type=Checkout, field='checkout_id')
         line = cls.get_node_or_error(
-            info, line_id, errors, 'line_id', only_type=CheckoutLine)
+            info, line_id, only_type=CheckoutLine, field='line_id')
 
         if line and line in checkout.lines.all():
             line.delete()
 
         # FIXME test if below function is called
         clean_shipping_method(
-            checkout=checkout, method=checkout.shipping_method, errors=errors,
+            checkout=checkout, method=checkout.shipping_method,
             discounts=info.context.discounts,
             taxes=get_taxes_for_address(checkout.shipping_address))
 
         recalculate_cart_discount(
             checkout, info.context.discounts, info.context.taxes)
 
-        return CheckoutLineDelete(checkout=checkout, errors=errors)
+        return CheckoutLineDelete(checkout=checkout)
 
 
 class CheckoutCustomerAttach(BaseMutation):
@@ -301,14 +294,13 @@ class CheckoutCustomerAttach(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, checkout_id, customer_id):
-        errors = []
         checkout = cls.get_node_or_error(
-            info, checkout_id, errors, 'checkout_id', only_type=Checkout)
+            info, checkout_id, only_type=Checkout, field='checkout_id')
         customer = cls.get_node_or_error(
-            info, customer_id, errors, 'customer_id', only_type=User)
+            info, customer_id, only_type=User, field='customer_id')
         checkout.user = customer
         checkout.save(update_fields=['user'])
-        return CheckoutCustomerAttach(checkout=checkout, errors=errors)
+        return CheckoutCustomerAttach(checkout=checkout)
 
 
 class CheckoutCustomerDetach(BaseMutation):
@@ -322,9 +314,8 @@ class CheckoutCustomerDetach(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, checkout_id):
-        errors = []
         checkout = cls.get_node_or_error(
-            info, checkout_id, errors, 'checkout_id', only_type=Checkout)
+            info, checkout_id, only_type=Checkout, field='checkout_id')
         checkout.user = None
         checkout.save(update_fields=['user'])
         return CheckoutCustomerDetach(checkout=checkout)
@@ -345,17 +336,16 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
     @classmethod
     def perform_mutation(cls, root, info, checkout_id, shipping_address):
-        errors = []
         checkout = cls.get_node_or_error(
-            info, checkout_id, errors, 'checkout_id', only_type=Checkout)
+            info, checkout_id, only_type=Checkout, field='checkout_id')
         shipping_address = cls.validate_address(
             shipping_address, instance=checkout.shipping_address)
 
         # FIXME test if below function is called
         clean_shipping_method(
-            checkout, checkout.shipping_method, errors,
-            info.context.discounts,
-            get_taxes_for_address(shipping_address))
+            checkout=checkout, method=checkout.shipping_method,
+            discounts=info.context.discounts,
+            taxes=get_taxes_for_address(shipping_address))
 
         with transaction.atomic():
             shipping_address.save()
@@ -363,7 +353,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         recalculate_cart_discount(
             checkout, info.context.discounts, info.context.taxes)
 
-        return CheckoutShippingAddressUpdate(checkout=checkout, errors=errors)
+        return CheckoutShippingAddressUpdate(checkout=checkout)
 
 
 class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
@@ -380,16 +370,15 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
 
     @classmethod
     def perform_mutation(cls, root, info, checkout_id, billing_address):
-        errors = []
         checkout = cls.get_node_or_error(
-            info, checkout_id, errors, 'checkout_id', only_type=Checkout)
+            info, checkout_id, only_type=Checkout, field='checkout_id')
 
         billing_address = cls.validate_address(
             billing_address, instance=checkout.billing_address)
         with transaction.atomic():
             billing_address.save()
             change_billing_address_in_cart(checkout, billing_address)
-        return CheckoutShippingAddressUpdate(checkout=checkout, errors=errors)
+        return CheckoutShippingAddressUpdate(checkout=checkout)
 
 
 class CheckoutEmailUpdate(BaseMutation):
@@ -404,14 +393,13 @@ class CheckoutEmailUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, checkout_id, email):
-        errors = []
         checkout = cls.get_node_or_error(
-            info, checkout_id, errors, 'checkout_id', only_type=Checkout)
+            info, checkout_id, only_type=Checkout, field='checkout_id')
 
         checkout.email = email
-        cls.clean_instance(checkout, errors)
+        cls.clean_instance(checkout)
         checkout.save(update_fields=['email'])
-        return CheckoutEmailUpdate(checkout=checkout, errors=errors)
+        return CheckoutEmailUpdate(checkout=checkout)
 
 
 class CheckoutShippingMethodUpdate(BaseMutation):
@@ -427,23 +415,23 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, checkout_id, shipping_method_id):
-        errors = []
         checkout = cls.get_node_or_error(
-            info, checkout_id, errors, 'checkout_id', only_type=Checkout)
+            info, checkout_id, only_type=Checkout, field='checkout_id')
         shipping_method = cls.get_node_or_error(
-            info, shipping_method_id, errors, 'shipping_method_id',
-            only_type=ShippingMethod)
+            info, shipping_method_id, only_type=ShippingMethod,
+            field='shipping_method_id')
 
         clean_shipping_method(
-            checkout, shipping_method, errors, info.context.discounts,
-            info.context.taxes, remove=False)
+            checkout=checkout, method=shipping_method,
+            discounts=info.context.discounts, taxes=info.context.taxes,
+            remove=False)
 
         checkout.shipping_method = shipping_method
         checkout.save(update_fields=['shipping_method'])
         recalculate_cart_discount(
             checkout, info.context.discounts, info.context.taxes)
 
-        return CheckoutShippingMethodUpdate(checkout=checkout, errors=errors)
+        return CheckoutShippingMethodUpdate(checkout=checkout)
 
 
 class CheckoutComplete(BaseMutation):
@@ -460,9 +448,8 @@ class CheckoutComplete(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, checkout_id):
-        errors = []
         checkout = cls.get_node_or_error(
-            info, checkout_id, errors, 'checkout_id', only_type=Checkout)
+            info, checkout_id, only_type=Checkout, field='checkout_id')
 
         taxes = get_taxes_for_cart(checkout, info.context.taxes)
         clean_checkout(checkout, taxes, info.context.discounts)
@@ -494,7 +481,7 @@ class CheckoutComplete(BaseMutation):
                 payment=payment, payment_token=payment.token)
         except PaymentError as e:
             raise ValidationError(str(e))
-        return CheckoutComplete(order=order, errors=errors)
+        return CheckoutComplete(order=order)
 
 
 class CheckoutUpdateVoucher(BaseMutation):
@@ -512,11 +499,8 @@ class CheckoutUpdateVoucher(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, checkout_id, voucher_code=None):
-        errors = []
         checkout = cls.get_node_or_error(
-            info, checkout_id, errors, 'checkout_id', only_type=Checkout)
-        if checkout is None:
-            return CheckoutUpdateVoucher(errors=errors)
+            info, checkout_id, only_type=Checkout, field='checkout_id')
 
         if voucher_code:
             try:
@@ -537,4 +521,4 @@ class CheckoutUpdateVoucher(BaseMutation):
             if existing_voucher:
                 remove_voucher_from_cart(checkout)
 
-        return CheckoutUpdateVoucher(checkout=checkout, errors=errors)
+        return CheckoutUpdateVoucher(checkout=checkout)

@@ -57,10 +57,9 @@ class MenuCreate(ModelMutation):
         return user.has_perm('menu.manage_menus')
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_input(cls, info, instance, input):
+        cleaned_input = super().clean_input(info, instance, input)
         items = []
-        errors = {}
         for item in cleaned_input.get('items', []):
             category = item.get('category')
             collection = item.get('collection')
@@ -71,23 +70,19 @@ class MenuCreate(ModelMutation):
             else:
                 if category:
                     category = cls.get_node_or_error(
-                        info, category, errors, 'items', only_type=Category)
+                        info, category, field='items', only_type=Category)
                     item['category'] = category
                 elif collection:
                     collection = cls.get_node_or_error(
-                        info, collection, errors, 'items',
-                        only_type=Collection)
+                        info, collection, field='items', only_type=Collection)
                     item['collection'] = collection
                 elif page:
                     page = cls.get_node_or_error(
-                        info, page, errors, 'items', only_type=Page)
+                        info, page, field='items', only_type=Page)
                     item['page'] = page
                 elif not url:
                     raise ValidationError({'items': 'No menu item provided.'})
                 items.append(item)
-
-        if errors:
-            raise ValidationError(errors)
 
         cleaned_input['items'] = items
         return cleaned_input
@@ -148,8 +143,8 @@ class MenuItemCreate(ModelMutation):
         return user.has_perm('menu.manage_menus')
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_input(cls, info, instance, input):
+        cleaned_input = super().clean_input(info, instance, input)
         items = [
             cleaned_input.get('page'), cleaned_input.get('collection'),
             cleaned_input.get('url'), cleaned_input.get('category')]
@@ -220,11 +215,9 @@ class AssignNavigation(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, navigation_type, menu=None):
-        errors = []
         site_settings = info.context.site.settings
         if menu is not None:
-            menu = cls.get_node_or_error(
-                info, menu, errors=errors, field='menu')
+            menu = cls.get_node_or_error(info, menu, field='menu')
 
         if navigation_type == NavigationType.MAIN:
             site_settings.top_menu = menu
@@ -236,4 +229,4 @@ class AssignNavigation(BaseMutation):
             raise AssertionError(
                 'Unknown navigation type: %s' % navigation_type)
 
-        return AssignNavigation(menu=menu, errors=errors)
+        return AssignNavigation(menu=menu)

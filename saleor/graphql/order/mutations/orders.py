@@ -119,8 +119,7 @@ class OrderUpdateShipping(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, id, input):
-        errors = []
-        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        order = cls.get_node_or_error(info, id, only_type=Order)
 
         if not input['shipping_method']:
             if not order.is_draft() and order.is_shipping_required():
@@ -138,8 +137,8 @@ class OrderUpdateShipping(BaseMutation):
             return OrderUpdateShipping(order=order)
 
         method = cls.get_node_or_error(
-            info, input['shipping_method'], errors,
-            'shipping_method', ShippingMethod)
+            info, input['shipping_method'], field='shipping_method',
+            only_type=ShippingMethod)
 
         clean_order_update_shipping(order, method)
 
@@ -178,8 +177,7 @@ class OrderAddNote(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, id, input):
-        errors = []
-        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        order = cls.get_node_or_error(info, id, only_type=Order)
         event = order.events.create(
             type=OrderEvents.NOTE_ADDED.value,
             user=info.context.user,
@@ -207,8 +205,7 @@ class OrderCancel(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, id, restock):
-        errors = []
-        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        order = cls.get_node_or_error(info, id, only_type=Order)
         clean_order_cancel(order)
         cancel_order(order=order, restock=restock)
         if restock:
@@ -238,8 +235,7 @@ class OrderMarkAsPaid(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, id):
-        errors = []
-        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        order = cls.get_node_or_error(info, id, only_type=Order)
         try:
             clean_mark_order_as_paid(order)
         except PaymentError as e:
@@ -266,12 +262,11 @@ class OrderCapture(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, id, amount):
-        errors = []
         if amount <= 0:
             raise ValidationError({
                 'amount': 'Amount should be a positive number.'})
 
-        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        order = cls.get_node_or_error(info, id, only_type=Order)
         payment = order.get_last_payment()
         clean_order_capture(payment, amount)
 
@@ -303,8 +298,7 @@ class OrderVoid(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, id):
-        errors = []
-        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        order = cls.get_node_or_error(info, id, only_type=Order)
         payment = order.get_last_payment()
         clean_void_payment(payment)
         try:
@@ -335,12 +329,11 @@ class OrderRefund(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, id, amount):
-        errors = []
         if amount <= 0:
             raise ValidationError({
                 'amount': 'Amount should be a positive number.'})
 
-        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        order = cls.get_node_or_error(info, id, only_type=Order)
         payment = order.get_last_payment()
         clean_refund_payment(payment, amount)
 

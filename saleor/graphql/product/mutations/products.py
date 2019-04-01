@@ -48,18 +48,18 @@ class CategoryCreate(ModelMutation):
         model = models.Category
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_input(cls, info, instance, input):
+        cleaned_input = super().clean_input(info, instance, input)
         if 'slug' not in cleaned_input and 'name' in cleaned_input:
             cleaned_input['slug'] = slugify(cleaned_input['name'])
         parent_id = input['parent_id']
         if parent_id:
             parent = cls.get_node_or_error(
-                info, parent_id, errors, field='parent', only_type=Category)
+                info, parent_id, field='parent', only_type=Category)
             cleaned_input['parent'] = parent
         if input.get('background_image'):
             image_data = info.context.FILES.get(input['background_image'])
-            validate_image_file(cls, image_data, 'background_image', errors)
+            validate_image_file(image_data, 'background_image')
         clean_seo_fields(cleaned_input)
         return cleaned_input
 
@@ -151,13 +151,13 @@ class CollectionCreate(ModelMutation):
         return user.has_perm('product.manage_products')
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_input(cls, info, instance, input):
+        cleaned_input = super().clean_input(info, instance, input)
         if 'slug' not in cleaned_input and 'name' in cleaned_input:
             cleaned_input['slug'] = slugify(cleaned_input['name'])
         if input.get('background_image'):
             image_data = info.context.FILES.get(input['background_image'])
-            validate_image_file(cls, image_data, 'background_image', errors)
+            validate_image_file(image_data, 'background_image')
         clean_seo_fields(cleaned_input)
         return cleaned_input
 
@@ -223,13 +223,11 @@ class CollectionAddProducts(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, collection_id, products):
-        errors = []
         collection = cls.get_node_or_error(
-            info, collection_id, errors, 'collectionId', only_type=Collection)
-        products = cls.get_nodes_or_error(
-            products, errors, 'products', only_type=Product)
+            info, collection_id, field='collection_id', only_type=Collection)
+        products = cls.get_nodes_or_error(products, 'products', Product)
         collection.products.add(*products)
-        return CollectionAddProducts(collection=collection, errors=[])
+        return CollectionAddProducts(collection=collection)
 
 
 class CollectionRemoveProducts(BaseMutation):
@@ -252,11 +250,10 @@ class CollectionRemoveProducts(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, collection_id, products):
-        errors = []
         collection = cls.get_node_or_error(
-            info, collection_id, errors, 'collectionId', only_type=Collection)
+            info, collection_id, field='collection_id', only_type=Collection)
         products = cls.get_nodes_or_error(
-            products, errors, 'products', only_type=Product)
+            products, 'products', only_type=Product)
         collection.products.remove(*products)
         return CollectionRemoveProducts(collection=collection)
 
@@ -324,8 +321,8 @@ class ProductCreate(ModelMutation):
         model = models.Product
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_input(cls, info, instance, input):
+        cleaned_input = super().clean_input(info, instance, input)
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
         # `Product` model, which is HStore field that maps attribute's PK to
@@ -345,11 +342,11 @@ class ProductCreate(ModelMutation):
             else:
                 cleaned_input['attributes'] = attributes
         clean_seo_fields(cleaned_input)
-        cls.clean_sku(product_type, cleaned_input, errors)
+        cls.clean_sku(product_type, cleaned_input)
         return cleaned_input
 
     @classmethod
-    def clean_sku(cls, product_type, cleaned_input, errors):
+    def clean_sku(cls, product_type, cleaned_input):
         """Validate SKU input field.
 
         When creating products that don't use variants, SKU is required in
@@ -402,7 +399,7 @@ class ProductUpdate(ProductCreate):
         model = models.Product
 
     @classmethod
-    def clean_sku(cls, product_type, cleaned_input, errors):
+    def clean_sku(cls, product_type, cleaned_input):
         input_sku = cleaned_input.get('sku')
         if (not product_type.has_variants and
                 input_sku and
@@ -482,8 +479,7 @@ class ProductVariantCreate(ModelMutation):
         model = models.ProductVariant
 
     @classmethod
-    def clean_product_type_attributes(
-            cls, attributes_qs, attributes_input, errors):
+    def clean_product_type_attributes(cls, attributes_qs, attributes_input):
         # transform attributes_input list to a dict of slug:value pairs
         attributes_input = {
             item['slug']: item['value'] for item in attributes_input}
@@ -496,8 +492,8 @@ class ProductVariantCreate(ModelMutation):
                     fieldname: 'This field cannot be blank.'})
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_input(cls, info, instance, input):
+        cleaned_input = super().clean_input(info, instance, input)
 
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
@@ -513,7 +509,7 @@ class ProductVariantCreate(ModelMutation):
                 'values')
             try:
                 cls.clean_product_type_attributes(
-                    variant_attrs, attributes_input, errors)
+                    variant_attrs, attributes_input)
                 attributes = attributes_to_hstore(
                     attributes_input, variant_attrs)
             except ValueError as e:
@@ -675,11 +671,10 @@ class ProductImageCreate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, input):
-        errors = []
         product = cls.get_node_or_error(
-            info, input['product'], errors, 'product', only_type=Product)
+            info, input['product'], field='product', only_type=Product)
         image_data = info.context.FILES.get(input['image'])
-        validate_image_file(cls, image_data, 'image', errors)
+        validate_image_file(image_data, 'image')
 
         image = product.images.create(
             image=image_data, alt=input.get('alt', ''))
@@ -711,15 +706,12 @@ class ProductImageUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, id, input):
-        errors = []
-        image = cls.get_node_or_error(
-            info, id, errors, 'id', only_type=ProductImage)
+        image = cls.get_node_or_error(info, id, only_type=ProductImage)
         product = image.product
-        if not errors:
-            alt = input.get('alt')
-            if alt is not None:
-                image.alt = alt
-                image.save(update_fields=['alt'])
+        alt = input.get('alt')
+        if alt is not None:
+            image.alt = alt
+            image.save(update_fields=['alt'])
         return ProductImageUpdate(product=product, image=image)
 
 
@@ -744,26 +736,27 @@ class ProductImageReorder(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, product_id, images_ids):
-        errors = []
         product = cls.get_node_or_error(
-            info, product_id, errors, 'productId', Product)
+            info, product_id, field='product_id', only_type=Product)
         if len(images_ids) != product.images.count():
             raise ValidationError({
                 'order': 'Incorrect number of image IDs provided.'})
+
         images = []
         for image_id in images_ids:
             image = cls.get_node_or_error(
-                info, image_id, errors, 'order', only_type=ProductImage)
+                info, image_id, field='order', only_type=ProductImage)
             if image and image.product != product:
                 raise ValidationError({
                     'order':
                     'Image %(image_id)s does not belong to this product.'},
                     params={'image_id': image_id})
             images.append(image)
-        if not errors:
-            for order, image in enumerate(images):
-                image.sort_order = order
-                image.save(update_fields=['sort_order'])
+
+        for order, image in enumerate(images):
+            image.sort_order = order
+            image.save(update_fields=['sort_order'])
+
         return ProductImageReorder(
             product=product, images=images)
 
@@ -785,12 +778,9 @@ class ProductImageDelete(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, id):
-        errors = []
-        image = cls.get_node_or_error(
-            info, id, errors, 'id', only_type=ProductImage)
+        image = cls.get_node_or_error(info, id, only_type=ProductImage)
         image_id = image.id
-        if not errors:
-            image.delete()
+        image.delete()
         image.id = image_id
         return ProductImageDelete(
             product=image.product, image=image)
@@ -817,11 +807,10 @@ class VariantImageAssign(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, image_id, variant_id):
-        errors = []
         image = cls.get_node_or_error(
-            info, image_id, errors, 'imageId', ProductImage)
+            info, image_id, field='image_id', only_type=ProductImage)
         variant = cls.get_node_or_error(
-            info, variant_id, errors, 'variantId', ProductVariant)
+            info, variant_id, field='variant_id', only_type=ProductVariant)
         if image and variant:
             # check if the given image and variant can be matched together
             image_belongs_to_product = variant.product.images.filter(
@@ -855,20 +844,18 @@ class VariantImageUnassign(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, image_id, variant_id):
-        errors = []
         image = cls.get_node_or_error(
-            info, image_id, errors, 'imageId', ProductImage)
+            info, image_id, field='image_id', only_type=ProductImage)
         variant = cls.get_node_or_error(
-            info, variant_id, errors, 'variantId', ProductVariant)
-        if not errors:
-            if image and variant:
-                try:
-                    variant_image = models.VariantImage.objects.get(
-                        image=image, variant=variant)
-                except models.VariantImage.DoesNotExist:
-                    raise ValidationError({
-                        'image_id': 'Image is not assigned to this variant.'})
-                else:
-                    variant_image.delete()
-        return VariantImageUnassign(
-            product_variant=variant, image=image)
+            info, variant_id, field='variant_id', only_type=ProductVariant)
+
+        try:
+            variant_image = models.VariantImage.objects.get(
+                image=image, variant=variant)
+        except models.VariantImage.DoesNotExist:
+            raise ValidationError({
+                'image_id': 'Image is not assigned to this variant.'})
+        else:
+            variant_image.delete()
+
+        return VariantImageUnassign(product_variant=variant, image=image)
