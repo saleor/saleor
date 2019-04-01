@@ -58,7 +58,7 @@ def fulfill_order_line(order_line, quantity):
     order_line.save(update_fields=['quantity_fulfilled'])
 
 
-def fulfill_digital_lines(order: Order):
+def automatically_fulfill_digital_lines(order: Order):
     """Fulfill all digital lines which have enabled automatic fulfillment
     setting"""
     order = Order.objects.get(id=order.id)

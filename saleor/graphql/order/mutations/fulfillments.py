@@ -111,6 +111,8 @@ class FulfillmentCreate(BaseMutation):
         fulfillment_lines = []
         for order_line, quantity in zip(order_lines, quantities):
             fulfill_order_line(order_line, quantity)
+            if order_line.is_digital:
+                order_line.variant.digital_content.urls.create(line=order_line)
             fulfillment_lines.append(
                 models.FulfillmentLine(
                     order_line=order_line, fulfillment=fulfillment,

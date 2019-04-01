@@ -17,7 +17,7 @@ from saleor.order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order,
     change_order_line_quantity, delete_order_line, recalculate_order,
     fulfill_order_line, restock_fulfillment_lines, restock_order_lines,
-    update_order_prices, update_order_status, fulfill_digital_lines)
+    update_order_prices, update_order_status, automatically_fulfill_digital_lines)
 from saleor.payment import ChargeStatus
 from saleor.payment.models import Payment
 from saleor.product.models import DigitalContent
@@ -596,7 +596,7 @@ def test_fulfill_digital_lines(mock_digital_settings, order_with_lines):
     line.save()
 
     order_with_lines.refresh_from_db()
-    fulfill_digital_lines(order_with_lines)
+    automatically_fulfill_digital_lines(order_with_lines)
     line.refresh_from_db()
     fulfillment = Fulfillment.objects.get(order=order_with_lines)
     fulfillment_lines = fulfillment.lines.all()

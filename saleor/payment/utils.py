@@ -79,7 +79,7 @@ def handle_fully_paid_order(order):
                 'email_type': OrderEventsEmails.PAYMENT.value})
 
         if order_utils.order_needs_automatic_fullfilment(order):
-            order_utils.fulfill_digital_lines(order)
+            order_utils.automatically_fulfill_digital_lines(order)
             # send_email
     try:
         analytics.report_order(order.tracking_client_id, order)
