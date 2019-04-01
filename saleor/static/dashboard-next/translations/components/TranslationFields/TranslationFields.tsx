@@ -142,7 +142,7 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
                 })}
               </Typography>
               {fields.map(field => (
-                <>
+                <React.Fragment key={field.name}>
                   <Hr className={classes.hr} />
                   <Typography className={classes.fieldName} variant="body1">
                     {field.displayName}
@@ -214,7 +214,7 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
                       <Skeleton />
                     )}
                   </Typography>
-                </>
+                </React.Fragment>
               ))}
             </Grid>
           </CardContent>
