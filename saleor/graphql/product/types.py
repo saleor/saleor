@@ -147,10 +147,11 @@ class SelectedAttribute(graphene.ObjectType):
     class Meta:
         description = 'Represents a custom attribute.'
 
+
 class DigitalContentUrl(CountableDjangoObjectType):
     class Meta:
         model = models.DigitalContentUrl
-        exclude_fields = []
+        only_fields = ['token', 'content', 'created', 'download_num']
         interfaces = (relay.Node,)
 
 

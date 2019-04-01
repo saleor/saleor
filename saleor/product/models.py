@@ -343,7 +343,7 @@ class DigitalContentUrl(models.Model):
         null=True, on_delete=models.CASCADE)
 
     def save(self, force_insert=False, force_update=False, using=None,
-                 update_fields=None):
+             update_fields=None):
         if not self.token:
             self.token = str(uuid4()).replace('-', '')
         super().save(force_insert, force_update, using, update_fields)
