@@ -18,6 +18,14 @@ import {
   CollectionTranslationsVariables
 } from "./types/CollectionTranslations";
 import {
+  PageTranslationDetails,
+  PageTranslationDetailsVariables
+} from "./types/PageTranslationDetails";
+import {
+  PageTranslations,
+  PageTranslationsVariables
+} from "./types/PageTranslations";
+import {
   ProductTranslationDetails,
   ProductTranslationDetailsVariables
 } from "./types/ProductTranslationDetails";
@@ -25,6 +33,22 @@ import {
   ProductTranslations,
   ProductTranslationsVariables
 } from "./types/ProductTranslations";
+import {
+  SaleTranslationDetails,
+  SaleTranslationDetailsVariables
+} from "./types/SaleTranslationDetails";
+import {
+  SaleTranslations,
+  SaleTranslationsVariables
+} from "./types/SaleTranslations";
+import {
+  VoucherTranslationDetails,
+  VoucherTranslationDetailsVariables
+} from "./types/VoucherTranslationDetails";
+import {
+  VoucherTranslations,
+  VoucherTranslationsVariables
+} from "./types/VoucherTranslations";
 
 export const categoryTranslationFragment = gql`
   fragment CategoryTranslationFragment on Category {
@@ -81,6 +105,69 @@ export const productTranslationFragment = gql`
       name
       seoDescription
       seoTitle
+    }
+  }
+`;
+export const saleTranslationFragment = gql`
+  fragment SaleTranslationFragment on Sale {
+    id
+    name
+    translation(languageCode: $language) {
+      id
+      language {
+        code
+        language
+      }
+      name
+    }
+  }
+`;
+export const voucherTranslationFragment = gql`
+  fragment VoucherTranslationFragment on Voucher {
+    id
+    name
+    translation(languageCode: $language) {
+      id
+      language {
+        code
+        language
+      }
+      name
+    }
+  }
+`;
+export const shippingMethodTranslationFragment = gql`
+  fragment ShippingMethodTranslationFragment on ShippingMethod {
+    id
+    name
+    translation(languageCode: $language) {
+      id
+      language {
+        code
+        language
+      }
+      name
+    }
+  }
+`;
+export const pageTranslationFragment = gql`
+  fragment PageTranslationFragment on Page {
+    id
+    contentJson
+    seoDescription
+    seoTitle
+    title
+
+    translation(languageCode: $language) {
+      id
+      contentJson
+      seoDescription
+      seoTitle
+      title
+      language {
+        code
+        language
+      }
     }
   }
 `;
@@ -166,6 +253,87 @@ export const TypedProductTranslations = TypedQuery<
   ProductTranslationsVariables
 >(productTranslations);
 
+const pageTranslations = gql`
+  ${pageInfoFragment}
+  ${pageTranslationFragment}
+  query PageTranslations(
+    $language: LanguageCodeEnum!
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
+  ) {
+    pages(before: $before, after: $after, first: $first, last: $last) {
+      edges {
+        node {
+          ...PageTranslationFragment
+        }
+      }
+      pageInfo {
+        ...PageInfoFragment
+      }
+    }
+  }
+`;
+export const TypedPageTranslations = TypedQuery<
+  PageTranslations,
+  PageTranslationsVariables
+>(pageTranslations);
+
+const voucherTranslations = gql`
+  ${pageInfoFragment}
+  ${voucherTranslationFragment}
+  query VoucherTranslations(
+    $language: LanguageCodeEnum!
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
+  ) {
+    vouchers(before: $before, after: $after, first: $first, last: $last) {
+      edges {
+        node {
+          ...VoucherTranslationFragment
+        }
+      }
+      pageInfo {
+        ...PageInfoFragment
+      }
+    }
+  }
+`;
+export const TypedVoucherTranslations = TypedQuery<
+  VoucherTranslations,
+  VoucherTranslationsVariables
+>(voucherTranslations);
+
+const saleTranslations = gql`
+  ${pageInfoFragment}
+  ${saleTranslationFragment}
+  query SaleTranslations(
+    $language: LanguageCodeEnum!
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
+  ) {
+    sales(before: $before, after: $after, first: $first, last: $last) {
+      edges {
+        node {
+          ...SaleTranslationFragment
+        }
+      }
+      pageInfo {
+        ...PageInfoFragment
+      }
+    }
+  }
+`;
+export const TypedSaleTranslations = TypedQuery<
+  SaleTranslations,
+  SaleTranslationsVariables
+>(saleTranslations);
+
 const productTranslationDetails = gql`
   ${productTranslationFragment}
   query ProductTranslationDetails($id: ID!, $language: LanguageCodeEnum!) {
@@ -204,3 +372,42 @@ export const TypedCollectionTranslationDetails = TypedQuery<
   CollectionTranslationDetails,
   CollectionTranslationDetailsVariables
 >(collectionTranslationDetails);
+
+const pageTranslationDetails = gql`
+  ${pageTranslationFragment}
+  query PageTranslationDetails($id: ID!, $language: LanguageCodeEnum!) {
+    page(id: $id) {
+      ...PageTranslationFragment
+    }
+  }
+`;
+export const TypedPageTranslationDetails = TypedQuery<
+  PageTranslationDetails,
+  PageTranslationDetailsVariables
+>(pageTranslationDetails);
+
+const saleTranslationDetails = gql`
+  ${saleTranslationFragment}
+  query SaleTranslationDetails($id: ID!, $language: LanguageCodeEnum!) {
+    sale(id: $id) {
+      ...SaleTranslationFragment
+    }
+  }
+`;
+export const TypedSaleTranslationDetails = TypedQuery<
+  SaleTranslationDetails,
+  SaleTranslationDetailsVariables
+>(saleTranslationDetails);
+
+const voucherTranslationDetails = gql`
+  ${voucherTranslationFragment}
+  query VoucherTranslationDetails($id: ID!, $language: LanguageCodeEnum!) {
+    voucher(id: $id) {
+      ...VoucherTranslationFragment
+    }
+  }
+`;
+export const TypedVoucherTranslationDetails = TypedQuery<
+  VoucherTranslationDetails,
+  VoucherTranslationDetailsVariables
+>(voucherTranslationDetails);

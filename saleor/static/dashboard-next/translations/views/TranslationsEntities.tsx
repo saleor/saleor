@@ -14,7 +14,10 @@ import TranslationsEntitiesListPage, {
 import {
   TypedCategoryTranslations,
   TypedCollectionTranslations,
-  TypedProductTranslations
+  TypedPageTranslations,
+  TypedProductTranslations,
+  TypedSaleTranslations,
+  TypedVoucherTranslations
 } from "../queries";
 import {
   languageEntityUrl,
@@ -66,11 +69,32 @@ const TranslationsEntities: React.FC<TranslationsEntitiesProps> = ({
             tab: TranslatableEntities.collections
           })
       ),
+    onPagesTabClick: () =>
+      navigate(
+        "?" +
+          stringifyQs({
+            tab: TranslatableEntities.pages
+          })
+      ),
     onProductsTabClick: () =>
       navigate(
         "?" +
           stringifyQs({
             tab: TranslatableEntities.products
+          })
+      ),
+    onSalesTabClick: () =>
+      navigate(
+        "?" +
+          stringifyQs({
+            tab: TranslatableEntities.sales
+          })
+      ),
+    onVouchersTabClick: () =>
+      navigate(
+        "?" +
+          stringifyQs({
+            tab: TranslatableEntities.vouchers
           })
       )
   };
@@ -244,6 +268,138 @@ const TranslationsEntities: React.FC<TranslationsEntitiesProps> = ({
             );
           }}
         </TypedCollectionTranslations>
+      ) : params.tab === "sales" ? (
+        <TypedSaleTranslations
+          variables={{ language: language as any, ...paginationState }}
+        >
+          {({ data, loading }) => {
+            const { loadNextPage, loadPreviousPage, pageInfo } = paginate(
+              maybe(() => data.sales.pageInfo),
+              paginationState,
+              params
+            );
+
+            return (
+              <TranslationsEntitiesList
+                disabled={loading}
+                entities={maybe(() =>
+                  data.sales.edges
+                    .map(edge => edge.node)
+                    .map(node => ({
+                      completion: {
+                        current: node.translation
+                          ? +!!node.translation.name
+                          : 0,
+                        max: 1
+                      },
+                      id: node.id,
+                      name: node.name
+                    }))
+                )}
+                onRowClick={id =>
+                  navigate(
+                    languageEntityUrl(language, TranslatableEntities.sales, id)
+                  )
+                }
+                onNextPage={loadNextPage}
+                onPreviousPage={loadPreviousPage}
+                pageInfo={pageInfo}
+              />
+            );
+          }}
+        </TypedSaleTranslations>
+      ) : params.tab === "vouchers" ? (
+        <TypedVoucherTranslations
+          variables={{ language: language as any, ...paginationState }}
+        >
+          {({ data, loading }) => {
+            const { loadNextPage, loadPreviousPage, pageInfo } = paginate(
+              maybe(() => data.vouchers.pageInfo),
+              paginationState,
+              params
+            );
+
+            return (
+              <TranslationsEntitiesList
+                disabled={loading}
+                entities={maybe(() =>
+                  data.vouchers.edges
+                    .map(edge => edge.node)
+                    .map(node => ({
+                      completion: {
+                        current: node.translation
+                          ? +!!node.translation.name
+                          : 0,
+                        max: 1
+                      },
+                      id: node.id,
+                      name: node.name
+                    }))
+                )}
+                onRowClick={id =>
+                  navigate(
+                    languageEntityUrl(
+                      language,
+                      TranslatableEntities.vouchers,
+                      id
+                    )
+                  )
+                }
+                onNextPage={loadNextPage}
+                onPreviousPage={loadPreviousPage}
+                pageInfo={pageInfo}
+              />
+            );
+          }}
+        </TypedVoucherTranslations>
+      ) : params.tab === "pages" ? (
+        <TypedPageTranslations
+          variables={{ language: language as any, ...paginationState }}
+        >
+          {({ data, loading }) => {
+            const { loadNextPage, loadPreviousPage, pageInfo } = paginate(
+              maybe(() => data.pages.pageInfo),
+              paginationState,
+              params
+            );
+
+            return (
+              <TranslationsEntitiesList
+                disabled={loading}
+                entities={maybe(() =>
+                  data.pages.edges
+                    .map(edge => edge.node)
+                    .map(node => ({
+                      completion: {
+                        current: node.translation
+                          ? [
+                              node.translation.contentJson,
+                              node.translation.seoDescription,
+                              node.translation.seoTitle,
+                              node.translation.title
+                            ].reduce(
+                              (acc, field) => acc + (field !== null ? 1 : 0),
+                              0
+                            )
+                          : 0,
+                        max: 4
+                      },
+                      id: node.id,
+                      name: node.title
+                    }))
+                )}
+                onRowClick={id =>
+                  navigate(
+                    languageEntityUrl(language, TranslatableEntities.pages, id)
+                  )
+                }
+                onNextPage={loadNextPage}
+                onPreviousPage={loadPreviousPage}
+                pageInfo={pageInfo}
+              />
+            );
+          }}
+        </TypedPageTranslations>
       ) : null}
     </TranslationsEntitiesListPage>
   );

@@ -4,7 +4,10 @@ import { TypedMutation } from "../mutations";
 import {
   categoryTranslationFragment,
   collectionTranslationFragment,
-  productTranslationFragment
+  pageTranslationFragment,
+  productTranslationFragment,
+  saleTranslationFragment,
+  voucherTranslationFragment
 } from "./queries";
 import {
   UpdateCategoryTranslations,
@@ -15,9 +18,21 @@ import {
   UpdateCollectionTranslationsVariables
 } from "./types/UpdateCollectionTranslations";
 import {
+  UpdatePageTranslations,
+  UpdatePageTranslationsVariables
+} from "./types/UpdatePageTranslations";
+import {
   UpdateProductTranslations,
   UpdateProductTranslationsVariables
 } from "./types/UpdateProductTranslations";
+import {
+  UpdateSaleTranslations,
+  UpdateSaleTranslationsVariables
+} from "./types/UpdateSaleTranslations";
+import {
+  UpdateVoucherTranslations,
+  UpdateVoucherTranslationsVariables
+} from "./types/UpdateVoucherTranslations";
 
 const updateProductTranslations = gql`
   ${productTranslationFragment}
@@ -87,3 +102,72 @@ export const TypedUpdateCollectionTranslations = TypedMutation<
   UpdateCollectionTranslations,
   UpdateCollectionTranslationsVariables
 >(updateCollectionTranslations);
+
+const updatePageTranslations = gql`
+  ${pageTranslationFragment}
+  mutation UpdatePageTranslations(
+    $id: ID!
+    $input: PageTranslationInput!
+    $language: LanguageCodeEnum!
+  ) {
+    pageTranslate(id: $id, input: $input, languageCode: $language) {
+      errors {
+        field
+        message
+      }
+      page {
+        ...PageTranslationFragment
+      }
+    }
+  }
+`;
+export const TypedUpdatePageTranslations = TypedMutation<
+  UpdatePageTranslations,
+  UpdatePageTranslationsVariables
+>(updatePageTranslations);
+
+const updateVoucherTranslations = gql`
+  ${voucherTranslationFragment}
+  mutation UpdateVoucherTranslations(
+    $id: ID!
+    $input: NameTranslationInput!
+    $language: LanguageCodeEnum!
+  ) {
+    voucherTranslate(id: $id, input: $input, languageCode: $language) {
+      errors {
+        field
+        message
+      }
+      voucher {
+        ...VoucherTranslationFragment
+      }
+    }
+  }
+`;
+export const TypedUpdateVoucherTranslations = TypedMutation<
+  UpdateVoucherTranslations,
+  UpdateVoucherTranslationsVariables
+>(updateVoucherTranslations);
+
+const updateSaleTranslations = gql`
+  ${saleTranslationFragment}
+  mutation UpdateSaleTranslations(
+    $id: ID!
+    $input: NameTranslationInput!
+    $language: LanguageCodeEnum!
+  ) {
+    saleTranslate(id: $id, input: $input, languageCode: $language) {
+      errors {
+        field
+        message
+      }
+      sale {
+        ...SaleTranslationFragment
+      }
+    }
+  }
+`;
+export const TypedUpdateSaleTranslations = TypedMutation<
+  UpdateSaleTranslations,
+  UpdateSaleTranslationsVariables
+>(updateSaleTranslations);

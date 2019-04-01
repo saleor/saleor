@@ -21,9 +21,18 @@ import TranslationsEntitiesComponent, {
   TranslationsEntitiesListQueryParams
 } from "./views/TranslationsEntities";
 import TranslationsLanguageList from "./views/TranslationsLanguageList";
+import TranslationsPagesComponent, {
+  TranslationsPagesQueryParams
+} from "./views/TranslationsPages";
 import TranslationsProductsComponent, {
   TranslationsProductsQueryParams
 } from "./views/TranslationsProducts";
+import TranslationsSaleComponent, {
+  TranslationsSalesQueryParams
+} from "./views/TranslationsSales";
+import TranslationsVouchersComponent, {
+  TranslationsVouchersQueryParams
+} from "./views/TranslationsVouchers";
 
 type TranslationsEntitiesRouteProps = RouteComponentProps<{
   languageCode: string;
@@ -97,6 +106,54 @@ const TranslationsProducts: React.FC<TranslationsEntityRouteProps> = ({
     />
   );
 };
+const TranslationsSales: React.FC<TranslationsEntityRouteProps> = ({
+  location,
+  match
+}) => {
+  const qs = parseQs(location.search.substr(1));
+  const params: TranslationsSalesQueryParams = {
+    activeField: qs.activeField
+  };
+  return (
+    <TranslationsSaleComponent
+      id={decodeURIComponent(match.params.id)}
+      languageCode={LanguageCodeEnum[match.params.languageCode]}
+      params={params}
+    />
+  );
+};
+const TranslationsVouchers: React.FC<TranslationsEntityRouteProps> = ({
+  location,
+  match
+}) => {
+  const qs = parseQs(location.search.substr(1));
+  const params: TranslationsVouchersQueryParams = {
+    activeField: qs.activeField
+  };
+  return (
+    <TranslationsVouchersComponent
+      id={decodeURIComponent(match.params.id)}
+      languageCode={LanguageCodeEnum[match.params.languageCode]}
+      params={params}
+    />
+  );
+};
+const TranslationsPages: React.FC<TranslationsEntityRouteProps> = ({
+  location,
+  match
+}) => {
+  const qs = parseQs(location.search.substr(1));
+  const params: TranslationsPagesQueryParams = {
+    activeField: qs.activeField
+  };
+  return (
+    <TranslationsPagesComponent
+      id={decodeURIComponent(match.params.id)}
+      languageCode={LanguageCodeEnum[match.params.languageCode]}
+      params={params}
+    />
+  );
+};
 
 const TranslationsRouter: React.FC = () => (
   <>
@@ -138,6 +195,33 @@ const TranslationsRouter: React.FC = () => (
           ":id"
         )}
         component={TranslationsCollections}
+      />
+      <Route
+        exact
+        path={languageEntityPath(
+          ":languageCode",
+          TranslatableEntities.sales,
+          ":id"
+        )}
+        component={TranslationsSales}
+      />
+      <Route
+        exact
+        path={languageEntityPath(
+          ":languageCode",
+          TranslatableEntities.vouchers,
+          ":id"
+        )}
+        component={TranslationsVouchers}
+      />
+      <Route
+        exact
+        path={languageEntityPath(
+          ":languageCode",
+          TranslatableEntities.pages,
+          ":id"
+        )}
+        component={TranslationsPages}
       />
     </Switch>
   </>
