@@ -12,6 +12,7 @@ import TranslationsCategoriesPage, {
 import { TypedUpdateCategoryTranslations } from "../mutations";
 import { TypedCategoryTranslationDetails } from "../queries";
 import { UpdateCategoryTranslations } from "../types/UpdateCategoryTranslations";
+import { languageEntitiesUrl, TranslatableEntities } from "../urls";
 
 export interface TranslationsCategoriesQueryParams {
   activeField: string;
@@ -89,6 +90,14 @@ const TranslationsCategories: React.FC<TranslationsCategoriesProps> = ({
                 }
                 languageCode={languageCode}
                 saveButtonState={saveButtonState}
+                onBack={() =>
+                  navigate(
+                    languageEntitiesUrl(
+                      languageCode,
+                      TranslatableEntities.categories
+                    )
+                  )
+                }
                 onEdit={onEdit}
                 onSubmit={handleSubmit}
                 category={maybe(() => categoryTranslations.data.category)}

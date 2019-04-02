@@ -1,13 +1,5 @@
+import { stringify as stringifyQs } from "qs";
 import * as urlJoin from "url-join";
-
-const translationsSection = "/translations/";
-
-export const languageListPath = translationsSection;
-export const languageListUrl = translationsSection;
-
-export const languageEntitiesPath = (code: string) =>
-  urlJoin(translationsSection, code);
-export const languageEntitiesUrl = languageEntitiesPath;
 
 export enum TranslatableEntities {
   categories = "categories",
@@ -18,6 +10,20 @@ export enum TranslatableEntities {
   pages = "pages",
   productTypes = "productTypes"
 }
+
+const translationsSection = "/translations/";
+
+export const languageListPath = translationsSection;
+export const languageListUrl = translationsSection;
+
+export const languageEntitiesPath = (code: string) =>
+  urlJoin(translationsSection, code);
+export const languageEntitiesUrl = (code: string, tab?: TranslatableEntities) =>
+  languageEntitiesPath(code) +
+  "?" +
+  stringifyQs({
+    tab
+  });
 
 export const languageEntityPath = (
   code: string,

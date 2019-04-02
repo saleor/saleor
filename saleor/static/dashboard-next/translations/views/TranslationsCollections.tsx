@@ -12,6 +12,7 @@ import TranslationsCollectionsPage, {
 import { TypedUpdateCollectionTranslations } from "../mutations";
 import { TypedCollectionTranslationDetails } from "../queries";
 import { UpdateCollectionTranslations } from "../types/UpdateCollectionTranslations";
+import { languageEntitiesUrl, TranslatableEntities } from "../urls";
 
 export interface TranslationsCollectionsQueryParams {
   activeField: string;
@@ -93,6 +94,14 @@ const TranslationsCollections: React.FC<TranslationsCollectionsProps> = ({
                 languageCode={languageCode}
                 saveButtonState={saveButtonState}
                 onEdit={onEdit}
+                onBack={() =>
+                  navigate(
+                    languageEntitiesUrl(
+                      languageCode,
+                      TranslatableEntities.collections
+                    )
+                  )
+                }
                 onSubmit={handleSubmit}
                 collection={maybe(() => collectionTranslations.data.collection)}
               />

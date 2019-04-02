@@ -7,6 +7,7 @@ import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { VoucherTranslationFragment } from "../../types/VoucherTranslationFragment";
 import TranslationFields from "../TranslationFields";
+import AppHeader from "../../../components/AppHeader";
 
 export interface TranslationsVouchersPageProps {
   activeField: string;
@@ -14,6 +15,7 @@ export interface TranslationsVouchersPageProps {
   languageCode: string;
   voucher: VoucherTranslationFragment;
   saveButtonState: ConfirmButtonTransitionState;
+  onBack: () => void;
   onEdit: (field: string) => void;
   onSubmit: (field: string, data: string) => void;
 }
@@ -30,10 +32,12 @@ const TranslationsVouchersPage: React.StatelessComponent<
   languageCode,
   voucher,
   saveButtonState,
+  onBack,
   onEdit,
   onSubmit
 }) => (
   <Container>
+    <AppHeader onBack={onBack}>{i18n.t("Translations")}</AppHeader>
     <PageHeader
       title={i18n.t(
         'Translation Voucher "{{ voucherName }}" - {{ languageCode }}',

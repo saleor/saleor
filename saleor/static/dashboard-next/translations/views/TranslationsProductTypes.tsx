@@ -19,6 +19,7 @@ import {
 import { TypedProductTypeTranslationDetails } from "../queries";
 import { UpdateAttributeTranslations } from "../types/UpdateAttributeTranslations";
 import { UpdateAttributeValueTranslations } from "../types/UpdateAttributeValueTranslations";
+import { languageEntitiesUrl, TranslatableEntities } from "../urls";
 
 export interface TranslationsProductTypesQueryParams {
   activeField: string;
@@ -129,6 +130,14 @@ const TranslationsProductTypes: React.FC<TranslationsProductTypesProps> = ({
                     }
                     languageCode={languageCode}
                     saveButtonState={saveButtonState}
+                    onBack={() =>
+                      navigate(
+                        languageEntitiesUrl(
+                          languageCode,
+                          TranslatableEntities.productTypes
+                        )
+                      )
+                    }
                     onEdit={onEdit}
                     onSubmit={handleSubmit}
                     productType={maybe(
