@@ -4,7 +4,7 @@ import graphene
 from graphql_jwt.decorators import permission_required
 
 from ....product import models
-from ...core.mutations import BaseMutation
+from ...core.mutations import BaseMutation, ModelMutation
 from ...core.types import Upload
 from ..types import DigitalContent, ProductVariant
 
@@ -199,3 +199,24 @@ class DigitalContentUpdate(BaseMutation):
 
         return DigitalContentUpdate(
             content=digital_content, variant=variant, errors=errors)
+
+
+class DigitalContentUrlCreateInput(graphene.InputObjectType):
+    content = graphene.ID(
+        description='Digital content ID which url will belong to',
+        name='content', required=True)
+
+
+class DigitalContentUrlCreate(ModelMutation):
+    class Arguments:
+        input = DigitalContentUrlCreateInput(
+            required=True, description='Fields required to create a new url.')
+
+    class Meta:
+        description = "Generate new url to digital content"
+        model = models.DigitalContentUrl
+
+    @classmethod
+    @permission_required('product.manage_products')
+    def mutate(cls, root, info, **data):
+        return super().mutate(root, info, **data)

@@ -715,23 +715,21 @@ input DigitalContentUploadInput {
 }
 
 type DigitalContentUrl implements Node {
-  id: ID!
   token: UUID!
   content: DigitalContent!
   created: DateTime!
   downloadNum: Int!
-  line: OrderLine
+  id: ID!
+  url: String
 }
 
-type DigitalContentUrlCountableConnection {
-  pageInfo: PageInfo!
-  edges: [DigitalContentUrlCountableEdge!]!
-  totalCount: Int
+type DigitalContentUrlCreate {
+  errors: [Error!]
+  digitalContentUrl: DigitalContentUrl
 }
 
-type DigitalContentUrlCountableEdge {
-  node: DigitalContentUrl!
-  cursor: String!
+input DigitalContentUrlCreateInput {
+  content: ID!
 }
 
 enum DiscountValueTypeEnum {
@@ -1135,6 +1133,7 @@ type Mutations {
   digitalContentCreate(input: DigitalContentUploadInput!, variantId: ID!): DigitalContentCreate
   digitalContentDelete(variantId: ID!): DigitalContentDelete
   digitalContentUpdate(input: DigitalContentInput!, variantId: ID!): DigitalContentUpdate
+  digitalContentUrlCreate(input: DigitalContentUrlCreateInput!): DigitalContentUrlCreate
   productVariantCreate(input: ProductVariantCreateInput!): ProductVariantCreate
   productVariantDelete(id: ID!): ProductVariantDelete
   productVariantBulkDelete(ids: [ID]!): ProductVariantBulkDelete
@@ -1394,7 +1393,7 @@ type OrderLine implements Node {
   quantityFulfilled: Int!
   unitPrice: TaxedMoney
   taxRate: Float!
-  digitalContentUrls(before: String, after: String, first: Int, last: Int): DigitalContentUrlCountableConnection
+  digitalContentUrl: DigitalContentUrl
   thumbnailUrl(size: Int): String @deprecated(reason: "thumbnailUrl is deprecated, use thumbnail instead")
   thumbnail(size: Int): Image
 }

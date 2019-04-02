@@ -25,7 +25,8 @@ def test_fetch_all_digital_contents(
     response = staff_api_client.post_graphql(
         query, permissions=[permission_manage_products])
     content = get_graphql_content(response)
-    assert len(content['data']['digitalContents']['edges']) == digital_content_num
+    edges = content['data']['digitalContents']['edges']
+    assert len(edges) == digital_content_num
 
 
 def test_fetch_single_digital_content(
@@ -81,8 +82,8 @@ def test_digital_content_create_mutation_custom_settings(
     assert variant.digital_content.content_file
     assert variant.digital_content.max_downloads == max_downloads
     assert variant.digital_content.url_valid_days == url_valid_days
-    assert variant.digital_content.automatic_fulfillment == True
-    assert variant.digital_content.use_default_settings == False
+    assert variant.digital_content.automatic_fulfillment
+    assert not variant.digital_content.use_default_settings
 
 
 def test_digital_content_create_mutation_default_settings(
@@ -189,3 +190,36 @@ def test_digital_content_update_mutation(
     assert digital_content.url_valid_days == url_valid_days
     assert digital_content.automatic_fulfillment
 
+
+def test_digital_content_url_create(
+        monkeypatch, staff_api_client, variant, permission_manage_products,
+        digital_content):
+    query = """
+    mutation digitalContentUrlCreate($input: DigitalContentUrlCreateInput!) {
+        digitalContentUrlCreate(input: $input) {
+            digitalContentUrl {
+                id
+                url
+            }
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+
+    variables = {
+        'input': {
+            'content': graphene.Node.to_global_id(
+                'DigitalContent', digital_content.id),
+        }
+    }
+
+    assert digital_content.urls.count() == 0
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    get_graphql_content(response)
+
+    digital_content.refresh_from_db()
+    assert digital_content.urls.count() == 1

@@ -149,10 +149,15 @@ class SelectedAttribute(graphene.ObjectType):
 
 
 class DigitalContentUrl(CountableDjangoObjectType):
+    url = graphene.String(description='Url for digital content')
+
     class Meta:
         model = models.DigitalContentUrl
-        only_fields = ['token', 'content', 'created', 'download_num']
+        only_fields = ['token', 'content', 'created', 'download_num', 'url']
         interfaces = (relay.Node,)
+
+    def resolve_url(self, info):
+        return self.get_absolute_url()
 
 
 class DigitalContent(CountableDjangoObjectType):
