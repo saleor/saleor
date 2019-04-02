@@ -18,6 +18,9 @@ from .enums import StockAvailability
 from .mutations.attributes import (
     AttributeCreate, AttributeDelete, AttributeUpdate, AttributeValueCreate,
     AttributeValueDelete, AttributeValueUpdate)
+from .mutations.digital_contents import (
+    DigitalContentCreate, DigitalContentDelete, DigitalContentUpdate,
+    DigitalContentUrlCreate)
 from .mutations.products import (
     CategoryCreate, CategoryDelete, CategoryUpdate, CollectionAddProducts,
     CollectionCreate, CollectionDelete, CollectionRemoveProducts,
@@ -26,17 +29,14 @@ from .mutations.products import (
     ProductTypeCreate, ProductTypeDelete, ProductTypeUpdate, ProductUpdate,
     ProductVariantCreate, ProductVariantDelete, ProductVariantUpdate,
     VariantImageAssign, VariantImageUnassign)
-from .mutations.digital_contents import (
-    DigitalContentCreate, DigitalContentDelete, DigitalContentUpdate,
-    DigitalContentUrlCreate)
 from .resolvers import (
     resolve_attributes, resolve_categories, resolve_collections,
-    resolve_product_types, resolve_product_variants, resolve_products,
-    resolve_report_product_sales, resolve_digital_contents)
+    resolve_digital_contents, resolve_product_types, resolve_product_variants,
+    resolve_products, resolve_report_product_sales)
 from .scalars import AttributeScalar
 from .types import (
-    Attribute, Category, Collection, Product, ProductOrder, ProductType,
-    ProductVariant, DigitalContent)
+    Attribute, Category, Collection, DigitalContent, Product, ProductOrder,
+    ProductType, ProductVariant)
 
 
 class ProductQueries(graphene.ObjectType):

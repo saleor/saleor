@@ -180,7 +180,6 @@ class DigitalContent(CountableDjangoObjectType):
         return gql_optimizer.query(qs, info)
 
 
-
 class ProductOrder(graphene.InputObjectType):
     field = graphene.Argument(
         ProductOrderField, required=True,
@@ -565,6 +564,7 @@ class Collection(CountableDjangoObjectType):
             except cls._meta.model.DoesNotExist:
                 return None
         return None
+
 
 class Category(CountableDjangoObjectType):
     ancestors = PrefetchingConnectionField(
