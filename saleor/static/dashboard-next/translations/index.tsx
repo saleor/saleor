@@ -33,6 +33,9 @@ import TranslationsSaleComponent, {
 import TranslationsVouchersComponent, {
   TranslationsVouchersQueryParams
 } from "./views/TranslationsVouchers";
+import TranslationsProductTypesComponent, {
+  TranslationsProductTypesQueryParams
+} from "./views/TranslationsProductTypes";
 
 type TranslationsEntitiesRouteProps = RouteComponentProps<{
   languageCode: string;
@@ -154,6 +157,22 @@ const TranslationsPages: React.FC<TranslationsEntityRouteProps> = ({
     />
   );
 };
+const TranslationsProductTypes: React.FC<TranslationsEntityRouteProps> = ({
+  location,
+  match
+}) => {
+  const qs = parseQs(location.search.substr(1));
+  const params: TranslationsProductTypesQueryParams = {
+    activeField: qs.activeField
+  };
+  return (
+    <TranslationsProductTypesComponent
+      id={decodeURIComponent(match.params.id)}
+      languageCode={LanguageCodeEnum[match.params.languageCode]}
+      params={params}
+    />
+  );
+};
 
 const TranslationsRouter: React.FC = () => (
   <>
@@ -222,6 +241,15 @@ const TranslationsRouter: React.FC = () => (
           ":id"
         )}
         component={TranslationsPages}
+      />
+      <Route
+        exact
+        path={languageEntityPath(
+          ":languageCode",
+          TranslatableEntities.productTypes,
+          ":id"
+        )}
+        component={TranslationsProductTypes}
       />
     </Switch>
   </>

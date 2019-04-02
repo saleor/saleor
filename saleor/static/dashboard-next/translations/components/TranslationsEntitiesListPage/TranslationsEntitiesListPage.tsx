@@ -25,6 +25,7 @@ export interface TranslationsEntitiesFilters {
   onSalesTabClick: () => void;
   onVouchersTabClick: () => void;
   onPagesTabClick: () => void;
+  onProductTypesTabClick: () => void;
 }
 
 export type TranslationsEntitiesListFilterTab = keyof typeof TranslatableEntities;
@@ -48,7 +49,8 @@ const TranslationsEntitiesListPage: React.StatelessComponent<
           "products",
           "sales",
           "vouchers",
-          "pages"
+          "pages",
+          "productTypes"
         ] as TranslationsEntitiesListFilterTab[]).indexOf(filters.current)}
       >
         <FilterTab
@@ -69,6 +71,10 @@ const TranslationsEntitiesListPage: React.StatelessComponent<
           onClick={filters.onVouchersTabClick}
         />
         <FilterTab label={i18n.t("Pages")} onClick={filters.onPagesTabClick} />
+        <FilterTab
+          label={i18n.t("Product Types")}
+          onClick={filters.onProductTypesTabClick}
+        />
       </FilterTabs>
       {children}
     </Card>

@@ -15,7 +15,8 @@ export enum TranslatableEntities {
   collections = "collections",
   sales = "sales",
   vouchers = "vouchers",
-  pages = "pages"
+  pages = "pages",
+  productTypes = "productTypes"
 }
 
 export const languageEntityPath = (

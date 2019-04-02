@@ -10,6 +10,14 @@ import {
   voucherTranslationFragment
 } from "./queries";
 import {
+  UpdateAttributeTranslations,
+  UpdateAttributeTranslationsVariables
+} from "./types/UpdateAttributeTranslations";
+import {
+  UpdateAttributeValueTranslations,
+  UpdateAttributeValueTranslationsVariables
+} from "./types/UpdateAttributeValueTranslations";
+import {
   UpdateCategoryTranslations,
   UpdateCategoryTranslationsVariables
 } from "./types/UpdateCategoryTranslations";
@@ -171,3 +179,57 @@ export const TypedUpdateSaleTranslations = TypedMutation<
   UpdateSaleTranslations,
   UpdateSaleTranslationsVariables
 >(updateSaleTranslations);
+
+const updateAttributeTranslations = gql`
+  mutation UpdateAttributeTranslations(
+    $id: ID!
+    $input: NameTranslationInput!
+    $language: LanguageCodeEnum!
+  ) {
+    attributeTranslate(id: $id, input: $input, languageCode: $language) {
+      errors {
+        field
+        message
+      }
+      attribute {
+        id
+        name
+        translation(languageCode: $language) {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+export const TypedUpdateAttributeTranslations = TypedMutation<
+  UpdateAttributeTranslations,
+  UpdateAttributeTranslationsVariables
+>(updateAttributeTranslations);
+
+const updateAttributeValueTranslations = gql`
+  mutation UpdateAttributeValueTranslations(
+    $id: ID!
+    $input: NameTranslationInput!
+    $language: LanguageCodeEnum!
+  ) {
+    attributeValueTranslate(id: $id, input: $input, languageCode: $language) {
+      errors {
+        field
+        message
+      }
+      attributeValue {
+        id
+        name
+        translation(languageCode: $language) {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+export const TypedUpdateAttributeValueTranslations = TypedMutation<
+  UpdateAttributeValueTranslations,
+  UpdateAttributeValueTranslationsVariables
+>(updateAttributeValueTranslations);
