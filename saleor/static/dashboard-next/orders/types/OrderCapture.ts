@@ -38,6 +38,7 @@ export interface OrderCapture_orderCapture_order_billingAddress {
 
 export interface OrderCapture_orderCapture_order_events_user {
   __typename: "User";
+  id: string;
   email: string;
 }
 

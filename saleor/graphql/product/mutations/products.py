@@ -16,9 +16,9 @@ from ...core.enums import TaxRateType
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal, WeightScalar
 from ...core.types import SeoInput, Upload
-from ...core.utils import clean_seo_fields
+from ...core.utils import clean_seo_fields, validate_image_file
 from ..types import Category, Collection, Product, ProductImage, ProductVariant
-from ..utils import attributes_to_hstore, validate_image_file
+from ..utils import attributes_to_hstore
 
 
 class CategoryInput(graphene.InputObjectType):

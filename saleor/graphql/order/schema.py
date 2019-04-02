@@ -19,8 +19,8 @@ from .mutations.orders import (
     OrderAddNote, OrderCancel, OrderCapture, OrderMarkAsPaid, OrderRefund,
     OrderUpdate, OrderUpdateShipping, OrderVoid)
 from .resolvers import (
-    resolve_homepage_events, resolve_order, resolve_order_by_token,
-    resolve_orders, resolve_orders_total)
+    resolve_draft_orders, resolve_homepage_events, resolve_order,
+    resolve_order_by_token, resolve_orders, resolve_orders_total)
 from .types import Order, OrderEvent
 
 
@@ -40,6 +40,13 @@ class OrderQueries(graphene.ObjectType):
         status=graphene.Argument(
             OrderStatusFilter, description='Filter order by status'),
         description='List of the shop\'s orders.')
+    draft_orders = PrefetchingConnectionField(
+        Order,
+        query=graphene.String(description=DESCRIPTIONS['order']),
+        created=graphene.Argument(
+            ReportingPeriod,
+            description='Filter draft orders from a selected timespan.'),
+        description='List of the shop\'s draft orders.')
     orders_total = graphene.Field(
         TaxedMoney, description='Total sales.',
         period=graphene.Argument(
@@ -57,10 +64,14 @@ class OrderQueries(graphene.ObjectType):
     def resolve_order(self, info, id):
         return resolve_order(info, id)
 
-    @login_required
+    @permission_required('order.manage_orders')
     def resolve_orders(
             self, info, created=None, status=None, query=None, **kwargs):
         return resolve_orders(info, created, status, query)
+
+    @permission_required('order.manage_orders')
+    def resolve_draft_orders(self, info, created=None, query=None, **kwargs):
+        return resolve_draft_orders(info, created, query)
 
     @permission_required('order.manage_orders')
     def resolve_orders_total(self, info, period, **kwargs):

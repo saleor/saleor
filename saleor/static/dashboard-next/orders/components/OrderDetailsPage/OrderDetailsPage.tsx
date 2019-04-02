@@ -8,7 +8,7 @@ import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import AppHeader from "../../../components/AppHeader";
-import { CardMenu } from "../../../components/CardMenu/CardMenu";
+import CardMenu from "../../../components/CardMenu";
 import { CardSpacer } from "../../../components/CardSpacer";
 import { Container } from "../../../components/Container";
 import { DateTime } from "../../../components/Date";
@@ -30,13 +30,10 @@ const styles = (theme: Theme) =>
   createStyles({
     date: {
       marginBottom: theme.spacing.unit * 3,
-      marginLeft: theme.spacing.unit * 7
+      marginTop: -theme.spacing.unit * 2
     },
     header: {
       marginBottom: 0
-    },
-    menu: {
-      marginRight: -theme.spacing.unit
     }
   });
 
@@ -98,7 +95,6 @@ const OrderDetailsPage = withStyles(styles, { name: "OrderDetailsPage" })(
         >
           {canCancel && (
             <CardMenu
-              className={classes.menu}
               menuItems={[
                 {
                   label: i18n.t("Cancel order", { context: "button" }),

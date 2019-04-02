@@ -22,7 +22,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-25 10:45-0600\n"
+"POT-Creation-Date: 2019-03-18 07:39-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
 "Last-Translator: Michael Bykovski <bykof@me.com>, 2019\n"
 "Language-Team: German (https://www.transifex.com/mirumee/teams/34782/de/)\n"
@@ -227,17 +227,17 @@ msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr "Der Wert ist für das gewählte Land ungütlig"
 
-#: saleor/account/models.py:135
+#: saleor/account/models.py:154
 msgctxt "Permission description"
 msgid "Manage customers."
 msgstr "Kunden verwalten"
 
-#: saleor/account/models.py:138
+#: saleor/account/models.py:157
 msgctxt "Permission description"
 msgid "Manage staff."
 msgstr "Personal verwalten"
 
-#: saleor/account/models.py:141
+#: saleor/account/models.py:160
 msgctxt "Permission description"
 msgid "Impersonate customers."
 msgstr "Als andere Benutzer auftreten"
@@ -401,57 +401,57 @@ msgstr ""
 "Entschuldigung. So viele Produkte haben wir zur Zeit nicht auf Lager. Die "
 "Menge wurde auf die zur Zeit verfügbare Menge gesetzt."
 
-#: saleor/checkout/utils.py:628
+#: saleor/checkout/utils.py:630
 msgctxt "Voucher not applicable"
 msgid "Your order does not require shipping."
 msgstr "Ihre Bestellung muss nicht versendet werden."
 
-#: saleor/checkout/utils.py:634
+#: saleor/checkout/utils.py:636
 msgctxt "Voucher not applicable"
 msgid "Please select a shipping method first."
 msgstr "Bitte wählen Sie eine Versandmethode."
 
-#: saleor/checkout/utils.py:642
+#: saleor/checkout/utils.py:644
 msgctxt "Voucher not applicable"
 msgid "This offer is not valid in your country."
 msgstr "Dieses Angebot ist in Ihrem Land nicht verfügbar."
 
-#: saleor/checkout/utils.py:664
+#: saleor/checkout/utils.py:666
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for selected items."
 msgstr "Das Angebot gilt nur für einzelne Produkte"
 
-#: saleor/checkout/utils.py:791
+#: saleor/checkout/utils.py:793
 msgctxt "Voucher not applicable"
 msgid "Voucher expired in meantime. Order placement aborted."
 msgstr "Dieser Code ist inzwischen abgelaufen. Bestellung abgebrochen."
 
-#: saleor/checkout/utils.py:904
+#: saleor/checkout/utils.py:898
 msgctxt "order placement_error"
 msgid "Shipping method is not set"
 msgstr "Versandart ist nicht gesetzt"
 
-#: saleor/checkout/utils.py:907
+#: saleor/checkout/utils.py:901
 msgctxt "order placement error"
 msgid "Shipping address is not set"
 msgstr "Versandadresse ist nicht gesetzt"
 
-#: saleor/checkout/utils.py:911
+#: saleor/checkout/utils.py:905
 msgctxt "order placement error"
 msgid "Shipping method is not valid for your shipping address"
 msgstr "Die Versandart ist nicht gültig für die gewählte Versandadresse"
 
-#: saleor/checkout/utils.py:914
-msgctxt "order placement error"
-msgid "Checkout is not fully paid"
-msgstr "Die Bestellung wurde nicht vollständig bezahlt"
+#: saleor/checkout/utils.py:908
+msgctxt "order placement_error"
+msgid "Billing address is not set"
+msgstr ""
 
 #: saleor/checkout/views/discount.py:62
 msgctxt "Checkout warning"
 msgid "This voucher has expired. Please review your checkout."
 msgstr "Der Code ist abgelaufen. Bitte überprüfen Sie Ihre Bestellung."
 
-#: saleor/checkout/views/summary.py:34
+#: saleor/checkout/views/summary.py:37
 msgctxt "Checkout warning"
 msgid "Please review your checkout."
 msgstr "Bitte überprüfen Sie Ihre Daten."
@@ -690,7 +690,7 @@ msgctxt "Voucher not applicable"
 msgid "This offer is only valid for orders over %(amount)s."
 msgstr "Das Angebot gilt nur fuur Bestellungen über %(amount)s."
 
-#: saleor/discount/models.py:179
+#: saleor/discount/models.py:180
 msgctxt "Permission description"
 msgid "Manage sales and vouchers."
 msgstr "Rabatte und Gutscheine verwalten."
@@ -700,7 +700,7 @@ msgctxt "Voucher not applicable"
 msgid "Discount not applicable for this product"
 msgstr "Rabeatt kann auf diese Produkt nicht angewendet werden."
 
-#: saleor/graphql/order/mutations/fulfillments.py:79
+#: saleor/graphql/order/mutations/fulfillments.py:78
 #, python-format
 msgctxt "Fulfill order line mutation error"
 msgid "Only %(quantity)d item remaining to fulfill."
@@ -708,7 +708,7 @@ msgid_plural "Only %(quantity)d items remaining to fulfill."
 msgstr[0] "Nur noch %(quantity)d Produkt, um die Bestellung abzuschließen."
 msgstr[1] "Noch %(quantity)d Produkte, um die Bestellung abzuschließen."
 
-#: saleor/graphql/order/mutations/fulfillments.py:212
+#: saleor/graphql/order/mutations/fulfillments.py:216
 msgctxt "Cancel fulfillment mutation error"
 msgid "This fulfillment can't be canceled"
 msgstr "Diese Auftragsabwicklung kann nicht abgebrochen werden"
@@ -916,12 +916,12 @@ msgctxt "Payment delete form error"
 msgid "Payment cannot be cancelled."
 msgstr "Zahlung kann nicht abgebrochen werden."
 
-#: saleor/order/models.py:134
+#: saleor/order/models.py:135
 msgctxt "Permission description"
 msgid "Manage orders."
 msgstr "Bestellungen verwalten."
 
-#: saleor/order/models.py:339
+#: saleor/order/models.py:344
 #, python-format
 msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
@@ -951,42 +951,52 @@ msgctxt "Custom payment choice type"
 msgid "Manual"
 msgstr "Manuell"
 
-#: saleor/payment/__init__.py:68
+#: saleor/payment/__init__.py:72
 msgctxt "transaction kind"
 msgid "Authorization"
 msgstr "Autorisierung"
 
-#: saleor/payment/__init__.py:69
+#: saleor/payment/__init__.py:73
 msgctxt "transaction kind"
 msgid "Charge"
 msgstr "Abbuchen"
 
-#: saleor/payment/__init__.py:70
+#: saleor/payment/__init__.py:74
 msgctxt "transaction kind"
 msgid "Refund"
 msgstr "Erstatten"
 
-#: saleor/payment/__init__.py:71
+#: saleor/payment/__init__.py:75
 msgctxt "transaction kind"
 msgid "Capture"
 msgstr "Einlösen"
 
-#: saleor/payment/__init__.py:72
+#: saleor/payment/__init__.py:76
 msgctxt "transaction kind"
 msgid "Void"
 msgstr "Storniert"
 
-#: saleor/payment/__init__.py:91
-msgctxt "payment status"
-msgid "Charged"
-msgstr "Abgebucht"
-
-#: saleor/payment/__init__.py:92
+#: saleor/payment/__init__.py:99
 msgctxt "payment status"
 msgid "Not charged"
 msgstr "Nicht abgebucht"
 
-#: saleor/payment/__init__.py:93
+#: saleor/payment/__init__.py:101
+msgctxt "payment status"
+msgid "Partially charged"
+msgstr ""
+
+#: saleor/payment/__init__.py:102
+msgctxt "payment status"
+msgid "Fully charged"
+msgstr ""
+
+#: saleor/payment/__init__.py:104
+msgctxt "payment status"
+msgid "Partially refunded"
+msgstr ""
+
+#: saleor/payment/__init__.py:105
 msgctxt "payment status"
 msgid "Fully refunded"
 msgstr "Voll zurückerstattet"
@@ -1003,6 +1013,12 @@ msgstr ""
 msgctxt "Payment status form field"
 msgid "Payment status"
 msgstr "Zahlungsstatus"
+
+#: saleor/payment/gateways/dummy/forms.py:23
+msgid ""
+"Setting charge status to {} directly is not supported. Please use the "
+"dashboard to refund partially."
+msgstr ""
 
 #: saleor/payment/gateways/razorpay/errors.py:5
 msgctxt "Razorpay payment error"
@@ -1177,103 +1193,107 @@ msgid "Spanish"
 msgstr "Spanisch"
 
 #: saleor/settings.py:71
+msgid "Estonian"
+msgstr ""
+
+#: saleor/settings.py:72
 msgid "Persian"
 msgstr "Persisch"
 
-#: saleor/settings.py:72
+#: saleor/settings.py:73
 msgid "French"
 msgstr "Französisch"
 
-#: saleor/settings.py:73
+#: saleor/settings.py:74
 msgid "Hindi"
 msgstr ""
 
-#: saleor/settings.py:74
+#: saleor/settings.py:75
 msgid "Hungarian"
 msgstr "Ungarisch"
 
-#: saleor/settings.py:75
+#: saleor/settings.py:76
 msgid "Indonesian"
 msgstr ""
 
-#: saleor/settings.py:76
+#: saleor/settings.py:77
 msgid "Italian"
 msgstr "Italienisch"
 
-#: saleor/settings.py:77
+#: saleor/settings.py:78
 msgid "Japanese"
 msgstr "Japanisch"
 
-#: saleor/settings.py:78
+#: saleor/settings.py:79
 msgid "Korean"
 msgstr "Koreanisch"
 
-#: saleor/settings.py:79
+#: saleor/settings.py:80
 msgid "Mongolian"
 msgstr "Mongolisch"
 
-#: saleor/settings.py:80
+#: saleor/settings.py:81
 msgid "Norwegian"
 msgstr "Norwegisch"
 
-#: saleor/settings.py:81
+#: saleor/settings.py:82
 msgid "Dutch"
 msgstr "Niederländisch"
 
-#: saleor/settings.py:82
+#: saleor/settings.py:83
 msgid "Polish"
 msgstr "Polnisch"
 
-#: saleor/settings.py:83
+#: saleor/settings.py:84
 msgid "Brazilian Portuguese"
 msgstr "brasilianisch Portugiesisch"
 
-#: saleor/settings.py:84
+#: saleor/settings.py:85
 msgid "Romanian"
 msgstr "Rumänisch"
 
-#: saleor/settings.py:85
+#: saleor/settings.py:86
 msgid "Russian"
 msgstr "Russisch"
 
-#: saleor/settings.py:86
+#: saleor/settings.py:87
 msgid "Slovak"
 msgstr "Slowakisch"
 
-#: saleor/settings.py:87
+#: saleor/settings.py:88
 msgid "Serbian"
 msgstr "Serbisch"
 
-#: saleor/settings.py:88
+#: saleor/settings.py:89
 msgid "Swedish"
 msgstr "Schwedisch"
 
-#: saleor/settings.py:89
+#: saleor/settings.py:90
 msgid "Turkish"
 msgstr "Türkisch"
 
-#: saleor/settings.py:90
+#: saleor/settings.py:91
 msgid "Ukrainian"
 msgstr "Ukrainisch"
 
-#: saleor/settings.py:91
+#: saleor/settings.py:92
 msgid "Vietnamese"
 msgstr "Vietnamesisch"
 
-#: saleor/settings.py:92
+#: saleor/settings.py:93
 msgid "Simplified Chinese"
 msgstr "Chinesisch vereinfacht"
 
-#: saleor/settings.py:93
+#: saleor/settings.py:94
 msgid "Traditional Chinese"
 msgstr "Chinesisch traditionell"
 
-#: saleor/settings.py:329
+#: saleor/settings.py:330
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr "Europäische Union"
 
-#: saleor/settings.py:566
+#: saleor/settings.py:567
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr "Dummy Gateway"
@@ -1327,6 +1347,11 @@ msgstr "%(min_weight)s bis %(max_weight)s"
 msgctxt "Permission description"
 msgid "Manage settings."
 msgstr "Einstellungen verwalten."
+
+#: saleor/site/models.py:42
+msgctxt "Permission description"
+msgid "Manage translations."
+msgstr ""
 
 #: templates/404.html:6
 msgctxt "Eror page not found"
@@ -2282,7 +2307,7 @@ msgstr "Umgebung"
 #: templates/dashboard/menu/form.html:60
 #: templates/dashboard/menu/item/form.html:82
 #: templates/dashboard/order/address_form.html:61
-#: templates/dashboard/order/fulfillment.html:133
+#: templates/dashboard/order/fulfillment.html:136
 #: templates/dashboard/product/attribute/form.html:77
 #: templates/dashboard/product/attribute/form.html:84
 #: templates/dashboard/product/attribute/values/form.html:78
@@ -3427,13 +3452,13 @@ msgid "Details"
 msgstr "Details"
 
 #: templates/dashboard/order/detail.html:87
-#: templates/dashboard/order/detail.html:571
+#: templates/dashboard/order/detail.html:575
 msgctxt "Order detail tab"
 msgid "Payments"
 msgstr "Zahlungen"
 
 #: templates/dashboard/order/detail.html:95
-#: templates/dashboard/order/detail.html:621
+#: templates/dashboard/order/detail.html:625
 msgctxt "Order detail tab"
 msgid "History"
 msgstr "Historie"
@@ -3540,7 +3565,7 @@ msgid "Placed on"
 msgstr "plaziert am"
 
 #: templates/dashboard/order/detail.html:280
-#: templates/dashboard/order/detail.html:473
+#: templates/dashboard/order/detail.html:477
 #: templates/dashboard/order/pdf/packing_slip.html:58
 msgctxt "Order table header"
 msgid "Item"
@@ -3552,7 +3577,7 @@ msgid "Price"
 msgstr "Preis"
 
 #: templates/dashboard/order/detail.html:286
-#: templates/dashboard/order/detail.html:476
+#: templates/dashboard/order/detail.html:480
 #: templates/dashboard/order/pdf/packing_slip.html:64
 msgctxt "Order table header"
 msgid "Quantity"
@@ -3582,206 +3607,206 @@ msgctxt "Order table row action"
 msgid "Remove line"
 msgstr "Zeile löschen"
 
-#: templates/dashboard/order/detail.html:347
+#: templates/dashboard/order/detail.html:348
 msgctxt "Order totals action"
 msgid "Edit shipping"
 msgstr "Bestellung bearbeiten"
 
-#: templates/dashboard/order/detail.html:349
-#: templates/dashboard/order/detail.html:358
+#: templates/dashboard/order/detail.html:350
+#: templates/dashboard/order/detail.html:359
 #, python-format
 msgctxt "Order totals header"
 msgid "Shipping (%(shipping_name)s)"
 msgstr "Versand (%(shipping_name)s)"
 
-#: templates/dashboard/order/detail.html:353
-#: templates/dashboard/order/detail.html:362
+#: templates/dashboard/order/detail.html:354
+#: templates/dashboard/order/detail.html:363
 msgctxt "Order totals header"
 msgid "Shipping"
 msgstr "Versand"
 
-#: templates/dashboard/order/detail.html:368
+#: templates/dashboard/order/detail.html:370
 msgctxt "Order total taxes"
 msgid "Taxes (included)"
 msgstr "Steuern (inkl.)"
 
-#: templates/dashboard/order/detail.html:370
+#: templates/dashboard/order/detail.html:372
 msgctxt "Order total taxes"
 msgid "Taxes"
 msgstr "Steuern"
 
-#: templates/dashboard/order/detail.html:378
-#: templates/dashboard/order/detail.html:402
+#: templates/dashboard/order/detail.html:380
+#: templates/dashboard/order/detail.html:404
 #, python-format
 msgctxt "Order totals header"
 msgid "Discount (%(voucher)s)"
 msgstr "Rabatt (%(voucher)s)"
 
-#: templates/dashboard/order/detail.html:382
-#: templates/dashboard/order/detail.html:406
+#: templates/dashboard/order/detail.html:384
+#: templates/dashboard/order/detail.html:408
 msgctxt "Order totals header"
 msgid "Discount"
 msgstr "Rabatt"
 
-#: templates/dashboard/order/detail.html:389
+#: templates/dashboard/order/detail.html:391
 msgctxt "Order totals action"
 msgid "Edit voucher"
 msgstr "Gutschein bearbeiten"
 
-#: templates/dashboard/order/detail.html:390
+#: templates/dashboard/order/detail.html:392
 msgctxt "Order detail action"
 msgid "Edit voucher"
 msgstr "Gutschein bearbeiten"
 
-#: templates/dashboard/order/detail.html:395
+#: templates/dashboard/order/detail.html:397
 msgctxt "Order totals action"
 msgid "Edit discount"
 msgstr "Rabatt bearbeiten"
 
-#: templates/dashboard/order/detail.html:396
+#: templates/dashboard/order/detail.html:398
 msgctxt "Order detail action"
 msgid "Edit discount"
 msgstr "Rabatt bearbeiten"
 
-#: templates/dashboard/order/detail.html:411
+#: templates/dashboard/order/detail.html:413
 msgctxt "Order totals header"
 msgid "Grand total"
 msgstr "Gesamtsumme"
 
-#: templates/dashboard/order/detail.html:432
+#: templates/dashboard/order/detail.html:436
 msgctxt "Order summary card action title"
 msgid "Fulfill order"
 msgstr "Bestellung abschließen"
 
-#: templates/dashboard/order/detail.html:433
+#: templates/dashboard/order/detail.html:437
 msgctxt "Order summary card action"
 msgid "Fulfill"
 msgstr "Abschluss"
 
-#: templates/dashboard/order/detail.html:437
+#: templates/dashboard/order/detail.html:441
 msgctxt "Order summary card action title"
 msgid "Add product to order"
 msgstr "Produkt zur Bestellung hinzufügen"
 
-#: templates/dashboard/order/detail.html:438
+#: templates/dashboard/order/detail.html:442
 msgctxt "Order summary card action"
 msgid "Add product"
 msgstr "Produkt hinzufügen"
 
-#: templates/dashboard/order/detail.html:443
+#: templates/dashboard/order/detail.html:447
 msgctxt "Order summary card action title"
 msgid "Create order"
 msgstr "Bestellung erstellen"
 
-#: templates/dashboard/order/detail.html:444
+#: templates/dashboard/order/detail.html:448
 msgctxt "Order summary card action"
 msgid "Create order"
 msgstr "Bestellung erstellen"
 
-#: templates/dashboard/order/detail.html:450
+#: templates/dashboard/order/detail.html:454
 msgctxt "Order detail action"
 msgid "Invoice"
 msgstr "Rechnung"
 
-#: templates/dashboard/order/detail.html:453
+#: templates/dashboard/order/detail.html:457
 msgctxt "Order detail action"
 msgid "View on site"
 msgstr "Auf der Website ansehen"
 
-#: templates/dashboard/order/detail.html:462
+#: templates/dashboard/order/detail.html:466
 #, python-format
 msgctxt "Fulfillment table title"
 msgid "Fulfillment #%(fulfillment)s"
 msgstr "Auftragsabwicklung #%(fulfillment)s"
 
-#: templates/dashboard/order/detail.html:494
+#: templates/dashboard/order/detail.html:498
 #, python-format
 msgctxt "Fulfillment table text"
 msgid "Tracking number: %(tracking)s"
 msgstr "Trackingnummer: %(tracking)s"
 
-#: templates/dashboard/order/detail.html:506
+#: templates/dashboard/order/detail.html:510
 msgctxt "Fulfillment summary card action title"
 msgid "Cancel fulfillment"
 msgstr "Auftragsabwicklung abbrechen"
 
-#: templates/dashboard/order/detail.html:507
+#: templates/dashboard/order/detail.html:511
 msgctxt "Fulfillment summary card action"
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: templates/dashboard/order/detail.html:510
+#: templates/dashboard/order/detail.html:514
 msgctxt "Fulfillment summary card action title"
 msgid "Edit tracking number"
 msgstr "Sendungsnummer bearbeiten"
 
-#: templates/dashboard/order/detail.html:512
+#: templates/dashboard/order/detail.html:516
 msgctxt "Fulfillment summary card action"
 msgid "Edit tracking"
 msgstr "Sendungsverfolgung bearbeiten"
 
-#: templates/dashboard/order/detail.html:514
+#: templates/dashboard/order/detail.html:518
 msgctxt "Fulfillment summary card action"
 msgid "Add tracking"
 msgstr "Sendungsverfolgung hinzufügen"
 
-#: templates/dashboard/order/detail.html:519
+#: templates/dashboard/order/detail.html:523
 msgctxt "Order detail action"
 msgid "Packing Slips"
 msgstr "Packzettel"
 
-#: templates/dashboard/order/detail.html:529
+#: templates/dashboard/order/detail.html:533
 msgctxt "Customer order note card title"
 msgid "Customer note"
 msgstr "Kundennotiz"
 
-#: templates/dashboard/order/detail.html:535
+#: templates/dashboard/order/detail.html:539
 msgctxt "No customer order note card message"
 msgid "There is no note from the customer associated with this order."
 msgstr "Es gibt keine Kundennotizen zu dieser Bestellung"
 
-#: templates/dashboard/order/detail.html:544
+#: templates/dashboard/order/detail.html:548
 msgctxt "Order notes card title"
 msgid "Order notes"
 msgstr "Notizen"
 
-#: templates/dashboard/order/detail.html:557
+#: templates/dashboard/order/detail.html:561
 msgctxt "Empty order notes card message"
 msgid "There are no notes associated with this order."
 msgstr "Es gibt keine Notien zu dieser Bestellung."
 
-#: templates/dashboard/order/detail.html:563
+#: templates/dashboard/order/detail.html:567
 msgctxt "Order notes card action"
 msgid "Add note"
 msgstr "Notiz hinzufügen"
 
-#: templates/dashboard/order/detail.html:578
+#: templates/dashboard/order/detail.html:582
 msgctxt "Payment history table header"
 msgid "Transaction ID"
 msgstr "Transaktions-ID"
 
-#: templates/dashboard/order/detail.html:581
+#: templates/dashboard/order/detail.html:585
 msgctxt "Payment history table header"
 msgid "Date"
 msgstr "Datum"
 
-#: templates/dashboard/order/detail.html:584
+#: templates/dashboard/order/detail.html:588
 msgctxt "Payment history table header"
 msgid "Payment status"
 msgstr "Zahlungsstatus"
 
-#: templates/dashboard/order/detail.html:587
+#: templates/dashboard/order/detail.html:591
 msgctxt "Payment history table header"
 msgid "Amount"
 msgstr "Betrag"
 
-#: templates/dashboard/order/detail.html:595
+#: templates/dashboard/order/detail.html:599
 #, python-format
 msgctxt "Payment item column data"
 msgid "#%(payment_id)s"
 msgstr "#%(payment_id)s"
 
-#: templates/dashboard/order/detail.html:616
+#: templates/dashboard/order/detail.html:620
 msgctxt "Empty payment history table message"
 msgid "No payments made for this order."
 msgstr "Für die Bestellung erfolgte keine Zahlung."
@@ -3815,7 +3840,7 @@ msgctxt "Fulfill order table quantity unfulfilled"
 msgid "of %(quantity_unfulfilled)s"
 msgstr "von %(quantity_unfulfilled)s"
 
-#: templates/dashboard/order/fulfillment.html:136
+#: templates/dashboard/order/fulfillment.html:139
 msgctxt "Dashboard update action"
 msgid "Fulfill"
 msgstr "Abschluss"
@@ -6083,7 +6108,7 @@ msgid "You've authorized transaction. Order is in processing"
 msgstr "Die Zahlung ist authorisiert. Die Bestellung wird nun bearbeitet."
 
 #: templates/order/payment/braintree.html:29
-#: templates/order/payment/dummy.html:30
+#: templates/order/payment/dummy.html:37
 msgctxt "Payment form primary action"
 msgid "Make payment"
 msgstr "Bezahlen"
@@ -6108,7 +6133,7 @@ msgctxt "Header of the order summary table"
 msgid "Order details"
 msgstr "Bestellungsdetails"
 
-#: templates/order/payment/dummy.html:25
+#: templates/order/payment/dummy.html:32
 #: templates/order/payment/stripe.html:11
 msgctxt "Payment form (Stripe) secondary action"
 msgid "Change payment"

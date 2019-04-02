@@ -1,4 +1,5 @@
 import { Omit } from "@material-ui/core";
+import { InputProps } from "@material-ui/core/Input";
 import MenuItem from "@material-ui/core/MenuItem";
 import Paper from "@material-ui/core/Paper";
 import {
@@ -48,6 +49,7 @@ interface SingleAutocompleteSelectFieldProps extends WithStyles<typeof styles> {
   custom?: boolean;
   helperText?: string;
   label?: string;
+  InputProps?: InputProps;
   fetchChoices?(value: string);
   onChange(event);
 }
@@ -78,6 +80,7 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
     name,
     placeholder,
     value,
+    InputProps,
     fetchChoices,
     onChange
   }: SingleAutocompleteSelectFieldProps) => {
@@ -112,6 +115,7 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
                 <div className={classes.container}>
                   <TextField
                     InputProps={{
+                      ...InputProps,
                       ...getInputProps({
                         placeholder
                       }),

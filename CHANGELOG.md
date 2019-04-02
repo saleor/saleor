@@ -12,6 +12,21 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add bulk delete mutations - #3838 by @michaljelonek
 - Fix product creating - #3837 by @dominik-zeglen
 - Fix schema after bulk mutations are added - #3843 by @jxltom
+- Add address book view - #3826 by @dominik-zeglen
+- New translations:
+  - Swahili
+  - Thai
+- Improve user and staff management in dashboard 1.0 - #3781 by @jxltom
+- Add missing language enum in GraphQL schema - #3854 by @jxltom
+- Fix layout in staff members details page - #3857 by @dominik-zeglen
+- Add draft orders query - #3809 by @michaljelonek
+- Restrict global orders query - #3861 by @pawelzar
+- Improve accessibility - #3856 by @dominik-zeglen
+- Add light/dark theme - #3856 by @dominik-zeglen
+- Fix bug where logo-document is not renamed to logo-light - #3867 by @jxltom
+- Copy addresses in checkoutCreate and draftOrderCreate mutations - #3866 by @pawelzar
+- Fix default product tax rate in Dashboard 1.0 - #3880 by @pawelzar
+- Introduce avatars for staff accounts - #3878 by @pawelzar
 
 
 ## 2.4.0

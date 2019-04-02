@@ -5,10 +5,11 @@ from ..core.fields import PrefetchingConnectionField
 from ..descriptions import DESCRIPTIONS
 from .bulk_mutations import CustomerBulkDelete, StaffBulkDelete
 from .mutations import (
-    AddressCreate, AddressDelete, AddressUpdate, CustomerAddressCreate,
-    CustomerCreate, CustomerDelete, CustomerPasswordReset, CustomerRegister,
-    CustomerSetDefaultAddress, CustomerUpdate, LoggedUserUpdate, PasswordReset,
-    SetPassword, StaffCreate, StaffDelete, StaffUpdate)
+    AddressCreate, AddressDelete, AddressSetDefault, AddressUpdate,
+    CustomerAddressCreate, CustomerCreate, CustomerDelete,
+    CustomerPasswordReset, CustomerRegister, CustomerSetDefaultAddress,
+    CustomerUpdate, LoggedUserUpdate, PasswordReset, SetPassword, StaffCreate,
+    StaffDelete, StaffUpdate, UserAvatarDelete, UserAvatarUpdate)
 from .resolvers import (
     resolve_address_validator, resolve_customers, resolve_staff_users)
 from .types import AddressValidationData, AddressValidationInput, User
@@ -73,3 +74,7 @@ class AccountMutations(graphene.ObjectType):
     address_create = AddressCreate.Field()
     address_delete = AddressDelete.Field()
     address_update = AddressUpdate.Field()
+    address_set_default = AddressSetDefault.Field()
+
+    user_avatar_update = UserAvatarUpdate.Field()
+    user_avatar_delete = UserAvatarDelete.Field()

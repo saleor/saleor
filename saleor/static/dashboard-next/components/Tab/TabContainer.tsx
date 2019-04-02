@@ -1,15 +1,21 @@
-import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
 export interface TabContainerProps {
   children: React.ReactNode | React.ReactNodeArray;
 }
 
-const styles = createStyles({
-  root: {
-    borderBottom: "1px solid #eeeeee"
-  }
-});
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      borderBottom: `1px solid ${theme.overrides.MuiCard.root.borderColor}`
+    }
+  });
 
 const TabContainer = withStyles(styles, {
   name: "TabContainer"

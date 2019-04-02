@@ -42,6 +42,13 @@ const styles = (theme: Theme) =>
     quantityInput: {
       width: "4rem"
     },
+    quantityInputContainer: {
+      paddingRight: theme.spacing.unit,
+      textAlign: "right" as "right"
+    },
+    remainingQuantity: {
+      paddingBottom: 4
+    },
     textRight: {
       textAlign: "right" as "right"
     }
@@ -103,7 +110,7 @@ const OrderFulfillmentDialog = withStyles(styles, {
                     <TableCell />
                     <TableCell>{i18n.t("Product name")}</TableCell>
                     <TableCell>{i18n.t("SKU")}</TableCell>
-                    <TableCell className={classes.textRight}>
+                    <TableCell className={classes.textRight} colSpan={2}>
                       {i18n.t("Quantity")}
                     </TableCell>
                   </TableRow>
@@ -117,7 +124,7 @@ const OrderFulfillmentDialog = withStyles(styles, {
                         <TableCellAvatar thumbnail={product.thumbnailUrl} />
                         <TableCell>{product.productName}</TableCell>
                         <TableCell>{product.productSku}</TableCell>
-                        <TableCell className={classes.textRight}>
+                        <TableCell className={classes.quantityInputContainer}>
                           <TextField
                             type="number"
                             inputProps={{
@@ -130,8 +137,12 @@ const OrderFulfillmentDialog = withStyles(styles, {
                               handleQuantityChange(productIndex, event)
                             }
                             error={remainingQuantity < data.lines[productIndex]}
-                          />{" "}
-                          / {remainingQuantity}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <div className={classes.remainingQuantity}>
+                            / {remainingQuantity}
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
