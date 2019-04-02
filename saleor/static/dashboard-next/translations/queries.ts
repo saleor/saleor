@@ -34,6 +34,14 @@ import {
   ProductTranslationsVariables
 } from "./types/ProductTranslations";
 import {
+  ProductTypeTranslationDetails,
+  ProductTypeTranslationDetailsVariables
+} from "./types/ProductTypeTranslationDetails";
+import {
+  ProductTypeTranslations,
+  ProductTypeTranslationsVariables
+} from "./types/ProductTypeTranslations";
+import {
   SaleTranslationDetails,
   SaleTranslationDetailsVariables
 } from "./types/SaleTranslationDetails";
@@ -168,6 +176,34 @@ export const pageTranslationFragment = gql`
         code
         language
       }
+    }
+  }
+`;
+export const productTypeTranslationFragment = gql`
+  fragment AttributeTranslationFragment on Attribute {
+    id
+    name
+    translation(languageCode: $language) {
+      id
+      name
+    }
+    values {
+      id
+      name
+      translation(languageCode: $language) {
+        id
+        name
+      }
+    }
+  }
+  fragment ProductTypeTranslationFragment on ProductType {
+    id
+    name
+    productAttributes {
+      ...AttributeTranslationFragment
+    }
+    variantAttributes {
+      ...AttributeTranslationFragment
     }
   }
 `;
@@ -334,6 +370,33 @@ export const TypedSaleTranslations = TypedQuery<
   SaleTranslationsVariables
 >(saleTranslations);
 
+const productTypeTranslations = gql`
+  ${pageInfoFragment}
+  ${productTypeTranslationFragment}
+  query ProductTypeTranslations(
+    $language: LanguageCodeEnum!
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
+  ) {
+    productTypes(before: $before, after: $after, first: $first, last: $last) {
+      edges {
+        node {
+          ...ProductTypeTranslationFragment
+        }
+      }
+      pageInfo {
+        ...PageInfoFragment
+      }
+    }
+  }
+`;
+export const TypedProductTypeTranslations = TypedQuery<
+  ProductTypeTranslations,
+  ProductTypeTranslationsVariables
+>(productTypeTranslations);
+
 const productTranslationDetails = gql`
   ${productTranslationFragment}
   query ProductTranslationDetails($id: ID!, $language: LanguageCodeEnum!) {
@@ -411,3 +474,16 @@ export const TypedVoucherTranslationDetails = TypedQuery<
   VoucherTranslationDetails,
   VoucherTranslationDetailsVariables
 >(voucherTranslationDetails);
+
+const productTypeTranslationDetails = gql`
+  ${productTypeTranslationFragment}
+  query ProductTypeTranslationDetails($id: ID!, $language: LanguageCodeEnum!) {
+    productType(id: $id) {
+      ...ProductTypeTranslationFragment
+    }
+  }
+`;
+export const TypedProductTypeTranslationDetails = TypedQuery<
+  ProductTypeTranslationDetails,
+  ProductTypeTranslationDetailsVariables
+>(productTypeTranslationDetails);

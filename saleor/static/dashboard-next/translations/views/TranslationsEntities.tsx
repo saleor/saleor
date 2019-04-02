@@ -16,6 +16,7 @@ import {
   TypedCollectionTranslations,
   TypedPageTranslations,
   TypedProductTranslations,
+  TypedProductTypeTranslations,
   TypedSaleTranslations,
   TypedVoucherTranslations
 } from "../queries";
@@ -74,6 +75,13 @@ const TranslationsEntities: React.FC<TranslationsEntitiesProps> = ({
         "?" +
           stringifyQs({
             tab: TranslatableEntities.pages
+          })
+      ),
+    onProductTypesTabClick: () =>
+      navigate(
+        "?" +
+          stringifyQs({
+            tab: TranslatableEntities.productTypes
           })
       ),
     onProductsTabClick: () =>
@@ -400,6 +408,80 @@ const TranslationsEntities: React.FC<TranslationsEntitiesProps> = ({
             );
           }}
         </TypedPageTranslations>
+      ) : params.tab === "productTypes" ? (
+        <TypedProductTypeTranslations
+          variables={{ language: language as any, ...paginationState }}
+        >
+          {({ data, loading }) => {
+            const { loadNextPage, loadPreviousPage, pageInfo } = paginate(
+              maybe(() => data.productTypes.pageInfo),
+              paginationState,
+              params
+            );
+
+            return (
+              <TranslationsEntitiesList
+                disabled={loading}
+                entities={maybe(() =>
+                  data.productTypes.edges
+                    .map(edge => edge.node)
+                    .map(node => ({
+                      completion: {
+                        current:
+                          node.productAttributes && node.variantAttributes
+                            ? maybe(() => node.productAttributes, []).reduce(
+                                (acc, attr) =>
+                                  acc +
+                                    (attr.translation &&
+                                      attr.translation.name) !==
+                                  null
+                                    ? 1
+                                    : 0,
+                                0
+                              ) +
+                              maybe(() => node.variantAttributes, []).reduce(
+                                (acc, attr) =>
+                                  acc +
+                                    (attr.translation &&
+                                      attr.translation.name) !==
+                                  null
+                                    ? 1
+                                    : 0,
+                                0
+                              )
+                            : 0,
+                        max:
+                          node.productAttributes && node.variantAttributes
+                            ? node.productAttributes.reduce(
+                                (acc, attr) => acc + attr.values.length,
+                                0
+                              ) +
+                              node.variantAttributes.reduce(
+                                (acc, attr) => acc + attr.values.length,
+                                0
+                              )
+                            : 0
+                      },
+                      id: node.id,
+                      name: node.name
+                    }))
+                )}
+                onRowClick={id =>
+                  navigate(
+                    languageEntityUrl(
+                      language,
+                      TranslatableEntities.productTypes,
+                      id
+                    )
+                  )
+                }
+                onNextPage={loadNextPage}
+                onPreviousPage={loadPreviousPage}
+                pageInfo={pageInfo}
+              />
+            );
+          }}
+        </TypedProductTypeTranslations>
       ) : null}
     </TranslationsEntitiesListPage>
   );
