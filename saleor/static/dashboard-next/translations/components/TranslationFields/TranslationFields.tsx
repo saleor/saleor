@@ -44,6 +44,9 @@ export interface TranslationFieldsProps {
 
 const styles = (theme: Theme) =>
   createStyles({
+    cardCaption: {
+      fontSize: 14
+    },
     cardContent: {
       "&:last-child": {
         paddingBottom: theme.spacing.unit
@@ -130,7 +133,7 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
             </IconButton>
           }
         />
-        {expanded && (
+        {expanded ? (
           <CardContent className={classes.cardContent}>
             <Grid className={classes.grid} variant="uniform">
               <Typography className={classes.columnHeader} variant="body1">
@@ -217,6 +220,21 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
                 </React.Fragment>
               ))}
             </Grid>
+          </CardContent>
+        ) : (
+          <CardContent>
+            <Typography className={classes.cardCaption} variant="caption">
+              {i18n.t(
+                "{{ fieldQuantity }} Translations, {{ translatedFieldQuantity }} Completed",
+                {
+                  fieldQuantity: fields.length,
+                  translatedFieldQuantity: fields.reduce(
+                    (acc, field) => acc + +(field.translation !== null),
+                    0
+                  )
+                }
+              )}
+            </Typography>
           </CardContent>
         )}
       </Card>
