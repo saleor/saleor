@@ -20,6 +20,7 @@ import {
   TypedSaleTranslations,
   TypedVoucherTranslations
 } from "../queries";
+import { AttributeTranslationFragment } from "../types/AttributeTranslationFragment";
 import {
   languageEntityUrl,
   languageListUrl,
@@ -36,6 +37,23 @@ interface TranslationsEntitiesProps {
 }
 
 const PAGINATE_BY = 20;
+
+function sumTranslations(
+  acc: number,
+  attr: AttributeTranslationFragment
+): number {
+  const accAfterNameTranslation =
+    acc + (attr.translation && attr.translation.name !== null ? 1 : 0);
+  const count =
+    accAfterNameTranslation +
+    attr.values.reduce(
+      (acc2, attrValue) =>
+        acc2 +
+        (attrValue.translation && attrValue.translation.name !== null ? 1 : 0),
+      0
+    );
+  return count;
+}
 
 const TranslationsEntities: React.FC<TranslationsEntitiesProps> = ({
   language,
@@ -430,23 +448,11 @@ const TranslationsEntities: React.FC<TranslationsEntitiesProps> = ({
                         current:
                           node.productAttributes && node.variantAttributes
                             ? maybe(() => node.productAttributes, []).reduce(
-                                (acc, attr) =>
-                                  acc +
-                                    (attr.translation &&
-                                      attr.translation.name) !==
-                                  null
-                                    ? 1
-                                    : 0,
+                                sumTranslations,
                                 0
                               ) +
                               maybe(() => node.variantAttributes, []).reduce(
-                                (acc, attr) =>
-                                  acc +
-                                    (attr.translation &&
-                                      attr.translation.name) !==
-                                  null
-                                    ? 1
-                                    : 0,
+                                sumTranslations,
                                 0
                               )
                             : 0,
@@ -454,11 +460,11 @@ const TranslationsEntities: React.FC<TranslationsEntitiesProps> = ({
                           node.productAttributes && node.variantAttributes
                             ? node.productAttributes.reduce(
                                 (acc, attr) => acc + attr.values.length,
-                                0
+                                node.productAttributes.length
                               ) +
                               node.variantAttributes.reduce(
                                 (acc, attr) => acc + attr.values.length,
-                                0
+                                node.variantAttributes.length
                               )
                             : 0
                       },
