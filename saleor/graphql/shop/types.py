@@ -122,7 +122,8 @@ class Shop(graphene.ObjectType):
     default_digital_max_downloads = graphene.Int(
         description='Default number of max downloads per digital content url')
     default_digital_url_valid_days = graphene.Int(
-        description='Default number of days which digital content url will be valid')
+        description=(
+            'Default number of days which digital content url will be valid'))
 
     class Meta:
         description = dedent('''
@@ -232,7 +233,8 @@ class Shop(graphene.ObjectType):
 
     @permission_required('site.manage_settings')
     def resolve_automatic_fulfillment_digital_products(self, info):
-        return info.context.site.settings.automatic_fulfillment_digital_products
+        site_settings = info.context.site.settings
+        return site_settings.automatic_fulfillment_digital_products
 
     @permission_required('site.manage_settings')
     def resolve_default_digital_max_downloads(self, info):

@@ -7,7 +7,7 @@ from graphql_jwt.decorators import permission_required
 from ....order import OrderEvents, OrderEventsEmails, models
 from ....order.emails import send_fulfillment_confirmation
 from ....order.utils import (
-    cancel_fulfillment, update_order_status, fulfill_order_line)
+    cancel_fulfillment, fulfill_order_line, update_order_status)
 from ...core.mutations import BaseMutation
 from ...order.types import Fulfillment, Order
 from ..types import OrderLine

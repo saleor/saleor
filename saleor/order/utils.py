@@ -13,11 +13,11 @@ from ..core.weight import zero_weight
 from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..discount.models import NotApplicable
 from ..order import FulfillmentStatus, OrderStatus
-from ..order.models import OrderLine, Fulfillment, FulfillmentLine, Order
+from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..payment import ChargeStatus
 from ..payment.utils import gateway_refund, gateway_void
 from ..product.utils import (
-    allocate_stock, deallocate_stock, increase_stock, decrease_stock)
+    allocate_stock, deallocate_stock, decrease_stock, increase_stock)
 from ..product.utils.digital_products import (
     get_default_digital_content_settings)
 
@@ -30,7 +30,6 @@ def order_line_needs_automatic_fulfillment(line: OrderLine) -> bool:
     content = line.variant.digital_content
     if default_automatic_fulfillment and content.use_default_settings:
         return True
-
     if content.automatic_fulfillment:
         return True
     return False
@@ -39,11 +38,9 @@ def order_line_needs_automatic_fulfillment(line: OrderLine) -> bool:
 def order_needs_automatic_fullfilment(order: Order) -> bool:
     """Check if order has digital products which should be automatically
     fulfilled"""
-
     digital_lines = [line for line in order if line.is_digital]
     if not digital_lines:
         return False
-
     for line in digital_lines:
         if order_line_needs_automatic_fulfillment(line):
             return True
@@ -61,7 +58,6 @@ def fulfill_order_line(order_line, quantity):
 def automatically_fulfill_digital_lines(order: Order):
     """Fulfill all digital lines which have enabled automatic fulfillment
     setting"""
-    order = Order.objects.get(id=order.id)
     digital_lines = order.lines.filter(
         is_shipping_required=False, variant__digital_content__isnull=False)
     digital_lines = digital_lines.prefetch_related('variant__digital_content')
