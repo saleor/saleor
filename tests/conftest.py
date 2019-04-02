@@ -887,9 +887,20 @@ def payment_dummy(db, settings, order_with_lines):
 
 
 @pytest.fixture
-def digital_content(variant):
+def digital_content(category):
+    product_type = ProductType.objects.create(
+        name='Digital Type', has_variants=True, is_shipping_required=False,
+        is_digital=True
+    )
+    product = Product.objects.create(
+        name='Test digital product', price=Money('10.00', 'USD'),
+        product_type=product_type, category=category)
+    product_variant = ProductVariant.objects.create(
+        product=product, sku='SKU_554', cost_price=Money(1, 'USD'), quantity=5,
+        quantity_allocated=3)
+
     image_file, image_name = create_image()
     d_content = DigitalContent.objects.create(
-        content_file=image_file, product_variant=variant,
+        content_file=image_file, product_variant=product_variant,
         use_default_settings=True)
     return d_content
