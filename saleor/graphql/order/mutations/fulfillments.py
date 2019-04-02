@@ -124,7 +124,7 @@ class FulfillmentCreate(BaseMutation):
             parameters={'quantity': sum(quantities)},
             type=OrderEvents.FULFILLMENT_FULFILLED_ITEMS.value,
             user=user)
-        if cleaned_input.get('notify_customer'):
+        if cleaned_input.get('notify_customer', True):
             send_fulfillment_confirmation_to_customer(
                 order, fulfillment, user)
         return fulfillment
