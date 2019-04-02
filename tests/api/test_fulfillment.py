@@ -1,7 +1,7 @@
 import graphene
 import pytest
 
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.models import FulfillmentStatus
@@ -35,9 +35,12 @@ CREATE_FULFILLMENT_QUERY = """
 """
 
 
+@patch(
+    'saleor.graphql.order.mutations.fulfillments.'
+    'send_fulfillment_confirmation')
 def test_create_fulfillment(
-        staff_api_client, order_with_lines, staff_user,
-        permission_manage_orders):
+        mock_send_fulfillment_confirmation, staff_api_client, order_with_lines,
+        staff_user, permission_manage_orders):
     order = order_with_lines
     query = CREATE_FULFILLMENT_QUERY
     order_id = graphene.Node.to_global_id('Order', order.id)
@@ -70,10 +73,15 @@ def test_create_fulfillment(
         'email': order.user_email,
         'email_type': OrderEventsEmails.FULFILLMENT.value}
 
+    assert mock_send_fulfillment_confirmation.delay.called
 
+
+@patch(
+    'saleor.graphql.order.mutations.fulfillments.'
+    'send_fulfillment_confirmation')
 def test_create_fulfillment_with_emtpy_quantity(
-        staff_api_client, order_with_lines, staff_user,
-        permission_manage_orders):
+        mock_send_fulfillment_confirmation, staff_api_client, order_with_lines,
+        staff_user, permission_manage_orders):
     order = order_with_lines
     query = CREATE_FULFILLMENT_QUERY
     order_id = graphene.Node.to_global_id('Order', order.id)
@@ -96,6 +104,8 @@ def test_create_fulfillment_with_emtpy_quantity(
     data = content['data']['orderFulfillmentCreate']['fulfillment']
     assert data['fulfillmentOrder'] == 1
     assert data['status'] == FulfillmentStatus.FULFILLED.upper()
+
+    assert mock_send_fulfillment_confirmation.delay.called
 
 
 @pytest.mark.parametrize(
@@ -256,3 +266,4 @@ def test_create_digital_fulfillment(
     digital_content.refresh_from_db()
     assert digital_content.urls.count() == 1
     assert digital_content.urls.all()[0].line == order_line
+    assert mock_send_fulfillment_confirmation.delay.called
