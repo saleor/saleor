@@ -15,6 +15,7 @@ import TranslationsPagesPage, {
 import { TypedUpdatePageTranslations } from "../mutations";
 import { TypedPageTranslationDetails } from "../queries";
 import { UpdatePageTranslations } from "../types/UpdatePageTranslations";
+import { languageEntitiesUrl, TranslatableEntities } from "../urls";
 
 export interface TranslationsPagesQueryParams {
   activeField: string;
@@ -89,6 +90,14 @@ const TranslationsPages: React.FC<TranslationsPagesProps> = ({
                 }
                 languageCode={languageCode}
                 saveButtonState={saveButtonState}
+                onBack={() =>
+                  navigate(
+                    languageEntitiesUrl(
+                      languageCode,
+                      TranslatableEntities.pages
+                    )
+                  )
+                }
                 onEdit={onEdit}
                 onSubmit={handleSubmit}
                 page={maybe(() => pageTranslations.data.page)}

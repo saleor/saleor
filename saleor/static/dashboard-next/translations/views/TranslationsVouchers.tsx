@@ -15,6 +15,7 @@ import TranslationsVouchersPage, {
 import { TypedUpdateVoucherTranslations } from "../mutations";
 import { TypedVoucherTranslationDetails } from "../queries";
 import { UpdateVoucherTranslations } from "../types/UpdateVoucherTranslations";
+import { languageEntitiesUrl, TranslatableEntities } from "../urls";
 
 export interface TranslationsVouchersQueryParams {
   activeField: string;
@@ -86,6 +87,14 @@ const TranslationsVouchers: React.FC<TranslationsVouchersProps> = ({
                 }
                 languageCode={languageCode}
                 saveButtonState={saveButtonState}
+                onBack={() =>
+                  navigate(
+                    languageEntitiesUrl(
+                      languageCode,
+                      TranslatableEntities.vouchers
+                    )
+                  )
+                }
                 onEdit={onEdit}
                 onSubmit={handleSubmit}
                 voucher={maybe(() => voucherTranslations.data.voucher)}

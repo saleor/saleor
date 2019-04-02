@@ -7,6 +7,7 @@ import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { SaleTranslationFragment } from "../../types/SaleTranslationFragment";
 import TranslationFields from "../TranslationFields";
+import AppHeader from "../../../components/AppHeader";
 
 export interface TranslationsSalesPageProps {
   activeField: string;
@@ -14,6 +15,7 @@ export interface TranslationsSalesPageProps {
   languageCode: string;
   sale: SaleTranslationFragment;
   saveButtonState: ConfirmButtonTransitionState;
+  onBack: () => void;
   onEdit: (field: string) => void;
   onSubmit: (field: string, data: string) => void;
 }
@@ -30,10 +32,12 @@ const TranslationsSalesPage: React.StatelessComponent<
   languageCode,
   sale,
   saveButtonState,
+  onBack,
   onEdit,
   onSubmit
 }) => (
   <Container>
+    <AppHeader onBack={onBack}>{i18n.t("Translations")}</AppHeader>
     <PageHeader
       title={i18n.t('Translation Sale "{{ saleName }}" - {{ languageCode }}', {
         context: "sale translation page title",

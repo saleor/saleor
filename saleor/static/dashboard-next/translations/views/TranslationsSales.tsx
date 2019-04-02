@@ -15,6 +15,7 @@ import TranslationsSalesPage, {
 import { TypedUpdateSaleTranslations } from "../mutations";
 import { TypedSaleTranslationDetails } from "../queries";
 import { UpdateSaleTranslations } from "../types/UpdateSaleTranslations";
+import { languageEntitiesUrl, TranslatableEntities } from "../urls";
 
 export interface TranslationsSalesQueryParams {
   activeField: string;
@@ -83,6 +84,14 @@ const TranslationsSales: React.FC<TranslationsSalesProps> = ({
                 }
                 languageCode={languageCode}
                 saveButtonState={saveButtonState}
+                onBack={() =>
+                  navigate(
+                    languageEntitiesUrl(
+                      languageCode,
+                      TranslatableEntities.sales
+                    )
+                  )
+                }
                 onEdit={onEdit}
                 onSubmit={handleSubmit}
                 sale={maybe(() => saleTranslations.data.sale)}

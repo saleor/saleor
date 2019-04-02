@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import CardSpacer from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton";
 import Container from "../../../components/Container";
@@ -15,6 +16,7 @@ export interface TranslationsCollectionsPageProps {
   languageCode: string;
   collection: CollectionTranslationFragment;
   saveButtonState: ConfirmButtonTransitionState;
+  onBack: () => void;
   onEdit: (field: string) => void;
   onSubmit: (field: string, data: string) => void;
 }
@@ -34,10 +36,12 @@ const TranslationsCollectionsPage: React.StatelessComponent<
   languageCode,
   collection,
   saveButtonState,
+  onBack,
   onEdit,
   onSubmit
 }) => (
   <Container>
+    <AppHeader onBack={onBack}>{i18n.t("Translations")}</AppHeader>
     <PageHeader
       title={i18n.t(
         'Translation Collection "{{ collectionName }}" - {{ languageCode }}',
