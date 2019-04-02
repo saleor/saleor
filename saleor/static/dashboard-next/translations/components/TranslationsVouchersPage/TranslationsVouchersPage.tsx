@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
@@ -7,7 +8,6 @@ import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { VoucherTranslationFragment } from "../../types/VoucherTranslationFragment";
 import TranslationFields from "../TranslationFields";
-import AppHeader from "../../../components/AppHeader";
 
 export interface TranslationsVouchersPageProps {
   activeField: string;
