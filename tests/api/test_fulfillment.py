@@ -1,6 +1,8 @@
 import graphene
 import pytest
 
+from unittest.mock import patch
+
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.models import FulfillmentStatus
 from tests.api.utils import get_graphql_content
@@ -208,3 +210,49 @@ def test_cancel_fulfillment(
     assert event_cancel_fulfillment.parameters == {
         'composed_id': fulfillment.composed_id}
     assert event_cancel_fulfillment.user == staff_user
+
+
+@patch(
+    'saleor.graphql.order.mutations.fulfillments.'
+    'send_fulfillment_confirmation')
+def test_create_digital_fulfillment(
+        mock_send_fulfillment_confirmation, digital_content, staff_api_client,
+        order_with_lines, staff_user, permission_manage_orders):
+    order = order_with_lines
+    query = CREATE_FULFILLMENT_QUERY
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    order_line = order.lines.first()
+    order_line.variant = digital_content.product_variant
+    order_line.save()
+
+    second_line = order.lines.last()
+    first_line_id = graphene.Node.to_global_id('OrderLine', order_line.id)
+    second_line_id = graphene.Node.to_global_id('OrderLine', second_line.id)
+
+    tracking = 'Flames tracking'
+    assert not order.events.all()
+    variables = {
+        'order': order_id,
+        'lines': [
+            {'orderLineId': first_line_id, 'quantity': 1},
+            {'orderLineId': second_line_id, 'quantity': 1}],
+        'tracking': tracking, 'notify': True}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
+    get_graphql_content(response)
+
+    event_fulfillment, event_email_sent = order.events.all()
+    assert event_fulfillment.type == (
+        OrderEvents.FULFILLMENT_FULFILLED_ITEMS.value)
+    assert event_fulfillment.parameters == {'quantity': 2}
+    assert event_fulfillment.user == staff_user
+
+    assert event_email_sent.type == OrderEvents.EMAIL_SENT.value
+    assert event_email_sent.user == staff_user
+    assert event_email_sent.parameters == {
+        'email': order.user_email,
+        'email_type': OrderEventsEmails.FULFILLMENT.value}
+
+    digital_content.refresh_from_db()
+    assert digital_content.urls.count() == 1
+    assert digital_content.urls.all()[0].line == order_line
