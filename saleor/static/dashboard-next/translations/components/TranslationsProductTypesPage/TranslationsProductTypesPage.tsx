@@ -56,7 +56,7 @@ const TranslationsProductTypesPage: React.StatelessComponent<
           <TranslationFields
             activeField={activeField}
             disabled={disabled}
-            initialState={true}
+            initialState={false}
             title={i18n.t("Product Attribute ({{ attributeName }})", {
               attributeName: attribute.name
             })}
@@ -105,7 +105,7 @@ const TranslationsProductTypesPage: React.StatelessComponent<
               <TranslationFields
                 activeField={activeField}
                 disabled={disabled}
-                initialState={true}
+                initialState={false}
                 title={i18n.t("Variant Attribute ({{ attributeName }})", {
                   attributeName: attribute.name
                 })}
