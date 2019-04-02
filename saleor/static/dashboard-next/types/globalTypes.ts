@@ -6,6 +6,11 @@
 // START Enums and Input Objects
 //==============================================================
 
+export enum AddressTypeEnum {
+  BILLING = "BILLING",
+  SHIPPING = "SHIPPING",
+}
+
 export enum AttributeTypeEnum {
   PRODUCT = "PRODUCT",
   VARIANT = "VARIANT",
@@ -160,10 +165,10 @@ export enum VoucherTypeEnum {
 }
 
 export enum WeightUnitsEnum {
-  g = "g",
-  kg = "kg",
-  lb = "lb",
-  oz = "oz",
+  G = "G",
+  KG = "KG",
+  LB = "LB",
+  OZ = "OZ",
 }
 
 export interface AddressInput {

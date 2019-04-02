@@ -30,9 +30,9 @@ def test_remove_staff_member(staff_user):
     assert not User.objects.filter(pk=staff_user.pk).exists()
 
 
-def test_staff_form_not_valid(db):
+def test_staff_form_not_valid(staff_user):
     data = {'user_permissions': 1}
-    form = StaffForm(data=data)
+    form = StaffForm(data=data, user=staff_user)
     assert not form.is_valid()
 
 
@@ -41,7 +41,7 @@ def test_staff_form_create_valid(
     assert staff_user.user_permissions.count() == 0
     url = reverse('dashboard:staff-details', kwargs={'pk': staff_user.pk})
     data = {
-        'email': 'staff@example.com',
+        'email': 'staff@example.com', 'is_staff': True,
         'user_permissions': permission_manage_products.pk}
     admin_client.post(url, data)
     staff_user = User.objects.get(pk=staff_user.pk)
@@ -68,6 +68,26 @@ def test_admin_cant_change_his_permissions(admin_client, admin_user):
     assert response.status_code == 200
     assert admin_user.is_active
     assert admin_user.is_staff
+
+
+def test_staff_form_remove_permissions_after_unassign_is_staff(
+        admin_client, staff_user, permission_manage_products):
+    staff_user.user_permissions.add(permission_manage_products)
+    assert staff_user.is_active
+    assert staff_user.is_staff
+    assert staff_user.user_permissions.count() == 1
+
+    url = reverse('dashboard:staff-details', kwargs={'pk': staff_user.pk})
+    data = {
+        'email': staff_user.email, 'is_active': True, 'is_staff': False,
+        'user_permissions': permission_manage_products.pk}
+    response = admin_client.post(url, data)
+
+    staff_user.refresh_from_db()
+    assert response.status_code == 302
+    assert staff_user.is_active
+    assert not staff_user.is_staff
+    assert staff_user.user_permissions.count() == 0
 
 
 def test_delete_staff(admin_client, staff_user):
@@ -118,7 +138,7 @@ def test_send_set_password_email(staff_user, site_settings):
     site = site_settings.site
     uid = urlsafe_base64_encode(force_bytes(staff_user.pk)).decode()
     token = default_token_generator.make_token(staff_user)
-    logo_url = build_absolute_uri(static('images/logo-document.svg'))
+    logo_url = build_absolute_uri(static('images/logo-light.svg'))
     password_set_url = build_absolute_uri(
         reverse(
             'account:reset-password-confirm',
@@ -175,7 +195,7 @@ def test_create_staff_from_customer(
         admin_client, customer_user, permission_manage_products):
     url = reverse('dashboard:staff-create')
     data = {
-        'email': customer_user.email,
+        'email': customer_user.email, 'is_staff': True,
         'user_permissions': permission_manage_products.pk}
     admin_client.post(url, data)
     customer_user.refresh_from_db()

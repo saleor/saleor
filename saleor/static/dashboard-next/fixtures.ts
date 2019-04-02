@@ -22,3 +22,11 @@ export const pageListProps: { [key: string]: PageListProps } = {
     pageInfo
   }
 };
+
+export const countries = [
+  { code: "AF", label: "Afghanistan" },
+  { code: "AX", label: "Åland Islands" },
+  { code: "AL", label: "Albania" },
+  { code: "DZ", label: "Algeria" },
+  { code: "AS", label: "American Samoa" }
+];

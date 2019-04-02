@@ -13,15 +13,17 @@ const styles = (theme: Theme) =>
     active: {},
     root: {
       "&$active": {
-        borderBottomColor: theme.palette.primary.main
+        borderBottomColor: theme.palette.primary.main,
+        color: theme.typography.body1.color
       },
       "&:focus": {
-        color: "#5AB378"
+        color: theme.palette.primary.main
       },
       "&:hover": {
-        color: "#5AB378"
+        color: theme.palette.primary.main
       },
       borderBottom: "1px solid transparent",
+      color: theme.typography.caption.color,
       cursor: "pointer",
       display: "inline-block",
       fontWeight: theme.typography.fontWeightRegular,

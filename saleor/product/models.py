@@ -24,7 +24,7 @@ from saleor.core.utils import build_absolute_uri
 from ..core import TaxRateType
 from ..core.exceptions import InsufficientStock
 from ..core.models import PublishableModel, SortableModel
-from ..core.utils.taxes import DEFAULT_TAX_RATE_NAME, apply_tax_to_price
+from ..core.utils.taxes import apply_tax_to_price
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
 from ..discount.utils import calculate_discounted_price
@@ -81,9 +81,7 @@ class ProductType(models.Model):
     has_variants = models.BooleanField(default=True)
     is_shipping_required = models.BooleanField(default=True)
     is_digital = models.BooleanField(default=False)
-    tax_rate = models.CharField(
-        max_length=128, default=DEFAULT_TAX_RATE_NAME,
-        choices=TaxRateType.CHOICES)
+    tax_rate = models.CharField(max_length=128, choices=TaxRateType.CHOICES)
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES,
         default=zero_weight)
@@ -116,7 +114,7 @@ class Product(SeoModel, PublishableModel):
     updated_at = models.DateTimeField(auto_now=True, null=True)
     charge_taxes = models.BooleanField(default=True)
     tax_rate = models.CharField(
-        max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True,
+        max_length=128, blank=True,
         choices=TaxRateType.CHOICES)
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES,

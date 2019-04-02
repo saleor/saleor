@@ -1,3 +1,4 @@
+import uuid
 from unittest.mock import MagicMock, Mock, patch
 
 import graphene
@@ -18,6 +19,31 @@ from saleor.payment.models import Payment
 from saleor.shipping.models import ShippingMethod
 
 from .utils import assert_no_permission, get_graphql_content
+
+
+@pytest.fixture
+def orders(customer_user):
+    Order.objects.bulk_create([
+        Order(
+            user=customer_user,
+            status=OrderStatus.CANCELED,
+            token=uuid.uuid4()),
+        Order(
+            user=customer_user,
+            status=OrderStatus.UNFULFILLED,
+            token=uuid.uuid4()),
+        Order(
+            user=customer_user,
+            status=OrderStatus.PARTIALLY_FULFILLED,
+            token=uuid.uuid4()),
+        Order(
+            user=customer_user,
+            status=OrderStatus.FULFILLED,
+            token=uuid.uuid4()),
+        Order(
+            user=customer_user,
+            status=OrderStatus.DRAFT,
+            token=uuid.uuid4())])
 
 
 def test_orderline_query(
@@ -148,24 +174,63 @@ def test_order_query(
     assert expected_method.type.upper() == method['type']
 
 
-def test_order_status_filter_param(user_api_client):
+def test_order_query_customer(api_client):
     query = """
-    query OrdersQuery($status: OrderStatusFilter) {
-        orders(status: $status) {
-            totalCount
+        query OrdersQuery {
+            orders(first: 1) {
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
+        }
+    """
+
+    response = api_client.post_graphql(query)
+    assert_no_permission(response)
+
+
+def test_order_query_draft_excluded(
+        staff_api_client, permission_manage_orders, orders):
+    query = """
+    query OrdersQuery {
+        orders(first: 10) {
+            edges {
+                node {
+                    id
+                }
+            }
         }
     }
     """
 
-    # Check that both calls return a succesful response (underlying logic
-    # is tested separately in querysets' tests).
-    variables = {'status': OrderStatusFilter.READY_TO_CAPTURE.name}
-    response = user_api_client.post_graphql(query, variables)
-    get_graphql_content(response)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(query)
+    edges = get_graphql_content(response)['data']['orders']['edges']
 
-    variables = {'status': OrderStatusFilter.READY_TO_FULFILL.name}
-    response = user_api_client.post_graphql(query, variables)
-    get_graphql_content(response)
+    assert len(edges) == Order.objects.confirmed().count()
+
+
+def test_draft_order_query(
+        staff_api_client, permission_manage_orders, orders):
+    query = """
+    query DraftOrdersQuery {
+        draftOrders(first: 10) {
+            edges {
+                node {
+                    id
+                }
+            }
+        }
+    }
+    """
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(query)
+    edges = get_graphql_content(response)['data']['draftOrders']['edges']
+
+    assert len(edges) == Order.objects.drafts().count()
 
 
 def test_nested_order_events_query(
@@ -309,7 +374,9 @@ def test_draft_order_create(
 
     order = Order.objects.first()
     assert order.user == customer_user
-    assert order.billing_address == customer_user.default_billing_address
+    # billing address should be copied
+    assert order.billing_address.pk != customer_user.default_billing_address.pk
+    assert order.billing_address.as_data() == customer_user.default_billing_address.as_data()
     assert order.shipping_method == shipping_method
     assert order.shipping_address.first_name == graphql_address_data['firstName']
 

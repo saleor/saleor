@@ -22,26 +22,13 @@ type Address implements Node {
 
 type AddressCreate {
   errors: [Error!]
+  user: User
   address: Address
-}
-
-input AddressCreateInput {
-  firstName: String
-  lastName: String
-  companyName: String
-  streetAddress1: String
-  streetAddress2: String
-  city: String
-  cityArea: String
-  postalCode: String
-  country: String!
-  countryArea: String
-  phone: String
-  userId: ID!
 }
 
 type AddressDelete {
   errors: [Error!]
+  user: User
   address: Address
 }
 
@@ -59,6 +46,11 @@ input AddressInput {
   phone: String
 }
 
+type AddressSetDefault {
+  errors: [Error!]
+  user: User
+}
+
 enum AddressTypeEnum {
   BILLING
   SHIPPING
@@ -66,6 +58,7 @@ enum AddressTypeEnum {
 
 type AddressUpdate {
   errors: [Error!]
+  user: User
   address: Address
 }
 
@@ -922,7 +915,9 @@ enum LanguageCodeEnum {
   RU
   SK
   SR
+  SW
   SV
+  TH
   TR
   UK
   VI
@@ -1222,9 +1217,12 @@ type Mutations {
   staffDelete(id: ID!): StaffDelete
   staffBulkDelete(ids: [ID]!): StaffBulkDelete
   staffUpdate(id: ID!, input: StaffInput!): StaffUpdate
-  addressCreate(input: AddressCreateInput!): AddressCreate
+  addressCreate(input: AddressInput!, userId: ID!): AddressCreate
   addressDelete(id: ID!): AddressDelete
   addressUpdate(id: ID!, input: AddressInput!): AddressUpdate
+  addressSetDefault(addressId: ID!, type: AddressTypeEnum!, userId: ID!): AddressSetDefault
+  userAvatarUpdate(image: Upload!): UserAvatarUpdate
+  userAvatarDelete: UserAvatarDelete
 }
 
 input NameTranslationInput {
@@ -1984,6 +1982,7 @@ type Query {
   homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
   order(id: ID!): Order
   orders(query: String, created: ReportingPeriod, status: OrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection
+  draftOrders(query: String, created: ReportingPeriod, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   ordersTotal(period: ReportingPeriod): TaxedMoney
   orderByToken(token: String!): Order
   menu(id: ID, name: String): Menu
@@ -2464,6 +2463,7 @@ type User implements Node {
   dateJoined: DateTime!
   defaultShippingAddress: Address
   defaultBillingAddress: Address
+  avatar(size: Int): Image
   orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
   checkout: Checkout
   permissions: [PermissionDisplay]
@@ -2472,6 +2472,16 @@ type User implements Node {
 input UserAddressInput {
   defaultBillingAddress: AddressInput
   defaultShippingAddress: AddressInput
+}
+
+type UserAvatarDelete {
+  errors: [Error!]
+  user: User
+}
+
+type UserAvatarUpdate {
+  errors: [Error!]
+  user: User
 }
 
 type UserCountableConnection {
@@ -2635,8 +2645,8 @@ type Weight {
 scalar WeightScalar
 
 enum WeightUnitsEnum {
-  kg
-  lb
-  oz
-  g
+  KG
+  LB
+  OZ
+  G
 }

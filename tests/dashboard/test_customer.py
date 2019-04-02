@@ -50,19 +50,20 @@ def test_view_customer_create(admin_client):
     assert User.objects.filter(email='customer01@example.com').exists()
 
 
-def test_add_customer_form():
+def test_add_customer_form(staff_user):
     user_count = User.objects.count()
-    customer_form = CustomerForm({'email': 'customer01@example.com'})
+    customer_form = CustomerForm(
+        {'email': 'customer01@example.com'}, user=staff_user)
     customer_form.is_valid()
     customer_form.save()
     assert User.objects.count() == user_count + 1
 
 
-def test_edit_customer_form(customer_user):
+def test_edit_customer_form(customer_user, staff_user):
     customer = customer_user
     customer_form = CustomerForm(
         {'first_name': 'Jan', 'last_name': 'Nowak', 'email': customer.email},
-        instance=customer)
+        instance=customer, user=staff_user)
     customer_form.is_valid()
     customer_form.save()
     customer.refresh_from_db()
@@ -164,7 +165,7 @@ def test_send_set_password_customer_email(customer_user, site_settings):
     site = site_settings.site
     uid = urlsafe_base64_encode(force_bytes(customer_user.pk)).decode()
     token = default_token_generator.make_token(customer_user)
-    logo_url = build_absolute_uri(static('images/logo-document.svg'))
+    logo_url = build_absolute_uri(static('images/logo-light.svg'))
     password_set_url = build_absolute_uri(
         reverse(
             'account:reset-password-confirm',

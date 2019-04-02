@@ -1,11 +1,12 @@
 import json
 import re
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import graphene
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
+from django.core.files import File
 from django.shortcuts import reverse
 
 from saleor.account.models import Address, User
@@ -15,8 +16,12 @@ from saleor.graphql.account.mutations import (
 from saleor.graphql.core.enums import PermissionEnum
 from saleor.order.models import FulfillmentStatus
 from tests.api.utils import get_graphql_content
-
-from .utils import assert_no_permission, convert_dict_keys_to_camel_case
+from tests.utils import create_image
+from .utils import (
+    assert_no_permission,
+    convert_dict_keys_to_camel_case,
+    get_multipart_request_body,
+)
 
 
 def test_create_token_mutation(admin_client, staff_user):
@@ -97,6 +102,11 @@ def test_query_user(
     user.default_shipping_address.save()
     user.addresses.add(address.get_copy())
 
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = 'image.jpg'
+    user.avatar = avatar_mock
+    user.save()
+
     query = """
     query User($id: ID!) {
         user(id: $id) {
@@ -149,6 +159,9 @@ def test_query_user(
                 isDefaultShippingAddress
                 isDefaultBillingAddress
             }
+            avatar {
+                url
+            }
         }
     }
     """
@@ -164,6 +177,7 @@ def test_query_user(
     assert data['isStaff'] == user.is_staff
     assert data['isActive'] == user.is_active
     assert data['orders']['totalCount'] == user.orders.count()
+    assert data['avatar']['url']
 
     assert len(data['addresses']) == user.addresses.count()
     for address in data['addresses']:
@@ -759,6 +773,9 @@ def test_staff_create(
                 permissions {
                     code
                 }
+                avatar {
+                    url
+                }
             }
         }
     }
@@ -778,6 +795,10 @@ def test_staff_create(
     assert data['user']['email'] == email
     assert data['user']['isStaff']
     assert data['user']['isActive']
+    assert re.match(
+        r'http://testserver/media/user-avatars/avatar\d+.*',
+        data['user']['avatar']['url']
+    )
     permissions = data['user']['permissions']
     assert permissions[0]['code'] == 'MANAGE_PRODUCTS'
 
@@ -993,18 +1014,21 @@ def test_create_address_mutation(
         staff_api_client, customer_user, permission_manage_users):
     query = """
     mutation CreateUserAddress($user: ID!, $city: String!, $country: String!) {
-        addressCreate(input: {userId: $user, city: $city, country: $country}) {
-         errors {
-            field
-            message
-         }
-         address {
-            id
-            city
-            country {
-                code
+        addressCreate(userId: $user, input: {city: $city, country: $country}) {
+            errors {
+                field
+                message
             }
-         }
+            address {
+                id
+                city
+                country {
+                    code
+                }
+            }
+            user {
+                id
+            }
         }
     }
     """
@@ -1014,11 +1038,12 @@ def test_create_address_mutation(
         query, variables, permissions=[permission_manage_users])
     content = get_graphql_content(response)
     assert content['data']['addressCreate']['errors'] == []
-    address_response = content['data']['addressCreate']['address']
-    assert address_response['city'] == 'Dummy'
-    assert address_response['country']['code'] == 'PL'
+    data = content['data']['addressCreate']
+    assert data['address']['city'] == 'Dummy'
+    assert data['address']['country']['code'] == 'PL'
     address_obj = Address.objects.get(city='Dummy')
     assert address_obj.user_addresses.first() == customer_user
+    assert data['user']['id'] == user_id
 
 
 ADDRESS_UPDATE_MUTATION = """
@@ -1026,6 +1051,9 @@ ADDRESS_UPDATE_MUTATION = """
         addressUpdate(id: $addressId, input: $address) {
             address {
                 city
+            }
+            user {
+                id
             }
         }
     }
@@ -1090,6 +1118,9 @@ ADDRESS_DELETE_MUTATION = """
             address {
                 city
             }
+            user {
+                id
+            }
         }
     }
 """
@@ -1105,6 +1136,8 @@ def test_address_delete_mutation(
     content = get_graphql_content(response)
     data = content['data']['addressDelete']
     assert data['address']['city'] == address_obj.city
+    assert data['user']['id'] == graphene.Node.to_global_id(
+        'User', customer_user.pk)
     with pytest.raises(address_obj._meta.model.DoesNotExist):
         address_obj.refresh_from_db()
 
@@ -1130,6 +1163,60 @@ def test_customer_delete_address_for_other(
     response = user_api_client.post_graphql(query, variables)
     assert_no_permission(response)
     address_obj.refresh_from_db()
+
+
+SET_DEFAULT_ADDRESS_MUTATION = """
+mutation($address_id: ID!, $user_id: ID!, $type: AddressTypeEnum!) {
+  addressSetDefault(addressId: $address_id, userId: $user_id, type: $type) {
+    errors {
+      field
+      message
+    }
+    user {
+      defaultBillingAddress {
+        id
+      }
+      defaultShippingAddress {
+        id
+      }
+    }
+  }
+}
+"""
+
+
+def test_set_default_address(
+        staff_api_client, address_other_country, customer_user,
+        permission_manage_users):
+    customer_user.default_billing_address = None
+    customer_user.default_shipping_address = None
+    customer_user.save()
+
+    # try to set an address that doesn't belong to that user
+    address = address_other_country
+
+    variables = {
+        'address_id': graphene.Node.to_global_id('Address', address.id),
+        'user_id': graphene.Node.to_global_id('User', customer_user.id),
+        'type': AddressType.SHIPPING.upper()}
+
+    response = staff_api_client.post_graphql(
+        SET_DEFAULT_ADDRESS_MUTATION, variables,
+        permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    data = content['data']['addressSetDefault']
+    assert data['errors'][0]['field'] == 'addressId'
+
+    # try to set a new billing address using one of user's addresses
+    address = customer_user.addresses.first()
+    address_id = graphene.Node.to_global_id('Address', address.id)
+
+    variables['address_id'] = address_id
+    response = staff_api_client.post_graphql(
+        SET_DEFAULT_ADDRESS_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content['data']['addressSetDefault']
+    assert data['user']['defaultShippingAddress']['id'] == address_id
 
 
 def test_address_validator(user_api_client):
@@ -1409,4 +1496,122 @@ def test_customer_change_default_address_invalid_address(
         'id': graphene.Node.to_global_id('Address', address_other_country.id),
         'type': AddressType.SHIPPING.upper()}
     response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert (
+        content['data']['customerSetDefaultAddress']['errors'][0]['field'] ==
+        'id')
+
+
+USER_AVATAR_UPDATE_MUTATION = """
+    mutation userAvatarUpdate($image: Upload!) {
+        userAvatarUpdate(image: $image) {
+            user {
+                avatar {
+                    url
+                }
+            }
+        }
+    }
+"""
+
+
+def test_user_avatar_update_mutation_permission(api_client):
+    """ Should raise error if user is not staff. """
+
+    query = USER_AVATAR_UPDATE_MUTATION
+
+    image_file, image_name = create_image('avatar')
+    variables = {'image': image_name}
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+    response = api_client.post_multipart(body)
+
     assert_no_permission(response)
+
+def test_user_avatar_update_mutation(monkeypatch, staff_api_client):
+    query = USER_AVATAR_UPDATE_MUTATION
+
+    user = staff_api_client.user
+
+    mock_create_thumbnails = Mock(return_value=None)
+    monkeypatch.setattr(
+        ('saleor.graphql.account.mutations.'
+         'create_user_avatar_thumbnails.delay'),
+        mock_create_thumbnails)
+
+    image_file, image_name = create_image('avatar')
+    variables = {'image': image_name}
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+
+    data = content['data']['userAvatarUpdate']
+    user.refresh_from_db()
+
+    assert user.avatar
+    assert data['user']['avatar']['url'].startswith(
+        'http://testserver/media/user-avatars/avatar'
+    )
+
+    # The image creation should have triggered a warm-up
+    mock_create_thumbnails.assert_called_once_with(user_id=user.pk)
+
+
+def test_user_avatar_update_mutation_image_exists(staff_api_client):
+    query = USER_AVATAR_UPDATE_MUTATION
+
+    user = staff_api_client.user
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = 'image.jpg'
+    user.avatar = avatar_mock
+    user.save()
+
+    image_file, image_name = create_image('new_image')
+    variables = {'image': image_name}
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+
+    data = content['data']['userAvatarUpdate']
+    user.refresh_from_db()
+
+    assert user.avatar != avatar_mock
+    assert data['user']['avatar']['url'].startswith(
+        'http://testserver/media/user-avatars/new_image'
+    )
+
+
+USER_AVATAR_DELETE_MUTATION = """
+    mutation userAvatarDelete {
+        userAvatarDelete {
+            user {
+                avatar {
+                    url
+                }
+            }
+        }
+    }
+"""
+
+
+def test_user_avatar_delete_mutation_permission(api_client):
+    """ Should raise error if user is not staff. """
+
+    query = USER_AVATAR_DELETE_MUTATION
+
+    response = api_client.post_graphql(query)
+
+    assert_no_permission(response)
+
+
+def test_user_avatar_delete_mutation(staff_api_client):
+    query = USER_AVATAR_DELETE_MUTATION
+
+    user = staff_api_client.user
+
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+
+    user.refresh_from_db()
+
+    assert not user.avatar
+    assert not content['data']['userAvatarDelete']['user']['avatar']

@@ -148,8 +148,10 @@ def test_checkout_create_logged_in_customer(user_api_client, variant):
     cart_user = new_cart.user
     customer = user_api_client.user
     assert customer.id == cart_user.id
-    assert customer.default_shipping_address_id == new_cart.shipping_address_id
-    assert customer.default_billing_address_id == new_cart.billing_address_id
+    assert customer.default_shipping_address_id != new_cart.shipping_address_id
+    assert customer.default_shipping_address.as_data() == new_cart.shipping_address.as_data()
+    assert customer.default_billing_address_id != new_cart.billing_address_id
+    assert customer.default_billing_address.as_data() == new_cart.billing_address.as_data()
     assert customer.email == new_cart.email
 
 

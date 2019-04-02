@@ -259,7 +259,8 @@ class ProductForm(forms.ModelForm, AttributesMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         product_type = self.instance.product_type
-        self.initial['tax_rate'] = product_type.tax_rate
+        self.initial['tax_rate'] = (
+            self.instance.tax_rate or product_type.tax_rate)
         self.available_attributes = (
             product_type.product_attributes.prefetch_related('values').all())
         self.prepare_fields_for_attributes()
