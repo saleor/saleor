@@ -29,6 +29,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Introduce avatars for staff accounts - #3878 by @pawelzar
 - Fix unfocusing rich text editor - #3902 by @dominik-zeglen
 - Fix phone number validation in GraphQL when country prefix not given - #3905 by @patrys
+- Add translation interface - #3884 by @dominik-zeglen
 
 
 ## 2.4.0
