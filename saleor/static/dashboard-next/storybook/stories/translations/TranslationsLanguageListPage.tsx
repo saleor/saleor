@@ -9,7 +9,6 @@ import Decorator from "../../Decorator";
 
 const props: TranslationsLanguageListPageProps = {
   languages,
-  onAdd: () => undefined,
   onRowClick: () => undefined
 };
 
