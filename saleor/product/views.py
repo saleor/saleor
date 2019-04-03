@@ -1,5 +1,7 @@
 import datetime
 import json
+import mimetypes
+import os
 from typing import Union
 
 from django.http import (
@@ -96,9 +98,17 @@ def digital_product(
     if not digital_content_url_is_valid(content_url):
         return HttpResponseNotFound("Url is not valid anymore")
     digital_content = content_url.content
-    content_file = digital_content.content_file
-    response = FileResponse(content_file.open(), as_attachment=True)
-    response['Content-Length'] = content_file.size
+    digital_content.content_file.open()
+    opened_file = digital_content.content_file.file
+    filename = os.path.basename(digital_content.content_file.name)
+    file_expr = 'filename="{}"'.format(filename)
+
+    content_type = mimetypes.guess_type(str(filename))[0]
+    response = FileResponse(opened_file)
+    response['Content-Length'] = digital_content.content_file.size
+
+    response['Content-Type'] = content_type
+    response['Content-Disposition'] = 'attachment; {}'.format(file_expr)
     content_url.download_num += 1
     content_url.save(update_fields=['download_num', ])
     return response
