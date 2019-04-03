@@ -27,15 +27,15 @@ import TranslationsPagesComponent, {
 import TranslationsProductsComponent, {
   TranslationsProductsQueryParams
 } from "./views/TranslationsProducts";
+import TranslationsProductTypesComponent, {
+  TranslationsProductTypesQueryParams
+} from "./views/TranslationsProductTypes";
 import TranslationsSaleComponent, {
   TranslationsSalesQueryParams
 } from "./views/TranslationsSales";
 import TranslationsVouchersComponent, {
   TranslationsVouchersQueryParams
 } from "./views/TranslationsVouchers";
-import TranslationsProductTypesComponent, {
-  TranslationsProductTypesQueryParams
-} from "./views/TranslationsProductTypes";
 
 type TranslationsEntitiesRouteProps = RouteComponentProps<{
   languageCode: string;
