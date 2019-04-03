@@ -159,8 +159,8 @@ class DigitalContentUpdate(BaseMutation):
         if not all(field in input for field in required_fields):
             msg = ('Use default settings is disabled. Provide all '
                    'configuration fields')
-            missing_field = set(required_fields).difference(set(input))
-            for field in missing_field:
+            missing_fields = set(required_fields).difference(set(input))
+            for field in missing_fields:
                 cls.add_error(errors, field, msg)
 
         return input

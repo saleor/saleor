@@ -77,6 +77,7 @@ def automatically_fulfill_digital_lines(order: Order):
         fulfill_order_line(order_line=line, quantity=quantity)
     emails.send_fulfillment_confirmation.delay(order.pk, fulfillment.pk)
 
+
 def check_order_status(func):
     """Check if order meets preconditions of payment process.
 
