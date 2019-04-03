@@ -46,6 +46,10 @@ const styles = (theme: Theme) =>
     menuItem: {
       textAlign: "justify"
     },
+    menuPaper: {
+      maxHeight: `calc(100vh - ${theme.spacing.unit * 2}px)`,
+      overflow: "scroll"
+    },
     popover: {
       zIndex: 1
     },
@@ -92,7 +96,7 @@ const LanguageSwitch = withStyles(styles, { name: "LanguageSwitch" })(
                   placement === "bottom" ? "right top" : "right bottom"
               }}
             >
-              <Paper>
+              <Paper className={classes.menuPaper}>
                 <ClickAwayListener
                   onClickAway={() => setExpandedState(false)}
                   mouseEvent="onClick"
