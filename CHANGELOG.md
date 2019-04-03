@@ -48,6 +48,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Support setting address as when creating customer address #3782 by @jxltom
 - Fix generating slug from title - #3816 by @maarcingebala
 - Add `variant` field to `OrderLine` type - #3820 by @maarcingebala
+- Fix product create view crash - #3910 by @dominik-zeglen
 
 ### Core
 - Add JSON fields to store rich-text content - #3756 by @michaljelonek
