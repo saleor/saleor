@@ -27,6 +27,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Copy addresses in checkoutCreate and draftOrderCreate mutations - #3866 by @pawelzar
 - Fix default product tax rate in Dashboard 1.0 - #3880 by @pawelzar
 - Introduce avatars for staff accounts - #3878 by @pawelzar
+- Fix unfocusing rich text editor - #3902 by @dominik-zeglen
 
 
 ## 2.4.0
