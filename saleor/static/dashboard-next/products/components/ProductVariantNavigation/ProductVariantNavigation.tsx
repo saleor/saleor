@@ -1,3 +1,4 @@
+import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import {
   createStyles,
@@ -47,6 +48,7 @@ interface ProductVariantNavigationProps extends WithStyles<typeof styles> {
   variants:
     | ProductVariantDetails_productVariant[]
     | ProductVariantCreateData_product_variants[];
+  onAdd?: () => void;
   onRowClick: (variantId: string) => void;
 }
 
@@ -57,6 +59,7 @@ const ProductVariantNavigation = withStyles(styles, {
     classes,
     current,
     variants,
+    onAdd,
     onRowClick
   }: ProductVariantNavigationProps) => (
     <Card>
@@ -88,6 +91,15 @@ const ProductVariantNavigation = withStyles(styles, {
                 <TableCell>{i18n.t("This product has no variants")}</TableCell>
               </TableRow>
             )
+          )}
+          {onAdd && (
+            <TableRow>
+              <TableCell colSpan={2}>
+                <Button color="primary" onClick={onAdd}>
+                  {i18n.t("Add variant")}
+                </Button>
+              </TableCell>
+            </TableRow>
           )}
         </TableBody>
       </Table>
