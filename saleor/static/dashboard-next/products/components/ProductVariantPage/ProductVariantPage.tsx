@@ -98,6 +98,9 @@ const ProductVariantPage: React.StatelessComponent<ProductVariantPageProps> = ({
                     <div>
                       <ProductVariantNavigation
                         current={variant ? variant.id : undefined}
+                        fallbackThumbnail={maybe(
+                          () => variant.product.thumbnail.url
+                        )}
                         variants={maybe(() => variant.product.variants)}
                         onAdd={onAdd}
                         onRowClick={(variantId: string) => {

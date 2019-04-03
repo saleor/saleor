@@ -45,6 +45,7 @@ const styles = (theme: Theme) =>
 
 interface ProductVariantNavigationProps extends WithStyles<typeof styles> {
   current?: string;
+  fallbackThumbnail: string;
   variants:
     | ProductVariantDetails_productVariant[]
     | ProductVariantCreateData_product_variants[];
@@ -58,6 +59,7 @@ const ProductVariantNavigation = withStyles(styles, {
   ({
     classes,
     current,
+    fallbackThumbnail,
     variants,
     onAdd,
     onRowClick
@@ -79,7 +81,10 @@ const ProductVariantNavigation = withStyles(styles, {
                   className={classNames({
                     [classes.tabActive]: variant && variant.id === current
                   })}
-                  thumbnail={maybe(() => variant.images[0].url)}
+                  thumbnail={maybe(
+                    () => variant.images[0].url,
+                    fallbackThumbnail
+                  )}
                 />
                 <TableCell className={classes.textLeft}>
                   {variant ? variant.name || variant.sku : <Skeleton />}
