@@ -1,6 +1,6 @@
 import graphene
 
-from saleor.product.models import DigitalContent
+from saleor.product.models import DigitalContent, ProductVariant
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image
 
@@ -179,7 +179,7 @@ def test_digital_content_delete_mutation(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     get_graphql_content(response)
-    variant.refresh_from_db()
+    variant = ProductVariant.objects.get(id=variant.id)
     assert not hasattr(variant, 'digital_content')
 
 
@@ -221,7 +221,7 @@ def test_digital_content_update_mutation(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     get_graphql_content(response)
-    variant.refresh_from_db()
+    variant = ProductVariant.objects.get(id=variant.id)
     digital_content = variant.digital_content
     assert digital_content.max_downloads == max_downloads
     assert digital_content.url_valid_days == url_valid_days
