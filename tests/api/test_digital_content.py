@@ -1,4 +1,5 @@
 import graphene
+
 from saleor.product.models import DigitalContent
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image
@@ -117,6 +118,42 @@ def test_digital_content_create_mutation_default_settings(
     assert variant.digital_content.content_file
     assert variant.digital_content.use_default_settings
 
+def test_digital_content_create_mutation_removes_old_content(
+        monkeypatch, staff_api_client, variant, permission_manage_products):
+    query = """
+    mutation digitalCreate($variant: ID!, 
+        $input: DigitalContentUploadInput!) {
+        digitalContentCreate(variantId: $variant, input: $input) {
+            variant {
+                id
+            }
+        }
+    }
+    """
+
+    image_file, image_name = create_image()
+
+    d_content = DigitalContent.objects.create(
+        content_file=image_file, product_variant=variant,
+        use_default_settings=True)
+
+    variables = {
+        'variant': graphene.Node.to_global_id('ProductVariant', variant.id),
+        'input': {
+            'useDefaultSettings': True,
+            'contentFile': image_name
+        }
+    }
+
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products])
+    get_graphql_content(response)
+    variant.refresh_from_db()
+    assert variant.digital_content.content_file
+    assert variant.digital_content.use_default_settings
+    assert not DigitalContent.objects.filter(id=d_content.id).exists()
+
 
 def test_digital_content_delete_mutation(
         monkeypatch, staff_api_client, variant, digital_content,
@@ -189,6 +226,50 @@ def test_digital_content_update_mutation(
     assert digital_content.max_downloads == max_downloads
     assert digital_content.url_valid_days == url_valid_days
     assert digital_content.automatic_fulfillment
+
+
+def test_digital_content_update_mutation_missing_content(
+        monkeypatch, staff_api_client, variant,
+        permission_manage_products):
+    url_valid_days = 3
+    max_downloads = 5
+    query = """
+    mutation digitalUpdate($variant: ID!, $input: DigitalContentInput!){
+        digitalContentUpdate(variantId:$variant, input: $input){
+            variant{
+                id
+            }
+            content{
+                contentFile
+                maxDownloads
+                urlValidDays
+                automaticFulfillment
+            }
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+
+    variables = {
+        'variant': graphene.Node.to_global_id('ProductVariant', variant.id),
+        'input': {
+            'maxDownloads': max_downloads,
+            'urlValidDays': url_valid_days,
+            'automaticFulfillment': True,
+            'useDefaultSettings': False,
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    content = get_graphql_content(response)
+    assert content['data']['digitalContentUpdate']['errors']
+    errors = content['data']['digitalContentUpdate']['errors']
+    assert len(errors) == 1
+    assert errors[0]['field'] == 'variantId'
 
 
 def test_digital_content_url_create(
