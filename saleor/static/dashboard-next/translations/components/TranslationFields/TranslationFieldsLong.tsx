@@ -51,7 +51,7 @@ const TranslationFieldsLong: React.FC<TranslationFieldsLongProps> = ({
       {i18n.t("No translation yet")}
     </Typography>
   ) : (
-    initial
+    <Typography>{initial}</Typography>
   );
 TranslationFieldsLong.displayName = "TranslationFieldsLong";
 export default TranslationFieldsLong;

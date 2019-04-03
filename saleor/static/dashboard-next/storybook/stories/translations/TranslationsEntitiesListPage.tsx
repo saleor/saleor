@@ -2,6 +2,7 @@ import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
 import { pageListProps } from "../../../fixtures";
+import TranslationsEntitiesList from "../../../translations/components/TranslationsEntitiesList";
 import TranslationsEntitiesListPage, {
   TranslationsEntitiesListPageProps
 } from "../../../translations/components/TranslationsEntitiesListPage";
@@ -10,56 +11,50 @@ import Decorator from "../../Decorator";
 
 const props: TranslationsEntitiesListPageProps = {
   ...pageListProps.default,
-  entities: [
-    {
-      completion: {
-        current: 3,
-        max: 8
-      },
-      id: "1",
-      name: "Some product 1"
-    },
-    {
-      completion: {
-        current: 2,
-        max: 5
-      },
-      id: "2",
-      name: "Some product 2"
-    },
-    {
-      completion: {
-        current: 7,
-        max: 11
-      },
-      id: "3",
-      name: "Some product 3"
-    }
-  ],
+  children: null,
   filters: {
     current: "products",
     onCategoriesTabClick: () => undefined,
-    onProductsTabClick: () => undefined
+    onCollectionsTabClick: () => undefined,
+    onPagesTabClick: () => undefined,
+    onProductTypesTabClick: () => undefined,
+    onProductsTabClick: () => undefined,
+    onSalesTabClick: () => undefined,
+    onVouchersTabClick: () => undefined
   },
   language: {
     __typename: "LanguageDisplay",
     code: LanguageCodeEnum.EN,
     language: "English"
   },
-  onBack: () => undefined,
-  onRowClick: () => undefined
+  onBack: () => undefined
 };
 
 storiesOf("Views / Translations / Entity list", module)
   .addDecorator(Decorator)
-  .add("default", () => <TranslationsEntitiesListPage {...props} />)
-  .add("loading", () => (
-    <TranslationsEntitiesListPage
-      {...props}
-      entities={undefined}
-      disabled={true}
-    />
-  ))
-  .add("no data", () => (
-    <TranslationsEntitiesListPage {...props} entities={[]} />
+  .add("default", () => (
+    <TranslationsEntitiesListPage {...props}>
+      <TranslationsEntitiesList
+        disabled={false}
+        entities={[
+          {
+            completion: { current: 1, max: 3 },
+            id: "1",
+            name: "White Hoodie"
+          },
+          {
+            completion: { current: 2, max: 3 },
+            id: "1",
+            name: "Brown Supreme Hoodie"
+          }
+        ]}
+        onRowClick={() => undefined}
+        onNextPage={() => undefined}
+        onPreviousPage={() => undefined}
+        pageInfo={{
+          hasNextPage: true,
+          hasPreviousPage: false
+        }}
+      />
+    </TranslationsEntitiesListPage>
   ));

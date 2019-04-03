@@ -53,7 +53,9 @@ const TranslationFieldsRich: React.FC<TranslationFieldsRichProps> = ({
       {i18n.t("No translation yet")}
     </Typography>
   ) : (
-    <DraftRenderer content={JSON.parse(initial)} />
+    <Typography>
+      <DraftRenderer content={JSON.parse(initial)} />
+    </Typography>
   );
 TranslationFieldsRich.displayName = "TranslationFieldsRich";
 export default TranslationFieldsRich;
