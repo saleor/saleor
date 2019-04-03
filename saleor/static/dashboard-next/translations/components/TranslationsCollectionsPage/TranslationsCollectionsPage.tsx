@@ -2,23 +2,19 @@ import * as React from "react";
 
 import AppHeader from "../../../components/AppHeader";
 import CardSpacer from "../../../components/CardSpacer";
-import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton";
 import Container from "../../../components/Container";
+import LanguageSwitch from "../../../components/LanguageSwitch";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
+import { LanguageCodeEnum } from "../../../types/globalTypes";
 import { CollectionTranslationFragment } from "../../types/CollectionTranslationFragment";
+import { TranslationsEntitiesPageProps } from "../../types/TranslationsEntitiesPage";
 import TranslationFields from "../TranslationFields";
 
-export interface TranslationsCollectionsPageProps {
-  activeField: string;
-  disabled: boolean;
-  languageCode: string;
+export interface TranslationsCollectionsPageProps
+  extends TranslationsEntitiesPageProps {
   collection: CollectionTranslationFragment;
-  saveButtonState: ConfirmButtonTransitionState;
-  onBack: () => void;
-  onEdit: (field: string) => void;
-  onSubmit: (field: string, data: string) => void;
 }
 
 export const fieldNames = {
@@ -34,10 +30,12 @@ const TranslationsCollectionsPage: React.StatelessComponent<
   activeField,
   disabled,
   languageCode,
+  languages,
   collection,
   saveButtonState,
   onBack,
   onEdit,
+  onLanguageChange,
   onSubmit
 }) => (
   <Container>
@@ -51,7 +49,13 @@ const TranslationsCollectionsPage: React.StatelessComponent<
           languageCode
         }
       )}
-    />
+    >
+      <LanguageSwitch
+        currentLanguage={LanguageCodeEnum[languageCode]}
+        languages={languages}
+        onLanguageChange={onLanguageChange}
+      />
+    </PageHeader>
     <TranslationFields
       activeField={activeField}
       disabled={disabled}

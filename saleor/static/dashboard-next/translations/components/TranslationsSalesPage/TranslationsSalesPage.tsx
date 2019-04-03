@@ -1,23 +1,19 @@
 import * as React from "react";
 
-import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton";
+import AppHeader from "../../../components/AppHeader";
 import Container from "../../../components/Container";
+import LanguageSwitch from "../../../components/LanguageSwitch";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
+import { LanguageCodeEnum } from "../../../types/globalTypes";
 import { SaleTranslationFragment } from "../../types/SaleTranslationFragment";
+import { TranslationsEntitiesPageProps } from "../../types/TranslationsEntitiesPage";
 import TranslationFields from "../TranslationFields";
-import AppHeader from "../../../components/AppHeader";
 
-export interface TranslationsSalesPageProps {
-  activeField: string;
-  disabled: boolean;
-  languageCode: string;
+export interface TranslationsSalesPageProps
+  extends TranslationsEntitiesPageProps {
   sale: SaleTranslationFragment;
-  saveButtonState: ConfirmButtonTransitionState;
-  onBack: () => void;
-  onEdit: (field: string) => void;
-  onSubmit: (field: string, data: string) => void;
 }
 
 export const fieldNames = {
@@ -30,10 +26,12 @@ const TranslationsSalesPage: React.StatelessComponent<
   activeField,
   disabled,
   languageCode,
+  languages,
   sale,
   saveButtonState,
   onBack,
   onEdit,
+  onLanguageChange,
   onSubmit
 }) => (
   <Container>
@@ -44,7 +42,13 @@ const TranslationsSalesPage: React.StatelessComponent<
         languageCode,
         saleName: maybe(() => sale.name, "...")
       })}
-    />
+    >
+      <LanguageSwitch
+        currentLanguage={LanguageCodeEnum[languageCode]}
+        languages={languages}
+        onLanguageChange={onLanguageChange}
+      />
+    </PageHeader>
     <TranslationFields
       activeField={activeField}
       disabled={disabled}

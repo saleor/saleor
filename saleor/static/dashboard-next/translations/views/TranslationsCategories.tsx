@@ -3,6 +3,7 @@ import * as React from "react";
 
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
+import useShop from "../../hooks/useShop";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import { LanguageCodeEnum, TranslationInput } from "../../types/globalTypes";
@@ -12,7 +13,11 @@ import TranslationsCategoriesPage, {
 import { TypedUpdateCategoryTranslations } from "../mutations";
 import { TypedCategoryTranslationDetails } from "../queries";
 import { UpdateCategoryTranslations } from "../types/UpdateCategoryTranslations";
-import { languageEntitiesUrl, TranslatableEntities } from "../urls";
+import {
+  languageEntitiesUrl,
+  languageEntityUrl,
+  TranslatableEntities
+} from "../urls";
 
 export interface TranslationsCategoriesQueryParams {
   activeField: string;
@@ -30,6 +35,7 @@ const TranslationsCategories: React.FC<TranslationsCategoriesProps> = ({
 }) => {
   const navigate = useNavigator();
   const notify = useNotifier();
+  const shop = useShop();
 
   const onEdit = (field: string) =>
     navigate(
@@ -89,6 +95,7 @@ const TranslationsCategories: React.FC<TranslationsCategoriesProps> = ({
                   categoryTranslations.loading || updateTranslationsOpts.loading
                 }
                 languageCode={languageCode}
+                languages={maybe(() => shop.languages, [])}
                 saveButtonState={saveButtonState}
                 onBack={() =>
                   navigate(
@@ -99,6 +106,11 @@ const TranslationsCategories: React.FC<TranslationsCategoriesProps> = ({
                   )
                 }
                 onEdit={onEdit}
+                onLanguageChange={lang =>
+                  navigate(
+                    languageEntityUrl(lang, TranslatableEntities.categories, id)
+                  )
+                }
                 onSubmit={handleSubmit}
                 category={maybe(() => categoryTranslations.data.category)}
               />

@@ -3,6 +3,7 @@ import * as React from "react";
 
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
+import useShop from "../../hooks/useShop";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import {
@@ -15,7 +16,11 @@ import TranslationsVouchersPage, {
 import { TypedUpdateVoucherTranslations } from "../mutations";
 import { TypedVoucherTranslationDetails } from "../queries";
 import { UpdateVoucherTranslations } from "../types/UpdateVoucherTranslations";
-import { languageEntitiesUrl, TranslatableEntities } from "../urls";
+import {
+  languageEntitiesUrl,
+  languageEntityUrl,
+  TranslatableEntities
+} from "../urls";
 
 export interface TranslationsVouchersQueryParams {
   activeField: string;
@@ -33,6 +38,7 @@ const TranslationsVouchers: React.FC<TranslationsVouchersProps> = ({
 }) => {
   const navigate = useNavigator();
   const notify = useNotifier();
+  const shop = useShop();
 
   const onEdit = (field: string) =>
     navigate(
@@ -85,6 +91,7 @@ const TranslationsVouchers: React.FC<TranslationsVouchersProps> = ({
                 disabled={
                   voucherTranslations.loading || updateTranslationsOpts.loading
                 }
+                languages={maybe(() => shop.languages, [])}
                 languageCode={languageCode}
                 saveButtonState={saveButtonState}
                 onBack={() =>
@@ -96,6 +103,11 @@ const TranslationsVouchers: React.FC<TranslationsVouchersProps> = ({
                   )
                 }
                 onEdit={onEdit}
+                onLanguageChange={lang =>
+                  navigate(
+                    languageEntityUrl(lang, TranslatableEntities.vouchers, id)
+                  )
+                }
                 onSubmit={handleSubmit}
                 voucher={maybe(() => voucherTranslations.data.voucher)}
               />

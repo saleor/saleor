@@ -3,6 +3,7 @@ import * as React from "react";
 
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
+import useShop from "../../hooks/useShop";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import { LanguageCodeEnum, TranslationInput } from "../../types/globalTypes";
@@ -12,7 +13,11 @@ import TranslationsCollectionsPage, {
 import { TypedUpdateCollectionTranslations } from "../mutations";
 import { TypedCollectionTranslationDetails } from "../queries";
 import { UpdateCollectionTranslations } from "../types/UpdateCollectionTranslations";
-import { languageEntitiesUrl, TranslatableEntities } from "../urls";
+import {
+  languageEntitiesUrl,
+  languageEntityUrl,
+  TranslatableEntities
+} from "../urls";
 
 export interface TranslationsCollectionsQueryParams {
   activeField: string;
@@ -30,6 +35,7 @@ const TranslationsCollections: React.FC<TranslationsCollectionsProps> = ({
 }) => {
   const navigate = useNavigator();
   const notify = useNotifier();
+  const shop = useShop();
 
   const onEdit = (field: string) =>
     navigate(
@@ -92,6 +98,7 @@ const TranslationsCollections: React.FC<TranslationsCollectionsProps> = ({
                   updateTranslationsOpts.loading
                 }
                 languageCode={languageCode}
+                languages={maybe(() => shop.languages, [])}
                 saveButtonState={saveButtonState}
                 onEdit={onEdit}
                 onBack={() =>
@@ -99,6 +106,15 @@ const TranslationsCollections: React.FC<TranslationsCollectionsProps> = ({
                     languageEntitiesUrl(
                       languageCode,
                       TranslatableEntities.collections
+                    )
+                  )
+                }
+                onLanguageChange={lang =>
+                  navigate(
+                    languageEntityUrl(
+                      lang,
+                      TranslatableEntities.collections,
+                      id
                     )
                   )
                 }

@@ -1,23 +1,19 @@
 import * as React from "react";
 
 import AppHeader from "../../../components/AppHeader";
-import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton";
 import Container from "../../../components/Container";
+import LanguageSwitch from "../../../components/LanguageSwitch";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
+import { LanguageCodeEnum } from "../../../types/globalTypes";
+import { TranslationsEntitiesPageProps } from "../../types/TranslationsEntitiesPage";
 import { VoucherTranslationFragment } from "../../types/VoucherTranslationFragment";
 import TranslationFields from "../TranslationFields";
 
-export interface TranslationsVouchersPageProps {
-  activeField: string;
-  disabled: boolean;
-  languageCode: string;
+export interface TranslationsVouchersPageProps
+  extends TranslationsEntitiesPageProps {
   voucher: VoucherTranslationFragment;
-  saveButtonState: ConfirmButtonTransitionState;
-  onBack: () => void;
-  onEdit: (field: string) => void;
-  onSubmit: (field: string, data: string) => void;
 }
 
 export const fieldNames = {
@@ -29,11 +25,13 @@ const TranslationsVouchersPage: React.StatelessComponent<
 > = ({
   activeField,
   disabled,
+  languages,
   languageCode,
   voucher,
   saveButtonState,
   onBack,
   onEdit,
+  onLanguageChange,
   onSubmit
 }) => (
   <Container>
@@ -47,7 +45,13 @@ const TranslationsVouchersPage: React.StatelessComponent<
           voucherName: maybe(() => voucher.name, "...")
         }
       )}
-    />
+    >
+      <LanguageSwitch
+        currentLanguage={LanguageCodeEnum[languageCode]}
+        languages={languages}
+        onLanguageChange={onLanguageChange}
+      />
+    </PageHeader>
     <TranslationFields
       activeField={activeField}
       disabled={disabled}
