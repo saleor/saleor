@@ -3,6 +3,7 @@ import * as React from "react";
 
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
+import useShop from "../../hooks/useShop";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import {
@@ -15,7 +16,11 @@ import TranslationsPagesPage, {
 import { TypedUpdatePageTranslations } from "../mutations";
 import { TypedPageTranslationDetails } from "../queries";
 import { UpdatePageTranslations } from "../types/UpdatePageTranslations";
-import { languageEntitiesUrl, TranslatableEntities } from "../urls";
+import {
+  languageEntitiesUrl,
+  languageEntityUrl,
+  TranslatableEntities
+} from "../urls";
 
 export interface TranslationsPagesQueryParams {
   activeField: string;
@@ -33,6 +38,7 @@ const TranslationsPages: React.FC<TranslationsPagesProps> = ({
 }) => {
   const navigate = useNavigator();
   const notify = useNotifier();
+  const shop = useShop();
 
   const onEdit = (field: string) =>
     navigate(
@@ -89,6 +95,7 @@ const TranslationsPages: React.FC<TranslationsPagesProps> = ({
                   pageTranslations.loading || updateTranslationsOpts.loading
                 }
                 languageCode={languageCode}
+                languages={maybe(() => shop.languages, [])}
                 saveButtonState={saveButtonState}
                 onBack={() =>
                   navigate(
@@ -99,6 +106,11 @@ const TranslationsPages: React.FC<TranslationsPagesProps> = ({
                   )
                 }
                 onEdit={onEdit}
+                onLanguageChange={lang =>
+                  navigate(
+                    languageEntityUrl(lang, TranslatableEntities.pages, id)
+                  )
+                }
                 onSubmit={handleSubmit}
                 page={maybe(() => pageTranslations.data.page)}
               />

@@ -2,23 +2,19 @@ import * as React from "react";
 
 import AppHeader from "../../../components/AppHeader";
 import CardSpacer from "../../../components/CardSpacer";
-import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton";
 import Container from "../../../components/Container";
+import LanguageSwitch from "../../../components/LanguageSwitch";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
+import { LanguageCodeEnum } from "../../../types/globalTypes";
 import { PageTranslationFragment } from "../../types/PageTranslationFragment";
+import { TranslationsEntitiesPageProps } from "../../types/TranslationsEntitiesPage";
 import TranslationFields from "../TranslationFields";
 
-export interface TranslationsPagesPageProps {
-  activeField: string;
-  disabled: boolean;
-  languageCode: string;
+export interface TranslationsPagesPageProps
+  extends TranslationsEntitiesPageProps {
   page: PageTranslationFragment;
-  saveButtonState: ConfirmButtonTransitionState;
-  onBack: () => void;
-  onEdit: (field: string) => void;
-  onSubmit: (field: string, data: string) => void;
 }
 
 export const fieldNames = {
@@ -34,10 +30,12 @@ const TranslationsPagesPage: React.StatelessComponent<
   activeField,
   disabled,
   languageCode,
+  languages,
   page,
   saveButtonState,
   onBack,
   onEdit,
+  onLanguageChange,
   onSubmit
 }) => (
   <Container>
@@ -48,7 +46,13 @@ const TranslationsPagesPage: React.StatelessComponent<
         languageCode,
         pageName: maybe(() => page.title, "...")
       })}
-    />
+    >
+      <LanguageSwitch
+        currentLanguage={LanguageCodeEnum[languageCode]}
+        languages={languages}
+        onLanguageChange={onLanguageChange}
+      />
+    </PageHeader>
     <TranslationFields
       activeField={activeField}
       disabled={disabled}

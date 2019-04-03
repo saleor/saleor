@@ -3,6 +3,7 @@ import * as React from "react";
 
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
+import useShop from "../../hooks/useShop";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import { LanguageCodeEnum, TranslationInput } from "../../types/globalTypes";
@@ -12,7 +13,11 @@ import TranslationsProductsPage, {
 import { TypedUpdateProductTranslations } from "../mutations";
 import { TypedProductTranslationDetails } from "../queries";
 import { UpdateProductTranslations } from "../types/UpdateProductTranslations";
-import { languageEntitiesUrl, TranslatableEntities } from "../urls";
+import {
+  languageEntitiesUrl,
+  languageEntityUrl,
+  TranslatableEntities
+} from "../urls";
 
 export interface TranslationsProductsQueryParams {
   activeField: string;
@@ -30,6 +35,7 @@ const TranslationsProducts: React.FC<TranslationsProductsProps> = ({
 }) => {
   const navigate = useNavigator();
   const notify = useNotifier();
+  const shop = useShop();
 
   const onEdit = (field: string) =>
     navigate(
@@ -89,6 +95,7 @@ const TranslationsProducts: React.FC<TranslationsProductsProps> = ({
                   productTranslations.loading || updateTranslationsOpts.loading
                 }
                 languageCode={languageCode}
+                languages={maybe(() => shop.languages, [])}
                 saveButtonState={saveButtonState}
                 onBack={() =>
                   navigate(
@@ -99,6 +106,11 @@ const TranslationsProducts: React.FC<TranslationsProductsProps> = ({
                   )
                 }
                 onEdit={onEdit}
+                onLanguageChange={lang =>
+                  navigate(
+                    languageEntityUrl(lang, TranslatableEntities.products, id)
+                  )
+                }
                 onSubmit={handleSubmit}
                 product={maybe(() => productTranslations.data.product)}
               />

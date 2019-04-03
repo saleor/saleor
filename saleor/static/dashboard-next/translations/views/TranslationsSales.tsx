@@ -3,6 +3,7 @@ import * as React from "react";
 
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
+import useShop from "../../hooks/useShop";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import {
@@ -15,7 +16,11 @@ import TranslationsSalesPage, {
 import { TypedUpdateSaleTranslations } from "../mutations";
 import { TypedSaleTranslationDetails } from "../queries";
 import { UpdateSaleTranslations } from "../types/UpdateSaleTranslations";
-import { languageEntitiesUrl, TranslatableEntities } from "../urls";
+import {
+  languageEntitiesUrl,
+  languageEntityUrl,
+  TranslatableEntities
+} from "../urls";
 
 export interface TranslationsSalesQueryParams {
   activeField: string;
@@ -33,6 +38,7 @@ const TranslationsSales: React.FC<TranslationsSalesProps> = ({
 }) => {
   const navigate = useNavigator();
   const notify = useNotifier();
+  const shop = useShop();
 
   const onEdit = (field: string) =>
     navigate(
@@ -82,6 +88,7 @@ const TranslationsSales: React.FC<TranslationsSalesProps> = ({
                 disabled={
                   saleTranslations.loading || updateTranslationsOpts.loading
                 }
+                languages={maybe(() => shop.languages, [])}
                 languageCode={languageCode}
                 saveButtonState={saveButtonState}
                 onBack={() =>
@@ -94,6 +101,11 @@ const TranslationsSales: React.FC<TranslationsSalesProps> = ({
                 }
                 onEdit={onEdit}
                 onSubmit={handleSubmit}
+                onLanguageChange={lang =>
+                  navigate(
+                    languageEntityUrl(lang, TranslatableEntities.sales, id)
+                  )
+                }
                 sale={maybe(() => saleTranslations.data.sale)}
               />
             );

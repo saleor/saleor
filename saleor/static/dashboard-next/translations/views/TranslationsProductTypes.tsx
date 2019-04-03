@@ -3,6 +3,7 @@ import * as React from "react";
 
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
+import useShop from "../../hooks/useShop";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import {
@@ -19,7 +20,11 @@ import {
 import { TypedProductTypeTranslationDetails } from "../queries";
 import { UpdateAttributeTranslations } from "../types/UpdateAttributeTranslations";
 import { UpdateAttributeValueTranslations } from "../types/UpdateAttributeValueTranslations";
-import { languageEntitiesUrl, TranslatableEntities } from "../urls";
+import {
+  languageEntitiesUrl,
+  languageEntityUrl,
+  TranslatableEntities
+} from "../urls";
 
 export interface TranslationsProductTypesQueryParams {
   activeField: string;
@@ -37,6 +42,7 @@ const TranslationsProductTypes: React.FC<TranslationsProductTypesProps> = ({
 }) => {
   const navigate = useNavigator();
   const notify = useNotifier();
+  const shop = useShop();
 
   const onEdit = (field: string) =>
     navigate(
@@ -129,6 +135,7 @@ const TranslationsProductTypes: React.FC<TranslationsProductTypesProps> = ({
                       updateAttributeValueTranslationsOpts.loading
                     }
                     languageCode={languageCode}
+                    languages={maybe(() => shop.languages, [])}
                     saveButtonState={saveButtonState}
                     onBack={() =>
                       navigate(
@@ -139,6 +146,15 @@ const TranslationsProductTypes: React.FC<TranslationsProductTypesProps> = ({
                       )
                     }
                     onEdit={onEdit}
+                    onLanguageChange={lang =>
+                      navigate(
+                        languageEntityUrl(
+                          lang,
+                          TranslatableEntities.productTypes,
+                          id
+                        )
+                      )
+                    }
                     onSubmit={handleSubmit}
                     productType={maybe(
                       () => collectionTranslations.data.productType
