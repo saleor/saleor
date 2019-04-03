@@ -67196,6 +67196,26 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                     Normal Soft
                   </td>
                 </tr>
+                <tr
+                  class="MuiTableRow-root-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    colspan="2"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiButton-label-id"
+                      >
+                        Add variant
+                      </span>
+                    </button>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -67680,6 +67700,26 @@ exports[`Storyshots Views / Products / Product variant details when loading data
                     >
                       ‌
                     </span>
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    colspan="2"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiButton-label-id"
+                      >
+                        Add variant
+                      </span>
+                    </button>
                   </td>
                 </tr>
               </tbody>
