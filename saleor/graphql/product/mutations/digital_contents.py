@@ -149,10 +149,6 @@ class DigitalContentUpdate(BaseMutation):
     @classmethod
     @permission_required('product.manage_products')
     def clean_input(cls, info, input, instance, errors):
-        if not hasattr(instance, 'digital_content'):
-            msg = 'Variant %s doesn\'t have a digital content' % id
-            cls.add_error(errors, 'id', msg)
-
         use_default_settings = input.get('use_default_settings')
         if use_default_settings:
             return {'use_default_settings': use_default_settings}
@@ -177,8 +173,8 @@ class DigitalContentUpdate(BaseMutation):
             info, variant_id, errors, 'id', only_type=ProductVariant)
 
         if not hasattr(variant, 'digital_content'):
-            msg = 'Variant %s doesn\'t have any digital content' % id
-            cls.add_error(errors, 'variant', msg)
+            msg = 'Variant %s doesn\'t have any digital content' % variant.id
+            cls.add_error(errors, 'variant_id', msg)
 
         input = cls.clean_input(info, input, variant, errors)
 
