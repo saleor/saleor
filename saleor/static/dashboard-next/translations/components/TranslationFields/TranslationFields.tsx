@@ -155,7 +155,7 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
                       {i18n.t("Edit")}
                     </Button>
                   </div>
-                  <Typography className={classes.content}>
+                  <div className={classes.content}>
                     {field && field.value !== undefined ? (
                       field.type === "short" ? (
                         <TranslationFieldsShort
@@ -185,7 +185,7 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
                     ) : (
                       <Skeleton />
                     )}
-                  </Typography>
+                  </div>
                   <Typography className={classes.content}>
                     {field && field.translation !== undefined ? (
                       field.type === "short" ? (

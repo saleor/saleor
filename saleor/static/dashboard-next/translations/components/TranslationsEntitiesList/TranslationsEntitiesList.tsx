@@ -1,10 +1,5 @@
 import { Omit } from "@material-ui/core";
-import {
-  createStyles,
-  Theme,
-  withStyles,
-  WithStyles
-} from "@material-ui/core/styles";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -35,18 +30,17 @@ export interface TranslationsEntitiesListProps
   onRowClick: (code: string) => void;
 }
 
-const styles = (theme: Theme) =>
-  createStyles({
-    tableRow: {
-      cursor: "pointer"
-    },
-    textRight: {
-      textAlign: "right"
-    },
-    wideColumn: {
-      width: "80%"
-    }
-  });
+const styles = createStyles({
+  tableRow: {
+    cursor: "pointer"
+  },
+  textRight: {
+    textAlign: "right"
+  },
+  wideColumn: {
+    width: "80%"
+  }
+});
 const TranslationsEntitiesList = withStyles(styles, {
   name: "TranslationsEntitiesList"
 })(
