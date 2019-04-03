@@ -21,7 +21,7 @@ services:
     networks:
       - saleor-backend-tier
     volumes:
-      - saleor-db:/var/lib/postgresql
+      - saleor-db:/var/lib/postgresql_test
     environment:
       - POSTGRES_USER=saleor
       - POSTGRES_PASSWORD=saleor
