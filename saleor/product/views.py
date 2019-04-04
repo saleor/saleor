@@ -1,7 +1,12 @@
 import datetime
 import json
+import mimetypes
+import os
+from typing import Union
 
-from django.http import HttpResponsePermanentRedirect, JsonResponse
+from django.http import (
+    FileResponse, HttpResponseNotFound, HttpResponsePermanentRedirect,
+    JsonResponse)
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -10,13 +15,14 @@ from ..checkout.utils import set_cart_cookie
 from ..core.utils import serialize_decimal
 from ..seo.schema.product import product_json_ld
 from .filters import ProductCategoryFilter, ProductCollectionFilter
-from .models import Category
+from .models import Category, DigitalContentUrl
 from .utils import (
     collections_visible_to_user, get_product_images, get_product_list_context,
     handle_cart_form, products_for_cart, products_for_products_list,
     products_with_details)
 from .utils.attributes import get_product_attributes_data
 from .utils.availability import get_availability
+from .utils.digital_products import digital_content_url_is_valid
 from .utils.variants_picker import get_variant_picker_data
 
 
@@ -82,6 +88,30 @@ def product_details(request, slug, product_id, form=None):
         'json_ld_product_data': json.dumps(
             json_ld_data, default=serialize_decimal)}
     return TemplateResponse(request, 'product/details.html', ctx)
+
+
+def digital_product(
+        request, token: str) -> Union[FileResponse, HttpResponseNotFound]:
+    """Returns direct download link to content if given token is still valid"""
+
+    content_url = get_object_or_404(DigitalContentUrl, token=token)
+    if not digital_content_url_is_valid(content_url):
+        return HttpResponseNotFound("Url is not valid anymore")
+    digital_content = content_url.content
+    digital_content.content_file.open()
+    opened_file = digital_content.content_file.file
+    filename = os.path.basename(digital_content.content_file.name)
+    file_expr = 'filename="{}"'.format(filename)
+
+    content_type = mimetypes.guess_type(str(filename))[0]
+    response = FileResponse(opened_file)
+    response['Content-Length'] = digital_content.content_file.size
+
+    response['Content-Type'] = content_type
+    response['Content-Disposition'] = 'attachment; {}'.format(file_expr)
+    content_url.download_num += 1
+    content_url.save(update_fields=['download_num', ])
+    return response
 
 
 def product_add_to_cart(request, slug, product_id):

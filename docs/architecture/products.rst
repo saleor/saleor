@@ -43,17 +43,65 @@ Think about types as templates for your products. Multiple *products* can use th
     It's what distinguishes different *variants*. Example: cover type; your book can be in hard or soft cover.
 
 - ``is_shipping_required``
-    Indicates whether purchases need to be delivered. Example: digital products; you won't use DHL to ship an MP3 file.
+    Indicates whether purchases need to be delivered. Example: digital products or services.
 
 - ``has_variants``
     Turn this off if your *product* does not have multiple variants or if you want to create separate *products* for every one of them.
 
     This option mainly simplifies product management in the dashboard. There is always at least one *variant* created under the hood.
 
+- ``is_digital`` 
+    Specify if the given product type is dedicated to digital items. ``is_shipping_required`` should be turned off along with this flag.
+    Turn it on if you have digital content (ebooks, mp3s, other files) that should be send to the user after fulfillment.
 
 .. warning:: Changing a product type affects all products of this type.
 
 .. warning:: You can't remove a product type if there are products of that type.
+
+Digital Products
+----------------
+
+A product can be digital. To do that you need to check two db models responsible for storing and serving digital content. 
+Below you can find a description for ``DigitalContent`` and ``DigitalContentUrl``.
+
+.. table:: DigitalContent
+
+   =====================  ===========
+   Field                  Description
+   =====================  ===========
+   use_default_settings   Specify if this content should be served to the customers based on default settings. By default it is True.
+   automatic_fulfillment  Indicates whether digital content should be served to the customer directly after payment confirmation.
+   product_variant        One to One relation to ProductVariant.
+   content_file           File handler.
+   max_downloads          Determines how many times a download link can be accessed by a customer.
+   url_valid_days         Determines for how many days a download link is active after generation.
+   =====================  ===========
+
+
+.. table:: DigitalContentUrl
+
+   =====================  ===========
+   Field                  Description
+   =====================  ===========
+   token                  Contains a unique token needed to generate url.
+   content                Foreign key to Digital Content. Specify the digital content that DigitalContentUrl belongs to.
+   download_num           Number of times url was used to download content.
+   line                   Foreign key to OrderLine. Fulfillment assigns a new url to line with digital product.
+   =====================  ===========
+
+``DigitalContentUrl`` contains all information about a single url that was send to a customer.
+
+A product that will serve as digital content needs to be assigned to a product type marked as digital.
+The file can be uploaded by using GraphQL api, mutation - ``digitalContentCreate`` which takes a variant_id, digital settings and file as an input. 
+Each digital variant can use default or custom settings. 
+To use custom settings you need to modify ``DigitalContent`` fields: ``automatic_fulfillment``, ``max_downloads``, ``url_valid_days`` and mark ``use_default_settings`` as ``false``.
+You can always come back to default settings by choosing ``true`` on ``use_default_settings``.
+
+
+During fulfilling a digital line, the new unique url pointing on content will be generated and assigned to the order line. 
+The fulfillment email will contain information with a unique direct link to the download page.
+The site settings model contains default configuration for digital products. 
+You can set up default values for ``automatic_fulfillment``, ``max_downloads``, and ``url_valid_days``
 
 
 Attributes

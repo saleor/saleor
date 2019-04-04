@@ -247,6 +247,77 @@ def test_query_charge_taxes_on_shipping(api_client, site_settings):
     assert data['chargeTaxesOnShipping'] == charge_taxes_on_shipping
 
 
+def test_query_digital_content_settings(
+        staff_api_client, site_settings, permission_manage_settings):
+    query = """
+    query {
+        shop {
+            automaticFulfillmentDigitalProducts
+            defaultDigitalMaxDownloads
+            defaultDigitalUrlValidDays
+        }
+    }"""
+
+    max_download = 2
+    url_valid_days = 3
+    site_settings.automatic_fulfillment_digital_products = True
+    site_settings.default_digital_max_downloads = max_download
+    site_settings.default_digital_url_valid_days = url_valid_days
+    site_settings.save()
+
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_settings])
+    content = get_graphql_content(response)
+    data = content['data']['shop']
+    automatic_fulfillment = site_settings.automatic_fulfillment_digital_products
+    assert data['automaticFulfillmentDigitalProducts'] == automatic_fulfillment
+    assert data['defaultDigitalMaxDownloads'] == max_download
+    assert data['defaultDigitalUrlValidDays'] == url_valid_days
+
+
+def test_shop_digital_content_settings_mutation(
+        staff_api_client, site_settings, permission_manage_settings):
+    query = """
+        mutation updateSettings($input: ShopSettingsInput!) {
+            shopSettingsUpdate(input: $input) {
+                shop {
+                    automaticFulfillmentDigitalProducts
+                    defaultDigitalMaxDownloads
+                    defaultDigitalUrlValidDays
+                }
+                errors {
+                    field,
+                    message
+                }
+            }
+        }
+    """
+
+    max_downloads = 15
+    url_valid_days = 30
+    variables = {
+        'input': {
+            'automaticFulfillmentDigitalProducts': True,
+            'defaultDigitalMaxDownloads': max_downloads,
+            'defaultDigitalUrlValidDays': url_valid_days
+        }
+    }
+
+    assert not site_settings.automatic_fulfillment_digital_products
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings])
+    content = get_graphql_content(response)
+
+    data = content['data']['shopSettingsUpdate']['shop']
+    assert data['automaticFulfillmentDigitalProducts']
+    assert data['defaultDigitalMaxDownloads']
+    assert data['defaultDigitalUrlValidDays']
+    site_settings.refresh_from_db()
+    assert site_settings.automatic_fulfillment_digital_products
+    assert site_settings.default_digital_max_downloads == max_downloads
+    assert site_settings.default_digital_url_valid_days == url_valid_days
+
+
 def test_shop_settings_mutation(
         staff_api_client, site_settings, permission_manage_settings):
     query = """

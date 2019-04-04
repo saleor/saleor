@@ -286,6 +286,20 @@ class Order(models.Model):
         return self.weight
 
 
+class OrderLineQueryset(models.QuerySet):
+    def digital(self):
+        """Returns lines with digital products"""
+        for line in self.all():
+            if line.is_digital:
+                yield line
+
+    def physical(self):
+        """Returns lines with physical products"""
+        for line in self.all():
+            if not line.is_digital:
+                yield line
+
+
 class OrderLine(models.Model):
     order = models.ForeignKey(
         Order, related_name='lines', editable=False, on_delete=models.CASCADE)
@@ -314,6 +328,8 @@ class OrderLine(models.Model):
     tax_rate = models.DecimalField(
         max_digits=5, decimal_places=2, default=Decimal('0.0'))
 
+    objects = OrderLineQueryset.as_manager()
+
     class Meta:
         ordering = ('pk', )
 
@@ -326,6 +342,14 @@ class OrderLine(models.Model):
     @property
     def quantity_unfulfilled(self):
         return self.quantity - self.quantity_fulfilled
+
+    @property
+    def is_digital(self) -> bool:
+        """Return true if product variant is a digital type and has assigned
+        digital content"""
+        is_digital = self.variant.is_digital()
+        has_digital = hasattr(self.variant, 'digital_content')
+        return is_digital and has_digital
 
 
 class Fulfillment(models.Model):

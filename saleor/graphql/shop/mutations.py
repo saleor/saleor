@@ -22,6 +22,13 @@ class ShopSettingsInput(graphene.InputObjectType):
     track_inventory_by_default = graphene.Boolean(
         description='Enable inventory tracking')
     default_weight_unit = WeightUnitsEnum(description='Default weight unit')
+    automatic_fulfillment_digital_products = graphene.Boolean(
+        description='Enable automatic fulfillment for all digital products')
+    default_digital_max_downloads = graphene.Int(
+        description='Default number of max downloads per digital content url')
+    default_digital_url_valid_days = graphene.Int(
+        description=(
+            'Default number of days which digital content url will be valid'))
 
 
 class SiteDomainInput(graphene.InputObjectType):
@@ -45,7 +52,6 @@ class ShopSettingsUpdate(BaseMutation):
     def mutate(cls, root, info, input):
         errors = []
         instance = info.context.site.settings
-
         for field_name, desired_value in input.items():
             current_value = getattr(instance, field_name)
             if current_value != desired_value:
