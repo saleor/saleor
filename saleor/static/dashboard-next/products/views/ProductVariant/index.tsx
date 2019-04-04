@@ -12,7 +12,11 @@ import ProductVariantPage from "../../components/ProductVariantPage";
 import ProductVariantOperations from "../../containers/ProductVariantOperations";
 import { TypedProductVariantQuery } from "../../queries";
 import { VariantUpdate } from "../../types/VariantUpdate";
-import { productUrl, productVariantEditUrl } from "../../urls";
+import {
+  productUrl,
+  productVariantAddUrl,
+  productVariantEditUrl
+} from "../../urls";
 import { productVariantRemovePath, productVariantRemoveUrl } from "./urls";
 
 interface ProductUpdateProps {
@@ -129,6 +133,9 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                           variant={variant}
                           header={
                             variant ? variant.name || variant.sku : undefined
+                          }
+                          onAdd={() =>
+                            navigate(productVariantAddUrl(productId))
                           }
                           onBack={handleBack}
                           onDelete={() =>
