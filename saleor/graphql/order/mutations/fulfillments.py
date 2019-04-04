@@ -4,10 +4,10 @@ import graphene
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from graphql_jwt.decorators import permission_required
 
-from ....dashboard.order.utils import fulfill_order_line
 from ....order import OrderEvents, OrderEventsEmails, models
 from ....order.emails import send_fulfillment_confirmation
-from ....order.utils import cancel_fulfillment, update_order_status
+from ....order.utils import (
+    cancel_fulfillment, fulfill_order_line, update_order_status)
 from ...core.mutations import BaseMutation
 from ...order.types import Fulfillment, Order
 from ..types import OrderLine
@@ -111,6 +111,8 @@ class FulfillmentCreate(BaseMutation):
         fulfillment_lines = []
         for order_line, quantity in zip(order_lines, quantities):
             fulfill_order_line(order_line, quantity)
+            if order_line.is_digital:
+                order_line.variant.digital_content.urls.create(line=order_line)
             fulfillment_lines.append(
                 models.FulfillmentLine(
                     order_line=order_line, fulfillment=fulfillment,
@@ -122,7 +124,7 @@ class FulfillmentCreate(BaseMutation):
             parameters={'quantity': sum(quantities)},
             type=OrderEvents.FULFILLMENT_FULFILLED_ITEMS.value,
             user=user)
-        if cleaned_input.get('notify_customer'):
+        if cleaned_input.get('notify_customer', True):
             send_fulfillment_confirmation_to_customer(
                 order, fulfillment, user)
         return fulfillment

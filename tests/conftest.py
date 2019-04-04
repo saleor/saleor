@@ -22,23 +22,25 @@ from saleor.checkout.models import Cart
 from saleor.checkout.utils import add_variant_to_cart
 from saleor.core.utils.taxes import DEFAULT_TAX_RATE_NAME
 from saleor.dashboard.menu.utils import update_menu
-from saleor.dashboard.order.utils import fulfill_order_line
 from saleor.discount import VoucherType
 from saleor.discount.models import Sale, Voucher, VoucherTranslation
 from saleor.menu.models import Menu, MenuItem
 from saleor.order import OrderEvents, OrderStatus
 from saleor.order.models import FulfillmentStatus, Order, OrderEvent
-from saleor.order.utils import recalculate_order
+from saleor.order.utils import recalculate_order, fulfill_order_line
 from saleor.page.models import Page
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.models import Payment
 from saleor.product.models import (
     Attribute, AttributeTranslation, AttributeValue, Category, Collection,
-    Product, ProductImage, ProductTranslation, ProductType, ProductVariant)
+    Product, ProductImage, ProductTranslation, ProductType, ProductVariant,
+    DigitalContent
+)
 from saleor.shipping.models import (
     ShippingMethod, ShippingMethodType, ShippingZone)
 from saleor.site import AuthenticationBackends
 from saleor.site.models import AuthorizationKey, SiteSettings
+from tests.utils import create_image
 
 
 @pytest.fixture(autouse=True)
@@ -886,3 +888,23 @@ def payment_dummy(db, settings, order_with_lines):
         billing_country_code=order_with_lines.billing_address.country.code,
         billing_country_area=order_with_lines.billing_address.country_area,
         billing_email=order_with_lines.user_email)
+
+
+@pytest.fixture
+def digital_content(category):
+    product_type = ProductType.objects.create(
+        name='Digital Type', has_variants=True, is_shipping_required=False,
+        is_digital=True
+    )
+    product = Product.objects.create(
+        name='Test digital product', price=Money('10.00', 'USD'),
+        product_type=product_type, category=category)
+    product_variant = ProductVariant.objects.create(
+        product=product, sku='SKU_554', cost_price=Money(1, 'USD'), quantity=5,
+        quantity_allocated=3)
+
+    image_file, image_name = create_image()
+    d_content = DigitalContent.objects.create(
+        content_file=image_file, product_variant=product_variant,
+        use_default_settings=True)
+    return d_content
