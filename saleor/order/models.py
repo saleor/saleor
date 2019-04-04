@@ -288,11 +288,13 @@ class Order(models.Model):
 
 class OrderLineQueryset(models.QuerySet):
     def digital(self):
+        """Returns lines with digital products"""
         for line in self.all():
             if line.is_digital:
                 yield line
 
     def physical(self):
+        """Returns lines with physical products"""
         for line in self.all():
             if not line.is_digital:
                 yield line
