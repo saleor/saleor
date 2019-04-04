@@ -139,6 +139,9 @@ class CartLine(models.Model):
     def __str__(self):
         return smart_str(self.variant)
 
+    def __hash__(self, *args, **kwargs):
+        return super().__hash__(*args, **kwargs)
+
     def __eq__(self, other):
         if not isinstance(other, CartLine):
             return NotImplemented
