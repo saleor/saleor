@@ -3,6 +3,7 @@ sudo: false
 python:
   - "3.5"
   - "3.6"
+  - "3.7"
 cache:
   pip: true
   directories:
@@ -23,14 +24,14 @@ env:
     - SECRET_KEY="irrelevant"
   matrix:
   - DJANGO="1.11"
-  - DJANGO="2.1"
+  - DJANGO="2.2"
   - DJANGO="master"
 matrix:
   include:
     - python: "3.7"
       sudo: required
       dist: xenial
-      env: DJANGO="2.1"
+      env: DJANGO="2.2"
     - python: "3.7"
       sudo: required
       dist: xenial
