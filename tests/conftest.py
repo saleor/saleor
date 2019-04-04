@@ -95,7 +95,7 @@ def address(db):  # pylint: disable=W0613
         first_name='John', last_name='Doe',
         company_name='Mirumee Software',
         street_address_1='Tęczowa 7',
-        city='Wrocław',
+        city='WROCŁAW',
         postal_code='53-601',
         country='PL',
         phone='+48713988102')
@@ -107,7 +107,7 @@ def address_other_country():
         first_name='John',
         last_name='Doe',
         street_address_1='4371 Lucas Knoll Apt. 791',
-        city='Bennettmouth',
+        city='BENNETTMOUTH',
         postal_code='13377',
         country='IS',
         phone='')
