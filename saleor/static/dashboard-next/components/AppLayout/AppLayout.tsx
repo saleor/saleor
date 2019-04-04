@@ -176,7 +176,7 @@ const AppLayout = withStyles(styles, {
                   className={classNames(classes.appLoader, {
                     [classes.hide]: !isProgressVisible
                   })}
-                  color="secondary"
+                  color="primary"
                 />
                 <div className={classes.root}>
                   <div className={classes.sideBar}>

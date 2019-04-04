@@ -64,7 +64,7 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
       <CardTitle
         title={i18n.t("Products")}
         toolbar={
-          <Button variant="text" color="secondary" onClick={onAddProduct}>
+          <Button variant="text" color="primary" onClick={onAddProduct}>
             {i18n.t("Add product")}
           </Button>
         }

@@ -21,7 +21,7 @@ const CollectionListPage: React.StatelessComponent<CollectionListPageProps> = ({
   <Container>
     <PageHeader title={i18n.t("Collections", { context: "page title" })}>
       <Button
-        color="secondary"
+        color="primary"
         disabled={disabled}
         variant="contained"
         onClick={onAdd}

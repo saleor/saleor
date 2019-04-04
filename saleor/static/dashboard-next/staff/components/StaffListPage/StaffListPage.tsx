@@ -30,7 +30,7 @@ const StaffListPage: React.StatelessComponent<StaffListPageProps> = ({
     <AppHeader onBack={onBack}>{i18n.t("Configuration")}</AppHeader>
     <PageHeader title={i18n.t("Staff members", { context: "page title" })}>
       <Button
-        color="secondary"
+        color="primary"
         disabled={disabled}
         variant="contained"
         onClick={onAdd}

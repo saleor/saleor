@@ -92,7 +92,7 @@ const SeoForm = withStyles(styles, { name: "SeoForm" })(
           <CardTitle
             title={i18n.t("Search Engine Preview")}
             toolbar={
-              <Button color="secondary" variant="text" onClick={toggle}>
+              <Button color="primary" variant="text" onClick={toggle}>
                 {i18n.t("Edit website SEO")}
               </Button>
             }

@@ -77,7 +77,7 @@ export const CategoryBackground = withStyles(styles)(
               <>
                 <Button
                   variant="text"
-                  color="secondary"
+                  color="primary"
                   onClick={this.clickImgInput}
                 >
                   {i18n.t("Upload image")}

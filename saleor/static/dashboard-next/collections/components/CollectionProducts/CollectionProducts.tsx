@@ -73,7 +73,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
           <Button
             disabled={disabled}
             variant="text"
-            color="secondary"
+            color="primary"
             onClick={onAdd}
           >
             {i18n.t("Assign product", {
@@ -147,7 +147,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
                     disabled={!product}
                     onClick={event => onProductUnassign(product.id, event)}
                   >
-                    <DeleteIcon color="secondary" />
+                    <DeleteIcon color="primary" />
                   </IconButton>
                 </TableCell>
               </TableRow>

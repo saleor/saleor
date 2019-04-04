@@ -40,7 +40,7 @@ const OrderListPage: React.StatelessComponent<OrderListPageProps> = ({
   <Container>
     <PageHeader title={i18n.t("Orders")}>
       <Button
-        color="secondary"
+        color="primary"
         variant="contained"
         disabled={disabled}
         onClick={onAdd}

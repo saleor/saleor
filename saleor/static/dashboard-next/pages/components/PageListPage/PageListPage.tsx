@@ -32,7 +32,7 @@ const PageListPage: React.StatelessComponent<PageListPageProps> = ({
         disabled={disabled}
         onClick={onAdd}
         variant="contained"
-        color="secondary"
+        color="primary"
       >
         {i18n.t("Add page")}
         <AddIcon />
