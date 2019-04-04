@@ -10,6 +10,7 @@ import Decorator from "../../Decorator";
 
 const props: StaffListPageProps = {
   onAdd: undefined,
+  onBack: () => undefined,
   staffMembers,
   ...pageListProps.default
 };

@@ -3,12 +3,13 @@ from collections import defaultdict
 import i18naddress
 from django import forms
 from django.forms.forms import BoundField
-from django.utils.translation import pgettext_lazy
+from django.utils.translation import pgettext_lazy, ugettext_lazy as _
 from django_countries import countries
-from phonenumber_field.formfields import PhoneNumberField
+from phonenumber_field.phonenumber import PhoneNumber
+from phonenumbers import NumberParseException
+from phonenumbers.phonenumberutil import is_possible_number
 
 from .models import Address
-from .validators import validate_possible_number
 from .widgets import DatalistTextWidget, PhonePrefixWidget
 
 COUNTRY_FORMS = {}
@@ -37,13 +38,12 @@ AREA_TYPE_TRANSLATIONS = {
     'zip': pgettext_lazy('Address field', 'ZIP code')}
 
 
-class PossiblePhoneNumberFormField(PhoneNumberField):
-    """A PhoneNumberField that allows phone numbers from other countries."""
+class PossiblePhoneNumberFormField(forms.CharField):
+    """A phone input field."""
 
-    default_validators = [validate_possible_number]
-
-    def to_python(self, value):
-        return value
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.widget.input_type = 'tel'
 
 
 class CountryAreaChoiceField(forms.ChoiceField):
@@ -138,6 +138,31 @@ class AddressForm(forms.ModelForm):
             field.widget.attrs['autocomplete'] = autocomplete
             field.widget.attrs['placeholder'] = field.label if not hasattr(
                 field, 'placeholder') else field.placeholder
+
+    def clean(self):
+        data = super().clean()
+        phone = data.get('phone')
+        country = data.get('country')
+        if phone:
+            try:
+                data['phone'] = clean_phone_for_country(phone, country)
+            except forms.ValidationError as error:
+                self.add_error('phone', error)
+        return data
+
+
+def clean_phone_for_country(phone, country):
+    error = _('The phone number entered is not valid.')
+    error_code = 'invalid_phone_number'
+    if phone:
+        try:
+            phone = PhoneNumber.from_string(phone, country)
+        except NumberParseException:
+            raise forms.ValidationError(error, code=error_code)
+        else:
+            if not is_possible_number(phone):
+                raise forms.ValidationError(error, code=error_code)
+    return phone
 
 
 class CountryAwareAddressForm(AddressForm):

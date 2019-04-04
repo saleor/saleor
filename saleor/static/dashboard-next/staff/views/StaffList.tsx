@@ -4,6 +4,7 @@ import { Route } from "react-router-dom";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import { createPaginationState, Paginator } from "../../components/Paginator";
+import { configurationMenuUrl } from "../../configuration";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import { Pagination } from "../../types";
@@ -89,6 +90,7 @@ export const StaffList: React.StatelessComponent<StaffListProps> = ({
                                   data.staffUsers.edges.map(edge => edge.node)
                                 )}
                                 onAdd={() => navigate(staffMemberAddUrl)}
+                                onBack={() => navigate(configurationMenuUrl)}
                                 onNextPage={loadNextPage}
                                 onPreviousPage={loadPreviousPage}
                                 onRowClick={id => () =>
