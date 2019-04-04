@@ -97,12 +97,19 @@ const ProductVariantNavigation = withStyles(styles, {
               </TableRow>
             )
           )}
-          {onAdd && (
+          {onAdd ? (
             <TableRow>
               <TableCell colSpan={2}>
                 <Button color="primary" onClick={onAdd}>
                   {i18n.t("Add variant")}
                 </Button>
+              </TableCell>
+            </TableRow>
+          ) : (
+            <TableRow>
+              <TableCellAvatar className={classes.tabActive} thumbnail={null} />
+              <TableCell className={classes.textLeft}>
+                {i18n.t("New Variant")}
               </TableCell>
             </TableRow>
           )}

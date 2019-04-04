@@ -39,11 +39,11 @@ const TableCellAvatar = withStyles(styles, { name: "TableCellAvatar" })(
     <TableCell className={classNames(classes.root, className)}>
       {thumbnail === undefined ? (
         <Avatar className={classNames(classes.avatar, avatarProps)}>
-          <Cached />
+          <Cached color="primary" />
         </Avatar>
       ) : thumbnail === null ? (
         <Avatar className={classNames(classes.avatar, avatarProps)}>
-          <NoPhoto />
+          <NoPhoto color="primary" />
         </Avatar>
       ) : (
         <Avatar
