@@ -17,7 +17,8 @@ from ...order import OrderStatus
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ...order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order,
-    change_order_line_quantity, delete_order_line, recalculate_order)
+    change_order_line_quantity, delete_order_line, fulfill_order_line,
+    recalculate_order)
 from ...payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from ...payment.utils import (
     clean_mark_order_as_paid, gateway_capture, gateway_refund, gateway_void,
@@ -27,9 +28,7 @@ from ...product.utils import allocate_stock, deallocate_stock
 from ...shipping.models import ShippingMethod
 from ..forms import AjaxSelect2ChoiceField
 from ..widgets import PhonePrefixWidget
-from .utils import (
-    fulfill_order_line, remove_customer_from_order,
-    update_order_with_user_addresses)
+from .utils import remove_customer_from_order, update_order_with_user_addresses
 
 
 class CreateOrderFromDraftForm(forms.ModelForm):

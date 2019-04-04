@@ -34,6 +34,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add back arrows to configure sections - #3917 by @dominik-zeglen
 - Display avatars in staff views - #3922 by @dominik-zeglen
 - Prevent user from changing his own status and permissions - #3922 by @dominik-zeglen
+- Support for digital product - #3868 by @korycins
 
 
 ## 2.4.0
