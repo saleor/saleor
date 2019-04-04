@@ -1,3 +1,4 @@
+import * as avatarImage from "../../images/avatars/avatar1.png";
 import { PermissionEnum } from "../types/globalTypes";
 import { StaffList_staffUsers_edges_node } from "./types/StaffList";
 import { StaffMemberDetails_user } from "./types/StaffMemberDetails";
@@ -49,6 +50,10 @@ export const permissions = [
 }));
 export const staffMembers: StaffList_staffUsers_edges_node[] = [
   {
+    avatar: {
+      __typename: "Image" as "Image",
+      url: avatarImage
+    },
     email: "admin@example.com",
     firstName: "Chris",
     id: "VXNlcjoyMQ==",
@@ -56,6 +61,10 @@ export const staffMembers: StaffList_staffUsers_edges_node[] = [
     lastName: "Cooper"
   },
   {
+    avatar: {
+      __typename: "Image" as "Image",
+      url: avatarImage
+    },
     email: "admin@example.com",
     firstName: "Jacob",
     id: "VXNlcjoyMQ==",
@@ -63,6 +72,10 @@ export const staffMembers: StaffList_staffUsers_edges_node[] = [
     lastName: "Smith"
   },
   {
+    avatar: {
+      __typename: "Image" as "Image",
+      url: avatarImage
+    },
     email: "admin@example.com",
     firstName: "Jacob",
     id: "VXNlcjoyMQ==",
@@ -70,6 +83,10 @@ export const staffMembers: StaffList_staffUsers_edges_node[] = [
     lastName: "Smith"
   },
   {
+    avatar: {
+      __typename: "Image" as "Image",
+      url: avatarImage
+    },
     email: "admin@example.com",
     firstName: "Jacob",
     id: "VXNlcjoyMQ==",
@@ -77,6 +94,10 @@ export const staffMembers: StaffList_staffUsers_edges_node[] = [
     lastName: "Smith"
   },
   {
+    avatar: {
+      __typename: "Image" as "Image",
+      url: avatarImage
+    },
     email: "admin@example.com",
     firstName: "Jacob",
     id: "VXNlcjoyMQ==",
@@ -84,6 +105,10 @@ export const staffMembers: StaffList_staffUsers_edges_node[] = [
     lastName: "Smith"
   },
   {
+    avatar: {
+      __typename: "Image" as "Image",
+      url: avatarImage
+    },
     email: "admin@example.com",
     firstName: "Jacob",
     id: "VXNlcjoyMQ==",
@@ -91,6 +116,10 @@ export const staffMembers: StaffList_staffUsers_edges_node[] = [
     lastName: "Smith"
   },
   {
+    avatar: {
+      __typename: "Image" as "Image",
+      url: avatarImage
+    },
     email: "admin@example.com",
     firstName: "Jacob",
     id: "VXNlcjoyMQ==",
@@ -98,6 +127,10 @@ export const staffMembers: StaffList_staffUsers_edges_node[] = [
     lastName: "Smith"
   },
   {
+    avatar: {
+      __typename: "Image" as "Image",
+      url: avatarImage
+    },
     email: "admin@example.com",
     firstName: "Jacob",
     id: "VXNlcjoyMQ==",
@@ -105,6 +138,10 @@ export const staffMembers: StaffList_staffUsers_edges_node[] = [
     lastName: "Smith"
   },
   {
+    avatar: {
+      __typename: "Image" as "Image",
+      url: avatarImage
+    },
     email: "admin@example.com",
     firstName: "Jacob",
     id: "VXNlcjoyMQ==",
@@ -112,6 +149,10 @@ export const staffMembers: StaffList_staffUsers_edges_node[] = [
     lastName: "Smith"
   },
   {
+    avatar: {
+      __typename: "Image" as "Image",
+      url: avatarImage
+    },
     email: "admin@example.com",
     firstName: "Jacob",
     id: "VXNlcjoyMQ==",
@@ -119,6 +160,10 @@ export const staffMembers: StaffList_staffUsers_edges_node[] = [
     lastName: "Smith"
   },
   {
+    avatar: {
+      __typename: "Image" as "Image",
+      url: avatarImage
+    },
     email: "admin@example.com",
     firstName: "Jacob",
     id: "VXNlcjoyMQ==",
@@ -126,6 +171,10 @@ export const staffMembers: StaffList_staffUsers_edges_node[] = [
     lastName: "Smith"
   },
   {
+    avatar: {
+      __typename: "Image" as "Image",
+      url: avatarImage
+    },
     email: "admin@example.com",
     firstName: "Jacob",
     id: "VXNlcjoyMQ==",
@@ -135,6 +184,7 @@ export const staffMembers: StaffList_staffUsers_edges_node[] = [
 ].map(staffMember => ({ __typename: "User" as "User", ...staffMember }));
 export const staffMember: StaffMemberDetails_user = {
   __typename: "User",
+  avatar: { __typename: "Image" as "Image", url: avatarImage },
   email: "admin@example.com",
   firstName: "Jacob",
   id: "VXNlcjoyMQ==",

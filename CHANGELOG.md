@@ -32,6 +32,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix product create view crash - #3910 by @dominik-zeglen
 - Add ability to create another variant from the variant details view = #3914 by @dominik-zeglen
 - Add back arrows to configure sections - #3917 by @dominik-zeglen
+- Display avatars in staff views - #3922 by @dominik-zeglen
+- Prevent user from changing his own status and permissions - #3922 by @dominik-zeglen
 - Support for digital product - #3868 by @korycins
 
 
