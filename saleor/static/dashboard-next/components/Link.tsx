@@ -18,7 +18,7 @@ const styles = (theme: Theme) =>
       display: "inline"
     },
     secondary: {
-      color: theme.palette.secondary.main
+      color: theme.palette.primary.main
     },
     underline: {
       textDecoration: "underline"

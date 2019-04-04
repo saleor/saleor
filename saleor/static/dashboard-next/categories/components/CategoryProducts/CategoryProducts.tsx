@@ -24,7 +24,7 @@ import { renderCollection } from "../../../misc";
 const styles = (theme: Theme) =>
   createStyles({
     link: {
-      color: theme.palette.secondary.main,
+      color: theme.palette.primary.main,
       cursor: "pointer"
     },
     textLeft: {
