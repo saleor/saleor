@@ -12,7 +12,7 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
-import ArrowDropdown from "@material-ui/icons/ArrowDropdown";
+import ArrowDropDown from "@material-ui/icons/ArrowDropDown";
 import classNames from "classnames";
 import * as React from "react";
 
@@ -74,7 +74,7 @@ const LanguageSwitch = withStyles(styles, { name: "LanguageSwitch" })(
           onClick={() => setExpandedState(!isExpanded)}
         >
           <Typography>{currentLanguage}</Typography>
-          <ArrowDropdown
+          <ArrowDropDown
             className={classNames(classes.arrow, {
               [classes.rotate]: isExpanded
             })}
