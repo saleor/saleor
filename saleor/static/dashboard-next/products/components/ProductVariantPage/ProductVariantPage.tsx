@@ -26,6 +26,7 @@ interface ProductVariantPageProps {
   loading?: boolean;
   placeholderImage?: string;
   header: string;
+  onAdd();
   onBack();
   onDelete();
   onSubmit(data: any);
@@ -40,6 +41,7 @@ const ProductVariantPage: React.StatelessComponent<ProductVariantPageProps> = ({
   placeholderImage,
   saveButtonBarState,
   variant,
+  onAdd,
   onBack,
   onDelete,
   onImageSelect,
@@ -96,7 +98,11 @@ const ProductVariantPage: React.StatelessComponent<ProductVariantPageProps> = ({
                     <div>
                       <ProductVariantNavigation
                         current={variant ? variant.id : undefined}
+                        fallbackThumbnail={maybe(
+                          () => variant.product.thumbnail.url
+                        )}
                         variants={maybe(() => variant.product.variants)}
+                        onAdd={onAdd}
                         onRowClick={(variantId: string) => {
                           if (variant) {
                             return onVariantClick(variantId);

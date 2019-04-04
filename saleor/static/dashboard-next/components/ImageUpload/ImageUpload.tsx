@@ -6,19 +6,15 @@ import {
 } from "@material-ui/core/styles";
 import { fade } from "@material-ui/core/styles/colorManipulator";
 import Typography from "@material-ui/core/Typography";
-import AddPhotoIcon from "@material-ui/icons/AddAPhoto";
 import classNames from "classnames";
 import * as React from "react";
 
 import i18n from "../../i18n";
+import ImageIcon from "../../icons/Image";
 import Dropzone from "../Dropzone";
 
 interface ImageUploadProps {
-  children?: (
-    props: {
-      isDragActive: boolean;
-    }
-  ) => React.ReactNode;
+  children?: (props: { isDragActive: boolean }) => React.ReactNode;
   className?: string;
   disableClick?: boolean;
   isActiveClassName?: string;
@@ -58,7 +54,7 @@ const styles = (theme: Theme) =>
       textAlign: "center"
     },
     uploadText: {
-      color: "inherit",
+      color: theme.typography.body1.color,
       textTransform: "uppercase"
     }
   });
@@ -97,7 +93,7 @@ export const ImageUpload = withStyles(styles, { name: "ImageUpload" })(
               })}
             >
               <input {...getInputProps()} className={classes.fileField} />
-              <AddPhotoIcon className={classes.photosIcon} />
+              <ImageIcon className={classes.photosIcon} />
               <Typography className={classes.uploadText} variant="body2">
                 {i18n.t("Drop here to upload", {
                   context: "image upload"

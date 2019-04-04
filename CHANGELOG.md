@@ -29,6 +29,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Introduce avatars for staff accounts - #3878 by @pawelzar
 - Fix unfocusing rich text editor - #3902 by @dominik-zeglen
 - Fix phone number validation in GraphQL when country prefix not given - #3905 by @patrys
+- Fix product create view crash - #3910 by @dominik-zeglen
+- Add ability to create another variant from the variant details view = #3914 by @dominik-zeglen
 - Add back arrows to configure sections - #3917 by @dominik-zeglen
 
 
@@ -51,7 +53,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Support setting address as when creating customer address #3782 by @jxltom
 - Fix generating slug from title - #3816 by @maarcingebala
 - Add `variant` field to `OrderLine` type - #3820 by @maarcingebala
-- Fix product create view crash - #3910 by @dominik-zeglen
 
 ### Core
 - Add JSON fields to store rich-text content - #3756 by @michaljelonek
