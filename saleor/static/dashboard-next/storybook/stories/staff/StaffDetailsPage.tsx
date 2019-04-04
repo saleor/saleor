@@ -9,6 +9,8 @@ import { permissions, staffMember } from "../../../staff/fixtures";
 import Decorator from "../../Decorator";
 
 const props: Omit<StaffDetailsPageProps, "classes"> = {
+  canEditStatus: true,
+  canRemove: true,
   disabled: false,
   onBack: () => undefined,
   onDelete: () => undefined,
@@ -32,4 +34,7 @@ storiesOf("Views / Staff / Staff member details", module)
         permissions: staffMember.permissions.slice(1)
       }}
     />
+  ))
+  .add("himself", () => (
+    <StaffDetailsPage {...props} canEditStatus={false} canRemove={false} />
   ));

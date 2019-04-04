@@ -29,6 +29,8 @@ interface FormData {
 }
 
 export interface StaffDetailsPageProps {
+  canEditStatus: boolean;
+  canRemove: boolean;
   disabled: boolean;
   permissions: StaffMemberDetails_shop_permissions[];
   saveButtonBarState: ConfirmButtonTransitionState;
@@ -39,6 +41,8 @@ export interface StaffDetailsPageProps {
 }
 
 const StaffDetailsPage: React.StatelessComponent<StaffDetailsPageProps> = ({
+  canEditStatus,
+  canRemove,
   disabled,
   permissions,
   saveButtonBarState,
@@ -79,23 +83,29 @@ const StaffDetailsPage: React.StatelessComponent<StaffDetailsPageProps> = ({
                 onChange={change}
               />
             </div>
-            <div>
-              <StaffPermissions
-                data={data}
-                disabled={disabled}
-                permissions={permissions}
-                onChange={change}
-              />
-              <CardSpacer />
-              <StaffStatus data={data} disabled={disabled} onChange={change} />
-            </div>
+            {canEditStatus && (
+              <div>
+                <StaffPermissions
+                  data={data}
+                  disabled={disabled}
+                  permissions={permissions}
+                  onChange={change}
+                />
+                <CardSpacer />
+                <StaffStatus
+                  data={data}
+                  disabled={disabled}
+                  onChange={change}
+                />
+              </div>
+            )}
           </Grid>
           <SaveButtonBar
             disabled={disabled || !hasChanged}
             state={saveButtonBarState}
             onCancel={onBack}
             onSave={submit}
-            onDelete={onDelete}
+            onDelete={canRemove ? onDelete : undefined}
           />
         </Container>
       )}
