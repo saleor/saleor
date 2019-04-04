@@ -10,6 +10,7 @@ import Decorator from "../../Decorator";
 
 const props: PageListPageProps = {
   ...pageListProps.default,
+  onBack: () => undefined,
   pages: pageList
 };
 
