@@ -1,4 +1,5 @@
 from decimal import Decimal
+from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField, JSONField
@@ -17,6 +18,8 @@ from mptt.models import MPTTModel
 from prices import TaxedMoneyRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
+
+from saleor.core.utils import build_absolute_uri
 
 from ..core import TaxRateType
 from ..core.exceptions import InsufficientStock
@@ -77,6 +80,7 @@ class ProductType(models.Model):
     name = models.CharField(max_length=128)
     has_variants = models.BooleanField(default=True)
     is_shipping_required = models.BooleanField(default=True)
+    is_digital = models.BooleanField(default=False)
     tax_rate = models.CharField(max_length=128, choices=TaxRateType.CHOICES)
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES,
@@ -257,6 +261,10 @@ class ProductVariant(models.Model):
     def is_shipping_required(self):
         return self.product.product_type.is_shipping_required
 
+    def is_digital(self):
+        is_digital = self.product.product_type.is_digital
+        return not self.is_shipping_required() and is_digital
+
     def is_in_stock(self):
         return self.quantity_available > 0
 
@@ -300,6 +308,48 @@ class ProductVariantTranslation(models.Model):
 
     def __str__(self):
         return self.name or str(self.product_variant)
+
+
+class DigitalContent(models.Model):
+    FILE = 'file'
+    TYPE_CHOICES = (
+        (FILE, pgettext_lazy('File as a digital product', 'digital_product')),
+    )
+    use_default_settings = models.BooleanField(default=True)
+    automatic_fulfillment = models.BooleanField(default=False)
+    content_type = models.CharField(
+        max_length=128, default=FILE, choices=TYPE_CHOICES)
+    product_variant = models.OneToOneField(
+        ProductVariant, related_name='digital_content',
+        on_delete=models.CASCADE)
+    content_file = models.FileField(upload_to='digital_contents', blank=True)
+    max_downloads = models.IntegerField(blank=True, null=True)
+    url_valid_days = models.IntegerField(blank=True, null=True)
+
+    def create_new_url(self) -> 'DigitalContentUrl':
+        return self.urls.create()
+
+
+class DigitalContentUrl(models.Model):
+    token = models.UUIDField(editable=False, unique=True)
+    content = models.ForeignKey(
+        DigitalContent, related_name='urls', on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)
+    download_num = models.IntegerField(default=0)
+    line = models.OneToOneField(
+        'order.OrderLine', related_name='digital_content_url', blank=True,
+        null=True, on_delete=models.CASCADE)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        if not self.token:
+            self.token = str(uuid4()).replace('-', '')
+        super().save(force_insert, force_update, using, update_fields)
+
+    def get_absolute_url(self) -> str:
+        url = reverse(
+            'product:digital-product', kwargs={'token': str(self.token)})
+        return build_absolute_uri(url)
 
 
 class Attribute(models.Model):

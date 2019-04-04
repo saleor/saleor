@@ -9,7 +9,6 @@ from ...core.utils.taxes import ZERO_MONEY
 from ...discount import VoucherType
 from ...discount.utils import (
     get_shipping_voucher_discount, get_value_voucher_discount)
-from ...product.utils import decrease_stock
 
 INVOICE_TEMPLATE = 'dashboard/order/pdf/invoice.html'
 PACKING_SLIP_TEMPLATE = 'dashboard/order/pdf/packing_slip.html'
@@ -48,14 +47,6 @@ def create_packing_slip_pdf(order, fulfillment, absolute_url):
     rendered_template = get_template(PACKING_SLIP_TEMPLATE).render(ctx)
     pdf_file = _create_pdf(rendered_template, absolute_url)
     return pdf_file, order
-
-
-def fulfill_order_line(order_line, quantity):
-    """Fulfill order line with given quantity."""
-    if order_line.variant and order_line.variant.track_inventory:
-        decrease_stock(order_line.variant, quantity)
-    order_line.quantity_fulfilled += quantity
-    order_line.save(update_fields=['quantity_fulfilled'])
 
 
 def update_order_with_user_addresses(order):
