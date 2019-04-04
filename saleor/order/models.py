@@ -286,6 +286,18 @@ class Order(models.Model):
         return self.weight
 
 
+class OrderLineQueryset(models.QuerySet):
+    def digital(self):
+        for line in self.all():
+            if line.is_digital:
+                yield line
+
+    def physical(self):
+        for line in self.all():
+            if not line.is_digital:
+                yield line
+
+
 class OrderLine(models.Model):
     order = models.ForeignKey(
         Order, related_name='lines', editable=False, on_delete=models.CASCADE)
@@ -313,6 +325,8 @@ class OrderLine(models.Model):
         net_field='unit_price_net', gross_field='unit_price_gross')
     tax_rate = models.DecimalField(
         max_digits=5, decimal_places=2, default=Decimal('0.0'))
+
+    objects = OrderLineQueryset.as_manager()
 
     class Meta:
         ordering = ('pk', )
