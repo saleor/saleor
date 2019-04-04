@@ -174,7 +174,7 @@ def test_address_as_data(address):
         'company_name': 'Mirumee Software',
         'street_address_1': 'Tęczowa 7',
         'street_address_2': '',
-        'city': 'Wrocław',
+        'city': 'WROCŁAW',
         'city_area': '',
         'postal_code': '53-601',
         'country': 'PL',

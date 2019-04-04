@@ -13,6 +13,7 @@ import CardTitle from "../../../components/CardTitle";
 import FormSpacer from "../../../components/FormSpacer";
 import RichTextEditor from "../../../components/RichTextEditor";
 import i18n from "../../../i18n";
+import { maybe } from "../../../misc";
 import { ProductDetails_product } from "../../types/ProductDetails";
 import { FormData as CreateFormData } from "../ProductCreatePage";
 import { FormData as UpdateFormData } from "../ProductUpdatePage";
@@ -42,6 +43,7 @@ export const ProductDetailsForm = withStyles(styles, {
     data,
     disabled,
     errors,
+    product,
     onChange
   }: ProductDetailsFormProps) => (
     <Card>
@@ -65,7 +67,7 @@ export const ProductDetailsForm = withStyles(styles, {
           disabled={disabled}
           error={!!errors.descriptionJson}
           helperText={errors.descriptionJson}
-          initial={data.description}
+          initial={maybe(() => JSON.parse(product.descriptionJson), null)}
           label={i18n.t("Description")}
           name="description"
           onChange={onChange}

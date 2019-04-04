@@ -66,7 +66,7 @@ def test_checkout_create(api_client, variant, graphql_address_data):
     assert new_cart.shipping_address.postal_code == shipping_address[
         'postalCode']
     assert new_cart.shipping_address.country == shipping_address['country']
-    assert new_cart.shipping_address.city == shipping_address['city']
+    assert new_cart.shipping_address.city == shipping_address['city'].upper()
 
 
 def test_checkout_create_reuse_cart(cart, user_api_client, variant):
@@ -669,7 +669,52 @@ def test_checkout_shipping_address_update(
         'streetAddress2']
     assert cart.shipping_address.postal_code == shipping_address['postalCode']
     assert cart.shipping_address.country == shipping_address['country']
-    assert cart.shipping_address.city == shipping_address['city']
+    assert cart.shipping_address.city == shipping_address['city'].upper()
+
+
+@pytest.mark.parametrize(
+    'number', [
+        '+48321321888',
+        '+1 (555) 555-5555',
+        '00 44 (0155 55) 5555'
+    ]
+)
+def test_checkout_shipping_address_update_with_phone_country_prefix(
+        number, user_api_client, cart_with_item, graphql_address_data):
+    cart = cart_with_item
+    assert cart.shipping_address is None
+    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
+
+    shipping_address = graphql_address_data
+    shipping_address['phone'] = number
+    variables = {
+        'checkoutId': checkout_id,
+        'shippingAddress': shipping_address}
+
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables)
+    content = get_graphql_content(response)
+    data = content['data']['checkoutShippingAddressUpdate']
+    assert not data['errors']
+
+
+def test_checkout_shipping_address_update_without_phone_country_prefix(
+        user_api_client, cart_with_item, graphql_address_data):
+    cart = cart_with_item
+    assert cart.shipping_address is None
+    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
+
+    shipping_address = graphql_address_data
+    shipping_address['phone'] = '321321888'
+    variables = {
+        'checkoutId': checkout_id,
+        'shippingAddress': shipping_address}
+
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables)
+    content = get_graphql_content(response)
+    data = content['data']['checkoutShippingAddressUpdate']
+    assert not data['errors']
 
 
 def test_checkout_shipping_address_update_invalid_country_code(
@@ -732,7 +777,7 @@ def test_checkout_billing_address_update(
         'streetAddress2']
     assert cart.billing_address.postal_code == billing_address['postalCode']
     assert cart.billing_address.country == billing_address['country']
-    assert cart.billing_address.city == billing_address['city']
+    assert cart.billing_address.city == billing_address['city'].upper()
 
 
 CHECKOUT_EMAIL_UPDATE_MUTATION = """

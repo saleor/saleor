@@ -38,6 +38,6 @@ class I18nMixin:
             return None, errors
         if not instance:
             instance = Address()
-        cls.construct_instance(instance, address_data)
+        cls.construct_instance(instance, address_form.cleaned_data)
         cls.clean_instance(instance, errors)
         return instance, errors
