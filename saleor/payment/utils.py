@@ -12,7 +12,7 @@ from django.utils.translation import pgettext_lazy
 from ..account.models import Address, User
 from ..checkout.models import Cart
 from ..core import analytics
-from ..order import OrderEvents, OrderEventsEmails
+from ..order import OrderEvents, OrderEventsEmails, utils as order_utils
 from ..order.emails import send_payment_confirmation
 from ..order.models import Order
 from . import (
@@ -76,6 +76,9 @@ def handle_fully_paid_order(order):
             parameters={
                 'email': order.get_user_current_email(),
                 'email_type': OrderEventsEmails.PAYMENT.value})
+
+        if order_utils.order_needs_automatic_fullfilment(order):
+            order_utils.automatically_fulfill_digital_lines(order)
     try:
         analytics.report_order(order.tracking_client_id, order)
     except Exception:

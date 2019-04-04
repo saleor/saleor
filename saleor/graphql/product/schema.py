@@ -18,6 +18,9 @@ from .enums import StockAvailability
 from .mutations.attributes import (
     AttributeCreate, AttributeDelete, AttributeUpdate, AttributeValueCreate,
     AttributeValueDelete, AttributeValueUpdate)
+from .mutations.digital_contents import (
+    DigitalContentCreate, DigitalContentDelete, DigitalContentUpdate,
+    DigitalContentUrlCreate)
 from .mutations.products import (
     CategoryCreate, CategoryDelete, CategoryUpdate, CollectionAddProducts,
     CollectionCreate, CollectionDelete, CollectionRemoveProducts,
@@ -28,15 +31,21 @@ from .mutations.products import (
     VariantImageAssign, VariantImageUnassign)
 from .resolvers import (
     resolve_attributes, resolve_categories, resolve_collections,
-    resolve_product_types, resolve_product_variants, resolve_products,
-    resolve_report_product_sales)
+    resolve_digital_contents, resolve_product_types, resolve_product_variants,
+    resolve_products, resolve_report_product_sales)
 from .scalars import AttributeScalar
 from .types import (
-    Attribute, Category, Collection, Product, ProductOrder, ProductType,
-    ProductVariant)
+    Attribute, Category, Collection, DigitalContent, Product, ProductOrder,
+    ProductType, ProductVariant)
 
 
 class ProductQueries(graphene.ObjectType):
+    digital_content = graphene.Field(
+        DigitalContent, id=graphene.Argument(graphene.ID, required=True))
+    digital_contents = PrefetchingConnectionField(
+        DigitalContent, query=graphene.String(),
+        level=graphene.Argument(graphene.Int),
+        description='List of the digital contents.')
     attributes = PrefetchingConnectionField(
         Attribute,
         description='List of the shop\'s attributes.',
@@ -123,6 +132,14 @@ class ProductQueries(graphene.ObjectType):
     def resolve_collections(self, info, query=None, **kwargs):
         return resolve_collections(info, query)
 
+    @permission_required('product.manage_products')
+    def resolve_digital_content(self, info, id):
+        return graphene.Node.get_node_from_global_id(info, id, DigitalContent)
+
+    @permission_required('product.manage_products')
+    def resolve_digital_contents(self, info, query=None, **kwargs):
+        return resolve_digital_contents(info, query)
+
     def resolve_product(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, Product)
 
@@ -189,6 +206,12 @@ class ProductMutations(graphene.ObjectType):
     product_type_delete = ProductTypeDelete.Field()
     product_type_bulk_delete = ProductTypeBulkDelete.Field()
     product_type_update = ProductTypeUpdate.Field()
+
+    digital_content_create = DigitalContentCreate.Field()
+    digital_content_delete = DigitalContentDelete.Field()
+    digital_content_update = DigitalContentUpdate.Field()
+
+    digital_content_url_create = DigitalContentUrlCreate.Field()
 
     product_variant_create = ProductVariantCreate.Field()
     product_variant_delete = ProductVariantDelete.Field()

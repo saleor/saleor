@@ -2,6 +2,7 @@ import * as React from "react";
 
 import Navigator from "../../components/Navigator";
 import { createPaginationState, Paginator } from "../../components/Paginator";
+import { configurationMenuUrl } from "../../configuration";
 import { maybe } from "../../misc";
 import PageListPage from "../components/PageListPage/PageListPage";
 import { TypedPageListQuery } from "../queries";
@@ -39,6 +40,7 @@ export const PageList: React.StatelessComponent<PageListProps> = ({
                   pages={maybe(() => data.pages.edges.map(edge => edge.node))}
                   pageInfo={pageInfo}
                   onAdd={() => navigate(pageCreateUrl)}
+                  onBack={() => navigate(configurationMenuUrl)}
                   onNextPage={loadNextPage}
                   onPreviousPage={loadPreviousPage}
                   onRowClick={id => () => navigate(pageUrl(id))}

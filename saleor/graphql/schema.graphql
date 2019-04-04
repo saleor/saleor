@@ -653,6 +653,78 @@ scalar DateTime
 
 scalar Decimal
 
+type DigitalContent implements Node {
+  useDefaultSettings: Boolean!
+  automaticFulfillment: Boolean!
+  productVariant: ProductVariant!
+  contentFile: String!
+  maxDownloads: Int
+  urlValidDays: Int
+  urls: [DigitalContentUrl]
+  id: ID!
+}
+
+type DigitalContentCountableConnection {
+  pageInfo: PageInfo!
+  edges: [DigitalContentCountableEdge!]!
+  totalCount: Int
+}
+
+type DigitalContentCountableEdge {
+  node: DigitalContent!
+  cursor: String!
+}
+
+type DigitalContentCreate {
+  errors: [Error!]
+  variant: ProductVariant
+  content: DigitalContent
+}
+
+type DigitalContentDelete {
+  errors: [Error!]
+  variant: ProductVariant
+}
+
+input DigitalContentInput {
+  useDefaultSettings: Boolean!
+  maxDownloads: Int
+  urlValidDays: Int
+  automaticFulfillment: Boolean
+}
+
+type DigitalContentUpdate {
+  errors: [Error!]
+  variant: ProductVariant
+  content: DigitalContent
+}
+
+input DigitalContentUploadInput {
+  useDefaultSettings: Boolean!
+  maxDownloads: Int
+  urlValidDays: Int
+  automaticFulfillment: Boolean
+  contentFile: Upload!
+}
+
+type DigitalContentUrl implements Node {
+  token: UUID!
+  content: DigitalContent!
+  created: DateTime!
+  downloadNum: Int!
+  id: ID!
+  url: String
+}
+
+type DigitalContentUrlCreate {
+  errors: [Error!]
+  digitalContentUrl: DigitalContentUrl
+}
+
+input DigitalContentUrlCreateInput {
+  content: ID!
+}
+
 enum DiscountValueTypeEnum {
   FIXED
   PERCENTAGE
@@ -1053,6 +1125,10 @@ type Mutations {
   productTypeDelete(id: ID!): ProductTypeDelete
   productTypeBulkDelete(ids: [ID]!): ProductTypeBulkDelete
   productTypeUpdate(id: ID!, input: ProductTypeInput!): ProductTypeUpdate
+  digitalContentCreate(input: DigitalContentUploadInput!, variantId: ID!): DigitalContentCreate
+  digitalContentDelete(variantId: ID!): DigitalContentDelete
+  digitalContentUpdate(input: DigitalContentInput!, variantId: ID!): DigitalContentUpdate
+  digitalContentUrlCreate(input: DigitalContentUrlCreateInput!): DigitalContentUrlCreate
   productVariantCreate(input: ProductVariantCreateInput!): ProductVariantCreate
   productVariantDelete(id: ID!): ProductVariantDelete
   productVariantBulkDelete(ids: [ID]!): ProductVariantBulkDelete
@@ -1316,6 +1392,7 @@ type OrderLine implements Node {
   quantityFulfilled: Int!
   unitPrice: TaxedMoney
   taxRate: Float!
+  digitalContentUrl: DigitalContentUrl
   thumbnailUrl(size: Int): String @deprecated(reason: "thumbnailUrl is deprecated, use thumbnail instead")
   thumbnail(size: Int): Image
 }
@@ -1739,6 +1816,7 @@ type ProductType implements Node {
   name: String!
   hasVariants: Boolean!
   isShippingRequired: Boolean!
+  isDigital: Boolean!
   taxRate: TaxRateType
   weight: Weight
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
@@ -1778,6 +1856,7 @@ input ProductTypeInput {
   productAttributes: [ID]
   variantAttributes: [ID]
   isShippingRequired: Boolean
+  isDigital: Boolean
   weight: WeightScalar
   taxRate: TaxRateType
 }
@@ -1805,6 +1884,7 @@ type ProductVariant implements Node {
   quantityAllocated: Int!
   costPrice: Money
   weight: Weight
+  digitalContent: DigitalContent
   stockQuantity: Int!
   price: Money
   margin: Int
@@ -1881,6 +1961,8 @@ type Query {
   shop: Shop
   shippingZone(id: ID!): ShippingZone
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
+  digitalContent(id: ID!): DigitalContent
+  digitalContents(query: String, level: Int, before: String, after: String, first: Int, last: Int): DigitalContentCountableConnection
   attributes(query: String, inCategory: ID, inCollection: ID, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
   categories(query: String, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   category(id: ID!): Category
@@ -2170,6 +2252,9 @@ type Shop {
   trackInventoryByDefault: Boolean
   defaultWeightUnit: WeightUnitsEnum
   translation(languageCode: LanguageCodeEnum!): ShopTranslation
+  automaticFulfillmentDigitalProducts: Boolean
+  defaultDigitalMaxDownloads: Int
+  defaultDigitalUrlValidDays: Int
 }
 
 type ShopDomainUpdate {
@@ -2190,6 +2275,9 @@ input ShopSettingsInput {
   chargeTaxesOnShipping: Boolean
   trackInventoryByDefault: Boolean
   defaultWeightUnit: WeightUnitsEnum
+  automaticFulfillmentDigitalProducts: Boolean
+  defaultDigitalMaxDownloads: Int
+  defaultDigitalUrlValidDays: Int
 }
 
 type ShopSettingsTranslate {
