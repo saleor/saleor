@@ -201,23 +201,23 @@ const OrderPayment = withStyles(styles, { name: "OrderPayment" })(
               <Hr />
               <CardActions>
                 {canCapture && (
-                  <Button color="secondary" variant="text" onClick={onCapture}>
+                  <Button color="primary" variant="text" onClick={onCapture}>
                     {i18n.t("Capture", { context: "button" })}
                   </Button>
                 )}
                 {canRefund && (
-                  <Button color="secondary" variant="text" onClick={onRefund}>
+                  <Button color="primary" variant="text" onClick={onRefund}>
                     {i18n.t("Refund", { context: "button" })}
                   </Button>
                 )}
                 {canVoid && (
-                  <Button color="secondary" variant="text" onClick={onVoid}>
+                  <Button color="primary" variant="text" onClick={onVoid}>
                     {i18n.t("Void", { context: "button" })}
                   </Button>
                 )}
                 {canMarkAsPaid && (
                   <Button
-                    color="secondary"
+                    color="primary"
                     variant="text"
                     onClick={onMarkAsPaid}
                   >

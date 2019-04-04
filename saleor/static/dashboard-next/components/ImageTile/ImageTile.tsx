@@ -64,12 +64,12 @@ const ImageTile = withStyles(styles, { name: "ImageTile" })(
       <div className={classes.imageOverlay}>
         <div className={classes.imageOverlayToolbar}>
           {onImageEdit && (
-            <IconButton color="secondary" onClick={onImageEdit}>
+            <IconButton color="primary" onClick={onImageEdit}>
               <EditIcon />
             </IconButton>
           )}
           {onImageDelete && (
-            <IconButton color="secondary" onClick={onImageDelete}>
+            <IconButton color="primary" onClick={onImageDelete}>
               <DeleteIcon />
             </IconButton>
           )}

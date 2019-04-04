@@ -80,7 +80,7 @@ const CustomerAddressListPage = withStyles(styles, {
               })
             )}
           >
-            <Button color="secondary" variant="contained" onClick={onAdd}>
+            <Button color="primary" variant="contained" onClick={onAdd}>
               {i18n.t("Add address", {
                 context: "add customer address"
               })}
@@ -100,7 +100,7 @@ const CustomerAddressListPage = withStyles(styles, {
             </Typography>
             <Button
               className={classes.addButton}
-              color="secondary"
+              color="primary"
               variant="contained"
               onClick={onAdd}
             >

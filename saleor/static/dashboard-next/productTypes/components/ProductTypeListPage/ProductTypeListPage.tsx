@@ -31,7 +31,7 @@ const ProductTypeListPage: React.StatelessComponent<
     <AppHeader onBack={onBack}>{i18n.t("Configuration")}</AppHeader>
     <PageHeader title={i18n.t("Product types")}>
       <Button
-        color="secondary"
+        color="primary"
         variant="contained"
         disabled={disabled}
         onClick={onAdd}

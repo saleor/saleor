@@ -43,7 +43,7 @@ const CustomerAddresses = withStyles(styles, { name: "CustomerAddresses" })(
         title={i18n.t("Address Information")}
         toolbar={
           <Button
-            color="secondary"
+            color="primary"
             disabled={disabled}
             variant="text"
             onClick={onAddressManageClick}

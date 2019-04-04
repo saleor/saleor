@@ -41,7 +41,7 @@ export const ProductListCard: React.StatelessComponent<
 }) => (
   <Container>
     <PageHeader title={i18n.t("Products")}>
-      <Button onClick={onAdd} color="secondary" variant="contained">
+      <Button onClick={onAdd} color="primary" variant="contained">
         {i18n.t("Add product")} <AddIcon />
       </Button>
     </PageHeader>

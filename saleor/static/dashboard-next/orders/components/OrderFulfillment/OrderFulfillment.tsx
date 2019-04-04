@@ -185,7 +185,7 @@ const OrderFulfillment = withStyles(styles, { name: "OrderFulfillment" })(
         </Table>
         {status === FulfillmentStatus.FULFILLED && !fulfillment.trackingNumber && (
           <CardActions>
-            <Button color="secondary" onClick={onTrackingCodeAdd}>
+            <Button color="primary" onClick={onTrackingCodeAdd}>
               {i18n.t("Add tracking")}
             </Button>
           </CardActions>
