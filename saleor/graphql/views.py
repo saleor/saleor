@@ -1,4 +1,5 @@
 import json
+import traceback
 
 from django.conf import settings
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
@@ -171,8 +172,23 @@ class GraphQLView(View):
     @staticmethod
     def format_error(error):
         if isinstance(error, GraphQLError):
-            return format_graphql_error(error)
-        return {'message': str(error)}
+            result = format_graphql_error(error)
+        else:
+            result = {'message': str(error)}
+        if settings.DEBUG:
+            exc = error
+            while (isinstance(exc, GraphQLError)
+                   and hasattr(exc, 'original_error')):
+                exc = exc.original_error
+            lines = []
+            for line in traceback.format_exception(
+                    type(exc), exc, exc.__traceback__):
+                lines.extend(line.rstrip().splitlines())
+            result['extensions'] = {
+                'exception': {
+                    'code': type(exc).__name__,
+                    'stacktrace ': lines}}
+        return result
 
 
 def get_key(key):
