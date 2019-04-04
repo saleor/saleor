@@ -10,7 +10,7 @@ import Cached from "@material-ui/icons/Cached";
 import * as classNames from "classnames";
 import * as React from "react";
 
-import NoPhoto from "../../icons/NoPhoto";
+import Image from "../../icons/Image";
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -39,11 +39,11 @@ const TableCellAvatar = withStyles(styles, { name: "TableCellAvatar" })(
     <TableCell className={classNames(classes.root, className)}>
       {thumbnail === undefined ? (
         <Avatar className={classNames(classes.avatar, avatarProps)}>
-          <Cached />
+          <Cached color="primary" />
         </Avatar>
       ) : thumbnail === null ? (
         <Avatar className={classNames(classes.avatar, avatarProps)}>
-          <NoPhoto />
+          <Image color="primary" />
         </Avatar>
       ) : (
         <Avatar
