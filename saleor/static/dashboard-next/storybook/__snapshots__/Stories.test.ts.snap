@@ -72174,158 +72174,6 @@ exports[`Storyshots Views / Staff / Staff member details default 1`] = `
         <h1
           class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
         >
-          Jacob Smith
-        </h1>
-        <div
-          class="ExtendedPageHeader-action-id"
-        />
-      </div>
-      <div
-        class="Grid-root-id Grid-default-id"
-      >
-        <div>
-          <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
-          >
-            <div
-              class="CardTitle-root-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-headline-id CardTitle-title-id"
-              >
-                Staff Member Information
-              </span>
-              <div
-                class="CardTitle-toolbar-id"
-              />
-            </div>
-            <div
-              class="CardTitle-children-id"
-            />
-            <hr
-              class="CardTitle-hr-id"
-            />
-            <div
-              class="MuiCardContent-root-id"
-            >
-              <div
-                class="StaffProperties-root-id"
-              >
-                <div>
-                  <div
-                    class="StaffProperties-avatar-id"
-                  >
-                    <img
-                      class="StaffProperties-avatarImage-id"
-                      src="avatar1.png"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <div
-                    class="StaffProperties-propGrid-id"
-                  >
-                    <div
-                      class="StaffProperties-prop-id"
-                    >
-                      <div
-                        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-                      >
-                        <label
-                          class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                          data-shrink="true"
-                        >
-                          First Name
-                        </label>
-                        <div
-                          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
-                        >
-                          <input
-                            aria-invalid="false"
-                            class="MuiInputBase-input-id MuiInput-input-id"
-                            name="firstName"
-                            type="text"
-                            value="Jacob"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      class="StaffProperties-prop-id"
-                    >
-                      <div
-                        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-                      >
-                        <label
-                          class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                          data-shrink="true"
-                        >
-                          Last Name
-                        </label>
-                        <div
-                          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
-                        >
-                          <input
-                            aria-invalid="false"
-                            class="MuiInputBase-input-id MuiInput-input-id"
-                            name="lastName"
-                            type="text"
-                            value="Smith"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      class="StaffProperties-prop-id"
-                    >
-                      <div
-                        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-                      >
-                        <label
-                          class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                          data-shrink="true"
-                        >
-                          E-mail
-                        </label>
-                        <div
-                          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
-                        >
-                          <input
-                            aria-invalid="false"
-                            class="MuiInputBase-input-id MuiInput-input-id"
-                            name="email"
-                            type="text"
-                            value="admin@example.com"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </form>
-</div>
-`;
-
-exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
-<div
-  style="padding:24px"
->
-  <form>
-    <div
-      class="Container-root-id"
-    >
-      <div
-        class="ExtendedPageHeader-root-id"
-      >
-        <h1
-          class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
-        >
           <span
             class="Skeleton-skeleton-id"
             style="width:10em"
@@ -72459,6 +72307,829 @@ exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
             </div>
           </div>
         </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-headline-id CardTitle-title-id"
+              >
+                Permissions
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Expand or restrict user's permissions to access certain part of saleor system.
+              </p>
+              <div
+                class="StaffPermissions-checkboxContainer-id"
+              >
+                <label
+                  class="MuiFormControlLabel-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiCheckbox-checked-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                        />
+                      </svg>
+                      <input
+                        checked=""
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        name="hasFullAccess"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                  >
+                    User has full access to the store
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-headline-id CardTitle-title-id"
+              >
+                Account Status
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                If you want to disable this account uncheck the box below
+              </p>
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiCheckbox-checked-id"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                      />
+                    </svg>
+                    <input
+                      checked=""
+                      class="MuiPrivateSwitchBase-input-id"
+                      data-indeterminate="false"
+                      name="isActive"
+                      type="checkbox"
+                    />
+                  </span>
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                >
+                  User is active
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Staff / Staff member details himself 1`] = `
+<div
+  style="padding:24px"
+>
+  <form>
+    <div
+      class="Container-root-id"
+    >
+      <div
+        class="ExtendedPageHeader-root-id"
+      >
+        <h1
+          class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
+        >
+          Jacob Smith
+        </h1>
+        <div
+          class="ExtendedPageHeader-action-id"
+        />
+      </div>
+      <div
+        class="Grid-root-id Grid-default-id"
+      >
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-headline-id CardTitle-title-id"
+              >
+                Staff Member Information
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="StaffProperties-root-id"
+              >
+                <div>
+                  <div
+                    class="StaffProperties-avatar-id"
+                  >
+                    <img
+                      class="StaffProperties-avatarImage-id"
+                      src="avatar1.png"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div
+                    class="StaffProperties-propGrid-id"
+                  >
+                    <div
+                      class="StaffProperties-prop-id"
+                    >
+                      <div
+                        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                      >
+                        <label
+                          class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                          data-shrink="true"
+                        >
+                          First Name
+                        </label>
+                        <div
+                          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                        >
+                          <input
+                            aria-invalid="false"
+                            class="MuiInputBase-input-id MuiInput-input-id"
+                            name="firstName"
+                            type="text"
+                            value="Jacob"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="StaffProperties-prop-id"
+                    >
+                      <div
+                        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                      >
+                        <label
+                          class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                          data-shrink="true"
+                        >
+                          Last Name
+                        </label>
+                        <div
+                          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                        >
+                          <input
+                            aria-invalid="false"
+                            class="MuiInputBase-input-id MuiInput-input-id"
+                            name="lastName"
+                            type="text"
+                            value="Smith"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="StaffProperties-prop-id"
+                    >
+                      <div
+                        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                      >
+                        <label
+                          class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                          data-shrink="true"
+                        >
+                          E-mail
+                        </label>
+                        <div
+                          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                        >
+                          <input
+                            aria-invalid="false"
+                            class="MuiInputBase-input-id MuiInput-input-id"
+                            name="email"
+                            type="text"
+                            value="admin@example.com"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-headline-id CardTitle-title-id"
+              >
+                Permissions
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Expand or restrict user's permissions to access certain part of saleor system.
+              </p>
+              <div
+                class="StaffPermissions-checkboxContainer-id"
+              >
+                <label
+                  class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiCheckbox-disabled-id"
+                    tabindex="-1"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                        />
+                      </svg>
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        disabled=""
+                        name="hasFullAccess"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                  >
+                    User has full access to the store
+                  </span>
+                </label>
+              </div>
+            </div>
+            <hr
+              class="StaffPermissions-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div>
+                <label
+                  class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiCheckbox-disabled-id"
+                    tabindex="-1"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                        />
+                      </svg>
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        disabled=""
+                        name="IMPERSONATE_USERS"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                  >
+                    Impersonate customers
+                  </span>
+                </label>
+              </div>
+              <div>
+                <label
+                  class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiCheckbox-disabled-id"
+                    tabindex="-1"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                        />
+                      </svg>
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        disabled=""
+                        name="MANAGE_DISCOUNTS"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                  >
+                    Manage sales and vouchers
+                  </span>
+                </label>
+              </div>
+              <div>
+                <label
+                  class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiCheckbox-disabled-id"
+                    tabindex="-1"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                        />
+                      </svg>
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        disabled=""
+                        name="MANAGE_MENUS"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                  >
+                    Manage navigation
+                  </span>
+                </label>
+              </div>
+              <div>
+                <label
+                  class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiCheckbox-disabled-id"
+                    tabindex="-1"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                        />
+                      </svg>
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        disabled=""
+                        name="MANAGE_ORDERS"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                  >
+                    Manage orders
+                  </span>
+                </label>
+              </div>
+              <div>
+                <label
+                  class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiCheckbox-disabled-id"
+                    tabindex="-1"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                        />
+                      </svg>
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        disabled=""
+                        name="MANAGE_PAGES"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                  >
+                    Manage pages
+                  </span>
+                </label>
+              </div>
+              <div>
+                <label
+                  class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiCheckbox-disabled-id"
+                    tabindex="-1"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                        />
+                      </svg>
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        disabled=""
+                        name="MANAGE_PRODUCTS"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                  >
+                    Manage products
+                  </span>
+                </label>
+              </div>
+              <div>
+                <label
+                  class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiCheckbox-disabled-id"
+                    tabindex="-1"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                        />
+                      </svg>
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        disabled=""
+                        name="MANAGE_SETTINGS"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                  >
+                    Manage settings
+                  </span>
+                </label>
+              </div>
+              <div>
+                <label
+                  class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiCheckbox-disabled-id"
+                    tabindex="-1"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                        />
+                      </svg>
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        disabled=""
+                        name="MANAGE_SHIPPING"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                  >
+                    Manage shipping
+                  </span>
+                </label>
+              </div>
+              <div>
+                <label
+                  class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiCheckbox-disabled-id"
+                    tabindex="-1"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                        />
+                      </svg>
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        disabled=""
+                        name="MANAGE_STAFF"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                  >
+                    Manage staff
+                  </span>
+                </label>
+              </div>
+              <div>
+                <label
+                  class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiCheckbox-disabled-id"
+                    tabindex="-1"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                        />
+                      </svg>
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        disabled=""
+                        name="MANAGE_USERS"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                  >
+                    Manage customers
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-headline-id CardTitle-title-id"
+              >
+                Account Status
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                If you want to disable this account uncheck the box below
+              </p>
+              <label
+                class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+              >
+                <span
+                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiCheckbox-disabled-id"
+                  tabindex="-1"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                      />
+                    </svg>
+                    <input
+                      class="MuiPrivateSwitchBase-input-id"
+                      data-indeterminate="false"
+                      disabled=""
+                      name="isActive"
+                      type="checkbox"
+                    />
+                  </span>
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                >
+                  User is active
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </form>
@@ -72466,6 +73137,674 @@ exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
 `;
 
 exports[`Storyshots Views / Staff / Staff member details not admin 1`] = `
+<div
+  style="padding:24px"
+>
+  <form>
+    <div
+      class="Container-root-id"
+    >
+      <div
+        class="ExtendedPageHeader-root-id"
+      >
+        <h1
+          class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
+        >
+          Jacob Smith
+        </h1>
+        <div
+          class="ExtendedPageHeader-action-id"
+        />
+      </div>
+      <div
+        class="Grid-root-id Grid-default-id"
+      >
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-headline-id CardTitle-title-id"
+              >
+                Staff Member Information
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="StaffProperties-root-id"
+              >
+                <div>
+                  <div
+                    class="StaffProperties-avatar-id"
+                  >
+                    <img
+                      class="StaffProperties-avatarImage-id"
+                      src="avatar1.png"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div
+                    class="StaffProperties-propGrid-id"
+                  >
+                    <div
+                      class="StaffProperties-prop-id"
+                    >
+                      <div
+                        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                      >
+                        <label
+                          class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                          data-shrink="true"
+                        >
+                          First Name
+                        </label>
+                        <div
+                          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                        >
+                          <input
+                            aria-invalid="false"
+                            class="MuiInputBase-input-id MuiInput-input-id"
+                            name="firstName"
+                            type="text"
+                            value="Jacob"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="StaffProperties-prop-id"
+                    >
+                      <div
+                        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                      >
+                        <label
+                          class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                          data-shrink="true"
+                        >
+                          Last Name
+                        </label>
+                        <div
+                          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                        >
+                          <input
+                            aria-invalid="false"
+                            class="MuiInputBase-input-id MuiInput-input-id"
+                            name="lastName"
+                            type="text"
+                            value="Smith"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="StaffProperties-prop-id"
+                    >
+                      <div
+                        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                      >
+                        <label
+                          class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                          data-shrink="true"
+                        >
+                          E-mail
+                        </label>
+                        <div
+                          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                        >
+                          <input
+                            aria-invalid="false"
+                            class="MuiInputBase-input-id MuiInput-input-id"
+                            name="email"
+                            type="text"
+                            value="admin@example.com"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-headline-id CardTitle-title-id"
+              >
+                Permissions
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Expand or restrict user's permissions to access certain part of saleor system.
+              </p>
+              <div
+                class="StaffPermissions-checkboxContainer-id"
+              >
+                <label
+                  class="MuiFormControlLabel-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                        />
+                      </svg>
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        name="hasFullAccess"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                  >
+                    User has full access to the store
+                  </span>
+                </label>
+              </div>
+            </div>
+            <hr
+              class="StaffPermissions-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div>
+                <label
+                  class="MuiFormControlLabel-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                        />
+                      </svg>
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        name="IMPERSONATE_USERS"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                  >
+                    Impersonate customers
+                  </span>
+                </label>
+              </div>
+              <div>
+                <label
+                  class="MuiFormControlLabel-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiCheckbox-checked-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                        />
+                      </svg>
+                      <input
+                        checked=""
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        name="MANAGE_DISCOUNTS"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                  >
+                    Manage sales and vouchers
+                  </span>
+                </label>
+              </div>
+              <div>
+                <label
+                  class="MuiFormControlLabel-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiCheckbox-checked-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                        />
+                      </svg>
+                      <input
+                        checked=""
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        name="MANAGE_MENUS"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                  >
+                    Manage navigation
+                  </span>
+                </label>
+              </div>
+              <div>
+                <label
+                  class="MuiFormControlLabel-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiCheckbox-checked-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                        />
+                      </svg>
+                      <input
+                        checked=""
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        name="MANAGE_ORDERS"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                  >
+                    Manage orders
+                  </span>
+                </label>
+              </div>
+              <div>
+                <label
+                  class="MuiFormControlLabel-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiCheckbox-checked-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                        />
+                      </svg>
+                      <input
+                        checked=""
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        name="MANAGE_PAGES"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                  >
+                    Manage pages
+                  </span>
+                </label>
+              </div>
+              <div>
+                <label
+                  class="MuiFormControlLabel-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiCheckbox-checked-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                        />
+                      </svg>
+                      <input
+                        checked=""
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        name="MANAGE_PRODUCTS"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                  >
+                    Manage products
+                  </span>
+                </label>
+              </div>
+              <div>
+                <label
+                  class="MuiFormControlLabel-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiCheckbox-checked-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                        />
+                      </svg>
+                      <input
+                        checked=""
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        name="MANAGE_SETTINGS"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                  >
+                    Manage settings
+                  </span>
+                </label>
+              </div>
+              <div>
+                <label
+                  class="MuiFormControlLabel-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiCheckbox-checked-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                        />
+                      </svg>
+                      <input
+                        checked=""
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        name="MANAGE_SHIPPING"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                  >
+                    Manage shipping
+                  </span>
+                </label>
+              </div>
+              <div>
+                <label
+                  class="MuiFormControlLabel-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiCheckbox-checked-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                        />
+                      </svg>
+                      <input
+                        checked=""
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        name="MANAGE_STAFF"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                  >
+                    Manage staff
+                  </span>
+                </label>
+              </div>
+              <div>
+                <label
+                  class="MuiFormControlLabel-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiCheckbox-checked-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                        />
+                      </svg>
+                      <input
+                        checked=""
+                        class="MuiPrivateSwitchBase-input-id"
+                        data-indeterminate="false"
+                        name="MANAGE_USERS"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                  >
+                    Manage customers
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-headline-id CardTitle-title-id"
+              >
+                Account Status
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                If you want to disable this account uncheck the box below
+              </p>
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiCheckbox-checked-id"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                      />
+                    </svg>
+                    <input
+                      checked=""
+                      class="MuiPrivateSwitchBase-input-id"
+                      data-indeterminate="false"
+                      name="isActive"
+                      type="checkbox"
+                    />
+                  </span>
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                >
+                  User is active
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
 <div
   style="padding:24px"
 >
