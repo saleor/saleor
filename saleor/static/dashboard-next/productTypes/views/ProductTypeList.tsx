@@ -2,6 +2,7 @@ import * as React from "react";
 
 import Navigator from "../../components/Navigator";
 import { createPaginationState, Paginator } from "../../components/Paginator";
+import { configurationMenuUrl } from "../../configuration";
 import { maybe } from "../../misc";
 import { Pagination } from "../../types";
 import ProductTypeListPage from "../components/ProductTypeListPage";
@@ -38,6 +39,7 @@ export const ProductTypeList: React.StatelessComponent<
                   )}
                   pageInfo={pageInfo}
                   onAdd={() => navigate(productTypeAddUrl)}
+                  onBack={() => navigate(configurationMenuUrl)}
                   onNextPage={loadNextPage}
                   onPreviousPage={loadPreviousPage}
                   onRowClick={id => () => navigate(productTypeUrl(id))}

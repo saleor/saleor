@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import Container from "../../../components/Container";
 import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
@@ -13,6 +14,7 @@ import ShippingZonesList from "../ShippingZonesList";
 export interface ShippingZonesListPageProps extends PageListProps {
   defaultWeightUnit: WeightUnitsEnum;
   shippingZones: ShippingZoneFragment[];
+  onBack: () => void;
   onRemove: (id: string) => void;
   onSubmit: (unit: WeightUnitsEnum) => void;
 }
@@ -23,6 +25,7 @@ const ShippingZonesListPage: React.StatelessComponent<
   defaultWeightUnit,
   disabled,
   onAdd,
+  onBack,
   onNextPage,
   onPreviousPage,
   onRemove,
@@ -32,6 +35,7 @@ const ShippingZonesListPage: React.StatelessComponent<
   shippingZones
 }) => (
   <Container>
+    <AppHeader onBack={onBack}>{i18n.t("Configuration")}</AppHeader>
     <PageHeader
       title={i18n.t("Shipping", {
         context: "page header"
