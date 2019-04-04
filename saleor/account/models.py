@@ -68,6 +68,9 @@ class Address(models.Model):
     def __eq__(self, other):
         return self.as_data() == other.as_data()
 
+    def __hash__(self, *args, **kwargs):
+        return super().__hash__(*args, **kwargs)
+
     def as_data(self):
         """Return the address as a dict suitable for passing as kwargs.
 
