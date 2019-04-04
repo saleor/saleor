@@ -8,6 +8,11 @@ import { PermissionEnum } from "./../../types/globalTypes";
 // GraphQL fragment: StaffMemberDetailsFragment
 // ====================================================
 
+export interface StaffMemberDetailsFragment_avatar {
+  __typename: "Image";
+  url: string;
+}
+
 export interface StaffMemberDetailsFragment_permissions {
   __typename: "PermissionDisplay";
   code: PermissionEnum;
@@ -21,5 +26,6 @@ export interface StaffMemberDetailsFragment {
   firstName: string;
   isActive: boolean;
   lastName: string;
+  avatar: StaffMemberDetailsFragment_avatar | null;
   permissions: (StaffMemberDetailsFragment_permissions | null)[] | null;
 }

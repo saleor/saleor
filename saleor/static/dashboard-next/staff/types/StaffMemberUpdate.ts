@@ -14,6 +14,11 @@ export interface StaffMemberUpdate_staffUpdate_errors {
   message: string | null;
 }
 
+export interface StaffMemberUpdate_staffUpdate_user_avatar {
+  __typename: "Image";
+  url: string;
+}
+
 export interface StaffMemberUpdate_staffUpdate_user_permissions {
   __typename: "PermissionDisplay";
   code: PermissionEnum;
@@ -27,6 +32,7 @@ export interface StaffMemberUpdate_staffUpdate_user {
   firstName: string;
   isActive: boolean;
   lastName: string;
+  avatar: StaffMemberUpdate_staffUpdate_user_avatar | null;
   permissions: (StaffMemberUpdate_staffUpdate_user_permissions | null)[] | null;
 }
 
