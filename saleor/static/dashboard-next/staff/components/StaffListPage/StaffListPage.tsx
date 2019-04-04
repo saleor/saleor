@@ -2,6 +2,7 @@ import Button from "@material-ui/core/Button";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import { Container } from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
@@ -12,6 +13,7 @@ import StaffList from "../StaffList/StaffList";
 export interface StaffListPageProps extends ListProps {
   staffMembers: StaffList_staffUsers_edges_node[];
   onAdd: () => void;
+  onBack: () => void;
 }
 
 const StaffListPage: React.StatelessComponent<StaffListPageProps> = ({
@@ -19,11 +21,13 @@ const StaffListPage: React.StatelessComponent<StaffListPageProps> = ({
   pageInfo,
   staffMembers,
   onAdd,
+  onBack,
   onNextPage,
   onPreviousPage,
   onRowClick
 }) => (
   <Container>
+    <AppHeader onBack={onBack}>{i18n.t("Configuration")}</AppHeader>
     <PageHeader title={i18n.t("Staff members", { context: "page title" })}>
       <Button
         color="secondary"

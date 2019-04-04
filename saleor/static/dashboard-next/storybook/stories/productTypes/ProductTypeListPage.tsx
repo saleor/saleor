@@ -10,10 +10,15 @@ storiesOf("Views / Product types / Product types list", module)
   .addDecorator(Decorator)
   .add("default", () => (
     <ProductTypeListPage
+      onBack={() => undefined}
       productTypes={productTypes}
       {...pageListProps.default}
     />
   ))
   .add("loading", () => (
-    <ProductTypeListPage productTypes={undefined} {...pageListProps.loading} />
+    <ProductTypeListPage
+      onBack={() => undefined}
+      productTypes={undefined}
+      {...pageListProps.loading}
+    />
   ));
