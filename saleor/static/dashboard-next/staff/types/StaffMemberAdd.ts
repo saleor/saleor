@@ -14,6 +14,11 @@ export interface StaffMemberAdd_staffCreate_errors {
   message: string | null;
 }
 
+export interface StaffMemberAdd_staffCreate_user_avatar {
+  __typename: "Image";
+  url: string;
+}
+
 export interface StaffMemberAdd_staffCreate_user_permissions {
   __typename: "PermissionDisplay";
   code: PermissionEnum;
@@ -27,6 +32,7 @@ export interface StaffMemberAdd_staffCreate_user {
   firstName: string;
   isActive: boolean;
   lastName: string;
+  avatar: StaffMemberAdd_staffCreate_user_avatar | null;
   permissions: (StaffMemberAdd_staffCreate_user_permissions | null)[] | null;
 }
 
