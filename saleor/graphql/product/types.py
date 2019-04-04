@@ -217,8 +217,9 @@ class ProductVariant(CountableDjangoObjectType):
             'Returns translated Product Variant fields '
             'for the given language code.'),
         resolver=resolve_translation)
-    digital_content = graphene.Field(
-        DigitalContent, description='Digital content for the product variant')
+    digital_content = gql_optimizer.field(graphene.Field(
+        DigitalContent, description='Digital content for the product variant'),
+        model_field='digital_content')
 
     class Meta:
         description = dedent("""Represents a version of a product such as
