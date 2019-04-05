@@ -9,7 +9,7 @@ export interface PageInfo {
   hasPreviousPage: boolean;
   startCursor: string;
 }
-interface PaginationState {
+export interface PaginationState {
   after?: string;
   before?: string;
   first?: number;
@@ -22,13 +22,11 @@ interface QueryString {
 }
 
 interface PaginatorProps {
-  children: (
-    props: {
-      loadNextPage: () => void;
-      loadPreviousPage: () => void;
-      pageInfo: PageInfo;
-    }
-  ) => React.ReactElement<any>;
+  children: (props: {
+    loadNextPage: () => void;
+    loadPreviousPage: () => void;
+    pageInfo: PageInfo;
+  }) => React.ReactElement<any>;
   pageInfo: PageInfo;
   paginationState: PaginationState;
   queryString: QueryString;

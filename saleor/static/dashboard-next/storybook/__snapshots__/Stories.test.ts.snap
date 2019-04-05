@@ -2967,7 +2967,7 @@ exports[`Storyshots Generics / Rich text editor default 1`] = `
   style="padding:24px"
 >
   <div
-    class="RichTextEditor-root-id"
+    class="RichTextEditor-root-id RichTextEditor-scroll-id"
   >
     <span
       class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -7024,7 +7024,7 @@ exports[`Storyshots Views / Categories / Create category When loading 1`] = `
               class="FormSpacer-spacer-id"
             />
             <div
-              class="RichTextEditor-root-id"
+              class="RichTextEditor-root-id RichTextEditor-scroll-id"
             >
               <span
                 class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -7439,7 +7439,7 @@ exports[`Storyshots Views / Categories / Create category default 1`] = `
               class="FormSpacer-spacer-id"
             />
             <div
-              class="RichTextEditor-root-id"
+              class="RichTextEditor-root-id RichTextEditor-scroll-id"
             >
               <span
                 class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -7853,7 +7853,7 @@ exports[`Storyshots Views / Categories / Update category default 1`] = `
             class="FormSpacer-spacer-id"
           />
           <div
-            class="RichTextEditor-root-id"
+            class="RichTextEditor-root-id RichTextEditor-scroll-id"
           >
             <span
               class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -8756,7 +8756,7 @@ exports[`Storyshots Views / Categories / Update category loading 1`] = `
             class="FormSpacer-spacer-id"
           />
           <div
-            class="RichTextEditor-root-id"
+            class="RichTextEditor-root-id RichTextEditor-scroll-id"
           >
             <span
               class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -9421,7 +9421,7 @@ exports[`Storyshots Views / Categories / Update category no background 1`] = `
             class="FormSpacer-spacer-id"
           />
           <div
-            class="RichTextEditor-root-id"
+            class="RichTextEditor-root-id RichTextEditor-scroll-id"
           >
             <span
               class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -10318,7 +10318,7 @@ exports[`Storyshots Views / Categories / Update category no products 1`] = `
             class="FormSpacer-spacer-id"
           />
           <div
-            class="RichTextEditor-root-id"
+            class="RichTextEditor-root-id RichTextEditor-scroll-id"
           >
             <span
               class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -11221,7 +11221,7 @@ exports[`Storyshots Views / Categories / Update category no subcategories 1`] = 
             class="FormSpacer-spacer-id"
           />
           <div
-            class="RichTextEditor-root-id"
+            class="RichTextEditor-root-id RichTextEditor-scroll-id"
           >
             <span
               class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -12120,7 +12120,7 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                 class="FormSpacer-spacer-id"
               />
               <div
-                class="RichTextEditor-root-id"
+                class="RichTextEditor-root-id RichTextEditor-scroll-id"
               >
                 <span
                   class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -13372,7 +13372,7 @@ exports[`Storyshots Views / Collections / Collection details loading 1`] = `
                 class="FormSpacer-spacer-id"
               />
               <div
-                class="RichTextEditor-root-id"
+                class="RichTextEditor-root-id RichTextEditor-scroll-id"
               >
                 <span
                   class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -14200,7 +14200,7 @@ exports[`Storyshots Views / Collections / Collection details no products 1`] = `
                 class="FormSpacer-spacer-id"
               />
               <div
-                class="RichTextEditor-root-id"
+                class="RichTextEditor-root-id RichTextEditor-scroll-id"
               >
                 <span
                   class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -15613,7 +15613,7 @@ exports[`Storyshots Views / Collections / Create collection default 1`] = `
                 class="FormSpacer-spacer-id"
               />
               <div
-                class="RichTextEditor-root-id"
+                class="RichTextEditor-root-id RichTextEditor-scroll-id"
               >
                 <span
                   class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -16191,7 +16191,7 @@ exports[`Storyshots Views / Collections / Create collection loading 1`] = `
                 class="FormSpacer-spacer-id"
               />
               <div
-                class="RichTextEditor-root-id"
+                class="RichTextEditor-root-id RichTextEditor-scroll-id"
               >
                 <span
                   class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -52485,7 +52485,7 @@ exports[`Storyshots Views / Pages / Page details default 1`] = `
                 class="FormSpacer-spacer-id"
               />
               <div
-                class="RichTextEditor-root-id"
+                class="RichTextEditor-root-id RichTextEditor-scroll-id"
               >
                 <span
                   class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -53220,7 +53220,7 @@ exports[`Storyshots Views / Pages / Page details form errors 1`] = `
                 class="FormSpacer-spacer-id"
               />
               <div
-                class="RichTextEditor-root-id"
+                class="RichTextEditor-root-id RichTextEditor-scroll-id"
               >
                 <span
                   class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -53961,7 +53961,7 @@ exports[`Storyshots Views / Pages / Page details loading 1`] = `
                 class="FormSpacer-spacer-id"
               />
               <div
-                class="RichTextEditor-root-id"
+                class="RichTextEditor-root-id RichTextEditor-scroll-id"
               >
                 <span
                   class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -56893,7 +56893,7 @@ exports[`Storyshots Views / Products / Create product When loading 1`] = `
                 class="FormSpacer-spacer-id"
               />
               <div
-                class="RichTextEditor-root-id"
+                class="RichTextEditor-root-id RichTextEditor-scroll-id"
               >
                 <span
                   class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -57778,7 +57778,7 @@ exports[`Storyshots Views / Products / Create product default 1`] = `
                 class="FormSpacer-spacer-id"
               />
               <div
-                class="RichTextEditor-root-id"
+                class="RichTextEditor-root-id RichTextEditor-scroll-id"
               >
                 <span
                   class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -59846,7 +59846,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                 class="FormSpacer-spacer-id"
               />
               <div
-                class="RichTextEditor-root-id"
+                class="RichTextEditor-root-id RichTextEditor-scroll-id"
               >
                 <span
                   class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -61286,7 +61286,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
                 class="FormSpacer-spacer-id"
               />
               <div
-                class="RichTextEditor-root-id"
+                class="RichTextEditor-root-id RichTextEditor-scroll-id"
               >
                 <span
                   class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -62225,7 +62225,7 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
                 class="FormSpacer-spacer-id"
               />
               <div
-                class="RichTextEditor-root-id"
+                class="RichTextEditor-root-id RichTextEditor-scroll-id"
               >
                 <span
                   class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -63572,7 +63572,7 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                 class="FormSpacer-spacer-id"
               />
               <div
-                class="RichTextEditor-root-id"
+                class="RichTextEditor-root-id RichTextEditor-scroll-id"
               >
                 <span
                   class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
@@ -75965,6 +75965,528 @@ exports[`Storyshots Views / Taxes / Reduced Tax Categories loading 1`] = `
           </table>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Translations / Entity list default 1`] = `
+<div
+  style="padding:24px"
+>
+  <div
+    class="Container-root-id"
+  >
+    <div
+      class="ExtendedPageHeader-root-id"
+    >
+      <h1
+        class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
+      >
+        Translations to English
+      </h1>
+      <div
+        class="ExtendedPageHeader-action-id"
+      />
+    </div>
+    <div
+      class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+    >
+      <div
+        class="MuiTabs-root-id FilterTabs-tabsRoot-id"
+      >
+        <div
+          class="MuiTabs-flexContainer-id"
+        >
+          <div
+            class="MuiTabs-scroller-id MuiTabs-fixed-id"
+            role="tablist"
+            style="margin-bottom:0"
+          >
+            <div
+              class="MuiTabs-flexContainer-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id FilterTab-tabLabel-id"
+                    >
+                      Categories
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id FilterTab-tabLabel-id"
+                    >
+                      Collections
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id FilterTab-tabLabel-id FilterTab-selectedTabLabel-id"
+                    >
+                      Products
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id FilterTab-tabLabel-id"
+                    >
+                      Sales
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id FilterTab-tabLabel-id"
+                    >
+                      Vouchers
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id FilterTab-tabLabel-id"
+                    >
+                      Pages
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id FilterTab-tabLabel-id"
+                    >
+                      Product Types
+                    </span>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <table
+        class="MuiTable-root-id"
+      >
+        <thead
+          class="MuiTableHead-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-head-id"
+          >
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id TranslationsEntitiesList-wideColumn-id"
+              scope="col"
+            >
+              Name
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id TranslationsEntitiesList-textRight-id"
+              scope="col"
+            >
+              Completed Translations
+            </th>
+          </tr>
+        </thead>
+        <tfoot
+          class="MuiTableFooter-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-footer-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
+              colspan="2"
+            >
+              <div
+                class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
+              >
+                <div
+                  class="TablePagination-spacer-id"
+                />
+                <div
+                  class="TablePaginationActions-root-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id TablePaginationActions-iconButton-id TablePaginationActions-disabled-id"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M14 7l-5 5 5 5V7z"
+                        />
+                        <path
+                          d="M24 0v24H0V0h24z"
+                          fill="none"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                  <button
+                    class="MuiButtonBase-root-id MuiIconButton-root-id TablePaginationActions-iconButton-id"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M10 17l5-5-5-5v10z"
+                        />
+                        <path
+                          d="M0 24V0h24v24H0z"
+                          fill="none"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
+        <tbody
+          class="MuiTableBody-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id TranslationsEntitiesList-tableRow-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              White Hoodie
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id TranslationsEntitiesList-textRight-id"
+            >
+              1 of 3
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id TranslationsEntitiesList-tableRow-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Brown Supreme Hoodie
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id TranslationsEntitiesList-textRight-id"
+            >
+              2 of 3
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Translations / Language list default 1`] = `
+<div
+  style="padding:24px"
+>
+  <div
+    class="Container-root-id"
+  >
+    <div
+      class="ExtendedPageHeader-root-id"
+    >
+      <h1
+        class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
+      >
+        Languages
+      </h1>
+      <div
+        class="ExtendedPageHeader-action-id"
+      />
+    </div>
+    <div
+      class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+    >
+      <table
+        class="MuiTable-root-id"
+      >
+        <thead
+          class="MuiTableHead-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-head-id"
+          >
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id"
+              scope="col"
+            >
+              Language
+            </th>
+          </tr>
+        </thead>
+        <tbody
+          class="MuiTableBody-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id TranslationsLanguageList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id TranslationsLanguageList-capitalize-id"
+            >
+              niemiecki
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id TranslationsLanguageList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id TranslationsLanguageList-capitalize-id"
+            >
+              angielski
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id TranslationsLanguageList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id TranslationsLanguageList-capitalize-id"
+            >
+              hiszpański
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id TranslationsLanguageList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id TranslationsLanguageList-capitalize-id"
+            >
+              polski
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Translations / Language list loading 1`] = `
+<div
+  style="padding:24px"
+>
+  <div
+    class="Container-root-id"
+  >
+    <div
+      class="ExtendedPageHeader-root-id"
+    >
+      <h1
+        class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
+      >
+        Languages
+      </h1>
+      <div
+        class="ExtendedPageHeader-action-id"
+      />
+    </div>
+    <div
+      class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+    >
+      <table
+        class="MuiTable-root-id"
+      >
+        <thead
+          class="MuiTableHead-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-head-id"
+          >
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id"
+              scope="col"
+            >
+              Language
+            </th>
+          </tr>
+        </thead>
+        <tbody
+          class="MuiTableBody-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id TranslationsLanguageList-capitalize-id"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Translations / Language list no data 1`] = `
+<div
+  style="padding:24px"
+>
+  <div
+    class="Container-root-id"
+  >
+    <div
+      class="ExtendedPageHeader-root-id"
+    >
+      <h1
+        class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
+      >
+        Languages
+      </h1>
+      <div
+        class="ExtendedPageHeader-action-id"
+      />
+    </div>
+    <div
+      class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+    >
+      <table
+        class="MuiTable-root-id"
+      >
+        <thead
+          class="MuiTableHead-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-head-id"
+          >
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id"
+              scope="col"
+            >
+              Language
+            </th>
+          </tr>
+        </thead>
+        <tbody
+          class="MuiTableBody-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+              colspan="1"
+            >
+              No languages found
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>

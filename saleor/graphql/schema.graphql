@@ -926,7 +926,7 @@ enum LanguageCodeEnum {
 }
 
 type LanguageDisplay {
-  code: String!
+  code: LanguageCodeEnum!
   language: String!
 }
 
@@ -1179,6 +1179,7 @@ type Mutations {
   saleUpdate(id: ID!, input: SaleInput!): SaleUpdate
   saleCataloguesAdd(id: ID!, input: CatalogueInput!): SaleAddCatalogues
   saleCataloguesRemove(id: ID!, input: CatalogueInput!): SaleRemoveCatalogues
+  saleTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): SaleTranslate
   voucherCreate(input: VoucherInput!): VoucherCreate
   voucherDelete(id: ID!): VoucherDelete
   voucherBulkDelete(ids: [ID]!): VoucherBulkDelete
@@ -2030,6 +2031,7 @@ type Sale implements Node {
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   startDate: Date!
   endDate: Date
+  translation(languageCode: LanguageCodeEnum!): SaleTranslation
 }
 
 type SaleAddCatalogues {
@@ -2077,6 +2079,17 @@ input SaleInput {
 type SaleRemoveCatalogues {
   errors: [Error!]
   sale: Sale
+}
+
+type SaleTranslate {
+  errors: [Error!]
+  sale: Sale
+}
+
+type SaleTranslation implements Node {
+  id: ID!
+  name: String
+  language: LanguageDisplay!
 }
 
 enum SaleType {
@@ -2411,7 +2424,7 @@ enum TransactionKind {
   VOID
 }
 
-union TranslatableItem = Product | Category | Collection | Attribute | AttributeValue | ProductVariant | Page | ShippingMethod | Voucher | MenuItem
+union TranslatableItem = Product | Category | Collection | Attribute | AttributeValue | ProductVariant | Page | ShippingMethod | Sale | Voucher | MenuItem
 
 type TranslatableItemConnection {
   pageInfo: PageInfo!
@@ -2425,16 +2438,17 @@ type TranslatableItemEdge {
 }
 
 enum TranslatableKinds {
-  PRODUCT
-  COLLECTION
-  CATEGORY
-  PAGE
-  SHIPPING_METHOD
-  VOUCHER
   ATTRIBUTE
   ATTRIBUTE_VALUE
-  VARIANT
+  CATEGORY
+  COLLECTION
   MENU_ITEM
+  PAGE
+  PRODUCT
+  SALE
+  SHIPPING_METHOD
+  VARIANT
+  VOUCHER
 }
 
 input TranslationInput {
