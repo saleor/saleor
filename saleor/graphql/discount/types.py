@@ -9,8 +9,9 @@ from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
 from ..core.types import CountryDisplay
 from ..product.types import Category, Collection, Product
+from ..translations.enums import LanguageCodeEnum
 from ..translations.resolvers import resolve_translation
-from ..translations.types import VoucherTranslation
+from ..translations.types import SaleTranslation, VoucherTranslation
 
 
 class Sale(CountableDjangoObjectType):
@@ -29,11 +30,21 @@ class Sale(CountableDjangoObjectType):
             Product,
             description='List of products this sale applies to.'),
         model_field='products')
+    translation = graphene.Field(
+        SaleTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description='A language code to return the translation for.',
+            required=True),
+        description=(
+            'Returns translated sale fields for the given language code.'),
+        resolver=resolve_translation)
 
     class Meta:
         description = dedent("""
         Sales allow creating discounts for categories, collections or
         products and are visible to all the customers.""")
+        exclude_fields = ['translations']
         interfaces = [relay.Node]
         model = models.Sale
 
@@ -67,7 +78,9 @@ class Voucher(CountableDjangoObjectType):
         CountryDisplay,
         description='List of countries available for the shipping voucher.')
     translation = graphene.Field(
-        VoucherTranslation, language_code=graphene.String(
+        VoucherTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
             description='A language code to return the translation for.',
             required=True),
         description=(

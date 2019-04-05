@@ -67,7 +67,7 @@ export const ProductDetailsForm = withStyles(styles, {
           disabled={disabled}
           error={!!errors.descriptionJson}
           helperText={errors.descriptionJson}
-          initial={maybe(() => JSON.parse(product.descriptionJson))}
+          initial={maybe(() => JSON.parse(product.descriptionJson), null)}
           label={i18n.t("Description")}
           name="description"
           onChange={onChange}

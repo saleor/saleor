@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 import { OrderLineInput, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
@@ -37,6 +38,7 @@ export interface OrderLineUpdate_draftOrderLineUpdate_order_billingAddress {
 
 export interface OrderLineUpdate_draftOrderLineUpdate_order_events_user {
   __typename: "User";
+  id: string;
   email: string;
 }
 

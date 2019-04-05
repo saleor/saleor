@@ -26,7 +26,7 @@ const VoucherListPage: React.StatelessComponent<VoucherListPageProps> = ({
 }) => (
   <Container>
     <PageHeader title={i18n.t("Vouchers")}>
-      <Button onClick={onAdd} variant="contained" color="secondary">
+      <Button onClick={onAdd} variant="contained" color="primary">
         {i18n.t("Add voucher")}
         <AddIcon />
       </Button>

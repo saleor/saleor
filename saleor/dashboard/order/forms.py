@@ -5,7 +5,8 @@ from django.urls import reverse, reverse_lazy
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 
 from ...account.i18n import (
-    AddressForm as StorefrontAddressForm, PossiblePhoneNumberFormField)
+    AddressForm as StorefrontAddressForm, PossiblePhoneNumberFormField,
+    clean_phone_for_country)
 from ...account.models import User
 from ...checkout.forms import QuantityField
 from ...core.exceptions import InsufficientStock
@@ -16,7 +17,8 @@ from ...order import OrderStatus
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ...order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order,
-    change_order_line_quantity, delete_order_line, recalculate_order)
+    change_order_line_quantity, delete_order_line, fulfill_order_line,
+    recalculate_order)
 from ...payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from ...payment.utils import (
     clean_mark_order_as_paid, gateway_capture, gateway_refund, gateway_void,
@@ -26,9 +28,7 @@ from ...product.utils import allocate_stock, deallocate_stock
 from ...shipping.models import ShippingMethod
 from ..forms import AjaxSelect2ChoiceField
 from ..widgets import PhonePrefixWidget
-from .utils import (
-    fulfill_order_line, remove_customer_from_order,
-    update_order_with_user_addresses)
+from .utils import remove_customer_from_order, update_order_with_user_addresses
 
 
 class CreateOrderFromDraftForm(forms.ModelForm):
@@ -588,6 +588,17 @@ class AddressForm(StorefrontAddressForm):
         label=pgettext_lazy(
             'Order form: address subform - phone number input field',
             'Phone number'))
+
+    def clean(self):
+        data = super().clean()
+        phone = data.get('phone')
+        country = data.get('country')
+        if phone:
+            try:
+                data['phone'] = clean_phone_for_country(phone, country)
+            except forms.ValidationError as error:
+                self.add_error('phone', error)
+        return data
 
 
 class FulfillmentForm(forms.ModelForm):

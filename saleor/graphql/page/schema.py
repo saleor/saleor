@@ -3,6 +3,7 @@ import graphene
 from ..core.fields import PrefetchingConnectionField
 from ..descriptions import DESCRIPTIONS
 from ..translations.mutations import PageTranslate
+from .bulk_mutations import PageBulkDelete
 from .mutations import PageCreate, PageDelete, PageUpdate
 from .resolvers import resolve_page, resolve_pages
 from .types import Page
@@ -27,5 +28,6 @@ class PageQueries(graphene.ObjectType):
 class PageMutations(graphene.ObjectType):
     page_create = PageCreate.Field()
     page_delete = PageDelete.Field()
+    page_bulk_delete = PageBulkDelete.Field()
     page_update = PageUpdate.Field()
     page_translate = PageTranslate.Field()

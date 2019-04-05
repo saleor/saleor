@@ -13,6 +13,9 @@ export const staffMemberFragment = gql`
     firstName
     isActive
     lastName
+    avatar {
+      url
+    }
   }
 `;
 export const staffMemberDetailsFragment = gql`

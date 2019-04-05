@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 // ====================================================
@@ -34,6 +35,11 @@ export interface ProductVariantCreateData_product_productType {
   variantAttributes: (ProductVariantCreateData_product_productType_variantAttributes | null)[] | null;
 }
 
+export interface ProductVariantCreateData_product_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface ProductVariantCreateData_product_variants_images {
   __typename: "ProductImage";
   id: string;
@@ -54,6 +60,7 @@ export interface ProductVariantCreateData_product {
   images: (ProductVariantCreateData_product_images | null)[] | null;
   name: string;
   productType: ProductVariantCreateData_product_productType;
+  thumbnail: ProductVariantCreateData_product_thumbnail | null;
   variants: (ProductVariantCreateData_product_variants | null)[] | null;
 }
 

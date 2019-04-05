@@ -106,13 +106,13 @@ const LinkEntity = withStyles(styles, {
                                 disable();
                                 onEdit(entityKey);
                               }}
-                              color="secondary"
+                              color="primary"
                               variant="flat"
                             >
                               {i18n.t("Edit")}
                             </Button>
                             <IconButton onClick={() => onRemove(entityKey)}>
-                              <DeleteIcon color="secondary" />
+                              <DeleteIcon color="primary" />
                             </IconButton>
                           </div>
                         </ClickAwayListener>

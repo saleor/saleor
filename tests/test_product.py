@@ -1,6 +1,7 @@
 import datetime
 import io
 import json
+import os
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -8,6 +9,7 @@ import pytest
 from django.core import serializers
 from django.core.serializers.base import DeserializationError
 from django.urls import reverse
+from freezegun import freeze_time
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from saleor.checkout import utils
@@ -17,6 +19,7 @@ from saleor.dashboard.menu.utils import update_menu
 from saleor.discount.models import Sale
 from saleor.menu.models import MenuItemTranslation
 from saleor.product import ProductAvailabilityStatus, models
+from saleor.product.models import DigitalContentUrl
 from saleor.product.thumbnails import create_product_thumbnails
 from saleor.product.utils import (
     allocate_stock, deallocate_stock, decrease_stock, increase_stock)
@@ -597,3 +600,46 @@ def test_homepage_collection_render(
     products_available = {
         product for product in product_list if product.is_published}
     assert products_in_context == products_available
+
+
+def test_digital_product_view(client, digital_content):
+    digital_content_url = DigitalContentUrl.objects.create(content=digital_content)
+    url = digital_content_url.get_absolute_url()
+    response = client.get(url)
+    filename = os.path.basename(digital_content.content_file.name)
+
+    assert response.status_code == 200
+    assert response['content-type'] == 'image/jpeg'
+    assert response['content-disposition'] == 'attachment; filename="%s"' % filename
+
+
+def test_digital_product_view_url_downloaded_max_times(client, digital_content):
+    digital_content.use_default_settings = False
+    digital_content.max_downloads = 1
+    digital_content.save()
+    digital_content_url = DigitalContentUrl.objects.create(
+        content=digital_content)
+
+    url = digital_content_url.get_absolute_url()
+    response = client.get(url)
+
+    # first download
+    assert response.status_code == 200
+
+    # second download
+    response = client.get(url)
+    assert response.status_code == 404
+
+
+def test_digital_product_view_url_expired(client, digital_content):
+    digital_content.use_default_settings = False
+    digital_content.url_valid_days = 10
+    digital_content.save()
+
+    with freeze_time('2018-05-31 12:00:01'):
+        digital_content_url = DigitalContentUrl.objects.create(content=digital_content)
+
+    url = digital_content_url.get_absolute_url()
+    response = client.get(url)
+
+    assert response.status_code == 404

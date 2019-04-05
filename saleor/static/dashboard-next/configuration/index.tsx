@@ -4,13 +4,13 @@ import Navigator from "../components/Navigator";
 import { UserContext } from "../auth";
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
-import AccountCircle from "../icons/AccountCircle";
-import Folder from "../icons/Folder";
-import LocalShipping from "../icons/LocalShipping";
-import Monetization from "../icons/Monetization";
 import Navigation from "../icons/Navigation";
 import Pages from "../icons/Pages";
-import StoreMall from "../icons/StoreMall";
+import ProductTypes from "../icons/ProductTypes";
+import ShippingMethods from "../icons/ShippingMethods";
+import SiteSettings from "../icons/SiteSettings";
+import StaffMembers from "../icons/StaffMembers";
+import Taxes from "../icons/Taxes";
 import { pageListUrl } from "../pages/urls";
 import { productTypeListUrl } from "../productTypes/urls";
 import { shippingZonesListUrl } from "../shipping/urls";
@@ -23,48 +23,48 @@ import ConfigurationPage, { MenuItem } from "./ConfigurationPage";
 export const configurationMenu: MenuItem[] = [
   {
     description: i18n.t("Define types of products you sell"),
-    icon: <Folder fontSize="inherit" />,
+    icon: <ProductTypes fontSize="inherit" viewBox="0 0 44 44" />,
     permission: PermissionEnum.MANAGE_PRODUCTS,
     title: i18n.t("Product Types"),
     url: productTypeListUrl
   },
   {
     description: i18n.t("Manage your employees and their permissions"),
-    icon: <AccountCircle fontSize="inherit" />,
+    icon: <StaffMembers fontSize="inherit" viewBox="0 0 44 44" />,
     permission: PermissionEnum.MANAGE_STAFF,
     title: i18n.t("Staff Members"),
     url: staffListUrl
   },
   {
     description: i18n.t("Manage how you ship out orders."),
-    icon: <LocalShipping fontSize="inherit" />,
+    icon: <ShippingMethods fontSize="inherit" viewBox="0 0 44 44" />,
     permission: PermissionEnum.MANAGE_SHIPPING,
     title: i18n.t("Shipping Methods"),
     url: shippingZonesListUrl
   },
   {
     description: i18n.t("Manage how your store charges tax"),
-    icon: <Monetization fontSize="inherit" />,
+    icon: <Taxes fontSize="inherit" viewBox="0 0 44 44" />,
     permission: PermissionEnum.MANAGE_PRODUCTS,
     title: i18n.t("Taxes"),
     url: taxSection
   },
   {
     description: i18n.t("Define how users can navigate through your store"),
-    icon: <Navigation fontSize="inherit" />,
+    icon: <Navigation fontSize="inherit" viewBox="0 0 44 44" />,
     permission: PermissionEnum.MANAGE_MENUS,
     title: i18n.t("Navigation")
   },
   {
     description: i18n.t("View and update your site settings"),
-    icon: <StoreMall fontSize="inherit" />,
+    icon: <SiteSettings fontSize="inherit" viewBox="0 0 44 44" />,
     permission: PermissionEnum.MANAGE_SETTINGS,
     title: i18n.t("Site Settings"),
     url: siteSettingsUrl
   },
   {
     description: i18n.t("Manage and add additional pages"),
-    icon: <Pages fontSize="inherit" />,
+    icon: <Pages fontSize="inherit" viewBox="0 0 44 44" />,
     permission: PermissionEnum.MANAGE_PAGES,
     title: i18n.t("Pages"),
     url: pageListUrl

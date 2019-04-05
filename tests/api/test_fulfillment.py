@@ -1,3 +1,4 @@
+from unittest.mock import patch
 import graphene
 import pytest
 
@@ -32,9 +33,12 @@ CREATE_FULFILLMENT_QUERY = """
 """
 
 
+@patch(
+    'saleor.graphql.order.mutations.fulfillments.'
+    'send_fulfillment_confirmation')
 def test_create_fulfillment(
-        staff_api_client, order_with_lines, staff_user,
-        permission_manage_orders):
+        mock_send_fulfillment_confirmation, staff_api_client, order_with_lines,
+        staff_user, permission_manage_orders):
     order = order_with_lines
     query = CREATE_FULFILLMENT_QUERY
     order_id = graphene.Node.to_global_id('Order', order.id)
@@ -51,9 +55,12 @@ def test_create_fulfillment(
     assert_read_only_mode(response)
 
 
+@patch(
+    'saleor.graphql.order.mutations.fulfillments.'
+    'send_fulfillment_confirmation')
 def test_create_fulfillment_with_emtpy_quantity(
-        staff_api_client, order_with_lines, staff_user,
-        permission_manage_orders):
+        mock_send_fulfillment_confirmation, staff_api_client, order_with_lines,
+        staff_user, permission_manage_orders):
     order = order_with_lines
     query = CREATE_FULFILLMENT_QUERY
     order_id = graphene.Node.to_global_id('Order', order.id)
@@ -156,6 +163,36 @@ def test_cancel_fulfillment(
     """
     fulfillment_id = graphene.Node.to_global_id('Fulfillment', fulfillment.id)
     variables = {'id': fulfillment_id, 'restock': False}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
+    assert_read_only_mode(response)
+
+
+@patch(
+    'saleor.graphql.order.mutations.fulfillments.'
+    'send_fulfillment_confirmation')
+def test_create_digital_fulfillment(
+        mock_send_fulfillment_confirmation, digital_content, staff_api_client,
+        order_with_lines, staff_user, permission_manage_orders):
+    order = order_with_lines
+    query = CREATE_FULFILLMENT_QUERY
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    order_line = order.lines.first()
+    order_line.variant = digital_content.product_variant
+    order_line.save()
+
+    second_line = order.lines.last()
+    first_line_id = graphene.Node.to_global_id('OrderLine', order_line.id)
+    second_line_id = graphene.Node.to_global_id('OrderLine', second_line.id)
+
+    tracking = 'Flames tracking'
+    assert not order.events.all()
+    variables = {
+        'order': order_id,
+        'lines': [
+            {'orderLineId': first_line_id, 'quantity': 1},
+            {'orderLineId': second_line_id, 'quantity': 1}],
+        'tracking': tracking, 'notify': True}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
     assert_read_only_mode(response)

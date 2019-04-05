@@ -17,3 +17,9 @@ def snake_to_camel_case(name):
 def str_to_enum(name):
     """Create an enum value from a string."""
     return name.replace(' ', '_').replace('-', '_').upper()
+
+
+def validate_image_file(mutation_cls, file, field_name, errors):
+    """Validate if the file is an image."""
+    if not file.content_type.startswith('image/'):
+        mutation_cls.add_error(errors, field_name, 'Invalid file type')

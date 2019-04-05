@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 import { OrderAddNoteInput, OrderEventsEmails, OrderEvents } from "./../../types/globalTypes";
@@ -15,6 +16,7 @@ export interface OrderAddNote_orderAddNote_errors {
 
 export interface OrderAddNote_orderAddNote_order_events_user {
   __typename: "User";
+  id: string;
   email: string;
 }
 

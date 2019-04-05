@@ -1,9 +1,15 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 //==============================================================
 // START Enums and Input Objects
 //==============================================================
+
+export enum AddressTypeEnum {
+  BILLING = "BILLING",
+  SHIPPING = "SHIPPING",
+}
 
 export enum AttributeTypeEnum {
   PRODUCT = "PRODUCT",
@@ -23,6 +29,45 @@ export enum DiscountValueTypeEnum {
 export enum FulfillmentStatus {
   CANCELED = "CANCELED",
   FULFILLED = "FULFILLED",
+}
+
+export enum LanguageCodeEnum {
+  AR = "AR",
+  AZ = "AZ",
+  BG = "BG",
+  BN = "BN",
+  CA = "CA",
+  CS = "CS",
+  DA = "DA",
+  DE = "DE",
+  EN = "EN",
+  ES = "ES",
+  ET = "ET",
+  FA = "FA",
+  FR = "FR",
+  HI = "HI",
+  HU = "HU",
+  ID = "ID",
+  IT = "IT",
+  JA = "JA",
+  KO = "KO",
+  MN = "MN",
+  NB = "NB",
+  NL = "NL",
+  PL = "PL",
+  PT_BR = "PT_BR",
+  RO = "RO",
+  RU = "RU",
+  SK = "SK",
+  SR = "SR",
+  SV = "SV",
+  SW = "SW",
+  TH = "TH",
+  TR = "TR",
+  UK = "UK",
+  VI = "VI",
+  ZH_HANS = "ZH_HANS",
+  ZH_HANT = "ZH_HANT",
 }
 
 export enum OrderAction {
@@ -159,10 +204,10 @@ export enum VoucherTypeEnum {
 }
 
 export enum WeightUnitsEnum {
-  g = "g",
-  kg = "kg",
-  lb = "lb",
-  oz = "oz",
+  G = "G",
+  KG = "KG",
+  LB = "LB",
+  OZ = "OZ",
 }
 
 export interface AddressInput {
@@ -286,6 +331,10 @@ export interface FulfillmentUpdateTrackingInput {
   notifyCustomer?: boolean | null;
 }
 
+export interface NameTranslationInput {
+  name?: string | null;
+}
+
 export interface OrderAddNoteInput {
   message?: string | null;
 }
@@ -317,6 +366,14 @@ export interface PageInput {
   isPublished?: boolean | null;
   publicationDate?: string | null;
   seo?: SeoInput | null;
+}
+
+export interface PageTranslationInput {
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  title?: string | null;
+  content?: string | null;
+  contentJson?: any | null;
 }
 
 export interface ProductTypeInput {
@@ -404,6 +461,14 @@ export interface StaffInput {
   isActive?: boolean | null;
   note?: string | null;
   permissions?: (PermissionEnum | null)[] | null;
+}
+
+export interface TranslationInput {
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  name?: string | null;
+  description?: string | null;
+  descriptionJson?: any | null;
 }
 
 export interface UserCreateInput {

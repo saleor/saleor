@@ -22,7 +22,7 @@ const CustomerListPage: React.StatelessComponent<CustomerListPageProps> = ({
   <Container>
     <PageHeader title={i18n.t("Customers")}>
       <Button
-        color="secondary"
+        color="primary"
         variant="contained"
         disabled={disabled}
         onClick={onAdd}

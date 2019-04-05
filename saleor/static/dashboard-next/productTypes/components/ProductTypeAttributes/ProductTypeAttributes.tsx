@@ -71,7 +71,7 @@ const ProductTypeAttributes = withStyles(styles, {
         }
         toolbar={
           <Button
-            color="secondary"
+            color="primary"
             variant="text"
             onClick={() => onAttributeAdd(type)}
           >
@@ -117,7 +117,7 @@ const ProductTypeAttributes = withStyles(styles, {
                   <IconButton
                     onClick={event => onAttributeDelete(attribute.id, event)}
                   >
-                    <DeleteIcon color="secondary" />
+                    <DeleteIcon color="primary" />
                   </IconButton>
                 </TableCell>
               </TableRow>

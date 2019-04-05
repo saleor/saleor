@@ -728,7 +728,8 @@ def test_view_ajax_reorder_product_images(admin_client, product_with_images):
 def test_view_ajax_reorder_product_images_invalid(
         admin_client, product_with_images):
     order_before = [img.pk for img in product_with_images.images.all()]
-    ordered_images = list(reversed(order_before)).append(3)
+    ordered_images = list(reversed(order_before))
+    ordered_images.append(3)
     url = reverse(
         'dashboard:product-images-reorder',
         kwargs={'product_pk': product_with_images.pk})
@@ -950,7 +951,8 @@ def test_view_ajax_reorder_attribute_values(
 def test_view_ajax_reorder_attribute_values_invalid(
         admin_client, color_attribute):
     order_before = [val.pk for val in color_attribute.values.all()]
-    ordered_values = list(reversed(order_before)).append(3)
+    ordered_values = list(reversed(order_before))
+    ordered_values.append(3)
     url = reverse(
         'dashboard:attribute-values-reorder',
         kwargs={'attribute_pk': color_attribute.pk})

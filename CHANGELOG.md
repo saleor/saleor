@@ -3,61 +3,106 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
+- Update typescript types after apollo is upgraded - #3823 by @jxltom
+- Add languageCode enum to API - #3819 by @michaljelonek
+- Bump backend dependencies - #3827 by @maarcingebala
+- Fix django-recaptcha tests after upgraded to 1.5.0 - 3835 by @jxltom
+- Resort imports by upgraded isort - #3836 by @jxltom
+- Support is_default_shipping/billing_address for address API - #3787 by @jxltom
+- Add bulk delete mutations - #3838 by @michaljelonek
+- Fix product creating - #3837 by @dominik-zeglen
+- Fix schema after bulk mutations are added - #3843 by @jxltom
+- Add address book view - #3826 by @dominik-zeglen
+- New translations:
+  - Swahili
+  - Thai
+- Improve user and staff management in dashboard 1.0 - #3781 by @jxltom
+- Add missing language enum in GraphQL schema - #3854 by @jxltom
+- Fix layout in staff members details page - #3857 by @dominik-zeglen
+- Add draft orders query - #3809 by @michaljelonek
+- Restrict global orders query - #3861 by @pawelzar
+- Improve accessibility - #3856 by @dominik-zeglen
+- Add light/dark theme - #3856 by @dominik-zeglen
+- Fix bug where logo-document is not renamed to logo-light - #3867 by @jxltom
+- Copy addresses in checkoutCreate and draftOrderCreate mutations - #3866 by @pawelzar
+- Fix default product tax rate in Dashboard 1.0 - #3880 by @pawelzar
+- Introduce avatars for staff accounts - #3878 by @pawelzar
+- Fix unfocusing rich text editor - #3902 by @dominik-zeglen
+- Fix phone number validation in GraphQL when country prefix not given - #3905 by @patrys
+- Fix product create view crash - #3910 by @dominik-zeglen
+- Add ability to create another variant from the variant details view = #3914 by @dominik-zeglen
+- Add back arrows to configure sections - #3917 by @dominik-zeglen
+- Display avatars in staff views - #3922 by @dominik-zeglen
+- Prevent user from changing his own status and permissions - #3922 by @dominik-zeglen
+- Support for digital product - #3868 by @korycins
+- Add translation interface - #3884 by @dominik-zeglen
+- Drop support for Django 2.1 and Django 1.11 (previous LTS)
+- Fix variants for juices in example data - #3926 by @michaljelonek
+- Fix logo in docs - #3928 by @michaljelonek
+
+
+## 2.4.0
+### API
+- Add model translations support in GraphQL API - #3789 by @michaljelonek
+- Add mutations to manage addresses for authenticated customers - #3772 by @Kwaidan00, @maarcingebala
+- Add mutation to apply vouchers in checkout - #3739 by @Kwaidan00
+- Add thumbnail field to `OrderLine` type - #3737 by @michaljelonek
+- Add a query to fetch order by token - #3740 by @michaljelonek
+- Add city choices and city area type to address validator API - #3788 by @jxltom
+- Fix access to unpublished objects in API - #3724 by @Kwaidan00
+- Fix bug where errors are not returned when creating fulfillment with a non-existent order line - #3777 by @jxltom
+- Fix `productCreate` mutation when no product type was provided - #3804 by @michaljelonek
+- Enable database search in products query - #3736 by @michaljelonek
+- Use authenticated user's email as default email in creating checkout - #3726 by @jxltom
+- Generate voucher code if it wasn't provided in mutation - #3717 by @Kwaidan00
+- Improve limitation of vouchers by country  - #3707 by @michaljelonek
+- Only include canceled fulfillments for staff in fulfillment API - #3778 by @jxltom
+- Support setting address as when creating customer address #3782 by @jxltom
+- Fix generating slug from title - #3816 by @maarcingebala
+- Add `variant` field to `OrderLine` type - #3820 by @maarcingebala
+
+### Core
+- Add JSON fields to store rich-text content - #3756 by @michaljelonek
+- Add function to recalculate total order weight - #3755 by @Kwaidan00, @maarcingebala
+- Unify cart creation logic in API and Django views - #3761, #3790 by @maarcingebala
+- Unify payment creation logic in API and Django views - #3715 by @maarcingebala
+- Support partially charged and refunded payments - #3735 by @jxltom
+- Support partial fulfillment of ordered items - #3754 by @jxltom
+- Fix applying discounts when a sale has no end date - #3595 by @cprinos
+
+### Dashboard 2.0
+- Add "Discounts" section - #3654 by @dominik-zeglen
+- Add "Pages" section; introduce Draftail WYSIWYG editor - #3751 by @dominik-zeglen
+- Add "Shipping Methods" section - #3770  by @dominik-zeglen
+- Add support for date and datetime components - #3708 by @dominik-zeglen
+- Restyle app layout - #3811 by @dominik-zeglen
+
+### Other notable changes
+
+- Unify model field names related to models' public access - `publication_date` and `is_published` - #3706 by @michaljelonek
+- Improve filter orders by payment status - #3749 @jxltom
+- Refactor translations in emails - #3701 by @Kwaidan00
+- Use exact image versions in docker-compose - #3742 by @ashishnitinpatil
+- Sort order payment and history in descending order - #3747 by @jxltom
+- Disable style-loader in dev mode - #3720 by @jxltom
+- Add ordering to shipping method - #3806 by @michaljelonek
+- Add missing type definition for dashboard 2.0 - #3776 by @jxltom
+- Add header and footer for checkout success pages #3752 by @jxltom
+- Add instructions for using local assets in Docker - #3723 by @michaljelonek
+- Update S3 deployment documentation to include CORS configuration note - #3743 by @NyanKiyoshi
+- Fix missing migrations for is_published field of product and page model - #3757 by @jxltom
+- Fix problem with l10n in Braintree payment gateway template - #3691 by @Kwaidan00
+- Fix bug where payment is not filtered from active ones when creating payment - #3732 by @jxltom
+- Fix incorrect cart badge location - #3786 by @jxltom
+- Fix storefront styles after bootstrap is updated to 4.3.1 - #3753 by @jxltom
+- Fix logo size in different browser and devices with different sizes - #3722 by @jxltom
+- Rename dumpdata file `db.json` to `populatedb_data.json` - #3810 by @maarcingebala
+- Prefetch collections for product availability - #3813 by @michaljelonek
+- Bump django-graphql-jwt - #3814 by @michaljelonek
+- Fix generating slug from title - #3816 by @maarcingebala
 - New translations:
   - Estonian
   - Indonesian
-- Fix problem with l10n in Braintree payment gateway template - #3691 by @Kwaidan00
-- Improve vouchers country limiting  - #3707 by @michaljelonek
-- Add support for date and datetime components - #3708 by @dominik-zeglen
-- Unify field names on product, collection and page - #3706 by @michaljelonek
-- Generate voucher code if it wasn't provided in mutation - #3717 by @Kwaidan00
-- Reuse Storefront's 1.0 payment logic in API - #3715 by @maarcingebala
-- Add instructions for using local assets in Docker - #3723 by @michaljelonek
-- Remove unused imports - #3645 by @jxltom
-- Add discount section - #3654 by @dominik-zeglen
-- Disable style-loader in dev mode - #3720 by @jxltom
-- Use authenticated user's email as default email in creating checkout - #3726 by @jxltom
-- Fix access to unpublished objects via API - #3724 by @Kwaidan00
-- Add thumbnail to OrderLine, deprecate thumbnailUrl - #3737 by @michaljelonek
-- Refactor translations in emails - #3701 by @Kwaidan00
-- Add orderByToken query - #3740 by @michaljelonek
-- Enable existing search with backend picker in products query - #3736 by @michaljelonek
-- Fix bug where payment is not filtered from active ones when creating payment - #3731 by @jxltom
-- Sort order's payment and history descendingly - #3747 by @jxltom
-- Use exact image versions in docker-compose - #3742 by @ashishnitinpatil
-- Add mutation to connect voucher with checkout - #3739 by @Kwaidan00
-- Update S3 deployment documentation to include CORS configuration note - #3743 by @NyanKiyoshi
-- Fix missing migrations for is_published field of product and page model - #3757 by @jxltom
-- Add header and footer for checkout success pages #3752 by @jxltom
-- Filter order by payment status from order's last payment - #3749 @jxltom
-- Reuse cart creation logic in API - #3761 by @maarcingebala
-- Add json fields to models for content/description - #3756 by @michaljelonek
-- Fix bug where errors are not returned when creating fulfillment with non-existed order line - #3777 by @jxltom
-- Support fulfill order with 0 quantity only if total quantity is larger than 0 - #3754 by @jxltom
-- Fix storefront styles after bootstrap is updated to 4.3.1 - #3753 by @jxltom
-- Fix logo size in different browser and devices with different sizes - #3722 by @jxltom
-- Add missing type definition for dashboard 2.0 - #3776 by @jxltom
-- Add mutations to manage addresses for authenticated customers - #3772 by @Kwaidan00, @maarcingebala
-- Only include cancelled fulfillments for staff in fulfillment API - #3778 by @jxltom
-- Fix incorrect cart badge location - #3786 by @jxltom
-- Add function to recalculate order's total weight - #3755 by @Kwaidan00, @maarcingebala
-- Unify behavior after creating checkout in API and Storefront 1.0; code formatting improvements - #3790 by @maarcingebala
-- Add pages section in Dashboard 2.0; introduce Draftail WYSIWYG editor - #3751 by @dominik-zeglen
-- Support partially charged and partially refunded payment status - #3735 by @jxltom
-- Add translations to GraphQL API - #3789 by @michaljelonek
-- Fix product create when no product type provided - #3804 by @michaljelonek
-- Add ordering to shipping method - #3806 by @michaljelonek
-- Add missing types for dashboard 2.0 after adding translations to API - #3802 by @jxltom
-- Add city choices and city area type to address validator API - #3788 by @jxltom
-- Support setting as default address directly when creating customer address #3782 by @jxltom
-- Include example JSON content in dumpdata file - #3810 by @maarcingebala
-- Add shipping zones to dashboard 2.0 - #3770 by @dominik-zeglen
-- Prefetch collections for product availability - #3813 by @michaljelonek
-- Restyle app layout - #3811 by @dominik-zeglen
-- Bump django-graphql-jwt - #3814 by @michaljelonek
-- Fix generating slug from title - #3816 by @maarcingebala
-- Fix minor bugs in page details' view - #3818 by @dominik-zeglen
-- Add `variant` field to `OrderLine` type - #3820 by @maarcingebala
 
 
 ## 2.3.1

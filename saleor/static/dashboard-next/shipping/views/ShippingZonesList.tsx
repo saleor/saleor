@@ -7,6 +7,7 @@ import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import { createPaginationState, Paginator } from "../../components/Paginator";
 import Shop from "../../components/Shop";
+import { configurationMenuUrl } from "../../configuration";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import { Pagination } from "../../types";
@@ -136,6 +137,9 @@ export const ShippingZonesList: React.StatelessComponent<
                                           pageInfo={pageInfo}
                                           onAdd={() =>
                                             navigate(shippingZoneAddUrl)
+                                          }
+                                          onBack={() =>
+                                            navigate(configurationMenuUrl)
                                           }
                                           onNextPage={loadNextPage}
                                           onPreviousPage={loadPreviousPage}

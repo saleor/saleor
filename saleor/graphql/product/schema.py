@@ -9,10 +9,18 @@ from ..descriptions import DESCRIPTIONS
 from ..translations.mutations import (
     AttributeTranslate, AttributeValueTranslate, CategoryTranslate,
     CollectionTranslate, ProductTranslate, ProductVariantTranslate)
+from .bulk_mutations.attributes import (
+    AttributeBulkDelete, AttributeValueBulkDelete)
+from .bulk_mutations.products import (
+    CategoryBulkDelete, CollectionBulkDelete, ProductBulkDelete,
+    ProductImageBulkDelete, ProductTypeBulkDelete, ProductVariantBulkDelete)
 from .enums import StockAvailability
 from .mutations.attributes import (
     AttributeCreate, AttributeDelete, AttributeUpdate, AttributeValueCreate,
     AttributeValueDelete, AttributeValueUpdate)
+from .mutations.digital_contents import (
+    DigitalContentCreate, DigitalContentDelete, DigitalContentUpdate,
+    DigitalContentUrlCreate)
 from .mutations.products import (
     CategoryCreate, CategoryDelete, CategoryUpdate, CollectionAddProducts,
     CollectionCreate, CollectionDelete, CollectionRemoveProducts,
@@ -23,15 +31,21 @@ from .mutations.products import (
     VariantImageAssign, VariantImageUnassign)
 from .resolvers import (
     resolve_attributes, resolve_categories, resolve_collections,
-    resolve_product_types, resolve_product_variants, resolve_products,
-    resolve_report_product_sales)
+    resolve_digital_contents, resolve_product_types, resolve_product_variants,
+    resolve_products, resolve_report_product_sales)
 from .scalars import AttributeScalar
 from .types import (
-    Attribute, Category, Collection, Product, ProductOrder, ProductType,
-    ProductVariant)
+    Attribute, Category, Collection, DigitalContent, Product, ProductOrder,
+    ProductType, ProductVariant)
 
 
 class ProductQueries(graphene.ObjectType):
+    digital_content = graphene.Field(
+        DigitalContent, id=graphene.Argument(graphene.ID, required=True))
+    digital_contents = PrefetchingConnectionField(
+        DigitalContent, query=graphene.String(),
+        level=graphene.Argument(graphene.Int),
+        description='List of the digital contents.')
     attributes = PrefetchingConnectionField(
         Attribute,
         description='List of the shop\'s attributes.',
@@ -118,6 +132,14 @@ class ProductQueries(graphene.ObjectType):
     def resolve_collections(self, info, query=None, **kwargs):
         return resolve_collections(info, query)
 
+    @permission_required('product.manage_products')
+    def resolve_digital_content(self, info, id):
+        return graphene.Node.get_node_from_global_id(info, id, DigitalContent)
+
+    @permission_required('product.manage_products')
+    def resolve_digital_contents(self, info, query=None, **kwargs):
+        return resolve_digital_contents(info, query)
+
     def resolve_product(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, Product)
 
@@ -144,42 +166,56 @@ class ProductQueries(graphene.ObjectType):
 class ProductMutations(graphene.ObjectType):
     attribute_create = AttributeCreate.Field()
     attribute_delete = AttributeDelete.Field()
+    attribute_bulk_delete = AttributeBulkDelete.Field()
     attribute_update = AttributeUpdate.Field()
     attribute_translate = AttributeTranslate.Field()
 
     attribute_value_create = AttributeValueCreate.Field()
     attribute_value_delete = AttributeValueDelete.Field()
+    attribute_value_bulk_delete = AttributeValueBulkDelete.Field()
     attribute_value_update = AttributeValueUpdate.Field()
     attribute_value_translate = AttributeValueTranslate.Field()
 
     category_create = CategoryCreate.Field()
     category_delete = CategoryDelete.Field()
+    category_bulk_delete = CategoryBulkDelete.Field()
     category_update = CategoryUpdate.Field()
     category_translate = CategoryTranslate.Field()
 
     collection_add_products = CollectionAddProducts.Field()
     collection_create = CollectionCreate.Field()
     collection_delete = CollectionDelete.Field()
+    collection_bulk_delete = CollectionBulkDelete.Field()
     collection_remove_products = CollectionRemoveProducts.Field()
     collection_update = CollectionUpdate.Field()
     collection_translate = CollectionTranslate.Field()
 
     product_create = ProductCreate.Field()
     product_delete = ProductDelete.Field()
+    product_bulk_delete = ProductBulkDelete.Field()
     product_update = ProductUpdate.Field()
     product_translate = ProductTranslate.Field()
 
     product_image_create = ProductImageCreate.Field()
     product_image_delete = ProductImageDelete.Field()
+    product_image_bulk_delete = ProductImageBulkDelete.Field()
     product_image_reorder = ProductImageReorder.Field()
     product_image_update = ProductImageUpdate.Field()
 
     product_type_create = ProductTypeCreate.Field()
     product_type_delete = ProductTypeDelete.Field()
+    product_type_bulk_delete = ProductTypeBulkDelete.Field()
     product_type_update = ProductTypeUpdate.Field()
+
+    digital_content_create = DigitalContentCreate.Field()
+    digital_content_delete = DigitalContentDelete.Field()
+    digital_content_update = DigitalContentUpdate.Field()
+
+    digital_content_url_create = DigitalContentUrlCreate.Field()
 
     product_variant_create = ProductVariantCreate.Field()
     product_variant_delete = ProductVariantDelete.Field()
+    product_variant_bulk_delete = ProductVariantBulkDelete.Field()
     product_variant_update = ProductVariantUpdate.Field()
     product_variant_translate = ProductVariantTranslate.Field()
 

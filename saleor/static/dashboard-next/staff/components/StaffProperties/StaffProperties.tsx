@@ -7,29 +7,26 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
-import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
 import i18n from "../../../i18n";
-import { getUserInitials } from "../../../misc";
+import { maybe } from "../../../misc";
 import { StaffMemberDetails_user } from "../../types/StaffMemberDetails";
 
 const styles = (theme: Theme) =>
   createStyles({
     avatar: {
       alignItems: "center",
-      backgroundColor: theme.palette.primary.main,
       borderRadius: "100%",
       display: "grid",
       height: 120,
       justifyContent: "center",
       width: 120
     },
-    avatarText: {
-      color: "#ffffff",
-      fontSize: 64,
-      pointerEvents: "none"
+    avatarImage: {
+      pointerEvents: "none",
+      width: "100%"
     },
     prop: {
       marginBottom: theme.spacing.unit * 2 + "px"
@@ -76,9 +73,10 @@ const StaffProperties = withStyles(styles, { name: "StaffProperties" })(
         <div className={classes.root}>
           <div>
             <div className={classes.avatar}>
-              <Typography className={classes.avatarText}>
-                {getUserInitials(staffMember)}
-              </Typography>
+              <img
+                className={classes.avatarImage}
+                src={maybe(() => staffMember.avatar.url)}
+              />
             </div>
           </div>
           <div>

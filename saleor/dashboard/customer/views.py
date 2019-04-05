@@ -56,7 +56,8 @@ def customer_details(request, pk):
 @permission_required('account.manage_users')
 def customer_create(request):
     customer = User()
-    form = CustomerForm(request.POST or None, instance=customer)
+    form = CustomerForm(
+        request.POST or None, instance=customer, user=request.user)
     if form.is_valid():
         form.save()
         msg = pgettext_lazy(
@@ -72,8 +73,8 @@ def customer_create(request):
 @permission_required('account.manage_users')
 def customer_edit(request, pk=None):
     customer = get_object_or_404(User, pk=pk)
-    customer.email = customer.email
-    form = CustomerForm(request.POST or None, instance=customer)
+    form = CustomerForm(
+        request.POST or None, instance=customer, user=request.user)
     if form.is_valid():
         form.save()
         msg = pgettext_lazy(

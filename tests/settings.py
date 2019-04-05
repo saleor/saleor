@@ -30,3 +30,7 @@ CHECKOUT_PAYMENT_GATEWAYS = {
     RAZORPAY: 'Razorpay',
     STRIPE: 'Stripe'
 }
+
+COUNTRIES_ONLY = None
+
+MEDIA_ROOT = os.path.join(MEDIA_ROOT, 'test')

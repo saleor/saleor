@@ -253,7 +253,6 @@ class OrderCancel(BaseMutation):
         else:
             order.events.create(
                 type=OrderEvents.CANCELED.value, user=info.context.user)
-        # FIXME all payments should be voided/refunded at this point
         return OrderCancel(order=order)
 
 
@@ -306,7 +305,8 @@ class OrderCapture(BaseMutation):
 
         errors = []
         if amount <= 0:
-            cls.add_error('Amount should be a positive number.')
+            cls.add_error(
+                errors, 'amount', 'Amount should be a positive number.')
             return OrderCapture(errors=errors)
 
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
@@ -378,7 +378,8 @@ class OrderRefund(BaseMutation):
 
         errors = []
         if amount <= 0:
-            cls.add_error('Amount should be a positive number.')
+            cls.add_error(
+                errors, 'amount', 'Amount should be a positive number.')
             return OrderRefund(errors=errors)
 
         order = cls.get_node_or_error(info, id, errors, 'id', Order)

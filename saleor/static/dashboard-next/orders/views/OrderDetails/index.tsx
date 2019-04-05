@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Route } from "react-router-dom";
 
-import ErrorMessageCard from "../../../components/ErrorMessageCard";
 import Navigator from "../../../components/Navigator";
 import { WindowTitle } from "../../../components/WindowTitle";
 import { getMutationState, maybe, transformAddressToForm } from "../../../misc";
@@ -103,10 +102,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
         variables={{ id }}
         require={["order"]}
       >
-        {({ data, error, loading }) => {
-          if (error) {
-            return <ErrorMessageCard message="Something went wrong" />;
-          }
+        {({ data, loading }) => {
           const order = maybe(() => data.order);
           const onModalClose = () => navigate(orderUrl(id), true);
           return (

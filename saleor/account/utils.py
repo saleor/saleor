@@ -1,3 +1,8 @@
+import os
+import random
+
+from django.core.files import File
+
 from ..checkout import AddressType
 from ..core.demo_obfuscators import obfuscate_address
 
@@ -56,3 +61,11 @@ def get_user_last_name(user):
     if user.default_billing_address:
         return user.default_billing_address.last_name
     return None
+
+
+def get_random_avatar():
+    """Return random avatar picked from a pool of static avatars."""
+    avatars_dir = 'saleor/static/images/avatars/'
+    avatar_name = random.choice(os.listdir(avatars_dir))
+    avatar_path = os.path.join(avatars_dir, avatar_name)
+    return File(open(avatar_path, 'rb'), name=avatar_name)

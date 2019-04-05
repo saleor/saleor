@@ -45,6 +45,7 @@
     "downshift": "^1.31.14",
     "draft-js": "^0.10.5",
     "draftail": "^1.1.0",
+    "draftjs-to-html": "^0.8.4",
     "dropzone": "^5.2.0",
     "fuzzaldrin": "^2.1.0",
     "graphql": "^14.0.2",
@@ -77,8 +78,8 @@
     "react-inlinesvg": "^0.8.1",
     "react-jss": "^8.4.0",
     "react-moment": "^0.7.7",
-    "react-router": "^4.2.0",
-    "react-router-dom": "^4.2.2",
+    "react-router": "^5.0.0",
+    "react-router-dom": "^5.0.0",
     "react-router-navigation-prompt": "^1.8.2",
     "react-sortable-hoc": "^0.6.8",
     "react-svg": "^2.2.11",
@@ -89,7 +90,8 @@
     "svg-injector-2": "^2.0.35",
     "typescript": "^3.2.2",
     "universal-cookie": "^2.1.2",
-    "url-join": "^4.0.0"
+    "url-join": "^4.0.0",
+    "use-react-router": "^1.0.4"
   },
   "devDependencies": {
     "@babel/core": "^7.2.0",

@@ -20,24 +20,27 @@ from saleor.account.models import Address, User
 from saleor.checkout import utils
 from saleor.checkout.models import Cart
 from saleor.checkout.utils import add_variant_to_cart
+from saleor.core.utils.taxes import DEFAULT_TAX_RATE_NAME
 from saleor.dashboard.menu.utils import update_menu
-from saleor.dashboard.order.utils import fulfill_order_line
 from saleor.discount import VoucherType
 from saleor.discount.models import Sale, Voucher, VoucherTranslation
 from saleor.menu.models import Menu, MenuItem
 from saleor.order import OrderEvents, OrderStatus
 from saleor.order.models import FulfillmentStatus, Order, OrderEvent
-from saleor.order.utils import recalculate_order
+from saleor.order.utils import recalculate_order, fulfill_order_line
 from saleor.page.models import Page
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.models import Payment
 from saleor.product.models import (
     Attribute, AttributeTranslation, AttributeValue, Category, Collection,
-    Product, ProductImage, ProductTranslation, ProductType, ProductVariant)
+    Product, ProductImage, ProductTranslation, ProductType, ProductVariant,
+    DigitalContent
+)
 from saleor.shipping.models import (
     ShippingMethod, ShippingMethodType, ShippingZone)
 from saleor.site import AuthenticationBackends
 from saleor.site.models import AuthorizationKey, SiteSettings
+from tests.utils import create_image
 
 
 @pytest.fixture(autouse=True)
@@ -94,7 +97,7 @@ def address(db):  # pylint: disable=W0613
         first_name='John', last_name='Doe',
         company_name='Mirumee Software',
         street_address_1='Tęczowa 7',
-        city='Wrocław',
+        city='WROCŁAW',
         postal_code='53-601',
         country='PL',
         phone='+48713988102')
@@ -106,7 +109,7 @@ def address_other_country():
         first_name='John',
         last_name='Doe',
         street_address_1='4371 Lucas Knoll Apt. 791',
-        city='Bennettmouth',
+        city='BENNETTMOUTH',
         postal_code='13377',
         country='IS',
         phone='')
@@ -220,6 +223,7 @@ def shipping_zone_without_countries(db):  # pylint: disable=W0613
         shipping_zone=shipping_zone)
     return shipping_zone
 
+
 @pytest.fixture
 def shipping_method(shipping_zone):
     return ShippingMethod.objects.create(
@@ -314,7 +318,8 @@ def permission_manage_orders():
 @pytest.fixture
 def product_type(color_attribute, size_attribute):
     product_type = ProductType.objects.create(
-        name='Default Type', has_variants=True, is_shipping_required=True)
+        name='Default Type', has_variants=True, is_shipping_required=True,
+        tax_rate=DEFAULT_TAX_RATE_NAME)
     product_type.product_attributes.add(color_attribute)
     product_type.variant_attributes.add(size_attribute)
     return product_type
@@ -335,7 +340,8 @@ def product(product_type, category):
 
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
-        product_type=product_type, attributes=attributes, category=category)
+        product_type=product_type, attributes=attributes, category=category,
+        tax_rate=DEFAULT_TAX_RATE_NAME)
 
     variant_attr = product_type.variant_attributes.first()
     variant_attr_value = variant_attr.values.first()
@@ -882,3 +888,23 @@ def payment_dummy(db, settings, order_with_lines):
         billing_country_code=order_with_lines.billing_address.country.code,
         billing_country_area=order_with_lines.billing_address.country_area,
         billing_email=order_with_lines.user_email)
+
+
+@pytest.fixture
+def digital_content(category):
+    product_type = ProductType.objects.create(
+        name='Digital Type', has_variants=True, is_shipping_required=False,
+        is_digital=True
+    )
+    product = Product.objects.create(
+        name='Test digital product', price=Money('10.00', 'USD'),
+        product_type=product_type, category=category)
+    product_variant = ProductVariant.objects.create(
+        product=product, sku='SKU_554', cost_price=Money(1, 'USD'), quantity=5,
+        quantity_allocated=3)
+
+    image_file, image_name = create_image()
+    d_content = DigitalContent.objects.create(
+        content_file=image_file, product_variant=product_variant,
+        use_default_settings=True)
+    return d_content

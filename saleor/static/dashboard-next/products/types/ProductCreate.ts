@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 import { AttributeValueInput } from "./../../types/globalTypes";
@@ -193,4 +194,6 @@ export interface ProductCreateVariables {
   name: string;
   price?: any | null;
   productType: string;
+  sku?: string | null;
+  stockQuantity?: number | null;
 }

@@ -319,6 +319,9 @@ const productVariantCreateQuery = gql`
           }
         }
       }
+      thumbnail {
+        url
+      }
       variants {
         id
         name

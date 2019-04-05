@@ -36,9 +36,6 @@ const styles = (theme: Theme) =>
     },
     tableRow: {
       cursor: "pointer"
-    },
-    textCenter: {
-      textAlign: "center"
     }
   });
 
@@ -76,7 +73,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
           <Button
             disabled={disabled}
             variant="text"
-            color="secondary"
+            color="primary"
             onClick={onAdd}
           >
             {i18n.t("Assign product", {
@@ -90,9 +87,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
           <TableRow>
             <TableCell />
             <TableCell>{i18n.t("Name", { context: "table header" })}</TableCell>
-            <TableCell className={classes.textCenter}>
-              {i18n.t("Type", { context: "table header" })}
-            </TableCell>
+            <TableCell>{i18n.t("Type", { context: "table header" })}</TableCell>
             <TableCell>
               {i18n.t("Published", { context: "table header" })}
             </TableCell>
@@ -126,7 +121,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
                 <TableCell>
                   {maybe<React.ReactNode>(() => product.name, <Skeleton />)}
                 </TableCell>
-                <TableCell className={classes.textCenter}>
+                <TableCell>
                   {maybe<React.ReactNode>(
                     () => product.productType.name,
                     <Skeleton />
@@ -152,7 +147,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
                     disabled={!product}
                     onClick={event => onProductUnassign(product.id, event)}
                   >
-                    <DeleteIcon color="secondary" />
+                    <DeleteIcon color="primary" />
                   </IconButton>
                 </TableCell>
               </TableRow>
