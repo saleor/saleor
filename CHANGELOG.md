@@ -36,6 +36,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Prevent user from changing his own status and permissions - #3922 by @dominik-zeglen
 - Support for digital product - #3868 by @korycins
 - Add translation interface - #3884 by @dominik-zeglen
+- Fix logo in docs - #3928 by @michaljelonek
 
 
 ## 2.4.0
