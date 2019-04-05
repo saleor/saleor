@@ -286,6 +286,40 @@ def test_delete_draft_orders(
         id__in=[order.id for order in orders]).count() == len(orders)
 
 
+def test_delete_draft_orders_lines(
+        staff_api_client, order_with_lines, permission_manage_orders):
+    order = order_with_lines
+    order_lines = [line for line in order]
+    order.status = OrderStatus.CANCELED
+
+    query = """
+    mutation draftOrderLinesBulkDelete($ids: [ID]!) {
+        draftOrderLinesBulkDelete(ids: $ids) {
+            count
+        }
+    }
+    """
+
+    variables = {'ids': [
+        graphene.Node.to_global_id('OrderLine', order_line.id)
+        for order_line in order_lines]}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+    assert 'errors' in content
+    assert content['data']['draftOrderLinesBulkDelete']['count'] == 0
+
+    order.status = OrderStatus.DRAFT
+    order.save()
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+
+    assert content['data']['draftOrderLinesBulkDelete']['count'] == 2
+    assert not order_models.Order.objects.filter(
+        id__in=[order_line.pk for order_line in order_lines]).exists()
+
+
 def test_delete_menus(
         staff_api_client, menu_list, permission_manage_menus):
     query = """
