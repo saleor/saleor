@@ -22,7 +22,7 @@ const dark: IThemeColors = {
   },
   paperBorder: "#252728",
   primary: "#13BEBB",
-  secondary: "#13BEBB"
+  secondary: "#21125E"
 };
 const light: IThemeColors = {
   autofill: "#f4f6c5",
@@ -41,7 +41,7 @@ const light: IThemeColors = {
   },
   paperBorder: "#EAEAEA",
   primary: "#13BEBB",
-  secondary: "#13BEBB"
+  secondary: "#21125E"
 };
 
 interface IThemeContext {

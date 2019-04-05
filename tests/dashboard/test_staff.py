@@ -136,7 +136,7 @@ def test_staff_create_email_with_set_link_password(admin_client):
 
 def test_send_set_password_email(staff_user, site_settings):
     site = site_settings.site
-    uid = urlsafe_base64_encode(force_bytes(staff_user.pk)).decode()
+    uid = urlsafe_base64_encode(force_bytes(staff_user.pk))
     token = default_token_generator.make_token(staff_user)
     logo_url = build_absolute_uri(static('images/logo-light.svg'))
     password_set_url = build_absolute_uri(
@@ -174,7 +174,7 @@ def test_create_staff_and_set_password(admin_client):
     assert new_user.first_name == 'Jan'
     assert new_user.last_name == 'Nowak'
     assert not new_user.password
-    uid = urlsafe_base64_encode(force_bytes(new_user.pk)).decode()
+    uid = urlsafe_base64_encode(force_bytes(new_user.pk))
     token = default_token_generator.make_token(new_user)
     response = admin_client.get(
         reverse(

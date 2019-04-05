@@ -144,7 +144,7 @@ def test_add_customer_and_set_password(admin_client):
     assert new_user.first_name == data['first_name']
     assert new_user.last_name == data['last_name']
     assert not new_user.password
-    uid = urlsafe_base64_encode(force_bytes(new_user.pk)).decode()
+    uid = urlsafe_base64_encode(force_bytes(new_user.pk))
     token = default_token_generator.make_token(new_user)
     response = admin_client.get(
         reverse(
@@ -163,7 +163,7 @@ def test_add_customer_and_set_password(admin_client):
 
 def test_send_set_password_customer_email(customer_user, site_settings):
     site = site_settings.site
-    uid = urlsafe_base64_encode(force_bytes(customer_user.pk)).decode()
+    uid = urlsafe_base64_encode(force_bytes(customer_user.pk))
     token = default_token_generator.make_token(customer_user)
     logo_url = build_absolute_uri(static('images/logo-light.svg'))
     password_set_url = build_absolute_uri(

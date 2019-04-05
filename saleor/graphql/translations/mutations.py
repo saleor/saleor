@@ -26,7 +26,7 @@ class BaseTranslateMutation(ModelMutation):
         instance = cls.get_node_or_error(
             info, data['id'], errors, 'id', model_type)
 
-        if errors:
+        if errors or not instance:
             return cls(errors=errors)
 
         instance.translations.update_or_create(
@@ -124,6 +124,19 @@ class AttributeValueTranslate(BaseTranslateMutation):
     class Meta:
         description = 'Creates/Updates translations for Attribute Value.'
         model = product_models.AttributeValue
+
+
+class SaleTranslate(BaseTranslateMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description='Voucher ID')
+        language_code = graphene.Argument(
+            LanguageCodeEnum,
+            required=True, description='Translation language code')
+        input = NameTranslationInput(required=True)
+
+    class Meta:
+        description = 'Creates/updates translations for a sale.'
+        model = discount_models.Sale
 
 
 class VoucherTranslate(BaseTranslateMutation):

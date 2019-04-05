@@ -60,7 +60,7 @@ const CategoryList = withStyles(styles, { name: "CategoryList" })(
         <CardTitle
           title={i18n.t("All Subcategories")}
           toolbar={
-            <Button color="secondary" variant="text" onClick={onAdd}>
+            <Button color="primary" variant="text" onClick={onAdd}>
               {i18n.t("Add subcategory")}
             </Button>
           }

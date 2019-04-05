@@ -8,7 +8,9 @@ from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ...site import models as site_models
 from ..core.connection import CountableDjangoObjectType
+from ..core.utils import str_to_enum
 from ..core.types import LanguageDisplay
+from .enums import LanguageCodeEnum
 
 
 class BaseTranslationType(CountableDjangoObjectType):
@@ -25,7 +27,7 @@ class BaseTranslationType(CountableDjangoObjectType):
                 if language[0] == self.language_code)
         except StopIteration:
             return None
-        return LanguageDisplay(code=self.language_code, language=language)
+        return LanguageDisplay(code=LanguageCodeEnum[str_to_enum(self.language_code)], language=language)
 
 
 class AttributeValueTranslation(BaseTranslationType):
@@ -82,6 +84,13 @@ class VoucherTranslation(BaseTranslationType):
         model = discount_models.VoucherTranslation
         interfaces = [graphene.relay.Node]
         exclude_fields = ['voucher', 'language_code']
+
+
+class SaleTranslation(BaseTranslationType):
+    class Meta:
+        model = discount_models.SaleTranslation
+        interfaces = [graphene.relay.Node]
+        exclude_fields = ['sale', 'language_code']
 
 
 class ShopTranslation(BaseTranslationType):

@@ -52,7 +52,7 @@ const CustomerOrders = withStyles(styles, { name: "CustomerOrders" })(
           toolbar={
             <Button
               variant="text"
-              color="secondary"
+              color="primary"
               onClick={onViewAllOrdersClick}
             >
               {i18n.t("View all orders")}

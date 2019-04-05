@@ -179,7 +179,7 @@ const ProductImages = withStyles(styles, { name: "ProductImages" })(
               onClick={() => this.upload.click()}
               disabled={loading}
               variant="text"
-              color="secondary"
+              color="primary"
             >
               {i18n.t("Upload image")}
             </Button>

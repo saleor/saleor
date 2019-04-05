@@ -16,6 +16,7 @@ from ...site import models as site_models
 from ..core.enums import WeightUnitsEnum
 from ..core.types.common import (
     CountryDisplay, LanguageDisplay, PermissionDisplay)
+from ..core.utils import str_to_enum
 from ..menu.types import Menu
 from ..product.types import Collection
 from ..translations.enums import LanguageCodeEnum
@@ -173,7 +174,8 @@ class Shop(graphene.ObjectType):
 
     def resolve_languages(self, info):
         return [
-            LanguageDisplay(code=language[0], language=language[1])
+            LanguageDisplay(
+                code=LanguageCodeEnum[str_to_enum(language[0])], language=language[1])
             for language in settings.LANGUAGES]
 
     def resolve_name(self, info):

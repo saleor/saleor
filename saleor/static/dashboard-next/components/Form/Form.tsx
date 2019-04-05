@@ -7,6 +7,7 @@ export interface FormProps<T extends {}> {
     hasChanged: boolean;
     errors: { [key: string]: string };
     change(event: React.ChangeEvent<any>, cb?: () => void);
+    reset();
     submit(event?: React.FormEvent<any>);
   }) => React.ReactElement<any>;
   errors?: UserError[];
@@ -25,6 +26,7 @@ interface FormComponentProps<T extends {}> extends FormProps<T> {
 interface FormState<T extends {}> {
   initial: T;
   fields: T;
+  hasChanged: boolean;
 }
 
 class FormComponent<T extends {} = {}> extends React.Component<
@@ -51,6 +53,7 @@ class FormComponent<T extends {} = {}> extends React.Component<
           ...(prevState.fields as any),
           ...swapFields
         },
+        hasChanged: false,
         initial: {
           ...(prevState.initial as any),
           ...swapFields
@@ -62,19 +65,20 @@ class FormComponent<T extends {} = {}> extends React.Component<
 
   state: FormState<T> = {
     fields: this.props.initial,
+    hasChanged: false,
     initial: this.props.initial
   };
 
   componentDidUpdate() {
     const { hasChanged, confirmLeave, toggleFormChangeState } = this.props;
-    if (this.hasChanged() !== hasChanged && confirmLeave) {
+    if (this.state.hasChanged !== hasChanged && confirmLeave) {
       toggleFormChangeState();
     }
   }
 
   componentDidMount() {
     const { hasChanged, confirmLeave, toggleFormChangeState } = this.props;
-    if (this.hasChanged() !== hasChanged && confirmLeave) {
+    if (this.state.hasChanged !== hasChanged && confirmLeave) {
       toggleFormChangeState();
     }
   }
@@ -98,7 +102,8 @@ class FormComponent<T extends {} = {}> extends React.Component<
         fields: {
           ...(this.state.fields as any),
           [target.name]: target.value
-        }
+        },
+        hasChanged: true
       },
       typeof cb === "function" ? cb : undefined
     );
@@ -132,9 +137,6 @@ class FormComponent<T extends {} = {}> extends React.Component<
     }
   };
 
-  hasChanged = () =>
-    JSON.stringify(this.state.initial) !== JSON.stringify(this.state.fields);
-
   render() {
     const { children, errors, useForm = true } = this.props;
 
@@ -150,7 +152,11 @@ class FormComponent<T extends {} = {}> extends React.Component<
             {}
           )
         : {},
-      hasChanged: this.hasChanged(),
+      hasChanged: this.state.hasChanged,
+      reset: () =>
+        this.setState({
+          fields: this.state.initial
+        }),
       submit: this.handleSubmit
     });
 
