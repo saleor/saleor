@@ -4,7 +4,12 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
+import classNames from "classnames";
 import * as React from "react";
+
+interface HrProps {
+  className?: string;
+}
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -19,7 +24,9 @@ const styles = (theme: Theme) =>
   });
 
 export const Hr = withStyles(styles, { name: "Hr" })(
-  ({ classes }: WithStyles<typeof styles>) => <hr className={classes.root} />
+  ({ className, classes }: HrProps & WithStyles<typeof styles>) => (
+    <hr className={classNames(classes.root, className)} />
+  )
 );
 Hr.displayName = "Hr";
 export default Hr;

@@ -5,6 +5,7 @@ import { saleListUrl, voucherListUrl } from "../../discounts/urls";
 import i18n from "../../i18n";
 import { orderDraftListUrl, orderListUrl } from "../../orders/urls";
 import { productListUrl } from "../../products/urls";
+import { languageListUrl } from "../../translations/urls";
 import { PermissionEnum } from "../../types/globalTypes";
 
 export interface IMenuItem {
@@ -68,6 +69,7 @@ const menuStructure: IMenuItem[] = [
     permission: PermissionEnum.MANAGE_USERS,
     url: customerListUrl
   },
+
   {
     ariaLabel: "discounts",
     children: [
@@ -84,6 +86,12 @@ const menuStructure: IMenuItem[] = [
     ],
     label: i18n.t("Discounts", { context: "Menu label" }),
     permission: PermissionEnum.MANAGE_DISCOUNTS
+  },
+  {
+    ariaLabel: "translations",
+    label: i18n.t("Translations", { context: "Menu label" }),
+    permission: PermissionEnum.MANAGE_TRANSLATIONS,
+    url: languageListUrl
   }
 ];
 export default menuStructure;
