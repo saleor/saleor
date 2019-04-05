@@ -37,6 +37,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Support for digital product - #3868 by @korycins
 - Add translation interface - #3884 by @dominik-zeglen
 - Drop support for Django 2.1 and Django 1.11 (previous LTS)
+- Fix variants for juices in example data - #3926 by @michaljelonek
 
 
 ## 2.4.0
