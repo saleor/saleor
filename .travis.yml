@@ -23,7 +23,6 @@ env:
     - DATABASE_URL="postgres://postgres@localhost:5432/saleor"
     - SECRET_KEY="irrelevant"
   matrix:
-  - DJANGO="1.11"
   - DJANGO="2.2"
   - DJANGO="master"
 matrix:

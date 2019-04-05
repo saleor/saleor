@@ -36,6 +36,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Prevent user from changing his own status and permissions - #3922 by @dominik-zeglen
 - Support for digital product - #3868 by @korycins
 - Add translation interface - #3884 by @dominik-zeglen
+- Drop support for Django 2.1 and Django 1.11 (previous LTS)
 
 
 ## 2.4.0
