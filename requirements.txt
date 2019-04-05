@@ -46,7 +46,7 @@ django-storages==1.7.1
 django-templated-email==2.3.0
 django-versatileimagefield==1.10
 django-webpack-loader==0.6.0
-django==2.1.7
+django==2.2.0
 docutils==0.14
 elasticsearch-dsl==6.0.1
 elasticsearch==6.3.1
